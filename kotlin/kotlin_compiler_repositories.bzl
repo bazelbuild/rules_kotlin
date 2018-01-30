@@ -17,6 +17,11 @@
 load("//kotlin/rules:defs.bzl", "KOTLIN_REPO_ROOT")
 
 KOTLIN_RELEASES = {
+    "1.2.21": {
+      "version": "1.2.21",
+      "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.21/kotlin-compiler-1.2.21.zip",
+      "sha256": "c5f2cbd35daa6c5c394e92e6c06b8eb41d85ad8da64762733874166b6807af22"
+    },
     "1.2.20": {
         "version": "1.2.20",
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.20/kotlin-compiler-1.2.20.zip",
@@ -114,7 +119,7 @@ sh_binary(
 exports_files(["src"])
 """
 
-KOTLIN_CURRENT_RELEASE = "1.2.20"
+KOTLIN_CURRENT_RELEASE = "1.2.21"
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
