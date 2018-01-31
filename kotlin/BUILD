@@ -30,8 +30,7 @@ skylark_doc(
     format = "html",
     site_root = select({
         ":local": "/tmp/rules_kotlin",
-        "//conditions:default": "https://hsyed.github.io/rules_kotlin"
-#        "//conditions:default": "https://bazelbuild.github.io/rules_kotlin"
+        "//conditions:default": "https://bazelbuild.github.io/rules_kotlin"
     }),
     visibility = ["//visibility:public"]
 )

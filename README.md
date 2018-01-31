@@ -1,4 +1,4 @@
-[Skydoc documentation](https://hsyed.github.io/rules_kotlin/kotlin/kotlin.html)
+[Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
 
 # Overview
 
