@@ -13,42 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers.compilers.jvm.utils;
+package io.bazel.ruleskotlin.workers;
 
 import io.bazel.ruleskotlin.workers.compilers.jvm.Locations;
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils;
 import org.jetbrains.kotlin.preloading.Preloader;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public final class KotlinPreloadedCompilerBuilder {
+public final class KotlinToolchain {
     private static final Object[] NO_ARGS = new Object[]{};
+    private final ClassLoader classLoader;
 
-    private static final List<File> PRELOAD_JARS = Stream.concat(
-            Locations.KOTLIN_REPO.verifiedRelativeFiles(Paths.get("lib", "kotlin-compiler.jar")),
-            Locations.JAVA_HOME.verifiedRelativeFiles(Paths.get("lib", "tools.jar"))
-    ).collect(Collectors.toList());
+    public KotlinToolchain() throws IOException {
+        this.classLoader = ClassPreloadingUtils.preloadClasses(
+                Locations.KOTLIN_REPO.verifiedRelativeFiles(
+                        Paths.get("lib", "kotlin-compiler.jar")
+                ),
+                Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
+                Thread.currentThread().getContextClassLoader(),
+                null
+        );
+    }
+
+    public interface KotlinCompiler extends BiFunction<String[], PrintStream, Integer> {
+    }
 
     /**
-     * Load the Kotlin compiler and the javac tools.jar into a Preloading classloader. The Kotlin compiler is invoked reflectively to eventually allow
+     * Load the Kotlin compiler and the javac tools.jar into a Preloading classLoader. The Kotlin compiler is invoked reflectively to eventually allow
      * toolchain replacement.
      */
-    public static BiFunction<String[], PrintStream,Integer> build() {
+    public KotlinCompiler kotlinCompiler() {
         try {
-            ClassLoader classLoader = ClassPreloadingUtils.preloadClasses(
-                    PRELOAD_JARS,
-                    Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
-                    Thread.currentThread().getContextClassLoader(),
-                    null
-            );
-
             Class<?> compilerClass = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler");
             Class<?> exitCodeClass = classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode");
 

@@ -102,8 +102,13 @@ kotlin_binary(
     data=glob(["data/*"]),
 )
 
-kotlin_binary(
+kotlin_library(
     name = "hellojava",
-    srcs = ["hellojava/HelloWorld.kt", "hellojava/MessageHolder.java"],
-    main_class = "hellojava.HelloWorldKt"
+    srcs = glob(["hellojava/*.kt", "hellojava/*.java"]),
+)
+
+kotlin_library(
+    name = "hellojava_withmerge",
+    resources = glob(["resourcejar/**"]),
+    srcs = glob(["hellojava/*.kt", "hellojava/*.java"]),
 )

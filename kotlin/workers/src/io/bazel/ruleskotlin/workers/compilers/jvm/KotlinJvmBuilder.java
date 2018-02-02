@@ -16,24 +16,35 @@
 package io.bazel.ruleskotlin.workers.compilers.jvm;
 
 
-import io.bazel.ruleskotlin.workers.BazelWorker;
-import io.bazel.ruleskotlin.workers.CommandLineProgram;
-import io.bazel.ruleskotlin.workers.compilers.jvm.actions.BuildAction;
-import io.bazel.ruleskotlin.workers.compilers.jvm.actions.GenerateJdepsFile;
-import io.bazel.ruleskotlin.workers.compilers.jvm.actions.KotlinCreateClassJar;
-import io.bazel.ruleskotlin.workers.compilers.jvm.actions.KotlinMainCompile;
+import io.bazel.ruleskotlin.workers.*;
+import io.bazel.ruleskotlin.workers.compilers.jvm.actions.*;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
  * Bazel Kotlin Compiler worker.
  */
 public final class KotlinJvmBuilder implements CommandLineProgram {
-    private static final BuildAction[] compileActions = new BuildAction[] {
-            KotlinMainCompile.INSTANCE,
-            KotlinCreateClassJar.INSTANCE,
-            GenerateJdepsFile.INSTANCE,
-    };
+    private final BuildAction[] compileActions;
+
+    private KotlinJvmBuilder() {
+        KotlinToolchain kotlinToolchain;
+        try {
+            kotlinToolchain = new KotlinToolchain();
+        } catch (IOException e) {
+            throw new RuntimeException("could not initialize toolchain", e);
+        }
+
+        compileActions = new BuildAction[]{
+                Initialize.INSTANCE,
+                new KotlinMainCompile(kotlinToolchain),
+                new JavaMainCompile(),
+                KotlinRenderClassCompileResult.INSTANCE,
+                CreateOutputJar.INSTANCE,
+                GenerateJdepsFile.INSTANCE,
+        };
+    }
 
     @Override
     public Integer apply(List<String> args) {
@@ -41,7 +52,7 @@ public final class KotlinJvmBuilder implements CommandLineProgram {
         Integer exitCode = 0;
         for (BuildAction action : compileActions) {
             exitCode = action.apply(context);
-            if(exitCode != 0)
+            if (exitCode != 0)
                 break;
         }
         return exitCode;

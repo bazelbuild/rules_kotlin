@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers.compilers.jvm.actions;
 
-import io.bazel.ruleskotlin.workers.compilers.jvm.Context;
+package hellojava;
 
-import java.util.function.Function;
-
-public interface BuildAction extends Function<Context, Integer> {
-
+public class HelloWorldJava {
+    public static void main(String[] args) {
+        System.out.println(MessageHolderKotlin.INSTANCE.hello());
+    }
 }
