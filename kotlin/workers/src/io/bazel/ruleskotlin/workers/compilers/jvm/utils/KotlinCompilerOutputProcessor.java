@@ -17,6 +17,7 @@ package io.bazel.ruleskotlin.workers.compilers.jvm.utils;
 
 import java.io.*;
 import java.nio.file.Paths;
+import java.util.stream.Collectors;
 
 
 /**
@@ -25,29 +26,51 @@ import java.nio.file.Paths;
  */
 // The kotlin compiler produces absolute file paths but the intellij plugin expects workspace root relative paths to
 // render errors.
-public class KotlinCompilerOutputProcessor {
-    private ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+public abstract class KotlinCompilerOutputProcessor {
+    private final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     // Get the absolute path to ensure the sandbox root is resolved.
     private final String executionRoot = Paths.get("").toAbsolutePath().toString() + File.separator;
-    private final PrintStream delegate;
-
+    final PrintStream delegate;
 
     private KotlinCompilerOutputProcessor(PrintStream delegate) {
         this.delegate = delegate;
-    }
-
-    public static KotlinCompilerOutputProcessor delegatingTo(PrintStream delegate) {
-        return new KotlinCompilerOutputProcessor(delegate);
     }
 
     public PrintStream getCollector() {
         return new PrintStream(byteArrayOutputStream);
     }
 
+    public static class ForKotlinC extends KotlinCompilerOutputProcessor {
+        public ForKotlinC(PrintStream delegate) {
+            super(delegate);
+        }
+
+        @Override
+        protected boolean processLine(String line) {
+            delegate.println(trimExecutionRootPrefix(line));
+            return true;
+        }
+    }
+
+
+    final String trimExecutionRootPrefix(String toPrint) {
+        // trim off the workspace component
+        if (toPrint.startsWith(executionRoot)) {
+            return toPrint.replaceFirst(executionRoot, "");
+        }
+        return toPrint;
+    }
+
+    protected abstract boolean processLine(String line);
+
     public void process() {
-        new BufferedReader(new InputStreamReader(new ByteArrayInputStream(byteArrayOutputStream.toByteArray())))
-                .lines()
-                .forEach(line -> delegate.println(line.replace(executionRoot, "")));
+        for (String s : new BufferedReader(new InputStreamReader(new ByteArrayInputStream(byteArrayOutputStream.toByteArray())))
+                .lines().collect(Collectors.toList())) {
+            boolean shouldContinue = processLine(s);
+            if(!shouldContinue) {
+                break;
+            }
+        }
         delegate.flush();
     }
 }

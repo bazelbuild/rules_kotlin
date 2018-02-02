@@ -40,9 +40,12 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
         by the caller -- kotlin-reflect could be optional.
       opts: struct containing Kotlin compilation options.
     """
+    compiler_output_base=ctx.actions.declare_directory(ctx.label.name + "." + "kotlinc")
+
     args = [
-        "--label", ctx.label,
-        "--output_classjar", output_jar.path,
+        "--target_label", ctx.label,
+        "--compiler_output_base", compiler_output_base.path,
+        "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
         "--classpath", ":".join([f.path for f in compile_jars.to_list()]),
         "--sources", ":".join([f.path for f in ctx.files.srcs]),
@@ -79,7 +82,7 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
     ctx.action(
         mnemonic = "KotlinCompile",
         inputs = compile_inputs,
-        outputs = [output_jar, ctx.outputs.jdeps],
+        outputs = [output_jar, ctx.outputs.jdeps, compiler_output_base],
         executable = ctx.executable._kotlinw,
         execution_requirements = {"supports-workers": "1"},
         arguments = ["@" + args_file.path],
