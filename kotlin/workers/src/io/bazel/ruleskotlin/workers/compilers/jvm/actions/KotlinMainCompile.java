@@ -15,53 +15,39 @@
  */
 package io.bazel.ruleskotlin.workers.compilers.jvm.actions;
 
-import io.bazel.ruleskotlin.workers.compilers.jvm.Context;
-import io.bazel.ruleskotlin.workers.compilers.jvm.Flag;
-import io.bazel.ruleskotlin.workers.compilers.jvm.Locations;
-import io.bazel.ruleskotlin.workers.compilers.jvm.Meta;
+import io.bazel.ruleskotlin.workers.*;
+import io.bazel.ruleskotlin.workers.compilers.jvm.Metas;
 import io.bazel.ruleskotlin.workers.compilers.jvm.utils.KotlinCompilerOutputProcessor;
-import io.bazel.ruleskotlin.workers.compilers.jvm.utils.KotlinPreloadedCompilerBuilder;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.function.BiFunction;
 
 /**
  * Either compiles to a jar directly or when performing mixed-mode-compilation compiles to a temp directory first.
+ * <p>
+ * Mixed-Mode:
+ * <p>
+ * The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
+ * invocations Configured via Kotlin use eager analysis in some corner cases this can result in classpath exceptions from the Java Compiler..
  */
 public final class KotlinMainCompile implements BuildAction {
-    public static final KotlinMainCompile INSTANCE = new KotlinMainCompile(KotlinPreloadedCompilerBuilder.build());
+    private final KotlinToolchain.KotlinCompiler kotlinCompiler;
 
-    private static final String
-            JAVAC_PATH = Locations.JAVA_HOME.resolveVerified("bin", "javac").toString();
-
-    private static final String
-            X_COMPILE_JAVA_FLAG = "-Xcompile-java",
-            X_JAVAC_ARGUMENTS_FLAG = "-Xjavac-arguments",
-            X_USE_JAVAC_FLAG = "-Xuse-javac";
+    public KotlinMainCompile(KotlinToolchain toolchains) {
+        this.kotlinCompiler = toolchains.kotlinCompiler();
+    }
 
     /**
      * Default fields that are directly mappable to kotlin compiler args.
      */
-    private static final Flag[] COMPILE_MAPPED_FLAGS = new Flag[]{
-            Flag.OUTPUT_CLASSJAR,
-            Flag.CLASSPATH,
-            Flag.KOTLIN_API_VERSION,
-            Flag.KOTLIN_LANGUAGE_VERSION,
-            Flag.KOTLIN_JVM_TARGET
+    private static final Flags[] COMPILE_MAPPED_FLAGS = new Flags[]{
+            Flags.CLASSPATH,
+            Flags.KOTLIN_API_VERSION,
+            Flags.KOTLIN_LANGUAGE_VERSION,
+            Flags.KOTLIN_JVM_TARGET
     };
-
-    private final BiFunction<String[], PrintStream, Integer> compiler;
-
-    private KotlinMainCompile(BiFunction<String[], PrintStream, Integer> compiler) {
-        this.compiler = compiler;
-    }
 
     /**
      * Evaluate the compilation context and add Metadata to the ctx if needed.
@@ -70,46 +56,32 @@ public final class KotlinMainCompile implements BuildAction {
      */
     private static String[] setupCompileContext(Context ctx) {
         List<String> args = new ArrayList<>();
-        EnumMap<Flag, String> compileMappedFields = ctx.copyOfArgsContaining(COMPILE_MAPPED_FLAGS);
-        String[] sources = Flag.SOURCES.get(ctx).split(":");
-
-        for (String source : sources) {
-            if (source.endsWith(".java")) {
-                try {
-                    // Redirect the kotlin and java compilers to a temp directory.
-                    File temporaryClassOutputDirectory = Files.createTempDirectory("kotlinCompile").toFile();
-                    Meta.COMPILE_TO_DIRECTORY.bind(ctx, temporaryClassOutputDirectory);
-                    compileMappedFields.put(Flag.OUTPUT_CLASSJAR, temporaryClassOutputDirectory.toString());
-                    Collections.addAll(args,
-                            X_COMPILE_JAVA_FLAG,
-                            X_USE_JAVAC_FLAG + "=" + JAVAC_PATH,
-                            X_JAVAC_ARGUMENTS_FLAG + "=-d=" + temporaryClassOutputDirectory.toString());
-                    break;
-                } catch (IOException e) {
-                    throw new RuntimeException("could not create temp directory for kotlin compile operation", e);
-                }
-            }
-        }
-        compileMappedFields.forEach((field, arg) -> Collections.addAll(args, field.kotlinFlag, arg));
-        Collections.addAll(args, sources);
+        Collections.addAll(args, "-d", Metas.CLASSES_DIRECTORY.mustGet(ctx).toString());
+        ctx.of(COMPILE_MAPPED_FLAGS).forEach((field, arg) -> Collections.addAll(args, field.kotlinFlag, arg));
+        args.addAll(Metas.ALL_SOURCES.mustGet(ctx));
         return args.toArray(new String[args.size()]);
     }
 
     @Override
     public Integer apply(Context ctx) {
-        KotlinCompilerOutputProcessor outputProcessor = KotlinCompilerOutputProcessor.delegatingTo(System.out);
-        try {
-            Integer exitCode = compiler.apply(setupCompileContext(ctx), outputProcessor.getCollector());
-            if (exitCode < 2) {
-                // 1 is a standard compilation error
-                // 2 is an internal error
-                // 3 is the script execution error
+        KotlinCompilerOutputProcessor outputProcessor;
+        outputProcessor = new KotlinCompilerOutputProcessor.ForKotlinC(System.out);
+
+        final Integer exitCode = kotlinCompiler.apply(setupCompileContext(ctx), outputProcessor.getCollector());
+        if (exitCode < 2) {
+            // 1 is a standard compilation error
+            // 2 is an internal error
+            // 3 is the script execution error
+
+            // give javac a chance to process the java sources.
+            Metas.KOTLINC_RESULT.bind(ctx, CompileResult.deferred(exitCode, (c) -> {
+                outputProcessor.process();
                 return exitCode;
-            } else {
-                throw new RuntimeException("KotlinMainCompile returned terminal error code: " + exitCode);
-            }
-        } finally {
+            }));
+            return 0;
+        } else {
             outputProcessor.process();
+            throw new RuntimeException("KotlinMainCompile returned terminal error code: " + exitCode);
         }
     }
 }

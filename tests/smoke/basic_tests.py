@@ -58,8 +58,25 @@ class TestRules(BazelKotlinTestCase):
         self.buildLaunchExpectingSuccess("propagation_rt_via_runtime_deps_consumer")
 
     def test_mixed_mode_compilation(self):
-        self.buildLaunchExpectingSuccess("hellojava")
+        jar = self.buildJarGetZipFile("hellojava", "jar")
+        self.assertJarContains(
+            jar,
+            "hellojava/HelloWorldJava.class",
+            "hellojava/MessageHolderKotlin.class",
+            "hellojava/MessageHolder.class",
+            "hellojava/HelloWorldKt.class"
+        )
 
+    def test_mixed_mode_compilation_with_merge(self):
+        jar = self.buildJarGetZipFile("hellojava_withmerge", "jar")
+        self.assertJarContains(
+            jar,
+            "hellojava/HelloWorldJava.class",
+            "hellojava/MessageHolderKotlin.class",
+            "hellojava/MessageHolder.class",
+            "hellojava/HelloWorldKt.class",
+            "tests/smoke/resourcejar/pkg/file.txt"
+        )
         # re-enable this test, and ensure the srcjar includes java sources when mixed mode.
         # def test_srcjar(self):
         #     jar = self.buildJarGetZipFile("testresources", "srcjar")

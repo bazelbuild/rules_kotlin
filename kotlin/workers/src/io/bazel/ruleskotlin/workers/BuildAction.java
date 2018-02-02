@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.bazel.ruleskotlin.workers;
 
-package hellojava;
 
-public class Another {
+import java.util.function.Function;
+
+public interface BuildAction extends Function<Context, Integer> {
+
 }
