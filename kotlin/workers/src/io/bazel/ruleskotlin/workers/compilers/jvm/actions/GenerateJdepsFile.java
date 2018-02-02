@@ -16,10 +16,11 @@
 package io.bazel.ruleskotlin.workers.compilers.jvm.actions;
 
 import com.google.devtools.build.lib.view.proto.Deps;
-import io.bazel.ruleskotlin.workers.compilers.jvm.Context;
+import io.bazel.ruleskotlin.workers.BuildAction;
+import io.bazel.ruleskotlin.workers.Context;
 import io.bazel.ruleskotlin.workers.compilers.jvm.Locations;
 import io.bazel.ruleskotlin.workers.compilers.jvm.utils.JdepsParser;
-import io.bazel.ruleskotlin.workers.compilers.jvm.utils.Utils;
+import io.bazel.ruleskotlin.workers.utils.IOUtils;
 
 import java.io.FileOutputStream;
 import java.nio.file.Files;
@@ -28,7 +29,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static io.bazel.ruleskotlin.workers.compilers.jvm.Flag.*;
+import static io.bazel.ruleskotlin.workers.Flags.*;
+
 
 public final class GenerateJdepsFile implements BuildAction {
     private static final String JDEPS_PATH = Locations.JAVA_HOME.resolveVerified("bin", "jdeps").toString();
@@ -52,7 +54,7 @@ public final class GenerateJdepsFile implements BuildAction {
                 output = OUTPUT_JDEPS.get(ctx);
         Deps.Dependencies jdepsContent;
         try {
-            List<String> jdepLines = Utils.waitForOutput(new String[]{JDEPS_PATH, "-cp", classPath, classJar}, System.err);
+            List<String> jdepLines = IOUtils.executeAndWaitOutput(10, JDEPS_PATH, "-cp", classPath, classJar);
             jdepsContent = JdepsParser.parse(
                     LABEL.get(ctx),
                     classJar,
@@ -61,7 +63,7 @@ public final class GenerateJdepsFile implements BuildAction {
                     IS_KOTLIN_IMPLICIT
             );
         } catch (Exception e) {
-            throw new RuntimeException("error reading or parsing jdeps file", Utils.getRootCause(e));
+            throw new RuntimeException("error reading or parsing jdeps file", IOUtils.getRootCause(e));
         }
 
         try {
@@ -71,7 +73,7 @@ public final class GenerateJdepsFile implements BuildAction {
                 jdepsContent.writeTo(fileOutputStream);
             }
         } catch (Exception e) {
-            throw new RuntimeException("error writing out jdeps file", Utils.getRootCause(e));
+            throw new RuntimeException("error writing out jdeps file", IOUtils.getRootCause(e));
         }
 
         return 0;

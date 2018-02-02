@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers.compilers.jvm;
+package io.bazel.ruleskotlin.workers;
 
-public enum Flag {
-    LABEL("--label", null, true),
-    OUTPUT_CLASSJAR("--output_classjar", "-d", true),
+
+public enum Flags {
+    // flags that line up with the java builder.
+    LABEL(JavaBuilderFlags.TARGET_LABEL.flag, null, true),
+    OUTPUT_CLASSJAR(JavaBuilderFlags.OUTPUT.flag, null, true),
+    SOURCES(JavaBuilderFlags.SOURCES.flag, null, true),
+    CLASSPATH(JavaBuilderFlags.CLASSPATH.flag, "-cp", true),
+
+    // flags that could be aligned with the java builder.
     OUTPUT_JDEPS("--output_jdeps", null, true),
-    CLASSPATH("--classpath", "-cp", true),
-    SOURCES("--sources", null, true),
+    COMPILER_OUTPUT_BASE("--compiler_output_base", null, true),
+
+    // flags for kotlin.
     KOTLIN_API_VERSION("--kotlin_api_version", "-api-version", false),
     KOTLIN_LANGUAGE_VERSION("--kotlin_language_version", "-language-version", false),
     KOTLIN_JVM_TARGET("--kotlin_jvm_target", "-jvm-target", false);
@@ -29,7 +36,7 @@ public enum Flag {
     public final String kotlinFlag;
     final boolean mandatory;
 
-    Flag(String name, String kotlinName, boolean mandatory) {
+    Flags(String name, String kotlinName, boolean mandatory) {
         this.name = name;
         this.kotlinFlag = kotlinName;
         this.mandatory = mandatory;

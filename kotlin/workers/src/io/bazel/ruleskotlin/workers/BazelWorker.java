@@ -17,7 +17,7 @@ package io.bazel.ruleskotlin.workers;
 
 
 import com.google.devtools.build.lib.worker.WorkerProtocol;
-import io.bazel.ruleskotlin.workers.compilers.jvm.utils.Utils;
+import io.bazel.ruleskotlin.workers.utils.IOUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -135,7 +135,7 @@ public final class BazelWorker<T extends CommandLineProgram> implements CommandL
     }
 
     private boolean wasInterrupted(Throwable e) {
-        Throwable cause = Utils.getRootCause(e);
+        Throwable cause = IOUtils.getRootCause(e);
         if (cause instanceof InterruptedException
                 || cause instanceof InterruptedIOException) {
             output.println("Terminating worker due to interrupt signal");

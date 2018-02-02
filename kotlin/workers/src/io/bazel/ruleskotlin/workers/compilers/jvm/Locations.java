@@ -19,6 +19,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public enum Locations {
@@ -38,8 +40,8 @@ public enum Locations {
         /**
          * Return a stream of paths that are known to exists relative to this location.
          */
-        public final Stream<File> verifiedRelativeFiles(Path... paths) {
-            return Stream.of(paths).map(relative -> verified(path.resolve(relative)));
+        public final List<File> verifiedRelativeFiles(Path... paths) {
+            return Stream.of(paths).map(relative -> verified(path.resolve(relative))).collect(Collectors.toList());
         }
 
         private File verified(Path target) {
