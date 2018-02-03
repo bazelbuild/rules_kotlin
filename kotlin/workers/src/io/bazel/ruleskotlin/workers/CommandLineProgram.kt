@@ -13,33 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers;
+package io.bazel.ruleskotlin.workers
 
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Function;
 
 /**
  * Interface for command line programs.
- * <p>
- * <p>This is the same thing as a main function, except not static.
+ *
+ * This is the same thing as a main function, except not static.
  */
-public interface CommandLineProgram extends Function<List<String>, Integer> {
+interface CommandLineProgram {
 
     /**
      * Runs blocking program start to finish.
-     * <p>
-     * <p>This function might be called multiple times throughout the life of this object. Output
-     * must be sent to {@link System#out} and {@link System#err}.
+     *
+     *
+     *
+     * This function might be called multiple times throughout the life of this object. Output
+     * must be sent to [System.out] and [System.err].
      *
      * @param args command line arguments
      * @return program exit code, i.e. 0 for success, non-zero for failure
      */
-    @Override
-    Integer apply(List<String> args);
-
-    default Integer apply(String[] args) {
-        return apply(Arrays.asList(args));
-    }
+    fun apply(args: List<String>): Int
 }

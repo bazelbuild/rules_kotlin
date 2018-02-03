@@ -20,3 +20,12 @@ java_import(
     exports = ["@io_bazel_rules_kotlin_protobuf_protobuf_java//jar"],
     visibility = ["//kotlin/workers:__subpackages__"]
 )
+
+filegroup(
+    name = "files",
+    srcs = [
+        "jars/libdeps_proto-speed.jar",
+        "jars/libworker_protocol_proto-speed.jar"
+    ],
+    visibility = ["//kotlin/workers:__subpackages__"]
+)
