@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers.compilers.jvm;
+package io.bazel.ruleskotlin.workers.compilers.jvm
 
-import io.bazel.ruleskotlin.workers.CompileResult;
-import io.bazel.ruleskotlin.workers.Meta;
+import io.bazel.ruleskotlin.workers.CompileResult
+import io.bazel.ruleskotlin.workers.Meta
 
-import java.nio.file.Path;
-import java.util.List;
+import java.nio.file.Path
 
 /**
  * Meta is a key to some compilation state,.
  */
-public class Metas {
+object Metas {
     // mandatory: the package part of the label.
-    public static final Meta<String> PKG = new Meta<>("package");
+    val PKG = Meta<String>("package")
     // mandatory: The target part of the label.
-    public static final Meta<String> TARGET = new Meta<>("target");
+    val TARGET = Meta<String>("target")
     // mandatory: the class staging directory.
-    public static final Meta<Path> CLASSES_DIRECTORY = new Meta<>("class_directory");
+    val CLASSES_DIRECTORY = Meta<Path>("class_directory")
     // mandatory: If this is non empty then it is a mixed mode operation.
-    public static final Meta<List<String>> JAVA_SOURCES = new Meta<>("java_sources");
+    val JAVA_SOURCES = Meta<List<String>>("java_sources")
     // mandatory:
-    public static final Meta<List<String>> ALL_SOURCES = new Meta<>("all_sources");
+    val ALL_SOURCES = Meta<List<String>>("all_sources")
     // mandatory:
-    public static final CompileResult.Meta KOTLINC_RESULT = new CompileResult.Meta("kotlin_compile_result");
+    val KOTLINC_RESULT = CompileResult.Meta("kotlin_compile_result")
     // optional: when not a mixed mode operation.
-    public static final CompileResult.Meta JAVAC_RESULT = new CompileResult.Meta("javac_compile_result");
+    val JAVAC_RESULT = CompileResult.Meta("javac_compile_result")
 }

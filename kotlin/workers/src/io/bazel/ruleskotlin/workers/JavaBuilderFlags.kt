@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers;
+package io.bazel.ruleskotlin.workers
 
 /**
  * Flags used by the java builder.
  */
-@SuppressWarnings("unused")
-public enum JavaBuilderFlags {
+enum class JavaBuilderFlags(val flag: String) {
     TARGET_LABEL("--target_label"),
     CLASSPATH("--classpath"),
     JAVAC_OPTS("--javacopts"),
@@ -51,11 +50,5 @@ public enum JavaBuilderFlags {
     POST_PROCESSOR("--post_processor"),
     COMPRESS_JAR("--compress_jar"),
     RULE_KIND("--rule_kind"),
-    TEST_ONLY("--testonly");
-            
-    public final String flag;
-
-    JavaBuilderFlags(String flag) {
-        this.flag = flag;
-    }
+    TEST_ONLY("--testonly")
 }
