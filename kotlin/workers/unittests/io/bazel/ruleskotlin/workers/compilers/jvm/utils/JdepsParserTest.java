@@ -89,7 +89,7 @@ public class JdepsParserTest {
     private static final String LABEL = "//cloud/qa/integrationtests/pkg/alt";
     private static final String CLASS_JAR = "bazel-bin/something/alt.jar";
 
-    private static final Predicate<String> IS_KOTLIN_IMPLICIT = JdepsParser.pathSuffixMatchingPredicate(
+    private static final Predicate<String> IS_KOTLIN_IMPLICIT = JdepsParser.Companion.pathSuffixMatchingPredicate(
             Paths.get("external", "com_github_jetbrains_kotlin", "lib"),
             "kotlin-stdlib.jar",
             "kotlin-stdlib-jdk7.jar",
@@ -106,7 +106,7 @@ public class JdepsParserTest {
     }
 
     private void testWithFixture(String fixture) throws IOException {
-        Deps.Dependencies result = JdepsParser.parse(LABEL, CLASS_JAR, CLASSPATH.stream().collect(Collectors.joining(":")), Stream.of(fixture.split("\n")), IS_KOTLIN_IMPLICIT);
+        Deps.Dependencies result = JdepsParser.Companion.parse(LABEL, CLASS_JAR, CLASSPATH.stream().collect(Collectors.joining(":")), Stream.of(fixture.split("\n")), IS_KOTLIN_IMPLICIT);
         Assert.assertEquals(LABEL, result.getRuleLabel());
 
         Assert.assertEquals(7, result.getDependencyCount());
