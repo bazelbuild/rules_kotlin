@@ -11,28 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-java_library(
-    name = "lib",
-    srcs = glob(["src/**/*.java"]),
+load("//kotlin/workers:bootstrap.bzl", "kotlin_worker_lib")
+
+kotlin_worker_lib(
+    srcs = glob(["src/**/*.kt"]),
+    args = ["-jvm-target", "1.8"],
     deps = [
         "//kotlin/workers/proto",
-        "@com_github_jetbrains_kotlin//:preloader"
+        "@com_github_jetbrains_kotlin//:preloader",
+        "@io_bazel_rules_kotlin_protobuf_protobuf_java//jar",
     ],
-    exports = ["//kotlin/workers/proto"],
-    visibility = ["//visibility:private"]
+    exports = [
+        "//kotlin/workers/proto"
+    ],
+    runtime_deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8"
+    ]
 )
 
 java_binary(
     name = "compiler_jvm",
     main_class = "io.bazel.ruleskotlin.workers.compilers.jvm.KotlinJvmBuilder",
     visibility = ["//visibility:public"],
-    runtime_deps = ["lib"]
+    runtime_deps = [":worker_lib"]
 )
 
 java_test(
     name = "unittests",
     test_class = "io.bazel.ruleskotlin.workers.compilers.jvm.utils.JdepsParserTest",
     srcs = glob(["unittests/**/*.java"]),
-    deps = ["lib"],
+    deps = [":worker_lib"],
     size = "small"
 )

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers;
+package io.bazel.ruleskotlin.workers
 
 
-public enum Flags {
+enum class Flags(val globalFlag: String, val kotlinFlag: String?, internal val mandatory: Boolean) {
     // flags that line up with the java builder.
     LABEL(JavaBuilderFlags.TARGET_LABEL.flag, null, true),
     OUTPUT_CLASSJAR(JavaBuilderFlags.OUTPUT.flag, null, true),
@@ -32,17 +32,5 @@ public enum Flags {
     KOTLIN_LANGUAGE_VERSION("--kotlin_language_version", "-language-version", false),
     KOTLIN_JVM_TARGET("--kotlin_jvm_target", "-jvm-target", false);
 
-    public final String name;
-    public final String kotlinFlag;
-    final boolean mandatory;
-
-    Flags(String name, String kotlinName, boolean mandatory) {
-        this.name = name;
-        this.kotlinFlag = kotlinName;
-        this.mandatory = mandatory;
-    }
-
-    public String get(Context context) {
-        return context.get(this);
-    }
+    operator fun get(context: Context): String? = context[this]
 }
