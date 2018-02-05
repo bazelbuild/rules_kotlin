@@ -27,13 +27,14 @@ kotlin_worker_lib(
     runtime_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8"
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+        "@com_github_jetbrains_kotlin//:kotlin-reflect"
     ]
 )
 
 java_binary(
     name = "compiler_jvm",
-    main_class = "io.bazel.ruleskotlin.workers.compilers.jvm.KotlinJvmBuilder",
+    main_class = "io.bazel.ruleskotlin.workers.KotlinJvmBuilder",
     visibility = ["//visibility:public"],
     runtime_deps = [":worker_lib"]
 )

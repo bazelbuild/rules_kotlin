@@ -19,6 +19,7 @@ import io.bazel.ruleskotlin.workers.utils.resolveVerified
 import io.bazel.ruleskotlin.workers.utils.verifiedRelativeFiles
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
+import java.io.File
 import java.io.PrintStream
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -37,9 +38,10 @@ class KotlinToolchain {
     val JDEPS_PATH = JAVA_HOME.resolveVerified("bin", "jdeps").toString()
     val KOTLIN_LIB_DIR: Path = KOTLIN_HOME.resolveVerified("lib").toPath()
 
-    private val kotlinPreloadJars = KOTLIN_LIB_DIR.verifiedRelativeFiles(
-            Paths.get("kotlin-compiler.jar")
-    )
+    private val kotlinPreloadJars = mutableListOf<File>().let {
+        it.addAll(KOTLIN_LIB_DIR.verifiedRelativeFiles(Paths.get("kotlin-compiler.jar")))
+        it.toList()
+    }
 
     val KOTLIN_STD_LIBS = arrayOf(
             "kotlin-stdlib.jar",

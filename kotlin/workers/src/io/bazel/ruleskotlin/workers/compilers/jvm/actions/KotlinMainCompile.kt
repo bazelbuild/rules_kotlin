@@ -15,13 +15,13 @@
  */
 package io.bazel.ruleskotlin.workers.compilers.jvm.actions
 
+
 import io.bazel.ruleskotlin.workers.*
-import io.bazel.ruleskotlin.workers.compilers.jvm.Metas
+import io.bazel.ruleskotlin.workers.model.Metas
 import io.bazel.ruleskotlin.workers.compilers.jvm.utils.KotlinCompilerOutputProcessor
-
-
-import java.util.ArrayList
-import java.util.Collections
+import io.bazel.ruleskotlin.workers.model.CompileDirectories
+import io.bazel.ruleskotlin.workers.model.Flags
+import java.util.*
 
 /**
  * Either compiles to a jar directly or when performing mixed-mode-compilation compiles to a temp directory first.
@@ -44,21 +44,29 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
                 Flags.KOTLIN_LANGUAGE_VERSION,
                 Flags.KOTLIN_JVM_TARGET)
 
-        /**
-         * Evaluate the compilation context and add Metadata to the ctx if needed.
-         *
-         * @return The args to pass to the kotlin compile class.
-         */
-        private fun setupCompileContext(ctx: Context): Array<String> {
-            val args = ArrayList<String>()
-            Collections.addAll(args, "-d", Metas.CLASSES_DIRECTORY.mustGet(ctx).toString())
-            ctx.of(*COMPILE_MAPPED_FLAGS).forEach { field, arg ->
-                args.add(field.kotlinFlag!!); args.add(arg)
+        val Result = CompileResult.Meta("kotlin_compile_result")
+    }
 
-            }
-            args.addAll(Metas.ALL_SOURCES.mustGet(ctx))
-            return args.toTypedArray()
+    /**
+     * Evaluate the compilation context and add Metadata to the ctx if needed.
+     *
+     * @return The args to pass to the kotlin compile class.
+     */
+    private fun setupCompileContext(ctx: Context): Array<String> {
+        val args = mutableListOf<String>()
+        val compileDirectories = CompileDirectories[ctx]
+
+        ctx.copyOfFlags(*COMPILE_MAPPED_FLAGS).forEach { field, arg ->
+            args.add(field.kotlinFlag!!); args.add(arg)
         }
+
+        Collections.addAll(args, "-kotlin-home", KotlinToolchain.KOTLIN_HOME.toString())
+        Collections.addAll(args, "-d", compileDirectories.classes)
+
+
+        args.addAll(Metas.ALL_SOURCES.mustGet(ctx))
+        println(args.joinToString(" "))
+        return args.toTypedArray()
     }
 
     override fun invoke(ctx: Context): Int {
@@ -77,10 +85,10 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
             // 3 is the script execution error
 
             // give javac a chance to process the java sources.
-            Metas.KOTLINC_RESULT.bind(ctx, CompileResult.deferred(exitCode) { _ ->
+            Result[ctx] = CompileResult.deferred(exitCode) { _ ->
                 outputProcessor.process()
                 exitCode
-            })
+            }
             return 0
         } else {
             outputProcessor.process()

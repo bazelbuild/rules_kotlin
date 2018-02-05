@@ -15,26 +15,28 @@
  */
 package io.bazel.ruleskotlin.workers.compilers.jvm.actions
 
-import io.bazel.ruleskotlin.workers.BuildAction
-import io.bazel.ruleskotlin.workers.Context
-import io.bazel.ruleskotlin.workers.Flags
-import io.bazel.ruleskotlin.workers.KotlinToolchain
-import io.bazel.ruleskotlin.workers.compilers.jvm.Metas
+import io.bazel.ruleskotlin.workers.*
+import io.bazel.ruleskotlin.workers.model.Metas
+import io.bazel.ruleskotlin.workers.model.CompileDirectories
+import io.bazel.ruleskotlin.workers.model.Flags
 import io.bazel.ruleskotlin.workers.utils.executeAndAwait
 
 /**
  * Simple java compile action that invokes javac directly and simply.
  */
 class JavaMainCompile(toolchain: KotlinToolchain) : BuildAction("compile java classes", toolchain) {
+    companion object {
+        val Result = CompileResult.Meta("javac_compile_result")
+    }
     override fun invoke(ctx: Context): Int {
         val javaSources = Metas.JAVA_SOURCES.mustGet(ctx)
-        val classpath = checkNotNull(Flags.CLASSPATH[ctx])
+        val classpath = Flags.CLASSPATH[ctx]
 
         if (!javaSources.isEmpty()) {
-            val classesDirectory = Metas.CLASSES_DIRECTORY.mustGet(ctx).toString()
+            val classesDirectory = CompileDirectories[ctx].classes
 
             val args = mutableListOf(toolchain.JAVAC_PATH, "-cp", "$classesDirectory/:$classpath", "-d", classesDirectory).also { it.addAll(javaSources) }
-            Metas.JAVAC_RESULT.runAndBind(ctx) { executeAndAwait(30, args) }
+            Result.runAndBind(ctx) { executeAndAwait(30, args) }
         }
         return 0
     }
