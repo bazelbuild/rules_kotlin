@@ -40,8 +40,10 @@ interface Meta<T : Any> {
         }
     }
 
-    operator fun set(ctx: Context, value: T) {
-        check(ctx.putIfAbsent(this, value) == null) { "attempting to change bound meta variable: $id " }
+    operator fun set(ctx: Context, value: T?) {
+        checkNotNull(value ?: defaultValue) { "attampting to initialize ctx to a null value: (hasDefault: ${defaultValue != null}" }.also {
+            check(ctx.putIfAbsent(this, it) == null) { "attempting to change bound meta variable: $id " }
+        }
     }
 
     companion object {
@@ -52,13 +54,12 @@ interface Meta<T : Any> {
     }
 }
 
-interface MandatoryMeta<T: Any>: Meta<T> {
+abstract class MandatoryMeta<T: Any>(override val defaultValue: T? = null): Meta<T> {
     override fun get(ctx: Context): T = checkNotNull(super.get(ctx)) { "ctx missing mandatory meta ${this.id}" }
 
     companion object {
-        operator fun <T : Any> invoke(id: String): Meta<T> = object : MandatoryMeta<T> {
+        operator fun <T : Any> invoke(id: String): Meta<T> = object : MandatoryMeta<T>() {
             override val id: String = id
-            override val defaultValue: T? = null
         }
     }
 }

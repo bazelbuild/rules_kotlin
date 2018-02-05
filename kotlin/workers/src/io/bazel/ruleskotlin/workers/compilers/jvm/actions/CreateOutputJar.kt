@@ -15,26 +15,38 @@
  */
 package io.bazel.ruleskotlin.workers.compilers.jvm.actions
 
-
 import io.bazel.ruleskotlin.workers.BuildAction
 import io.bazel.ruleskotlin.workers.Context
 import io.bazel.ruleskotlin.workers.KotlinToolchain
 import io.bazel.ruleskotlin.workers.model.CompileDirectories
 import io.bazel.ruleskotlin.workers.model.Flags
+import io.bazel.ruleskotlin.workers.model.PluginDescriptors
 import io.bazel.ruleskotlin.workers.utils.executeAndAwaitSuccess
+import java.nio.file.Path
 
 /**
- * Create a jar from the classes.
+ * Create a jar from all the input.
  */
 class CreateOutputJar(toolchain: KotlinToolchain) : BuildAction("create output jar", toolchain) {
+    private fun MutableList<String>.addAllFrom(dir: Path) = addAll(arrayOf("-C", dir.toString(), "."))
+
+    private fun MutableList<String>.maybeAddAnnotationProcessingGeneratedClasses(ctx: Context) {
+        PluginDescriptors[ctx]?.let { pluginDescriptor ->
+            CompileDirectories[ctx].annotionProcessingClasses.takeIf {
+                pluginDescriptor.processors.isNotEmpty() && it.toFile().exists()
+            }?.also { this.addAllFrom(it) }
+        }
+    }
+
     override fun invoke(ctx: Context): Int {
         try {
-            executeAndAwaitSuccess(10,
+            mutableListOf(
                     toolchain.JAR_TOOL_PATH,
-                    "cf", checkNotNull(Flags.OUTPUT_CLASSJAR[ctx]),
-                    "-C", CompileDirectories[ctx].classes,
-                    "."
-            )
+                    "cf", Flags.OUTPUT_CLASSJAR[ctx]
+            ).also { args ->
+                args.addAllFrom(CompileDirectories[ctx].classes)
+                args.maybeAddAnnotationProcessingGeneratedClasses(ctx)
+            }.also { executeAndAwaitSuccess(10, *it.toTypedArray()) }
         } catch (e: Exception) {
             throw RuntimeException("unable to create class jar", e)
         }

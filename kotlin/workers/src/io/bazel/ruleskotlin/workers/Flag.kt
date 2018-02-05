@@ -15,16 +15,34 @@
  */
 package io.bazel.ruleskotlin.workers
 
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.KotlinJsonAdapterFactory
+import com.squareup.moshi.Moshi
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberProperties
 
 sealed class Flag(val globalFlag: String, val kotlinFlag: String? = null) {
     open operator fun get(context: Context): String? = context[this]
 
+    inline fun <reified T : Any> renderJsonAndBind(override: JsonAdapter<T>? = null): Meta<T> = object : Meta<T> {
+        val adapter = override ?: moshi.adapter(T::class.java)
+        override val id: String = "flag $globalFlag"
+        override val defaultValue: T? = null
+        override fun get(ctx: Context): T? = super.get(ctx) ?: this@Flag[ctx]?.let { adapter.fromJson(it) }
+    }
+
     class Optional(globalFlag: String, kotlinFlag: String? = null) : Flag(globalFlag, kotlinFlag)
 
     class Mandatory(globalFlag: String, kotlinFlag: String? = null) : Flag(globalFlag, kotlinFlag) {
         override fun get(context: Context): String = requireNotNull(super.get(context)) { "mandatory flag $globalFlag not present" }
+    }
+
+    companion object {
+        @PublishedApi
+        internal val moshi = Moshi.Builder().let {
+            it.add(KotlinJsonAdapterFactory())
+            it.build()
+        }
     }
 }
 

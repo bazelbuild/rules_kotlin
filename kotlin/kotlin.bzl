@@ -44,6 +44,49 @@ the repository the following Kotlin Libraries are also made available from the w
 * `kotlin-reflect`.
 
 So if you needed to add reflect as a dep use the following label `@com_github_jetbrains_kotlin//:kotlin-reflect`.
+
+### Mixed Mode compilation
+
+The JVM rules can compile both Java and Kotlin sources. The Java compiler wrapper is not optimized or persistent and does not have the features found in the
+native java rules. This mode is usefull for migrating a package to Kotlin over time.
+
+### Annotation Processing
+
+Annotation processing works just as it does in Java, plugins are declared via a [`java_plugin`](https://docs.bazel.build/versions/master/be/java.html#java_plugin)
+and may also be inherited from a `java_library` via the `exported_plugins` attribute. Annotation work in mixed-mode compilation and the Kotlin compiler take
+care of processing both aspects.
+
+An example which can be found under `//examples/dagger`:
+
+```bzl
+java_plugin(
+    name = "dagger_plugin",
+    deps = [
+        "@dagger_compiler//jar",
+        "@guava//jar",
+        "@dagger_producers//jar",
+        "@dagger//jar",
+        "@javax_inject//jar"
+    ],
+    processor_class = "dagger.internal.codegen.ComponentProcessor"
+)
+
+java_library(
+    name = "dagger_lib",
+    exports = [
+        "@javax_inject//jar",
+        "@dagger//jar",
+    ],
+    exported_plugins = ["dagger_plugin"]
+)
+
+kt_jvm_binary(
+    name = "dagger",
+    srcs = glob(["src/**"]),
+    main_class = "coffee.CoffeeApp",
+    deps = [":dagger_lib"],
+)
+```
 """
 # This file is the main import -- it shouldn't grow out of hand the reason it contains so much allready is due to the limitations of skydoc.
 
@@ -51,7 +94,14 @@ So if you needed to add reflect as a dep use the following label `@com_github_je
 # Common Definitions
 ########################################################################################################################
 
-load("//kotlin/rules:defs.bzl", "KOTLIN_REPO_ROOT")
+load(
+    "//kotlin/rules:defs.bzl",
+    "KOTLIN_REPO_ROOT",
+)
+load(
+    "//kotlin/rules:plugins.bzl",
+    _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect",
+)
 
 # The files types that may be passed to the core Kotlin compile rule.
 _kt_compile_filetypes = FileType([
@@ -78,17 +128,20 @@ _implicit_deps = {
             Label("@" + KOTLIN_REPO_ROOT + "//:script-runtime"),
         ],
     ),
+    "_kotlin_home": attr.label(
+        default = Label("@" + KOTLIN_REPO_ROOT + "//:home"),
+        allow_files = True,
+        cfg = "host",
+    ),
     "_kotlinw": attr.label(
         default = Label("//kotlin/workers:compiler_jvm"),
         executable = True,
         cfg = "host",
     ),
-    # The kotlin runtime
     "_kotlin_runtime": attr.label(
         single_file = True,
         default = Label("@" + KOTLIN_REPO_ROOT + "//:runtime"),
     ),
-    # The kotlin stdlib
     "_kotlin_std": attr.label_list(default = [
         Label("@" + KOTLIN_REPO_ROOT + "//:stdlib"),
         Label("@" + KOTLIN_REPO_ROOT + "//:stdlib-jdk7"),
@@ -122,11 +175,6 @@ _implicit_deps = {
         cfg = "host",
         allow_files = True,
     ),
-    #    "_langtools": attr.label(
-    #        default = Label("@bazel_tools//tools/jdk:langtools"),
-    #        cfg = "host",
-    #        allow_files = True
-    #    ),
     "_java_stub_template": attr.label(default = Label("@kt_java_stub_template//file")),
 }
 
@@ -135,16 +183,8 @@ _common_attr = dict(_implicit_deps.items() + {
         default = [],
         allow_files = _kt_compile_filetypes,
     ),
-    # only accept deps which are java providers.
-    "deps": attr.label_list(),
+    "deps": attr.label_list(aspects = [_kt_jvm_plugin_aspect]),
     "runtime_deps": attr.label_list(default = []),
-    # Add debugging info for any rules.
-    #    "verbose": attr.int(default = 0),
-    #    "opts": attr.string_dict(),
-    # Advanced options
-    #    "x_opts": attr.string_list(),
-    # Plugin options
-    #    "plugin_opts": attr.string_dict(),
     "resources": attr.label_list(
         default = [],
         allow_files = True,
@@ -155,7 +195,10 @@ _common_attr = dict(_implicit_deps.items() + {
         allow_files = True,
         cfg = "data",
     ),
-    # Other args for the compiler
+    "plugins": attr.label_list(
+        default = [],
+        aspects = [_kt_jvm_plugin_aspect],
+    ),
 }.items())
 
 _runnable_common_attr = dict(_common_attr.items() + {

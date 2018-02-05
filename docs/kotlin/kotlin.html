@@ -105,6 +105,42 @@ the repository the following Kotlin Libraries are also made available from the w
 <li><code>kotlin-reflect</code>.</li>
 </ul>
 <p>So if you needed to add reflect as a dep use the following label <code>@com_github_jetbrains_kotlin//:kotlin-reflect</code>.</p>
+<h3>Mixed Mode compilation</h3>
+<p>The JVM rules can compile both Java and Kotlin sources. The Java compiler wrapper is not optimized or persistent and does not have the features found in the
+native java rules. This mode is usefull for migrating a package to Kotlin over time.</p>
+<h3>Annotation Processing</h3>
+<p>Annotation processing works just as it does in Java, plugins are declared via a <a href="https://docs.bazel.build/versions/master/be/java.html#java_plugin"><code>java_plugin</code></a>
+and may also be inherited from a <code>java_library</code> via the <code>exported_plugins</code> attribute. Annotation work in mixed-mode compilation and the Kotlin compiler take
+care of processing both aspects.</p>
+<p>An example which can be found under <code>//examples/dagger</code>:</p>
+<pre><code class="lang-bzl">java_plugin(
+    name = &quot;dagger_plugin&quot;,
+    deps = [
+        &quot;@dagger_compiler//jar&quot;,
+        &quot;@guava//jar&quot;,
+        &quot;@dagger_producers//jar&quot;,
+        &quot;@dagger//jar&quot;,
+        &quot;@javax_inject//jar&quot;
+    ],
+    processor_class = &quot;dagger.internal.codegen.ComponentProcessor&quot;
+)
+
+java_library(
+    name = &quot;dagger_lib&quot;,
+    exports = [
+        &quot;@javax_inject//jar&quot;,
+        &quot;@dagger//jar&quot;,
+    ],
+    exported_plugins = [&quot;dagger_plugin&quot;]
+)
+
+kt_jvm_binary(
+    name = &quot;dagger&quot;,
+    srcs = glob([&quot;src/**&quot;]),
+    main_class = &quot;coffee.CoffeeApp&quot;,
+    deps = [&quot;:dagger_lib&quot;],
+)
+</code></pre>
 
           <hr>
 
@@ -137,7 +173,7 @@ chosen by default.</p>
 
           <h2 id="kt_jvm_binary">kt_jvm_binary</h2>
 
-          <pre>kt_jvm_binary(<a href="#kt_jvm_binary.name">name</a>, <a href="#kt_jvm_binary.deps">deps</a>, <a href="#kt_jvm_binary.data">data</a>, <a href="#kt_jvm_binary.resources">resources</a>, <a href="#kt_jvm_binary.srcs">srcs</a>, <a href="#kt_jvm_binary.jvm_flags">jvm_flags</a>, <a href="#kt_jvm_binary.main_class">main_class</a>, <a href="#kt_jvm_binary.resource_jars">resource_jars</a>, <a href="#kt_jvm_binary.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_binary.runtime_deps">runtime_deps</a>)</pre>
+          <pre>kt_jvm_binary(<a href="#kt_jvm_binary.name">name</a>, <a href="#kt_jvm_binary.deps">deps</a>, <a href="#kt_jvm_binary.data">data</a>, <a href="#kt_jvm_binary.resources">resources</a>, <a href="#kt_jvm_binary.srcs">srcs</a>, <a href="#kt_jvm_binary.jvm_flags">jvm_flags</a>, <a href="#kt_jvm_binary.main_class">main_class</a>, <a href="#kt_jvm_binary.plugins">plugins</a>, <a href="#kt_jvm_binary.resource_jars">resource_jars</a>, <a href="#kt_jvm_binary.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_binary.runtime_deps">runtime_deps</a>)</pre>
 
           <p>Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper shell script uses a classpath that includes,
 among other things, a jar file for each library on which the binary depends.</p>
@@ -201,6 +237,13 @@ classes may depend on Java classes in the same compilation unit.</p>
       <td>
         <p><code>String; Required</code></p>
         <p>Name of class with main() method to use as entry point.</p>
+      </td>
+    </tr>
+    <tr id="kt_jvm_binary.plugins">
+      <td><code>plugins</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/docs/build-ref.html#labels">labels</a>; Optional; Default is []</code></p>
+        
       </td>
     </tr>
     <tr id="kt_jvm_binary.resource_jars">
@@ -294,7 +337,7 @@ with a single class jar and a single source jar. a source jar is recognized by t
 
           <h2 id="kt_jvm_library">kt_jvm_library</h2>
 
-          <pre>kt_jvm_library(<a href="#kt_jvm_library.name">name</a>, <a href="#kt_jvm_library.deps">deps</a>, <a href="#kt_jvm_library.data">data</a>, <a href="#kt_jvm_library.resources">resources</a>, <a href="#kt_jvm_library.srcs">srcs</a>, <a href="#kt_jvm_library.exports">exports</a>, <a href="#kt_jvm_library.resource_jars">resource_jars</a>, <a href="#kt_jvm_library.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_library.runtime_deps">runtime_deps</a>)</pre>
+          <pre>kt_jvm_library(<a href="#kt_jvm_library.name">name</a>, <a href="#kt_jvm_library.deps">deps</a>, <a href="#kt_jvm_library.data">data</a>, <a href="#kt_jvm_library.resources">resources</a>, <a href="#kt_jvm_library.srcs">srcs</a>, <a href="#kt_jvm_library.exports">exports</a>, <a href="#kt_jvm_library.plugins">plugins</a>, <a href="#kt_jvm_library.resource_jars">resource_jars</a>, <a href="#kt_jvm_library.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_library.runtime_deps">runtime_deps</a>)</pre>
 
           <p>This rule compiles and links Kotlin and Java sources into a .jar file.</p>
 
@@ -352,6 +395,13 @@ classes may depend on Java classes in the same compilation unit.</p>
 This is not true for regular (non-exported) deps.</p>
       </td>
     </tr>
+    <tr id="kt_jvm_library.plugins">
+      <td><code>plugins</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/docs/build-ref.html#labels">labels</a>; Optional; Default is []</code></p>
+        
+      </td>
+    </tr>
     <tr id="kt_jvm_library.resource_jars">
       <td><code>resource_jars</code></td>
       <td>
@@ -381,7 +431,7 @@ unlike them, not on the compile-time classpath.</p>
 
           <h2 id="kt_jvm_test">kt_jvm_test</h2>
 
-          <pre>kt_jvm_test(<a href="#kt_jvm_test.name">name</a>, <a href="#kt_jvm_test.deps">deps</a>, <a href="#kt_jvm_test.data">data</a>, <a href="#kt_jvm_test.resources">resources</a>, <a href="#kt_jvm_test.srcs">srcs</a>, <a href="#kt_jvm_test.jvm_flags">jvm_flags</a>, <a href="#kt_jvm_test.resource_jars">resource_jars</a>, <a href="#kt_jvm_test.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_test.runtime_deps">runtime_deps</a>, <a href="#kt_jvm_test.test_class">test_class</a>)</pre>
+          <pre>kt_jvm_test(<a href="#kt_jvm_test.name">name</a>, <a href="#kt_jvm_test.deps">deps</a>, <a href="#kt_jvm_test.data">data</a>, <a href="#kt_jvm_test.resources">resources</a>, <a href="#kt_jvm_test.srcs">srcs</a>, <a href="#kt_jvm_test.jvm_flags">jvm_flags</a>, <a href="#kt_jvm_test.plugins">plugins</a>, <a href="#kt_jvm_test.resource_jars">resource_jars</a>, <a href="#kt_jvm_test.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_test.runtime_deps">runtime_deps</a>, <a href="#kt_jvm_test.test_class">test_class</a>)</pre>
 
           <p>Setup a simple kotlin_test.</p>
 <p><strong>Notes:</strong></p>
@@ -439,6 +489,13 @@ classes may depend on Java classes in the same compilation unit.</p>
       <td>
         <p><code>List of strings; Optional; Default is []</code></p>
         <p>A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet support make variable substitution.</p>
+      </td>
+    </tr>
+    <tr id="kt_jvm_test.plugins">
+      <td><code>plugins</code></td>
+      <td>
+        <p><code>List of <a href="https://bazel.build/docs/build-ref.html#labels">labels</a>; Optional; Default is []</code></p>
+        
       </td>
     </tr>
     <tr id="kt_jvm_test.resource_jars">

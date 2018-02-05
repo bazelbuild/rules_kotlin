@@ -84,6 +84,26 @@ kotlin_stdlib(
     srcjar = "lib/kotlin-test-sources.jar"
 )
 
+kotlin_stdlib(
+    name = "kotlin-annotation-processing",
+    jars = ["lib/kotlin-annotation-processing.jar"]
+)
+
+kotlin_stdlib(
+    name = "kotlin-annotation-processing-runtime",
+    jars = ["lib/kotlin-annotation-processing-runtime.jar"]
+)
+
+kotlin_stdlib(
+    name = "allopen-compiler-plugin",
+    jars = ["lib/allopen-compiler-plugin.jar"]
+)
+
+kotlin_stdlib(
+    name = "noarg-compiler-plugin",
+    jars = ["lib/noarg-compiler-plugin.jar"]
+)
+
 alias(name="runtime", actual="kotlin-runtime")
 alias(name="stdlib", actual="kotlin-stdlib")
 alias(name="stdlib-jdk7", actual="kotlin-stdlib-jdk7")

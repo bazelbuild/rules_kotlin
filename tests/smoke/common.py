@@ -13,9 +13,9 @@
 # limitations under the License.
 import os
 import subprocess
+import sys
 import unittest
 import zipfile
-import sys
 
 DEVNULL = open(os.devnull, 'wb')
 
@@ -25,7 +25,7 @@ def _do_exec(command, ignore_error=False, silent=True):
         retcode = subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL)
     else:
         retcode = subprocess.call(command)
-    if not ignore_error and retcode != 0:
+    if retcode != 0 and not ignore_error:
         raise Exception("command " + " ".join(command) + " failed")
 
 
@@ -40,6 +40,7 @@ def _do_exec_expect_fail(command, silent=True):
 
 class BazelKotlinTestCase(unittest.TestCase):
     _pkg = None
+    _last_built_target = ""
 
     def __init__(self, methodName='runTest'):
         super(BazelKotlinTestCase, self).__init__(methodName)
@@ -47,7 +48,10 @@ class BazelKotlinTestCase(unittest.TestCase):
         self._pkg = os.path.dirname(os.path.relpath(sys.modules[self.__module__].__file__))
 
     def _target(self, target_name):
-        return "//%s:%s" % (self._pkg, target_name)
+        if target_name.startswith("//"):
+            return target_name
+        else:
+            return "//%s:%s" % (self._pkg, target_name)
 
     def _bazel_bin(self, file):
         return "bazel-bin/" + self._pkg + "/" + file
@@ -74,23 +78,30 @@ class BazelKotlinTestCase(unittest.TestCase):
     def libQuery(self, label, implicits=False):
         return self._query('\'kind("java_import|.*_library", deps(%s))\'' % label, implicits)
 
-    @staticmethod
-    def assertJarContains(jar, *files):
+    def assertJarContains(self, jar, *files):
         curr = ""
         try:
             for f in files:
                 curr = f
                 jar.getinfo(f)
         except Exception as ex:
-            raise Exception("jar does not contain file [%s]" % curr)
+            self.fail("jar does not contain file [%s]" % curr)
+
+    def assertJarDoesNotContain(self, jar, *files):
+        tally = {}
+        for n in jar.namelist():
+            tally[n] = True
+        for f in files:
+            self.assertNotIn(f, tally, "jar should not contain file " + f)
 
     def build(self, target, ignore_error=False, silent=True):
+
         _do_exec(["bazel", "build", self._target(target)], ignore_error, silent)
 
-    def getWorkerArgsMap(self, target):
+    def getWorkerArgsMap(self):
         arg_map = {}
         key = None
-        for line in self._open_bazel_bin(target + "-worker.args"):
+        for line in self._open_bazel_bin(self._last_built_target + "-worker.args"):
             line = line.rstrip("\n")
             if not key:
                 key = line
@@ -100,13 +111,16 @@ class BazelKotlinTestCase(unittest.TestCase):
         return arg_map
 
     def buildJarExpectingFail(self, target, silent=True):
+        self._last_built_target = target
         _do_exec_expect_fail(["bazel", "build", self._target(target)], silent)
 
-    def buildJarGetZipFile(self, name, extension, silent=True):
-        jar_file = name + "." + extension
+    def buildJarGetZipFile(self, target, extension, silent=True):
+        jar_file = target + "." + extension
+        self._last_built_target = target
         self.build(jar_file, silent=silent)
         return zipfile.ZipFile(self._open_bazel_bin(jar_file))
 
-    def buildLaunchExpectingSuccess(self, target, command="run", silent=True):
+    def buildLaunchExpectingSuccess(self, target, command="run", ignore_error=False, silent=True):
+        self._last_built_target = target
         self.build(target, silent)
-        _do_exec(["bazel", command, self._target(target)], silent)
+        _do_exec(["bazel", command, self._target(target)], ignore_error=ignore_error, silent=silent)

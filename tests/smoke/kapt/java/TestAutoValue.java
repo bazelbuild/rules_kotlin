@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tests.smoke.junittest
-
-import org.junit.*
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import org.junit.runners.Suite
-import java.nio.file.Paths
+package tests.smoke.kapt.java;
 
 
-@RunWith(JUnit4::class)
-class JunitTest {
-    @Test
-    fun dummyTest() {
-        if(!Paths.get("tests", "smoke", "data" ,"datafile.txt").toFile().exists()) {
-            throw RuntimeException("could not read datafile")
-        }
+import com.google.auto.value.AutoValue;
+
+@AutoValue
+public abstract class TestAutoValue {
+    abstract String name();
+
+
+    static Builder builder() {
+        return new AutoValue_TestAutoValue.Builder();
     }
+
+    @AutoValue.Builder
+    abstract static class Builder {
+        abstract Builder setName(String name);
+        abstract TestAutoValue build();
+    }
+
 }

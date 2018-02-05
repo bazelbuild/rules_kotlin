@@ -16,23 +16,20 @@
 package io.bazel.ruleskotlin.workers.compilers.jvm.actions
 
 
-import io.bazel.ruleskotlin.workers.*
-import io.bazel.ruleskotlin.workers.model.Metas
+import io.bazel.ruleskotlin.workers.BuildAction
+import io.bazel.ruleskotlin.workers.CompileResult
+import io.bazel.ruleskotlin.workers.Context
+import io.bazel.ruleskotlin.workers.KotlinToolchain
 import io.bazel.ruleskotlin.workers.compilers.jvm.utils.KotlinCompilerOutputProcessor
 import io.bazel.ruleskotlin.workers.model.CompileDirectories
+import io.bazel.ruleskotlin.workers.model.CompilePluginConfig
 import io.bazel.ruleskotlin.workers.model.Flags
+import io.bazel.ruleskotlin.workers.model.Metas
+import io.bazel.ruleskotlin.workers.utils.annotationProcessingGeneratedJavaSources
 import java.util.*
 
-/**
- * Either compiles to a jar directly or when performing mixed-mode-compilation compiles to a temp directory first.
- *
- *
- * Mixed-Mode:
- *
- *
- * The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
- * invocations Configured via Kotlin use eager analysis in some corner cases this can result in classpath exceptions from the Java Compiler..
- */
+// The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
+// invocations Configured via Kotlin use eager analysis in some corner cases this can result in classpath exceptions from the Java Compiler..
 class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotlin classes", toolchain) {
     companion object {
         /**
@@ -52,7 +49,7 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
      *
      * @return The args to pass to the kotlin compile class.
      */
-    private fun setupCompileContext(ctx: Context): Array<String> {
+    private fun setupCompileContext(ctx: Context): MutableList<String> {
         val args = mutableListOf<String>()
         val compileDirectories = CompileDirectories[ctx]
 
@@ -60,19 +57,52 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
             args.add(field.kotlinFlag!!); args.add(arg)
         }
 
-        Collections.addAll(args, "-kotlin-home", KotlinToolchain.KOTLIN_HOME.toString())
-        Collections.addAll(args, "-d", compileDirectories.classes)
-
-
-        args.addAll(Metas.ALL_SOURCES.mustGet(ctx))
-        return args.toTypedArray()
+//        Collections.addAll(args, "-kotlin-home", KotlinToolchain.KOTLIN_HOME.toString())
+        Collections.addAll(args, "-d", compileDirectories.classes.toString())
+        return args
     }
 
     override fun invoke(ctx: Context): Int {
+        val commonArgs = setupCompileContext(ctx)
+        val sources = Metas.ALL_SOURCES.mustGet(ctx)
+        val pluginStatus = CompilePluginConfig[ctx]
+
+        // run a kapt generation phase if needed.
+        if(pluginStatus.hasAnnotationProcessors) {
+            invokeCompilePhase(
+                    args = mutableListOf(*commonArgs.toTypedArray()).let {
+                        it.addAll(pluginStatus.args)
+                        it.addAll(sources)
+                        it.toTypedArray()
+                    },
+                    onNonTeminalExitCode = { outputProcessors, exitCode ->
+                        outputProcessors.process()
+                        exitCode
+                    }
+            ).takeIf { it != 0 }?.also { return it }
+        }
+        return invokeCompilePhase(
+                args = commonArgs.let { args ->
+                    args.addAll(sources)
+                    ctx.annotationProcessingGeneratedJavaSources()?.also { args.addAll(it) }
+                    args.toTypedArray()
+                },
+                onNonTeminalExitCode = { outputProcessor, exitCode ->
+                    // give javac a chance to process the java sources.
+                    Result[ctx] = CompileResult.deferred(exitCode) { _ ->
+                        outputProcessor.process()
+                        exitCode
+                    }
+                    0
+                }
+        )
+    }
+
+    private fun invokeCompilePhase(args: Array<String>, onNonTeminalExitCode: (KotlinCompilerOutputProcessor, Int) -> Int): Int {
         val outputProcessor = KotlinCompilerOutputProcessor.ForKotlinC(System.out)
 
         val exitCode = try {
-            toolchain.kotlinCompiler.compile(setupCompileContext(ctx), outputProcessor.collector)
+            toolchain.kotlinCompiler.compile(args, outputProcessor.collector)
         } catch (ex: Exception) {
             outputProcessor.process()
             throw ex
@@ -82,13 +112,7 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
             // 1 is a standard compilation error
             // 2 is an internal error
             // 3 is the script execution error
-
-            // give javac a chance to process the java sources.
-            Result[ctx] = CompileResult.deferred(exitCode) { _ ->
-                outputProcessor.process()
-                exitCode
-            }
-            return 0
+            return onNonTeminalExitCode(outputProcessor, exitCode)
         } else {
             outputProcessor.process()
             throw RuntimeException("KotlinMainCompile returned terminal error code: $exitCode")
