@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers.model
+package tests.smoke.kapt.kotlin
 
-import io.bazel.ruleskotlin.workers.MandatoryMeta
-import java.nio.file.Files
-import java.nio.file.Path
+import com.google.auto.service.AutoService
 
-/**
- * Temporary output directories used durng compilation.
- */
-class CompileDirectories(private val outputBase: Path) {
-    val classes by lazy { dir("_classes") }
-
-    private fun dir(component: String) = Files.createDirectories(outputBase.resolve(component)).toString()
-
-    companion object: MandatoryMeta<CompileDirectories>
+interface TestKtService {
+    @AutoService(TestKtService::class)
+    class Impl(): TestKtService
 }

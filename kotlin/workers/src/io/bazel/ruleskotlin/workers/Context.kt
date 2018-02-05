@@ -20,6 +20,7 @@ package io.bazel.ruleskotlin.workers
 import java.util.stream.Stream
 
 class Context internal constructor(
+        val toolchain: KotlinToolchain,
         private val flags: Map<Flag, String>
 ) {
     private val meta = mutableMapOf<Meta<*>, Any>()

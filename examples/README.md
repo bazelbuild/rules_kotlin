@@ -1,0 +1,1 @@
+The examples directory is for test applications. These could be used in tests or for verifying the intellij plugin. 

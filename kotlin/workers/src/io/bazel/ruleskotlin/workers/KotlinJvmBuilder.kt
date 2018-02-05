@@ -26,7 +26,7 @@ import java.io.IOException
 object KotlinJvmBuilder : CommandLineProgram.Base(
         flags = Flags::class.flagsByName()
 ) {
-    private val toolchain: KotlinToolchain = try {
+    override val toolchain: KotlinToolchain = try {
         KotlinToolchain()
     } catch (e: IOException) {
         throw RuntimeException("could not initialize toolchain", e)
@@ -41,7 +41,6 @@ object KotlinJvmBuilder : CommandLineProgram.Base(
             GenerateJdepsFile(toolchain)
     )
 
-    override fun toolchain(ctx: Context): KotlinToolchain = toolchain
     override fun actions(toolchain: KotlinToolchain, ctx: Context): List<BuildAction> = compileActions
 
     @JvmStatic

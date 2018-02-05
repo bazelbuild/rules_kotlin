@@ -26,6 +26,8 @@ object Flags {
     val SOURCES = Flag.Mandatory(JavaBuilderFlags.SOURCES.flag)
     val CLASSPATH = Flag.Mandatory(JavaBuilderFlags.CLASSPATH.flag, "-cp")
 
+    val PLUGINS = Flag.Optional("--kt-plugins")
+
     val OUTPUT_JDEPS = Flag.Mandatory("--output_jdeps")
     val COMPILER_OUTPUT_BASE = Flag.Mandatory("--compiler_output_base")
 

@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tests.smoke.junittest
+package coffee
 
-import org.junit.*
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import org.junit.runners.Suite
-import java.nio.file.Paths
+import javax.inject.Inject
 
+internal class Thermosiphon @Inject
+constructor(private val heater: Heater) : Pump {
 
-@RunWith(JUnit4::class)
-class JunitTest {
-    @Test
-    fun dummyTest() {
-        if(!Paths.get("tests", "smoke", "data" ,"datafile.txt").toFile().exists()) {
-            throw RuntimeException("could not read datafile")
+    override fun pump() {
+        if (heater.isHot) {
+            println("=> => pumping => =>")
         }
     }
 }

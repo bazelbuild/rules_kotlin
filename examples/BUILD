@@ -11,19 +11,4 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-directories:
-  # Add the directories you want added as source here
-  # By default, we've added your entire workspace ('.')
-  .
-
-targets:
-  //kotlin/workers:for_ide
-  //examples/...
-
-test_sources:
-  */unittests/*
-
-kotlin_language_version: 1.2
-
-additional_languages:
-  kotlin
+package(default_visibility = ["//visibility:private"])
