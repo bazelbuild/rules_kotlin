@@ -72,7 +72,7 @@ def kotlin_worker_lib(srcs =[], args = [], deps=[], runtime_deps=[], exports=[])
             "@com_github_jetbrains_kotlin//:kotlinc",
             "@local_jdk//:jdk",
             dep_label
-        ] + deps,
+        ],
         srcs = srcs,
         outs = [jar_name],
         cmd = _gen_cmd(dep_label, " ".join(args)),
@@ -83,5 +83,6 @@ def kotlin_worker_lib(srcs =[], args = [], deps=[], runtime_deps=[], exports=[])
         jars = [jar_name],
         exports = exports,
         runtime_deps = (depset(runtime_deps) + exports + deps).to_list(),
-        visibility = ["//visibility:private"]
+        visibility = ["//visibility:private"],
+        tags = ["no-ide"]
     )

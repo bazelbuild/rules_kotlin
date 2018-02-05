@@ -15,17 +15,18 @@
  */
 package io.bazel.ruleskotlin.workers
 
-open class Meta<T: Any>(
-        private val id: String,
-        private val defaultValue: T? = null
-) {
-    constructor(id: String) : this(id, null)
+interface Meta<T : Any> {
+    val id: String
+        get() = this.javaClass.simpleName
+
+    val defaultValue: T?
+        get() = null
 
     /**
      * Gets a mandatory value.
      */
     fun mustGet(ctx: Context): T =
-        ctx[this] ?: checkNotNull(defaultValue) { "mandatory meta parameter missing in context and does not have a default value" }
+            ctx[this] ?: checkNotNull(defaultValue) { "mandatory meta parameter missing in context and does not have a default value" }
 
     /**
      * Gets an optional value, if it has not been bound the default value is used.
@@ -39,5 +40,25 @@ open class Meta<T: Any>(
         }
     }
 
-    fun bind(ctx: Context, value: T) { check(ctx.putIfAbsent(this, value) == null) { "attempting to change bound meta variable: $id " } }
+    operator fun set(ctx: Context, value: T) {
+        check(ctx.putIfAbsent(this, value) == null) { "attempting to change bound meta variable: $id " }
+    }
+
+    companion object {
+        operator fun <T : Any> invoke(id: String): Meta<T> = object : Meta<T> {
+            override val id: String = id
+            override val defaultValue: T? = null
+        }
+    }
+}
+
+interface MandatoryMeta<T: Any>: Meta<T> {
+    override fun get(ctx: Context): T = checkNotNull(super.get(ctx)) { "ctx missing mandatory meta ${this.id}" }
+
+    companion object {
+        operator fun <T : Any> invoke(id: String): Meta<T> = object : MandatoryMeta<T> {
+            override val id: String = id
+            override val defaultValue: T? = null
+        }
+    }
 }
