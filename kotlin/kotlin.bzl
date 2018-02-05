@@ -213,7 +213,7 @@ load(
     _kotlin_library_impl = "kotlin_library_impl",
 )
 
-kotlin_library = rule(
+kt_jvm_library = rule(
     attrs = dict(_common_attr.items() + {
         "exports": attr.label_list(default = []),
     }.items()),
@@ -239,7 +239,7 @@ Args:
   deps: A list of dependencies of this rule.See general comments about `deps` at [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).
 """
 
-kotlin_binary = rule(
+kt_jvm_binary = rule(
     attrs = dict(_runnable_common_attr.items() + {"main_class": attr.string(mandatory = True)}.items()),
     executable = True,
     outputs = _binary_outputs,
@@ -257,7 +257,7 @@ Args:
   jvm_flags: A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet support make variable substitution.
 """
 
-kotlin_test = rule(
+kt_jvm_test = rule(
     attrs = dict(_runnable_common_attr.items() + {
         "_bazel_test_runner": attr.label(
             default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
@@ -277,7 +277,7 @@ Args:
   test_class: The Java class to be loaded by the test runner.
 """
 
-kotlin_import = rule(
+kt_jvm_import = rule(
     attrs = {
         "jars": attr.label_list(
             allow_files = True,
@@ -302,7 +302,7 @@ kotlin_import = rule(
 
 ```bzl
 # Import a collection of class jars and source jars from filegroup labels.
-kotlin_import(
+kt_jvm_import(
     name = "kodein",
     jars = [
         "@com_github_salomonbrys_kodein_kodein//jar:file",
@@ -311,7 +311,7 @@ kotlin_import(
 )
 
 # Import a single kotlin jar.
-kotlin_import(
+kt_jvm_import(
     name = "kotlin-runtime",
     jars = ["lib/kotlin-runtime.jar"],
     srcjar = "lib/kotlin-runtime-sources.jar"

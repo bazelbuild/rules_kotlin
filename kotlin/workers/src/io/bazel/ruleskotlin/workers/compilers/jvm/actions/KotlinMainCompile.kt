@@ -65,7 +65,6 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
 
 
         args.addAll(Metas.ALL_SOURCES.mustGet(ctx))
-        println(args.joinToString(" "))
         return args.toTypedArray()
     }
 
