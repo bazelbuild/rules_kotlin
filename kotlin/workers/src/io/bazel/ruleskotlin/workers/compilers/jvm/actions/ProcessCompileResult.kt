@@ -19,7 +19,6 @@ package io.bazel.ruleskotlin.workers.compilers.jvm.actions
 import io.bazel.ruleskotlin.workers.BuildAction
 import io.bazel.ruleskotlin.workers.Context
 import io.bazel.ruleskotlin.workers.KotlinToolchain
-import io.bazel.ruleskotlin.workers.compilers.jvm.Metas
 
 
 /**
@@ -29,8 +28,8 @@ import io.bazel.ruleskotlin.workers.compilers.jvm.Metas
  */
 class ProcessCompileResult(toolchain: KotlinToolchain) : BuildAction("render class compile output", toolchain) {
     override fun invoke(ctx: Context): Int {
-        val kotlincResult = Metas.KOTLINC_RESULT.mustGet(ctx)
-        val javacResult = Metas.JAVAC_RESULT[ctx]
+        val kotlincResult = KotlinMainCompile.Result.mustGet(ctx)
+        val javacResult = JavaMainCompile.Result[ctx]
 
         return if (javacResult == null) {
             kotlincResult.render(ctx)

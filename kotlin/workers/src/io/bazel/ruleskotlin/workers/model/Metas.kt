@@ -13,29 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers.compilers.jvm
+package io.bazel.ruleskotlin.workers.model
 
-import io.bazel.ruleskotlin.workers.CompileResult
+import io.bazel.ruleskotlin.workers.MandatoryMeta
 import io.bazel.ruleskotlin.workers.Meta
 
-import java.nio.file.Path
-
 /**
- * Meta is a key to some compilation state,.
+ * Listin of Meta keys that don't make sense as companion objects.
  */
 object Metas {
     // mandatory: the package part of the label.
     val PKG = Meta<String>("package")
     // mandatory: The target part of the label.
     val TARGET = Meta<String>("target")
-    // mandatory: the class staging directory.
-    val CLASSES_DIRECTORY = Meta<Path>("class_directory")
-    // mandatory: If this is non empty then it is a mixed mode operation.
-    val JAVA_SOURCES = Meta<List<String>>("java_sources")
+
+    // mandatory:  If this is non empty then it is a mixed mode operation.
+    val JAVA_SOURCES = MandatoryMeta<List<String>>("java_sources")
+
     // mandatory:
-    val ALL_SOURCES = Meta<List<String>>("all_sources")
-    // mandatory:
-    val KOTLINC_RESULT = CompileResult.Meta("kotlin_compile_result")
-    // optional: when not a mixed mode operation.
-    val JAVAC_RESULT = CompileResult.Meta("javac_compile_result")
+    val ALL_SOURCES = MandatoryMeta<List<String>>("all_sources")
 }

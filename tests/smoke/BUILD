@@ -78,7 +78,8 @@ java_binary(
     name = "propagation_ct_consumer_fail_on_runtime",
     main_class = "testing.CompileTimeDependent",
     srcs = ["propagation/CompileTimeDependent.java"],
-    deps = [":propagation_test_runtime_lib"]
+    deps = [":propagation_test_runtime_lib"],
+    tags = ["manual"]
 )
 
 java_binary(

@@ -18,9 +18,12 @@ package io.bazel.ruleskotlin.workers.compilers.jvm.actions
 import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.ruleskotlin.workers.BuildAction
 import io.bazel.ruleskotlin.workers.Context
-import io.bazel.ruleskotlin.workers.Flags.*
 import io.bazel.ruleskotlin.workers.KotlinToolchain
 import io.bazel.ruleskotlin.workers.compilers.jvm.utils.JdepsParser
+import io.bazel.ruleskotlin.workers.model.Flags.CLASSPATH
+import io.bazel.ruleskotlin.workers.model.Flags.LABEL
+import io.bazel.ruleskotlin.workers.model.Flags.OUTPUT_CLASSJAR
+import io.bazel.ruleskotlin.workers.model.Flags.OUTPUT_JDEPS
 import io.bazel.ruleskotlin.workers.utils.executeAndWaitOutput
 import io.bazel.ruleskotlin.workers.utils.rootCause
 import java.io.FileOutputStream
@@ -32,10 +35,11 @@ class GenerateJdepsFile(toolchain: KotlinToolchain) : BuildAction("generate jdep
     private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(toolchain.KOTLIN_LIB_DIR, *toolchain.KOTLIN_STD_LIBS)
 
     override fun invoke(ctx: Context): Int {
-        val classJar = checkNotNull(OUTPUT_CLASSJAR[ctx])
-        val classPath = checkNotNull(CLASSPATH[ctx])
-        val output = checkNotNull(OUTPUT_JDEPS[ctx])
-        val label = checkNotNull(LABEL[ctx])
+        val classJar = OUTPUT_CLASSJAR[ctx]
+        val classPath = CLASSPATH[ctx]
+        val output = OUTPUT_JDEPS[ctx]
+        val label = LABEL[ctx]
+
         val jdepsContent: Deps.Dependencies
 
         try {
