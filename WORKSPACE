@@ -33,3 +33,4 @@ load("//kotlin:kotlin.bzl", "kotlin_repositories")
 kotlin_repositories()
 
 maven_jar(name = "junit_junit",artifact = "junit:junit:jar:4.12")
+maven_jar(name = "autovalue", artifact="com.google.auto.value:auto-value:1.5")

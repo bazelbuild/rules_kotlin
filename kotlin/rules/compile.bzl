@@ -14,7 +14,9 @@
 load(
     "//kotlin/rules:defs.bzl",
     _KotlinInfo = "KotlinInfo",
+    _KotlinPluginInfo = "KotlinPluginInfo",
 )
+
 load(
     "//kotlin/rules:util.bzl",
     _collect_all_jars = "collect_all_jars",
@@ -53,6 +55,11 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
         "--kotlin_jvm_target", "1.8", "--kotlin_api_version", "1.2", "--kotlin_language_version", "1.2"
     ]
 
+    plugin_info_arg=struct(
+        processors= [ plugin[_KotlinPluginInfo].processor for plugin in ctx.attr.plugins ]
+    )
+    args += [ "--kt-plugins", plugin_info_arg.to_json() ]
+
     # re-enable compilation options https://github.com/hsyed/rules_kotlin/issues/3.
 #    for k, v in ctx.attr.opts.items():
 #        args + [ "-%s" % k, v]:
@@ -66,6 +73,8 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
 #        args += ["-P"]
 #        args += ["plugin:%s=\"%s\"" % (k, v)]
 
+
+
     # Declare and write out argument file.
     args_file = ctx.actions.declare_file(ctx.label.name + "-worker.args")
     ctx.actions.write(args_file, "\n".join(args))
@@ -77,6 +86,7 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
       ctx.files.srcs +
       compile_jars +
       ctx.files._kotlin_compiler_classpath +
+      ctx.files._kotlin_home +
       ctx.files._jdk)
 
     ctx.action(

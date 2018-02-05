@@ -37,9 +37,13 @@ class KotlinToolchain {
     val JAR_TOOL_PATH = JAVA_HOME.resolveVerified("bin", "jar").toString()
     val JDEPS_PATH = JAVA_HOME.resolveVerified("bin", "jdeps").toString()
     val KOTLIN_LIB_DIR: Path = KOTLIN_HOME.resolveVerified("lib").toPath()
+    val KAPT_JAR_PATH = KOTLIN_LIB_DIR.resolveVerified("kotlin-annotation-processing.jar")
 
     private val kotlinPreloadJars = mutableListOf<File>().let {
         it.addAll(KOTLIN_LIB_DIR.verifiedRelativeFiles(Paths.get("kotlin-compiler.jar")))
+
+        // tools.jar is need for annotation processing
+        it.addAll(JAVA_HOME.verifiedRelativeFiles(Paths.get("lib", "tools.jar")))
         it.toList()
     }
 

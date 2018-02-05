@@ -27,3 +27,9 @@ KotlinInfo = provider(
         "outputs": "output jars produced by this rule. [intelij-aspect]",
     },
 )
+
+KotlinPluginInfo = provider(
+    fields = {
+        "processor": "a serializeable struct containing an annotation processor definition",
+    }
+)

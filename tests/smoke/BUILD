@@ -113,3 +113,24 @@ kt_jvm_library(
     resources = glob(["resourcejar/**"]),
     srcs = glob(["hellojava/*.kt", "hellojava/*.java"]),
 )
+
+java_plugin(
+    name = "autovalue",
+    deps = ["@autovalue//jar"],
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    generates_api = 1,
+)
+
+java_library(
+    name = "ap_java",
+    srcs = ["kapt/java/TestAutoValue.java"],
+    deps = ["@autovalue//jar"],
+    plugins = [":autovalue"]
+)
+
+kotlin_library(
+    name = "ap_kotlin",
+    srcs = ["kapt/kotlin/TestKtValue.kt"],
+    deps = ["@autovalue//jar"],
+    plugins = [":autovalue"]
+)

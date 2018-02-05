@@ -51,7 +51,13 @@ So if you needed to add reflect as a dep use the following label `@com_github_je
 # Common Definitions
 ########################################################################################################################
 
-load("//kotlin/rules:defs.bzl", "KOTLIN_REPO_ROOT")
+load("//kotlin/rules:defs.bzl",
+    "KOTLIN_REPO_ROOT"
+)
+
+load("//kotlin/rules:plugins.bzl",
+    _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect"
+)
 
 # The files types that may be passed to the core Kotlin compile rule.
 _kt_compile_filetypes = FileType([
@@ -77,6 +83,11 @@ _implicit_deps = {
             Label("@" + KOTLIN_REPO_ROOT + "//:reflect"),
             Label("@" + KOTLIN_REPO_ROOT + "//:script-runtime"),
         ],
+    ),
+    "_kotlin_home": attr.label(
+        default = Label("@" + KOTLIN_REPO_ROOT + "//:home"),
+        allow_files=True,
+        cfg = "host"
     ),
     "_kotlinw": attr.label(
         default = Label("//kotlin/workers:compiler_jvm"),
@@ -155,6 +166,7 @@ _common_attr = dict(_implicit_deps.items() + {
         allow_files = True,
         cfg = "data",
     ),
+    "plugins":  attr.label_list(default = [], aspects=[_kt_jvm_plugin_aspect]),
     # Other args for the compiler
 }.items())
 

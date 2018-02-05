@@ -23,9 +23,19 @@ import java.nio.file.Path
  * Temporary output directories used durng compilation.
  */
 class CompileDirectories(private val outputBase: Path) {
-    val classes by lazy { dir("_classes") }
+    val classes by lazy { dir("_classes", create = true) }
 
-    private fun dir(component: String) = Files.createDirectories(outputBase.resolve(component)).toString()
+    // HS RFC: Some of the directories are created lazilly -- so this is more than a model object, using lazy creation here is usefull for debugging.
+    val annotationProcessingSources by lazy { dir("_ap_sources") }
+    val annotionProcessingClasses by lazy { dir("_ap_classes") }
+    val annotationProcessingStubs by lazy { dir("_ap_stubs") }
+    val annotationProcessingIncrementalData by lazy { dir("_ap_incremental_data") }
+
+    private fun dir(component: String, create: Boolean = false) = outputBase.resolve(component).also {
+        if(create) {
+            Files.createDirectories(it)
+        }
+    }.toString()
 
     companion object: MandatoryMeta<CompileDirectories>
 }

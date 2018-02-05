@@ -21,6 +21,7 @@ import io.bazel.ruleskotlin.workers.Context
 import io.bazel.ruleskotlin.workers.KotlinToolchain
 import io.bazel.ruleskotlin.workers.model.CompileDirectories
 import io.bazel.ruleskotlin.workers.model.Flags
+import io.bazel.ruleskotlin.workers.model.PluginDescriptors
 import io.bazel.ruleskotlin.workers.utils.executeAndAwaitSuccess
 
 /**
@@ -29,12 +30,24 @@ import io.bazel.ruleskotlin.workers.utils.executeAndAwaitSuccess
 class CreateOutputJar(toolchain: KotlinToolchain) : BuildAction("create output jar", toolchain) {
     override fun invoke(ctx: Context): Int {
         try {
+//            mutableListOf(
+//                    toolchain.JAR_TOOL_PATH,
+//                    "cf", Flags.OUTPUT_CLASSJAR[ctx],
+//                    "-C", CompileDirectories[ctx].classes, "."
+//            ).also { args ->
+//                PluginDescriptors[ctx]?.also {
+//                    if(it.processors.isNotEmpty()) {
+//                        CompileDirectories[ctx].annotionProcessingClasses
+//                    }
+//                }
+//            }
+
             executeAndAwaitSuccess(10,
                     toolchain.JAR_TOOL_PATH,
-                    "cf", checkNotNull(Flags.OUTPUT_CLASSJAR[ctx]),
-                    "-C", CompileDirectories[ctx].classes,
-                    "."
+                    "cf", Flags.OUTPUT_CLASSJAR[ctx],
+                    "-C", CompileDirectories[ctx].classes, "."
             )
+
         } catch (e: Exception) {
             throw RuntimeException("unable to create class jar", e)
         }
