@@ -17,7 +17,7 @@ directories:
   .
 
 targets:
-  //kotlin/workers:worker_for_ide
+  //kotlin/workers:for_ide
   //kotlin/workers:unittests
 
 test_sources:

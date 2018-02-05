@@ -18,9 +18,9 @@ package io.bazel.ruleskotlin.workers.compilers.jvm.actions
 
 import io.bazel.ruleskotlin.workers.BuildAction
 import io.bazel.ruleskotlin.workers.Context
-import io.bazel.ruleskotlin.workers.Flags
 import io.bazel.ruleskotlin.workers.KotlinToolchain
-import io.bazel.ruleskotlin.workers.compilers.jvm.Metas
+import io.bazel.ruleskotlin.workers.model.CompileDirectories
+import io.bazel.ruleskotlin.workers.model.Flags
 import io.bazel.ruleskotlin.workers.utils.executeAndAwaitSuccess
 
 /**
@@ -32,7 +32,7 @@ class CreateOutputJar(toolchain: KotlinToolchain) : BuildAction("create output j
             executeAndAwaitSuccess(10,
                     toolchain.JAR_TOOL_PATH,
                     "cf", checkNotNull(Flags.OUTPUT_CLASSJAR[ctx]),
-                    "-C", Metas.CLASSES_DIRECTORY.mustGet(ctx).toString(),
+                    "-C", CompileDirectories[ctx].classes,
                     "."
             )
         } catch (e: Exception) {

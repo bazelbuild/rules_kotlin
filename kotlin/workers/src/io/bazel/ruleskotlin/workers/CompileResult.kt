@@ -34,7 +34,8 @@ interface CompileResult {
         error().ifPresent { e -> throw RuntimeException(message, e) }
     }
 
-    class Meta(id: String) : io.bazel.ruleskotlin.workers.Meta<CompileResult>(id) {
+    class Meta(id: String) : io.bazel.ruleskotlin.workers.Meta<CompileResult> {
+        override val id: String = id
 
         fun run(ctx: Context, op: (Context) -> Int): CompileResult {
             var result: CompileResult
@@ -49,7 +50,7 @@ interface CompileResult {
 
         fun runAndBind(ctx: Context, op: (Context) -> Int): CompileResult {
             val res = run(ctx, op)
-            bind(ctx, res)
+            set(ctx,res)
             return res
         }
 

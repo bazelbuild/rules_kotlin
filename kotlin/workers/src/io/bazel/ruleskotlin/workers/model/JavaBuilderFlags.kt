@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers
+package io.bazel.ruleskotlin.workers.model
 
 /**
- * Flags used by the java builder.
+ * Declares the flags used by the java builder.
  */
-enum class JavaBuilderFlags(val flag: String) {
+internal enum class JavaBuilderFlags(val flag: String) {
     TARGET_LABEL("--target_label"),
     CLASSPATH("--classpath"),
     JAVAC_OPTS("--javacopts"),
