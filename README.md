@@ -1,6 +1,10 @@
 [Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
 
-# Overview
+# Announcements
+
+* <b>February 5, 2018. JVM rule name change:</b> the prefix has changed from `kotlin_` to `kt_jvm_`.
+
+# Overview 
 
 These rules were initially forked from [pubref/rules_kotlin](http://github.com/pubref/rules_kotlin). Key changes:
 
