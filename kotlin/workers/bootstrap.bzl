@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin:kotlin.bzl", _for_ide = "kotlin_library")
+load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
 
 _HEADER = """
 function join_by { local IFS="$$1"; shift; echo "$$*"; }
@@ -39,9 +39,6 @@ ARGS="%s"
 
 JAVA_HOME=external/local_jdk ./$(location @com_github_jetbrains_kotlin//:kotlinc) -cp $${CP} -d $(OUTS) $${ARGS} $(SRCS)
 """) % (name,args)
-
-
-
 
 def kotlin_worker_lib(srcs =[], args = [], deps=[], runtime_deps=[], exports=[]):
     name = "worker"
