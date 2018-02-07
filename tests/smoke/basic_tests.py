@@ -17,9 +17,6 @@ from common import BazelKotlinTestCase
 
 
 class TestRules(BazelKotlinTestCase):
-    def setUp(self):
-        self._pkg = "tests/smoke"
-
     def test_merge_resource_jar(self):
         jar = self.buildJarGetZipFile("test_merge_resourcesjar", "jar")
         self.assertJarContains(jar, "testresources/AClass.class", "testresources/BClass.class")
@@ -46,7 +43,7 @@ class TestRules(BazelKotlinTestCase):
         self.assertJarContains(jar, "main.txt", "test.txt")
 
     def test_export_ct_propagation(self):
-        self.buildJar("propagation_ct_consumer")
+        self.build("propagation_ct_consumer")
 
     def test_export_ct_propagation_fail_on_runtime(self):
         self.buildJarExpectingFail("propagation_ct_consumer_fail_on_runtime")
@@ -57,8 +54,11 @@ class TestRules(BazelKotlinTestCase):
     def test_export_rt_propagation_via_dep(self):
         self.buildLaunchExpectingSuccess("propagation_rt_via_runtime_deps_consumer")
 
+
+class MixedModeCompilation(BazelKotlinTestCase):
     def test_mixed_mode_compilation(self):
         jar = self.buildJarGetZipFile("hellojava", "jar")
+
         self.assertJarContains(
             jar,
             "hellojava/HelloWorldJava.class",
