@@ -156,14 +156,14 @@ _common_attr = dict(_implicit_deps.items() + {
     ),
     "resource_strip_prefix": attr.string(default = ""),
     "resource_jars": attr.label_list(default = []),
-    # Other args for the compiler
-}.items())
-
-_runnable_common_attr = dict(_common_attr.items() + {
     "data": attr.label_list(
         allow_files = True,
         cfg = "data",
     ),
+    # Other args for the compiler
+}.items())
+
+_runnable_common_attr = dict(_common_attr.items() + {
     "jvm_flags": attr.string_list(
         default = [],
     ),

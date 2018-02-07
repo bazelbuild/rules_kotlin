@@ -1,5 +1,5 @@
 test.smoke:
-	python -B tests/smoke/basic_tests.py
+	python -B -m unittest discover -s tests/smoke/ -p '*_tests.py'
 	bazel test //kotlin/workers:unittests
 
 reformat:
