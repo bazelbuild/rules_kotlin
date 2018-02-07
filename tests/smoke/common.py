@@ -15,30 +15,36 @@ import os
 import subprocess
 import unittest
 import zipfile
-
 import sys
 
 DEVNULL = open(os.devnull, 'wb')
 
 
-def _do_exec(command, silent=True):
-    out = sys.stdout
+def _do_exec(command, ignore_error=False, silent=True):
     if silent:
-        out = DEVNULL
-    if subprocess.call(command, stdout=out, stderr=out) != 0:
+        retcode = subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL)
+    else:
+        retcode = subprocess.call(command)
+    if not ignore_error and retcode != 0:
         raise Exception("command " + " ".join(command) + " failed")
 
 
 def _do_exec_expect_fail(command, silent=True):
-    out = sys.stdout
     if silent:
-        out = DEVNULL
-    if subprocess.call(command, stdout=out, stderr=out) == 0:
+        retcode = subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL)
+    else:
+        retcode = subprocess.call(command)
+    if retcode == 0:
         raise Exception("command " + " ".join(command) + " should have failed")
 
 
 class BazelKotlinTestCase(unittest.TestCase):
     _pkg = None
+
+    def __init__(self, methodName='runTest'):
+        super(BazelKotlinTestCase, self).__init__(methodName)
+        os.chdir(subprocess.check_output(["bazel", "info", "workspace"]).replace("\n", ""))
+        self._pkg = os.path.dirname(os.path.relpath(sys.modules[self.__module__].__file__))
 
     def _target(self, target_name):
         return "//%s:%s" % (self._pkg, target_name)
@@ -68,7 +74,8 @@ class BazelKotlinTestCase(unittest.TestCase):
     def libQuery(self, label, implicits=False):
         return self._query('\'kind("java_import|.*_library", deps(%s))\'' % label, implicits)
 
-    def assertJarContains(self, jar, *files):
+    @staticmethod
+    def assertJarContains(jar, *files):
         curr = ""
         try:
             for f in files:
@@ -77,19 +84,29 @@ class BazelKotlinTestCase(unittest.TestCase):
         except Exception as ex:
             raise Exception("jar does not contain file [%s]" % curr)
 
-    def buildJar(self, target, silent=True):
-        _do_exec(["bazel", "build", self._target(target)], silent)
+    def build(self, target, ignore_error=False, silent=True):
+        _do_exec(["bazel", "build", self._target(target)], ignore_error, silent)
+
+    def getWorkerArgsMap(self, target):
+        arg_map = {}
+        key = None
+        for line in self._open_bazel_bin(target + "-worker.args"):
+            line = line.rstrip("\n")
+            if not key:
+                key = line
+            else:
+                arg_map[key] = line
+                key = None
+        return arg_map
 
     def buildJarExpectingFail(self, target, silent=True):
         _do_exec_expect_fail(["bazel", "build", self._target(target)], silent)
 
-    def buildJarGetZipFile(self, name, extension):
+    def buildJarGetZipFile(self, name, extension, silent=True):
         jar_file = name + "." + extension
-        self.buildJar(jar_file)
+        self.build(jar_file, silent=silent)
         return zipfile.ZipFile(self._open_bazel_bin(jar_file))
 
-    def buildLaunchExpectingSuccess(self, target, command="run"):
-        self.buildJar(target, silent=False)
-        res = subprocess.call(["bazel", command, self._target(target)], stdout=sys.stdout, stderr=sys.stdout)
-        if not res == 0:
-            raise Exception("could not launch jar [%s]" % target)
+    def buildLaunchExpectingSuccess(self, target, command="run", silent=True):
+        self.build(target, silent)
+        _do_exec(["bazel", command, self._target(target)], silent)

@@ -21,7 +21,7 @@ import org.junit.runners.Suite
 import java.nio.file.Paths
 
 
-//@RunWith(Suite::class)
+@RunWith(Suite::class)
 class JunitTest {
     @Test
     fun dummyTest() {
@@ -30,9 +30,4 @@ class JunitTest {
 
         }
     }
-
-//    @Test
-//    fun failingTest() {
-//        throw RuntimeException("boom")
-//    }
 }
