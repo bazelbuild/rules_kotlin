@@ -128,7 +128,7 @@ java_library(
     plugins = [":autovalue"]
 )
 
-kotlin_library(
+kt_jvm_library(
     name = "ap_kotlin",
     srcs = ["kapt/kotlin/TestKtValue.kt"],
     deps = ["@autovalue//jar"],

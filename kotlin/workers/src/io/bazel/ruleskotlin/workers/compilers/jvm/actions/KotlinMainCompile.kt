@@ -21,9 +21,12 @@ import io.bazel.ruleskotlin.workers.CompileResult
 import io.bazel.ruleskotlin.workers.Context
 import io.bazel.ruleskotlin.workers.KotlinToolchain
 import io.bazel.ruleskotlin.workers.compilers.jvm.utils.KotlinCompilerOutputProcessor
+import io.bazel.ruleskotlin.workers.compilers.jvm.utils.PluginArgBuilder
+import io.bazel.ruleskotlin.workers.compilers.jvm.utils.annotationProcessingGeneratedJavaSources
 import io.bazel.ruleskotlin.workers.model.CompileDirectories
 import io.bazel.ruleskotlin.workers.model.Flags
 import io.bazel.ruleskotlin.workers.model.Metas
+import io.bazel.ruleskotlin.workers.model.PluginDescriptors
 import java.util.*
 
 // The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
