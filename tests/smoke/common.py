@@ -13,9 +13,9 @@
 # limitations under the License.
 import os
 import subprocess
+import sys
 import unittest
 import zipfile
-import sys
 
 DEVNULL = open(os.devnull, 'wb')
 
@@ -74,15 +74,21 @@ class BazelKotlinTestCase(unittest.TestCase):
     def libQuery(self, label, implicits=False):
         return self._query('\'kind("java_import|.*_library", deps(%s))\'' % label, implicits)
 
-    @staticmethod
-    def assertJarContains(jar, *files):
+    def assertJarContains(self, jar, *files):
         curr = ""
         try:
             for f in files:
                 curr = f
                 jar.getinfo(f)
         except Exception as ex:
-            raise Exception("jar does not contain file [%s]" % curr)
+            self.fail("jar does not contain file [%s]" % curr)
+
+    def assertJarDoesNotContain(self, jar, *files):
+        tally = {}
+        for n in jar.namelist():
+            tally[n] = True
+        for f in files:
+            self.assertNotIn(f, tally, "jar should not contain file " + f)
 
     def build(self, target, ignore_error=False, silent=True):
         _do_exec(["bazel", "build", self._target(target)], ignore_error, silent)

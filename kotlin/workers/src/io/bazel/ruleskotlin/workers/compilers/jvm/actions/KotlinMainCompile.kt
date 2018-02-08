@@ -49,23 +49,25 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
             PluginDescriptors[ctx]?.let { descriptor ->
                 if (descriptor.processors.isNotEmpty()) {
                     val compileDirectories = CompileDirectories[ctx]
+
                     PluginArgBuilder(toolchain.KAPT_JAR_PATH.toString(), "org.jetbrains.kotlin.kapt3").let { arg ->
-                        arg["sources"] = compileDirectories.annotationProcessingSources
-                        arg["classes"] = compileDirectories.annotionProcessingClasses
-                        arg["stubs"] = compileDirectories.annotationProcessingStubs
-                        arg["incrementalData"] = compileDirectories.annotationProcessingIncrementalData
+                        arg["sources"] = compileDirectories.annotationProcessingSources.toString()
+                        arg["classes"] = compileDirectories.annotionProcessingClasses.toString()
+                        arg["stubs"] = compileDirectories.annotationProcessingStubs.toString()
+                        arg["incrementalData"] = compileDirectories.annotationProcessingIncrementalData.toString()
 
                         arg["aptMode"] = "stubsAndApt"
                         arg["correctErrorTypes"] = "true"
-//                    arg["verbose"] = "true"
+//                        arg["verbose"] = "true"
 
                         val processorClassNames = mutableListOf<String>()
+
                         descriptor.processors.forEach {
-                            it.classPath.forEach { arg["apclasspath"] = it }
+                            it.classPath.forEach { arg.bindMulti("apclasspath", it)  }
                             processorClassNames.add(it.processorClass)
                         }
+                        // waiting on https://youtrack.jetbrains.com/issue/KT-22764 , this causes errors
                         arg["processors"] = processorClassNames.joinToString(",")
-
                         arg.argList
                     }
                 } else null
@@ -86,7 +88,7 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
         }
 
 //        Collections.addAll(args, "-kotlin-home", KotlinToolchain.KOTLIN_HOME.toString())
-        Collections.addAll(args, "-d", compileDirectories.classes)
+        Collections.addAll(args, "-d", compileDirectories.classes.toString())
         return args
     }
 

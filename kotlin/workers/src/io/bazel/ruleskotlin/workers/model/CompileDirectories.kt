@@ -31,11 +31,11 @@ class CompileDirectories(private val outputBase: Path) {
     val annotationProcessingStubs by lazy { dir("_ap_stubs") }
     val annotationProcessingIncrementalData by lazy { dir("_ap_incremental_data") }
 
-    private fun dir(component: String, create: Boolean = false) = outputBase.resolve(component).also {
+    private fun dir(component: String, create: Boolean = false): Path = outputBase.resolve(component).also {
         if(create) {
             Files.createDirectories(it)
         }
-    }.toString()
+    }
 
     companion object: MandatoryMeta<CompileDirectories>
 }

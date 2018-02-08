@@ -34,3 +34,6 @@ kotlin_repositories()
 
 maven_jar(name = "junit_junit",artifact = "junit:junit:jar:4.12")
 maven_jar(name = "autovalue", artifact="com.google.auto.value:auto-value:1.5")
+maven_jar(name = "guava", artifact="com.google.guava:guava:24.0-jre")
+maven_jar(name = "auto_common", artifact="com.google.auto:auto-common:0.10")
+maven_jar(name = "autoservice", artifact="com.google.auto.service:auto-service:1.0-rc4")

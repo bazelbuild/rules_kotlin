@@ -13,24 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tests.smoke.kapt.java;
+package tests.smoke.kapt.kotlin
 
+import com.google.auto.service.AutoService
 
-import com.google.auto.value.AutoValue;
-
-@AutoValue
-public abstract class TestAutoValue {
-    abstract String name();
-
-
-    static Builder builder() {
-        return new AutoValue_TestAutoValue.Builder();
-    }
-
-    @AutoValue.Builder
-    abstract static class Builder {
-        abstract Builder setName(String name);
-        abstract TestAutoValue build();
-    }
-
+interface TestKtService {
+    @AutoService(TestKtService::class)
+    class Impl(): TestKtService
 }

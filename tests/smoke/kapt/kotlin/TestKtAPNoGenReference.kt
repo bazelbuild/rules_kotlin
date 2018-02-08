@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tests.smoke.kapt.java;
+package tests.smoke.kapt.kotlin
 
-
-import com.google.auto.value.AutoValue;
+import com.google.auto.value.AutoValue
 
 @AutoValue
-public abstract class TestAutoValue {
-    abstract String name();
-
-
-    static Builder builder() {
-        return new AutoValue_TestAutoValue.Builder();
-    }
+abstract class TestKtValueNoReferences {
+    abstract fun name(): String
 
     @AutoValue.Builder
-    abstract static class Builder {
-        abstract Builder setName(String name);
-        abstract TestAutoValue build();
+    abstract class Builder {
+        abstract fun setName(name: String): Builder
+        abstract fun build(): TestKtValueNoReferences
     }
-
 }

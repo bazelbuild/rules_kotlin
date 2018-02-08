@@ -15,22 +15,17 @@
  */
 package tests.smoke.kapt.java;
 
-
 import com.google.auto.value.AutoValue;
 
+// unlike TestAutoValue, this class shouldn't fail compilation. Used to test that java annotation processing is disabled unless plugins are present.
 @AutoValue
-public abstract class TestAutoValue {
+public abstract class TestAPNoGenReferences {
     abstract String name();
-
-
-    static Builder builder() {
-        return new AutoValue_TestAutoValue.Builder();
-    }
 
     @AutoValue.Builder
     abstract static class Builder {
         abstract Builder setName(String name);
-        abstract TestAutoValue build();
-    }
 
+        abstract TestAPNoGenReferences build();
+    }
 }

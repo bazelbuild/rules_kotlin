@@ -41,7 +41,9 @@ class JavaMainCompile(toolchain: KotlinToolchain) : BuildAction("compile java cl
         if (javaSources.isNotEmpty() || additionalJavaSources.isNotEmpty()) {
             val classesDirectory = CompileDirectories[ctx].classes
 
-            val args = mutableListOf(toolchain.JAVAC_PATH, "-cp", "$classesDirectory/:$classpath", "-d", classesDirectory).also {
+            val args = mutableListOf(toolchain.JAVAC_PATH, "-cp", "$classesDirectory/:$classpath", "-d", classesDirectory.toString()).also {
+                // Kotlin takes care of annotation processing.
+                it.add("-proc:none")
                 it.addAll(javaSources)
                 it.addAll(additionalJavaSources)
             }
@@ -50,4 +52,3 @@ class JavaMainCompile(toolchain: KotlinToolchain) : BuildAction("compile java cl
         return 0
     }
 }
-

@@ -15,22 +15,10 @@
  */
 package tests.smoke.kapt.java;
 
-
-import com.google.auto.value.AutoValue;
-
-@AutoValue
-public abstract class TestAutoValue {
-    abstract String name();
+import com.google.auto.service.AutoService;
 
 
-    static Builder builder() {
-        return new AutoValue_TestAutoValue.Builder();
-    }
-
-    @AutoValue.Builder
-    abstract static class Builder {
-        abstract Builder setName(String name);
-        abstract TestAutoValue build();
-    }
-
+public interface TestJavaService {
+    @AutoService(TestJavaService.class)
+    class Impl implements TestJavaService {}
 }

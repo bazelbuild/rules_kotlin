@@ -117,15 +117,20 @@ kt_jvm_library(
 java_plugin(
     name = "autovalue",
     deps = ["@autovalue//jar"],
+
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
     generates_api = 1,
 )
 
-java_library(
-    name = "ap_java",
-    srcs = ["kapt/java/TestAutoValue.java"],
-    deps = ["@autovalue//jar"],
-    plugins = [":autovalue"]
+java_plugin(
+    name = "autoservice",
+    deps = [
+        "@autoservice//jar",
+        "@guava//jar",
+        "@auto_common//jar"
+    ],
+    processor_class = "com.google.auto.service.processor.AutoServiceProcessor",
+    generates_api = 0
 )
 
 kt_jvm_library(
@@ -134,3 +139,41 @@ kt_jvm_library(
     deps = ["@autovalue//jar"],
     plugins = [":autovalue"]
 )
+
+kt_jvm_library(
+    name = "ap_kotlin_mixed_no_plugin",
+    srcs = ["kapt/kotlin/TestKtAPNoGenReference.kt", "kapt/java/TestAPNoGenReferences.java"],
+    deps = ["@autovalue//jar"]
+)
+
+kt_jvm_library(
+    name = "ap_kotlin_mixed",
+    srcs = ["kapt/kotlin/TestKtValue.kt", "kapt/java/TestAutoValue.java"],
+    deps = ["@autovalue//jar"],
+    plugins = [":autovalue"]
+)
+
+kt_jvm_library(
+    name = "ap_kotlin_resources",
+    srcs = ["kapt/kotlin/TestKtService.kt"],
+    deps = ["@autoservice//jar"],
+    plugins = [":autoservice"]
+)
+
+kt_jvm_library(
+    name = "ap_kotlin_resources_mixed",
+    srcs = ["kapt/kotlin/TestKtService.kt", "kapt/java/TestJavaService.java"],
+    deps = ["@autoservice//jar"],
+    plugins = [":autoservice"]
+)
+
+kt_jvm_library(
+    name = "ap_kotlin_mixed_multiple_plugins",
+    srcs = ["kapt/kotlin/TestKtService.kt", "kapt/java/TestJavaService.java", "kapt/java/TestAutoValue.java", "kapt/kotlin/TestKtValue.kt"],
+    deps = ["@autoservice//jar", "@autovalue//jar"],
+    plugins = [":autoservice", ":autovalue"]
+)
+
+#kt_jvm_library(
+#    name = "ap_kotlin_mixed_resources",
+#)
