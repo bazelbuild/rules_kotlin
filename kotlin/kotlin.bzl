@@ -43,12 +43,7 @@ the repository the following Kotlin Libraries are also made available from the w
 * `kotlin-test`,
 * `kotlin-reflect`.
 
-So if you needed to add reflect as a dep use the following label `@com_github_jetbrains_kotlin//:reflect`.
-
-### Caveats
-
-* The compiler is currently not configurable [issue](https://github.com/hsyed/rules_kotlin/issues/3).
-* The compiler is hardwired to target jdk8 and language and api levels "1.2" [issue](https://github.com/hsyed/rules_kotlin/issues/3).
+So if you needed to add reflect as a dep use the following label `@com_github_jetbrains_kotlin//:kotlin-reflect`.
 """
 # This file is the main import -- it shouldn't grow out of hand the reason it contains so much allready is due to the limitations of skydoc.
 
@@ -273,6 +268,10 @@ kt_jvm_test = rule(
 )
 
 """Setup a simple kotlin_test.
+
+**Notes:**
+* The kotlin test library is not added implicitly, it is available with the label `@com_github_jetbrains_kotlin//:kotlin-test`.
+
 Args:
   test_class: The Java class to be loaded by the test runner.
 """
@@ -297,6 +296,10 @@ kt_jvm_import = rule(
 #   * exports should only accept JavaInfo's (this include KotlinInfo) but not filegroup. The jars attribute takes care of importing the jars without generating
 #     ijars.
 """(experimental) Import Kotlin jars.
+
+**Status:** This rule is not a counterpart to `java_import`. The current purpose for this rule is to import a kotlin jar without creating ijars. It will
+eventually [be replaced](https://github.com/bazelbuild/rules_kotlin/issues/4) with `java_import`. If there is a need for expanding this rule we can instead
+create a utility macro that delegates to this.
 
 ## examples
 
