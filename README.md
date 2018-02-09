@@ -1,7 +1,7 @@
 [Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
 
 # Announcements
-* <b>February 9, 2018. Annotation processing.
+* <b>February 9, 2018.</b> Annotation processing.
 * <b>February 5, 2018. JVM rule name change:</b> the prefix has changed from `kotlin_` to `kt_jvm_`.
 
 # Overview 
