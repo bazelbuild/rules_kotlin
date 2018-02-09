@@ -77,10 +77,6 @@ class MixedModeCompilation(BazelKotlinTestCase):
             "hellojava/HelloWorldKt.class",
             "tests/smoke/resourcejar/pkg/file.txt"
         )
-        # re-enable this test, and ensure the srcjar includes java sources when mixed mode.
-        # def test_srcjar(self):
-        #     jar = self.buildJarGetZipFile("testresources", "srcjar")
-        #     self.assertJarContains(jar, "testresources/AClass.kttestresources/ConsumerLib.kt")
 
 
 if __name__ == '__main__':

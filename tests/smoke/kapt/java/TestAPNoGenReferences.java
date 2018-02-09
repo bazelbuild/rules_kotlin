@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tests.smoke.junittest
+package tests.smoke.kapt.java;
 
-import org.junit.*
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import org.junit.runners.Suite
-import java.nio.file.Paths
+import com.google.auto.value.AutoValue;
 
+// unlike TestAutoValue, this class shouldn't fail compilation. Used to test that java annotation processing is disabled unless plugins are present.
+@AutoValue
+public abstract class TestAPNoGenReferences {
+    abstract String name();
 
-@RunWith(JUnit4::class)
-class JunitTest {
-    @Test
-    fun dummyTest() {
-        if(!Paths.get("tests", "smoke", "data" ,"datafile.txt").toFile().exists()) {
-            throw RuntimeException("could not read datafile")
-        }
+    @AutoValue.Builder
+    abstract static class Builder {
+        abstract Builder setName(String name);
+
+        abstract TestAPNoGenReferences build();
     }
 }

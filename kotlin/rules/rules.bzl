@@ -66,7 +66,7 @@ def kotlin_import_impl(ctx):
     return struct(kt = kotlin_info, providers= [default_info, java_info, kotlin_info])
 
 def kotlin_library_impl(ctx):
-  return _kotlin_make_providers(ctx, _kotlin_compile_action(ctx))
+    return _kotlin_make_providers(ctx, _kotlin_compile_action(ctx))
 
 def kotlin_binary_impl(ctx):
     java_info = _kotlin_compile_action(ctx)
