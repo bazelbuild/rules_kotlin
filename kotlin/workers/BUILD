@@ -20,6 +20,9 @@ kotlin_worker_lib(
         "//kotlin/workers/proto",
         "@com_github_jetbrains_kotlin//:preloader",
         "@io_bazel_rules_kotlin_protobuf_protobuf_java//jar",
+        "//third_party:okio",
+        "//third_party:moshi",
+        "//third_party:moshi-kotlin"
     ],
     exports = [
         "//kotlin/workers/proto"

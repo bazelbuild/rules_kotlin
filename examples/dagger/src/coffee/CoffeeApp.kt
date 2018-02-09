@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tests.smoke.junittest
+package coffee
 
-import org.junit.*
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
-import org.junit.runners.Suite
-import java.nio.file.Paths
+import dagger.Component
+import javax.inject.Singleton
 
+class CoffeeApp {
+    @Singleton
+    @Component(modules = [(DripCoffeeModule::class)])
+    interface CoffeeShop {
+        fun maker(): CoffeeMaker
+    }
 
-@RunWith(JUnit4::class)
-class JunitTest {
-    @Test
-    fun dummyTest() {
-        if(!Paths.get("tests", "smoke", "data" ,"datafile.txt").toFile().exists()) {
-            throw RuntimeException("could not read datafile")
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
+            coffeeShop.maker().brew()
         }
     }
 }

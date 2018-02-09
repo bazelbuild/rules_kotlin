@@ -24,8 +24,6 @@ interface CommandLineProgram {
     /**
      * Runs blocking program start to finish.
      *
-     *
-     *
      * This function might be called multiple times throughout the life of this object. Output
      * must be sent to [System.out] and [System.err].
      *
@@ -39,7 +37,7 @@ interface CommandLineProgram {
     ): CommandLineProgram {
         private val mandatoryFlags: List<Flag> = flags.values.filter { it is Flag.Mandatory }
 
-        private fun createContext(args: List<String>): Context {
+        private fun createContext(toolchain: KotlinToolchain, args: List<String>): Context {
             val tally = mutableMapOf<Flag, String>()
 
             if (args.size % 2 != 0) {
@@ -54,15 +52,14 @@ interface CommandLineProgram {
             }
 
             mandatoryFlags.forEach { require(tally.containsKey(it)) { "missing mandatory flag ${it.globalFlag}" } }
-            return Context(tally)
+            return Context(toolchain, tally)
         }
 
-        abstract fun toolchain(ctx: Context): KotlinToolchain
+        abstract val toolchain: KotlinToolchain
         abstract fun actions(toolchain: KotlinToolchain, ctx: Context): List<BuildAction>
 
         override fun apply(args: List<String>): Int {
-            val ctx = createContext(args)
-            val toolchain = toolchain(ctx)
+            val ctx = createContext(toolchain, args)
             var exitCode = 0
             for (action in actions(toolchain,ctx)) {
                 exitCode = action(ctx)

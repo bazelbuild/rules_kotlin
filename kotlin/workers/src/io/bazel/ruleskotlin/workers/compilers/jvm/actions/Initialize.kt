@@ -19,9 +19,8 @@ package io.bazel.ruleskotlin.workers.compilers.jvm.actions
 import io.bazel.ruleskotlin.workers.BuildAction
 import io.bazel.ruleskotlin.workers.Context
 import io.bazel.ruleskotlin.workers.KotlinToolchain
-import io.bazel.ruleskotlin.workers.model.CompileDirectories
-import io.bazel.ruleskotlin.workers.model.Flags
-import io.bazel.ruleskotlin.workers.model.Metas
+import io.bazel.ruleskotlin.workers.utils.PluginArgs
+import io.bazel.ruleskotlin.workers.model.*
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -33,9 +32,18 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
         ctx.apply(
                 ::initializeAndBindBindDirectories,
                 ::bindLabelComponents,
+                ::bindPluginStatus,
                 ::bindSources
         )
         return 0
+    }
+
+    private fun bindPluginStatus(ctx: Context) {
+        CompilePluginConfig[ctx] = PluginDescriptors[ctx]?.let {
+            PluginArgs.from(ctx)?.let {
+                CompilePluginConfig(hasAnnotationProcessors = true, args = it.toTypedArray())
+            }
+        }
     }
 
     private fun bindSources(ctx: Context) {
