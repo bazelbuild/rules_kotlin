@@ -25,7 +25,7 @@ def _do_exec(command, ignore_error=False, silent=True):
         retcode = subprocess.call(command, stdout=DEVNULL, stderr=DEVNULL)
     else:
         retcode = subprocess.call(command)
-    if not ignore_error and retcode != 0:
+    if retcode != 0 and not ignore_error:
         raise Exception("command " + " ".join(command) + " failed")
 
 
@@ -48,7 +48,10 @@ class BazelKotlinTestCase(unittest.TestCase):
         self._pkg = os.path.dirname(os.path.relpath(sys.modules[self.__module__].__file__))
 
     def _target(self, target_name):
-        return "//%s:%s" % (self._pkg, target_name)
+        if target_name.startswith("//"):
+            return target_name
+        else:
+            return "//%s:%s" % (self._pkg, target_name)
 
     def _bazel_bin(self, file):
         return "bazel-bin/" + self._pkg + "/" + file
@@ -98,7 +101,7 @@ class BazelKotlinTestCase(unittest.TestCase):
     def getWorkerArgsMap(self):
         arg_map = {}
         key = None
-        for line in self._open_bazel_bin(self._last_built_target+ "-worker.args"):
+        for line in self._open_bazel_bin(self._last_built_target + "-worker.args"):
             line = line.rstrip("\n")
             if not key:
                 key = line
@@ -108,16 +111,16 @@ class BazelKotlinTestCase(unittest.TestCase):
         return arg_map
 
     def buildJarExpectingFail(self, target, silent=True):
-        self._last_built_target=target
+        self._last_built_target = target
         _do_exec_expect_fail(["bazel", "build", self._target(target)], silent)
 
     def buildJarGetZipFile(self, target, extension, silent=True):
-        jar_file = target+ "." + extension
-        self._last_built_target=target
+        jar_file = target + "." + extension
+        self._last_built_target = target
         self.build(jar_file, silent=silent)
         return zipfile.ZipFile(self._open_bazel_bin(jar_file))
 
-    def buildLaunchExpectingSuccess(self, target, command="run", silent=True):
-        self._last_built_target=target
+    def buildLaunchExpectingSuccess(self, target, command="run", ignore_error=False, silent=True):
+        self._last_built_target = target
         self.build(target, silent)
-        _do_exec(["bazel", command, self._target(target)], silent)
+        _do_exec(["bazel", command, self._target(target)], ignore_error=ignore_error, silent=silent)

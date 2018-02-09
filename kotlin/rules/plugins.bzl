@@ -1,4 +1,7 @@
-load("//kotlin/rules:defs.bzl", _KotlinPluginInfo="KotlinPluginInfo")
+load(
+    "//kotlin/rules:defs.bzl",
+    _KotlinPluginInfo = "KotlinPluginInfo",
+)
 
 def _mk_processor_entry(l,p):
     return struct(
@@ -24,7 +27,7 @@ def _restore_label(l):
         lbl = lbl.replace("external/", "@")
     return lbl + "//" + l.package + ":" + l.name
 
-_EMPTY_PLUGIN_INFO=[_KotlinPluginInfo(processors=[])]
+_EMPTY_PLUGIN_INFO = [_KotlinPluginInfo(processors = [])]
 
 def _kt_jvm_plugin_aspect_impl(target, ctx):
     if ctx.rule.kind == "java_plugin":
@@ -38,7 +41,11 @@ def _kt_jvm_plugin_aspect_impl(target, ctx):
           return _EMPTY_PLUGIN_INFO
 
 kt_jvm_plugin_aspect = aspect(
+    attr_aspects = [
+        "plugins",
+        "exported_plugins",
+    ],
     implementation = _kt_jvm_plugin_aspect_impl,
-    attr_aspects = ["plugins", "exported_plugins"]
 )
+
 """renders a java info into a KotlinPluginInfo."""

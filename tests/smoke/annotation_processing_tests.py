@@ -127,6 +127,10 @@ class PluginAspectRendering(BazelKotlinTestCase):
             "tests/smoke/kapt/java/TestAutoValue$Builder.class"
         )
 
+    def test_annotation_processing_compile_and_run_kapt_example(self):
+        """A Self contained example annotation processing package should compile and launch without errors."""
+        self.buildLaunchExpectingSuccess("//examples/dagger")
+
 
 if __name__ == '__main__':
     unittest.main()

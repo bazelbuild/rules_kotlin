@@ -15,12 +15,10 @@ load(
     "//kotlin/rules:defs.bzl",
     _KotlinInfo = "KotlinInfo",
 )
-
 load(
     "//kotlin/rules:plugins.bzl",
-    _merge_plugin_infos = "merge_plugin_infos"
+    _merge_plugin_infos = "merge_plugin_infos",
 )
-
 load(
     "//kotlin/rules:util.bzl",
     _collect_all_jars = "collect_all_jars",
