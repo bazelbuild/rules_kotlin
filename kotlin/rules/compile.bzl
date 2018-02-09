@@ -14,7 +14,6 @@
 load(
     "//kotlin/rules:defs.bzl",
     _KotlinInfo = "KotlinInfo",
-    _KotlinPluginInfo = "KotlinPluginInfo",
 )
 
 load(

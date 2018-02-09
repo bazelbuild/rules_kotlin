@@ -1,7 +1,5 @@
 load("//kotlin/rules:defs.bzl", _KotlinPluginInfo="KotlinPluginInfo")
 
-
-
 def _mk_processor_entry(l,p):
     return struct(
           label=l,

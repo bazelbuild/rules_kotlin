@@ -24,7 +24,6 @@ load(
 load(
     "//kotlin/rules:defs.bzl",
     _KotlinInfo = "KotlinInfo",
-    _KotlinPluginInfo = "KotlinPluginInfo"
 )
 
 def _extract_kotlin_artifact(files):

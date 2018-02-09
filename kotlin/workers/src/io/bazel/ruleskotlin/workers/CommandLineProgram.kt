@@ -24,8 +24,6 @@ interface CommandLineProgram {
     /**
      * Runs blocking program start to finish.
      *
-     *
-     *
      * This function might be called multiple times throughout the life of this object. Output
      * must be sent to [System.out] and [System.err].
      *
@@ -62,7 +60,6 @@ interface CommandLineProgram {
 
         override fun apply(args: List<String>): Int {
             val ctx = createContext(toolchain, args)
-
             var exitCode = 0
             for (action in actions(toolchain,ctx)) {
                 exitCode = action(ctx)
