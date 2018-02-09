@@ -21,12 +21,11 @@ import io.bazel.ruleskotlin.workers.CompileResult
 import io.bazel.ruleskotlin.workers.Context
 import io.bazel.ruleskotlin.workers.KotlinToolchain
 import io.bazel.ruleskotlin.workers.compilers.jvm.utils.KotlinCompilerOutputProcessor
-import io.bazel.ruleskotlin.workers.compilers.jvm.utils.PluginArgBuilder
-import io.bazel.ruleskotlin.workers.compilers.jvm.utils.annotationProcessingGeneratedJavaSources
 import io.bazel.ruleskotlin.workers.model.CompileDirectories
+import io.bazel.ruleskotlin.workers.model.CompilePluginConfig
 import io.bazel.ruleskotlin.workers.model.Flags
 import io.bazel.ruleskotlin.workers.model.Metas
-import io.bazel.ruleskotlin.workers.model.PluginDescriptors
+import io.bazel.ruleskotlin.workers.utils.annotationProcessingGeneratedJavaSources
 import java.util.*
 
 // The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
@@ -44,35 +43,6 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
 
         val Result = CompileResult.Meta("kotlin_compile_result")
     }
-
-    private fun prepareAnnotationProcessingArgs(ctx: Context): List<String>? =
-            PluginDescriptors[ctx]?.let { descriptor ->
-                if (descriptor.processors.isNotEmpty()) {
-                    val compileDirectories = CompileDirectories[ctx]
-
-                    PluginArgBuilder(toolchain.KAPT_JAR_PATH.toString(), "org.jetbrains.kotlin.kapt3").let { arg ->
-                        arg["sources"] = compileDirectories.annotationProcessingSources.toString()
-                        arg["classes"] = compileDirectories.annotionProcessingClasses.toString()
-                        arg["stubs"] = compileDirectories.annotationProcessingStubs.toString()
-                        arg["incrementalData"] = compileDirectories.annotationProcessingIncrementalData.toString()
-
-                        arg["aptMode"] = "stubsAndApt"
-                        arg["correctErrorTypes"] = "true"
-//                        arg["verbose"] = "true"
-
-                        val processorClassNames = mutableListOf<String>()
-
-                        descriptor.processors.forEach {
-                            it.classPath.forEach { arg.bindMulti("apclasspath", it)  }
-                            processorClassNames.add(it.processorClass)
-                        }
-                        // waiting on https://youtrack.jetbrains.com/issue/KT-22764 , this causes errors
-                        arg["processors"] = processorClassNames.joinToString(",")
-                        arg.argList
-                    }
-                } else null
-            }
-
 
     /**
      * Evaluate the compilation context and add Metadata to the ctx if needed.
@@ -94,14 +64,14 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
 
     override fun invoke(ctx: Context): Int {
         val commonArgs = setupCompileContext(ctx)
-        val maybeAnnotationPorcessingArgs = prepareAnnotationProcessingArgs(ctx)
         val sources = Metas.ALL_SOURCES.mustGet(ctx)
+        val pluginStatus = CompilePluginConfig[ctx]
 
         // run a kapt generation phase if needed.
-        if (maybeAnnotationPorcessingArgs != null) {
-            val ret = invokeCompilePhase(
+        if(pluginStatus.hasAnnotationProcessors) {
+            invokeCompilePhase(
                     args = mutableListOf(*commonArgs.toTypedArray()).let {
-                        it.addAll(maybeAnnotationPorcessingArgs)
+                        it.addAll(pluginStatus.args)
                         it.addAll(sources)
                         it.toTypedArray()
                     },
@@ -109,12 +79,8 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
                         outputProcessors.process()
                         exitCode
                     }
-            )
-            if (ret != 0) {
-                return ret
-            }
+            ).takeIf { it != 0 }?.also { return it }
         }
-
         return invokeCompilePhase(
                 args = commonArgs.let { args ->
                     args.addAll(sources)

@@ -21,7 +21,8 @@ import io.bazel.ruleskotlin.workers.Meta
 data class AnnotationProcessor(
         @Json(name = "processor_class") val processorClass: String,
         @Json(name = "generates_api") val generatesApi: Boolean,
-        @Json(name = "classpath") val classPath: List<String>
+        @Json(name = "classpath") val classPath: List<String>,
+        @Json(name = "label") val labels: String
 )
 
 /**
@@ -35,4 +36,3 @@ data class PluginDescriptors(
 ) {
     companion object : Meta<PluginDescriptors> by Flags.PLUGINS.renderJsonAndBind()
 }
-

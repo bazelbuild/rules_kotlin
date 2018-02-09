@@ -94,12 +94,10 @@ _implicit_deps = {
         executable = True,
         cfg = "host",
     ),
-    # The kotlin runtime
     "_kotlin_runtime": attr.label(
         single_file = True,
         default = Label("@" + KOTLIN_REPO_ROOT + "//:runtime"),
     ),
-    # The kotlin stdlib
     "_kotlin_std": attr.label_list(default = [
         Label("@" + KOTLIN_REPO_ROOT + "//:stdlib"),
         Label("@" + KOTLIN_REPO_ROOT + "//:stdlib-jdk7"),
@@ -133,11 +131,6 @@ _implicit_deps = {
         cfg = "host",
         allow_files = True,
     ),
-    #    "_langtools": attr.label(
-    #        default = Label("@bazel_tools//tools/jdk:langtools"),
-    #        cfg = "host",
-    #        allow_files = True
-    #    ),
     "_java_stub_template": attr.label(default = Label("@kt_java_stub_template//file")),
 }
 
@@ -146,16 +139,8 @@ _common_attr = dict(_implicit_deps.items() + {
         default = [],
         allow_files = _kt_compile_filetypes,
     ),
-    # only accept deps which are java providers.
-    "deps": attr.label_list(),
+    "deps": attr.label_list(aspects=[_kt_jvm_plugin_aspect]),
     "runtime_deps": attr.label_list(default = []),
-    # Add debugging info for any rules.
-    #    "verbose": attr.int(default = 0),
-    #    "opts": attr.string_dict(),
-    # Advanced options
-    #    "x_opts": attr.string_list(),
-    # Plugin options
-    #    "plugin_opts": attr.string_dict(),
     "resources": attr.label_list(
         default = [],
         allow_files = True,
@@ -167,7 +152,6 @@ _common_attr = dict(_implicit_deps.items() + {
         cfg = "data",
     ),
     "plugins":  attr.label_list(default = [], aspects=[_kt_jvm_plugin_aspect]),
-    # Other args for the compiler
 }.items())
 
 _runnable_common_attr = dict(_common_attr.items() + {

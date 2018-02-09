@@ -16,19 +16,33 @@ import unittest
 
 from common import BazelKotlinTestCase
 
+_auto_value_processor_entry = {
+    "label": "//tests/smoke:autovalue",
+    "processor_class": "com.google.auto.value.processor.AutoValueProcessor",
+    "classpath": ["external/autovalue/jar/auto-value-1.5.jar"],
+    "generates_api": True
+}
+
+_auto_service_processor_entry = {
+    'label': '//tests/smoke:autoservice',
+    'classpath': [
+        'external/autoservice/jar/auto-service-1.0-rc4.jar',
+        'external/guava/jar/guava-24.0-jre.jar',
+        'external/auto_common/jar/auto-common-0.10.jar'
+    ],
+    'processor_class': 'com.google.auto.service.processor.AutoServiceProcessor',
+    'generates_api': False,
+}
+
 
 class PluginAspectRendering(BazelKotlinTestCase):
     def test_annotation_processing(self):
         """Annotation processing should occur for Kotlin files when a java_plugin is provided."""
         jar = self.buildJarGetZipFile("ap_kotlin", "jar", silent=False)
-        worker_args = self.getWorkerArgsMap("ap_kotlin")
+        worker_args = self.getWorkerArgsMap()
         self.assertIn("--kt-plugins", worker_args)
         self.assertDictContainsSubset({
-            "processors": [{
-                "processor_class": "com.google.auto.value.processor.AutoValueProcessor",
-                "classpath": ["external/autovalue/jar/auto-value-1.5.jar"],
-                "generates_api": True
-            }]
+            "processors": [_auto_value_processor_entry]
         }, json.loads(worker_args["--kt-plugins"]))
         self.assertJarContains(
             jar,
@@ -38,7 +52,7 @@ class PluginAspectRendering(BazelKotlinTestCase):
     def test_annotation_processing_no_plugin_provided(self):
         """If no plugins are provided in the rule annotation processing should not occur."""
         jar = self.buildJarGetZipFile("ap_kotlin_mixed_no_plugin", "jar")
-        worker_args = self.getWorkerArgsMap("ap_kotlin_mixed_no_plugin")
+        worker_args = self.getWorkerArgsMap()
         self.assertNotIn("--kt-plguins", worker_args)
         self.assertJarDoesNotContain(
             jar,
@@ -72,11 +86,46 @@ class PluginAspectRendering(BazelKotlinTestCase):
             "META-INF/services/tests.smoke.kapt.java.TestJavaService"
         )
 
-    # TODO maybe a bug in processors attribute of the kapt3 plugin: https://youtrack.jetbrains.com/issue/KT-22764
-    # def test_annotation_processing_with_mutliple_plugins_mixed(self):
+    def test_annotation_processing_with_mutliple_plugins_mixed(self):
         """Annotation processing should work for multiple plugins."""
-        # jar = self.buildJarGetZipFile("ap_kotlin_mixed_multiple_plugins", "jar")
+        jar = self.buildJarGetZipFile("ap_kotlin_mixed_multiple_plugins", "jar")
+        self.assertJarContains(
+            jar,
+            "META-INF/services/tests.smoke.kapt.kotlin.TestKtService",
+            "META-INF/services/tests.smoke.kapt.java.TestJavaService",
+            "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
+            "tests/smoke/kapt/java/TestAutoValue$Builder.class"
+        )
 
+    def test_annotation_processing_with_mutliple_plugins_mixed_one_without_processor_class(self):
+        """Annotation processing should not trigger for plugins which do not provide a java processor class."""
+        jar = self.buildJarGetZipFile("ap_kotlin_mixed_multiple_plugins_one_without_processor_class", "jar")
+        self.assertJarContains(
+            jar,
+            "META-INF/services/tests.smoke.kapt.kotlin.TestKtService",
+            "META-INF/services/tests.smoke.kapt.java.TestJavaService",
+        )
+        self.assertJarDoesNotContain(
+            jar,
+            "tests/smoke/kapt/java/AutoValue_TestAPNoGenReferences.class",
+            "tests/smoke/kapt/kotlin/AutoValue_TestKtValueNoReferences.class"
+        )
+
+    def test_annotation_processing_with_multiple_plugins_inherit_exported_plugin(self):
+        """Annotation processing should work when a plugin is inherited from another library via expoted_plugins, and plugins should not be counted twice."""
+        jar = self.buildJarGetZipFile("ap_kotlin_mixed_inherit_plugin_via_exported_deps", "jar")
+        worker_args = self.getWorkerArgsMap()
+        self.assertIn("--kt-plugins", worker_args)
+        self.assertDictContainsSubset({
+            "processors": [_auto_value_processor_entry, _auto_service_processor_entry]
+        }, json.loads(worker_args["--kt-plugins"]))
+        self.assertJarContains(
+            jar,
+            "META-INF/services/tests.smoke.kapt.kotlin.TestKtService",
+            "META-INF/services/tests.smoke.kapt.java.TestJavaService",
+            "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
+            "tests/smoke/kapt/java/TestAutoValue$Builder.class"
+        )
 
 
 if __name__ == '__main__':

@@ -30,6 +30,7 @@ KotlinInfo = provider(
 
 KotlinPluginInfo = provider(
     fields = {
-        "processor": "a serializeable struct containing an annotation processor definition",
+        "processors": "a serializeable list of structs containing an annotation processor definitions",
     }
 )
+"""a serializable provider containing plugin descriptors that can be processed by the worker"""

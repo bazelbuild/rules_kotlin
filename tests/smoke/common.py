@@ -40,6 +40,7 @@ def _do_exec_expect_fail(command, silent=True):
 
 class BazelKotlinTestCase(unittest.TestCase):
     _pkg = None
+    _last_built_target = ""
 
     def __init__(self, methodName='runTest'):
         super(BazelKotlinTestCase, self).__init__(methodName)
@@ -91,12 +92,13 @@ class BazelKotlinTestCase(unittest.TestCase):
             self.assertNotIn(f, tally, "jar should not contain file " + f)
 
     def build(self, target, ignore_error=False, silent=True):
+
         _do_exec(["bazel", "build", self._target(target)], ignore_error, silent)
 
-    def getWorkerArgsMap(self, target):
+    def getWorkerArgsMap(self):
         arg_map = {}
         key = None
-        for line in self._open_bazel_bin(target + "-worker.args"):
+        for line in self._open_bazel_bin(self._last_built_target+ "-worker.args"):
             line = line.rstrip("\n")
             if not key:
                 key = line
@@ -106,13 +108,16 @@ class BazelKotlinTestCase(unittest.TestCase):
         return arg_map
 
     def buildJarExpectingFail(self, target, silent=True):
+        self._last_built_target=target
         _do_exec_expect_fail(["bazel", "build", self._target(target)], silent)
 
-    def buildJarGetZipFile(self, name, extension, silent=True):
-        jar_file = name + "." + extension
+    def buildJarGetZipFile(self, target, extension, silent=True):
+        jar_file = target+ "." + extension
+        self._last_built_target=target
         self.build(jar_file, silent=silent)
         return zipfile.ZipFile(self._open_bazel_bin(jar_file))
 
     def buildLaunchExpectingSuccess(self, target, command="run", silent=True):
+        self._last_built_target=target
         self.build(target, silent)
         _do_exec(["bazel", command, self._target(target)], silent)

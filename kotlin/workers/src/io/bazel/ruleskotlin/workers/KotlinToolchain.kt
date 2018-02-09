@@ -37,7 +37,8 @@ class KotlinToolchain {
     val JAR_TOOL_PATH = JAVA_HOME.resolveVerified("bin", "jar").toString()
     val JDEPS_PATH = JAVA_HOME.resolveVerified("bin", "jdeps").toString()
     val KOTLIN_LIB_DIR: Path = KOTLIN_HOME.resolveVerified("lib").toPath()
-    val KAPT_JAR_PATH = KOTLIN_LIB_DIR.resolveVerified("kotlin-annotation-processing.jar")
+
+    val KAPT_PLUGIN = CompilerPlugin(KOTLIN_LIB_DIR.resolveVerified("kotlin-annotation-processing.jar").toString(), "org.jetbrains.kotlin.kapt3")
 
     private val kotlinPreloadJars = mutableListOf<File>().let {
         it.addAll(KOTLIN_LIB_DIR.verifiedRelativeFiles(Paths.get("kotlin-compiler.jar")))
@@ -65,6 +66,8 @@ class KotlinToolchain {
     interface KotlinCompiler {
         fun compile(args: Array<String>, out: PrintStream): Int
     }
+
+    data class CompilerPlugin(val jarPath: String, val id: String)
 
     /**
      * Load the Kotlin compiler into a Preloading classLoader.

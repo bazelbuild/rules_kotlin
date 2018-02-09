@@ -18,6 +18,11 @@ load(
 )
 
 load(
+    "//kotlin/rules:plugins.bzl",
+    _merge_plugin_infos = "merge_plugin_infos"
+)
+
+load(
     "//kotlin/rules:util.bzl",
     _collect_all_jars = "collect_all_jars",
     _collect_jars_for_compile = "collect_jars_for_compile",
@@ -51,29 +56,12 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
         "--output_jdeps", ctx.outputs.jdeps.path,
         "--classpath", ":".join([f.path for f in compile_jars.to_list()]),
         "--sources", ":".join([f.path for f in ctx.files.srcs]),
-        # https://github.com/hsyed/rules_kotlin/issues/3.
         "--kotlin_jvm_target", "1.8", "--kotlin_api_version", "1.2", "--kotlin_language_version", "1.2"
     ]
-
-    plugin_info_arg=struct(
-        processors= [ plugin[_KotlinPluginInfo].processor for plugin in ctx.attr.plugins ]
-    )
-    args += [ "--kt-plugins", plugin_info_arg.to_json() ]
-
-    # re-enable compilation options https://github.com/hsyed/rules_kotlin/issues/3.
-#    for k, v in ctx.attr.opts.items():
-#        args + [ "-%s" % k, v]:
-
-    # Advanced options
-#    args += ["-X%s" % opt for opt in ctx.attr.x_opts]
-#
-#
-#    # Plugin options
-#    for k, v in ctx.attr.plugin_opts.items():
-#        args += ["-P"]
-#        args += ["plugin:%s=\"%s\"" % (k, v)]
-
-
+    # Collect and prepare plugin descriptor for the worker.
+    plugin_info=_merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
+    if len(plugin_info.processors) > 0:
+        args += [ "--kt-plugins", plugin_info.to_json() ]
 
     # Declare and write out argument file.
     args_file = ctx.actions.declare_file(ctx.label.name + "-worker.args")
