@@ -13,7 +13,7 @@
 # limitations under the License.
 package(default_visibility = ["//visibility:private"])
 
-load("//kotlin:kotlin.bzl", "kt_jvm_binary")
+load("//kotlin:kotlin.bzl", "kt_jvm_library")
 
 java_plugin(
     name = "dagger_plugin",
@@ -36,9 +36,14 @@ java_library(
     exported_plugins = ["dagger_plugin"]
 )
 
-kt_jvm_binary(
-    name = "dagger",
+kt_jvm_library(
+    name = "coffee_lib",
     srcs = glob(["src/**"]),
-    main_class = "coffee.CoffeeApp",
     deps = [":dagger_lib"],
+)
+
+java_binary(
+    name = "coffee_app",
+    main_class = "coffee.CoffeeApp",
+    runtime_deps = [":coffee_lib"],
 )
