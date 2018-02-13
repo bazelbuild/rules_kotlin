@@ -54,12 +54,9 @@ interface Meta<T : Any> {
     }
 }
 
-abstract class MandatoryMeta<T: Any>(override val defaultValue: T? = null): Meta<T> {
+open class MandatoryMeta<T: Any>(
+        override val id: String,
+        override val defaultValue: T? = null
+): Meta<T> {
     override fun get(ctx: Context): T = checkNotNull(super.get(ctx)) { "ctx missing mandatory meta ${this.id}" }
-
-    companion object {
-        operator fun <T : Any> invoke(id: String): Meta<T> = object : MandatoryMeta<T>() {
-            override val id: String = id
-        }
-    }
 }

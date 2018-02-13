@@ -47,12 +47,12 @@ class CompileDirectories(private val outputBase: Path) : CompileState() {
         }
     }
 
-    companion object: MandatoryMeta<CompileDirectories>()
+    companion object: MandatoryMeta<CompileDirectories>("compile_directories")
 }
 
 class CompilePluginConfig(
         val hasAnnotationProcessors: Boolean = false,
         val args: Array<String> = emptyArray()
 ): CompileState() {
-    companion object: MandatoryMeta<CompilePluginConfig>(defaultValue = CompilePluginConfig())
+    companion object: MandatoryMeta<CompilePluginConfig>("plugin_config", defaultValue = CompilePluginConfig())
 }
