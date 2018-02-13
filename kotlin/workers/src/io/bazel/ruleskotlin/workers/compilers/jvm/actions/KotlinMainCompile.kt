@@ -25,8 +25,8 @@ import io.bazel.ruleskotlin.workers.model.CompileDirectories
 import io.bazel.ruleskotlin.workers.model.CompilePluginConfig
 import io.bazel.ruleskotlin.workers.model.Flags
 import io.bazel.ruleskotlin.workers.model.Metas
+import io.bazel.ruleskotlin.workers.utils.addAll
 import io.bazel.ruleskotlin.workers.utils.annotationProcessingGeneratedJavaSources
-import java.util.*
 
 // The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
 // invocations Configured via Kotlin use eager analysis in some corner cases this can result in classpath exceptions from the Java Compiler..
@@ -57,8 +57,10 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
             args.add(field.kotlinFlag!!); args.add(arg)
         }
 
-//        Collections.addAll(args, "-kotlin-home", KotlinToolchain.KOTLIN_HOME.toString())
-        Collections.addAll(args, "-d", compileDirectories.classes.toString())
+        args
+                .addAll("-module-name", Metas.TARGET[ctx])
+                .addAll("-d", compileDirectories.classes.toString())
+
         return args
     }
 
@@ -68,7 +70,7 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
         val pluginStatus = CompilePluginConfig[ctx]
 
         // run a kapt generation phase if needed.
-        if(pluginStatus.hasAnnotationProcessors) {
+        if (pluginStatus.hasAnnotationProcessors) {
             invokeCompilePhase(
                     args = mutableListOf(*commonArgs.toTypedArray()).let {
                         it.addAll(pluginStatus.args)

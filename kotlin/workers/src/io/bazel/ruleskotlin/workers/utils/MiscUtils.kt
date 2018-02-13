@@ -13,22 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.workers.model
 
-import io.bazel.ruleskotlin.workers.MandatoryMeta
+package io.bazel.ruleskotlin.workers.utils
 
-/**
- * Listin of Meta keys that don't make sense as companion objects.
- */
-object Metas {
-    // mandatory: the package part of the label.
-    val PKG = MandatoryMeta<String>("package")
-    // mandatory: The target part of the label.
-    val TARGET = MandatoryMeta<String>("target")
-
-    // mandatory:  If this is non empty then it is a mixed mode operation.
-    val JAVA_SOURCES = MandatoryMeta<List<String>>("java_sources")
-
-    // mandatory:
-    val ALL_SOURCES = MandatoryMeta<List<String>>("all_sources")
-}
+fun <T, C: MutableCollection<T>> C.addAll(vararg entries: T): C = this.also { addAll(entries) }
