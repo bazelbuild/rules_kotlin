@@ -38,6 +38,11 @@ class TestRules(BazelKotlinTestCase):
     def test_bin_targets_launch_correctly_with_data(self):
         self.buildLaunchExpectingSuccess("helloworld")
 
+    def test_uses_target_name_as_default_module_name(self):
+        """tests that the target name is used as the default module name."""
+        jar = self.buildJarGetZipFile("helloworld", "jar")
+        self.assertJarContains(jar, "META-INF/helloworld.kotlin_module")
+
     def test_conventional_strip_resources(self):
         jar = self.buildJarGetZipFile("conventional_strip_resources", "jar")
         self.assertJarContains(jar, "main.txt", "test.txt")
