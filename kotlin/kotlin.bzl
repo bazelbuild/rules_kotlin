@@ -217,7 +217,6 @@ _common_outputs = dict(
 )
 
 _binary_outputs = dict(_common_outputs.items() + {
-    #    "wrapper": "%{name}_wrapper.sh",
 }.items())
 
 ########################################################################################################################

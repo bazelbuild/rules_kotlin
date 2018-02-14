@@ -103,6 +103,13 @@ kt_jvm_binary(
     data=glob(["data/*"]),
 )
 
+genrule(
+    name="helloworld_host_config_test",
+    tools=["//tests/smoke:helloworld"],
+    outs=["helloworld_output.txt"],
+    cmd = """./$(location //tests/smoke:helloworld) > "$@" """
+)
+
 kt_jvm_library(
     name = "hellojava",
     srcs = glob(["hellojava/*.kt", "hellojava/*.java"]),
