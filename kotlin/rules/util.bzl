@@ -172,7 +172,7 @@ def kotlin_write_launcher_action(ctx, rjars, main_class, jvm_flags, args="", wra
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
 
-    ctx.template_action(
+    ctx.actions.expand_template(
         template = template,
         output = ctx.outputs.executable,
         substitutions = {
@@ -183,5 +183,5 @@ def kotlin_write_launcher_action(ctx, rjars, main_class, jvm_flags, args="", wra
             "%set_jacoco_metadata%": "",
             "%workspace_prefix%": ctx.workspace_name + "/",
         },
-        executable = True,
+        is_executable = True,
     )
