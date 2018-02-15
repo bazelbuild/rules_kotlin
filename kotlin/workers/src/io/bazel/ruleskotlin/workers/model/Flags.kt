@@ -34,4 +34,9 @@ object Flags {
     val KOTLIN_API_VERSION = Flag.Optional("--kotlin_api_version", "-api-version")
     val KOTLIN_LANGUAGE_VERSION = Flag.Optional("--kotlin_language_version", "-language-version")
     val KOTLIN_JVM_TARGET = Flag.Optional("--kotlin_jvm_target", "-jvm-target")
+    /**
+     * These flags are passed through to the compiler verbatim, the rules ensure they are safe. These flags are to toggle features or they carry a single value
+     * so the string is tokenized by space.
+     */
+    val KOTLIN_PASSTHROUGH_FLAGS = Flag.Optional("--kotlin_passthrough_flags")
 }

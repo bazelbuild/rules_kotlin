@@ -29,8 +29,9 @@ git_repository(
 load("@io_bazel_skydoc//skylark:skylark.bzl", "skydoc_repositories")
 skydoc_repositories()
 
-load("//kotlin:kotlin.bzl", "kotlin_repositories")
+load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 kotlin_repositories()
+kt_register_toolchains()
 
 # test and example dependencies.
 maven_jar(name = "junit_junit",artifact = "junit:junit:jar:4.12")
