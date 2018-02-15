@@ -23,8 +23,9 @@ git_repository(
     remote = "https://github.com/bazelbuild/rules_kotlin.git",
     commit = "<COMMIT_HASH>",
 )
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 kotlin_repositories(kotlin_release_version = "1.2.21")
+kt_register_toolchains()
 ```
 
 To enable persistent worker support, add the following to the appropriate `bazelrc` file:
@@ -220,7 +221,7 @@ _binary_outputs = dict(_common_outputs.items() + {
 }.items())
 
 ########################################################################################################################
-# Repositories
+# Repositories and Toolchains
 ########################################################################################################################
 load(
     "//kotlin:kotlin_compiler_repositories.bzl",
@@ -239,6 +240,12 @@ def kotlin_repositories(
     """
     _kotlin_compiler_repository(kotlin_release_version)
 
+load("//kotlin:toolchains.bzl", _kt_register_jvm_toolchain="kt_register_jvm_toolchain")
+
+def kt_register_toolchains():
+    """register all default toolchains"""
+    _kt_register_jvm_toolchain()
+
 ########################################################################################################################
 # Simple Rules:
 ########################################################################################################################
@@ -256,6 +263,7 @@ kt_jvm_library = rule(
     }.items()),
     outputs = _common_outputs,
     implementation = _kotlin_library_impl,
+    toolchains = ["@io_bazel_rules_kotlin//kotlin:kt_jvm_toolchain_type"]
 )
 
 """This rule compiles and links Kotlin and Java sources into a .jar file.
@@ -281,6 +289,7 @@ kt_jvm_binary = rule(
     executable = True,
     outputs = _binary_outputs,
     implementation = _kotlin_binary_impl,
+    toolchains = ["@io_bazel_rules_kotlin//kotlin:kt_jvm_toolchain_type"]
 )
 
 """Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper shell script uses a classpath that includes,
@@ -307,6 +316,7 @@ kt_jvm_test = rule(
     outputs = _binary_outputs,
     test = True,
     implementation = _kotlin_junit_test_impl,
+    toolchains = ["@io_bazel_rules_kotlin//kotlin:kt_jvm_toolchain_type"]
 )
 
 """Setup a simple kotlin_test.

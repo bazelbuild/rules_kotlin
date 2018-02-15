@@ -45,7 +45,7 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
       opts: struct containing Kotlin compilation options.
     """
     compiler_output_base=ctx.actions.declare_directory(ctx.label.name + "." + "kotlinc")
-
+    tc=ctx.toolchains["@io_bazel_rules_kotlin//kotlin:kt_jvm_toolchain_type"]
     args = [
         "--target_label", ctx.label,
         "--compiler_output_base", compiler_output_base.path,
@@ -53,7 +53,10 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
         "--output_jdeps", ctx.outputs.jdeps.path,
         "--classpath", ":".join([f.path for f in compile_jars.to_list()]),
         "--sources", ":".join([f.path for f in ctx.files.srcs]),
-        "--kotlin_jvm_target", "1.8", "--kotlin_api_version", "1.2", "--kotlin_language_version", "1.2"
+        "--kotlin_jvm_target", tc.jvm_target,
+        "--kotlin_api_version", tc.api_version,
+        "--kotlin_language_version", tc.language_version,
+        "--kotlin_passthrough_flags", "-Xcoroutines=%s" % tc.coroutines 
     ]
     # Collect and prepare plugin descriptor for the worker.
     plugin_info=_merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)

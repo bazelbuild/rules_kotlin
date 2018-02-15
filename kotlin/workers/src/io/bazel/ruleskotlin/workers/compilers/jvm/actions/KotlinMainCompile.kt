@@ -61,6 +61,8 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
                 .addAll("-module-name", Metas.TARGET[ctx])
                 .addAll("-d", compileDirectories.classes.toString())
 
+        Flags.KOTLIN_PASSTHROUGH_FLAGS[ctx]?.takeIf { it.isNotBlank() }?.also { args.addAll(it.split(" ")) }
+
         return args
     }
 
