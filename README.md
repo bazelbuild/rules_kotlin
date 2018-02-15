@@ -1,6 +1,10 @@
 [Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
 
 # Announcements
+* <b>February 15, 2018.</b>. Toolchains for the JVM rules. Currently this allow tweaking: 
+    * The JVM target (bytecode level).
+    * API and Language levels.
+    * Coroutines, enabled by default. 
 * <b>February 9, 2018.</b> Annotation processing.
 * <b>February 5, 2018. JVM rule name change:</b> the prefix has changed from `kotlin_` to `kt_jvm_`.
 

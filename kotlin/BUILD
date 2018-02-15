@@ -11,33 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility = ["//visibility:private"])
-load("@io_bazel_skydoc//skylark:skylark.bzl", "skylark_doc", "skylark_library" )
+package(default_visibility = ["//visibility:public"])
 
-skylark_library(
-    name = "doc_public",
-    srcs = [
-        "kotlin.bzl"
-    ],
-    visibility=["//visibility:private"]
-)
+load("//kotlin:toolchains.bzl", "define_kt_jvm_toolchain")
 
-skylark_doc(
-    name = "docs",
-    deps = [
-        ":doc_public",
-    ],
-    format = "html",
-    site_root = select({
-        ":local": "/tmp/rules_kotlin",
-        "//conditions:default": "https://bazelbuild.github.io/rules_kotlin"
-    }),
+toolchain_type(
+    name = "kt_jvm_toolchain_type",
     visibility = ["//visibility:public"]
 )
 
-config_setting(
-    name = "local",
-    values = {
-        "define": "local=1",
-    }
-)
+define_kt_jvm_toolchain(name = "default_jvm_toolchain")
+
+exports_files(["toolchains.bzl", "kotlin.bzl"], visibility=["//docs:__subpackages__"])
