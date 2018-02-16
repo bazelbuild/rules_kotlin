@@ -103,6 +103,12 @@ kt_jvm_binary(
     data=glob(["data/*"]),
 )
 
+kt_jvm_library(
+    name="modulename",
+    srcs=glob(["helloworld/Main.kt"]),
+    module_name = "hello-module"
+)
+
 genrule(
     name="helloworld_host_config_test",
     tools=["//tests/smoke:helloworld"],

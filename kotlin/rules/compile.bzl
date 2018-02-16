@@ -56,7 +56,8 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
         "--kotlin_jvm_target", tc.jvm_target,
         "--kotlin_api_version", tc.api_version,
         "--kotlin_language_version", tc.language_version,
-        "--kotlin_passthrough_flags", "-Xcoroutines=%s" % tc.coroutines 
+        "--kotlin_module_name", getattr(ctx.attr, "module_name", ""),
+        "--kotlin_passthrough_flags", "-Xcoroutines=%s" % tc.coroutines
     ]
     # Collect and prepare plugin descriptor for the worker.
     plugin_info=_merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)

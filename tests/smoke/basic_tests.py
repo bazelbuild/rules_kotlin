@@ -41,7 +41,12 @@ class TestRules(BazelKotlinTestCase):
     def test_uses_target_name_as_default_module_name(self):
         """tests that the target name is used as the default module name."""
         jar = self.buildJarGetZipFile("helloworld", "jar")
-        self.assertJarContains(jar, "META-INF/helloworld.kotlin_module")
+        self.assertJarContains(jar, "META-INF/tests_smoke-helloworld.kotlin_module")
+
+    def test_module_name_is_used_if_provided(self):
+        """tests that the target name is used as the default module name."""
+        jar = self.buildJarGetZipFile("modulename", "jar")
+        self.assertJarContains(jar, "META-INF/hello-module.kotlin_module")
 
     def test_conventional_strip_resources(self):
         jar = self.buildJarGetZipFile("conventional_strip_resources", "jar")
