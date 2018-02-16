@@ -27,6 +27,7 @@ import io.bazel.ruleskotlin.workers.model.Flags
 import io.bazel.ruleskotlin.workers.model.Metas
 import io.bazel.ruleskotlin.workers.utils.addAll
 import io.bazel.ruleskotlin.workers.utils.annotationProcessingGeneratedJavaSources
+import io.bazel.ruleskotlin.workers.utils.moduleName
 
 // The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
 // invocations Configured via Kotlin use eager analysis in some corner cases this can result in classpath exceptions from the Java Compiler..
@@ -58,7 +59,7 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
         }
 
         args
-                .addAll("-module-name", Metas.TARGET[ctx])
+                .addAll("-module-name", ctx.moduleName)
                 .addAll("-d", compileDirectories.classes.toString())
 
         Flags.KOTLIN_PASSTHROUGH_FLAGS[ctx]?.takeIf { it.isNotBlank() }?.also { args.addAll(it.split(" ")) }

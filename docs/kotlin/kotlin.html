@@ -162,9 +162,6 @@ kt_jvm_binary(
           <pre>kotlin_repositories(<a href="#kotlin_repositories.kotlin_release_version">kotlin_release_version</a>)</pre>
 
           <p>Call this in the WORKSPACE file to setup the Kotlin rules.</p>
-<p>Args:a
-  kotlin_release_version: The kotlin compiler release version. If this is not set the latest release version is
-  chosen by default.</p>
 
 
           <h3 id="kotlin_repositories_args">Attributes</h3>
@@ -179,7 +176,8 @@ kt_jvm_binary(
       <td><code>kotlin_release_version</code></td>
       <td>
         <p><code>Unknown; Optional</code></p>
-        
+        <p>The kotlin compiler release version. If this is not set the latest release version is
+chosen by default.</p>
       </td>
     </tr>
   </tbody>
@@ -197,7 +195,7 @@ kt_jvm_binary(
 
           <h2 id="kt_jvm_binary">kt_jvm_binary</h2>
 
-          <pre>kt_jvm_binary(<a href="#kt_jvm_binary.name">name</a>, <a href="#kt_jvm_binary.deps">deps</a>, <a href="#kt_jvm_binary.data">data</a>, <a href="#kt_jvm_binary.resources">resources</a>, <a href="#kt_jvm_binary.srcs">srcs</a>, <a href="#kt_jvm_binary.jvm_flags">jvm_flags</a>, <a href="#kt_jvm_binary.main_class">main_class</a>, <a href="#kt_jvm_binary.plugins">plugins</a>, <a href="#kt_jvm_binary.resource_jars">resource_jars</a>, <a href="#kt_jvm_binary.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_binary.runtime_deps">runtime_deps</a>)</pre>
+          <pre>kt_jvm_binary(<a href="#kt_jvm_binary.name">name</a>, <a href="#kt_jvm_binary.deps">deps</a>, <a href="#kt_jvm_binary.data">data</a>, <a href="#kt_jvm_binary.resources">resources</a>, <a href="#kt_jvm_binary.srcs">srcs</a>, <a href="#kt_jvm_binary.jvm_flags">jvm_flags</a>, <a href="#kt_jvm_binary.main_class">main_class</a>, <a href="#kt_jvm_binary.module_name">module_name</a>, <a href="#kt_jvm_binary.plugins">plugins</a>, <a href="#kt_jvm_binary.resource_jars">resource_jars</a>, <a href="#kt_jvm_binary.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_binary.runtime_deps">runtime_deps</a>)</pre>
 
           <p>Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper shell script uses a classpath that includes,
 among other things, a jar file for each library on which the binary depends.</p>
@@ -261,6 +259,14 @@ classes may depend on Java classes in the same compilation unit.</p>
       <td>
         <p><code>String; Required</code></p>
         <p>Name of class with main() method to use as entry point.</p>
+      </td>
+    </tr>
+    <tr id="kt_jvm_binary.module_name">
+      <td><code>module_name</code></td>
+      <td>
+        <p><code>String; Optional; Default is ''</code></p>
+        <p>The name of the module, if not provided the module name is derived from the label. --e.g., <code>//some/package/path:label_name</code> is translated to
+<code>some_package_path-label_name</code>.</p>
       </td>
     </tr>
     <tr id="kt_jvm_binary.plugins">
@@ -361,7 +367,7 @@ with a single class jar and a single source jar. a source jar is recognized by t
 
           <h2 id="kt_jvm_library">kt_jvm_library</h2>
 
-          <pre>kt_jvm_library(<a href="#kt_jvm_library.name">name</a>, <a href="#kt_jvm_library.deps">deps</a>, <a href="#kt_jvm_library.data">data</a>, <a href="#kt_jvm_library.resources">resources</a>, <a href="#kt_jvm_library.srcs">srcs</a>, <a href="#kt_jvm_library.exports">exports</a>, <a href="#kt_jvm_library.plugins">plugins</a>, <a href="#kt_jvm_library.resource_jars">resource_jars</a>, <a href="#kt_jvm_library.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_library.runtime_deps">runtime_deps</a>)</pre>
+          <pre>kt_jvm_library(<a href="#kt_jvm_library.name">name</a>, <a href="#kt_jvm_library.deps">deps</a>, <a href="#kt_jvm_library.data">data</a>, <a href="#kt_jvm_library.resources">resources</a>, <a href="#kt_jvm_library.srcs">srcs</a>, <a href="#kt_jvm_library.exports">exports</a>, <a href="#kt_jvm_library.module_name">module_name</a>, <a href="#kt_jvm_library.plugins">plugins</a>, <a href="#kt_jvm_library.resource_jars">resource_jars</a>, <a href="#kt_jvm_library.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_library.runtime_deps">runtime_deps</a>)</pre>
 
           <p>This rule compiles and links Kotlin and Java sources into a .jar file.</p>
 
@@ -419,6 +425,14 @@ classes may depend on Java classes in the same compilation unit.</p>
 This is not true for regular (non-exported) deps.</p>
       </td>
     </tr>
+    <tr id="kt_jvm_library.module_name">
+      <td><code>module_name</code></td>
+      <td>
+        <p><code>String; Optional; Default is ''</code></p>
+        <p>The name of the module, if not provided the module name is derived from the label. --e.g., <code>//some/package/path:label_name</code> is translated to
+<code>some_package_path-label_name</code>.</p>
+      </td>
+    </tr>
     <tr id="kt_jvm_library.plugins">
       <td><code>plugins</code></td>
       <td>
@@ -455,7 +469,7 @@ unlike them, not on the compile-time classpath.</p>
 
           <h2 id="kt_jvm_test">kt_jvm_test</h2>
 
-          <pre>kt_jvm_test(<a href="#kt_jvm_test.name">name</a>, <a href="#kt_jvm_test.deps">deps</a>, <a href="#kt_jvm_test.data">data</a>, <a href="#kt_jvm_test.resources">resources</a>, <a href="#kt_jvm_test.srcs">srcs</a>, <a href="#kt_jvm_test.jvm_flags">jvm_flags</a>, <a href="#kt_jvm_test.plugins">plugins</a>, <a href="#kt_jvm_test.resource_jars">resource_jars</a>, <a href="#kt_jvm_test.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_test.runtime_deps">runtime_deps</a>, <a href="#kt_jvm_test.test_class">test_class</a>)</pre>
+          <pre>kt_jvm_test(<a href="#kt_jvm_test.name">name</a>, <a href="#kt_jvm_test.deps">deps</a>, <a href="#kt_jvm_test.data">data</a>, <a href="#kt_jvm_test.resources">resources</a>, <a href="#kt_jvm_test.srcs">srcs</a>, <a href="#kt_jvm_test.jvm_flags">jvm_flags</a>, <a href="#kt_jvm_test.module_name">module_name</a>, <a href="#kt_jvm_test.plugins">plugins</a>, <a href="#kt_jvm_test.resource_jars">resource_jars</a>, <a href="#kt_jvm_test.resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_test.runtime_deps">runtime_deps</a>, <a href="#kt_jvm_test.test_class">test_class</a>)</pre>
 
           <p>Setup a simple kotlin_test.</p>
 <p><strong>Notes:</strong></p>
@@ -513,6 +527,14 @@ classes may depend on Java classes in the same compilation unit.</p>
       <td>
         <p><code>List of strings; Optional; Default is []</code></p>
         <p>A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet support make variable substitution.</p>
+      </td>
+    </tr>
+    <tr id="kt_jvm_test.module_name">
+      <td><code>module_name</code></td>
+      <td>
+        <p><code>String; Optional; Default is ''</code></p>
+        <p>The name of the module, if not provided the module name is derived from the label. --e.g., <code>//some/package/path:label_name</code> is translated to
+<code>some_package_path-label_name</code>.</p>
       </td>
     </tr>
     <tr id="kt_jvm_test.plugins">
