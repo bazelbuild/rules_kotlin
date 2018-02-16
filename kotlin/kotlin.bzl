@@ -200,6 +200,7 @@ _common_attr = dict(_implicit_deps.items() + {
         default = [],
         aspects = [_kt_jvm_plugin_aspect],
     ),
+    "module_name": attr.string()
 }.items())
 
 _runnable_common_attr = dict(_common_attr.items() + {
@@ -259,7 +260,7 @@ load(
 
 kt_jvm_library = rule(
     attrs = dict(_common_attr.items() + {
-        "exports": attr.label_list(default = []),
+        "exports": attr.label_list(default = [])
     }.items()),
     outputs = _common_outputs,
     implementation = _kotlin_library_impl,
@@ -282,6 +283,8 @@ Args:
     unlike them, not on the compile-time classpath.
   data: The list of files needed by this rule at runtime. See general comments about `data` at [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).
   deps: A list of dependencies of this rule.See general comments about `deps` at [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).
+  module_name: The name of the module, if not provided the module name is derived from the label. --e.g., `//some/package/path:label_name` is translated to
+    `some_package_path-label_name`.
 """
 
 kt_jvm_binary = rule(

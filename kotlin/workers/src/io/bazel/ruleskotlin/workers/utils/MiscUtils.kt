@@ -16,4 +16,13 @@
 
 package io.bazel.ruleskotlin.workers.utils
 
+import io.bazel.ruleskotlin.workers.Context
+import io.bazel.ruleskotlin.workers.model.Flags
+import io.bazel.ruleskotlin.workers.model.Metas
+
 fun <T, C: MutableCollection<T>> C.addAll(vararg entries: T): C = this.also { addAll(entries) }
+
+fun String?.supplyIfNullOrBlank(s: () -> String): String = this?.takeIf { it.isNotBlank() } ?: s()
+
+val Context.moduleName: String
+    get() = Flags.KOTLIN_MODULE_NAME[this].supplyIfNullOrBlank { "${Metas.PKG[this].trimStart { it == '/' }.replace('/', '_')}-${Metas.TARGET[this]}" }
