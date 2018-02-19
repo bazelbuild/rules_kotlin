@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 test_suite(
-    name = "all_tests",
-    tests = [
-        "//kotlin/workers:unittests",
-        "//tests/integrationtests"
+    name = "integrationtests",
+    tests=[
+        "//tests/integrationtests/jvm:basic_tests",
+        "//tests/integrationtests/jvm:annoation_processing_tests",
     ]
 )
