@@ -1,6 +1,5 @@
 test.smoke:
-	python -B -m unittest discover -s tests/smoke/ -p '*_tests.py'
-	bazel test //kotlin/workers:unittests
+	bazel test all_tests
 
 reformat:
 	buildifier -mode=fix -v kotlin/*.bzl

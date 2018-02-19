@@ -11,10 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-test_suite(
-    name = "all_tests",
-    tests = [
-        "//kotlin/workers:unittests",
-        "//tests/integrationtests"
-    ]
-)
+load("//kotlin:kotlin.bzl", "kt_jvm_test")
+
+def kt_it_assertion_test(name, cases, test_class, data = [], deps=[]):
+    parts=test_class.split(".")
+    kt_jvm_test(
+        name=name,
+        srcs=["%s.kt" % parts[len(parts)-1]],
+        deps = ["//tests/integrationtests/lib:lib", "@junit_junit//jar"] + deps,
+        test_class=test_class,
+        data=[cases] + data,
+        visibility=["//visibility:private"]
+    )
