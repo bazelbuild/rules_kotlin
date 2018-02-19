@@ -18,10 +18,12 @@ directories:
 
 targets:
   //kotlin/workers:for_ide
+  //:all_tests
   //examples/...
 
 test_sources:
   */unittests/*
+  */integrationtests/*
 
 kotlin_language_version: 1.2
 
