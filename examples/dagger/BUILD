@@ -46,4 +46,5 @@ java_binary(
     name = "coffee_app",
     main_class = "coffee.CoffeeApp",
     runtime_deps = [":coffee_lib"],
+    visibility = ["//visibility:public"]
 )
