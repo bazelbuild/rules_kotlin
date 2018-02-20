@@ -20,46 +20,49 @@ import org.junit.Test
 
 
 class JvmBasicIntegrationTests : AssertionTestCase("tests/integrationtests/jvm/basic") {
-    // Resources tests /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     @Test
-    fun mergeResourceJars() = withTestCaseJar("test_merge_resourcesjar.jar") {
-        assertContainsEntries("testresources/AClass.class", "testresources/BClass.class", "pkg/file.txt")
+    fun testResourceMerging() {
+        jarTestCase("test_embed_resources.jar", description = "The rules should support including resource directories") {
+            assertContainsEntries(
+                    "testresources/AClass.class",
+                    "testresources/BClass.class",
+                    "tests/integrationtests/jvm/basic/testresources/resources/one/alsoAFile.txt",
+                    "tests/integrationtests/jvm/basic/testresources/resources/one/two/aFile.txt"
+            )
+        }
+        jarTestCase("test_merge_resourcesjar.jar", description = "the rules should support merging jars") {
+            assertContainsEntries("testresources/AClass.class", "testresources/BClass.class", "pkg/file.txt")
+        }
+        jarTestCase("test_embed_resources_strip_prefix.jar", description = "the rules should support the resource_strip_prefix attribute") {
+            assertContainsEntries("testresources/AClass.class", "testresources/BClass.class", "one/two/aFile.txt", "one/alsoAFile.txt")
+        }
+        jarTestCase("conventional_strip_resources.jar", description = "the rules should support conventional prefix stripping") {
+            assertContainsEntries("main.txt", "test.txt")
+        }
     }
 
     @Test
-    fun embedResources() = withTestCaseJar("test_embed_resources.jar") {
-        assertContainsEntries(
-                "testresources/AClass.class",
-                "testresources/BClass.class",
-                "tests/integrationtests/jvm/basic/testresources/resources/one/alsoAFile.txt",
-                "tests/integrationtests/jvm/basic/testresources/resources/one/two/aFile.txt"
+    fun testPropogateDeps() {
+        assertExecutableRunfileSucceeds(
+                "propagation_rt_via_export_consumer",
+                description = "Runtime deps should be inherited transitively from `exported` deps"
+        )
+        assertExecutableRunfileSucceeds(
+                "propagation_rt_via_runtime_deps_consumer",
+                description = "Runtime deps should be inherited transitively from `runtime_deps`"
         )
     }
 
     @Test
-    fun resourcesStripPrefix() = withTestCaseJar("test_embed_resources_strip_prefix.jar") {
-        assertContainsEntries("testresources/AClass.class", "testresources/BClass.class", "one/two/aFile.txt", "one/alsoAFile.txt")
-    }
-
-    @Test
-    fun resourcesHaveConventionPathsStripped() = withTestCaseJar("conventional_strip_resources.jar") { assertContainsEntries("main.txt", "test.txt") }
-
-    // Dependency propogation tests ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Test
-    fun runtimeDepsArePropogatedViaExport() = assertExecutableRunfileSucceeds("propagation_rt_via_export_consumer")
-
-    @Test
-    fun runtimeDepsArePropogatedTransitively() = assertExecutableRunfileSucceeds("propagation_rt_via_runtime_deps_consumer")
-
-    // Module naming tests /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    @Test
-    fun moduleNameIsDervidedOnBin() = withTestCaseJar("test_module_name_bin.jar") {
-        assertContainsEntries("META-INF/tests_integrationtests_jvm_basic-test_module_name_bin.kotlin_module")
-    }
-
-    @Test
-    fun moduleNameIsUsedOnBin() = withTestCaseJar("test_module_name_attr_bin.jar") {
-        assertContainsEntries("META-INF/hello-module.kotlin_module")
+    fun testModuleNaming() {
+        jarTestCase("test_module_name_bin.jar", description = "A binary rule should support default module naming") {
+            assertContainsEntries("META-INF/tests_integrationtests_jvm_basic-test_module_name_bin.kotlin_module")
+        }
+        jarTestCase("test_module_name_lib.jar", description = "A library rule should support default module naming") {
+            assertContainsEntries("META-INF/tests_integrationtests_jvm_basic-test_module_name_lib.kotlin_module")
+        }
+        jarTestCase("test_module_name_attr_lib.jar", description = "The kotlin rules should support the module_name attribute") {
+            assertContainsEntries("META-INF/hello-module.kotlin_module")
+        }
     }
 }

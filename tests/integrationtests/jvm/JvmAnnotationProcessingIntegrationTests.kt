@@ -20,70 +20,67 @@ import org.junit.Test
 
 class JvmAnnotationProcessingIntegrationTests : AssertionTestCase("tests/integrationtests/jvm/kapt") {
     @Test
-    fun kotlinOnly() = withTestCaseJar("ap_kotlin.jar") {
-        assertContainsEntries("tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class")
+    fun testKotlinOnlyAnnotationProcessing() {
+        jarTestCase("ap_kotlin.jar", description = "annotation processing should work") {
+            assertContainsEntries("tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class")
+        }
+        jarTestCase("ap_kotlin_mixed_no_plugin.jar", description = "annotation processing should not kick in for deps.") {
+            assertDoesNotContainEntries(
+                    "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
+                    "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
+            )
+        }
+        jarTestCase("ap_kotlin_resources.jar", description = "annotation processed artifacts should contain resources") {
+            assertContainsEntries("META-INF/services/tests.smoke.kapt.kotlin.TestKtService")
+        }
     }
 
     @Test
-    fun noPluginProvided() = withTestCaseJar("ap_kotlin_mixed_no_plugin.jar") {
-        assertDoesNotContainEntries(
-                "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
-                "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
-        )
+    fun testMixedModeAnnotationProcessing() {
+        jarTestCase("ap_kotlin_mixed.jar", description = "annotation processing should work for mixed mode targets") {
+            assertContainsEntries(
+                    "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
+                    "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
+            )
+        }
+        jarTestCase("ap_kotlin_resources_mixed.jar", description = "annotation processors generating resources should work for mixed mode") {
+            assertContainsEntries("META-INF/services/tests.smoke.kapt.kotlin.TestKtService", "META-INF/services/tests.smoke.kapt.java.TestJavaService")
+        }
+        jarTestCase(
+                "ap_kotlin_mixed_inherit_plugin_via_exported_deps.jar",
+                description = "annotation processors should be inherited transitively"
+        ) {
+            assertContainsEntries(
+                    "META-INF/services/tests.smoke.kapt.kotlin.TestKtService",
+                    "META-INF/services/tests.smoke.kapt.java.TestJavaService",
+                    "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
+                    "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
+            )
+        }
     }
 
     @Test
-    fun mixedMode() = withTestCaseJar("ap_kotlin_mixed.jar") {
-        assertContainsEntries(
-                "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
-                "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
-        )
-    }
-
-    @Test
-    fun withResources() = withTestCaseJar("ap_kotlin_resources.jar") {
-        assertContainsEntries("META-INF/services/tests.smoke.kapt.kotlin.TestKtService")
-    }
-
-    @Test
-    fun mixedModeWithResources() = withTestCaseJar("ap_kotlin_resources_mixed.jar") {
-        assertContainsEntries(
-                "META-INF/services/tests.smoke.kapt.kotlin.TestKtService",
-                "META-INF/services/tests.smoke.kapt.java.TestJavaService"
-        )
-    }
-
-    @Test
-    fun withMultiplePlugins() = withTestCaseJar("ap_kotlin_mixed_multiple_plugins.jar") {
-        assertContainsEntries(
-                "META-INF/services/tests.smoke.kapt.kotlin.TestKtService",
-                "META-INF/services/tests.smoke.kapt.java.TestJavaService",
-                "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
-                "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
-        )
-    }
-
-    @Test
-    fun withMultiplePluginsOneWithoutProcessorClassAttribute() = withTestCaseJar("ap_kotlin_mixed_multiple_plugins_one_without_processor_class.jar") {
-        assertContainsEntries("META-INF/services/tests.smoke.kapt.kotlin.TestKtService", "META-INF/services/tests.smoke.kapt.java.TestJavaService")
-        assertDoesNotContainEntries(
-                "tests/smoke/kapt/java/AutoValue_TestAPNoGenReferences.class",
-                "tests/smoke/kapt/kotlin/AutoValue_TestKtValueNoReferences.class"
-        )
-    }
-
-    @Test
-    fun withTransitivelyInheritedPlugin() = withTestCaseJar("ap_kotlin_mixed_inherit_plugin_via_exported_deps.jar") {
-        assertContainsEntries(
-                "META-INF/services/tests.smoke.kapt.kotlin.TestKtService",
-                "META-INF/services/tests.smoke.kapt.java.TestJavaService",
-                "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
-                "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
-        )
+    fun testMultiPlugins() {
+        jarTestCase("ap_kotlin_mixed_multiple_plugins.jar", description = "annotation processing should work for multiple plugins") {
+            assertContainsEntries(
+                    "META-INF/services/tests.smoke.kapt.kotlin.TestKtService",
+                    "META-INF/services/tests.smoke.kapt.java.TestJavaService",
+                    "tests/smoke/kapt/kotlin/AutoValue_TestKtValue.class",
+                    "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
+            )
+        }
+        jarTestCase("ap_kotlin_mixed_multiple_plugins_one_without_processor_class.jar",
+                description = "annotation processing should not work unless a processor class is provided") {
+            assertContainsEntries("META-INF/services/tests.smoke.kapt.kotlin.TestKtService", "META-INF/services/tests.smoke.kapt.java.TestJavaService")
+            assertDoesNotContainEntries(
+                    "tests/smoke/kapt/java/AutoValue_TestAPNoGenReferences.class",
+                    "tests/smoke/kapt/kotlin/AutoValue_TestKtValueNoReferences.class"
+            )
+        }
     }
 
     @Test
     fun daggerExampleIsRunnable() {
-        assertExecutableRunfileSucceeds("//examples/dagger/coffee_app")
+        assertExecutableRunfileSucceeds("//examples/dagger/coffee_app", description = "the dagger coffee_app should execute succesfully")
     }
 }

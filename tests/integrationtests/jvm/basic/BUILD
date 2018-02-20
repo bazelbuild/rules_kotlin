@@ -20,7 +20,12 @@ kt_jvm_binary(
 )
 
 kt_jvm_library(
-    name="test_module_name_attr_bin",
+    name = "test_module_name_lib",
+    srcs = ["helloworld/Main.kt"]
+)
+
+kt_jvm_library(
+    name="test_module_name_attr_lib",
     srcs=glob(["helloworld/Main.kt"]),
     module_name = "hello-module"
 )
@@ -97,7 +102,8 @@ filegroup(
     name="cases",
     srcs = [
         ":test_module_name_bin",
-        ":test_module_name_attr_bin",
+        ":test_module_name_lib",
+        ":test_module_name_attr_lib",
         ":test_embed_resources.jar",
         ":test_merge_resourcesjar.jar",
         ":test_embed_resources_strip_prefix.jar",
