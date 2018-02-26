@@ -12,19 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(
-    "//kotlin/rules:compile.bzl",
-    _kotlin_compile_action = "kotlin_compile_action",
-    _kotlin_make_providers = "kotlin_make_providers",
-)
-load(
-    "//kotlin/rules:util.bzl",
-    _kotlin_write_launcher_action = "kotlin_write_launcher_action",
-)
-load(
-    "//kotlin/rules:defs.bzl",
-    _KotlinInfo = "KotlinInfo",
-)
+load("//kotlin/internal:compile.bzl", "compile")
+load("//kotlin/internal:kt.bzl", "kt")
+load("//kotlin/internal:utils.bzl", "utils")
 
 def _extract_kotlin_artifact(files):
     jars = [j for j in files if j.basename.endswith(".jar") and not j.basename.endswith("-sources.jar")]
@@ -48,7 +38,7 @@ def _collect_import_artifacts(ctx):
         fail("the srcjar attribute should not be set when importing multiple class jars")
     return artifacts
 
-def kotlin_import_impl(ctx):
+def kt_jvm_import_impl(ctx):
     artifacts=_collect_import_artifacts(ctx)
 
     jars = [a.class_jar for a in artifacts]
@@ -61,22 +51,22 @@ def kotlin_import_impl(ctx):
         transitive_compile_time_jars=jars,
         transitive_runtime_jars=jars
     )
-    kotlin_info=_KotlinInfo(outputs = struct(jars = artifacts))
+    kotlin_info=kt.info.KtInfo(outputs = struct(jars = artifacts))
     default_info = DefaultInfo(files=depset(jars))
     return struct(kt = kotlin_info, providers= [default_info, java_info, kotlin_info])
 
-def kotlin_library_impl(ctx):
-    return _kotlin_make_providers(ctx, _kotlin_compile_action(ctx))
+def kt_jvm_library_impl(ctx):
+    return compile.make_providers(ctx, compile.compile_action(ctx))
 
-def kotlin_binary_impl(ctx):
-    java_info = _kotlin_compile_action(ctx)
-    _kotlin_write_launcher_action(
+def kt_jvm_binary_impl(ctx):
+    java_info = compile.compile_action(ctx)
+    utils.actions.write_launcher(
         ctx,
         java_info.transitive_runtime_jars,
         ctx.attr.main_class,
         ctx.attr.jvm_flags
     )
-    return _kotlin_make_providers(
+    return compile.make_providers(
         ctx,
         java_info,
         depset(
@@ -86,19 +76,19 @@ def kotlin_binary_impl(ctx):
         )
     )
 
-def kotlin_junit_test_impl(ctx):
-    java_info = _kotlin_compile_action(ctx)
+def kt_jvm_junit_test_impl(ctx):
+    java_info = compile.compile_action(ctx)
 
     transitive_runtime_jars = java_info.transitive_runtime_jars + ctx.files._bazel_test_runner
     launcherJvmFlags = ["-ea", "-Dbazel.test_suite=%s"% ctx.attr.test_class]
 
-    _kotlin_write_launcher_action(
+    utils.actions.write_launcher(
         ctx,
         transitive_runtime_jars,
         main_class = "com.google.testing.junit.runner.BazelTestRunner",
         jvm_flags = launcherJvmFlags + ctx.attr.jvm_flags,
     )
-    return _kotlin_make_providers(
+    return compile.make_providers(
         ctx,
         java_info,
         depset(

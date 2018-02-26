@@ -11,27 +11,35 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# The name of the rules repo. Centralised so it's easy to change.
-REPO_ROOT = "io_bazel_rules_kotlin"
-
-# The name of the Kotlin compiler workspace.
-KOTLIN_REPO_ROOT = "com_github_jetbrains_kotlin"
-
 ########################################################################################################################
 # Providers
 ########################################################################################################################
-KotlinInfo = provider(
+_defs = struct(
+    DEFAULT_TOOLCHAIN = "@io_bazel_rules_kotlin//kotlin:default_toolchain",
+    # The name of the Kotlin compiler workspace.
+    KT_COMPILER_REPO = "com_github_jetbrains_kotlin",
+    # The name of the rules repo. Centralised so it's easy to change.
+    REPO_ROOT = "io_bazel_rules_kotlin",
+    TOOLCHAIN_TYPE = "@io_bazel_rules_kotlin//kotlin:kt_toolchain_type",
+)
+
+_KtInfo = provider(
     fields = {
         "src": "the source files. [intelij-aspect]",
         "outputs": "output jars produced by this rule. [intelij-aspect]",
     },
 )
 
-KotlinPluginInfo = provider(
+_KtPluginInfo = provider(
     fields = {
         "processors": "a serializeable list of structs containing an annotation processor definitions",
     },
 )
 
-"""a serializable provider containing plugin descriptors that can be processed by the worker"""
+kt = struct(
+    defs = _defs,
+    info = struct(
+        KtInfo = _KtInfo,
+        KtPluginInfo = _KtPluginInfo,
+    ),
+)
