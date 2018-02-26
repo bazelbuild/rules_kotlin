@@ -25,7 +25,7 @@ kotlin_worker_lib(
         "//third_party:moshi-kotlin"
     ],
     exports = [
-        "//kotlin/workers/proto"
+        "//kotlin/workers/proto",
     ],
     runtime_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",

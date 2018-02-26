@@ -13,13 +13,16 @@
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
 
-load("//kotlin:toolchains.bzl", "define_kt_jvm_toolchain")
+load("//kotlin:toolchains.bzl", "define_kt_toolchain")
+load("//kotlin/internal:bootstrap.bzl", "kt_toolchain_ide_info")
 
 toolchain_type(
-    name = "kt_jvm_toolchain_type",
+    name = "kt_toolchain_type",
     visibility = ["//visibility:public"]
 )
 
-define_kt_jvm_toolchain(name = "default_jvm_toolchain")
+define_kt_toolchain(name = "default_toolchain")
+
+kt_toolchain_ide_info(name="kt_toolchain_ide_info")
 
 exports_files(["toolchains.bzl", "kotlin.bzl"], visibility=["//docs:__subpackages__"])
