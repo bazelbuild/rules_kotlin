@@ -3,7 +3,7 @@ test.smoke:
 
 reformat:
 	buildifier -mode=fix -v kotlin/*.bzl
-	buildifier -mode=fix -v kotlin/rules/*.bzl
+	buildifier -mode=fix -v kotlin/internal/*.bzl
 
 docs.regen:
 	bazel build //docs

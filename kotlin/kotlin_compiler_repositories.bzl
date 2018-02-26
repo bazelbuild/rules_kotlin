@@ -14,7 +14,10 @@
 """This file contains the Kotlin compiler repository definitions.
 """
 
-load("//kotlin/rules:defs.bzl", "KOTLIN_REPO_ROOT")
+load(
+    "//kotlin/internal:kt.bzl",
+    _kt = "kt",
+)
 
 KOTLIN_RELEASES = {
     "1.2.21": {
@@ -40,7 +43,7 @@ KOTLIN_RELEASES = {
 }
 
 KOTLIN_COMPILER_REPO_BUILD_FILE = """
-load("@io_bazel_rules_kotlin//kotlin/rules:bootstrap.bzl", kotlin_stdlib="kotlin_stdlib")
+load("@io_bazel_rules_kotlin//kotlin/internal:bootstrap.bzl", kotlin_stdlib="kotlin_stdlib")
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
@@ -151,7 +154,7 @@ def kotlin_compiler_repository(
         fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, KOTLIN_CURRENT_RELEASE))
 
     native.new_http_archive(
-        name = KOTLIN_REPO_ROOT,
+        name = _kt.defs.KT_COMPILER_REPO,
         url = release["url"],
         sha256 = release["sha256"],
         build_file_content= KOTLIN_COMPILER_REPO_BUILD_FILE,
