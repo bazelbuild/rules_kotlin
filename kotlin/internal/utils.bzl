@@ -12,14 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin/rules:defs.bzl", "KotlinInfo")
+load(
+    "//kotlin/internal:kt.bzl",
+    kt = "kt",
+)
 
-# DEPSET UTILS #########################################################################################################
+# MISC UTILS ###################################################################################################################################################
+def _restore_label(l):
+    lbl = l.workspace_root
+    if lbl.startswith("external/"):
+        lbl = lbl.replace("external/", "@")
+    return lbl + "//" + l.package + ":" + l.name
+
+# DEPSET UTILS #################################################################################################################################################
 def _select_compile_jars(dep):
     """selects the correct compile time jar from a java provider"""
     if not JavaInfo in dep:
         return []
-    is_kotlin_provider = KotlinInfo in dep
+    is_kotlin_provider = kt.info.KtInfo in dep
     java_provider = dep[JavaInfo]
     if is_kotlin_provider:
        return java_provider.full_compile_jars
@@ -28,7 +38,7 @@ def _select_compile_jars(dep):
     else:
         return java_provider.compile_jars
 
-def collect_jars_for_compile(deps):
+def _collect_jars_for_compile(deps):
     """creates the compile jar depset, this should be strict including only the output jars of the listed dependencies.
     """
     compile_jars = depset()
@@ -36,7 +46,7 @@ def collect_jars_for_compile(deps):
         compile_jars += _select_compile_jars(d)
     return compile_jars
 
-def collect_all_jars(deps):
+def _collect_all_jars(deps):
     """
     Merges a list of java providers into a struct of depsets.
     """
@@ -61,7 +71,7 @@ def collect_all_jars(deps):
         transitive_compile_time_jars = transitive_compile_time_jars
     )
 
-# RESOURCE JARS ########################################################################################################
+# RESOURCE JARS ################################################################################################################################################
 _CONVENTIONAL_RESOURCE_PATHS = [
     "src/main/resources",
     "src/test/resources",
@@ -101,7 +111,7 @@ def _add_resources_cmd(ctx):
         res_cmd.extend([line])
     return "".join(res_cmd)
 
-def kotlin_build_resourcejar_action(ctx):
+def _build_resourcejar_action(ctx):
     resources = _add_resources_cmd(ctx)
     resources_jar_output = ctx.actions.declare_file(ctx.label.name + "-resources.jar")
     zipper_arg_path = ctx.actions.declare_file("%s_resources_zipper_args" % ctx.label.name)
@@ -124,8 +134,8 @@ rm -f {resources_jar_output}
     )
     return resources_jar_output
 
-# SRC JARS #############################################################################################################
-def kotlin_maybe_make_srcs_action(ctx):
+# SRC JARS #####################################################################################################################################################
+def _maybe_make_srcsjar_action(ctx):
     if len(ctx.files.srcs) > 0:
         output_srcjar = ctx.actions.declare_file(ctx.label.name + "-sources.jar")
         args = ["--output", output_srcjar.path]
@@ -144,8 +154,8 @@ def kotlin_maybe_make_srcs_action(ctx):
     else:
         return []
 
-# PACKAGE JARS #########################################################################################################
-def kotlin_fold_jars_action(ctx, output_jar, input_jars):
+# PACKAGE JARS #################################################################################################################################################
+def _fold_jars_action(ctx, output_jar, input_jars):
     args=["--output", output_jar.path]
     for i in input_jars:
         args += ["--sources", i.path]
@@ -159,8 +169,8 @@ def kotlin_fold_jars_action(ctx, output_jar, input_jars):
         progress_message="Merging Kotlin output jar " + output_jar.short_path
     )
 
-# JVM LAUNCH SCRIPTS ###################################################################################################
-def kotlin_write_launcher_action(ctx, rjars, main_class, jvm_flags, args="", wrapper_preamble=""):
+# JVM LAUNCH SCRIPTS ###########################################################################################################################################
+def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args="", wrapper_preamble=""):
     """Macro that writes out a launcher script shell script.
       Args:
         rjars: All of the runtime jars required to launch this java target.
@@ -185,3 +195,16 @@ def kotlin_write_launcher_action(ctx, rjars, main_class, jvm_flags, args="", wra
         },
         is_executable = True,
     )
+
+# EXPORT #######################################################################################################################################################
+utils = struct(
+    actions = struct(
+        build_resourcejar = _build_resourcejar_action,
+        fold_jars = _fold_jars_action,
+        maybe_make_srcsjar = _maybe_make_srcsjar_action,
+        write_launcher = _write_launcher_action,
+    ),
+    collect_all_jars = _collect_all_jars,
+    collect_jars_for_compile = _collect_jars_for_compile,
+    restore_label = _restore_label,
+)

@@ -13,14 +13,8 @@
 # limitations under the License.
 """This file contains rules used to bootstrap the compiler repository."""
 
-load(
-    "//kotlin/rules:defs.bzl",
-    _KotlinInfo = "KotlinInfo",
-)
-load(
-    "//kotlin/rules:rules.bzl",
-    _kotlin_import_impl = "kotlin_import_impl",
-)
+load("//kotlin/internal:kt.bzl", "kt")
+load("//kotlin/internal:rules.bzl", _kt_jvm_import_impl="kt_jvm_import_impl")
 
 kotlin_stdlib = rule(
     attrs = {
@@ -34,7 +28,29 @@ kotlin_stdlib = rule(
             cfg = "host",
         ),
     },
-    implementation = _kotlin_import_impl,
+    implementation = _kt_jvm_import_impl,
 )
 
 """Import Kotlin libraries that are part of the compiler release."""
+
+def _kt_toolchain_ide_info_impl(ctx):
+    tc=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
+    info = struct(
+        label = tc.label,
+        common = struct(
+            language_version = tc.language_version,
+            api_version = tc.api_version,
+            coroutines = tc.coroutines
+        ),
+        jvm = struct(
+            jvm_target = tc.jvm_target,
+        )
+    )
+    ctx.actions.write(ctx.outputs.ide_info, info.to_json())
+    return [DefaultInfo(files=depset([ctx.outputs.ide_info]))]
+
+kt_toolchain_ide_info = rule(
+    outputs = {"ide_info": "kt_toolchain_ide_info.json"},
+    toolchains = [kt.defs.TOOLCHAIN_TYPE],
+    implementation = _kt_toolchain_ide_info_impl,
+)

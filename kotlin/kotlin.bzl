@@ -96,12 +96,26 @@ kt_jvm_binary(
 ########################################################################################################################
 
 load(
-    "//kotlin/rules:defs.bzl",
-    "KOTLIN_REPO_ROOT",
+    "//kotlin/internal:kt.bzl",
+    _kt = "kt",
+)
+# struct can't be used till skydoc is removed
+load(
+    "//kotlin/internal:plugins.bzl",
+    _kt_jvm_plugin_aspect="kt_jvm_plugin_aspect",
+)
+# struct can't be used till skydoc is removed
+load(
+    "//kotlin/internal:rules.bzl",
+    _kt_jvm_binary_impl = "kt_jvm_binary_impl",
+    _kt_jvm_import_impl = "kt_jvm_import_impl",
+    _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
+    _kt_jvm_library_impl = "kt_jvm_library_impl",
 )
 load(
-    "//kotlin/rules:plugins.bzl",
-    _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect",
+    "//kotlin:kotlin_compiler_repositories.bzl",
+    "KOTLIN_CURRENT_RELEASE",
+    _kotlin_compiler_repository = "kotlin_compiler_repository",
 )
 
 # The files types that may be passed to the core Kotlin compile rule.
@@ -116,6 +130,9 @@ _srcjar_filetype = FileType([
     ".jar",
     "-sources.jar",
 ])
+# _kt.defs.KT_COMPILER_REPO can't be used till skydoc is removed
+KT_COMPILER_REPO="com_github_jetbrains_kotlin"
+
 
 ########################################################################################################################
 # Rule Attributes
@@ -124,13 +141,13 @@ _implicit_deps = {
     "_kotlin_compiler_classpath": attr.label_list(
         allow_files = True,
         default = [
-            Label("@" + KOTLIN_REPO_ROOT + "//:compiler"),
-            Label("@" + KOTLIN_REPO_ROOT + "//:reflect"),
-            Label("@" + KOTLIN_REPO_ROOT + "//:script-runtime"),
+            Label("@" + KT_COMPILER_REPO + "//:compiler"),
+            Label("@" + KT_COMPILER_REPO + "//:reflect"),
+            Label("@" + KT_COMPILER_REPO + "//:script-runtime"),
         ],
     ),
     "_kotlin_home": attr.label(
-        default = Label("@" + KOTLIN_REPO_ROOT + "//:home"),
+        default = Label("@" + KT_COMPILER_REPO + "//:home"),
         allow_files = True,
         cfg = "host",
     ),
@@ -141,17 +158,23 @@ _implicit_deps = {
     ),
     "_kotlin_runtime": attr.label(
         single_file = True,
-        default = Label("@" + KOTLIN_REPO_ROOT + "//:runtime"),
+        default = Label("@" + KT_COMPILER_REPO + "//:runtime"),
     ),
     "_kotlin_std": attr.label_list(default = [
-        Label("@" + KOTLIN_REPO_ROOT + "//:stdlib"),
-        Label("@" + KOTLIN_REPO_ROOT + "//:stdlib-jdk7"),
-        Label("@" + KOTLIN_REPO_ROOT + "//:stdlib-jdk8"),
+        Label("@" + KT_COMPILER_REPO + "//:stdlib"),
+        Label("@" + KT_COMPILER_REPO + "//:stdlib-jdk7"),
+        Label("@" + KT_COMPILER_REPO + "//:stdlib-jdk8"),
     ]),
+    "_kotlin_toolchain": attr.label_list(
+        default = [
+            Label("@io_bazel_rules_kotlin//kotlin:kt_toolchain_ide_info"),
+        ],
+        allow_files = False,
+    ),
     "_kotlin_reflect": attr.label(
         single_file = True,
         default =
-            Label("@" + KOTLIN_REPO_ROOT + "//:reflect"),
+            Label("@" + KT_COMPILER_REPO + "//:reflect"),
     ),
     "_singlejar": attr.label(
         executable = True,
@@ -200,7 +223,7 @@ _common_attr = dict(_implicit_deps.items() + {
         default = [],
         aspects = [_kt_jvm_plugin_aspect],
     ),
-    "module_name": attr.string()
+    "module_name": attr.string(),
 }.items())
 
 _runnable_common_attr = dict(_common_attr.items() + {
@@ -224,12 +247,6 @@ _binary_outputs = dict(_common_outputs.items() + {
 ########################################################################################################################
 # Repositories and Toolchains
 ########################################################################################################################
-load(
-    "//kotlin:kotlin_compiler_repositories.bzl",
-    "KOTLIN_CURRENT_RELEASE",
-    _kotlin_compiler_repository = "kotlin_compiler_repository",
-)
-
 def kotlin_repositories(
     kotlin_release_version=KOTLIN_CURRENT_RELEASE
 ):
@@ -241,30 +258,20 @@ def kotlin_repositories(
     """
     _kotlin_compiler_repository(kotlin_release_version)
 
-load("//kotlin:toolchains.bzl", _kt_register_jvm_toolchain="kt_register_jvm_toolchain")
-
 def kt_register_toolchains():
     """register all default toolchains"""
-    _kt_register_jvm_toolchain()
+    native.register_toolchains(_kt.defs.DEFAULT_TOOLCHAIN)
 
 ########################################################################################################################
 # Simple Rules:
 ########################################################################################################################
-load(
-    "//kotlin/rules:rules.bzl",
-    _kotlin_binary_impl = "kotlin_binary_impl",
-    _kotlin_import_impl = "kotlin_import_impl",
-    _kotlin_junit_test_impl = "kotlin_junit_test_impl",
-    _kotlin_library_impl = "kotlin_library_impl",
-)
-
 kt_jvm_library = rule(
     attrs = dict(_common_attr.items() + {
-        "exports": attr.label_list(default = [])
+        "exports": attr.label_list(default = []),
     }.items()),
     outputs = _common_outputs,
-    implementation = _kotlin_library_impl,
-    toolchains = ["@io_bazel_rules_kotlin//kotlin:kt_jvm_toolchain_type"]
+    toolchains = [_kt.defs.TOOLCHAIN_TYPE],
+    implementation = _kt_jvm_library_impl,
 )
 
 """This rule compiles and links Kotlin and Java sources into a .jar file.
@@ -291,8 +298,8 @@ kt_jvm_binary = rule(
     attrs = dict(_runnable_common_attr.items() + {"main_class": attr.string(mandatory = True)}.items()),
     executable = True,
     outputs = _binary_outputs,
-    implementation = _kotlin_binary_impl,
-    toolchains = ["@io_bazel_rules_kotlin//kotlin:kt_jvm_toolchain_type"]
+    toolchains = [_kt.defs.TOOLCHAIN_TYPE],
+    implementation = _kt_jvm_binary_impl,
 )
 
 """Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper shell script uses a classpath that includes,
@@ -318,8 +325,8 @@ kt_jvm_test = rule(
     executable = True,
     outputs = _binary_outputs,
     test = True,
-    implementation = _kotlin_junit_test_impl,
-    toolchains = ["@io_bazel_rules_kotlin//kotlin:kt_jvm_toolchain_type"]
+    toolchains = [_kt.defs.TOOLCHAIN_TYPE],
+    implementation = _kt_jvm_junit_test_impl,
 )
 
 """Setup a simple kotlin_test.
@@ -341,7 +348,7 @@ kt_jvm_import = rule(
             allow_single_file = True,
         ),
     },
-    implementation = _kotlin_import_impl,
+    implementation = _kt_jvm_import_impl,
 )
 
 # The pairing of src and class is used by intellij to attatch sources, this is picked up via the kt provider attribute.
