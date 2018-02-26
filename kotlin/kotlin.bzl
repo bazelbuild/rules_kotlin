@@ -152,7 +152,7 @@ _implicit_deps = {
         cfg = "host",
     ),
     "_kotlinw": attr.label(
-        default = Label("//kotlin/workers:compiler_jvm"),
+        default = Label("//kotlin/builder"),
         executable = True,
         cfg = "host",
     ),
