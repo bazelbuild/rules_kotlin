@@ -11,21 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-directories:
-  # Add the directories you want added as source here
-  # By default, we've added your entire workspace ('.')
-  .
+java_import(
+    name = "proto",
+    jars = [
+        "jars/libdeps_proto-speed.jar",
+        "jars/libworker_protocol_proto-speed.jar"
+    ],
+    exports = ["@io_bazel_rules_kotlin_protobuf_protobuf_java//jar"],
+    visibility = ["//kotlin/builder:__subpackages__"]
+)
 
-targets:
-  //kotlin/builder:for_ide
-  //:all_tests
-  //examples/...
-
-test_sources:
-  */unittests/*
-  */integrationtests/*
-
-kotlin_language_version: 1.2
-
-additional_languages:
-  kotlin
+filegroup(
+    name = "files",
+    srcs = [
+        "jars/libdeps_proto-speed.jar",
+        "jars/libworker_protocol_proto-speed.jar"
+    ],
+    visibility = ["//kotlin/builder:__subpackages__"]
+)
