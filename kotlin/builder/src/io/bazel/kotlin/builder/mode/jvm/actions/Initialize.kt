@@ -19,8 +19,10 @@ package io.bazel.kotlin.builder.mode.jvm.actions
 import io.bazel.kotlin.builder.BuildAction
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.model.CompileDirectories
+import io.bazel.kotlin.builder.model.CompilePluginConfig
+import io.bazel.kotlin.builder.model.Metas
 import io.bazel.kotlin.builder.utils.PluginArgs
-import io.bazel.kotlin.builder.model.*
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -39,7 +41,7 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
     }
 
     private fun bindPluginStatus(ctx: Context) {
-        CompilePluginConfig[ctx] = PluginDescriptors[ctx]?.let {
+        CompilePluginConfig[ctx] = ctx.flags.plugins?.let {
             PluginArgs.from(ctx)?.let {
                 CompilePluginConfig(hasAnnotationProcessors = true, args = it.toTypedArray())
             }
@@ -49,7 +51,7 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
     private fun bindSources(ctx: Context) {
         val javaSources = mutableListOf<String>()
         val allSources = mutableListOf<String>()
-        for (src in requireNotNull(Flags.SOURCES[ctx]).split(":")) {
+        for (src in requireNotNull(ctx.flags.source).split(":")) {
             when {
                 src.endsWith(".java") -> {
                     javaSources.add(src)
@@ -64,7 +66,7 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
     }
 
     private fun initializeAndBindBindDirectories(ctx: Context) {
-        Files.createDirectories(Paths.get(Flags.COMPILER_OUTPUT_BASE[ctx])).let {
+        Files.createDirectories(Paths.get(ctx.flags.compilerOutputBase)).let {
             CompileDirectories[ctx] = CompileDirectories(it)
         }
     }
@@ -73,9 +75,8 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
      * parses the label, sets up the meta elements and returns the target part.
      */
     private fun bindLabelComponents(ctx: Context) {
-        val label = requireNotNull(Flags.LABEL[ctx])
-        val parts = label.split(":")
-        require(parts.size == 2) { "the label $label is invalid" }
+        val parts = ctx.flags.label.split(":")
+        require(parts.size == 2) { "the label ${ctx.flags.label} is invalid" }
         Metas.PKG[ctx] = parts[0]
         Metas.TARGET[ctx] = parts[1]
     }
