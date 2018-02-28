@@ -16,7 +16,6 @@
 package io.bazel.kotlin.builder.model
 
 import com.squareup.moshi.Json
-import io.bazel.kotlin.builder.Meta
 
 data class AnnotationProcessor(
         @Json(name = "processor_class") val processorClass: String,
@@ -33,6 +32,4 @@ data class PluginDescriptors(
          * The list of Annotation processors.
          */
         val processors: List<AnnotationProcessor>
-) {
-    companion object : Meta<PluginDescriptors> by Flags.PLUGINS.renderJsonAndBind()
-}
+)

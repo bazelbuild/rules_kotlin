@@ -23,7 +23,6 @@ import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.mode.jvm.utils.KotlinCompilerOutputProcessor
 import io.bazel.kotlin.builder.model.CompileDirectories
 import io.bazel.kotlin.builder.model.CompilePluginConfig
-import io.bazel.kotlin.builder.model.Flags
 import io.bazel.kotlin.builder.model.Metas
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.annotationProcessingGeneratedJavaSources
@@ -33,15 +32,6 @@ import io.bazel.kotlin.builder.utils.moduleName
 // invocations Configured via Kotlin use eager analysis in some corner cases this can result in classpath exceptions from the Java Compiler..
 class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotlin classes", toolchain) {
     companion object {
-        /**
-         * Default fields that are directly mappable to kotlin compiler args.
-         */
-        private val COMPILE_MAPPED_FLAGS = arrayOf(
-                Flags.CLASSPATH,
-                Flags.KOTLIN_API_VERSION,
-                Flags.KOTLIN_LANGUAGE_VERSION,
-                Flags.KOTLIN_JVM_TARGET)
-
         val Result = CompileResult.Meta("kotlin_compile_result")
     }
 
@@ -54,15 +44,18 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
         val args = mutableListOf<String>()
         val compileDirectories = CompileDirectories[ctx]
 
-        ctx.copyOfFlags(*COMPILE_MAPPED_FLAGS).forEach { field, arg ->
-            args.add(field.kotlinFlag!!); args.add(arg)
-        }
+        args.addAll(
+                "-cp", ctx.flags.classpath,
+                "-api-version", ctx.flags.kotlinApiVersion,
+                "-language-version", ctx.flags.kotlinLanguageVersion,
+                "-jvm-target", ctx.flags.kotlinJvmTarget
+        )
 
         args
                 .addAll("-module-name", ctx.moduleName)
                 .addAll("-d", compileDirectories.classes.toString())
 
-        Flags.KOTLIN_PASSTHROUGH_FLAGS[ctx]?.takeIf { it.isNotBlank() }?.also { args.addAll(it.split(" ")) }
+        ctx.flags.kotlinPassthroughFlags?.takeIf { it.isNotBlank() }?.also { args.addAll(it.split(" ")) }
 
         return args
     }

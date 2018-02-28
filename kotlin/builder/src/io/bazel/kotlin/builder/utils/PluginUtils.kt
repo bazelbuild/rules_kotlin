@@ -19,7 +19,6 @@ import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain.CompilerPlugin
 import io.bazel.kotlin.builder.model.CompileDirectories
 import io.bazel.kotlin.builder.model.CompilePluginConfig
-import io.bazel.kotlin.builder.model.PluginDescriptors
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.util.*
@@ -63,7 +62,7 @@ class PluginArgs private constructor(private val kapt: CompilerPlugin) {
 
     companion object {
         fun from(ctx: Context): List<String>? =
-                PluginDescriptors[ctx]?.let { descriptor ->
+                ctx.flags.plugins?.let { descriptor ->
                     if (descriptor.processors.isNotEmpty()) {
                         val compileDirectories = CompileDirectories[ctx]
 
