@@ -19,7 +19,6 @@ import io.bazel.kotlin.builder.BuildAction
 import io.bazel.kotlin.builder.CompileResult
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
-import io.bazel.kotlin.builder.model.CompileDirectories
 import io.bazel.kotlin.builder.model.Metas
 import io.bazel.kotlin.builder.utils.annotationProcessingGeneratedJavaSources
 import io.bazel.kotlin.builder.utils.executeAndAwait
@@ -38,10 +37,10 @@ class JavaMainCompile(toolchain: KotlinToolchain) : BuildAction("compile java cl
         val additionalJavaSources = ctx.annotationProcessingGeneratedJavaSources()?.toList() ?: emptyList()
 
         if (javaSources.isNotEmpty() || additionalJavaSources.isNotEmpty()) {
-            val classesDirectory = CompileDirectories[ctx].classes
-            val incrementalData = CompileDirectories[ctx].annotationProcessingIncrementalData
+            val classesDirectory = ctx.flags.classDir.value.toString()
+            val incrementalData = ctx.flags.tempDirPath.value.toString()
 
-            val args = mutableListOf(toolchain.JAVAC_PATH, "-cp", "$classesDirectory/:$incrementalData/:${ctx.flags.classpath}", "-d", classesDirectory.toString()).also {
+            val args = mutableListOf(toolchain.JAVAC_PATH, "-cp", "$classesDirectory/:$incrementalData/:${ctx.flags.classpath.joinToString(":")}", "-d", classesDirectory).also {
                 // Kotlin takes care of annotation processing.
                 it.add("-proc:none")
                 it.addAll(javaSources)
