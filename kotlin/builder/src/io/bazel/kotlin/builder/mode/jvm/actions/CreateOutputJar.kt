@@ -19,8 +19,6 @@ import io.bazel.kotlin.builder.BuildAction
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.model.CompileDirectories
-import io.bazel.kotlin.builder.model.Flags
-import io.bazel.kotlin.builder.model.PluginDescriptors
 import io.bazel.kotlin.builder.utils.executeAndAwaitSuccess
 import java.nio.file.Path
 
@@ -31,7 +29,7 @@ class CreateOutputJar(toolchain: KotlinToolchain) : BuildAction("create output j
     private fun MutableList<String>.addAllFrom(dir: Path) = addAll(arrayOf("-C", dir.toString(), "."))
 
     private fun MutableList<String>.maybeAddAnnotationProcessingGeneratedClasses(ctx: Context) {
-        PluginDescriptors[ctx]?.let { pluginDescriptor ->
+        ctx.flags.plugins?.let { pluginDescriptor ->
             CompileDirectories[ctx].annotionProcessingClasses.takeIf {
                 pluginDescriptor.processors.isNotEmpty() && it.toFile().exists()
             }?.also { this.addAllFrom(it) }
@@ -42,7 +40,7 @@ class CreateOutputJar(toolchain: KotlinToolchain) : BuildAction("create output j
         try {
             mutableListOf(
                     toolchain.JAR_TOOL_PATH,
-                    "cf", Flags.OUTPUT_CLASSJAR[ctx]
+                    "cf", ctx.flags.outputClassJar
             ).also { args ->
                 args.addAllFrom(CompileDirectories[ctx].classes)
                 args.maybeAddAnnotationProcessingGeneratedClasses(ctx)

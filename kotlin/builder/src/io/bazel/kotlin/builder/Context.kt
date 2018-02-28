@@ -17,21 +17,20 @@
 
 package io.bazel.kotlin.builder
 
+import io.bazel.kotlin.builder.model.Flags
 import java.util.stream.Stream
 
 class Context internal constructor(
         val toolchain: KotlinToolchain,
-        private val flags: Map<Flag, String>
+        val flags: Flags
+
 ) {
     private val meta = mutableMapOf<Meta<*>, Any>()
-
-    fun copyOfFlags(vararg fields: Flag): Map<Flag, String> = fields.mapNotNull { f -> flags[f]?.let { f to it } }.toMap()
 
     fun apply(vararg consumers: (Context) -> Unit) {
         Stream.of(*consumers).forEach { it(this) }
     }
 
-    internal operator fun get(flag: Flag): String? = flags[flag]
     operator fun <T : Any> get(key: Meta<T>): T? = meta[key] as T?
     internal fun <T : Any> putIfAbsent(key: Meta<T>, value: T): T? = meta.putIfAbsent(key, value as Any) as T?
 }

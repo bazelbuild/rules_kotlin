@@ -20,10 +20,6 @@ import io.bazel.kotlin.builder.BuildAction
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.mode.jvm.utils.JdepsParser
-import io.bazel.kotlin.builder.model.Flags.CLASSPATH
-import io.bazel.kotlin.builder.model.Flags.LABEL
-import io.bazel.kotlin.builder.model.Flags.OUTPUT_CLASSJAR
-import io.bazel.kotlin.builder.model.Flags.OUTPUT_JDEPS
 import io.bazel.kotlin.builder.utils.executeAndWaitOutput
 import io.bazel.kotlin.builder.utils.rootCause
 import java.io.FileOutputStream
@@ -35,23 +31,22 @@ class GenerateJdepsFile(toolchain: KotlinToolchain) : BuildAction("generate jdep
     private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(toolchain.KOTLIN_LIB_DIR, *toolchain.KOTLIN_STD_LIBS)
 
     override fun invoke(ctx: Context): Int {
-        val classJar = OUTPUT_CLASSJAR[ctx]
-        val classPath = CLASSPATH[ctx]
-        val output = OUTPUT_JDEPS[ctx]
-        val label = LABEL[ctx]
-
         val jdepsContent: Deps.Dependencies
 
         try {
-            jdepsContent = executeAndWaitOutput(10, toolchain.JDEPS_PATH, "-cp", classPath, classJar).let {
-                JdepsParser.parse(label, classJar, classPath, it.stream(), isKotlinImplicit)
+            jdepsContent = executeAndWaitOutput(10, toolchain.JDEPS_PATH, "-cp", ctx.flags.classpath, ctx.flags.outputClassJar).let {
+                JdepsParser.parse(
+                        ctx.flags.label,
+                        ctx.flags.outputClassJar,
+                        ctx.flags.classpath,
+                        it.stream(), isKotlinImplicit)
             }
         } catch (e: Exception) {
             throw RuntimeException("error reading or parsing jdeps file", e.rootCause)
         }
 
         try {
-            Paths.get(output).also {
+            Paths.get(ctx.flags.outputJdeps).also {
                 Files.deleteIfExists(it)
                 FileOutputStream(Files.createFile(it).toFile()).use {
                     jdepsContent.writeTo(it)

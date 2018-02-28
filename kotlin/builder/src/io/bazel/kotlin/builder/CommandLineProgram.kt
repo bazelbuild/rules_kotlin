@@ -15,6 +15,8 @@
  */
 package io.bazel.kotlin.builder
 
+import io.bazel.kotlin.builder.model.Flags
+
 /**
  * Interface for command line programs.
  *
@@ -33,26 +35,9 @@ interface CommandLineProgram {
     fun apply(args: List<String>): Int
 
     abstract class Base(
-            protected val flags: FlagNameMap = emptyMap()
-    ): CommandLineProgram {
-        private val mandatoryFlags: List<Flag> = flags.values.filter { it is Flag.Mandatory }
-
+    ) : CommandLineProgram {
         private fun createContext(toolchain: KotlinToolchain, args: List<String>): Context {
-            val tally = mutableMapOf<Flag, String>()
-
-            if (args.size % 2 != 0) {
-                throw RuntimeException("args should be k,v pairs")
-            }
-
-            for (i in 0 until args.size / 2) {
-                val flag = args[i * 2]
-                val value = args[i * 2 + 1]
-                val field = flags[flag] ?: throw RuntimeException("unrecognised arg: " + flag)
-                tally[field] = value
-            }
-
-            mandatoryFlags.forEach { require(tally.containsKey(it)) { "missing mandatory flag ${it.globalFlag}" } }
-            return Context(toolchain, tally)
+            return Context(toolchain, Flags(ArgMaps.from(args)))
         }
 
         abstract val toolchain: KotlinToolchain
@@ -61,7 +46,7 @@ interface CommandLineProgram {
         override fun apply(args: List<String>): Int {
             val ctx = createContext(toolchain, args)
             var exitCode = 0
-            for (action in actions(toolchain,ctx)) {
+            for (action in actions(toolchain, ctx)) {
                 exitCode = action(ctx)
                 if (exitCode != 0)
                     break

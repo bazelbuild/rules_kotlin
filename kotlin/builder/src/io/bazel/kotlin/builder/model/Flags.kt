@@ -15,31 +15,29 @@
  */
 package io.bazel.kotlin.builder.model
 
-import io.bazel.kotlin.builder.Flag
+import io.bazel.kotlin.builder.*
 
 /**
  * The flags supported by the worker.
  */
-object Flags {
-    val LABEL = Flag.Mandatory(JavaBuilderFlags.TARGET_LABEL.flag)
-    val OUTPUT_CLASSJAR = Flag.Mandatory(JavaBuilderFlags.OUTPUT.flag)
-    val SOURCES = Flag.Mandatory(JavaBuilderFlags.SOURCES.flag)
-    val CLASSPATH = Flag.Mandatory(JavaBuilderFlags.CLASSPATH.flag, "-cp")
+class Flags(argMap: ArgMap) {
+    val label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL.flag)
+    val outputClassJar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT.flag)
+    val source = argMap.mandatorySingle(JavaBuilderFlags.SOURCES.flag)
+    val classpath = argMap.mandatorySingle(JavaBuilderFlags.CLASSPATH.flag)
+    val plugins = argMap.optionalFromJson<PluginDescriptors>("--kt-plugins")
+    val outputJdeps = argMap.mandatorySingle("--output_jdeps")
 
-    val PLUGINS = Flag.Optional("--kt-plugins")
-
-    val OUTPUT_JDEPS = Flag.Mandatory("--output_jdeps")
-    val COMPILER_OUTPUT_BASE = Flag.Mandatory("--compiler_output_base")
-
-    val KOTLIN_API_VERSION = Flag.Optional("--kotlin_api_version", "-api-version")
-    val KOTLIN_LANGUAGE_VERSION = Flag.Optional("--kotlin_language_version", "-language-version")
-    val KOTLIN_JVM_TARGET = Flag.Optional("--kotlin_jvm_target", "-jvm-target")
+    val compilerOutputBase = argMap.mandatorySingle("--compiler_output_base")
+    val kotlinApiVersion = argMap.mandatorySingle("--kotlin_api_version")
+    val kotlinLanguageVersion = argMap.mandatorySingle("--kotlin_language_version")
+    val kotlinJvmTarget = argMap.mandatorySingle("--kotlin_jvm_target")
 
     /**
      * These flags are passed through to the compiler verbatim, the rules ensure they are safe. These flags are to toggle features or they carry a single value
      * so the string is tokenized by space.
      */
-    val KOTLIN_PASSTHROUGH_FLAGS = Flag.Optional("--kotlin_passthrough_flags")
+    val kotlinPassthroughFlags = argMap.optionalSingle("--kotlin_passthrough_flags")
 
-    val KOTLIN_MODULE_NAME = Flag.Optional("--kotlin_module_name")
+    val kotlinModuleName = argMap.optionalSingle("--kotlin_module_name")
 }
