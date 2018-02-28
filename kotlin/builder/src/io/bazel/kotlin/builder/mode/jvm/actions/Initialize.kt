@@ -19,12 +19,9 @@ package io.bazel.kotlin.builder.mode.jvm.actions
 import io.bazel.kotlin.builder.BuildAction
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
-import io.bazel.kotlin.builder.model.CompileDirectories
 import io.bazel.kotlin.builder.model.CompilePluginConfig
 import io.bazel.kotlin.builder.model.Metas
 import io.bazel.kotlin.builder.utils.PluginArgs
-import java.nio.file.Files
-import java.nio.file.Paths
 
 /**
  * Should be the first step, does mandatory pre-processing.
@@ -32,12 +29,16 @@ import java.nio.file.Paths
 class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBuilder", toolchain) {
     override fun invoke(ctx: Context): Int {
         ctx.apply(
-                ::initializeAndBindBindDirectories,
                 ::bindLabelComponents,
                 ::bindPluginStatus,
-                ::bindSources
+                ::bindSources,
+                ::memoize
         )
         return 0
+    }
+
+    private fun memoize(ctx: Context) {
+        Metas.CLASSPATH_STRING[ctx] = ctx.flags.classpath.joinToString(":")
     }
 
     private fun bindPluginStatus(ctx: Context) {
@@ -51,7 +52,7 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
     private fun bindSources(ctx: Context) {
         val javaSources = mutableListOf<String>()
         val allSources = mutableListOf<String>()
-        for (src in requireNotNull(ctx.flags.source).split(":")) {
+        for (src in ctx.flags.source) {
             when {
                 src.endsWith(".java") -> {
                     javaSources.add(src)
@@ -63,12 +64,6 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
         }
         Metas.JAVA_SOURCES[ctx] = javaSources.toList()
         Metas.ALL_SOURCES[ctx] = allSources.toList()
-    }
-
-    private fun initializeAndBindBindDirectories(ctx: Context) {
-        Files.createDirectories(Paths.get(ctx.flags.compilerOutputBase)).let {
-            CompileDirectories[ctx] = CompileDirectories(it)
-        }
     }
 
     /**

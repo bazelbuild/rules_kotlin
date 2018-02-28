@@ -18,7 +18,6 @@ package io.bazel.kotlin.builder.mode.jvm.actions
 import io.bazel.kotlin.builder.BuildAction
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
-import io.bazel.kotlin.builder.model.CompileDirectories
 import io.bazel.kotlin.builder.utils.executeAndAwaitSuccess
 import java.nio.file.Path
 
@@ -28,22 +27,13 @@ import java.nio.file.Path
 class CreateOutputJar(toolchain: KotlinToolchain) : BuildAction("create output jar", toolchain) {
     private fun MutableList<String>.addAllFrom(dir: Path) = addAll(arrayOf("-C", dir.toString(), "."))
 
-    private fun MutableList<String>.maybeAddAnnotationProcessingGeneratedClasses(ctx: Context) {
-        ctx.flags.plugins?.let { pluginDescriptor ->
-            CompileDirectories[ctx].annotionProcessingClasses.takeIf {
-                pluginDescriptor.processors.isNotEmpty() && it.toFile().exists()
-            }?.also { this.addAllFrom(it) }
-        }
-    }
-
     override fun invoke(ctx: Context): Int {
         try {
             mutableListOf(
                     toolchain.JAR_TOOL_PATH,
                     "cf", ctx.flags.outputClassJar
             ).also { args ->
-                args.addAllFrom(CompileDirectories[ctx].classes)
-                args.maybeAddAnnotationProcessingGeneratedClasses(ctx)
+                args.addAllFrom(ctx.flags.classDir.value)
             }.also { executeAndAwaitSuccess(10, *it.toTypedArray()) }
         } catch (e: Exception) {
             throw RuntimeException("unable to create class jar", e)

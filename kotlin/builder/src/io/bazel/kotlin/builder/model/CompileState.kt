@@ -16,39 +16,8 @@
 package io.bazel.kotlin.builder.model
 
 import io.bazel.kotlin.builder.MandatoryMeta
-import java.nio.file.Files
-import java.nio.file.Path
 
 sealed class CompileState
-
-/**
- * Temporary output directories used durng compilation.
- */
-class CompileDirectories(private val outputBase: Path) : CompileState() {
-    val classes by lazy { dir("_classes", create = true) }
-
-    /**
-     *  The generated sources that need to be compiled and included in the output jar.
-     */
-    val annotationProcessingSources by lazy { dir("_ap_sources") }
-    /**
-     * Files other than sources that should be directly bundled into the output jar, this could be resources.
-     */
-    val annotionProcessingClasses by lazy { dir("_ap_classes") }
-    val annotationProcessingStubs by lazy { dir("_ap_stubs") }
-    /**
-     * The classes generated in here are needed for javac to compile the generated sources.
-     */
-    val annotationProcessingIncrementalData by lazy { dir("_ap_incremental_data") }
-
-    private fun dir(component: String, create: Boolean = false): Path = outputBase.resolve(component).also {
-        if(create) {
-            Files.createDirectories(it)
-        }
-    }
-
-    companion object: MandatoryMeta<CompileDirectories>("compile_directories")
-}
 
 class CompilePluginConfig(
         val hasAnnotationProcessors: Boolean = false,

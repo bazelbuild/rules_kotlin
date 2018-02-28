@@ -18,6 +18,8 @@ package io.bazel.kotlin.builder
 
 import com.squareup.moshi.KotlinJsonAdapterFactory
 import com.squareup.moshi.Moshi
+import java.nio.file.Files
+import java.nio.file.Paths
 
 typealias ArgMap = Map<String, List<String>>
 
@@ -26,6 +28,13 @@ typealias ArgMap = Map<String, List<String>>
  */
 fun ArgMap.mandatorySingle(key: String): String =
         optionalSingle(key) ?: throw IllegalArgumentException("$key is not optional")
+
+/**
+ * A flag bound to a directory that is lazily created.
+ */
+fun ArgMap.lazilyCreatedDirectory(key: String) = lazy {
+    mandatorySingle(key).let { Files.createDirectories(Paths.get(it)) }
+}
 
 fun ArgMap.optionalSingle(key: String): String? =
         optional(key)?.let {
