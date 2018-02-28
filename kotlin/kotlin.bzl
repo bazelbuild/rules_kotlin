@@ -320,7 +320,7 @@ kt_jvm_test = rule(
             allow_files = True,
         ),
         "test_class": attr.string(),
-        #      "main_class": attr.string(),
+        "main_class": attr.string(default="com.google.testing.junit.runner.BazelTestRunner"),
     }.items()),
     executable = True,
     outputs = _binary_outputs,

@@ -85,7 +85,7 @@ def kt_jvm_junit_test_impl(ctx):
     utils.actions.write_launcher(
         ctx,
         transitive_runtime_jars,
-        main_class = "com.google.testing.junit.runner.BazelTestRunner",
+        main_class = ctx.attr.main_class,
         jvm_flags = launcherJvmFlags + ctx.attr.jvm_flags,
     )
     return compile.make_providers(

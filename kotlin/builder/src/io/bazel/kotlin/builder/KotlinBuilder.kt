@@ -17,15 +17,12 @@ package io.bazel.kotlin.builder
 
 
 import io.bazel.kotlin.builder.mode.jvm.actions.*
-import io.bazel.kotlin.builder.model.Flags
 import java.io.IOException
 
 /**
  * Bazel Kotlin Compiler worker.
  */
-object KotlinBuilder : CommandLineProgram.Base(
-        flags = Flags::class.flagsByName()
-) {
+object KotlinBuilder : CommandLineProgram.Base() {
     override val toolchain: KotlinToolchain = try {
         KotlinToolchain()
     } catch (e: IOException) {
