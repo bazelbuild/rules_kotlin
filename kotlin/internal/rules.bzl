@@ -56,10 +56,10 @@ def kt_jvm_import_impl(ctx):
     return struct(kt = kotlin_info, providers= [default_info, java_info, kotlin_info])
 
 def kt_jvm_library_impl(ctx):
-    return compile.make_providers(ctx, compile.compile_action(ctx))
+    return compile.make_providers(ctx, compile.compile_action(ctx, "kt_jvm_library"))
 
 def kt_jvm_binary_impl(ctx):
-    java_info = compile.compile_action(ctx)
+    java_info = compile.compile_action(ctx, "kt_jvm_binary")
     utils.actions.write_launcher(
         ctx,
         java_info.transitive_runtime_jars,
@@ -77,7 +77,7 @@ def kt_jvm_binary_impl(ctx):
     )
 
 def kt_jvm_junit_test_impl(ctx):
-    java_info = compile.compile_action(ctx)
+    java_info = compile.compile_action(ctx, "kt_jvm_test")
 
     transitive_runtime_jars = java_info.transitive_runtime_jars + ctx.files._bazel_test_runner
     launcherJvmFlags = ["-ea", "-Dbazel.test_suite=%s"% ctx.attr.test_class]

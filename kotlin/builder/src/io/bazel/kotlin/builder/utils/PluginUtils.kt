@@ -17,8 +17,6 @@ package io.bazel.kotlin.builder.utils
 
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain.CompilerPlugin
-import io.bazel.kotlin.builder.model.CompileDirectories
-import io.bazel.kotlin.builder.model.CompilePluginConfig
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.util.*
@@ -64,13 +62,11 @@ class PluginArgs private constructor(private val kapt: CompilerPlugin) {
         fun from(ctx: Context): List<String>? =
                 ctx.flags.plugins?.let { descriptor ->
                     if (descriptor.processors.isNotEmpty()) {
-                        val compileDirectories = CompileDirectories[ctx]
-
                         PluginArgs(ctx.toolchain.KAPT_PLUGIN).let { arg ->
-                            arg["sources"] = compileDirectories.annotationProcessingSources.toString()
-                            arg["classes"] = compileDirectories.annotionProcessingClasses.toString()
-                            arg["stubs"] = compileDirectories.annotationProcessingStubs.toString()
-                            arg["incrementalData"] = compileDirectories.annotationProcessingIncrementalData.toString()
+                            arg["sources"] = ctx.flags.sourceGenDir.value.toString()
+                            arg["classes"] = ctx.flags.classDir.value.toString()
+                            arg["stubs"] = ctx.flags.tempDirPath.value.toString()
+                            arg["incrementalData"] = ctx.flags.tempDirPath.value.toString()
 
                             arg["aptMode"] = "stubsAndApt"
                             arg["correctErrorTypes"] = "true"
@@ -88,10 +84,9 @@ class PluginArgs private constructor(private val kapt: CompilerPlugin) {
     }
 }
 
-fun Context.annotationProcessingGeneratedSources(): Sequence<String>? {
-    return CompilePluginConfig[this].takeIf { it.hasAnnotationProcessors }?.let {
-        CompileDirectories[this].annotationProcessingSources.toFile().walkTopDown().filter { it.isFile }.map { it.path }
-    }
-}
+fun Context.annotationProcessingGeneratedSources(): Sequence<String>? =
+        if (flags.sourceGenDir.isInitialized()) {
+            flags.sourceGenDir.value.toFile().walkTopDown().filter { it.isFile }.map { it.path }
+        } else null
 
 fun Context.annotationProcessingGeneratedJavaSources(): Sequence<String>? = annotationProcessingGeneratedSources()?.filter { it.endsWith(".java") }
