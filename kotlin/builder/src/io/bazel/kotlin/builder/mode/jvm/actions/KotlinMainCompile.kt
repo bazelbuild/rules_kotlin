@@ -21,7 +21,6 @@ import io.bazel.kotlin.builder.CompileResult
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.mode.jvm.utils.KotlinCompilerOutputProcessor
-import io.bazel.kotlin.builder.model.CompileDirectories
 import io.bazel.kotlin.builder.model.CompilePluginConfig
 import io.bazel.kotlin.builder.model.Metas
 import io.bazel.kotlin.builder.utils.addAll
@@ -42,10 +41,9 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
      */
     private fun setupCompileContext(ctx: Context): MutableList<String> {
         val args = mutableListOf<String>()
-        val compileDirectories = CompileDirectories[ctx]
 
         args.addAll(
-                "-cp", ctx.flags.classpath,
+                "-cp", Metas.CLASSPATH_STRING[ctx],
                 "-api-version", ctx.flags.kotlinApiVersion,
                 "-language-version", ctx.flags.kotlinLanguageVersion,
                 "-jvm-target", ctx.flags.kotlinJvmTarget
@@ -53,7 +51,7 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
 
         args
                 .addAll("-module-name", ctx.moduleName)
-                .addAll("-d", compileDirectories.classes.toString())
+                .addAll("-d", ctx.flags.classDir.value.toString())
 
         ctx.flags.kotlinPassthroughFlags?.takeIf { it.isNotBlank() }?.also { args.addAll(it.split(" ")) }
 

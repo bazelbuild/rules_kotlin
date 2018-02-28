@@ -15,31 +15,36 @@ load("//kotlin/internal:kt.bzl", "kt")
 load("//kotlin/internal:plugins.bzl", "plugins")
 load("//kotlin/internal:utils.bzl", "utils")
 
-def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
+def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
     """Internal macro that sets up a Kotlin compile action.
 
     This macro only supports a single Kotlin compile operation for a rule.
 
     Args:
-      ctx: the ctx of the rule in scope when this macro is called. The macro will pick up the following entities from
-        the rule ctx:
-          * The `srcs` to compile.
-      output_jar: The jar file that this macro will use as the output of the action -- a hardcoded default output is not
-        setup by this rule as this would close the door to optimizations for simple compile operations.
+      rule_kind: The rule kind,
+      output_jar: The jar file that this macro will use as the output of the action.
       compile_jars: The compile time jars provided on the classpath for the compile operations -- callers are
         responsible for preparing the classpath. The stdlib (and jdk7 + jdk8) should generally be added to the classpath
         by the caller -- kotlin-reflect could be optional.
-      opts: struct containing Kotlin compilation options.
     """
-    compiler_output_base=ctx.actions.declare_directory(ctx.label.name + "." + "kotlinc")
+    classes_directory=ctx.actions.declare_directory(ctx.label.name + "_classes")
+    sourcegen_directory=ctx.actions.declare_directory(ctx.label.name + "_sourcegendir")
+    temp_directory=ctx.actions.declare_directory(ctx.label.name + "_tempdir")
+
     tc=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
+
     args = [
         "--target_label", ctx.label,
-        "--compiler_output_base", compiler_output_base.path,
+        "--rule_kind", rule_kind,
+
+        "--classdir", classes_directory.path,
+        "--sourcegendir", sourcegen_directory.path,
+        "--tempdir", temp_directory.path,
+
         "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
-        "--classpath", ":".join([f.path for f in compile_jars.to_list()]),
-        "--sources", ":".join([f.path for f in ctx.files.srcs]),
+        "--classpath", "\n".join([f.path for f in compile_jars.to_list()]),
+        "--sources", "\n".join([f.path for f in ctx.files.srcs]),
         "--kotlin_jvm_target", tc.jvm_target,
         "--kotlin_api_version", tc.api_version,
         "--kotlin_language_version", tc.language_version,
@@ -52,7 +57,7 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
         args += [ "--kt-plugins", plugin_info.to_json() ]
 
     # Declare and write out argument file.
-    args_file = ctx.actions.declare_file(ctx.label.name + "-worker.args")
+    args_file = ctx.actions.declare_file(ctx.label.name + ".jar-2.params")
     ctx.actions.write(args_file, "\n".join(args))
 
     # When a stratetegy isn't provided for the worker and the workspace is fresh then certain deps are not available under
@@ -68,23 +73,12 @@ def _kotlin_do_compile_action(ctx, output_jar, compile_jars, opts):
     ctx.action(
         mnemonic = "KotlinCompile",
         inputs = compile_inputs,
-        outputs = [output_jar, ctx.outputs.jdeps, compiler_output_base],
+        outputs = [output_jar, ctx.outputs.jdeps, sourcegen_directory, classes_directory, temp_directory],
         executable = ctx.executable._kotlinw,
         execution_requirements = {"supports-workers": "1"},
         arguments = ["@" + args_file.path],
         progress_message="Compiling %d Kotlin source files to %s" % (len(ctx.files.srcs), output_jar.short_path),
     )
-
-def _select_compilation_options(ctx):
-  """TODO Stub: setup compilation options"""
-  return struct(
-      # Basic kotlin compile options.
-      opts = {},
-      # Advanced Kotlin compile options.
-      x_opts ={},
-      # Kotlin compiler plugin options.
-      plugin_opts = {}
-  )
 
 def _select_std_libs(ctx):
     return ctx.files._kotlin_std
@@ -156,7 +150,7 @@ def _make_providers(ctx, java_info, transitive_files=depset(order="default")):
         providers=[java_info,default_info,kotlin_info],
     )
 
-def _compile_action (ctx):
+def _compile_action (ctx, rule_kind):
     """Setup a kotlin compile action.
 
     Args:
@@ -188,10 +182,11 @@ def _compile_action (ctx):
     # setup the compile action.
     _kotlin_do_compile_action(
         ctx,
-        kt_compile_output_jar,
-        utils.collect_jars_for_compile(ctx.attr.deps) + kotlin_auto_deps,
-        _select_compilation_options(ctx)
+        rule_kind = rule_kind,
+        output_jar = kt_compile_output_jar,
+        compile_jars = utils.collect_jars_for_compile(ctx.attr.deps) + kotlin_auto_deps
     )
+
     # setup the merge action if needed.
     if len(output_merge_list) > 0:
         utils.actions.fold_jars(ctx, output_jar, output_merge_list)

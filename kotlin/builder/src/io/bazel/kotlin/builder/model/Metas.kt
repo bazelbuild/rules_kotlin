@@ -21,14 +21,17 @@ import io.bazel.kotlin.builder.MandatoryMeta
  * Listin of Meta keys that don't make sense as companion objects.
  */
 object Metas {
-    // mandatory: the package part of the label.
+    // the package part of the label.
     val PKG = MandatoryMeta<String>("package")
-    // mandatory: The target part of the label.
+    // The target part of the label.
     val TARGET = MandatoryMeta<String>("target")
 
-    // mandatory:  If this is non empty then it is a mixed mode operation.
+    //If this is non empty then it is a mixed mode operation.
     val JAVA_SOURCES = MandatoryMeta<List<String>>("java_sources")
 
-    // mandatory:
+
     val ALL_SOURCES = MandatoryMeta<List<String>>("all_sources")
+
+    // memoized classpath string
+    val CLASSPATH_STRING = MandatoryMeta<String>("joined_classpath")
 }

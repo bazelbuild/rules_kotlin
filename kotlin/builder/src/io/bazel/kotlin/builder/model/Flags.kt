@@ -22,13 +22,20 @@ import io.bazel.kotlin.builder.*
  */
 class Flags(argMap: ArgMap) {
     val label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL.flag)
+    val ruleKind = argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND.flag)
+
+    val classDir = argMap.lazilyCreatedDirectory(JavaBuilderFlags.CLASSDIR.flag)
+    val tempDirPath = argMap.lazilyCreatedDirectory(JavaBuilderFlags.TEMPDIR.flag)
+    val sourceGenDir = argMap.lazilyCreatedDirectory(JavaBuilderFlags.SOURCEGEN_DIR.flag)
+
+    // val strictJavaDeps = argMap.mandatorySingle(JavaBuilderFlags.STRICT_JAVA_DEPS.flag)
     val outputClassJar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT.flag)
-    val source = argMap.mandatorySingle(JavaBuilderFlags.SOURCES.flag)
-    val classpath = argMap.mandatorySingle(JavaBuilderFlags.CLASSPATH.flag)
+
+    val source = argMap.mandatory(JavaBuilderFlags.SOURCES.flag)
+    val classpath = argMap.mandatory(JavaBuilderFlags.CLASSPATH.flag)
     val plugins = argMap.optionalFromJson<PluginDescriptors>("--kt-plugins")
     val outputJdeps = argMap.mandatorySingle("--output_jdeps")
 
-    val compilerOutputBase = argMap.mandatorySingle("--compiler_output_base")
     val kotlinApiVersion = argMap.mandatorySingle("--kotlin_api_version")
     val kotlinLanguageVersion = argMap.mandatorySingle("--kotlin_language_version")
     val kotlinJvmTarget = argMap.mandatorySingle("--kotlin_jvm_target")
