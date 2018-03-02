@@ -30,7 +30,7 @@ class JdepsParser private constructor(private val filename: String, private val 
 
     private var mode = Mode.COLLECT_DEPS
 
-    private fun consumeJarLine(classJarPath: String, kind: Deps.Dependency.Kind) {
+    private fun addJar(classJarPath: String, kind: Deps.Dependency.Kind) {
         val path = Paths.get(classJarPath)
 
         // ignore absolute files, -- jdk jar paths etc.
@@ -69,9 +69,9 @@ class JdepsParser private constructor(private val filename: String, private val 
                 val parts = line.split(" -> ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 if (parts.size == 2) {
                     if (parts[0] != filename) {
-                        throw RuntimeException("should only get dependencies for dep: " + filename)
+                        throw RuntimeException("should only get dependencies for dep: $filename")
                     }
-                    consumeJarLine(parts[1], Deps.Dependency.Kind.EXPLICIT)
+                    addJar(parts[1], Deps.Dependency.Kind.EXPLICIT)
                 }
             } else {
                 mode = Mode.DETERMINE_JDK
@@ -89,7 +89,7 @@ class JdepsParser private constructor(private val filename: String, private val 
                 trimmedLine.startsWith("-> ") -> {
                     // ignore package detail lines, in the jdk8 format these start with arrows.
                 }
-                else -> throw RuntimeException("unexpected line while collecting packages: " + line)
+                else -> throw RuntimeException("unexpected line while collecting packages: $line")
             }
             Mode.COLLECT_PACKAGES_JDK9 -> {
                 val pkg = trimmedLine.split("\\s+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -114,7 +114,11 @@ class JdepsParser private constructor(private val filename: String, private val 
         fun parse(label: String, classJar: String, classPath: String, jdepLines: Stream<String>, isImplicit: Predicate<String>): Deps.Dependencies {
             val filename = Paths.get(classJar).fileName.toString()
             val jdepsParser = JdepsParser(filename, isImplicit)
-            Stream.of(*classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()).forEach { x -> jdepsParser.consumeJarLine(x, Deps.Dependency.Kind.UNUSED) }
+
+            Stream.of(*classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()).forEach {
+                jdepsParser.addJar(it, Deps.Dependency.Kind.UNUSED)
+            }
+
             jdepLines.forEach { jdepsParser.processLine(it) }
 
             val rootBuilder = Deps.Dependencies.newBuilder()

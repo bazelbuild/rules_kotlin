@@ -21,6 +21,7 @@ import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.mode.jvm.utils.JdepsParser
 import io.bazel.kotlin.builder.model.CompileDependencies
+import io.bazel.kotlin.builder.model.Metas
 import io.bazel.kotlin.builder.utils.executeAndWaitOutput
 import io.bazel.kotlin.builder.utils.rootCause
 import java.io.FileOutputStream
@@ -40,8 +41,11 @@ class GenerateJdepsFile(toolchain: KotlinToolchain) : BuildAction("generate jdep
                         ctx.flags.label,
                         ctx.flags.outputClassJar,
                         classpath,
-                        it.stream(), isKotlinImplicit)
+                        it.stream(),
+                        isKotlinImplicit
+                )
             }
+            Metas.JDEPS[ctx] = jdepsContent
         } catch (e: Exception) {
             throw RuntimeException("error reading or parsing jdeps file", e.rootCause)
         }

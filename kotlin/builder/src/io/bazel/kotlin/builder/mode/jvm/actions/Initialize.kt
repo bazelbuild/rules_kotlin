@@ -65,9 +65,7 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
             }
         }
         CompileDependencies[ctx] = CompileDependencies(
-                // The classpath has been changed to contain the transitive closure for deps but currently the behaviour is to drop the indirect dependencies
-                // from the classpath -- poor mans strict deps.
-                classpath = ctx.flags.indirectDependencies.keys.let { indirectDeps -> ctx.flags.classpath.filter { !indirectDeps.contains(it) } }.toSet(),
+                classpath = ctx.flags.classpath.toSet(),
                 directDependencies = ctx.flags.directDependencies,
                 indirectDependencies = ctx.flags.indirectDependencies,
                 javaSources = javaSources,

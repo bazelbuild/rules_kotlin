@@ -36,7 +36,10 @@ object KotlinBuilder : CommandLineProgram.Base() {
             JavaMainCompile(toolchain),
             ProcessCompileResult(toolchain),
             CreateOutputJar(toolchain),
-            GenerateJdepsFile(toolchain)
+            // TODO these two should be before create output jar. The jdeps tool can look at the classes in there. Ideally a Kotlin compiler plugin needs to
+            // be implemented, However at the moment this wouldn't work for mixed mode compilation, unless the javabuilder is leveraged to do the java compilation.
+            GenerateJdepsFile(toolchain),
+            StrictDepValidation(toolchain)
     )
 
     override fun actions(toolchain: KotlinToolchain, ctx: Context): List<BuildAction> = compileActions
