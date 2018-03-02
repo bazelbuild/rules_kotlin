@@ -21,8 +21,8 @@ import io.bazel.kotlin.builder.CompileResult
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.mode.jvm.utils.KotlinCompilerOutputProcessor
+import io.bazel.kotlin.builder.model.CompileDependencies
 import io.bazel.kotlin.builder.model.CompilePluginConfig
-import io.bazel.kotlin.builder.model.Metas
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.annotationProcessingGeneratedJavaSources
 import io.bazel.kotlin.builder.utils.moduleName
@@ -43,7 +43,7 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
         val args = mutableListOf<String>()
 
         args.addAll(
-                "-cp", Metas.CLASSPATH_STRING[ctx],
+                "-cp", CompileDependencies[ctx].classPathString,
                 "-api-version", ctx.flags.kotlinApiVersion,
                 "-language-version", ctx.flags.kotlinLanguageVersion,
                 "-jvm-target", ctx.flags.kotlinJvmTarget
@@ -60,7 +60,7 @@ class KotlinMainCompile(toolchain: KotlinToolchain) : BuildAction("compile kotli
 
     override fun invoke(ctx: Context): Int {
         val commonArgs = setupCompileContext(ctx)
-        val sources = Metas.ALL_SOURCES.mustGet(ctx)
+        val sources = CompileDependencies[ctx].allSources
         val pluginStatus = CompilePluginConfig[ctx]
 
         // run a kapt generation phase if needed.

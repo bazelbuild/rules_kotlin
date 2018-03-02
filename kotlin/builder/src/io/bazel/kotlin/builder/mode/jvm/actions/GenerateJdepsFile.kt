@@ -20,7 +20,7 @@ import io.bazel.kotlin.builder.BuildAction
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.mode.jvm.utils.JdepsParser
-import io.bazel.kotlin.builder.model.Metas
+import io.bazel.kotlin.builder.model.CompileDependencies
 import io.bazel.kotlin.builder.utils.executeAndWaitOutput
 import io.bazel.kotlin.builder.utils.rootCause
 import java.io.FileOutputStream
@@ -33,7 +33,7 @@ class GenerateJdepsFile(toolchain: KotlinToolchain) : BuildAction("generate jdep
 
     override fun invoke(ctx: Context): Int {
         val jdepsContent: Deps.Dependencies
-        val classpath = Metas.CLASSPATH_STRING[ctx]
+        val classpath = CompileDependencies[ctx].classPathString
         try {
             jdepsContent = executeAndWaitOutput(10, toolchain.JDEPS_PATH, "-cp", classpath, ctx.flags.outputClassJar).let {
                 JdepsParser.parse(

@@ -16,7 +16,6 @@ load(
     "//kotlin/internal:kt.bzl",
     kt = "kt",
 )
-
 # MISC UTILS ###################################################################################################################################################
 def _restore_label(l):
     lbl = l.workspace_root
@@ -24,28 +23,13 @@ def _restore_label(l):
         lbl = lbl.replace("external/", "@")
     return lbl + "//" + l.package + ":" + l.name
 
+def _restore_label_for_params(l):
+    lbl = l.workspace_root
+    if lbl.startswith("external/"):
+        lbl = lbl.replace("external/", "@@")
+    return lbl + "//" + l.package + ":" + l.name
+
 # DEPSET UTILS #################################################################################################################################################
-def _select_compile_jars(dep):
-    """selects the correct compile time jar from a java provider"""
-    if not JavaInfo in dep:
-        return []
-    is_kotlin_provider = kt.info.KtInfo in dep
-    java_provider = dep[JavaInfo]
-    if is_kotlin_provider:
-       return java_provider.full_compile_jars
-    elif dep.label.workspace_root == "external/com_github_jetbrains_kotlin":
-         return java_provider.full_compile_jars
-    else:
-        return java_provider.compile_jars
-
-def _collect_jars_for_compile(deps):
-    """creates the compile jar depset, this should be strict including only the output jars of the listed dependencies.
-    """
-    compile_jars = depset()
-    for d in deps:
-        compile_jars += _select_compile_jars(d)
-    return compile_jars
-
 def _collect_all_jars(deps):
     """
     Merges a list of java providers into a struct of depsets.
@@ -205,6 +189,6 @@ utils = struct(
         write_launcher = _write_launcher_action,
     ),
     collect_all_jars = _collect_all_jars,
-    collect_jars_for_compile = _collect_jars_for_compile,
     restore_label = _restore_label,
+    restore_label_for_params=_restore_label_for_params
 )

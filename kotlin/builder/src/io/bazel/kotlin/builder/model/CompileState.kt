@@ -22,6 +22,21 @@ sealed class CompileState
 class CompilePluginConfig(
         val hasAnnotationProcessors: Boolean = false,
         val args: Array<String> = emptyArray()
-): CompileState() {
-    companion object: MandatoryMeta<CompilePluginConfig>("plugin_config", defaultValue = CompilePluginConfig())
+) : CompileState() {
+    companion object : MandatoryMeta<CompilePluginConfig>("plugin_config", defaultValue = CompilePluginConfig())
+}
+
+typealias JarPath = String
+typealias Label = String
+
+class CompileDependencies(
+        val classpath: Set<JarPath>,
+        val directDependencies: Map<JarPath, Label>,
+        val indirectDependencies: Map<JarPath, Label>,
+        val javaSources: List<String>,
+        val allSources: List<String>
+) : CompileState() {
+    companion object : MandatoryMeta<CompileDependencies>("compile_dependencies")
+
+    val classPathString by lazy { classpath.joinToString(":") }
 }

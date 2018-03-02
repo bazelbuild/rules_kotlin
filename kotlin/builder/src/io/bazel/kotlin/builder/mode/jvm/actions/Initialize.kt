@@ -19,6 +19,7 @@ package io.bazel.kotlin.builder.mode.jvm.actions
 import io.bazel.kotlin.builder.BuildAction
 import io.bazel.kotlin.builder.Context
 import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.model.CompileDependencies
 import io.bazel.kotlin.builder.model.CompilePluginConfig
 import io.bazel.kotlin.builder.model.Metas
 import io.bazel.kotlin.builder.utils.PluginArgs
@@ -31,25 +32,12 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
         ctx.apply(
                 ::bindLabelComponents,
                 ::bindPluginStatus,
-                ::bindSources,
-                ::memoize
+                ::bindDependencies
         )
         return 0
     }
 
-    private fun memoize(ctx: Context) {
-        Metas.CLASSPATH_STRING[ctx] = ctx.flags.classpath.joinToString(":")
-    }
-
-    private fun bindPluginStatus(ctx: Context) {
-        CompilePluginConfig[ctx] = ctx.flags.plugins?.let {
-            PluginArgs.from(ctx)?.let {
-                CompilePluginConfig(hasAnnotationProcessors = true, args = it.toTypedArray())
-            }
-        }
-    }
-
-    private fun bindSources(ctx: Context) {
+    private fun bindDependencies(ctx: Context) {
         val javaSources = mutableListOf<String>()
         val allSources = mutableListOf<String>()
 
@@ -76,8 +64,23 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
                 else -> throw RuntimeException("unrecognised file type: $src")
             }
         }
-        Metas.JAVA_SOURCES[ctx] = javaSources.toList()
-        Metas.ALL_SOURCES[ctx] = allSources.toList()
+        CompileDependencies[ctx] = CompileDependencies(
+                // The classpath has been changed to contain the transitive closure for deps but currently the behaviour is to drop the indirect dependencies
+                // from the classpath -- poor mans strict deps.
+                classpath = ctx.flags.indirectDependencies.keys.let { indirectDeps -> ctx.flags.classpath.filter { !indirectDeps.contains(it) } }.toSet(),
+                directDependencies = ctx.flags.directDependencies,
+                indirectDependencies = ctx.flags.indirectDependencies,
+                javaSources = javaSources,
+                allSources = allSources
+        )
+    }
+
+    private fun bindPluginStatus(ctx: Context) {
+        CompilePluginConfig[ctx] = ctx.flags.plugins?.let {
+            PluginArgs.from(ctx)?.let {
+                CompilePluginConfig(hasAnnotationProcessors = true, args = it.toTypedArray())
+            }
+        }
     }
 
     /**

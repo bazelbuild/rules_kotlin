@@ -28,11 +28,13 @@ fun ArgMap.mandatorySingle(key: String): String =
         optionalSingle(key) ?: throw IllegalArgumentException("$key is not optional")
 
 /**
- * A flag bound to a directory that is lazily created.
+ * A flag representing a directory that is lazily created.
  */
 fun ArgMap.lazilyCreatedDirectory(key: String) = lazy {
     mandatorySingle(key).let { Files.createDirectories(Paths.get(it)) }
 }
+
+fun ArgMap.labelDepMap(key: String) = optional(key)?.asSequence()?.windowed(2,2)?.map { it[0] to it[1] }?.toMap() ?: emptyMap()
 
 fun ArgMap.optionalSingle(key: String): String? =
         optional(key)?.let {
@@ -55,7 +57,7 @@ fun ArgMap.flag(key: String): Boolean = this[key]?.let { true } ?: false
 object ArgMaps {
     fun from(args: List<String>): ArgMap = mutableMapOf<String, MutableList<String>>().also { argsToMap(args, it) }
 
-    fun argsToMap(args: List<String>, argMap: MutableMap<String, MutableList<String>>,  isFlag: (String) -> Boolean = { it.startsWith("--") }) {
+    private fun argsToMap(args: List<String>, argMap: MutableMap<String, MutableList<String>>,  isFlag: (String) -> Boolean = { it.startsWith("--") }) {
         var currentKey: String = args.first().also { require(isFlag(it)) { "first arg must be a flag" } }
         val currentValue = mutableListOf<String>()
         val mergeCurrent = {

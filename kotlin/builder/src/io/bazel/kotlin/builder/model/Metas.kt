@@ -27,14 +27,6 @@ object Metas {
     // The target part of the label.
     val TARGET = MandatoryMeta<String>("target")
 
-    // If this is non empty then it is a mixed mode operation.
-    val JAVA_SOURCES = MandatoryMeta<List<String>>("java_sources")
-
     // .kt and .java source files unpacked from .srcjar files
     val UNPACKED_SOURCES = Meta<List<String>>("unpacked_sources")
-
-    val ALL_SOURCES = MandatoryMeta<List<String>>("all_sources")
-
-    // memoized classpath string
-    val CLASSPATH_STRING = MandatoryMeta<String>("joined_classpath")
 }
