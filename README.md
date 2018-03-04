@@ -34,8 +34,8 @@ In the project's `WORKSPACE`, declare the external repository and initialize the
 this:
 
 ```build
-kotlin_release_version="1.2.21"
-rules_kotlin_version = "86bf70875361bcdce7fa8977cb60dcd389cb73a3"
+kotlin_release_version="1.2.30"
+rules_kotlin_version = "67f4a6050584730ebae7f8a40435a209f8e0b48e"
 
 http_archive(
     name = "io_bazel_rules_kotlin",
