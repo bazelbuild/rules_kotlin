@@ -147,7 +147,7 @@ sh_binary(
 exports_files(["src"])
 """
 
-KOTLIN_CURRENT_RELEASE = "1.2.21"
+KOTLIN_CURRENT_RELEASE = "1.2.30"
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
