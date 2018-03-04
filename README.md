@@ -12,7 +12,8 @@
 
 # Overview 
 
-These rules were initially forked from [pubref/rules_kotlin](http://github.com/pubref/rules_kotlin). Key changes:
+These rules were initially forked from [pubref/rules_kotlin](http://github.com/pubref/rules_kotlin).
+Key changes:
 
 * Replace the macros with three basic rules. `kotlin_binary`, `kotlin_library` and `kotlin_test`.
 * Use a single dep attribute instead of `java_dep` and `dep`.
@@ -25,3 +26,54 @@ These rules were initially forked from [pubref/rules_kotlin](http://github.com/p
   * `exports`
 * Persistent worker support.
 * Mixed-Mode compilation (compile Java and Kotlin in one pass).
+
+# Usage
+
+## WORKSPACE
+In the project's `WORKSPACE`, declare the external repository and initialize the toolchains, like
+this:
+
+```build
+kotlin_release_version="1.2.21"
+rules_kotlin_version = "86bf70875361bcdce7fa8977cb60dcd389cb73a3"
+
+http_archive(
+    name = "io_bazel_rules_kotlin",
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
+    type = "zip",
+    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories(kotlin_release_version=kotlin_release_version)
+kt_register_toolchains()
+```
+
+If you omit `kotlin_release_version` and just call `kotlin_repositories()` with no arguments,
+you'll get the current kotlin compiler version (at least as known to the rules_kotlin project).
+
+## BUILD files
+
+In your project's `BUILD` files, load the kotlin rules and use them like so:
+
+```
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "package_name",
+    srcs = glob(["*.kt"]),
+    deps = [
+        "//path/to/dependency",
+    ],
+)
+```
+
+# License
+
+This project is licensed under the [Apache 2.0 license](LICENSE), as are all contributions
+
+# Contributing
+
+See the [CONTRIBUTING](CONTRIBUTING.md) doc for information about how to contribute to
+this project.
+
