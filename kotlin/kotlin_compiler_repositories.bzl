@@ -20,6 +20,11 @@ load(
 )
 
 KOTLIN_RELEASES = {
+    "1.2.30": {
+        "version": "1.2.30",
+        "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.30/kotlin-compiler-1.2.30.zip",
+        "sha256": "4d6965877301d44241ca6de36480140992dc8a6b1c1884baeb5239ce2c43e071",
+    },
     "1.2.21": {
         "version": "1.2.21",
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.21/kotlin-compiler-1.2.21.zip",
