@@ -68,6 +68,24 @@ kt_jvm_library(
 )
 ```
 
+## IDE
+
+Intellij support via the intellij with blaze plugin needs to be fairly recent to support the
+features of the kotlin rules.  If you are having issues, try installing an [experimental 
+plugin release][ijwb] which support a more robust set of integrations with bazel and kotlin.
+
+Also, enable kotlin support in your .bazelproject file (found in the menu as
+`Bazel -> Project -> Open Local Project View File`):
+
+```build
+kotlin_language_version: 1.2.30
+
+additional_languages:
+  kotlin
+```
+
+[ijwb]: https://github.com/hsyed/intellij/releases
+
 # License
 
 This project is licensed under the [Apache 2.0 license](LICENSE), as are all contributions
