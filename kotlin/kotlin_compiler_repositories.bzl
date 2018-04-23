@@ -25,6 +25,11 @@ KOTLIN_RELEASES = {
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.40/kotlin-compiler-1.2.40.zip",
         "sha256": "3498571126c335be0feec24075c359f1954d46bbabccafc729ec49db1a509658",
     },
+    "1.2.31": {
+      "version": "1.2.31",
+      "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.31/kotlin-compiler-1.2.31.zip",
+      "sha256": "da99c6ba77a5222955292eafbfe8459a4696960ef8e5585cbe71cee49cdc8026",
+    },
     "1.2.30": {
         "version": "1.2.30",
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.30/kotlin-compiler-1.2.30.zip",
