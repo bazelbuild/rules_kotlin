@@ -52,7 +52,21 @@ class Initialize(toolchain: KotlinToolchain) : BuildAction("initialize KotlinBui
     private fun bindSources(ctx: Context) {
         val javaSources = mutableListOf<String>()
         val allSources = mutableListOf<String>()
-        for (src in ctx.flags.source) {
+
+        val sourcePool = with(mutableListOf<String>()) {
+            ctx.flags.source?.also {
+                check(it.isNotEmpty())
+                addAll(it)
+            }
+            addAll(Metas.UNPACKED_SOURCES[ctx] ?: emptyList())
+            toList()
+        }
+
+        if(sourcePool.isEmpty()) {
+            throw RuntimeException("no compilable sources found")
+        }
+
+        for (src in sourcePool) {
             when {
                 src.endsWith(".java") -> {
                     javaSources.add(src)

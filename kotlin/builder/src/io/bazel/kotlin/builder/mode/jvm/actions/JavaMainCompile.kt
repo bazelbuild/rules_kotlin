@@ -46,7 +46,7 @@ class JavaMainCompile(toolchain: KotlinToolchain) : BuildAction("compile java cl
                 it.addAll(javaSources)
                 it.addAll(additionalJavaSources)
             }
-            Result.runAndBind(ctx) { executeAndAwait(30, args) }
+            Result.runAndBind(ctx) { executeAndAwait(30, null, args) }
         }
         return 0
     }
