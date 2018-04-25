@@ -30,6 +30,7 @@ object KotlinBuilder : CommandLineProgram.Base() {
     }
 
     private val compileActions: List<BuildAction> = listOf(
+            UnpackSourceJars(toolchain),
             Initialize(toolchain),
             KotlinMainCompile(toolchain),
             JavaMainCompile(toolchain),

@@ -118,8 +118,10 @@ load(
     _kotlin_compiler_repository = "kotlin_compiler_repository",
 )
 
-# The files types that may be passed to the core Kotlin compile rule.
 _kt_compile_filetypes = FileType([
+    # source jars these will be unpacked by the compiler.
+    ".srcjar",
+    # The files types that may be passed to the core Kotlin compile rule.
     ".kt",
     ".java",
 ])
