@@ -16,6 +16,7 @@
 package io.bazel.kotlin.builder.model
 
 import io.bazel.kotlin.builder.MandatoryMeta
+import io.bazel.kotlin.builder.Meta
 
 /**
  * Listin of Meta keys that don't make sense as companion objects.
@@ -26,9 +27,11 @@ object Metas {
     // The target part of the label.
     val TARGET = MandatoryMeta<String>("target")
 
-    //If this is non empty then it is a mixed mode operation.
+    // If this is non empty then it is a mixed mode operation.
     val JAVA_SOURCES = MandatoryMeta<List<String>>("java_sources")
 
+    // .kt and .java source files unpacked from .srcjar files
+    val UNPACKED_SOURCES = Meta<List<String>>("unpacked_sources")
 
     val ALL_SOURCES = MandatoryMeta<List<String>>("all_sources")
 

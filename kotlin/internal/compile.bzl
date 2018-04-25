@@ -15,6 +15,9 @@ load("//kotlin/internal:kt.bzl", "kt")
 load("//kotlin/internal:plugins.bzl", "plugins")
 load("//kotlin/internal:utils.bzl", "utils")
 
+_src_file_types = FileType([".java", ".kt"])
+_srcjar_file_type = FileType([".srcjar"])
+
 def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
     """Internal macro that sets up a Kotlin compile action.
 
@@ -44,13 +47,25 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
         "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
         "--classpath", "\n".join([f.path for f in compile_jars.to_list()]),
-        "--sources", "\n".join([f.path for f in ctx.files.srcs]),
         "--kotlin_jvm_target", tc.jvm_target,
         "--kotlin_api_version", tc.api_version,
         "--kotlin_language_version", tc.language_version,
         "--kotlin_module_name", getattr(ctx.attr, "module_name", ""),
         "--kotlin_passthrough_flags", "-Xcoroutines=%s" % tc.coroutines
     ]
+
+    srcs=[f.path for f in _src_file_types.filter(ctx.files.srcs)]
+    src_jars = [f.path for f in _srcjar_file_type.filter(ctx.files.srcs)]
+
+    if len(srcs) == 0 and len(src_jars) == 0:
+        fail("srcs did not contain kotlin/java files or any srcjars")
+
+    if len(srcs) > 0:
+        args += ["--sources", "\n".join(srcs)]
+
+    if len(src_jars) > 0:
+        args += ["--source_jars", "\n".join(src_jars)]
+
     # Collect and prepare plugin descriptor for the worker.
     plugin_info=plugins.merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
     if len(plugin_info.processors) > 0:

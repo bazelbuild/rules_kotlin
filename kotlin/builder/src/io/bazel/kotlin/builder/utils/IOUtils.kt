@@ -70,11 +70,12 @@ private fun executeAwait(timeoutSeconds: Int, process: Process): Int {
     }
 }
 
-fun executeAndAwait(timeoutSeconds: Int, args: List<String>): Int {
-    val process = ProcessBuilder(*args.toTypedArray()).let {
-        it.redirectError(ProcessBuilder.Redirect.PIPE)
-        it.redirectOutput(ProcessBuilder.Redirect.PIPE)
-        it.start()
+fun executeAndAwait(timeoutSeconds: Int, directory: File? = null, args: List<String>): Int {
+    val process = ProcessBuilder(*args.toTypedArray()).let { pb ->
+        pb.redirectError(ProcessBuilder.Redirect.PIPE)
+        pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
+        directory?.also { pb.directory(it) }
+        pb.start()
     }
 
     var isr: BufferedReader? = null
@@ -91,7 +92,11 @@ fun executeAndAwait(timeoutSeconds: Int, args: List<String>): Int {
 }
 
 fun executeAndAwaitSuccess(timeoutSeconds: Int, vararg command: String) {
-    val status = executeAndAwait(timeoutSeconds, command.toList())
+    executeAndAwaitSuccess(timeoutSeconds, null, command = command.toList())
+}
+
+fun executeAndAwaitSuccess(timeoutSeconds: Int, directory: File?, command: List<String>) {
+    val status = executeAndAwait(timeoutSeconds, directory, command)
     check(status == 0) {
         "process failed with status: $status"
     }

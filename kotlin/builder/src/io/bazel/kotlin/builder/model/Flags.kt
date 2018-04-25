@@ -31,7 +31,9 @@ class Flags(argMap: ArgMap) {
     // val strictJavaDeps = argMap.mandatorySingle(JavaBuilderFlags.STRICT_JAVA_DEPS.flag)
     val outputClassJar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT.flag)
 
-    val source = argMap.mandatory(JavaBuilderFlags.SOURCES.flag)
+    val source = argMap.optional(JavaBuilderFlags.SOURCES.flag)
+    val sourceJars = argMap.optional(JavaBuilderFlags.SOURCE_JARS.flag)
+
     val classpath = argMap.mandatory(JavaBuilderFlags.CLASSPATH.flag)
     val plugins = argMap.optionalFromJson<PluginDescriptors>("--kt-plugins")
     val outputJdeps = argMap.mandatorySingle("--output_jdeps")
