@@ -25,7 +25,7 @@ _defs = struct(
 
 _KtInfo = provider(
     fields = {
-        "src": "the source files. [intelij-aspect]",
+        "srcs": "the source files. [intelij-aspect]",
         "outputs": "output jars produced by this rule. [intelij-aspect]",
     },
 )

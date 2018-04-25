@@ -34,7 +34,7 @@ class UnpackSourceJars(toolchain: KotlinToolchain) : BuildAction("unpack srcjars
                     .also {
                         try {
                             it.mkdirs()
-                        } catch(ex: Exception) {
+                        } catch (ex: Exception) {
                             throw RuntimeException("could not create unpack directory at $it", ex)
                         }
                     }
@@ -43,7 +43,9 @@ class UnpackSourceJars(toolchain: KotlinToolchain) : BuildAction("unpack srcjars
                     mutableListOf(
                             Paths.get(toolchain.JAR_TOOL_PATH).toAbsolutePath().toString(),
                             "xf", srcjar.toAbsolutePath().toString()
-                    ).also { executeAndAwaitSuccess(10, unpackDir, it) }
+                    ).also {
+                        executeAndAwaitSuccess(10, unpackDir, it)
+                    }
                 } catch (e: Exception) {
                     throw RuntimeException("unable to unpack source jar: $srcjar", e)
                 }
