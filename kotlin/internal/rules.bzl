@@ -16,42 +16,62 @@ load("//kotlin/internal:compile.bzl", "compile")
 load("//kotlin/internal:kt.bzl", "kt")
 load("//kotlin/internal:utils.bzl", "utils")
 
-def _extract_kotlin_artifact(files):
-    jars = [j for j in files if j.basename.endswith(".jar") and not j.basename.endswith("-sources.jar")]
-    srcjars = [j for j in files if j.basename.endswith("-sources.jar")]
-    if len(jars) != 1:
-        fail("a single classjar target must be available in jars")
-    srcjar = None
-    if len(srcjars) == 1:
-        srcjar=srcjars[0]
-    return struct(class_jar = jars[0], source_jar=srcjar, ijar = None)
-
-def _collect_import_artifacts(ctx):
-    artifacts = [_extract_kotlin_artifact(a.files) for a in ctx.attr.jars]
-    if len(artifacts) == 1:
-        if len(ctx.files.srcjar) == 1:
-            if artifacts[0].source_jar != None:
-                fail("the jars attr allready provided a relevant *-sources.jar")
-            else:
-                artifacts = [struct(class_jar=artifacts[0].class_jar, source_jar = ctx.file.srcjar, ijar = None)]
-    if len(artifacts) > 1 and ctx.file.srcjar != None:
-        fail("the srcjar attribute should not be set when importing multiple class jars")
-    return artifacts
-
 def kt_jvm_import_impl(ctx):
-    artifacts=_collect_import_artifacts(ctx)
+    jars = depset()
+    source_jars = depset()
+    runtime_jars = depset()
+    transitive_compile_time_jars = depset()
+    transitive_runtime_jars = depset()
 
-    jars = [a.class_jar for a in artifacts]
+    if ctx.file.srcjar:
+        source_jars += [ctx.file.srcjar]
+
+    if hasattr(ctx.attr, "runtime_deps"):
+        for jar in ctx.attr.runtime_deps:
+            transitive_runtime_jars += jar[JavaInfo].transitive_runtime_jars
+
+    for jar in ctx.attr.jars:
+        if JavaInfo in jar:
+          jars += jar[JavaInfo].full_compile_jars
+          source_jars += jar[JavaInfo].transitive_source_jars
+          transitive_compile_time_jars += jar[JavaInfo].transitive_compile_time_jars
+          transitive_runtime_jars += jar[JavaInfo].transitive_runtime_jars
+        else:
+            for file in jar.files:
+                if file.basename.endswith("-sources.jar"):
+                    source_jars += [file]
+                elif file.basename.endswith(".jar"):
+                    jars += [file]
+                else:
+                    fail("a jar pointing to a filegroup must either end with -sources.jar or .jar")
+
+    runtime_jars += jars
+    transitive_compile_time_jars += jars
+    transitive_runtime_jars += jars
 
     java_info = java_common.create_provider(
         use_ijar = False,
-        source_jars=[a.source_jar for a in artifacts],
+        source_jars=source_jars,
         compile_time_jars = jars,
-        runtime_jars= jars,
-        transitive_compile_time_jars=jars,
-        transitive_runtime_jars=jars
+        runtime_jars= runtime_jars,
+        transitive_compile_time_jars=transitive_compile_time_jars,
+        transitive_runtime_jars=transitive_runtime_jars
     )
-    kotlin_info=kt.info.KtInfo(outputs = struct(jars = artifacts))
+
+    # This is needed for intellij plugin, try to pair up jars with their sources so that the sources are mounted
+    # correctly.
+    source_tally = {}
+    for sj in source_jars.to_list():
+        if sj.basename.endswith("-sources.jar"):
+            source_tally[sj.basename.replace("-sources.jar", ".jar")] = sj
+    artifacts = []
+    for jar in jars.to_list():
+        if jar.basename in source_tally:
+            artifacts += [struct(class_jar=jar, source_jar=source_tally[jar.basename], ijar = None)]
+        else:
+            artifacts += [struct(class_jar=jar, ijar = None)]
+
+    kotlin_info=kt.info.KtInfo(outputs=struct(jars=artifacts))
     default_info = DefaultInfo(files=depset(jars))
     return struct(kt = kotlin_info, providers= [default_info, java_info, kotlin_info])
 
