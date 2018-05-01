@@ -20,6 +20,11 @@ load(
 )
 
 KOTLIN_RELEASES = {
+    "1.2.41": {
+      "version": "1.2.41",
+      "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.41/kotlin-compiler-1.2.41.zip",
+      "sha256": "af872772f268da5ca79d263b2943f1d694d475dddb80b6d408e9548805ed265c"
+    },
     "1.2.40": {
         "version": "1.2.40",
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.40/kotlin-compiler-1.2.40.zip",
@@ -98,6 +103,12 @@ kotlin_stdlib(
 )
 
 kotlin_stdlib(
+    name = "kotlin-script-runtime",
+    jars = ["lib/kotlin-script-runtime.jar"],
+    srcjar = "lib/kotlin-script-runtime-sources.jar"
+)
+
+kotlin_stdlib(
     name = "kotlin-annotation-processing",
     jars = ["lib/kotlin-annotation-processing.jar"]
 )
@@ -152,7 +163,7 @@ sh_binary(
 exports_files(["src"])
 """
 
-KOTLIN_CURRENT_RELEASE = "1.2.40"
+KOTLIN_CURRENT_RELEASE = "1.2.41"
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
