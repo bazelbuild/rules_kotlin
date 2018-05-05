@@ -38,7 +38,7 @@ class JavaMainCompile(toolchain: KotlinToolchain) : BuildAction("compile java cl
 
         if (javaSources.isNotEmpty() || additionalJavaSources.isNotEmpty()) {
             val classesDirectory = ctx.flags.classDir.value.toString()
-            val incrementalData = ctx.flags.tempDir.value.toString()
+            val incrementalData = ctx.flags.tempDirPath.value.toString()
             val classpath=CompileDependencies[ctx].classPathString
 
             val args = mutableListOf(

@@ -56,7 +56,6 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, analyzed_deps):
         "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
         "--sources", "\n".join([f.path for f in ctx.files.srcs]),
-        "--classpath", "\n".join([f.path for f in compile_jars.to_list()]),
         "--kotlin_jvm_target", tc.jvm_target,
         "--kotlin_api_version", tc.api_version,
         "--kotlin_language_version", tc.language_version,

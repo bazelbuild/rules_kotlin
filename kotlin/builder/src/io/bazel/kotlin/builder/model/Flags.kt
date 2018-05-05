@@ -27,7 +27,7 @@ class Flags(argMap: ArgMap) {
     val ruleKind = argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND.flag)
 
     val classDir = argMap.lazilyCreatedDirectory(JavaBuilderFlags.CLASSDIR.flag)
-    val tempDir = argMap.lazilyCreatedDirectory(JavaBuilderFlags.TEMPDIR.flag)
+    val tempDirPath = argMap.lazilyCreatedDirectory(JavaBuilderFlags.TEMPDIR.flag)
     val sourceGenDir = argMap.lazilyCreatedDirectory(JavaBuilderFlags.SOURCEGEN_DIR.flag)
 
     // these following three fields shouldn't be used directly but via CompileDependencies.
