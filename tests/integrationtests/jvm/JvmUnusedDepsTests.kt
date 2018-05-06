@@ -17,7 +17,7 @@ class JvmUnusedDepsTests : AssertionTestCase("tests/integrationtests/jvm/unused_
     fun testUseAndLink() {
         argMapTestCase("a-use-b-link-b.jar-2.params", "test params file") {
             val flags = Flags(this)
-            assertTrue {  }
+
             flags.directDependencies
         }
     }
