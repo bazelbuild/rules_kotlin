@@ -246,6 +246,8 @@ _runnable_common_attr = dict(_common_attr.items() + {
 _common_outputs = dict(
     jar = "%{name}.jar",
     jdeps = "%{name}.jdeps",
+    # declare the params file to validate it in testing
+    jar_2_params = "%{name}.jar-2.params",
     srcjar = "%{name}-sources.jar",
 )
 

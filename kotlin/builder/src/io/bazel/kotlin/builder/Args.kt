@@ -55,7 +55,11 @@ fun ArgMap.optional(key: String): Array<String>? = this[key]?.toTypedArray()
 fun ArgMap.flag(key: String): Boolean = this[key]?.let { true } ?: false
 
 object ArgMaps {
+    @JvmStatic
     fun from(args: List<String>): ArgMap = mutableMapOf<String, MutableList<String>>().also { argsToMap(args, it) }
+
+    @JvmStatic
+    fun from(file: File): ArgMap = from(file.reader().readLines())
 
     private fun argsToMap(args: List<String>, argMap: MutableMap<String, MutableList<String>>,  isFlag: (String) -> Boolean = { it.startsWith("--") }) {
         var currentKey: String = args.first().also { require(isFlag(it)) { "first arg must be a flag" } }

@@ -27,3 +27,10 @@ kt_it_assertion_test(
     test_class="io.bazel.kotlin.testing.jvm.JvmAnnotationProcessingFunctionalTests",
     data = [  "//examples/dagger:coffee_app"]
 )
+
+kt_it_assertion_test(
+    name = "unused_deps_tests",
+    cases = "//tests/integrationtests/jvm/unused_deps:cases",
+    deps = ["//kotlin/builder:worker_lib"],
+    test_class="io.bazel.ruleskotlin.integrationtests.jvm.JvmUnusedDepsTests",
+)
