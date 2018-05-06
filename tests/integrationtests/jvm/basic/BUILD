@@ -68,13 +68,13 @@ kt_jvm_library(
 kt_jvm_library(
     name = "propagation_test_exporter_lib",
     srcs = ["propagation/Stub.kt"],
-    exports = ["@junit_junit//jar"]
+    exports = ["//third_party/jvm/junit"]
 )
 
 kt_jvm_library(
     name = "propagation_test_runtime_lib",
     srcs = ["propagation/Stub.kt"],
-    runtime_deps = ["@junit_junit//jar"]
+    runtime_deps = ["//third_party/jvm/junit"]
 )
 
 java_binary(
