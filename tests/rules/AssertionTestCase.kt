@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.integrationtests.lib
+package io.bazel.kotlin.testing
 
 import java.io.File
 import java.nio.file.Path

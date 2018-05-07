@@ -25,7 +25,7 @@ java_plugin(
     name = "autoservice",
     deps = [
         "@autoservice//jar",
-        "@guava//jar",
+        "@com_google_guava_guava//jar",
         "@auto_common//jar"
     ],
     processor_class = "com.google.auto.service.processor.AutoServiceProcessor",

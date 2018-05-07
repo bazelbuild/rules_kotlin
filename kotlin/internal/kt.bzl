@@ -32,7 +32,7 @@ _KtInfo = provider(
 
 _KtPluginInfo = provider(
     fields = {
-        "processors": "a serializeable list of structs containing an annotation processor definitions",
+        "annotation_processors": "a serializeable list of structs containing an annotation processor definitions",
     },
 )
 

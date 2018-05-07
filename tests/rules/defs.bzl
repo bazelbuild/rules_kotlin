@@ -13,12 +13,18 @@
 # limitations under the License.
 load("//kotlin:kotlin.bzl", "kt_jvm_test")
 
+_TEST_COMMON_DEPS=[
+    "//tests/rules:assertion_test_case",
+    "@junit_junit//jar",
+    "@com_google_truth_truth//jar"
+]
+
 def kt_it_assertion_test(name, cases, test_class, data = [], deps=[]):
     parts=test_class.split(".")
     kt_jvm_test(
         name=name,
         srcs=["%s.kt" % parts[len(parts)-1]],
-        deps = ["//tests/integrationtests/lib:lib", "@junit_junit//jar"] + deps,
+        deps = _TEST_COMMON_DEPS + deps,
         test_class=test_class,
         data=[cases] + data,
         visibility=["//visibility:private"]

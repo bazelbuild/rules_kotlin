@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility=["//tests/integrationtests:__subpackages__"])
+package(default_visibility=["//tests:__subpackages__"])
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
 
 kt_jvm_library(
-    name = "lib",
+    name = "assertion_test_case",
     srcs = ["AssertionTestCase.kt"],
-    visibility=["//tests/integrationtests:__subpackages__"],
+    visibility=["//tests:__subpackages__"],
     deps=["@com_github_jetbrains_kotlin//:kotlin-test"],
     testonly=1
 )
