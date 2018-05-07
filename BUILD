@@ -15,6 +15,7 @@ test_suite(
     name = "all_tests",
     tests = [
         "//kotlin/builder:unittests",
+        "//kotlin/builder:integrationtests",
         "//tests/integrationtests"
     ]
 )

@@ -16,12 +16,5 @@
 
 package io.bazel.kotlin.builder.utils
 
-import io.bazel.kotlin.builder.Context
-import io.bazel.kotlin.builder.model.Metas
-
 fun <T, C : MutableCollection<T>> C.addAll(vararg entries: T): C = this.also { addAll(entries) }
 
-fun String?.supplyIfNullOrBlank(s: () -> String): String = this?.takeIf { it.isNotBlank() } ?: s()
-
-val Context.moduleName: String
-    get() = flags.kotlinModuleName.supplyIfNullOrBlank { "${Metas.PKG[this].trimStart { it == '/' }.replace('/', '_')}-${Metas.TARGET[this]}" }
