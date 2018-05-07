@@ -11,13 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+_PROTO_LIBS=["deps", "worker_protocol", "kotlin_model"]
+
+[proto_library(
+    name="%s_proto" % lib,
+    srcs=["%s.proto" % lib]
+    ) for lib in _PROTO_LIBS]
+
+[java_proto_library(
+    name="%s_java_proto" % lib,
+    deps=["%s_proto" % lib],
+    visibility=["//visibility:private"]
+    ) for lib in _PROTO_LIBS]
+
 java_import(
     name = "proto",
     jars = [
         "jars/libdeps_proto-speed.jar",
-        "jars/libworker_protocol_proto-speed.jar"
+        "jars/libworker_protocol_proto-speed.jar",
+        "jars/libkotlin_model_proto-speed.jar"
     ],
-    exports = ["@io_bazel_rules_kotlin_protobuf_protobuf_java//jar"],
     visibility = ["//kotlin/builder:__subpackages__"]
 )
 

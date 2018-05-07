@@ -23,13 +23,13 @@ def _mk_processor_entry(l,p):
 
 def _merge_plugin_infos(attrs):
     tally={}
-    processors=[]
+    annotation_processors=[]
     for info in [a[kt.info.KtPluginInfo] for a in attrs]:
-        for p in info.processors:
+        for p in info.annotation_processors:
             if p.label not in tally:
                 tally[p.label] = True
-                processors.append(p)
-    return kt.info.KtPluginInfo(processors=processors)
+                annotation_processors.append(p)
+    return kt.info.KtPluginInfo(annotation_processors=annotation_processors)
 
 def _restore_label(l):
     lbl = l.workspace_root
@@ -37,12 +37,12 @@ def _restore_label(l):
         lbl = lbl.replace("external/", "@")
     return lbl + "//" + l.package + ":" + l.name
 
-_EMPTY_PLUGIN_INFO = [kt.info.KtPluginInfo(processors = [])]
+_EMPTY_PLUGIN_INFO = [kt.info.KtPluginInfo(annotation_processors = [])]
 
 def _kt_jvm_plugin_aspect_impl(target, ctx):
     if ctx.rule.kind == "java_plugin":
         return [kt.info.KtPluginInfo(
-            processors = [_mk_processor_entry(_restore_label(ctx.label),ctx.rule.attr)]
+            annotation_processors = [_mk_processor_entry(_restore_label(ctx.label),ctx.rule.attr)]
         )]
     else:
       if ctx.rule.kind == "java_library":

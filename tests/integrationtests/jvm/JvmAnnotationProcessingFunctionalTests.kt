@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.integrationtests.jvm
+package io.bazel.kotlin.testing.jvm
 
-import io.bazel.ruleskotlin.integrationtests.lib.AssertionTestCase
+import io.bazel.kotlin.testing.AssertionTestCase
 import org.junit.Test
 
-class JvmAnnotationProcessingIntegrationTests : AssertionTestCase("tests/integrationtests/jvm/kapt") {
+class JvmAnnotationProcessingFunctionalTests : AssertionTestCase("tests/integrationtests/jvm/kapt") {
     @Test
     fun testKotlinOnlyAnnotationProcessing() {
         jarTestCase("ap_kotlin.jar", description = "annotation processing should work") {

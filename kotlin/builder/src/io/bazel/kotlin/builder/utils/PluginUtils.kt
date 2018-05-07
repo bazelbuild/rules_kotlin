@@ -60,33 +60,30 @@ class PluginArgs private constructor(private val kapt: CompilerPlugin) {
 
     companion object {
         fun from(ctx: Context): List<String>? =
-                ctx.flags.plugins?.let { descriptor ->
-                    if (descriptor.processors.isNotEmpty()) {
-                        PluginArgs(ctx.toolchain.KAPT_PLUGIN).let { arg ->
-                            arg["sources"] = ctx.flags.sourceGenDir.value.toString()
-                            arg["classes"] = ctx.flags.classDir.value.toString()
-                            arg["stubs"] = ctx.flags.tempDirPath.value.toString()
-                            arg["incrementalData"] = ctx.flags.tempDirPath.value.toString()
+            ctx.flags.plugins?.takeIf { it.annotationProcessorsList.isNotEmpty() }?.let { plugin ->
+                PluginArgs(ctx.toolchain.KAPT_PLUGIN).let { arg ->
+                    arg["sources"] = ctx.flags.sourceGenDir.value.toString()
+                    arg["classes"] = ctx.flags.classDir.value.toString()
+                    arg["stubs"] = ctx.flags.tempDirPath.value.toString()
+                    arg["incrementalData"] = ctx.flags.tempDirPath.value.toString()
 
-                            arg["aptMode"] = "stubsAndApt"
-                            arg["correctErrorTypes"] = "true"
-//                            arg["verbose"] = "true"
+                    arg["aptMode"] = "stubsAndApt"
+                    arg["correctErrorTypes"] = "true"
+//                  arg["verbose"] = "true"
 
-                            arg["processors"] = descriptor.processors
-                                    .filter { it.processorClass.isNotEmpty() }
-                                    .onEach { it.classPath.forEach { arg.bindMulti("apclasspath", it) } }
-                                    .joinToString(",") { it.processorClass }
-
-                            arg.encode()
-                        }
-                    } else null
+                    arg["processors"] = plugin.annotationProcessorsList
+                        .filter { it.processorClass.isNotEmpty() }
+                        .onEach { it.classpathList.forEach { arg.bindMulti("apclasspath", it) } }
+                        .joinToString(",") { it.processorClass }
+                    arg.encode()
                 }
+            }
     }
 }
 
 fun Context.annotationProcessingGeneratedSources(): Sequence<String>? =
-        if (flags.sourceGenDir.isInitialized()) {
-            flags.sourceGenDir.value.toFile().walkTopDown().filter { it.isFile }.map { it.path }
-        } else null
+    if (flags.sourceGenDir.isInitialized()) {
+        flags.sourceGenDir.value.toFile().walkTopDown().filter { it.isFile }.map { it.path }
+    } else null
 
 fun Context.annotationProcessingGeneratedJavaSources(): Sequence<String>? = annotationProcessingGeneratedSources()?.filter { it.endsWith(".java") }

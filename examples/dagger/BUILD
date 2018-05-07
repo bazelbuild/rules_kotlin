@@ -19,7 +19,7 @@ java_plugin(
     name = "dagger_plugin",
     deps = [
         "@dagger_compiler//jar",
-        "@guava//jar",
+        "@com_google_guava_guava//jar",
         "@dagger_producers//jar",
         "@dagger//jar",
         "@javax_inject//jar"

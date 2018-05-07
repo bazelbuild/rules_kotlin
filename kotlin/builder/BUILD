@@ -19,10 +19,10 @@ kotlin_worker_lib(
     deps = [
         "//kotlin/builder/proto",
         "@com_github_jetbrains_kotlin//:preloader",
-        "@io_bazel_rules_kotlin_protobuf_protobuf_java//jar",
-        "//third_party:okio",
-        "//third_party:moshi",
-        "//third_party:moshi-kotlin"
+        "@com_google_protobuf//:protobuf_java",
+        "@com_google_protobuf//:protobuf_java_util",
+        "@com_google_code_gson_gson//jar",
+        "@com_google_guava_guava//jar",
     ],
     exports = [
         "//kotlin/builder/proto",
@@ -46,6 +46,9 @@ java_test(
     name = "unittests",
     test_class = "io.bazel.kotlin.builder.mode.jvm.utils.JdepsParserTest",
     srcs = glob(["unittests/**/*.java"]),
-    deps = [":worker_lib"],
+    deps = [
+        ":worker_lib",
+        "@com_google_protobuf//:protobuf_java"
+    ],
     size = "small"
 )

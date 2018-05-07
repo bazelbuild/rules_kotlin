@@ -68,7 +68,7 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
 
     # Collect and prepare plugin descriptor for the worker.
     plugin_info=plugins.merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
-    if len(plugin_info.processors) > 0:
+    if len(plugin_info.annotation_processors) > 0:
         args += [ "--kt-plugins", plugin_info.to_json() ]
 
     # Declare and write out argument file.
