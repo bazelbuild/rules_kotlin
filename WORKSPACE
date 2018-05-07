@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 workspace(name="io_bazel_rules_kotlin")
-load("//kotlin/internal:bootstrap.bzl", "github_archive")
 
 git_repository(
     name = "io_bazel_rules_sass",

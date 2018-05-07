@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This file contains the Kotlin compiler repository definitions.
+"""This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
 load(
@@ -172,10 +172,13 @@ _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
 def kotlin_compiler_repository(
     kotlin_release_version=KOTLIN_CURRENT_RELEASE,
-    omit_com_google_protobuf=False,
-    omit_com_google_code_gson_gson=False,
-    omit_com_google_guava_guava=False,
 ):
+    """
+    Prime the compiler repository.
+
+    This function should not be called directly instead `kotlin_repositories` from `//kotlin:kotlin.bzl` should be
+    called to ensure common deps are loaded.
+    """
     release=KOTLIN_RELEASES[kotlin_release_version]
     if not release:
         fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, KOTLIN_CURRENT_RELEASE))
@@ -197,14 +200,7 @@ def kotlin_compiler_repository(
         sha256 = "86660ee7d5b498ccf611a1e000564f45268dbf301e0b2b08c984dcecc6513f6e",
     )
 
-    if not omit_com_google_guava_guava:
-        com_google_guava_guava()
-    if not omit_com_google_code_gson_gson:
-        com_google_code_gson_gson()
-    if not omit_com_google_protobuf:
-        com_google_protobuf()
-
-
+# POTENTIALLY SHARED WORKSPACES ################################################################################################################################
 def com_google_protobuf():
     _github_archive(
         name = "com_google_protobuf",
@@ -227,5 +223,3 @@ def com_google_guava_guava():
         sha1 = "7319c34fa5866a85b6bad445adad69d402323129"
     )
     native.bind(name="guava", actual="@com_google_guava_guava//jar")
-
-
