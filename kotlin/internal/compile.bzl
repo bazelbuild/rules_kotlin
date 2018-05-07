@@ -46,7 +46,6 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, analyzed_deps):
     temp_directory=ctx.actions.declare_directory(ctx.label.name + "_tempdir")
 
     tc=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
-
     args = [
         "--target_label", ctx.label,
         "--rule_kind", rule_kind,
@@ -55,18 +54,17 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, analyzed_deps):
         "--tempdir", temp_directory.path,
         "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
-        "--sources", "\n".join([f.path for f in ctx.files.srcs]),
         "--kotlin_jvm_target", tc.jvm_target,
         "--kotlin_api_version", tc.api_version,
         "--kotlin_language_version", tc.language_version,
         "--kotlin_module_name", getattr(ctx.attr, "module_name", "")
     ]
+
     # This cannot be placed at the end, "@@" escaping as used by the dep labels is also used a marker in the worker protocol.
     args += _analayzed_deps_to_args(analyzed_deps)
     args += [
         "--kotlin_passthrough_flags", "-Xcoroutines=%s" % tc.coroutines
     ]
-
 
     srcs=[f.path for f in _src_file_types.filter(ctx.files.srcs)]
     src_jars = [f.path for f in _srcjar_file_type.filter(ctx.files.srcs)]
@@ -92,17 +90,19 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, analyzed_deps):
     # When a stratetegy isn't provided for the worker and the workspace is fresh then certain deps are not available under
     # external/@com_github_jetbrains_kotlin/... that is why the classpath is added explicetly.
     compile_inputs = (
-      depset([args_file]) +
-      ctx.files.srcs +
-      analyzed_deps.classpath +
-      ctx.files._kotlin_compiler_classpath +
-      ctx.files._kotlin_home +
-      ctx.files._jdk)
+        depset([args_file]) +
+        ctx.files.srcs +
+        analyzed_deps.classpath +
+        ctx.files._kotlin_compiler_classpath +
+        ctx.files._kotlin_home +
+        ctx.files._jdk)
+
+    compile_outputs = [output_jar, ctx.outputs.jdeps, sourcegen_directory, classes_directory, temp_directory]
 
     ctx.action(
         mnemonic = "KotlinCompile",
         inputs = compile_inputs,
-        outputs = [output_jar, ctx.outputs.jdeps, sourcegen_directory, classes_directory, temp_directory],
+        outputs = compile_outputs,
         executable = ctx.executable._kotlinw,
         execution_requirements = {"supports-workers": "1"},
         arguments = ["@" + args_file.path],
@@ -218,6 +218,7 @@ def _compile_action (ctx, rule_kind):
         analyzed_deps = analysis.analyze_deps(
             ctx=ctx,
             deps=ctx.attr.deps,
+            runtime_deps=ctx.attr.runtime_deps,
             implicit_jars=implicit_jars
         )
     )

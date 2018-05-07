@@ -14,10 +14,19 @@
 package(default_visibility=["//visibility:private"])
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
 
-kt_jvm_library(name="c", srcs=["C.kt"])
-kt_jvm_library(name="b", srcs=["B.kt"], deps=[":c"])
+kt_jvm_library(name="c", srcs=["C.kt"], tags=["mock_compile"])
+kt_jvm_library(name="b", srcs=["B.kt"], deps=[":c"], tags=["mock_compile"])
+kt_jvm_library(name="rt-dep", srcs=["RTDep.kt"], runtime_deps=[":rt-dep-2"], tags=["mock_compile"])
+kt_jvm_library(name="rt-dep-2", srcs=["RTDep2.kt"], tags=["mock_compile"])
 
-kt_jvm_library(name="a-use-b-link-b", srcs=["AUseBLinkB.kt"], deps=[":b"])
+kt_jvm_library(
+    name="a-use-b-link-b",
+    srcs=["AUseBLinkB.kt"],
+    deps=[":b"],
+    runtime_deps=[":rt-dep"],
+    tags=["mock_compile"]
+)
+
 
 filegroup(
     name="cases",

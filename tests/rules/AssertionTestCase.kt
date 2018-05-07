@@ -15,6 +15,7 @@
  */
 package io.bazel.kotlin.testing
 
+import com.google.common.base.Throwables
 import io.bazel.kotlin.builder.ArgMap
 import io.bazel.kotlin.builder.ArgMaps
 import java.io.File
@@ -25,7 +26,7 @@ import java.util.jar.JarFile
 import kotlin.test.fail
 
 class TestCaseFailedException(description: String? = null, ex: Throwable) :
-    AssertionError(""""$description" failed, error: ${ex.message}""", ex)
+    AssertionError(""""$description" failed, error: ${Throwables.getRootCause(ex).message}""")
 
 abstract class AssertionTestCase(root: String) {
     private val testRunfileRoot: Path = Paths.get(root).also {
@@ -55,7 +56,9 @@ abstract class AssertionTestCase(root: String) {
     }
 
     protected fun argMapTestCase(name: String, description: String? = null, test: ArgMap.() -> Unit) {
-        runTestCase(description, { testCaseFile(name).let { ArgMaps.from(it) }.also { it.test() } })
+        val file = testCaseFile(name)
+        val argMap=ArgMaps.from(file)
+        argMap.test()
     }
 
 

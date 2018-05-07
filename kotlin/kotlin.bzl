@@ -216,7 +216,7 @@ _common_attr = dict(_implicit_deps.items() + {
         allow_files = _kt_compile_filetypes,
     ),
     "deps": attr.label_list(aspects = [_kt_jvm_plugin_aspect, _analysis.jars_to_labels_aspect]),
-    "runtime_deps": attr.label_list(default = []),
+    "runtime_deps": attr.label_list(default = [], aspects = [_analysis.jars_to_labels_aspect]),
     "resources": attr.label_list(
         default = [],
         allow_files = True,
