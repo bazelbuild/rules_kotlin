@@ -5,7 +5,6 @@ def _merge_label_into_dict(tally, jar, labels):
     if jar not in tally:
         tally[jar] = depset(labels)
     else:
-        print(jar, labels,tally[jar])
         # note 2: This form (should) ensure that the most specific label of a dep is always at [0] -- most specific being the closest dep provider to the target
         # under analysis. This function is during aspect processing and analysis. The desired behaviour might not be entirely accurate during analysis -- need
         # to do some experimentation. Regardless, selecting the most appropriate label is not the responsibility of this function.
