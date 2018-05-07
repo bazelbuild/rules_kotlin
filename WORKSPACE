@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 workspace(name="io_bazel_rules_kotlin")
-load("//kotlin/internal:bootstrap.bzl", "github_archive")
+load("//kotlin/internal:bootstrap.bzl",github_archive="github_archive")
+
+github_archive(
+    name = "com_google_protobuf",
+    repo = "google/protobuf",
+    commit = "106ffc04be1abf3ff3399f54ccf149815b287dd9",
+)
 
 git_repository(
     name = "io_bazel_rules_sass",
@@ -30,19 +36,12 @@ git_repository(
 load("@io_bazel_skydoc//skylark:skylark.bzl", "skydoc_repositories")
 skydoc_repositories()
 
+http_jar(
+    name = "bazel_deps",
+    url = "https://github.com/axsy-dev/bazel-deps/releases/download/2/bazel-deps.jar",
+    sha256 = "bbd51188141f2bb09222a35675af25edbbb5b6507d779acb6c70c19e51cd67bd",
+)
+
 load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 kotlin_repositories()
 kt_register_toolchains()
-
-# test and example dependencies.
-maven_jar(name = "junit_junit",artifact = "junit:junit:jar:4.12")
-maven_jar(name = "autovalue", artifact="com.google.auto.value:auto-value:1.5")
-maven_jar(name = "auto_common", artifact="com.google.auto:auto-common:0.10")
-maven_jar(name = "autoservice", artifact="com.google.auto.service:auto-service:1.0-rc4")
-maven_jar(name = "javax_inject", artifact = "javax.inject:javax.inject:1")
-# After 2.9 dagger requires much more dependencies.
-maven_jar(name = "dagger", artifact="com.google.dagger:dagger:2.9")
-maven_jar(name = "dagger_compiler", artifact="com.google.dagger:dagger-compiler:2.9")
-maven_jar(name = "dagger_producers", artifact="com.google.dagger:dagger-producers:2.9")
-
-maven_jar(name="com_google_truth_truth", artifact="com.google.truth:truth:0.40", sha1="0d74e716afec045cc4a178dbbfde2a8314ae5574")

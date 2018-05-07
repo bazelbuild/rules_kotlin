@@ -91,17 +91,6 @@ fun executeAndAwait(timeoutSeconds: Int, directory: File? = null, args: List<Str
     }
 }
 
-fun executeAndAwaitSuccess(timeoutSeconds: Int, vararg command: String) {
-    executeAndAwaitSuccess(timeoutSeconds, null, command = command.toList())
-}
-
-fun executeAndAwaitSuccess(timeoutSeconds: Int, directory: File?, command: List<String>) {
-    val status = executeAndAwait(timeoutSeconds, directory, command)
-    check(status == 0) {
-        "process failed with status: $status"
-    }
-}
-
 private fun BufferedReader.drainTo(pw: PrintStream) {
     lines().forEach(pw::println); close()
 }

@@ -24,6 +24,48 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
 
+sealed class ToolException(
+    msg: String,
+    val category: Category,
+    ex: Throwable? = null
+) : RuntimeException(msg, ex) {
+    enum class Category(val code: Int) {
+        COMPILER_ERROR(1), // 1 is a standard compilation error
+        INTERNAL(2),// 2 is an internal error
+        SCRIPT(3)// 3 is the script execution error
+    }
+}
+
+class CompilationException(msg: String, cause: Throwable? = null, category: Category = Category.INTERNAL) :
+    ToolException(msg, category, cause)
+
+class CompilationStatusException(
+    msg: String,
+    val status: Int,
+    val lines: List<String> = emptyList(),
+    category: Category = Category.COMPILER_ERROR
+) : ToolException("$msg:${lines.joinToString("\n", "\n")}", category)
+
+
+/**
+ * Interface for command line programs.
+ *
+ * This is the same thing as a main function, except not static.
+ */
+interface CommandLineProgram {
+    /**
+     * Runs blocking program start to finish.
+     *
+     * This function might be called multiple times throughout the life of this object. Output
+     * must be sent to [System.out] and [System.err].
+     *
+     * @param args command line arguments
+     * @return program exit code, i.e. 0 for success, non-zero for failure
+     */
+    fun apply(args: List<String>): Int
+}
+
+
 /**
  * Bazel worker runner.
  *
@@ -35,10 +77,17 @@ import java.util.stream.Collectors
  *
  * @param <T> delegate program type
 </T> */
-class BazelWorker<T : CommandLineProgram>(private val delegate: T, private val output: PrintStream, private val mnemonic: String) : CommandLineProgram {
+class BazelWorker(
+    private val delegate: CommandLineProgram,
+    private val output: PrintStream,
+    private val mnemonic: String
+) : CommandLineProgram {
     companion object {
         private const val INTERUPTED_STATUS = 0
         private const val ERROR_STATUS = 1
+
+        @JvmStatic
+        val IS_DEBUG: Boolean = System.getProperty("bazel.kotlin.worker.debug") != null
     }
 
     override fun apply(args: List<String>): Int {
@@ -70,16 +119,17 @@ class BazelWorker<T : CommandLineProgram>(private val delegate: T, private val o
                                     return INTERUPTED_STATUS
                                 }
                                 System.err.println(
-                                        "ERROR: Worker threw uncaught exception with args: " + request.argumentsList.stream().collect(Collectors.joining(" ")))
+                                    "ERROR: Worker threw uncaught exception with args: " + request.argumentsList.stream().collect(Collectors.joining(" "))
+                                )
                                 e.printStackTrace(System.err)
                                 ERROR_STATUS
                             }
 
                             WorkerProtocol.WorkResponse.newBuilder()
-                                    .setOutput(buffer.toString())
-                                    .setExitCode(exitCode)
-                                    .build()
-                                    .writeDelimitedTo(realStdOut)
+                                .setOutput(buffer.toString())
+                                .setExitCode(exitCode)
+                                .build()
+                                .writeDelimitedTo(realStdOut)
                             realStdOut.flush()
                             buffer.reset()
                             System.gc()  // be a good little worker process and consume less memory when idle
@@ -115,8 +165,9 @@ class BazelWorker<T : CommandLineProgram>(private val delegate: T, private val o
                 if (isWorker && lastArg.startsWith("@@") || Files.exists(flagFile)) {
                     if (!isWorker && !mnemonic.isEmpty()) {
                         output.printf(
-                                "HINT: %s will compile faster if you run: " + "echo \"build --strategy=%s=worker\" >>~/.bazelrc\n",
-                                mnemonic, mnemonic)
+                            "HINT: %s will compile faster if you run: " + "echo \"build --strategy=%s=worker\" >>~/.bazelrc\n",
+                            mnemonic, mnemonic
+                        )
                     }
                     try {
                         return Files.readAllLines(flagFile, UTF_8)

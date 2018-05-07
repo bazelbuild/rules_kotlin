@@ -11,15 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This file contains the Kotlin compiler repository definitions.
+"""This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
 load(
     "//kotlin/internal:kt.bzl",
     _kt = "kt",
 )
-load("//kotlin/internal:bootstrap.bzl",
-  _github_archive="github_archive"
+load(
+  "//third_party/jvm:workspace.bzl",
+  _maven_dependencies="maven_dependencies"
 )
 
 KOTLIN_RELEASES = {
@@ -170,12 +171,15 @@ KOTLIN_CURRENT_RELEASE = "1.2.41"
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
-def kotlin_compiler_repository(
+def kotlin_compiler_repositories(
     kotlin_release_version=KOTLIN_CURRENT_RELEASE,
-    omit_com_google_protobuf=False,
-    omit_com_google_code_gson_gson=False,
-    omit_com_google_guava_guava=False,
 ):
+    """
+    Prime the compiler repository.
+
+    This function should not be called directly instead `kotlin_repositories` from `//kotlin:kotlin.bzl` should be
+    called to ensure common deps are loaded.
+    """
     release=KOTLIN_RELEASES[kotlin_release_version]
     if not release:
         fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, KOTLIN_CURRENT_RELEASE))
@@ -196,36 +200,3 @@ def kotlin_compiler_repository(
            "java_stub_template.txt"),
         sha256 = "86660ee7d5b498ccf611a1e000564f45268dbf301e0b2b08c984dcecc6513f6e",
     )
-
-    if not omit_com_google_guava_guava:
-        com_google_guava_guava()
-    if not omit_com_google_code_gson_gson:
-        com_google_code_gson_gson()
-    if not omit_com_google_protobuf:
-        com_google_protobuf()
-
-
-def com_google_protobuf():
-    _github_archive(
-        name = "com_google_protobuf",
-        repo = "google/protobuf",
-        commit = "106ffc04be1abf3ff3399f54ccf149815b287dd9",
-    )
-
-def com_google_code_gson_gson():
-    native.maven_jar(
-        name = "com_google_code_gson_gson",
-        artifact = "com.google.code.gson:gson:2.8.4",
-        sha1 = "d0de1ca9b69e69d1d497ee3c6009d015f64dad57"
-    )
-    native.bind(name="gson", actual="@com_google_code_gson_gson//jar")
-
-def com_google_guava_guava():
-    native.maven_jar(
-        name = "com_google_guava_guava",
-        artifact = "com.google.guava:guava:25.0-jre",
-        sha1 = "7319c34fa5866a85b6bad445adad69d402323129"
-    )
-    native.bind(name="guava", actual="@com_google_guava_guava//jar")
-
-
