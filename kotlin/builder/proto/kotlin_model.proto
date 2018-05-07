@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package bazel.kotlin;
+
+option java_package = "io.bazel.kotlin.model";
+
+message AnnotationProcessor {
+    // the annotation processor class
+    string processor_class = 1;
+    // bazel `java_plugin` generates_api setting.
+    bool generates_api = 2;
+    // the classpath
+    repeated string classpath = 3;
+
+    string label = 4;
+}
+
+message CompilerPlugins {
+    repeated AnnotationProcessor annotation_processors = 1;
+}
+
+message KotlinToolchainInfo {
+    message Common {
+        // mandatory
+        string language_version = 1;
+        //mandatory
+        string api_version = 2;
+        // oneof "enable", "warn" or "error"
+        string coroutines = 3;
+    }
+
+    message Jvm {
+        // oneof "1.6", or "1.8"
+        string jvm_target = 4;
+    }
+}

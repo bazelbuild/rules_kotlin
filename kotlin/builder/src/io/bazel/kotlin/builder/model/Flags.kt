@@ -15,7 +15,9 @@
  */
 package io.bazel.kotlin.builder.model
 
+import com.google.protobuf.util.JsonFormat
 import io.bazel.kotlin.builder.*
+import io.bazel.kotlin.model.KotlinModel
 
 /**
  * The flags supported by the worker.
@@ -35,7 +37,13 @@ class Flags(argMap: ArgMap) {
     val sourceJars = argMap.optional(JavaBuilderFlags.SOURCE_JARS.flag)
 
     val classpath = argMap.mandatory(JavaBuilderFlags.CLASSPATH.flag)
-    val plugins = argMap.optionalFromJson<PluginDescriptors>("--kt-plugins")
+    val plugins: KotlinModel.CompilerPlugins? = argMap.optionalSingle("--kt-plugins")?.let { input ->
+        KotlinModel.CompilerPlugins.newBuilder().let {
+            jsonFormat.merge(input, it)
+            it.build()
+        }
+    }
+
     val outputJdeps = argMap.mandatorySingle("--output_jdeps")
 
     val kotlinApiVersion = argMap.mandatorySingle("--kotlin_api_version")
@@ -49,4 +57,13 @@ class Flags(argMap: ArgMap) {
     val kotlinPassthroughFlags = argMap.optionalSingle("--kotlin_passthrough_flags")
 
     val kotlinModuleName = argMap.optionalSingle("--kotlin_module_name")
+
+    companion object {
+        @JvmStatic
+        private val jsonTypeRegistry = JsonFormat.TypeRegistry.newBuilder()
+            .add(KotlinModel.getDescriptor().messageTypes).build()
+
+        @JvmStatic
+        private val jsonFormat = JsonFormat.parser().usingTypeRegistry(jsonTypeRegistry)
+    }
 }

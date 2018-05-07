@@ -16,8 +16,6 @@
 
 package io.bazel.kotlin.builder
 
-import com.squareup.moshi.KotlinJsonAdapterFactory
-import com.squareup.moshi.Moshi
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -48,14 +46,6 @@ fun ArgMap.optionalSingle(key: String): String? =
 fun ArgMap.mandatory(key: String): Array<String> = optional(key) ?: throw IllegalArgumentException("$key is not optional")
 fun ArgMap.optional(key: String): Array<String>? = this[key]?.toTypedArray()
 
-inline fun <reified T : Any> ArgMap.mandatoryFromJson(key: String): T = optionalFromJson(key) ?: throw IllegalArgumentException("$key is not optional")
-inline fun <reified T : Any> ArgMap.optionalFromJson(key: String): T? = optionalSingle(key)?.let { moshi.adapter(T::class.java).fromJson(it)!! }
-
-@PublishedApi
-internal val moshi = Moshi.Builder().let {
-    it.add(KotlinJsonAdapterFactory())
-    it.build()
-}
 
 /**
  * Test if a flag is set

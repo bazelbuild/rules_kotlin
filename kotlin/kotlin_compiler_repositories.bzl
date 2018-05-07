@@ -18,6 +18,9 @@ load(
     "//kotlin/internal:kt.bzl",
     _kt = "kt",
 )
+load("//kotlin/internal:bootstrap.bzl",
+  _github_archive="github_archive"
+)
 
 KOTLIN_RELEASES = {
     "1.2.41": {
@@ -168,7 +171,10 @@ KOTLIN_CURRENT_RELEASE = "1.2.41"
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
 def kotlin_compiler_repository(
-    kotlin_release_version=KOTLIN_CURRENT_RELEASE
+    kotlin_release_version=KOTLIN_CURRENT_RELEASE,
+    omit_com_google_protobuf=False,
+    omit_com_google_code_gson_gson=False,
+    omit_com_google_guava_guava=False,
 ):
     release=KOTLIN_RELEASES[kotlin_release_version]
     if not release:
@@ -182,12 +188,6 @@ def kotlin_compiler_repository(
         strip_prefix = "kotlinc",
     )
 
-    native.maven_jar(
-        name = "io_bazel_rules_kotlin_protobuf_protobuf_java",
-        artifact = "com.google.protobuf:protobuf-java:3.4.0",
-        sha1 = "b32aba0cbe737a4ca953f71688725972e3ee927c",
-    )
-
     native.http_file(
         name = "kt_java_stub_template",
         url = ("https://raw.githubusercontent.com/bazelbuild/bazel/" +
@@ -196,3 +196,36 @@ def kotlin_compiler_repository(
            "java_stub_template.txt"),
         sha256 = "86660ee7d5b498ccf611a1e000564f45268dbf301e0b2b08c984dcecc6513f6e",
     )
+
+    if not omit_com_google_guava_guava:
+        com_google_guava_guava()
+    if not omit_com_google_code_gson_gson:
+        com_google_code_gson_gson()
+    if not omit_com_google_protobuf:
+        com_google_protobuf()
+
+
+def com_google_protobuf():
+    _github_archive(
+        name = "com_google_protobuf",
+        repo = "google/protobuf",
+        commit = "106ffc04be1abf3ff3399f54ccf149815b287dd9",
+    )
+
+def com_google_code_gson_gson():
+    native.maven_jar(
+        name = "com_google_code_gson_gson",
+        artifact = "com.google.code.gson:gson:2.8.4",
+        sha1 = "d0de1ca9b69e69d1d497ee3c6009d015f64dad57"
+    )
+    native.bind(name="gson", actual="@com_google_code_gson_gson//jar")
+
+def com_google_guava_guava():
+    native.maven_jar(
+        name = "com_google_guava_guava",
+        artifact = "com.google.guava:guava:25.0-jre",
+        sha1 = "7319c34fa5866a85b6bad445adad69d402323129"
+    )
+    native.bind(name="guava", actual="@com_google_guava_guava//jar")
+
+

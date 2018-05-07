@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 workspace(name="io_bazel_rules_kotlin")
+load("//kotlin/internal:bootstrap.bzl", "github_archive")
 
 git_repository(
     name = "io_bazel_rules_sass",
@@ -36,7 +37,6 @@ kt_register_toolchains()
 # test and example dependencies.
 maven_jar(name = "junit_junit",artifact = "junit:junit:jar:4.12")
 maven_jar(name = "autovalue", artifact="com.google.auto.value:auto-value:1.5")
-maven_jar(name = "guava", artifact="com.google.guava:guava:24.0-jre")
 maven_jar(name = "auto_common", artifact="com.google.auto:auto-common:0.10")
 maven_jar(name = "autoservice", artifact="com.google.auto.service:auto-service:1.0-rc4")
 maven_jar(name = "javax_inject", artifact = "javax.inject:javax.inject:1")
@@ -44,3 +44,5 @@ maven_jar(name = "javax_inject", artifact = "javax.inject:javax.inject:1")
 maven_jar(name = "dagger", artifact="com.google.dagger:dagger:2.9")
 maven_jar(name = "dagger_compiler", artifact="com.google.dagger:dagger-compiler:2.9")
 maven_jar(name = "dagger_producers", artifact="com.google.dagger:dagger-producers:2.9")
+
+maven_jar(name="com_google_truth_truth", artifact="com.google.truth:truth:0.40", sha1="0d74e716afec045cc4a178dbbfde2a8314ae5574")

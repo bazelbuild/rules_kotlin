@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.ruleskotlin.integrationtests.jvm
+package io.bazel.kotlin.testing.jvm
 
-import io.bazel.ruleskotlin.integrationtests.lib.AssertionTestCase
+import io.bazel.kotlin.testing.AssertionTestCase
 import org.junit.Test
 
 
-class JvmBasicIntegrationTests : AssertionTestCase("tests/integrationtests/jvm/basic") {
+class JvmBasicFunctionalTests : AssertionTestCase("tests/integrationtests/jvm/basic") {
     @Test
     fun testResourceMerging() {
         jarTestCase("test_embed_resources.jar", description = "The rules should support including resource directories") {
