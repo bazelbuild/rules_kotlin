@@ -1,4 +1,4 @@
-package io.bazel.ruleskotlin.integrationtests.jvm
+package io.bazel.kotlin.testing.jvm
 
 import com.google.common.truth.FailureMetadata
 import com.google.common.truth.StandardSubjectBuilder
@@ -6,7 +6,7 @@ import com.google.common.truth.Subject
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import io.bazel.kotlin.builder.model.Flags
-import io.bazel.ruleskotlin.integrationtests.lib.AssertionTestCase
+import io.bazel.kotlin.testing.AssertionTestCase
 import org.junit.Test
 
 class JvmUnusedDepsTests : AssertionTestCase("tests/integrationtests/jvm/unused_deps") {

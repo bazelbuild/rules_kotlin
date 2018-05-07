@@ -20,11 +20,15 @@ kt_jvm_library(
     visibility=["//tests:__subpackages__"],
     deps=[
         "@com_github_jetbrains_kotlin//:kotlin-test",
-        "//kotlin/builder:worker_lib"
+        "//kotlin/builder:worker_lib",
+        "@com_google_guava_guava//jar",
+        "@com_google_truth_truth//jar"
     ],
     exports=[
         "@com_github_jetbrains_kotlin//:kotlin-test",
         "//kotlin/builder:worker_lib",
+        "@com_google_guava_guava//jar",
+        "@com_google_truth_truth//jar"
     ],
     testonly=1
 )

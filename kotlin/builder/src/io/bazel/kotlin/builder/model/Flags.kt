@@ -41,7 +41,6 @@ class Flags(argMap: ArgMap) {
     val source = argMap.optional(JavaBuilderFlags.SOURCES.flag)
     val sourceJars = argMap.optional(JavaBuilderFlags.SOURCE_JARS.flag)
 
-    val classpath = argMap.mandatory(JavaBuilderFlags.CLASSPATH.flag)
     val plugins: KotlinModel.CompilerPlugins? = argMap.optionalSingle("--kt-plugins")?.let { input ->
         KotlinModel.CompilerPlugins.newBuilder().let {
             jsonFormat.merge(input, it)
