@@ -108,7 +108,7 @@ def _analyze_deps(ctx, deps, runtime_deps, implicit_jars=[]):
         indirect_dependencies.pop(k, None)
 
     return struct(
-        classpath=classpath,
+        classpath=classpath + implicit_jars,
         direct_dependencies=direct_dependencies,
         indirect_dependencies=indirect_dependencies
     )
