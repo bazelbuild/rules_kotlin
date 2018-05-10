@@ -17,6 +17,7 @@ package io.bazel.kotlin.builder.mode.jvm.utils
 
 import com.google.inject.ImplementedBy
 import com.google.inject.Inject
+import com.google.inject.Provider
 import java.io.File
 import java.io.PrintStream
 import java.nio.file.Paths
@@ -24,21 +25,26 @@ import java.nio.file.Paths
 @ImplementedBy(DefaultOutputProcessorFactory::class)
 interface KotlinCompilerOutputSink {
     fun deliver(line: String)
+    fun deliver(lines: List<String>)
 }
 
 private class DefaultOutputProcessorFactory @Inject constructor(
-    val stream: PrintStream
+    val streamProvider: Provider<PrintStream>
 ) : KotlinCompilerOutputSink {
     private val executionRoot: String = Paths.get("").toAbsolutePath().toString() + File.separator
 
     override fun deliver(line: String) {
-        stream.println(trimExecutionRootPrefix(line))
+        streamProvider.get().println(trimExecutionRootPrefix(line))
+    }
+
+    override fun deliver(lines: List<String>) {
+        streamProvider.get().also { stream -> lines.map(::trimExecutionRootPrefix).forEach(stream::println) }
     }
 
     private fun trimExecutionRootPrefix(toPrint: String): String {
         // trim off the workspace component
         return if (toPrint.startsWith(executionRoot)) {
-            toPrint.replaceFirst(executionRoot.toRegex(), "")
+            toPrint.replaceFirst(executionRoot, "")
         } else toPrint
     }
 }

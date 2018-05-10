@@ -25,7 +25,7 @@ abstract class KotlinBuilderTestCase {
 
   private final KotlinModel.BuilderCommand.Builder builder =
       KotlinModel.BuilderCommand.newBuilder();
-  private final Injector injector = KotlinToolchain.createInjector(System.out, null);
+  private final Injector injector = KotlinToolchain.createInjector(() -> System.out, null);
   private String label = null;
   private Path inputSourceDir = null;
 

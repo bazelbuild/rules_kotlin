@@ -26,25 +26,17 @@ import java.util.stream.Collectors
 
 sealed class ToolException(
     msg: String,
-    val category: Category,
     ex: Throwable? = null
-) : RuntimeException(msg, ex) {
-    enum class Category(val code: Int) {
-        COMPILER_ERROR(1), // 1 is a standard compilation error
-        INTERNAL(2),// 2 is an internal error
-        SCRIPT(3)// 3 is the script execution error
-    }
-}
+) : RuntimeException(msg, ex)
 
-class CompilationException(msg: String, cause: Throwable? = null, category: Category = Category.INTERNAL) :
-    ToolException(msg, category, cause)
+class CompilationException(msg: String, cause: Throwable? = null) :
+    ToolException(msg, cause)
 
 class CompilationStatusException(
     msg: String,
     val status: Int,
-    val lines: List<String> = emptyList(),
-    category: Category = Category.COMPILER_ERROR
-) : ToolException("$msg:${lines.joinToString("\n", "\n")}", category)
+    val lines: List<String> = emptyList()
+) : ToolException("$msg:${lines.joinToString("\n", "\n")}")
 
 
 /**
@@ -85,9 +77,6 @@ class BazelWorker(
     companion object {
         private const val INTERUPTED_STATUS = 0
         private const val ERROR_STATUS = 1
-
-        @JvmStatic
-        val IS_DEBUG: Boolean = System.getProperty("bazel.kotlin.worker.debug") != null
     }
 
     override fun apply(args: List<String>): Int {
