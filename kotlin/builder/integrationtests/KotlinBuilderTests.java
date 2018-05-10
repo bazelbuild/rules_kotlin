@@ -33,7 +33,7 @@ public class KotlinBuilderTests extends KotlinBuilderTestCase {
 
   private void runCompileTask() {
     int timeoutSeconds = 10;
-    KotlinJvmCompilationExecutor executor= instance(KotlinJvmCompilationExecutor.class);
+    KotlinJvmCompilationExecutor executor = instance(KotlinJvmCompilationExecutor.class);
     try {
       CompletableFuture.runAsync(() -> executor.compile(builderCommand()))
           .get(timeoutSeconds, TimeUnit.SECONDS);
@@ -44,7 +44,7 @@ public class KotlinBuilderTests extends KotlinBuilderTestCase {
     }
     assertFileExists(outputs().getOutput());
     assertFileExists(outputs().getOutputJdeps());
-    try(FileInputStream fs = new FileInputStream(Paths.get(outputs().getOutputJdeps()).toFile())) {
+    try (FileInputStream fs = new FileInputStream(Paths.get(outputs().getOutputJdeps()).toFile())) {
       Deps.Dependencies dependencies = Deps.Dependencies.parseFrom(fs);
       Truth.assertThat(dependencies.getRuleLabel()).endsWith(label());
     } catch (IOException e) {

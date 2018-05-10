@@ -39,12 +39,16 @@ class KotlinToolchain constructor(
     companion object {
         internal val NO_ARGS = arrayOf<Any>()
 
+        /**
+         * @param outputProvider A provider for the output stream to write to. A provider is used here as the System.err
+         * gets rebound when the worker is executing.
+         */
         @JvmStatic
-        fun createInjector(output: PrintStream, overrides: Module? = null): Injector =
+        fun createInjector(outputProvider: Provider<PrintStream>, overrides: Module? = null): Injector =
             Guice.createInjector(
                 object : AbstractModule() {
                     override fun configure() {
-                        bind(PrintStream::class.java).toInstance(output)
+                        bind(PrintStream::class.java).toProvider(outputProvider)
                         install(
                             KotlinToolchain.TCModule(
                                 javaHome = Paths.get("external", "local_jdk"),
@@ -52,7 +56,7 @@ class KotlinToolchain constructor(
                             )
                         )
                     }
-                }.let { module -> overrides?.let { Modules.override(module).with(it) }?: module }
+                }.let { module -> overrides?.let { Modules.override(module).with(it) } ?: module }
             )
     }
 
@@ -84,7 +88,7 @@ class KotlinToolchain constructor(
         javaHome: Path,
         kotlinHome: Path,
         kotlinLibraryDirectory: Path = kotlinHome.resolveVerified("lib").toPath(),
-        kapt3Jar: File= kotlinLibraryDirectory.resolveVerified("kotlin-annotation-processing.jar"),
+        kapt3Jar: File = kotlinLibraryDirectory.resolveVerified("kotlin-annotation-processing.jar"),
         classloader: ClassLoader = ClassPreloadingUtils.preloadClasses(
             mutableListOf<File>().let {
                 it.addAll(kotlinLibraryDirectory.verifiedRelativeFiles(Paths.get("kotlin-compiler.jar")))
@@ -95,7 +99,7 @@ class KotlinToolchain constructor(
             Thread.currentThread().contextClassLoader,
             null
         )
-    ): AbstractModule() {
+    ) : AbstractModule() {
         private val toolchain = KotlinToolchain(kotlinHome)
 
         private val kapt3 = CompilerPlugin(kapt3Jar.toString(), "org.jetbrains.kotlin.kapt3")
@@ -134,13 +138,8 @@ class KotlinToolchain constructor(
 
 
             override fun compile(args: Array<String>, out: PrintStream): Int {
-                val exitCodeInstance: Any
-                try {
-                    exitCodeInstance = execMethod.invoke(compiler, out, args)
-                    return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
-                } catch (e: Exception) {
-                    throw RuntimeException(e)
-                }
+                val exitCodeInstance = execMethod.invoke(compiler, out, args)
+                return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
             }
         }
 

@@ -17,6 +17,7 @@ package io.bazel.kotlin.builder
 
 import com.google.common.collect.ImmutableList
 import com.google.inject.Inject
+import com.google.inject.Provider
 import com.google.inject.Singleton
 import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor
 import io.bazel.kotlin.builder.utils.ArgMap
@@ -47,12 +48,9 @@ class KotlinBuilder @Inject internal constructor(
     private fun doExecute(command: KotlinModel.BuilderCommand): Int {
         return try {
             compilationExector.compile(command)
-            // gets basic timings on the tasks - create a better interface for this. and remove the line.
-            // println(res.command.info.label + "\n" + res.timings.joinToString("\n"))
             0
         } catch (ex: CompilationStatusException) {
-            ex.lines.forEach { println(it) }
-            return ex.status
+            ex.status
         }
     }
 
@@ -101,7 +99,7 @@ class KotlinBuilder @Inject internal constructor(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            val worker = KotlinToolchain.createInjector(System.err).getInstance(BazelWorker::class.java)
+            val worker = KotlinToolchain.createInjector(Provider { System.err }).getInstance(BazelWorker::class.java)
             System.exit(worker.apply(args.toList()))
         }
     }

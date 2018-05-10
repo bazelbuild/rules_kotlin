@@ -20,6 +20,8 @@ import com.google.inject.ImplementedBy
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import io.bazel.kotlin.builder.BuildCommandBuilder
+import io.bazel.kotlin.builder.CompilationStatusException
+import io.bazel.kotlin.builder.ToolException
 import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor.Result
 import io.bazel.kotlin.builder.mode.jvm.actions.JDepsGenerator
 import io.bazel.kotlin.builder.mode.jvm.actions.JavaCompiler
@@ -74,15 +76,23 @@ private class DefaultKotlinJvmCompilationExecutor @Inject constructor(
         }
 
     private fun compileClasses(context: Context, command: BuilderCommand) {
-        val result = context.execute("kotlinc") {
-            kotlinCompiler.compile(command)
+        var kotlinError: CompilationStatusException? = null
+        var result: List<String>? = null
+        context.execute("kotlinc") {
+            result = try {
+                kotlinCompiler.compile(command)
+            } catch (ex: CompilationStatusException) {
+                kotlinError = ex
+                ex.lines
+            }
         }
         try {
             context.execute("javac") {
                 javaCompiler.compile(command)
             }
         } finally {
-            result.forEach(outputSink::deliver)
+            checkNotNull(result).also(outputSink::deliver)
+            kotlinError?.also { throw it }
         }
     }
 
