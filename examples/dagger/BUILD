@@ -18,11 +18,11 @@ load("//kotlin:kotlin.bzl", "kt_jvm_library")
 java_plugin(
     name = "dagger_plugin",
     deps = [
-        "@dagger_compiler//jar",
-        "@guava//jar",
-        "@dagger_producers//jar",
-        "@dagger//jar",
-        "@javax_inject//jar"
+        "//third_party/jvm/com/google/dagger:dagger_compiler",
+        "@//third_party/jvm/com/google/guava",
+        "//third_party/jvm/com/google/dagger:dagger_producers",
+        "//third_party/jvm/com/google/dagger",
+        "//third_party/jvm/javax/inject:javax_inject"
     ],
     processor_class = "dagger.internal.codegen.ComponentProcessor"
 )
@@ -30,8 +30,8 @@ java_plugin(
 java_library(
     name = "dagger_lib",
     exports = [
-        "@javax_inject//jar",
-        "@dagger//jar",
+        "//third_party/jvm/javax/inject:javax_inject",
+        "//third_party/jvm/com/google/dagger"
     ],
     exported_plugins = ["dagger_plugin"]
 )

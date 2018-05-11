@@ -15,39 +15,92 @@
  */
 package io.bazel.kotlin.builder
 
+import com.google.common.collect.ImmutableList
+import com.google.inject.Inject
+import com.google.inject.Provider
+import com.google.inject.Singleton
+import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor
+import io.bazel.kotlin.builder.utils.ArgMap
+import io.bazel.kotlin.builder.utils.ArgMaps
+import io.bazel.kotlin.model.KotlinModel
+import java.nio.file.Files
+import java.nio.file.Paths
 
-import io.bazel.kotlin.builder.mode.jvm.actions.*
-import java.io.IOException
+@Singleton
+@Suppress("MemberVisibilityCanBePrivate")
+class KotlinBuilder @Inject internal constructor(
+    private val commandBuilder: BuildCommandBuilder,
+    private val jarToolInvoker: KotlinToolchain.JarToolInvoker,
+    private val compilationExector: KotlinJvmCompilationExecutor
+) : CommandLineProgram {
+    fun execute(command: KotlinModel.BuilderCommand): Int =
+        prepareForExecution(command).let { doExecute(it) }
 
-/**
- * Bazel Kotlin Compiler worker.
- */
-object KotlinBuilder : CommandLineProgram.Base() {
-    override val toolchain: KotlinToolchain = try {
-        KotlinToolchain()
-    } catch (e: IOException) {
-        throw RuntimeException("could not initialize toolchain", e)
+    fun execute(args: List<String>): Int =
+        execute(ArgMaps.from(args))
+
+    fun execute(args: ArgMap): Int =
+        prepareForExecution(commandBuilder.fromInput(args)).let {
+            execute(it)
+        }
+
+
+    private fun doExecute(command: KotlinModel.BuilderCommand): Int {
+        return try {
+            compilationExector.compile(command)
+            0
+        } catch (ex: CompilationStatusException) {
+            ex.status
+        }
     }
 
-    private val compileActions: List<BuildAction> = listOf(
-            UnpackSourceJars(toolchain),
-            Initialize(toolchain),
-            KotlinMainCompile(toolchain),
-            JavaMainCompile(toolchain),
-            ProcessCompileResult(toolchain),
-            CreateOutputJar(toolchain),
-            GenerateJdepsFile(toolchain)
-    )
+    private fun prepareForExecution(originalCommand: KotlinModel.BuilderCommand): KotlinModel.BuilderCommand {
+        ensureOutputDirectories(originalCommand)
+        return commandBuilder.withSources(originalCommand, unpackSources(originalCommand))
+    }
 
-    override fun actions(toolchain: KotlinToolchain, ctx: Context): List<BuildAction> = compileActions
+    private fun ensureOutputDirectories(command: KotlinModel.BuilderCommand) {
+        Files.createDirectories(Paths.get(command.outputs.classDirectory))
+        Files.createDirectories(Paths.get(command.outputs.tempDirectory))
+        Files.createDirectories(Paths.get(command.outputs.sourceGenDir))
+    }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val kotlinCompilerBazelWorker = BazelWorker(
-                this,
-                System.err,
-                "KotlinCompile"
-        )
-        System.exit(kotlinCompilerBazelWorker.apply(args.toList()))
+    private fun unpackSources(command: KotlinModel.BuilderCommand): Iterator<String> {
+        if (command.inputs.sourceJarsList.isEmpty()) {
+            ImmutableList.of<String>().iterator()
+        }
+
+        val sourceUnpackDirectory =
+            Paths.get(command.outputs.tempDirectory).let {
+                it.resolve("_srcjars").toFile().let {
+                    try {
+                        it.mkdirs(); it
+                    } catch (ex: Exception) {
+                        throw RuntimeException("could not create unpack directory at $it", ex)
+                    }
+                }
+            }
+
+        for (sourceJar in command.inputs.sourceJarsList) {
+            jarToolInvoker.invoke(listOf("xf", Paths.get(sourceJar).toAbsolutePath().toString()), sourceUnpackDirectory)
+        }
+
+        return sourceUnpackDirectory
+            .walk()
+            .filter { it.name.endsWith(".kt") || it.name.endsWith(".java") }
+            .map { it.toString() }
+            .iterator()
+    }
+
+    override fun apply(args: List<String>): Int {
+        return execute(args)
+    }
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val worker = KotlinToolchain.createInjector(Provider { System.err }).getInstance(BazelWorker::class.java)
+            System.exit(worker.apply(args.toList()))
+        }
     }
 }

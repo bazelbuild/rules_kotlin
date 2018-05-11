@@ -115,8 +115,9 @@ load(
 load(
     "//kotlin:kotlin_compiler_repositories.bzl",
     "KOTLIN_CURRENT_RELEASE",
-    _kotlin_compiler_repository = "kotlin_compiler_repository",
+    _kotlin_compiler_repository = "kotlin_compiler_repositories",
 )
+load("//third_party/jvm:workspace.bzl", _maven_dependencies="maven_dependencies")
 
 _kt_compile_filetypes = FileType([
     # source jars these will be unpacked by the compiler.
@@ -258,6 +259,7 @@ def kotlin_repositories(
       kotlin_release_version: The kotlin compiler release version. If this is not set the latest release version is
       chosen by default.
     """
+    _maven_dependencies()
     _kotlin_compiler_repository(kotlin_release_version)
 
 def kt_register_toolchains():

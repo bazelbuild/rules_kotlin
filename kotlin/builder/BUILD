@@ -19,14 +19,15 @@ kotlin_worker_lib(
     deps = [
         "//kotlin/builder/proto",
         "@com_github_jetbrains_kotlin//:preloader",
-        "@io_bazel_rules_kotlin_protobuf_protobuf_java//jar",
-        "//third_party:okio",
-        "//third_party:moshi",
-        "//third_party:moshi-kotlin"
+        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
+        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java_util//jar",
+        "@io_bazel_rules_kotlin_com_google_inject_guice//jar",
+        "@io_bazel_rules_kotlin_aopalliance_aopalliance//jar",
+        "@io_bazel_rules_kotlin_javax_inject_javax_inject//jar",
+        "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
+        "@io_bazel_rules_kotlin_com_google_code_gson_gson//jar",
     ],
-    exports = [
-        "//kotlin/builder/proto",
-    ],
+    exports = ["//kotlin/builder/proto"],
     runtime_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
@@ -42,10 +43,41 @@ java_binary(
     runtime_deps = [":worker_lib"]
 )
 
+filegroup(
+    name = "builder_runfiles",
+    srcs = [
+        "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
+        "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
+        "@com_github_jetbrains_kotlin//:compiler",
+    ],
+    visibility = ["//visibility:private"]
+)
+
+java_test(
+    name = "integrationtests",
+    test_class = "io.bazel.kotlin.builder.KotlinBuilderTestSuite",
+    srcs = glob(["integrationtests/*.java"]),
+    deps = [
+        "//kotlin/builder:worker_lib",
+        "//kotlin/builder/proto:proto",
+        "//third_party/jvm/junit",
+        "//third_party/jvm/com/google/protobuf:protobuf_java",
+        "//third_party/jvm/com/google/guava",
+        "//third_party/jvm/com/google/inject:guice",
+        "//third_party/jvm/com/google/truth"
+    ],
+    data = [
+        ":builder_runfiles"
+    ]
+)
+
 java_test(
     name = "unittests",
     test_class = "io.bazel.kotlin.builder.mode.jvm.utils.JdepsParserTest",
     srcs = glob(["unittests/**/*.java"]),
-    deps = [":worker_lib"],
+    deps = [
+        ":worker_lib",
+        "//third_party/jvm/com/google/protobuf:protobuf_java",
+    ],
     size = "small"
 )
