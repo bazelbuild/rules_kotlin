@@ -1,5 +1,20 @@
-package(default_visibility=["//visibility:public"])
+# Copyright 2018 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+package(default_visibility = ["//visibility:public"])
 
-java_import(name = "okio", jars = ["okio/okio-1.13.0.jar"])
-java_import(name = "moshi",jars = ["moshi/moshi-1.5.0.jar"], exports = [":okio", ":moshi-kotlin"])
-java_import(name = "moshi-kotlin", jars = ["moshi/moshi-kotlin-1.5.0.jar"])
+java_binary(
+    name = "bazel_deps",
+    main_class = "com.github.johnynek.bazel_deps.ParseProject",
+    runtime_deps = ["@bazel_deps//jar"],
+)

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
+load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library", "kt_jvm_import")
 
 _HEADER = """
 function join_by { local IFS="$$1"; shift; echo "$$*"; }
@@ -56,7 +56,6 @@ def kotlin_worker_lib(srcs =[], args = [], deps=[], runtime_deps=[], exports=[])
         exports = exports,
         visibility=["//visibility:private"],
     )
-
     native.filegroup(
         name = dep_label,
         srcs = deps,
@@ -75,11 +74,21 @@ def kotlin_worker_lib(srcs =[], args = [], deps=[], runtime_deps=[], exports=[])
         cmd = _gen_cmd(dep_label, " ".join(args)),
         visibility = ["//visibility:private"]
     )
-    native.java_import(
-        name = libary_label,
+
+    # Use kt_jvm_import so that ijarification doesn't ruin the worker lib.
+    kt_jvm_import(
+        name = libary_label + "_kt",
         jars = [jar_name],
-        exports = exports,
+        tags = ["no-ide"]
+    )
+
+    native.java_library(
+        name = libary_label,
+        exports = exports + [libary_label + "_kt"],
         runtime_deps = (depset(runtime_deps) + exports + deps).to_list(),
-        visibility = ["//visibility:private"],
+        visibility = [
+            "//tests:__subpackages__",
+            "//kotlin:__subpackages__"
+        ],
         tags = ["no-ide"]
     )

@@ -1,0 +1,107 @@
+// Copyright 2018 The Bazel Authors. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+syntax = "proto3";
+
+package bazel.kotlin;
+
+option java_package = "io.bazel.kotlin.model";
+
+message AnnotationProcessor {
+    // the annotation processor class
+    string processor_class = 1;
+    // bazel `java_plugin` generates_api setting.
+    bool generates_api = 2;
+    // the classpath
+    repeated string classpath = 3;
+
+    string label = 4;
+}
+
+message CompilerPlugins {
+    repeated AnnotationProcessor annotation_processors = 1;
+}
+
+message KotlinToolchainInfo {
+    message Common {
+        // mandatory
+        string language_version = 1;
+        //mandatory
+        string api_version = 2;
+        // oneof "enable", "warn" or "error"
+        string coroutines = 3;
+    }
+
+    message Jvm {
+        // oneof "1.6", or "1.8"
+        string jvm_target = 4;
+    }
+
+    Common common = 1;
+    Jvm jvm = 2;
+}
+
+message BuilderCommand {
+    message Info {
+        string label = 1;
+        // derived from label
+        string package = 2;
+        // derived from label
+        string target = 3;
+
+        string rule_kind = 4;
+        string kotlin_module_name = 5;
+
+        string passthrough_flags = 6;
+        KotlinToolchainInfo toolchain_info = 7;
+
+        CompilerPlugins plugins = 8;
+
+        // derived from plugins
+        repeated string encoded_plugin_descriptors=9;
+    }
+
+    message Outputs {
+        string class_directory = 1;
+        string temp_directory = 2;
+        string source_gen_dir = 3;
+
+        string output = 4;
+        string output_jdeps = 5;
+    }
+
+    message Inputs {
+        repeated string classpath = 1;
+        // derived from command line classpath
+        string joined_classpath = 2;
+
+        map<string, string> direct_dependencies = 3;
+        map<string, string> indirect_dependencies = 4;
+
+        // partitioned from builder flags
+        repeated string kotlin_sources = 5;
+        // partitioned from builder flags
+        repeated string java_sources = 6;
+
+        // created during compilation
+        repeated string generated_kotlin_sources = 7;
+        // created during compilation
+        repeated string generated_java_sources = 8;
+
+        repeated string source_jars = 9;
+    }
+
+    Info info = 1;
+    Outputs outputs = 2;
+    Inputs inputs = 3;
+}

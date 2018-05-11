@@ -11,12 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This file contains the Kotlin compiler repository definitions.
+"""This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
 load(
     "//kotlin/internal:kt.bzl",
     _kt = "kt",
+)
+load(
+  "//third_party/jvm:workspace.bzl",
+  _maven_dependencies="maven_dependencies"
 )
 
 KOTLIN_RELEASES = {
@@ -167,9 +171,15 @@ KOTLIN_CURRENT_RELEASE = "1.2.41"
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
-def kotlin_compiler_repository(
-    kotlin_release_version=KOTLIN_CURRENT_RELEASE
+def kotlin_compiler_repositories(
+    kotlin_release_version=KOTLIN_CURRENT_RELEASE,
 ):
+    """
+    Prime the compiler repository.
+
+    This function should not be called directly instead `kotlin_repositories` from `//kotlin:kotlin.bzl` should be
+    called to ensure common deps are loaded.
+    """
     release=KOTLIN_RELEASES[kotlin_release_version]
     if not release:
         fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, KOTLIN_CURRENT_RELEASE))
@@ -180,12 +190,6 @@ def kotlin_compiler_repository(
         sha256 = release["sha256"],
         build_file_content= KOTLIN_COMPILER_REPO_BUILD_FILE,
         strip_prefix = "kotlinc",
-    )
-
-    native.maven_jar(
-        name = "io_bazel_rules_kotlin_protobuf_protobuf_java",
-        artifact = "com.google.protobuf:protobuf-java:3.4.0",
-        sha1 = "b32aba0cbe737a4ca953f71688725972e3ee927c",
     )
 
     native.http_file(
