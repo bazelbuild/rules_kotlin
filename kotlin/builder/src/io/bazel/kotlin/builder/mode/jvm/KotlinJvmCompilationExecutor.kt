@@ -64,15 +64,20 @@ private class DefaultKotlinJvmCompilationExecutor @Inject constructor(
     }
 
     private fun runAnnotationProcessors(command: BuilderCommand): BuilderCommand =
-        if (command.info.plugins.annotationProcessorsList.isNotEmpty()) {
-            kotlinCompiler.runAnnotationProcessor(command)
-            File(command.outputs.sourceGenDir).walkTopDown()
-                .filter { it.isFile }
-                .map { it.path }
-                .iterator()
-                .let { commandBuilder.withGeneratedSources(command, it) }
-        } else {
-            command
+        try {
+            if (command.info.plugins.annotationProcessorsList.isNotEmpty()) {
+                kotlinCompiler.runAnnotationProcessor(command)
+                File(command.outputs.sourceGenDir).walkTopDown()
+                    .filter { it.isFile }
+                    .map { it.path }
+                    .iterator()
+                    .let { commandBuilder.withGeneratedSources(command, it) }
+            } else {
+                command
+            }
+        } catch(ex: CompilationStatusException) {
+            ex.lines.also(outputSink::deliver)
+            throw ex
         }
 
     private fun compileClasses(context: Context, command: BuilderCommand) {
