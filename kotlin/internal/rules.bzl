@@ -77,21 +77,7 @@ def kt_jvm_import_impl(ctx):
 
 def kt_jvm_library_impl(ctx):
     module_name=utils.derive_module_name(ctx)
-    return compile.make_providers(
-        ctx,
-        compile.compile_action(ctx, "kt_jvm_library", module_name),
-        module_name,
-  )
-
-def kt_jvm_binary_impl(ctx):
-    module_name=utils.derive_module_name(ctx)
-    java_info = compile.compile_action(ctx, "kt_jvm_binary", module_name)
-    utils.actions.write_launcher(
-        ctx,
-        java_info.transitive_runtime_jars,
-        ctx.attr.main_class,
-        ctx.attr.jvm_flags
-    )
+    java_info = compile.compile_action(ctx, "kt_jvm_library", module_name)
     return compile.make_providers(
         ctx,
         java_info,
@@ -99,8 +85,42 @@ def kt_jvm_binary_impl(ctx):
         depset(
             order = "default",
             transitive=[java_info.transitive_runtime_jars],
-            direct=[ctx.executable._java]
-        ),
+        )
+    )
+
+def _kt_jvm_runnable_impl(ctx, rule_kind, module_name, launcher_jvm_flags=[], friend_paths=depset()):
+    java_info = compile.compile_action(ctx, rule_kind, module_name, friend_paths)
+
+    transitive_runtime_jars = java_info.transitive_runtime_jars
+    if rule_kind == "kt_jvm_test":
+        transitive_runtime_jars += ctx.files._bazel_test_runner
+    if ctx.configuration.coverage_enabled or ctx.attr.internal_coverage_enabled:
+        transitive_runtime_jars += ctx.files._jacocorunner
+
+    extra_runfiles = utils.actions.write_launcher(
+        ctx,
+        transitive_runtime_jars,
+        main_class = ctx.attr.main_class,
+        jvm_flags = launcher_jvm_flags + ctx.attr.jvm_flags,
+    )
+    transitive_files = depset(
+        order = "default",
+        transitive=[transitive_runtime_jars],
+        direct=[ctx.executable._java],
+    )
+    return compile.make_providers(
+        ctx,
+        java_info,
+        module_name,
+        transitive_files,
+        extra_runfiles,
+    )
+
+def kt_jvm_binary_impl(ctx):
+    return _kt_jvm_runnable_impl(
+        ctx,
+        "kt_jvm_binary",
+        utils.derive_module_name(ctx)
     )
 
 def kt_jvm_junit_test_impl(ctx):
@@ -117,24 +137,10 @@ def kt_jvm_junit_test_impl(ctx):
             friend_paths += [j.path for j in friends[0][JavaInfo].compile_jars]
             module_name = friends[0][kt.info.KtInfo].module_name
 
-    java_info = compile.compile_action(ctx, "kt_jvm_test", module_name,friend_paths)
-
-    transitive_runtime_jars = java_info.transitive_runtime_jars + ctx.files._bazel_test_runner
-    launcherJvmFlags = ["-ea", "-Dbazel.test_suite=%s"% ctx.attr.test_class]
-
-    utils.actions.write_launcher(
+    return _kt_jvm_runnable_impl(
         ctx,
-        transitive_runtime_jars,
-        main_class = ctx.attr.main_class,
-        jvm_flags = launcherJvmFlags + ctx.attr.jvm_flags,
-    )
-    return compile.make_providers(
-        ctx,
-        java_info,
-        module_name,
-        depset(
-            order = "default",
-            transitive=[transitive_runtime_jars],
-            direct=[ctx.executable._java]
-        ),
+        rule_kind = "kt_jvm_test",
+        module_name = module_name,
+        launcher_jvm_flags = ["-ea", "-Dbazel.test_suite=%s" % ctx.attr.test_class],
+        friend_paths=friend_paths
     )

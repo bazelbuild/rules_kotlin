@@ -21,6 +21,7 @@ public class KotlinBuilderTests extends KotlinBuilderTestCase {
     addSource("AClass.kt", "package something;" + "class AClass{}");
     runCompileTask();
     assertFileExists(DirectoryType.CLASSES, "something/AClass.class");
+    assertFileDoesNotExist(DirectoryType.CLASSES, "something/AClass.class.uninstrumented");
   }
 
   @Test
@@ -31,6 +32,15 @@ public class KotlinBuilderTests extends KotlinBuilderTestCase {
     assertFileExists(DirectoryType.CLASSES, "something/AClass.class");
     assertFileExists(DirectoryType.CLASSES, "something/AnotherClass.class");
     assertFileExists(outputs().getJar());
+  }
+
+  @Test
+  public void testCoverage() {
+    setPostProcessor("jacoco");
+    addSource("AClass.kt", "package something;" + "class AClass{}");
+    runCompileTask();
+    assertFileExists(DirectoryType.CLASSES, "something/AClass.class");
+    assertFileExists(DirectoryType.CLASSES, "something/AClass.class.uninstrumented");
   }
 
   private void runCompileTask() {

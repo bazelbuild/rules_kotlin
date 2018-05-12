@@ -35,7 +35,7 @@
 #    name="%s_java_proto" % lib,
 #    deps=["%s_proto" % lib],
 #    ) for lib in _PROTO_LIBS]
-#
+
 
 java_import(
     name = "deps",

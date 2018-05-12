@@ -87,6 +87,8 @@ message BuilderCommand {
 
         // Jars that the kotlin compiler will allow package private access to.
         repeated string friend_paths = 10;
+
+        string post_processor = 11;
     }
 
     // Directories used by the builder.

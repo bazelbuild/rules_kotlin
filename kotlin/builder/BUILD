@@ -21,6 +21,12 @@ COMPILER_DEPS = [
     "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
 ]
 
+ASM_DEPS = [
+    "@io_bazel_rules_kotlin_org_ow2_asm_asm_commons//jar",
+    "@io_bazel_rules_kotlin_org_ow2_asm_asm//jar",
+    "@io_bazel_rules_kotlin_org_ow2_asm_asm_tree//jar",
+]
+
 # Common depset for the builder.
 COMMON_DEPS = [
     "//kotlin/builder/proto:deps",
@@ -38,6 +44,7 @@ COMMON_DEPS = [
     "@com_github_jetbrains_kotlin//:kotlin-stdlib",
     "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
     "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+    "@io_bazel_rules_kotlin_org_jacoco_org_jacoco_core//jar",
 ]
 
 # The compiler library, this is co-located in the kotlin compiler classloader.
@@ -73,8 +80,9 @@ java_binary(
     name = "builder",
     main_class = "io.bazel.kotlin.builder.KotlinBuilder",
     visibility = ["//visibility:public"],
-    runtime_deps = [
+    runtime_deps = ASM_DEPS + [
         ":builder_lib",
+        "@com_github_jetbrains_kotlin//:kotlin-reflect",
     ],
     data = [
         ":compiler_lib.jar"
@@ -115,6 +123,7 @@ java_test(
         "//third_party/jvm/com/google/truth",
         "//third_party/jvm/junit",
     ],
+    runtime_deps = ASM_DEPS
 )
 
 java_test(

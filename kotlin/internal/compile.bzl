@@ -68,6 +68,10 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
     if len(plugin_info.annotation_processors) > 0:
         args += [ "--kt-plugins", plugin_info.to_json() ]
 
+    # Post-process class files with the Jacoco offline instrumenter, if needed.
+    if ctx.coverage_instrumented() or ctx.attr.internal_coverage_instrumented:
+        args += [ "--post_processor", "jacoco" ]
+
     # Declare and write out argument file.
     args_file = ctx.actions.declare_file(ctx.label.name + ".jar-2.params")
     ctx.actions.write(args_file, "\n".join(args))
@@ -144,7 +148,7 @@ def _make_java_provider(ctx, srcs, input_deps=[], auto_deps=[]):
         transitive_runtime_jars = my_transitive_runtime_jars
     )
 
-def _make_providers(ctx, java_info, module_name, transitive_files=depset(order="default")):
+def _make_providers(ctx, java_info, module_name, transitive_files=depset(order="default"), extra_runfiles=[]):
     kotlin_info=kt.info.KtInfo(
         srcs=ctx.files.srcs,
         module_name = module_name,
@@ -159,9 +163,13 @@ def _make_providers(ctx, java_info, module_name, transitive_files=depset(order="
         ),
     )
 
+    files = [ctx.outputs.jar]
+    if hasattr(ctx.outputs, "executable"):
+        files.append(ctx.outputs.executable)
     default_info = DefaultInfo(
-        files=depset([ctx.outputs.jar]),
+        files=depset(files),
         runfiles=ctx.runfiles(
+            files=extra_runfiles + [ctx.outputs.jar],
             transitive_files=transitive_files,
             collect_default=True
         ),
@@ -170,6 +178,11 @@ def _make_providers(ctx, java_info, module_name, transitive_files=depset(order="
     return struct(
         kt=kotlin_info,
         providers=[java_info,default_info,kotlin_info],
+        instrumented_files = struct(
+            extensions = ['.kt'],
+            source_attributes = ['srcs'],
+            dependency_attributes = ['deps', 'runtime_deps'],
+        )
     )
 
 def _compile_action(ctx, rule_kind, module_name, friend_paths=depset(), src_jars=[]):

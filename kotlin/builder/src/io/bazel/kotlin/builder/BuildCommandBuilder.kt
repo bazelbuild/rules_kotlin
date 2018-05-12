@@ -123,6 +123,7 @@ private class DefaultBuildCommandBuilder @Inject constructor(
                 }
                 passthroughFlags = argMap.optionalSingle("--kotlin_passthrough_flags")
                 addAllFriendPaths(argMap.mandatory("--kotlin_friend_paths"))
+                postProcessor = argMap.optionalSingle("--post_processor") ?: ""
                 toolchainInfoBuilder.commonBuilder.apiVersion = argMap.mandatorySingle("--kotlin_api_version")
                 toolchainInfoBuilder.commonBuilder.languageVersion = argMap.mandatorySingle("--kotlin_language_version")
                 toolchainInfoBuilder.jvmBuilder.jvmTarget = argMap.mandatorySingle("--kotlin_jvm_target")

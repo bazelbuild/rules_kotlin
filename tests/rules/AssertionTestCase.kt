@@ -82,10 +82,16 @@ abstract class AssertionTestCase(root: String) : BasicAssertionTestCase() {
 }
 
 abstract class BasicAssertionTestCase {
-    protected fun assertExecutableRunfileSucceeds(executable: String, description: String? = null) {
+    protected fun assertExecutableRunfileSucceeds(
+        executable: String,
+        description: String? = null,
+        environment: Map<String, String> = emptyMap()
+    ) {
         ProcessBuilder().command("bash", "-c", Paths.get(executable).fileName.toString())
             .also { it.directory(executable.resolveDirectory()) }
-            .start().let {
+            .also { it.environment().putAll(environment) }
+            .also { it.inheritIO() }
+            .start().also {
                 it.waitFor(5, TimeUnit.SECONDS)
                 assert(it.exitValue() == 0) {
                     throw TestCaseFailedException(description, RuntimeException("non-zero return code: ${it.exitValue()}"))
