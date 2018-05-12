@@ -14,10 +14,13 @@
 load("//kotlin/internal:kt.bzl", "kt")
 
 def _mk_processor_entry(l,p):
+    merged_info=java_common.merge([j[JavaInfo] for j in p.deps])
+    classpath_jars = depset([cp for cp in merged_info.full_compile_jars])
+    classpath_jars = classpath_jars + merged_info.transitive_runtime_jars
     return struct(
           label=l,
           processor_class=p.processor_class,
-          classpath=[cp.path for cp in java_common.merge([j[JavaInfo] for j in p.deps]).full_compile_jars],
+          classpath=[cpj.path for cpj in classpath_jars.to_list()],
           generates_api=p.generates_api,
     )
 
