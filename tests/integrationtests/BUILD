@@ -18,5 +18,6 @@ test_suite(
     tests=[
         "//tests/integrationtests/jvm:basic_tests",
         "//tests/integrationtests/jvm:annoation_processing_tests",
+        "//tests/integrationtests/jvm:coverage_tests",
     ]
 )

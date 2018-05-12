@@ -114,8 +114,9 @@ private class DefaultBuildCommandBuilder @Inject constructor(
             with(root.infoBuilder) {
                 label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL.flag)
                 ruleKind = argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND.flag)
-                kotlinModuleName = argMap.optionalSingle("--kotlin_module_name")
-                passthroughFlags = argMap.optionalSingle("--kotlin_passthrough_flags")
+                kotlinModuleName = argMap.optionalSingle("--kotlin_module_name") ?: ""
+                passthroughFlags = argMap.optionalSingle("--kotlin_passthrough_flags") ?: ""
+                postProcessor = argMap.optionalSingle("--post_processor") ?: ""
                 toolchainInfoBuilder.commonBuilder.apiVersion = argMap.mandatorySingle("--kotlin_api_version")
                 toolchainInfoBuilder.commonBuilder.languageVersion = argMap.mandatorySingle("--kotlin_language_version")
                 toolchainInfoBuilder.jvmBuilder.jvmTarget = argMap.mandatorySingle("--kotlin_jvm_target")

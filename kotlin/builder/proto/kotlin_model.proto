@@ -69,6 +69,8 @@ message BuilderCommand {
 
         // derived from plugins
         repeated string encoded_plugin_descriptors=9;
+
+        string post_processor=10;
     }
 
     message Outputs {

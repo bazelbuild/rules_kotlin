@@ -26,13 +26,17 @@ kotlin_worker_lib(
         "@io_bazel_rules_kotlin_javax_inject_javax_inject//jar",
         "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
         "@io_bazel_rules_kotlin_com_google_code_gson_gson//jar",
+        "@io_bazel_rules_kotlin_org_jacoco_org_jacoco_core//jar",
     ],
     exports = ["//kotlin/builder/proto"],
     runtime_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
-        "@com_github_jetbrains_kotlin//:kotlin-reflect"
+        "@com_github_jetbrains_kotlin//:kotlin-reflect",
+        "@io_bazel_rules_kotlin_org_ow2_asm_asm_commons//jar",
+        "@io_bazel_rules_kotlin_org_ow2_asm_asm//jar",
+        "@io_bazel_rules_kotlin_org_ow2_asm_asm_tree//jar",
     ]
 )
 

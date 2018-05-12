@@ -27,3 +27,12 @@ kt_it_assertion_test(
     test_class="io.bazel.kotlin.testing.jvm.JvmAnnotationProcessingFunctionalTests",
     data = [  "//examples/dagger:coffee_app"]
 )
+
+kt_it_assertion_test(
+    name = "coverage_tests",
+    cases = "//tests/integrationtests/jvm/coverage:cases",
+    test_class="io.bazel.kotlin.testing.jvm.JvmCoverageFunctionalTests",
+    deps = [
+        "//tests/integrationtests/jvm/coverage:cases",
+    ],
+)

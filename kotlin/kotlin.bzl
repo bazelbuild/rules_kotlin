@@ -227,11 +227,27 @@ _common_attr = dict(_implicit_deps.items() + {
         aspects = [_kt_jvm_plugin_aspect],
     ),
     "module_name": attr.string(),
+    "internal_coverage_instrumented": attr.bool(
+        default = False,
+        doc = "visible for testing",
+    ),
 }.items())
 
 _runnable_common_attr = dict(_common_attr.items() + {
     "jvm_flags": attr.string_list(
         default = [],
+    ),
+    "_jacocorunner": attr.label(
+        default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
+    ),
+    "_lcov_merger": attr.label(
+        default = Label("@bazel_tools//tools/test:LcovMerger"),
+        executable = True,
+        cfg = "target",
+    ),
+    "internal_coverage_enabled": attr.bool(
+        default = False,
+        doc = "visible for testing",
     ),
 }.items())
 
