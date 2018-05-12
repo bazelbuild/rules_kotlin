@@ -22,7 +22,7 @@ _PROTO_LIBS=["deps", "worker_protocol", "kotlin_model"]
 [java_proto_library(
     name="%s_java_proto" % lib,
     deps=["%s_proto" % lib],
-    visibility=["//visibility:private"]
+    visibility=["//visibility:public"]
     ) for lib in _PROTO_LIBS]
 
 java_import(
