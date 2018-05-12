@@ -12,7 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-_PROTO_LIBS=["deps", "worker_protocol", "kotlin_model"]
+
+proto_library(
+    name = "kotlin_model_proto",
+    srcs = [":kotlin_model.proto"],
+    visibility=["//visibility:public"]
+)
+
+java_proto_library(
+    name = "kotlin_model_java_proto",
+    deps = [":kotlin_model_proto"]
+)
+
+_PROTO_LIBS=["deps", "worker_protocol"]
 
 [proto_library(
     name="%s_proto" % lib,
@@ -22,7 +34,6 @@ _PROTO_LIBS=["deps", "worker_protocol", "kotlin_model"]
 [java_proto_library(
     name="%s_java_proto" % lib,
     deps=["%s_proto" % lib],
-    visibility=["//visibility:public"]
     ) for lib in _PROTO_LIBS]
 
 java_import(
