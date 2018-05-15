@@ -118,7 +118,7 @@ def _make_java_provider(ctx, auto_deps=[]):
     exported_deps=utils.collect_all_jars(getattr(ctx.attr, "exports", []))
 
     my_compile_jars = exported_deps.compile_jars + [ctx.outputs.jar]
-    my_runtime_jars = exported_deps.runtime_jars + [ctx.outputs.jar]
+    my_runtime_jars = exported_deps.transitive_runtime_jars + [ctx.outputs.jar]
 
     my_transitive_compile_jars = my_compile_jars + deps.transitive_compile_time_jars + exported_deps.transitive_compile_time_jars + auto_deps
     my_transitive_runtime_jars = my_runtime_jars + deps.transitive_runtime_jars + exported_deps.transitive_runtime_jars + [ctx.file._kotlin_runtime] + auto_deps
