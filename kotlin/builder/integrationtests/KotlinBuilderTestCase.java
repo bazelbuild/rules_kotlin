@@ -29,6 +29,10 @@ abstract class KotlinBuilderTestCase {
   private String label = null;
   private Path inputSourceDir = null;
 
+  protected void setPostProcessor(String postProcessor) {
+    builder.setInfo(builder.getInfo().toBuilder().setPostProcessor(postProcessor));
+  }
+
   @Before
   public void setupNext() {
     resetTestContext("a_test_" + counter.incrementAndGet());
@@ -148,6 +152,11 @@ abstract class KotlinBuilderTestCase {
   void assertFileExists(DirectoryType dir, String filePath) {
     Path file = DirectoryType.select(dir, builderCommand()).resolve(filePath);
     assertFileExists(file.toString());
+  }
+
+  void assertFileDoesNotExist(DirectoryType dir, String filePath) {
+    Path file = DirectoryType.select(dir, builderCommand()).resolve(filePath);
+    assertFileDoesNotExist(file.toString());
   }
 
   void assertFileDoesNotExist(String filePath) {

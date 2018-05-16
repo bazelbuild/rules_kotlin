@@ -44,6 +44,15 @@ dependencies:
       modules: ["", "compiler", "producers"]
       lang: "java"
       version: "2.9"
+  org.jacoco:
+    org.jacoco.core:
+      lang: "java"
+      version: "0.7.5.201505241946"
+      exclude: ["org.ow2.asm:asm-debug-all"]
+  org.ow2.asm:
+    asm-commons:
+      lang: "java"
+      version: "6.0"
 
 replacements:
   org.jetbrains.kotlin:

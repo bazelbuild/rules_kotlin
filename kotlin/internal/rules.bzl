@@ -76,44 +76,49 @@ def kt_jvm_import_impl(ctx):
     return struct(kt = kotlin_info, providers= [default_info, java_info, kotlin_info])
 
 def kt_jvm_library_impl(ctx):
-    return compile.make_providers(ctx, compile.compile_action(ctx, "kt_jvm_library"))
-
-def kt_jvm_binary_impl(ctx):
-    java_info = compile.compile_action(ctx, "kt_jvm_binary")
-    utils.actions.write_launcher(
-        ctx,
-        java_info.transitive_runtime_jars,
-        ctx.attr.main_class,
-        ctx.attr.jvm_flags
-    )
+    java_info = compile.compile_action(ctx, "kt_jvm_library")
     return compile.make_providers(
         ctx,
         java_info,
         depset(
             order = "default",
             transitive=[java_info.transitive_runtime_jars],
-            direct=[ctx.executable._java]
         )
     )
 
-def kt_jvm_junit_test_impl(ctx):
-    java_info = compile.compile_action(ctx, "kt_jvm_test")
+def _kt_jvm_runnable_impl(ctx, rule_kind, launcher_jvm_flags=[]):
+    java_info = compile.compile_action(ctx, rule_kind)
 
-    transitive_runtime_jars = java_info.transitive_runtime_jars + ctx.files._bazel_test_runner
-    launcherJvmFlags = ["-ea", "-Dbazel.test_suite=%s"% ctx.attr.test_class]
+    transitive_runtime_jars = java_info.transitive_runtime_jars
+    if rule_kind == "kt_jvm_test":
+        transitive_runtime_jars += ctx.files._bazel_test_runner
+    if ctx.configuration.coverage_enabled or ctx.attr.internal_coverage_enabled:
+        transitive_runtime_jars += ctx.files._jacocorunner
 
-    utils.actions.write_launcher(
+    extra_runfiles = utils.actions.write_launcher(
         ctx,
         transitive_runtime_jars,
         main_class = ctx.attr.main_class,
-        jvm_flags = launcherJvmFlags + ctx.attr.jvm_flags,
+        jvm_flags = launcher_jvm_flags + ctx.attr.jvm_flags,
+    )
+    transitive_files = depset(
+        order = "default",
+        transitive=[transitive_runtime_jars],
+        direct=[ctx.executable._java],
     )
     return compile.make_providers(
         ctx,
         java_info,
-        depset(
-            order = "default",
-            transitive=[transitive_runtime_jars],
-            direct=[ctx.executable._java]
-        )
+        transitive_files,
+        extra_runfiles,
+    )
+
+def kt_jvm_binary_impl(ctx):
+    return _kt_jvm_runnable_impl(ctx, "kt_jvm_binary")
+
+def kt_jvm_junit_test_impl(ctx):
+    return _kt_jvm_runnable_impl(
+        ctx,
+        "kt_jvm_test",
+        launcher_jvm_flags = ["-ea", "-Dbazel.test_suite=%s" % ctx.attr.test_class],
     )

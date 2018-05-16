@@ -27,6 +27,7 @@ import io.bazel.kotlin.builder.mode.jvm.actions.JDepsGenerator
 import io.bazel.kotlin.builder.mode.jvm.actions.JavaCompiler
 import io.bazel.kotlin.builder.mode.jvm.actions.KotlinCompiler
 import io.bazel.kotlin.builder.mode.jvm.actions.OutputJarCreator
+import io.bazel.kotlin.builder.mode.jvm.actions.JacocoProcessor
 import io.bazel.kotlin.builder.mode.jvm.utils.KotlinCompilerOutputSink
 import io.bazel.kotlin.model.KotlinModel.BuilderCommand
 import java.io.File
@@ -46,7 +47,8 @@ private class DefaultKotlinJvmCompilationExecutor @Inject constructor(
     private val outputSink: KotlinCompilerOutputSink,
     private val javaCompiler: JavaCompiler,
     private val jDepsGenerator: JDepsGenerator,
-    private val outputJarCreator: OutputJarCreator
+    private val outputJarCreator: OutputJarCreator,
+    private val jacocoProcessor: JacocoProcessor
 ) : KotlinJvmCompilationExecutor {
     override fun compile(command: BuilderCommand): Result {
         val context = Context()
@@ -54,6 +56,11 @@ private class DefaultKotlinJvmCompilationExecutor @Inject constructor(
             runAnnotationProcessors(command)
         }
         compileClasses(context, commandWithApSources)
+        if (command.info.postProcessor == "jacoco") {
+          context.execute("instrument class files") {
+            jacocoProcessor.instrument(commandWithApSources)
+          }
+        }
         context.execute("create jar") {
             outputJarCreator.createOutputJar(commandWithApSources)
         }
