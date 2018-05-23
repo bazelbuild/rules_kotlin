@@ -168,10 +168,8 @@ _implicit_deps = {
         Label("@" + KT_COMPILER_REPO + "//:stdlib-jdk7"),
         Label("@" + KT_COMPILER_REPO + "//:stdlib-jdk8"),
     ]),
-    "_kotlin_toolchain": attr.label_list(
-        default = [
-            Label("@io_bazel_rules_kotlin//kotlin:kt_toolchain_ide_info"),
-        ],
+    "_toolchain": attr.label(
+        default = Label("@io_bazel_rules_kotlin//kotlin:default_toolchain_impl"),
         allow_files = False,
     ),
     "_kotlin_reflect": attr.label(

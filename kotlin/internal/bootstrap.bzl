@@ -33,28 +33,6 @@ kotlin_stdlib = rule(
 
 """Import Kotlin libraries that are part of the compiler release."""
 
-def _kt_toolchain_ide_info_impl(ctx):
-    tc=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
-    info = struct(
-        label = tc.label,
-        common = struct(
-            language_version = tc.language_version,
-            api_version = tc.api_version,
-            coroutines = tc.coroutines
-        ),
-        jvm = struct(
-            jvm_target = tc.jvm_target,
-        )
-    )
-    ctx.actions.write(ctx.outputs.ide_info, info.to_json())
-    return [DefaultInfo(files=depset([ctx.outputs.ide_info]))]
-
-kt_toolchain_ide_info = rule(
-    outputs = {"ide_info": "kt_toolchain_ide_info.json"},
-    toolchains = [kt.defs.TOOLCHAIN_TYPE],
-    implementation = _kt_toolchain_ide_info_impl,
-)
-
 def github_archive(name, repo, commit, build_file_content = None):
     if build_file_content:
         native.new_http_archive(
