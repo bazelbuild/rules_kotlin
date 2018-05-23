@@ -89,7 +89,7 @@ def _kotlin_toolchain_impl(ctx):
     )
     return struct(providers=[toolchain])
 
-kt_toolchain = rule(
+kt_jvm_toolchain = rule(
     attrs = _kt_jvm_attrs,
     implementation = _kotlin_toolchain_impl,
 )
@@ -105,7 +105,7 @@ Args:
 def define_kt_toolchain(name, language_version=None, api_version=None, jvm_target=None, coroutines=None):
     """Define a Kotlin JVM Toolchain, the name is used in the `toolchain` rule so can be used to register the toolchain in the WORKSPACE file."""
     impl_name = name + "_impl"
-    kt_toolchain(
+    kt_jvm_toolchain(
         name = impl_name,
         language_version = language_version,
         api_version = api_version,
