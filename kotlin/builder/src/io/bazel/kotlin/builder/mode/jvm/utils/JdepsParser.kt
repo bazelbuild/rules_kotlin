@@ -30,7 +30,7 @@ class JdepsParser private constructor(private val filename: String, private val 
 
     private var mode = Mode.COLLECT_DEPS
 
-    private fun addJar(classJarPath: String, kind: Deps.Dependency.Kind) {
+    private fun consumeJarLine(classJarPath: String, kind: Deps.Dependency.Kind) {
         val path = Paths.get(classJarPath)
 
         // ignore absolute files, -- jdk jar paths etc.
@@ -71,7 +71,7 @@ class JdepsParser private constructor(private val filename: String, private val 
                     if (parts[0] != filename) {
                         throw RuntimeException("should only get dependencies for dep: $filename")
                     }
-                    addJar(parts[1], Deps.Dependency.Kind.EXPLICIT)
+                    consumeJarLine(parts[1], Deps.Dependency.Kind.EXPLICIT)
                 }
             } else {
                 mode = Mode.DETERMINE_JDK
@@ -111,14 +111,17 @@ class JdepsParser private constructor(private val filename: String, private val 
             }
         }
 
-        fun parse(label: String, classJar: String, classPath: String, jdepLines: Stream<String>, isImplicit: Predicate<String>): Deps.Dependencies {
+        fun parse(
+            label: String,
+            classJar: String,
+            classPath: String,
+            jdepLines: List<String>,
+            isImplicit: Predicate<String>
+        ): Deps.Dependencies {
             val filename = Paths.get(classJar).fileName.toString()
             val jdepsParser = JdepsParser(filename, isImplicit)
-
-            Stream.of(*classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()).forEach {
-                jdepsParser.addJar(it, Deps.Dependency.Kind.UNUSED)
-            }
-
+            Stream.of(*classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
+                .forEach { x -> jdepsParser.consumeJarLine(x, Deps.Dependency.Kind.UNUSED) }
             jdepLines.forEach { jdepsParser.processLine(it) }
 
             val rootBuilder = Deps.Dependencies.newBuilder()

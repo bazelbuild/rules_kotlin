@@ -54,6 +54,7 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, analyzed_deps):
         "--tempdir", temp_directory.path,
         "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
+        "--kotlin_jvm_strict_deps", tc.jvm_strict_deps,
         "--kotlin_jvm_target", tc.jvm_target,
         "--kotlin_api_version", tc.api_version,
         "--kotlin_language_version", tc.language_version,
@@ -132,7 +133,7 @@ def _make_java_provider(ctx, auto_deps=[]):
     exported_deps=utils.collect_all_jars(getattr(ctx.attr, "exports", []))
 
     my_compile_jars = exported_deps.compile_jars + [ctx.outputs.jar]
-    my_runtime_jars = exported_deps.runtime_jars + [ctx.outputs.jar]
+    my_runtime_jars = exported_deps.transitive_runtime_jars + [ctx.outputs.jar]
 
     my_transitive_compile_jars = my_compile_jars + deps.transitive_compile_time_jars + exported_deps.transitive_compile_time_jars + auto_deps
     my_transitive_runtime_jars = my_runtime_jars + deps.transitive_runtime_jars + exported_deps.transitive_runtime_jars + [ctx.file._kotlin_runtime] + auto_deps
@@ -219,7 +220,7 @@ def _compile_action (ctx, rule_kind):
             ctx=ctx,
             deps=ctx.attr.deps,
             runtime_deps=ctx.attr.runtime_deps,
-            implicit_jars=implicit_jars
+            implicit_jars=implicit_jars + ctx.files._kotlin_runtime
         )
     )
 

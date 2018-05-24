@@ -1,5 +1,5 @@
 test.smoke:
-	bazel test all_tests
+	bazel test --define=strict_kt_deps=WARN all_tests
 
 reformat:
 	buildifier -mode=fix -v kotlin/*.bzl

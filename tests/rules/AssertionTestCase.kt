@@ -16,8 +16,12 @@
 package io.bazel.kotlin.testing
 
 import com.google.common.base.Throwables
-import io.bazel.kotlin.builder.ArgMap
-import io.bazel.kotlin.builder.ArgMaps
+import com.google.inject.Injector
+import com.google.inject.Provider
+import io.bazel.kotlin.builder.BuildCommandBuilder
+import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.utils.ArgMap
+import io.bazel.kotlin.builder.utils.ArgMaps
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -29,6 +33,13 @@ class TestCaseFailedException(description: String? = null, ex: Throwable) :
     AssertionError(""""$description" failed, error: ${Throwables.getRootCause(ex).message}""")
 
 abstract class AssertionTestCase(root: String) {
+    companion object {
+        @JvmStatic
+        private val injector: Injector by lazy { KotlinToolchain.createInjector(Provider { System.err }) }
+    }
+
+    protected val commandBuilder: BuildCommandBuilder by lazy { injector.getInstance(BuildCommandBuilder::class.java) }
+
     private val testRunfileRoot: Path = Paths.get(root).also {
         it.toFile().also {
             assert(it.exists()) { "runfile directory $root does not exist" }
@@ -57,8 +68,7 @@ abstract class AssertionTestCase(root: String) {
 
     protected fun argMapTestCase(name: String, description: String? = null, test: ArgMap.() -> Unit) {
         val file = testCaseFile(name)
-        val argMap=ArgMaps.from(file)
-        argMap.test()
+        ArgMaps.from(file).test()
     }
 
 

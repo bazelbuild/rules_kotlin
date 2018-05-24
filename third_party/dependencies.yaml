@@ -1,0 +1,58 @@
+options:
+  thirdPartyDirectory: "third_party/jvm"
+  buildHeader: [ 'licenses(["notice"])' ]
+  resolvers:
+    - id: "mavencentral"
+      type: "default"
+      url: https://repo.maven.apache.org/maven2/
+  transitivity: runtime_deps
+  versionConflictPolicy: highest
+  namePrefix: "io_bazel_rules_kotlin_"
+
+dependencies:
+  com.google.inject:
+    guice:
+      lang: "java"
+      version: "4.2.0"
+  com.google.protobuf:
+    protobuf:
+      modules: ["java", "java-util"]
+      lang: "java"
+      version: "3.5.1"
+  com.google.code.gson:
+    gson:
+      lang: "java"
+      version: "2.8.4"
+  com.google.guava:
+    guava:
+      lang: "java"
+      version: "25.0-jre"
+  com.google.truth:
+    truth:
+      lang: "java"
+      version: "0.40"
+  com.google.auto.service:
+    auto-service:
+      lang: "java"
+      version: "1.0-rc4"
+  com.google.auto.value:
+    auto-value:
+      lang: "java"
+      version: "1.5.3"
+  com.google.dagger:
+    dagger:
+      modules: ["", "compiler", "producers"]
+      lang: "java"
+      version: "2.9"
+
+replacements:
+  org.jetbrains.kotlin:
+    kotlin-stdlib:
+      lang: java
+      target: "@com_github_jetbrains_kotlin//:kotlin-stdlib"
+    kotlin-reflect:
+      lang: java
+      target: "@com_github_jetbrains_kotlin//:kotlin-reflect"
+    kotlin-script-runtime:
+      lang: java
+      target: "@com_github_jetbrains_kotlin//:kotlin-script-runtime"

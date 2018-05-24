@@ -1,36 +1,36 @@
 package io.bazel.kotlin.builder.mode.jvm.actions
 
 import com.google.devtools.build.lib.view.proto.Deps
-import io.bazel.kotlin.builder.BuildAction
-import io.bazel.kotlin.builder.Context
-import io.bazel.kotlin.builder.KotlinToolchain
-import io.bazel.kotlin.builder.model.CompileDependencies
-import io.bazel.kotlin.builder.model.Metas
+import com.google.inject.ImplementedBy
 import io.bazel.kotlin.builder.utils.Console
+import io.bazel.kotlin.model.KotlinModel
 import java.nio.file.Files
 import java.nio.file.Paths
 
-class StrictDepValidation(toolchain: KotlinToolchain): BuildAction("validate deps", toolchain) {
-    override fun invoke(ctx: Context): Int {
-        val jdeps = Metas.JDEPS[ctx]
-        val dependencies = CompileDependencies[ctx]
+@ImplementedBy(DefaultStrictDepsValidator::class)
+interface StrictDepsValidator {
+    fun validateDeps(command: KotlinModel.BuilderCommand, jdeps: Deps.Dependencies): Int
+}
 
+
+private class DefaultStrictDepsValidator: StrictDepsValidator {
+    override fun validateDeps(command: KotlinModel.BuilderCommand, jdeps: Deps.Dependencies): Int {
         val usedIndirectDependencies = jdeps.dependencyList.asSequence()
                 .filter { it.kind == Deps.Dependency.Kind.EXPLICIT }
-                .map { dependencies.indirectDependencies[it.path] }
-                .filterNotNull()
+                .mapNotNull { command.inputs.indirectDependenciesMap[it.path] }
                 .toSet() // A target might be exporting multiple jars.
 
         if(usedIndirectDependencies.isNotEmpty()) {
             val msg = """error: Transitive dependencies are being used directly
 
   ${Console.purple("** Please add the following dependencies:")}
-    ${usedIndirectDependencies.joinToString(" ")} to ${ctx.flags.label}
+    ${usedIndirectDependencies.joinToString(" ")} to ${command.info.label}
   ${Console.purple("** You can use the following buildozer command:")}
-    buildozer 'add deps ${usedIndirectDependencies.joinToString(" ")}' ${ctx.flags.label}
+    buildozer 'add deps ${usedIndirectDependencies.joinToString(" ")}' ${command.info.label}
 """
             println(msg)
-            Files.delete(Paths.get(ctx.flags.outputClassJar))
+            // TODO should the file be deleted here, a compile error should be enough ?
+            Files.delete(Paths.get(command.outputs.output))
             return 1
         }
         return 0

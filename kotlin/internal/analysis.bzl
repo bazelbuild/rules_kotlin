@@ -99,6 +99,7 @@ def _analyze_deps(ctx, deps, runtime_deps, implicit_jars=[]):
 
     for rt_dep in runtime_deps:
         info=rt_dep[JavaInfo]
+        classpath += info.transitive_runtime_jars
         _add_labels_to_category(j_to_l, indirect_dependencies, info.transitive_compile_time_jars, "indirect(rt)")
         _add_labels_to_category(j_to_l, indirect_dependencies, info.transitive_runtime_jars, "indirect(rt)")
 

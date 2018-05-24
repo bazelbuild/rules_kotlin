@@ -21,14 +21,20 @@ kt_jvm_library(
     deps=[
         "@com_github_jetbrains_kotlin//:kotlin-test",
         "//kotlin/builder:worker_lib",
-        "@com_google_guava_guava//jar",
-        "@com_google_truth_truth//jar"
+        "//third_party/jvm/com/google/guava",
+        "//third_party/jvm/com/google/truth",
+        "//third_party/jvm/javax/inject:javax_inject",
+        "//third_party/jvm/com/google/protobuf:protobuf_java",
+        "//third_party/jvm/com/google/inject:guice"
+    ],
+    data = [
+        "//kotlin/builder:builder_runfiles"
     ],
     exports=[
         "@com_github_jetbrains_kotlin//:kotlin-test",
         "//kotlin/builder:worker_lib",
-        "@com_google_guava_guava//jar",
-        "@com_google_truth_truth//jar"
+        "//third_party/jvm/com/google/guava",
+        "//third_party/jvm/com/google/truth"
     ],
     testonly=1
 )
