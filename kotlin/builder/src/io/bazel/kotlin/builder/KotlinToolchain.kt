@@ -48,11 +48,14 @@ class KotlinToolchain constructor(
             Guice.createInjector(
                 object : AbstractModule() {
                     override fun configure() {
+                        val builderRunfiles=Paths.get(System.getenv("JAVA_RUNFILES"))
                         bind(PrintStream::class.java).toProvider(outputProvider)
                         install(
                             KotlinToolchain.TCModule(
                                 javaHome = Paths.get("external", "local_jdk"),
-                                kotlinHome = Paths.get("external", "com_github_jetbrains_kotlin")
+                                kotlinHome = Paths.get("external", "com_github_jetbrains_kotlin"),
+                                bazelKotlinCompilersJar = builderRunfiles.resolveVerified(
+                                    "io_bazel_rules_kotlin", "kotlin", "builder","compiler_lib.jar")
                             )
                         )
                     }
@@ -87,10 +90,12 @@ class KotlinToolchain constructor(
     private class TCModule constructor(
         javaHome: Path,
         kotlinHome: Path,
+        bazelKotlinCompilersJar: File,
         kotlinLibraryDirectory: Path = kotlinHome.resolveVerified("lib").toPath(),
         kapt3Jar: File = kotlinLibraryDirectory.resolveVerified("kotlin-annotation-processing.jar"),
         classloader: ClassLoader = ClassPreloadingUtils.preloadClasses(
             mutableListOf<File>().let {
+                it.add(bazelKotlinCompilersJar)
                 it.addAll(kotlinLibraryDirectory.verifiedRelativeFiles(Paths.get("kotlin-compiler.jar")))
                 it.addAll(javaHome.verifiedRelativeFiles(Paths.get("lib", "tools.jar")))
                 it.toList()
@@ -129,7 +134,7 @@ class KotlinToolchain constructor(
         }
 
         private val kotlincInvoker = object : KotlincInvoker {
-            val compilerClass = classloader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
+            val compilerClass = classloader.loadClass("io.bazel.kotlin.compiler.BazelK2JVMCompiler")
             val exitCodeClass = classloader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
             val compiler = compilerClass.newInstance()
