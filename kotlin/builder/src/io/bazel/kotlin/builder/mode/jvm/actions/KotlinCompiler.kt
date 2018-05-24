@@ -59,11 +59,14 @@ private class DefaultKotlinCompiler @Inject constructor(
     private fun setupCompileContext(command: KotlinModel.BuilderCommand): MutableList<String> {
         val args = mutableListOf<String>()
 
+        // use -- for flags not meant for the kotlin compiler
         args.addAll(
             "-cp", command.inputs.joinedClasspath,
             "-api-version", command.info.toolchainInfo.common.apiVersion,
             "-language-version", command.info.toolchainInfo.common.languageVersion,
-            "-jvm-target", command.info.toolchainInfo.jvm.jvmTarget
+            "-jvm-target", command.info.toolchainInfo.jvm.jvmTarget,
+            // https://github.com/bazelbuild/rules_kotlin/issues/69: remove once jetbrains adds a flag for it.
+            "--friend-paths", command.info.friendPathsList.joinToString(":")
         )
 
         args

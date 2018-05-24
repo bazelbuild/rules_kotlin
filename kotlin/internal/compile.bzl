@@ -18,7 +18,7 @@ load("//kotlin/internal:utils.bzl", "utils")
 _src_file_types = FileType([".java", ".kt"])
 _srcjar_file_type = FileType([".srcjar"])
 
-def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
+def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_name, friend_paths):
     """Internal macro that sets up a Kotlin compile action.
 
     This macro only supports a single Kotlin compile operation for a rule.
@@ -47,10 +47,11 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
         "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
         "--classpath", "\n".join([f.path for f in compile_jars.to_list()]),
+        "--kotlin_friend_paths", "\n".join(friend_paths.to_list()),
         "--kotlin_jvm_target", tc.jvm_target,
         "--kotlin_api_version", tc.api_version,
         "--kotlin_language_version", tc.language_version,
-        "--kotlin_module_name", getattr(ctx.attr, "module_name", ""),
+        "--kotlin_module_name", module_name,
         "--kotlin_passthrough_flags", "-Xcoroutines=%s" % tc.coroutines
     ]
 
@@ -98,7 +99,7 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
 def _select_std_libs(ctx):
     return ctx.files._kotlin_std
 
-def _make_java_provider(ctx, auto_deps=[]):
+def _make_java_provider(ctx, input_deps=[], auto_deps=[]):
     """Creates the java_provider for a Kotlin target.
 
     This macro is distinct from the kotlin_make_providers as collecting the java_info is useful before the DefaultInfo is
@@ -114,7 +115,7 @@ def _make_java_provider(ctx, auto_deps=[]):
     Returns:
     A JavaInfo provider.
     """
-    deps=utils.collect_all_jars(ctx.attr.deps)
+    deps=utils.collect_all_jars(input_deps)
     exported_deps=utils.collect_all_jars(getattr(ctx.attr, "exports", []))
 
     my_compile_jars = exported_deps.compile_jars + [ctx.outputs.jar]
@@ -140,9 +141,10 @@ def _make_java_provider(ctx, auto_deps=[]):
         transitive_runtime_jars=my_transitive_runtime_jars
     )
 
-def _make_providers(ctx, java_info, transitive_files=depset(order="default")):
+def _make_providers(ctx, java_info, module_name, transitive_files=depset(order="default")):
     kotlin_info=kt.info.KtInfo(
         srcs=ctx.files.srcs,
+        module_name = module_name,
         # intelij aspect needs this.
         outputs = struct(
             jdeps = ctx.outputs.jdeps,
@@ -167,7 +169,7 @@ def _make_providers(ctx, java_info, transitive_files=depset(order="default")):
         providers=[java_info,default_info,kotlin_info],
     )
 
-def _compile_action (ctx, rule_kind):
+def _compile_action(ctx, rule_kind, module_name, friend_paths=depset()):
     """Setup a kotlin compile action.
 
     Args:
@@ -196,12 +198,16 @@ def _compile_action (ctx, rule_kind):
 
     kotlin_auto_deps=_select_std_libs(ctx)
 
+    deps = ctx.attr.deps + getattr(ctx.attr, "friends", [])
+
     # setup the compile action.
     _kotlin_do_compile_action(
         ctx,
         rule_kind = rule_kind,
         output_jar = kt_compile_output_jar,
-        compile_jars = utils.collect_jars_for_compile(ctx.attr.deps) + kotlin_auto_deps
+        compile_jars = utils.collect_jars_for_compile(deps) + kotlin_auto_deps,
+        module_name = module_name,
+        friend_paths = friend_paths
     )
 
     # setup the merge action if needed.
@@ -209,7 +215,7 @@ def _compile_action (ctx, rule_kind):
         utils.actions.fold_jars(ctx, output_jar, output_merge_list)
 
     # create the java provider but the kotlin and default provider cannot be created here.
-    return _make_java_provider(ctx, kotlin_auto_deps)
+    return _make_java_provider(ctx, deps, kotlin_auto_deps)
 
 compile = struct(
     compile_action = _compile_action,
