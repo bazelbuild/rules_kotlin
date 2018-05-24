@@ -106,7 +106,7 @@ fun Path.resolveVerified(vararg parts: String): File = resolve(Paths.get(parts[0
  */
 fun Path.verifiedRelativeFiles(vararg paths: Path): List<File> = paths.map { relative -> resolve(relative).verified() }
 
-private fun Path.verified(): File = this.toFile().also { check(it.exists()) { "file did not exist: $this" } }
+fun Path.verified(): File = this.toFile().also { check(it.exists()) { "file did not exist: $this" } }
 
 
 val Throwable.rootCause: Throwable

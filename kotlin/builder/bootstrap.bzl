@@ -40,25 +40,16 @@ ARGS="%s"
 JAVA_HOME=external/local_jdk ./$(location @com_github_jetbrains_kotlin//:kotlinc) -cp $${CP} -d $(OUTS) $${ARGS} $(SRCS)
 """) % (name,args)
 
-def kotlin_worker_lib(srcs =[], args = [], deps=[], runtime_deps=[], exports=[]):
-    name = "worker"
+def kotlin_worker_lib(name, srcs, args = [], deps=[], runtime_deps=[], neverlink_deps=[]):
     dep_label = name + "_deps"
     jar_file_label =  name + "_file"
     jar_name = name+".jar"
-    libary_label =  name + "_lib"
+    jar_sources_file_label = jar_file_label + "_sources"
+    jar_sources_name = name + "-sources.jar"
 
-    # Dummy target loaded by `kotlin_library` so intellij can understand the sources.
-    _for_ide(
-        name = "for_ide",
-        srcs = srcs,
-        deps = deps,
-        runtime_deps = runtime_deps,
-        exports = exports,
-        visibility=["//visibility:private"],
-    )
     native.filegroup(
         name = dep_label,
-        srcs = deps,
+        srcs = deps + neverlink_deps,
         visibility = ["//visibility:private"]
     )
     native.genrule(
@@ -74,21 +65,26 @@ def kotlin_worker_lib(srcs =[], args = [], deps=[], runtime_deps=[], exports=[])
         cmd = _gen_cmd(dep_label, " ".join(args)),
         visibility = ["//visibility:private"]
     )
+    native.genrule(
+        name = jar_sources_file_label,
+        tools = [
+            "@local_jdk//:jdk",
+        ],
+        srcs = srcs,
+        outs = [jar_sources_name],
+        cmd = "jar cf $(OUTS) $(SRCS)",
+        visibility = ["//visibility:private"]
+    )
 
     # Use kt_jvm_import so that ijarification doesn't ruin the worker lib.
     kt_jvm_import(
-        name = libary_label + "_kt",
+        name = name,
         jars = [jar_name],
-        tags = ["no-ide"]
-    )
-
-    native.java_library(
-        name = libary_label,
-        exports = exports + [libary_label + "_kt"],
-        runtime_deps = (depset(runtime_deps) + exports + deps).to_list(),
+        srcjar = jar_sources_name,
+        tags = ["no-ide"],
+        runtime_deps = (depset(runtime_deps) + deps).to_list(),
         visibility = [
             "//tests:__subpackages__",
             "//kotlin:__subpackages__"
-        ],
-        tags = ["no-ide"]
+        ]
     )
