@@ -77,6 +77,13 @@ _kt_jvm_attrs = dict(_common_attrs.items() + {
             "1.8",
         ],
     ),
+    "jvm_strict_deps": attr.string(
+        values = [
+            "OFF",
+            "WARN",
+            "ERROR"
+        ]
+    )
 }.items())
 
 def _kotlin_toolchain_impl(ctx):
@@ -85,6 +92,7 @@ def _kotlin_toolchain_impl(ctx):
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
         jvm_target = ctx.attr.jvm_target,
+        jvm_strict_deps = ctx.attr.jvm_strict_deps,
         coroutines = ctx.attr.coroutines
     )
     return struct(providers=[toolchain])
@@ -111,6 +119,11 @@ def define_kt_toolchain(name, language_version=None, api_version=None, jvm_targe
         api_version = api_version,
         jvm_target = jvm_target,
         coroutines = coroutines,
+        jvm_strict_deps = select({
+            "//:strict_deps_error": "ERROR",
+            "//:strict_deps_warn": "WARN",
+            "//conditions:default": "OFF"
+        }),
         visibility = ["//visibility:public"]
     )
     native.toolchain(

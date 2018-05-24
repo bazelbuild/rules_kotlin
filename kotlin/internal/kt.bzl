@@ -30,6 +30,12 @@ _KtInfo = provider(
     },
 )
 
+_JarsToLabels = provider(
+    fields = {
+        "jars_to_labels": "jars to labels, a dict from jar files to list of labels that they are known as"
+    }
+)
+
 _KtPluginInfo = provider(
     fields = {
         "annotation_processors": "a serializeable list of structs containing an annotation processor definitions",
@@ -41,5 +47,6 @@ kt = struct(
     info = struct(
         KtInfo = _KtInfo,
         KtPluginInfo = _KtPluginInfo,
+        JarsToLabelsInfo = _JarsToLabels
     ),
 )

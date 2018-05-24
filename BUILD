@@ -19,3 +19,13 @@ test_suite(
         "//tests/integrationtests"
     ]
 )
+
+config_setting(
+    name = "strict_deps_warn",
+    values = { "define": "strict_kt_deps=WARN" }
+)
+
+config_setting(
+    name = "strict_deps_error",
+    values = { "define": "strict_kt_deps=ERROR" }
+)

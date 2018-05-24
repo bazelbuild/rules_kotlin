@@ -18,6 +18,23 @@ kt_jvm_library(
     name = "assertion_test_case",
     srcs = ["AssertionTestCase.kt"],
     visibility=["//tests:__subpackages__"],
-    deps=["@com_github_jetbrains_kotlin//:kotlin-test"],
+    deps=[
+        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "//kotlin/builder:worker_lib",
+        "//third_party/jvm/com/google/guava",
+        "//third_party/jvm/com/google/truth",
+        "//third_party/jvm/javax/inject:javax_inject",
+        "//third_party/jvm/com/google/protobuf:protobuf_java",
+        "//third_party/jvm/com/google/inject:guice"
+    ],
+    data = [
+        "//kotlin/builder:builder_runfiles"
+    ],
+    exports=[
+        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "//kotlin/builder:worker_lib",
+        "//third_party/jvm/com/google/guava",
+        "//third_party/jvm/com/google/truth"
+    ],
     testonly=1
 )

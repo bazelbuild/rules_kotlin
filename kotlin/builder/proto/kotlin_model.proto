@@ -69,6 +69,10 @@ message BuilderCommand {
 
         // derived from plugins
         repeated string encoded_plugin_descriptors=9;
+
+        // feature flags for the builder
+        // strict_deps = OFF | WARN | ERROR
+        map<string, string> feature_flags = 10;
     }
 
     message Outputs {

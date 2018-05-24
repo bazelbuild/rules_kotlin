@@ -15,8 +15,10 @@ load("//kotlin:kotlin.bzl", "kt_jvm_test")
 
 _TEST_COMMON_DEPS=[
     "//tests/rules:assertion_test_case",
+    "@com_github_jetbrains_kotlin//:kotlin-test",
     "//third_party/jvm/com/google/truth",
-    "//third_party/jvm/junit:junit"
+    "//third_party/jvm/junit:junit",
+    "//third_party/jvm/com/google/protobuf:protobuf_java",
 ]
 
 def kt_it_assertion_test(name, cases, test_class, data = [], deps=[]):

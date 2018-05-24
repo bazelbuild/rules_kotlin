@@ -30,8 +30,7 @@ Key changes:
 # Usage
 
 ## WORKSPACE
-In the project's `WORKSPACE`, declare the external repository and initialize the toolchains, like
-this:
+In the project's `WORKSPACE`, declare the external repository and initialize the toolchains, like this:
 
 ```build
 kotlin_release_version="1.2.30"
@@ -45,12 +44,20 @@ http_archive(
 )
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories(kotlin_release_version=kotlin_release_version)
+kotlin_repositories(
+    kotlin_release_version=kotlin_release_version,
+    omit_com_google_protobuf = False,
+    omit_com_google_guava_guava = False,
+    omit_com_google_code_gson_gson = False,
+)
 kt_register_toolchains()
 ```
 
 If you omit `kotlin_release_version` and just call `kotlin_repositories()` with no arguments,
 you'll get the current kotlin compiler version (at least as known to the rules_kotlin project).
+
+The kotlin_repositories rule above is not omitting the common dependencies which are likely to collide in a standard
+bazel monorepo. If you have any collisions you will have to set the flags to True and sort out correct allignment.
 
 ## BUILD files
 

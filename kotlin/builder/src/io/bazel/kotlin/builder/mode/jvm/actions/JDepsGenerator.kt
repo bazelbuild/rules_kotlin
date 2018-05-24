@@ -39,7 +39,11 @@ private class DefaultJDepsGenerator @Inject constructor(
     toolchain: KotlinToolchain,
     val invoker: KotlinToolchain.JDepsInvoker
 ) : JDepsGenerator {
-    private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(toolchain.kotlinLibraryDirectory, *toolchain.kotlinStandardLibraries)
+    private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(
+        toolchain.kotlinLibraryDirectory,
+        *toolchain.kotlinStandardLibraries
+    )
+
     override fun generateJDeps(command: KotlinModel.BuilderCommand) {
         val jdepsContent =
             if (command.inputs.classpathList.isEmpty()) {

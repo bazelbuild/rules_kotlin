@@ -1,0 +1,2 @@
+* the builders now have an output groups for the params-2 file.
+* the tag "mock_compile" does not run a compile phase .

@@ -104,6 +104,12 @@ load(
     "//kotlin/internal:plugins.bzl",
     _kt_jvm_plugin_aspect="kt_jvm_plugin_aspect",
 )
+
+load(
+  "//kotlin/internal:analysis.bzl",
+  _analysis="analysis"
+)
+
 # struct can't be used till skydoc is removed
 load(
     "//kotlin/internal:rules.bzl",
@@ -210,8 +216,8 @@ _common_attr = dict(_implicit_deps.items() + {
         default = [],
         allow_files = _kt_compile_filetypes,
     ),
-    "deps": attr.label_list(aspects = [_kt_jvm_plugin_aspect]),
-    "runtime_deps": attr.label_list(default = []),
+    "deps": attr.label_list(aspects = [_kt_jvm_plugin_aspect, _analysis.jars_to_labels_aspect]),
+    "runtime_deps": attr.label_list(default = [], aspects = [_analysis.jars_to_labels_aspect]),
     "resources": attr.label_list(
         default = [],
         allow_files = True,
@@ -241,6 +247,8 @@ _runnable_common_attr = dict(_common_attr.items() + {
 _common_outputs = dict(
     jar = "%{name}.jar",
     jdeps = "%{name}.jdeps",
+    # declare the params file to validate it in testing
+    jar_2_params = "%{name}.jar-2.params",
     srcjar = "%{name}-sources.jar",
 )
 

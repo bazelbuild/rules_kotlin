@@ -49,8 +49,11 @@ filegroup(
         "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
         "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
         "@com_github_jetbrains_kotlin//:compiler",
+        "@local_jdk//:lib/tools.jar",
+        "@local_jdk//:bin/jar"
     ],
-    visibility = ["//visibility:private"]
+    # TODO sort out
+    visibility = ["//visibility:public"]
 )
 
 java_test(

@@ -27,7 +27,7 @@ import io.bazel.kotlin.model.KotlinModel.BuilderCommand
 
 @ImplementedBy(DefaultBuildCommandBuilder::class)
 interface BuildCommandBuilder {
-    fun fromInput(argMap: ArgMap): BuilderCommand
+    fun fromInput(argMap: ArgMap, featureFlagOverrides: Map<String, String> = emptyMap()): BuilderCommand
     fun withSources(command: BuilderCommand, sources: Iterator<String>): BuilderCommand
     fun withGeneratedSources(command: BuilderCommand, sources: Iterator<String>): BuilderCommand
 }
@@ -84,8 +84,13 @@ private class DefaultBuildCommandBuilder @Inject constructor(
         TEST_ONLY("--testonly")
     }
 
-    override fun fromInput(argMap: ArgMap): BuilderCommand =
+    override fun fromInput(argMap: ArgMap, featureFlagOverrides: Map<String, String>): BuilderCommand =
         BuilderCommand.newBuilder().let { root ->
+            root.infoBuilder.putFeatureFlags(
+                "kotlin_jvm_strict_deps",
+                featureFlagOverrides["kotlin_jvm_strict_deps"] ?: argMap.mandatorySingle("--kotlin_jvm_strict_deps")
+            )
+
             with(root.outputsBuilder) {
                 classDirectory = argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR.flag)
                 tempDirectory = argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR.flag)
@@ -96,8 +101,26 @@ private class DefaultBuildCommandBuilder @Inject constructor(
 
             with(root.inputsBuilder) {
                 addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH.flag))
-                putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY.flag))
+                putAllDirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY.flag))
                 putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.INDIRECT_DEPENDENCY.flag))
+
+                val strictDeps = root.info.featureFlagsMap["kotlin_jvm_strict_deps"]!!
+                when (strictDeps) {
+                    "OFF" -> {
+                        val tally = classpathList.toMutableSet()
+                        clearClasspath()
+
+                        tally.removeAll(indirectDependenciesMap.keys)
+                        // remove all indirect dependencies from the classpath
+                        addAllClasspath(tally)
+                    }
+                    "WARN" -> {
+                    }
+                    "ERROR" -> {
+                    }
+                    else -> throw IllegalStateException("strict_deps value $strictDeps is invalid")
+                }
+
 
                 argMap.optional(JavaBuilderFlags.SOURCES.flag)?.iterator()?.partitionSources(
                     { addKotlinSources(it) },

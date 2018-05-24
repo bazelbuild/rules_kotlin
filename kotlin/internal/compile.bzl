@@ -14,11 +14,22 @@
 load("//kotlin/internal:kt.bzl", "kt")
 load("//kotlin/internal:plugins.bzl", "plugins")
 load("//kotlin/internal:utils.bzl", "utils")
+load("//kotlin/internal:analysis.bzl", "analysis")
 
 _src_file_types = FileType([".java", ".kt"])
 _srcjar_file_type = FileType([".srcjar"])
 
-def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
+def _analayzed_deps_to_args(analyzed_deps):
+    args=["--classpath", "\n".join([f.path for f in analyzed_deps.classpath.to_list()])]
+    for d in analyzed_deps.direct_dependencies:
+        l=analyzed_deps.direct_dependencies[d][0]
+        args+=["--direct_dependency", d.path, utils.restore_label_for_params(l)]
+    for d in analyzed_deps.indirect_dependencies:
+        l=analyzed_deps.indirect_dependencies[d][0]
+        args+=["--indirect_dependency", d.path, utils.restore_label_for_params(l)]
+    return args
+
+def _kotlin_do_compile_action(ctx, rule_kind, output_jar, analyzed_deps):
     """Internal macro that sets up a Kotlin compile action.
 
     This macro only supports a single Kotlin compile operation for a rule.
@@ -35,22 +46,24 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
     temp_directory=ctx.actions.declare_directory(ctx.label.name + "_tempdir")
 
     tc=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
-
     args = [
         "--target_label", ctx.label,
         "--rule_kind", rule_kind,
-
         "--classdir", classes_directory.path,
         "--sourcegendir", sourcegen_directory.path,
         "--tempdir", temp_directory.path,
-
         "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
-        "--classpath", "\n".join([f.path for f in compile_jars.to_list()]),
+        "--kotlin_jvm_strict_deps", tc.jvm_strict_deps,
         "--kotlin_jvm_target", tc.jvm_target,
         "--kotlin_api_version", tc.api_version,
         "--kotlin_language_version", tc.language_version,
-        "--kotlin_module_name", getattr(ctx.attr, "module_name", ""),
+        "--kotlin_module_name", getattr(ctx.attr, "module_name", "")
+    ]
+
+    # This cannot be placed at the end, "@@" escaping as used by the dep labels is also used a marker in the worker protocol.
+    args += _analayzed_deps_to_args(analyzed_deps)
+    args += [
         "--kotlin_passthrough_flags", "-Xcoroutines=%s" % tc.coroutines
     ]
 
@@ -78,17 +91,19 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars):
     # When a stratetegy isn't provided for the worker and the workspace is fresh then certain deps are not available under
     # external/@com_github_jetbrains_kotlin/... that is why the classpath is added explicetly.
     compile_inputs = (
-      depset([args_file]) +
-      ctx.files.srcs +
-      compile_jars +
-      ctx.files._kotlin_compiler_classpath +
-      ctx.files._kotlin_home +
-      ctx.files._jdk)
+        depset([args_file]) +
+        ctx.files.srcs +
+        analyzed_deps.classpath +
+        ctx.files._kotlin_compiler_classpath +
+        ctx.files._kotlin_home +
+        ctx.files._jdk)
+
+    compile_outputs = [output_jar, ctx.outputs.jdeps, sourcegen_directory, classes_directory, temp_directory]
 
     ctx.action(
         mnemonic = "KotlinCompile",
         inputs = compile_inputs,
-        outputs = [output_jar, ctx.outputs.jdeps, sourcegen_directory, classes_directory, temp_directory],
+        outputs = compile_outputs,
         executable = ctx.executable._kotlinw,
         execution_requirements = {"supports-workers": "1"},
         arguments = ["@" + args_file.path],
@@ -194,14 +209,19 @@ def _compile_action (ctx, rule_kind):
         # If we setup indirection than the first entry in the merge list is the result of the kotlin compile action.
         output_merge_list=[ kt_compile_output_jar ] + output_merge_list
 
-    kotlin_auto_deps=_select_std_libs(ctx)
+    implicit_jars=_select_std_libs(ctx)
 
     # setup the compile action.
     _kotlin_do_compile_action(
         ctx,
         rule_kind = rule_kind,
         output_jar = kt_compile_output_jar,
-        compile_jars = utils.collect_jars_for_compile(ctx.attr.deps) + kotlin_auto_deps
+        analyzed_deps = analysis.analyze_deps(
+            ctx=ctx,
+            deps=ctx.attr.deps,
+            runtime_deps=ctx.attr.runtime_deps,
+            implicit_jars=implicit_jars + ctx.files._kotlin_runtime
+        )
     )
 
     # setup the merge action if needed.
@@ -209,7 +229,7 @@ def _compile_action (ctx, rule_kind):
         utils.actions.fold_jars(ctx, output_jar, output_merge_list)
 
     # create the java provider but the kotlin and default provider cannot be created here.
-    return _make_java_provider(ctx, kotlin_auto_deps)
+    return _make_java_provider(ctx, implicit_jars)
 
 compile = struct(
     compile_action = _compile_action,
