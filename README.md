@@ -3,7 +3,9 @@
 [Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
 
 # Announcements
-* <b>February 15, 2018.</b>. Toolchains for the JVM rules. Currently this allow tweaking: 
+* <b>May 25, 2018.<b> Test "friend" support. A single friend dep can be provided to `kt_jvm_test` which allows the test
+  to access internal members of the module under test.
+* <b>February 15, 2018.</b> Toolchains for the JVM rules. Currently this allow tweaking: 
     * The JVM target (bytecode level).
     * API and Language levels.
     * Coroutines, enabled by default. 
