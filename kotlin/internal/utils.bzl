@@ -24,6 +24,12 @@ def _restore_label(l):
         lbl = lbl.replace("external/", "@")
     return lbl + "//" + l.package + ":" + l.name
 
+def _derive_module_name(ctx):
+    module_name=getattr(ctx.attr, "module_name", "")
+    if module_name == "":
+        module_name = (ctx.label.package.lstrip("/").replace("/","_") + "-" + ctx.label.name.replace("/", "_"))
+    return module_name
+
 # DEPSET UTILS #################################################################################################################################################
 def _select_compile_jars(dep):
     """selects the correct compile time jar from a java provider"""
@@ -207,4 +213,5 @@ utils = struct(
     collect_all_jars = _collect_all_jars,
     collect_jars_for_compile = _collect_jars_for_compile,
     restore_label = _restore_label,
+    derive_module_name = _derive_module_name
 )

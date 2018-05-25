@@ -16,10 +16,40 @@
 package io.bazel.kotlin.compiler
 
 import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
+import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+import org.jetbrains.kotlin.config.Services
 
+@Suppress("unused")
 class BazelK2JVMCompiler(private val delegate: K2JVMCompiler = K2JVMCompiler()) {
+    private lateinit var friendsPaths: Array<String>
+
+    private fun preprocessArgs(args: Array<out String>): Array<out String> {
+        val tally = mutableListOf<String>()
+        var i =0
+        do {
+            when {
+                // https://github.com/bazelbuild/rules_kotlin/issues/69: remove once jetbrains adds a flag for it.
+                args[i].startsWith("--friend-paths") -> {
+                    i++
+                    friendsPaths = args[i].split(":").toTypedArray()
+                }
+                else -> tally += args[i]
+            }
+            i++
+        } while(i < args.size)
+        return tally.toTypedArray()
+    }
+
     fun exec(errStream: java.io.PrintStream, vararg args: kotlin.String): ExitCode {
-        return delegate.exec(errStream, *args)
+        val arguments = delegate.createArguments().also {
+            delegate.parseArguments(preprocessArgs(args), it)
+            if(::friendsPaths.isInitialized) {
+                it.friendPaths = friendsPaths
+            }
+        }
+        val collector = PrintingMessageCollector(errStream, MessageRenderer.PLAIN_RELATIVE_PATHS, arguments.verbose)
+        return delegate.exec(collector, Services.EMPTY, arguments)
     }
 }

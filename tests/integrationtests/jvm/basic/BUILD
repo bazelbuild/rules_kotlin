@@ -98,6 +98,22 @@ java_binary(
     deps = [":propagation_test_runtime_lib"]
 )
 
+kt_jvm_library(
+    name = "test_friends_library",
+    srcs = ["test_friends/Service.kt"]
+)
+
+# This test should be explicetly executed as module name mangling handling could regress otherwise.
+kt_jvm_test(
+    name = "test_friends_tests",
+    srcs = ["test_friends/TestFriendsTest.kt"],
+    test_class = "test.TestFriendsTest",
+    deps = [
+        "//third_party/jvm/junit:junit"
+    ],
+    friends = [":test_friends_library"]
+)
+
 filegroup(
     name="cases",
     srcs = [
@@ -115,3 +131,4 @@ filegroup(
     ],
     visibility=["//tests/integrationtests:__subpackages__"]
 )
+

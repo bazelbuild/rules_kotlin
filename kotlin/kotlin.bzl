@@ -301,7 +301,9 @@ Args:
 """
 
 kt_jvm_binary = rule(
-    attrs = dict(_runnable_common_attr.items() + {"main_class": attr.string(mandatory = True)}.items()),
+    attrs = dict(_runnable_common_attr.items() + {
+        "main_class": attr.string(mandatory = True)
+    }.items()),
     executable = True,
     outputs = _binary_outputs,
     toolchains = [_kt.defs.TOOLCHAIN_TYPE],
@@ -325,6 +327,9 @@ kt_jvm_test = rule(
             default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
             allow_files = True,
         ),
+        "friends": attr.label_list(
+            default = [],
+        ),
         "test_class": attr.string(),
         "main_class": attr.string(default="com.google.testing.junit.runner.BazelTestRunner"),
     }.items()),
@@ -342,6 +347,8 @@ kt_jvm_test = rule(
 
 Args:
   test_class: The Java class to be loaded by the test runner.
+  friends: A single Kotlin dep which allows the test code access to internal members. Currently uses the output jar of
+    the module -- i.e., exported deps won't be included.
 """
 
 kt_jvm_import = rule(

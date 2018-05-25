@@ -76,10 +76,16 @@ def kt_jvm_import_impl(ctx):
     return struct(kt = kotlin_info, providers= [default_info, java_info, kotlin_info])
 
 def kt_jvm_library_impl(ctx):
-    return compile.make_providers(ctx, compile.compile_action(ctx, "kt_jvm_library"))
+    module_name=utils.derive_module_name(ctx)
+    return compile.make_providers(
+        ctx,
+        compile.compile_action(ctx, "kt_jvm_library", module_name),
+        module_name,
+  )
 
 def kt_jvm_binary_impl(ctx):
-    java_info = compile.compile_action(ctx, "kt_jvm_binary")
+    module_name=utils.derive_module_name(ctx)
+    java_info = compile.compile_action(ctx, "kt_jvm_binary", module_name)
     utils.actions.write_launcher(
         ctx,
         java_info.transitive_runtime_jars,
@@ -89,15 +95,29 @@ def kt_jvm_binary_impl(ctx):
     return compile.make_providers(
         ctx,
         java_info,
+        module_name,
         depset(
             order = "default",
             transitive=[java_info.transitive_runtime_jars],
             direct=[ctx.executable._java]
-        )
+        ),
     )
 
 def kt_jvm_junit_test_impl(ctx):
-    java_info = compile.compile_action(ctx, "kt_jvm_test")
+    module_name=utils.derive_module_name(ctx)
+    friend_paths=depset()
+
+    friends=getattr(ctx.attr, "friends", [])
+    if len(friends) > 1:
+        fail("only one friend is possible")
+    elif len(friends) == 1:
+        if friends[0][kt.info.KtInfo] == None:
+            fail("only kotlin dependencies can be friends")
+        else:
+            friend_paths += [j.path for j in friends[0][JavaInfo].compile_jars]
+            module_name = friends[0][kt.info.KtInfo].module_name
+
+    java_info = compile.compile_action(ctx, "kt_jvm_test", module_name,friend_paths)
 
     transitive_runtime_jars = java_info.transitive_runtime_jars + ctx.files._bazel_test_runner
     launcherJvmFlags = ["-ea", "-Dbazel.test_suite=%s"% ctx.attr.test_class]
@@ -111,9 +131,10 @@ def kt_jvm_junit_test_impl(ctx):
     return compile.make_providers(
         ctx,
         java_info,
+        module_name,
         depset(
             order = "default",
             transitive=[transitive_runtime_jars],
             direct=[ctx.executable._java]
-        )
+        ),
     )

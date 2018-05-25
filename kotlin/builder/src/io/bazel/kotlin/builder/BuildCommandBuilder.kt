@@ -114,8 +114,11 @@ private class DefaultBuildCommandBuilder @Inject constructor(
             with(root.infoBuilder) {
                 label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL.flag)
                 ruleKind = argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND.flag)
-                kotlinModuleName = argMap.optionalSingle("--kotlin_module_name")
+                kotlinModuleName = argMap.mandatorySingle("--kotlin_module_name").also {
+                    check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
+                }
                 passthroughFlags = argMap.optionalSingle("--kotlin_passthrough_flags")
+                addAllFriendPaths(argMap.mandatory("--kotlin_friend_paths"))
                 toolchainInfoBuilder.commonBuilder.apiVersion = argMap.mandatorySingle("--kotlin_api_version")
                 toolchainInfoBuilder.commonBuilder.languageVersion = argMap.mandatorySingle("--kotlin_language_version")
                 toolchainInfoBuilder.jvmBuilder.jvmTarget = argMap.mandatorySingle("--kotlin_jvm_target")
@@ -135,10 +138,6 @@ private class DefaultBuildCommandBuilder @Inject constructor(
                     check(it.size == 2) { "the label ${root.info.label} is invalid" }
                     `package` = it[0]
                     target = it[1]
-                }
-
-                kotlinModuleName = kotlinModuleName.supplyIfNullOrBlank {
-                    "${`package`.trimStart { it == '/' }.replace('/', '_')}-$target"
                 }
             }
             root.build()
