@@ -19,25 +19,18 @@ function join_by { local IFS="$$1"; shift; echo "$$*"; }
 CP=$$(join_by : $(locations :%s))
 """
 
-# This is kept arround incase it's needed -- there shouldn't be a need for mixed compilation, but just in case.
-def _gen_mixed_cmd(name, args):
-    return _HEADER + ("""
-ARGS="-Xcompile-java -Xuse-javac %s"
-
-mkdir -p compile_classes
-
-JAVA_HOME=external/local_jdk  ./$(location @com_github_jetbrains_kotlin//:kotlinc) -cp $${CP} -d compile_classes $${ARGS} $(SRCS)
-
-jar cf  $(OUTS) -C compile_classes .
-
-rm -rf compile_classes
-""") % (name, args)
-
+# We manually call the Kotlin compiler by constructing the correct Java classpath, because the usual
+# "kotlinc" wrapper script fails to correctly detect KOTLIN_HOME unless we run with
+# --spawn_strategy=standalone
 def _gen_cmd(name, args):
     return (_HEADER + """
 ARGS="%s"
 
-JAVA_HOME=external/local_jdk ./$(location @com_github_jetbrains_kotlin//:kotlinc) -cp $${CP} -d $(OUTS) $${ARGS} $(SRCS)
+KOTLIN_HOME=external/com_github_jetbrains_kotlin
+java -Xmx256M -Xms32M -noverify \
+  -cp $${KOTLIN_HOME}/lib/kotlin-preloader.jar org.jetbrains.kotlin.preloading.Preloader \
+  -cp $${KOTLIN_HOME}/lib/kotlin-compiler.jar org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+  -cp $${CP} -d $(OUTS) $${ARGS} $(SRCS)
 """) % (name,args)
 
 def kotlin_worker_lib(name, srcs, args = [], deps=[], runtime_deps=[], neverlink_deps=[]):
@@ -56,7 +49,6 @@ def kotlin_worker_lib(name, srcs, args = [], deps=[], runtime_deps=[], neverlink
         name = jar_file_label,
         tools = [
             "@com_github_jetbrains_kotlin//:home",
-            "@com_github_jetbrains_kotlin//:kotlinc",
             "@local_jdk//:jdk",
             dep_label
         ],
