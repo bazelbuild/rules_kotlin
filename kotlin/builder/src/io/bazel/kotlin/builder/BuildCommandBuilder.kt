@@ -146,8 +146,8 @@ private class DefaultBuildCommandBuilder @Inject constructor(
     override fun withSources(command: BuilderCommand, sources: Iterator<String>): BuilderCommand =
         command.updateBuilder { builder ->
             sources.partitionSources(
-                { builder.inputsBuilder.addGeneratedKotlinSources(it) },
-                { builder.inputsBuilder.addGeneratedJavaSources(it) })
+                { builder.inputsBuilder.addKotlinSources(it) },
+                { builder.inputsBuilder.addJavaSources(it) })
         }
 
 
