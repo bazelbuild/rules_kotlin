@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """This file contains rules used to bootstrap the compiler repository."""
-
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//kotlin/internal:kt.bzl", "kt")
 load("//kotlin/internal:rules.bzl", _kt_jvm_import_impl="kt_jvm_import_impl")
 
@@ -57,7 +57,7 @@ kt_toolchain_ide_info = rule(
 
 def github_archive(name, repo, commit, build_file_content = None):
     if build_file_content:
-        native.new_http_archive(
+        http_archive(
             name = name,
             strip_prefix = "%s-%s" % (repo.split("/")[1], commit),
             url = "https://github.com/%s/archive/%s.zip" % (repo, commit),
@@ -65,7 +65,7 @@ def github_archive(name, repo, commit, build_file_content = None):
             build_file_content = build_file_content,
         )
     else:
-        native.http_archive(
+        http_archive(
             name = name,
             strip_prefix = "%s-%s" % (repo.split("/")[1], commit),
             url = "https://github.com/%s/archive/%s.zip" % (repo, commit),
