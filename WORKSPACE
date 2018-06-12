@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 workspace(name="io_bazel_rules_kotlin")
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl",
+     "git_repository", "new_git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
+
 load("//kotlin/internal:bootstrap.bzl",github_archive="github_archive")
 
 github_archive(
