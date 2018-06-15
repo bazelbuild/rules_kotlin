@@ -39,7 +39,10 @@ java_library(
 kt_jvm_library(
     name = "coffee_lib",
     srcs = glob(["src/**"]),
-    deps = [":dagger_lib"],
+    deps = [
+        ":dagger_lib",
+        "//third_party:kotlinx_coroutines"
+    ],
 )
 
 java_binary(

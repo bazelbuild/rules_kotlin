@@ -5,6 +5,7 @@ options:
     - id: "mavencentral"
       type: "default"
       url: https://repo.maven.apache.org/maven2/
+  resolverType: coursier
   transitivity: runtime_deps
   versionConflictPolicy: highest
   namePrefix: "io_bazel_rules_kotlin_"
@@ -44,6 +45,11 @@ dependencies:
       modules: ["", "compiler", "producers"]
       lang: "java"
       version: "2.9"
+  org.jetbrains.kotlinx:
+    kotlinx-coroutines:
+      modules: ["core"]
+      lang: "java"
+      version : "0.23.1"
 
 replacements:
   org.jetbrains.kotlin:

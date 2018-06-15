@@ -16,19 +16,23 @@
 package coffee
 
 import dagger.Lazy
-
+import kotlinx.coroutines.experimental.DefaultDispatcher
+import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 
 class CoffeeMaker @Inject internal constructor(
-        // Create a possibly costly heater only when we use it.
-        private val heater: Lazy<Heater>,
-        private val pump: Pump
+    // Create a possibly costly heater only when we use it.
+    private val heater: Lazy<Heater>,
+    private val pump: Pump
 ) {
 
-    fun brew() {
-        heater.get().on()
-        pump.pump()
-        println(" [_]P coffee! [_]P ")
-        heater.get().off()
+    suspend fun brew() {
+        // this function is async to verify intellij support for coroutines.
+        withContext(DefaultDispatcher) {
+            heater.get().on()
+            pump.pump()
+            println(" [_]P coffee! [_]P ")
+            heater.get().off()
+        }
     }
 }
