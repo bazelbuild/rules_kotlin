@@ -34,3 +34,15 @@ java_library(
 )
 
 
+
+java_library(
+    name = "kotlin_stdlib_common",
+    exports = [
+        "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlin/kotlin_stdlib_common"
+    ],
+    visibility = [
+        "//visibility:public"
+    ]
+)
+
+

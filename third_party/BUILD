@@ -12,9 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
+load("//kotlin:kotlin.bzl", "kt_jvm_import")
 
 java_binary(
     name = "bazel_deps",
     main_class = "com.github.johnynek.bazel_deps.ParseProject",
     runtime_deps = ["@bazel_deps//jar"],
+)
+
+kt_jvm_import(
+    name = "kotlinx_coroutines",
+    jars = [
+        "@io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core//jar",
+    ],
 )
