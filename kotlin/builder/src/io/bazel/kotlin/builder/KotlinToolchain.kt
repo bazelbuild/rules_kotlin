@@ -137,7 +137,7 @@ class KotlinToolchain constructor(
             val compilerClass = classloader.loadClass("io.bazel.kotlin.compiler.BazelK2JVMCompiler")
             val exitCodeClass = classloader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
-            val compiler = compilerClass.newInstance()
+            val compiler = compilerClass.getConstructor().newInstance()
             val execMethod = compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
             val getCodeMethod = exitCodeClass.getMethod("getCode")
 

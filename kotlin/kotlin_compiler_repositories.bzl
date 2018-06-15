@@ -24,6 +24,11 @@ load(
 )
 
 KOTLIN_RELEASES = {
+    "1.2.50": {
+      "version": "1.2.50",
+      "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.50/kotlin-compiler-1.2.50.zip",
+      "sha256": "bc062c303b376711097a27bda4c28047eda0744e9acc64b9db640c19c7d171a9"
+    },
     "1.2.41": {
       "version": "1.2.41",
       "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.41/kotlin-compiler-1.2.41.zip",
@@ -167,7 +172,7 @@ sh_binary(
 exports_files(["src"])
 """
 
-KOTLIN_CURRENT_RELEASE = "1.2.41"
+KOTLIN_CURRENT_RELEASE = "1.2.50"
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
