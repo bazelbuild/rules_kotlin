@@ -15,7 +15,6 @@
  */
 package io.bazel.kotlin.builder
 
-import com.google.common.collect.ImmutableList
 import com.google.inject.Inject
 import com.google.inject.Provider
 import com.google.inject.Singleton
@@ -56,7 +55,7 @@ class KotlinBuilder @Inject internal constructor(
 
     private fun prepareForExecution(originalCommand: KotlinModel.BuilderCommand): KotlinModel.BuilderCommand {
         ensureOutputDirectories(originalCommand)
-        return commandBuilder.withSources(originalCommand, unpackSources(originalCommand))
+        return expandWithSourceJarSources(originalCommand)
     }
 
     private fun ensureOutputDirectories(command: KotlinModel.BuilderCommand) {
@@ -65,32 +64,39 @@ class KotlinBuilder @Inject internal constructor(
         Files.createDirectories(Paths.get(command.outputs.sourceGenDir))
     }
 
-    private fun unpackSources(command: KotlinModel.BuilderCommand): Iterator<String> {
+    /**
+     * If any sourcejars were provided expand the jars sources and create a new [KotlinModel.BuilderCommand] with the
+     * Java and Kotlin sources merged in.
+     */
+    private fun expandWithSourceJarSources(command: KotlinModel.BuilderCommand): KotlinModel.BuilderCommand =
         if (command.inputs.sourceJarsList.isEmpty()) {
-            ImmutableList.of<String>().iterator()
-        }
-
-        val sourceUnpackDirectory =
-            Paths.get(command.outputs.tempDirectory).let {
-                it.resolve("_srcjars").toFile().let {
-                    try {
-                        it.mkdirs(); it
-                    } catch (ex: Exception) {
-                        throw RuntimeException("could not create unpack directory at $it", ex)
+            command
+        } else {
+            val sourceUnpackDirectory =
+                Paths.get(command.outputs.tempDirectory).let {
+                    it.resolve("_srcjars").toFile().let {
+                        try {
+                            it.mkdirs(); it
+                        } catch (ex: Exception) {
+                            throw RuntimeException("could not create unpack directory at $it", ex)
+                        }
                     }
                 }
+
+            for (sourceJar in command.inputs.sourceJarsList) {
+                jarToolInvoker.invoke(
+                    listOf("xf", Paths.get(sourceJar).toAbsolutePath().toString()), sourceUnpackDirectory)
             }
 
-        for (sourceJar in command.inputs.sourceJarsList) {
-            jarToolInvoker.invoke(listOf("xf", Paths.get(sourceJar).toAbsolutePath().toString()), sourceUnpackDirectory)
+            commandBuilder.withSources(
+                command,
+                sourceUnpackDirectory
+                    .walk()
+                    .filter { it.name.endsWith(".kt") || it.name.endsWith(".java") }
+                    .map { it.toString() }
+                    .iterator()
+            )
         }
-
-        return sourceUnpackDirectory
-            .walk()
-            .filter { it.name.endsWith(".kt") || it.name.endsWith(".java") }
-            .map { it.toString() }
-            .iterator()
-    }
 
     override fun apply(args: List<String>): Int {
         return execute(args)

@@ -25,38 +25,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-fun executeAndWaitOutput(timeoutSeconds: Int, vararg command: String): List<String> {
-    try {
-        val builder = ProcessBuilder(*command).redirectError(ProcessBuilder.Redirect.INHERIT)
-        val process = builder.start()
-        val al = ArrayList<String>()
-        var streamReader: CompletableFuture<Void>? = null
-        try {
-            BufferedReader(InputStreamReader(process.inputStream)).use { output ->
-                streamReader = CompletableFuture.runAsync {
-                    while (true) {
-                        try {
-                            val line = output.readLine() ?: break
-                            al.add(line)
-                        } catch (e: IOException) {
-                            throw UncheckedIOException(e)
-                        }
-
-                    }
-                }
-                executeAwait(timeoutSeconds, process)
-                return al
-            }
-        } finally {
-            if (streamReader != null && !streamReader!!.isDone) {
-                streamReader!!.cancel(true)
-            }
-        }
-    } catch (e: Exception) {
-        throw RuntimeException(e)
-    }
-}
-
 private fun executeAwait(timeoutSeconds: Int, process: Process): Int {
     try {
         if (!process.waitFor(timeoutSeconds.toLong(), TimeUnit.SECONDS)) {
@@ -93,10 +61,6 @@ fun executeAndAwait(timeoutSeconds: Int, directory: File? = null, args: List<Str
 
 private fun BufferedReader.drainTo(pw: PrintStream) {
     lines().forEach(pw::println); close()
-}
-
-fun Path.purgeDirectory() {
-    toFile().listFiles().forEach { check(it.deleteRecursively()) { "$it could not be deleted" } }
 }
 
 fun Path.resolveVerified(vararg parts: String): File = resolve(Paths.get(parts[0], *Arrays.copyOfRange(parts, 1, parts.size))).verified()
