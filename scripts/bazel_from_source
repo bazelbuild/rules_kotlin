@@ -1,0 +1,42 @@
+# Copyright 2018 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#!/usr/bin/env bash
+
+set -o errexit
+
+function _exit {
+    echo $1
+    exit 1
+}
+
+# The script assumes that the bazel source code is checked out in the GOPATH
+: ${BAZEL_SOURCE:=${GOPATH?GOPATH not set}/src/github.com/bazelbuild/bazel}
+HEAD_BAZEL=${BAZEL_SOURCE}/bazel-bin/src/bazel
+
+if [ ! -d ${BAZEL_SOURCE} ]; then _exit "bazel source directory does not exist ${BAZEL_SOURCE}"; fi
+
+case ${1} in
+    _build)
+        pushd ${BAZEL_SOURCE}
+        bazel build //src:bazel
+        if [ $? -ne 0 ]; then
+            _exit "could not build bazel"
+        fi
+        bazel shutdown
+        ;;
+    *)
+        if [ ! -f  ${HEAD_BAZEL} ]; then _exit "bazel binary not found at ${HEAD_BAZEL} run ${0} _build"; fi
+        ${HEAD_BAZEL} $@
+        ;;
+esac
