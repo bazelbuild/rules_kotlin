@@ -36,10 +36,33 @@ java_library(
     exported_plugins = ["dagger_plugin"]
 )
 
+# Generate a srcjar to validate intellij plugin correctly attaches it.
+genrule(
+    name = "tea_lib_src",
+    tools = ["@local_jdk//:jdk"],
+    cmd = """
+cat << EOF > TeaPot.kt
+package tea
+
+object TeaPot {
+    fun isEmpty() = true
+}
+EOF
+external/local_jdk/bin/jar -cf $@ TeaPot.kt
+""",
+    outs = ["donkey.srcjar"]
+)
+
+kt_jvm_library(
+    name = "tea_lib",
+    srcs = [":tea_lib_src"]
+)
+
 kt_jvm_library(
     name = "coffee_lib",
     srcs = glob(["src/**"]),
     deps = [
+        ":tea_lib",
         ":dagger_lib",
         "//third_party:kotlinx_coroutines"
     ],

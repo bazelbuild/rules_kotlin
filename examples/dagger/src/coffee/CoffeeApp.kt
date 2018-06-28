@@ -18,6 +18,7 @@ package coffee
 import dagger.Component
 import kotlinx.coroutines.experimental.runBlocking
 import javax.inject.Singleton
+import tea.TeaPot
 
 class CoffeeApp {
     @Singleton
@@ -29,9 +30,11 @@ class CoffeeApp {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
-            runBlocking {
-                coffeeShop.maker().brew()
+            if(TeaPot.isEmpty()) {
+                val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
+                runBlocking {
+                    coffeeShop.maker().brew()
+                }
             }
         }
     }
