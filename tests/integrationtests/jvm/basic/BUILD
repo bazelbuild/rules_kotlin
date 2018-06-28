@@ -105,7 +105,7 @@ kt_jvm_library(
 
 # This test should be explicetly executed as module name mangling handling could regress otherwise.
 kt_jvm_test(
-    name = "test_friends_tests",
+    name = "friends_tests",
     srcs = ["test_friends/TestFriendsTest.kt"],
     test_class = "test.TestFriendsTest",
     deps = [

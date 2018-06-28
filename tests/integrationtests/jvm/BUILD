@@ -22,8 +22,24 @@ kt_it_assertion_test(
 )
 
 kt_it_assertion_test(
-    name = "annoation_processing_tests",
+    name = "kapt_tests",
     cases = "//tests/integrationtests/jvm/kapt:cases",
-    test_class="io.bazel.kotlin.testing.jvm.JvmAnnotationProcessingFunctionalTests",
+    test_class="io.bazel.kotlin.testing.jvm.KaptTests",
     data = [  "//examples/dagger:coffee_app"]
+)
+
+kt_it_assertion_test(
+    name = "example_tests",
+    test_class="io.bazel.kotlin.testing.jvm.JvmExampleTests",
+    data = [  "//examples/dagger:coffee_app"]
+)
+
+test_suite(
+    name = "jvm",
+    tests = [
+        ":basic_tests",
+        ":kapt_tests",
+        ":example_tests",
+        "//tests/integrationtests/jvm/basic:friends_tests"
+    ]
 )

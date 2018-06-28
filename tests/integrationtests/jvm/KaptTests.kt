@@ -18,7 +18,7 @@ package io.bazel.kotlin.testing.jvm
 import io.bazel.kotlin.testing.AssertionTestCase
 import org.junit.Test
 
-class JvmAnnotationProcessingFunctionalTests : AssertionTestCase("tests/integrationtests/jvm/kapt") {
+class KaptTests : AssertionTestCase("tests/integrationtests/jvm/kapt") {
     @Test
     fun testKotlinOnlyAnnotationProcessing() {
         jarTestCase("ap_kotlin.jar", description = "annotation processing should work") {
@@ -77,10 +77,5 @@ class JvmAnnotationProcessingFunctionalTests : AssertionTestCase("tests/integrat
                     "tests/smoke/kapt/kotlin/AutoValue_TestKtValueNoReferences.class"
             )
         }
-    }
-
-    @Test
-    fun daggerExampleIsRunnable() {
-        assertExecutableRunfileSucceeds("//examples/dagger/coffee_app", description = "the dagger coffee_app should execute succesfully")
     }
 }

@@ -16,8 +16,6 @@ package(default_visibility=["//tests/integrationtests:__subpackages__"])
 test_suite(
     name = "integrationtests",
     tests=[
-        "//tests/integrationtests/jvm:basic_tests",
-        "//tests/integrationtests/jvm:annoation_processing_tests",
-        "//tests/integrationtests/jvm/basic:test_friends_tests"
+        "//tests/integrationtests/jvm"
     ]
 )
