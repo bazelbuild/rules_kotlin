@@ -32,30 +32,21 @@ class KotlinBuilder @Inject internal constructor(
     private val jarToolInvoker: KotlinToolchain.JarToolInvoker,
     private val compilationExector: KotlinJvmCompilationExecutor
 ) : CommandLineProgram {
-    fun execute(command: KotlinModel.BuilderCommand): Int =
-        prepareForExecution(command).let { doExecute(it) }
-
     fun execute(args: List<String>): Int =
-        execute(ArgMaps.from(args))
+        ArgMaps.from(args).let { execute(it) }
 
     fun execute(args: ArgMap): Int =
-        prepareForExecution(commandBuilder.fromInput(args)).let {
-            execute(it)
-        }
+        commandBuilder.fromInput(args).let { execute(it) }
 
-
-    private fun doExecute(command: KotlinModel.BuilderCommand): Int {
+    fun execute(command: KotlinModel.BuilderCommand): Int {
+        ensureOutputDirectories(command)
+        val updatedCommand = expandWithSourceJarSources(command)
         return try {
-            compilationExector.compile(command)
+            compilationExector.compile(updatedCommand)
             0
         } catch (ex: CompilationStatusException) {
             ex.status
         }
-    }
-
-    private fun prepareForExecution(originalCommand: KotlinModel.BuilderCommand): KotlinModel.BuilderCommand {
-        ensureOutputDirectories(originalCommand)
-        return expandWithSourceJarSources(originalCommand)
     }
 
     private fun ensureOutputDirectories(command: KotlinModel.BuilderCommand) {
@@ -82,7 +73,6 @@ class KotlinBuilder @Inject internal constructor(
                         }
                     }
                 }
-
             for (sourceJar in command.inputs.sourceJarsList) {
                 jarToolInvoker.invoke(
                     listOf("xf", Paths.get(sourceJar).toAbsolutePath().toString()), sourceUnpackDirectory)
