@@ -19,13 +19,15 @@ _TEST_COMMON_DEPS=[
     "//third_party/jvm/junit:junit"
 ]
 
-def kt_it_assertion_test(name, cases, test_class, data = [], deps=[]):
+def kt_it_assertion_test(name, test_class, cases=None, data = [], deps=[]):
     parts=test_class.split(".")
+    if cases:
+        data = data + [cases]
     kt_jvm_test(
         name=name,
         srcs=["%s.kt" % parts[len(parts)-1]],
         deps = _TEST_COMMON_DEPS + deps,
         test_class=test_class,
-        data=[cases] + data,
+        data=data,
         visibility=["//visibility:private"]
     )
