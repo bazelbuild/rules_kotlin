@@ -25,7 +25,5 @@ test_sources:
   */unittests/*
   */integrationtests/*
 
-kotlin_language_version: 1.2
-
 additional_languages:
   kotlin
