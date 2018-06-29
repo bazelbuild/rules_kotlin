@@ -19,6 +19,7 @@ import com.google.inject.ImplementedBy
 import com.google.inject.Inject
 import io.bazel.kotlin.builder.CompilationStatusException
 import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.model.KotlinModel.BuilderCommand
 
 @ImplementedBy(DefaultJavaCompiler::class)
@@ -37,8 +38,14 @@ private class DefaultJavaCompiler @Inject constructor(
                 "-cp", "${outputs.classDirectory}/:${outputs.tempDirectory}/:${inputs.joinedClasspath}",
                 "-d", outputs.classDirectory
             ).let {
-                // Kotlin takes care of annotation processing.
-                it.add("-proc:none")
+                it.addAll(
+                    // Kotlin takes care of annotation processing.
+                    "-proc:none",
+                    // Disable option linting, it will complain about the source.
+                    "-Xlint:-options",
+                    "-source", command.info.toolchainInfo.jvm.jvmTarget,
+                    "-target", command.info.toolchainInfo.jvm.jvmTarget
+                )
                 it.addAll(inputs.javaSourcesList)
                 it.addAll(inputs.generatedJavaSourcesList)
                 it.toTypedArray()

@@ -22,6 +22,10 @@ set -o errexit
 # The version of the jdk to use as the host_javabase. The path of the jdk is Passed as a startup flag.
 : ${HOST_JAVA_BASE_VERSION:="9"}
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+WORKSPACE_DIR=$(dirname ${SCRIPT_DIR})
+BAZEL_RC=${WORKSPACE_DIR}/.bazelrc
+
 function _exit { echo $1; exit 1; }
 function _jdk_path { /usr/libexec/java_home -v $1; }
 
@@ -32,12 +36,11 @@ function _head_bazel {
     local hjb="$(_jdk_path ${HOST_JAVA_BASE_VERSION})"
     export JAVA_HOME="$(_jdk_path ${JAVA_BASE_VERSION})"
 
-    set -x
     ${head_bazel}\
         --host_javabase=${hjb}\
-        ${1}\
-            --verbose_failures\
-            $2
+        --bazelrc=${BAZEL_RC}\
+        --max_idle_secs=600\
+        ${1} $2
 }
 
 function _build_head_bazel {

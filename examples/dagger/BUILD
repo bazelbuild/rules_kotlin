@@ -49,6 +49,7 @@ object TeaPot {
 }
 EOF
 external/local_jdk/bin/jar -cf $@ TeaPot.kt
+rm TeaPot.kt
 """,
     outs = ["donkey.srcjar"]
 )

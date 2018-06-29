@@ -17,11 +17,12 @@
 
 package io.bazel.kotlin.builder.utils
 
-import java.io.*
+import java.io.BufferedReader
+import java.io.File
+import java.io.PrintStream
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -63,12 +64,11 @@ private fun BufferedReader.drainTo(pw: PrintStream) {
     lines().forEach(pw::println); close()
 }
 
-fun Path.resolveVerified(vararg parts: String): File = resolve(Paths.get(parts[0], *Arrays.copyOfRange(parts, 1, parts.size))).verified()
+fun Path.resolveVerified(vararg parts: String): File =
+    resolve(Paths.get(parts[0], *Arrays.copyOfRange(parts, 1, parts.size))).verified()
 
-/**
- * Return a stream of paths that are known to exists relative to this location.
- */
-fun Path.verifiedRelativeFiles(vararg paths: Path): List<File> = paths.map { relative -> resolve(relative).verified() }
+fun Path.resolveVerifiedToAbsoluteString(vararg parts: String): String =
+    resolveVerified(*parts).absolutePath.toString()
 
 fun Path.verified(): File = this.toFile().also { check(it.exists()) { "file did not exist: $this" } }
 

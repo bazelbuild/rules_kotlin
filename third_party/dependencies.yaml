@@ -44,7 +44,7 @@ dependencies:
     dagger:
       modules: ["", "compiler", "producers"]
       lang: "java"
-      version: "2.9"
+      version: "2.16"
   org.jetbrains.kotlinx:
     kotlinx-coroutines:
       modules: ["core"]
