@@ -25,7 +25,6 @@ kt_it_assertion_test(
     name = "kapt_tests",
     cases = "//tests/integrationtests/jvm/kapt:cases",
     test_class="io.bazel.kotlin.testing.jvm.KaptTests",
-    data = [  "//examples/dagger:coffee_app"]
 )
 
 kt_it_assertion_test(

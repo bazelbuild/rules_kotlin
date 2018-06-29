@@ -22,6 +22,7 @@ import io.bazel.kotlin.builder.CompilationException
 import io.bazel.kotlin.builder.CompilationStatusException
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.mode.jvm.utils.JdepsParser
+import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.rootCause
 import io.bazel.kotlin.model.KotlinModel
 import java.io.ByteArrayOutputStream
@@ -39,7 +40,8 @@ private class DefaultJDepsGenerator @Inject constructor(
     toolchain: KotlinToolchain,
     val invoker: KotlinToolchain.JDepsInvoker
 ) : JDepsGenerator {
-    private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(toolchain.kotlinLibraryDirectory, *toolchain.kotlinStandardLibraries)
+    private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(
+        toolchain.kotlinHome.resolveVerified("lib").toPath(), *toolchain.kotlinStandardLibraries.toTypedArray())
     override fun generateJDeps(command: KotlinModel.BuilderCommand) {
         val jdepsContent =
             if (command.inputs.classpathList.isEmpty()) {
@@ -50,7 +52,11 @@ private class DefaultJDepsGenerator @Inject constructor(
             } else {
                 ByteArrayOutputStream().use { out ->
                     PrintWriter(out).use { writer ->
-                        val res = invoker.run(arrayOf("-cp", command.inputs.joinedClasspath, command.outputs.output), writer)
+                        val res = invoker.run(
+                            arrayOf(
+                                "-cp", command.inputs.joinedClasspath,
+                                command.outputs.output),
+                            writer)
                         out.toByteArray().inputStream().bufferedReader().readLines().let {
                             if (res != 0) {
                                 throw CompilationStatusException("could not run jdeps tool", res, it)

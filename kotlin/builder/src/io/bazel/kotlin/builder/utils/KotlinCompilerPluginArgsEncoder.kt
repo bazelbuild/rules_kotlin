@@ -26,17 +26,46 @@ import java.util.*
 
 @ImplementedBy(DefaultKotlinCompilerPluginArgsEncoder::class)
 interface KotlinCompilerPluginArgsEncoder {
-    fun encode(
-        outputs: KotlinModel.BuilderCommand.Outputs,
-        plugins: KotlinModel.CompilerPlugins
-    ): List<String>
+    fun encode(command: KotlinModel.BuilderCommandOrBuilder): List<String>
 }
 
 class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
     @CompilerPlugin.Kapt3
     private val kapt3: CompilerPlugin
 ) : KotlinCompilerPluginArgsEncoder {
+    companion object {
+        private fun encodeMap(options: Map<String, String>): String {
+            val os = ByteArrayOutputStream()
+            val oos = ObjectOutputStream(os)
 
+            oos.writeInt(options.size)
+            for ((key, value) in options.entries) {
+                oos.writeUTF(key)
+                oos.writeUTF(value)
+            }
+
+            oos.flush()
+            return Base64.getEncoder().encodeToString(os.toByteArray())
+        }
+
+        private fun encodeMultiMap(options: Map<String, List<String>>): String {
+            val os = ByteArrayOutputStream()
+            val oos = ObjectOutputStream(os)
+
+            oos.writeInt(options.size)
+            for ((key, values) in options.entries) {
+                oos.writeUTF(key)
+
+                oos.writeInt(values.size)
+                for (value in values) {
+                    oos.writeUTF(value)
+                }
+            }
+
+            oos.flush()
+            return Base64.getEncoder().encodeToString(os.toByteArray())
+        }
+    }
     /**
      * Plugin using the undocumented encoding format for kapt3
      */
@@ -57,42 +86,27 @@ class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
         fun encode(): ImmutableList<String> =
             ImmutableList.of(
                 "-Xplugin=${kapt3.jarPath}",
-                "-P", "plugin:${kapt3.id}:configuration=${encodePluginOptions(tally)}"
+                "-P", "plugin:${kapt3.id}:configuration=${encodeMultiMap(tally)}"
             )
-
-        private fun encodePluginOptions(options: Map<String, List<String>>): String {
-            val os = ByteArrayOutputStream()
-            val oos = ObjectOutputStream(os)
-
-            oos.writeInt(options.size)
-            for ((key, values) in options.entries) {
-                oos.writeUTF(key)
-
-                oos.writeInt(values.size)
-                for (value in values) {
-                    oos.writeUTF(value)
-                }
-            }
-
-            oos.flush()
-            return Base64.getEncoder().encodeToString(os.toByteArray())
-        }
     }
 
     override fun encode(
-        outputs: KotlinModel.BuilderCommand.Outputs,
-        plugins: KotlinModel.CompilerPlugins
-    ): List<String> =
-        plugins.takeIf { it.annotationProcessorsList.isNotEmpty() }?.let { plugin ->
-            PluginArgs().let { arg ->
-                arg["sources"] = outputs.sourceGenDir.toString()
-                arg["classes"] = outputs.classDirectory.toString()
-                arg["stubs"] = outputs.tempDirectory.toString()
-                arg["incrementalData"] = outputs.tempDirectory.toString()
+        command: KotlinModel.BuilderCommandOrBuilder
+    ): List<String> {
+        val javacArgs = mutableMapOf<String, String>(
+            "-target" to command.info.toolchainInfo.jvm.jvmTarget
+        )
 
+        return command.info.plugins.takeIf { it.annotationProcessorsList.isNotEmpty() }?.let { plugin ->
+            PluginArgs().let { arg ->
+                arg["sources"] = command.outputs.sourceGenDir.toString()
+                arg["classes"] = command.outputs.classDirectory.toString()
+                arg["stubs"] = command.outputs.tempDirectory.toString()
+                arg["incrementalData"] = command.outputs.tempDirectory.toString()
+                arg["javacArguments"] = javacArgs.let(::encodeMap)
                 arg["aptMode"] = "stubsAndApt"
                 arg["correctErrorTypes"] = "true"
-//                  arg["verbose"] = "true"
+//                arg["verbose"] = "true"
 
                 arg["processors"] = plugin.annotationProcessorsList
                     .filter { it.processorClass.isNotEmpty() }
@@ -101,4 +115,5 @@ class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
                 arg.encode()
             }
         }?.let { ImmutableList.copyOf(it) } ?: ImmutableList.of()
+    }
 }

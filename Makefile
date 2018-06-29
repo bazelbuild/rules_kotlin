@@ -1,5 +1,10 @@
-test.smoke:
+test:
 	bazel test all_tests
+
+test.no_worker:
+	bazel clean
+	bazel shutdown
+	bazel test --strategy=KotlinCompile=local //:all_tests
 
 reformat:
 	buildifier -mode=fix -v kotlin/*.bzl

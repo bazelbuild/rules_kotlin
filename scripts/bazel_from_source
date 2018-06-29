@@ -1,0 +1,70 @@
+# Copyright 2018 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#!/usr/bin/env bash
+# Note: Written on a mac please make it compatible with linux if needed.
+set -o errexit
+
+# The script assumes that the bazel source code is checked out in the GOPATH
+: ${BAZEL_SOURCE:=${GOPATH?GOPATH not set}/src/github.com/bazelbuild/bazel}
+# The version of the jdk to use target javabase. The path of the jdk is set as the JAVA_HOME
+: ${JAVA_BASE_VERSION:="1.8"}
+# The version of the jdk to use as the host_javabase. The path of the jdk is Passed as a startup flag.
+: ${HOST_JAVA_BASE_VERSION:="9"}
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+WORKSPACE_DIR=$(dirname ${SCRIPT_DIR})
+BAZEL_RC=${WORKSPACE_DIR}/.bazelrc
+
+function _exit { echo $1; exit 1; }
+function _jdk_path { /usr/libexec/java_home -v $1; }
+
+function _head_bazel {
+    local head_bazel=${BAZEL_SOURCE}/bazel-bin/src/bazel
+    if [ ! -f  ${head_bazel} ]; then _exit "bazel binary not found at ${head_bazel} run ${0} _build"; fi
+
+    local hjb="$(_jdk_path ${HOST_JAVA_BASE_VERSION})"
+    export JAVA_HOME="$(_jdk_path ${JAVA_BASE_VERSION})"
+
+    ${head_bazel}\
+        --host_javabase=${hjb}\
+        --bazelrc=${BAZEL_RC}\
+        --max_idle_secs=600\
+        ${1} $2
+}
+
+function _build_head_bazel {
+    pushd ${BAZEL_SOURCE}
+    bazel build //src:bazel
+    if [ $? -ne 0 ]; then _exit "could not build bazel"; fi
+    bazel shutdown
+}
+
+function _main {
+    if [ ! -d ${BAZEL_SOURCE} ]; then _exit "bazel source directory does not exist ${BAZEL_SOURCE}"; fi
+
+    local CMD=$1
+    shift 1
+
+    case ${CMD} in
+        # compile bazel from head
+        _build)
+            _build_head_bazel
+            ;;
+        *)
+            _head_bazel ${CMD} $@
+            ;;
+    esac
+}
+
+_main $@
