@@ -131,7 +131,7 @@ private class DefaultBuildCommandBuilder @Inject constructor(
                 }
 
                 if (plugins.annotationProcessorsList.isNotEmpty()) {
-                    addAllEncodedPluginDescriptors(pluginEncoder.encode(root.outputs, root.info.plugins))
+                    addAllEncodedPluginDescriptors(pluginEncoder.encode(root))
                 }
 
                 label.split(":").also {
@@ -174,7 +174,5 @@ private class DefaultBuildCommandBuilder @Inject constructor(
             }
         }
     }
-
-    private fun String?.supplyIfNullOrBlank(s: () -> String): String = this?.takeIf { it.isNotBlank() } ?: s()
 }
 

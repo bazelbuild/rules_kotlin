@@ -10,3 +10,15 @@ java_library(
 )
 
 
+
+java_library(
+    name = "javac_shaded",
+    exports = [
+        "//external:jar/io_bazel_rules_kotlin_com/google/errorprone/javac_shaded"
+    ],
+    visibility = [
+        "//visibility:public"
+    ]
+)
+
+
