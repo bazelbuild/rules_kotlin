@@ -51,7 +51,7 @@ EOF
 external/local_jdk/bin/jar -cf $@ TeaPot.kt
 rm TeaPot.kt
 """,
-    outs = ["donkey.srcjar"]
+    outs = ["test.srcjar"]
 )
 
 kt_jvm_library(
