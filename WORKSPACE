@@ -20,18 +20,32 @@ github_archive(
     commit = "106ffc04be1abf3ff3399f54ccf149815b287dd9",
 )
 
-git_repository(
-    name = "io_bazel_rules_sass",
-    remote = "https://github.com/bazelbuild/rules_sass.git",
-    tag = "0.0.3",
+github_archive(
+    name = "build_bazel_rules_nodejs",
+    repo = "bazelbuild/rules_nodejs",
+    commit = "df3d2f577ec57ef5a622c809288a29545470c15d",
 )
-load("@io_bazel_rules_sass//sass:sass.bzl", "sass_repositories")
+load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
+node_repositories(package_json = [])
+
+github_archive(
+    name = "io_bazel_rules_sass",
+    repo = "bazelbuild/rules_sass",
+    commit = "38989d69ef3ba5847640f007fee5cc489be6ede9"
+)
+load("@io_bazel_rules_sass//sass:sass_repositories.bzl", "sass_repositories")
 sass_repositories()
 
-git_repository(
+github_archive(
+    name = "bazel_skylib",
+    repo = "bazelbuild/bazel-skylib",
+    commit = "6301f974f02350fe973d8631cf1bb87ab8d2a2bd"
+)
+
+github_archive(
     name = "io_bazel_skydoc",
-    remote = "https://github.com/bazelbuild/skydoc.git",
-    tag = "0.1.4"
+    repo = "bazelbuild/skydoc",
+    commit="f531844d137c7accc44d841c08a2a2a366688571"
 )
 load("@io_bazel_skydoc//skylark:skylark.bzl", "skydoc_repositories")
 skydoc_repositories()
