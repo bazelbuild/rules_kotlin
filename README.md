@@ -29,7 +29,10 @@ Key changes:
 * Persistent worker support.
 * Mixed-Mode compilation (compile Java and Kotlin in one pass).
 
-# Usage
+# Quick Guide
+Consult the generated [documentation](https://bazelbuild.github.io/rules_kotlin). This section just contains a quick 
+overview. 
+
 
 ## WORKSPACE
 In the project's `WORKSPACE`, declare the external repository and initialize the toolchains, like
