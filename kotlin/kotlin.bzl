@@ -119,20 +119,6 @@ load(
 )
 load("//third_party/jvm:workspace.bzl", _maven_dependencies="maven_dependencies")
 
-_kt_compile_filetypes = FileType([
-    # source jars these will be unpacked by the compiler.
-    ".srcjar",
-    # The files types that may be passed to the core Kotlin compile rule.
-    ".kt",
-    ".java",
-])
-
-_jar_filetype = FileType([".jar"])
-
-_srcjar_filetype = FileType([
-    ".jar",
-    "-sources.jar",
-])
 # _kt.defs.KT_COMPILER_REPO can't be used till skydoc is removed
 KT_COMPILER_REPO="com_github_jetbrains_kotlin"
 
@@ -208,7 +194,7 @@ _implicit_deps = {
 _common_attr = dict(_implicit_deps.items() + {
     "srcs": attr.label_list(
         default = [],
-        allow_files = _kt_compile_filetypes,
+        allow_files = [".srcjar", ".kt", ".java"],
     ),
     "deps": attr.label_list(aspects = [_kt_jvm_plugin_aspect]),
     "runtime_deps": attr.label_list(default = []),
