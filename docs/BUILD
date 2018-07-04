@@ -1,4 +1,5 @@
-load("@io_bazel_skydoc//skylark:skylark.bzl", "skylark_doc", "skylark_library" )
+load("@bazel_skylib//:skylark_library.bzl", "skylark_library")
+load("@io_bazel_skydoc//skylark:skylark.bzl", "skylark_doc" )
 
 skylark_library(
     name = "doc_public",
@@ -14,7 +15,7 @@ skylark_library(
 
 skylark_doc(
     name = "docs",
-    deps = [
+    srcs = [
         ":doc_public",
         ":doc_toolchains"
     ],

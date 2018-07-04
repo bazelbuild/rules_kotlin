@@ -1,3 +1,6 @@
 build --strategy=KotlinCompile=worker
 build --test_output=errors
 build --verbose_failures
+
+# Cannot use this until skydoc removes filetypes as well.
+# build --incompatible_disallow_filetype
