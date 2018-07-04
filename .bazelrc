@@ -4,3 +4,5 @@ build --verbose_failures
 
 # Cannot use this until skydoc removes filetypes as well.
 # build --incompatible_disallow_filetype
+build --incompatible_remove_native_git_repository
+build --incompatible_remove_native_http_archive

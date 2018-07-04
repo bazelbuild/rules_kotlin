@@ -15,6 +15,7 @@
 
 load("//kotlin/internal:kt.bzl", "kt")
 load("//kotlin/internal:rules.bzl", _kt_jvm_import_impl="kt_jvm_import_impl")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive="http_archive")
 
 kotlin_stdlib = rule(
     attrs = {
@@ -57,7 +58,7 @@ kt_toolchain_ide_info = rule(
 
 def github_archive(name, repo, commit, build_file_content = None):
     if build_file_content:
-        native.new_http_archive(
+        _http_archive(
             name = name,
             strip_prefix = "%s-%s" % (repo.split("/")[1], commit),
             url = "https://github.com/%s/archive/%s.zip" % (repo, commit),
@@ -65,7 +66,7 @@ def github_archive(name, repo, commit, build_file_content = None):
             build_file_content = build_file_content,
         )
     else:
-        native.http_archive(
+        _http_archive(
             name = name,
             strip_prefix = "%s-%s" % (repo.split("/")[1], commit),
             url = "https://github.com/%s/archive/%s.zip" % (repo, commit),
