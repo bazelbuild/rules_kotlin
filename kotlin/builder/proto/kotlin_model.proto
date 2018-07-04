@@ -44,7 +44,7 @@ message KotlinToolchainInfo {
 
     message Jvm {
         // oneof "1.6", or "1.8"
-        string jvm_target = 4;
+        string jvm_target = 1;
     }
 
     Common common = 1;
