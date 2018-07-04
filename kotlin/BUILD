@@ -14,7 +14,6 @@
 package(default_visibility = ["//visibility:public"])
 
 load("//kotlin:toolchains.bzl", "define_kt_toolchain")
-load("//kotlin/internal:bootstrap.bzl", "kt_toolchain_ide_info")
 
 toolchain_type(
     name = "kt_toolchain_type",
@@ -22,7 +21,5 @@ toolchain_type(
 )
 
 define_kt_toolchain(name = "default_toolchain")
-
-kt_toolchain_ide_info(name="kt_toolchain_ide_info")
 
 exports_files(["toolchains.bzl", "kotlin.bzl"], visibility=["//docs:__subpackages__"])

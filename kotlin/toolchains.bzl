@@ -45,14 +45,14 @@ register_toolchains("//:custom_toolchain")
 
 # The toolchain rules are not made private, at least the jvm ones so that they may be introspected in Intelij.
 _common_attrs = {
-    "language_version": attr.string(
+    "kotlin_language_version": attr.string(
         default = "1.2",
         values = [
             "1.1",
             "1.2",
         ],
     ),
-    "api_version": attr.string(
+    "kotlin_api_version": attr.string(
         default = "1.2",
         values = [
             "1.1",
@@ -82,21 +82,21 @@ _kt_jvm_attrs = dict(_common_attrs.items() + {
 def _kotlin_toolchain_impl(ctx):
     toolchain = platform_common.ToolchainInfo(
         label = _utils.restore_label(ctx.label),
-        language_version = ctx.attr.language_version,
-        api_version = ctx.attr.api_version,
+        kotlin_language_version = ctx.attr.kotlin_language_version,
+        kotlin_api_version = ctx.attr.kotlin_api_version,
         jvm_target = ctx.attr.jvm_target,
         coroutines = ctx.attr.coroutines
     )
     return struct(providers=[toolchain])
 
-kt_toolchain = rule(
+kt_jvm_toolchain = rule(
     attrs = _kt_jvm_attrs,
     implementation = _kotlin_toolchain_impl,
 )
 
 """The kotlin jvm toolchain
 Args:
-  language_version: the -languag_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).
+  language_version: the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).
   api_version: the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).
   jvm_target: the -jvm_target flag.
   coroutines: the -Xcoroutines flag, enabled by default as it's considered production ready 1.2.0 onward.
@@ -105,10 +105,10 @@ Args:
 def define_kt_toolchain(name, language_version=None, api_version=None, jvm_target=None, coroutines=None):
     """Define a Kotlin JVM Toolchain, the name is used in the `toolchain` rule so can be used to register the toolchain in the WORKSPACE file."""
     impl_name = name + "_impl"
-    kt_toolchain(
+    kt_jvm_toolchain(
         name = impl_name,
-        language_version = language_version,
-        api_version = api_version,
+        kotlin_language_version = language_version,
+        kotlin_api_version = api_version,
         jvm_target = jvm_target,
         coroutines = coroutines,
         visibility = ["//visibility:public"]
