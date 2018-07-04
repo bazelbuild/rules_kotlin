@@ -13,7 +13,7 @@
 # limitations under the License.
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
-
+load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_file="http_file", _http_archive="http_archive")
 load(
     "//kotlin/internal:kt.bzl",
     _kt = "kt",
@@ -189,7 +189,7 @@ def kotlin_compiler_repositories(
     if not release:
         fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, KOTLIN_CURRENT_RELEASE))
 
-    native.new_http_archive(
+    _http_archive(
         name = _kt.defs.KT_COMPILER_REPO,
         url = release["url"],
         sha256 = release["sha256"],
@@ -197,11 +197,11 @@ def kotlin_compiler_repositories(
         strip_prefix = "kotlinc",
     )
 
-    native.http_file(
+    _http_file(
         name = "kt_java_stub_template",
-        url = ("https://raw.githubusercontent.com/bazelbuild/bazel/" +
+        urls = [("https://raw.githubusercontent.com/bazelbuild/bazel/" +
                _BAZEL_JAVA_LAUNCHER_VERSION +
            "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
-           "java_stub_template.txt"),
+           "java_stub_template.txt")],
         sha256 = "86660ee7d5b498ccf611a1e000564f45268dbf301e0b2b08c984dcecc6513f6e",
     )
