@@ -21,6 +21,7 @@ import io.bazel.kotlin.builder.CompilationStatusException
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.model.KotlinModel.BuilderCommand
+import java.io.File
 
 @ImplementedBy(DefaultJavaCompiler::class)
 interface JavaCompiler {
@@ -35,7 +36,7 @@ private class DefaultJavaCompiler @Inject constructor(
         val outputs = command.outputs
         if (inputs.javaSourcesList.isNotEmpty() || inputs.generatedJavaSourcesList.isNotEmpty()) {
             val args = mutableListOf(
-                "-cp", "${outputs.classDirectory}/:${outputs.tempDirectory}/:${inputs.joinedClasspath}",
+                "-cp", "${outputs.classDirectory}${File.separatorChar}${File.pathSeparator}${outputs.tempDirectory}${File.separatorChar}${File.pathSeparatorChar}${inputs.joinedClasspath}",
                 "-d", outputs.classDirectory
             ).let {
                 it.addAll(
