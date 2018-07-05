@@ -120,5 +120,8 @@ java_test(
     size = "small",
     srcs = glob(["unittests/**/*.java"]),
     test_class = "io.bazel.kotlin.builder.mode.jvm.utils.JdepsParserTest",
-    deps = [":builder_for_tests"],
+    deps = [
+        ":builder_for_tests",
+        "//third_party/jvm/com/google/truth"
+    ],
 )
