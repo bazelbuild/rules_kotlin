@@ -16,11 +16,11 @@
 package io.bazel.kotlin.builder.mode.jvm.utils
 
 import com.google.devtools.build.lib.view.proto.Deps
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.function.Predicate
-import java.util.stream.Stream
 
 class JdepsParser private constructor(private val filename: String, private val isImplicit: Predicate<String>) {
     private val packageSuffix: String = " ($filename)"
@@ -120,7 +120,7 @@ class JdepsParser private constructor(private val filename: String, private val 
         ): Deps.Dependencies {
             val filename = Paths.get(classJar).fileName.toString()
             val jdepsParser = JdepsParser(filename, isImplicit)
-            Stream.of(*classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
+            classPath.split(File.pathSeparator)
                 .forEach { x -> jdepsParser.consumeJarLine(x, Deps.Dependency.Kind.UNUSED) }
             jdepLines.forEach { jdepsParser.processLine(it) }
 

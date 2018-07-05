@@ -29,7 +29,7 @@ object BazelRunFiles {
      */
     private val manifestFile: String? =
         if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
-            System.getenv("RUNFILES_MANIFEST_FILE")
+            checkNotNull(System.getenv("RUNFILES_MANIFEST_FILE"))
         } else null
 
     private val javaRunFiles = Paths.get(System.getenv("JAVA_RUNFILES"))
@@ -57,17 +57,17 @@ object BazelRunFiles {
      * Resolve a run file on windows or *nix.
      */
     fun resolveVerified(vararg path: String): File {
-        return if (manifestFile != null) {
+        return manifestFile?.let { mf ->
             path.joinToString("/").let { rfPath ->
                 File(
                     checkNotNull(runfiles[rfPath]) {
-                        "windows runfile manifest ${manifestFile} did not contain path $rfPath"
+                        "windows runfile manifest ${mf} did not contain path $rfPath"
                     }
                 )
             }.also {
                 check(it.exists()) { "runfile file $it did not exist" }
             }
-        } else javaRunFiles.resolveVerified(*path)
+        } ?: javaRunFiles.resolveVerified(*path)
     }
 }
 
