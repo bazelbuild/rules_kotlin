@@ -18,6 +18,7 @@ package io.bazel.kotlin.builder
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import io.bazel.kotlin.builder.KotlinToolchain.Companion.NO_ARGS
+import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.executeAndAwait
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.resolveVerifiedToAbsoluteString
@@ -30,7 +31,8 @@ internal object KotlinToolchainModule : AbstractModule() {
     fun jarToolInvoker(toolchain: KotlinToolchain): KotlinToolchain.JarToolInvoker =
         object : KotlinToolchain.JarToolInvoker {
             override fun invoke(args: List<String>, directory: File?) {
-                val jarTool = toolchain.javaHome.resolveVerifiedToAbsoluteString("bin", "jar")
+                val jarTool = toolchain.javaHome.resolveVerifiedToAbsoluteString(
+                    "bin", if (BazelRunFiles.isWindows) "jar.exe" else "jar")
                 val command = mutableListOf(jarTool).also { it.addAll(args) }
                 executeAndAwait(10, directory, command).takeIf { it != 0 }?.also {
                     throw CompilationStatusException("error running jar command ${command.joinToString(" ")}", it)

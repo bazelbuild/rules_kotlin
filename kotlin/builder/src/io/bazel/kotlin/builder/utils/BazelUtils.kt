@@ -24,11 +24,12 @@ import java.nio.file.Paths
 
 /** Utility class for getting runfiles in tests on Windows.  */
 object BazelRunFiles {
+    val isWindows = System.getProperty("os.name").toLowerCase().indexOf("win") >= 0
     /**
      * Populated on windows. The RUNFILES_MANIFEST_FILE is set on platforms other then windows but it can be empty,]
      */
     private val manifestFile: String? =
-        if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+        if (isWindows) {
             checkNotNull(System.getenv("RUNFILES_MANIFEST_FILE"))
         } else null
 
