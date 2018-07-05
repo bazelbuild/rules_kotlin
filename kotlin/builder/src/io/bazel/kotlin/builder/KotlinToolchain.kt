@@ -18,6 +18,7 @@ package io.bazel.kotlin.builder
 import com.google.common.collect.ImmutableSet
 import com.google.inject.*
 import com.google.inject.util.Modules
+import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
@@ -42,13 +43,12 @@ class KotlinToolchain private constructor(
         internal val NO_ARGS = arrayOf<Any>()
 
         private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
-        private val javaRunfiles get() = Paths.get(System.getenv("JAVA_RUNFILES"))
 
         private fun createClassLoader(javaHome: Path, kotlinHome: Path): ClassLoader {
             val preloadJars = mutableListOf<File>().also {
                 it += kotlinHome.resolveVerified("lib", "kotlin-compiler.jar")
-                it +=  javaRunfiles.resolveVerified("io_bazel_rules_kotlin", "kotlin", "builder", "compiler_lib.jar")
-                if(!isJdk9OrNewer) {
+                it += BazelRunFiles.resolveVerified("io_bazel_rules_kotlin", "kotlin", "builder", "compiler_lib.jar")
+                if (!isJdk9OrNewer) {
                     it += javaHome.resolveVerified("lib", "tools.jar")
                 }
             }
