@@ -22,7 +22,10 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.function.Predicate
 
-class JdepsParser private constructor(private val filename: String, private val isImplicit: Predicate<String>) {
+class JdepsParser private constructor(
+    private val filename: String,
+    private val isImplicit: Predicate<String>
+) {
     private val packageSuffix: String = " ($filename)"
 
     private val depMap = HashMap<String, Deps.Dependency.Builder>()

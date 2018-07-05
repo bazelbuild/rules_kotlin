@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -108,7 +109,7 @@ public class JdepsParserTest {
         JdepsParser.Companion.parse(
             LABEL,
             CLASS_JAR,
-            CLASSPATH.stream().collect(Collectors.joining(":")),
+            CLASSPATH.stream().collect(Collectors.joining(File.pathSeparator)),
             Arrays.asList(fixture.split("\n")),
             IS_KOTLIN_IMPLICIT);
     Assert.assertEquals(LABEL, result.getRuleLabel());
