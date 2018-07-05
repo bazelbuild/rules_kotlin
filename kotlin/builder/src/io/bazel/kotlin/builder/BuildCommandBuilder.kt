@@ -23,6 +23,7 @@ import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.DefaultKotlinCompilerPluginArgsEncoder
 import io.bazel.kotlin.model.KotlinModel
 import io.bazel.kotlin.model.KotlinModel.BuilderCommand
+import java.io.File
 
 
 @ImplementedBy(DefaultBuildCommandBuilder::class)
@@ -107,8 +108,7 @@ private class DefaultBuildCommandBuilder @Inject constructor(
                     addAllSourceJars(it)
                 }
 
-
-                joinedClasspath = classpathList.joinToString(":")
+                joinedClasspath = classpathList.joinToString(File.pathSeparator)
             }
 
             with(root.infoBuilder) {
