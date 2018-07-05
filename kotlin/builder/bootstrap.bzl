@@ -13,25 +13,28 @@
 # limitations under the License.
 load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library", "kt_jvm_import")
 
-_HEADER = """
-function join_by { local IFS="$$1"; shift; echo "$$*"; }
-
-CP=$$(join_by : $(locations :%s))
-"""
-
 # We manually call the Kotlin compiler by constructing the correct Java classpath, because the usual
 # "kotlinc" wrapper script fails to correctly detect KOTLIN_HOME unless we run with
 # --spawn_strategy=standalone
-def _gen_cmd(name, args):
-    return (_HEADER + """
+def _gen_cmd(kt_cp_label, args):
+    return ("""
+function join_by { local IFS="$$1"; shift; echo "$$*"; }
+case "$$(uname -s)" in
+    CYGWIN*|MINGW32*|MSYS*)
+        SEP=";"
+        ;;
+    *)
+        SEP=":"
+        ;;
+esac
+CP=$$(join_by $$SEP $(locations :%s))
 ARGS="%s"
-
-KOTLIN_HOME=external/com_github_jetbrains_kotlin
-java -Xmx256M -Xms32M -noverify \
-  -cp $${KOTLIN_HOME}/lib/kotlin-preloader.jar org.jetbrains.kotlin.preloading.Preloader \
-  -cp $${KOTLIN_HOME}/lib/kotlin-compiler.jar org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
-  -cp $${CP} -d $(OUTS) $${ARGS} $(SRCS)
-""") % (name,args)
+CMD="java -Xmx256M -Xms32M -noverify \
+  -cp $(location @com_github_jetbrains_kotlin//:preloader) org.jetbrains.kotlin.preloading.Preloader \
+  -cp $(location @com_github_jetbrains_kotlin//:compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+  -cp $${CP} -d $(OUTS) $${ARGS} $(SRCS)"
+$$CMD
+""") % (kt_cp_label, args)
 
 def kotlin_worker_lib(name, srcs, args = [], deps=[], runtime_deps=[], neverlink_deps=[]):
     dep_label = name + "_deps"
@@ -50,6 +53,8 @@ def kotlin_worker_lib(name, srcs, args = [], deps=[], runtime_deps=[], neverlink
         tools = [
             "@com_github_jetbrains_kotlin//:home",
             "@local_jdk//:jdk",
+            "@com_github_jetbrains_kotlin//:preloader",
+            "@com_github_jetbrains_kotlin//:compiler",
             dep_label
         ],
         srcs = srcs,

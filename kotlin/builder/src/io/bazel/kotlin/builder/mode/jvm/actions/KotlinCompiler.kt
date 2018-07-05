@@ -23,6 +23,7 @@ import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.model.KotlinModel
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.PrintStream
 
 @ImplementedBy(DefaultKotlinCompiler::class)
@@ -66,7 +67,7 @@ private class DefaultKotlinCompiler @Inject constructor(
             "-language-version", command.info.toolchainInfo.common.languageVersion,
             "-jvm-target", command.info.toolchainInfo.jvm.jvmTarget,
             // https://github.com/bazelbuild/rules_kotlin/issues/69: remove once jetbrains adds a flag for it.
-            "--friend-paths", command.info.friendPathsList.joinToString(":")
+            "--friend-paths", command.info.friendPathsList.joinToString(File.pathSeparator)
         )
 
         args

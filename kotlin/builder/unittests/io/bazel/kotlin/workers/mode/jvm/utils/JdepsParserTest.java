@@ -15,12 +15,15 @@
  */
 package io.bazel.kotlin.builder.mode.jvm.utils;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.truth.Truth;
 import com.google.devtools.build.lib.view.proto.Deps;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -73,8 +76,8 @@ public class JdepsParserTest {
           + "   com.axsy.testing.alt.sub                           -> java.lang                                          java.base\n"
           + "   com.axsy.testing.alt.sub                           -> kotlin                                             kotlin-stdlib.jar\n";
 
-  private static final List<String> CLASSPATH =
-      Arrays.asList(
+  private static final ImmutableSet<String> CLASSPATH =
+      ImmutableSet.of(
           "bazel-bin/cloud/qa/integrationtests/pkg/extensions/postgres/unused.jar",
           "bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar",
           "bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar",
@@ -108,12 +111,19 @@ public class JdepsParserTest {
         JdepsParser.Companion.parse(
             LABEL,
             CLASS_JAR,
-            CLASSPATH.stream().collect(Collectors.joining(":")),
+            CLASSPATH.stream().collect(Collectors.joining(File.pathSeparator)),
             Arrays.asList(fixture.split("\n")),
             IS_KOTLIN_IMPLICIT);
     Assert.assertEquals(LABEL, result.getRuleLabel());
 
     Assert.assertEquals(7, result.getDependencyCount());
+    Truth.assertThat(
+            result
+                .getDependencyList()
+                .stream()
+                .map(Deps.Dependency::getPath)
+                .collect(Collectors.toSet()))
+        .containsExactlyElementsIn(CLASSPATH);
     Assert.assertEquals(1, depKinds(result, Deps.Dependency.Kind.UNUSED).size());
     Assert.assertEquals(3, depKinds(result, Deps.Dependency.Kind.IMPLICIT).size());
     Assert.assertEquals(3, depKinds(result, Deps.Dependency.Kind.EXPLICIT).size());
