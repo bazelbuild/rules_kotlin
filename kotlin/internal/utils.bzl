@@ -184,7 +184,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args="", wrapper_p
         jvm_flags: The flags that should be passed to the jvm.
         args: Args that should be passed to the Binary.
     """
-    classpath = ":".join(["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()])
+    classpath = ctx.configuration.host_path_separator.join(["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()])
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
 
