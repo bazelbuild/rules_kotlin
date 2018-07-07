@@ -18,7 +18,7 @@ load("//kotlin/internal:utils.bzl", "utils")
 def _declare_output_directory(ctx, aspect, dir_name):
     return ctx.actions.declare_directory("_kotlinc/%s_%s/%s_%s" % (ctx.label.name, aspect, ctx.label.name, dir_name))
 
-def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_name, friend_paths, srcs, src_jars):
+def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_name, friend_paths, srcs):
     """Internal macro that sets up a Kotlin compile action.
 
     This macro only supports a single Kotlin compile operation for a rule.
@@ -35,8 +35,7 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
     sourcegen_directory=_declare_output_directory(ctx, "jvm", "sourcegenfiles")
     temp_directory=_declare_output_directory(ctx, "jvm", "temp")
 
-
-    tc=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
+    toolchain=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
 
     args = [
         "--target_label", ctx.label,
@@ -51,21 +50,18 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
         "--output_jdeps", ctx.outputs.jdeps.path,
         "--classpath", "\n".join([f.path for f in compile_jars.to_list()]),
         "--kotlin_friend_paths", "\n".join(friend_paths.to_list()),
-        "--kotlin_jvm_target", tc.jvm_target,
-        "--kotlin_api_version", tc.api_version,
-        "--kotlin_language_version", tc.language_version,
+        "--kotlin_jvm_target", toolchain.jvm_target,
+        "--kotlin_api_version", toolchain.api_version,
+        "--kotlin_language_version", toolchain.language_version,
         "--kotlin_module_name", module_name,
-        "--kotlin_passthrough_flags", "-Xcoroutines=%s" % tc.coroutines
+        "--kotlin_passthrough_flags", "-Xcoroutines=%s" % toolchain.coroutines
     ]
 
-    if len(srcs) == 0 and len(src_jars) == 0:
-        fail("srcs did not contain kotlin/java files or any srcjars")
+    if (len(srcs.kt) + len(srcs.java)) > 0:
+        args += ["--sources", "\n".join([s.path for s in (srcs.kt + srcs.java)])]
 
-    if len(srcs) > 0:
-        args += ["--sources", "\n".join(srcs)]
-
-    if len(src_jars) > 0:
-        args += ["--source_jars", "\n".join([sj.path for sj in src_jars])]
+    if len(srcs.src_jars) > 0:
+        args += ["--source_jars", "\n".join([sj.path for sj in srcs.src_jars])]
 
     # Collect and prepare plugin descriptor for the worker.
     plugin_info=plugins.merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
@@ -76,19 +72,17 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
     args_file = ctx.actions.declare_file(ctx.label.name + ".jar-2.params")
     ctx.actions.write(args_file, "\n".join(args))
 
-    # When a stratetegy isn't provided for the worker and the workspace is fresh then certain deps are not available under
-    # external/@com_github_jetbrains_kotlin/... that is why the classpath is added explicetly.
-    compile_inputs = (
-      depset([args_file]) +
-      ctx.files.srcs +
-      compile_jars +
-      ctx.files._kotlin_compiler_classpath +
-      ctx.files._kotlin_home +
-      ctx.files._jdk)
+    progress_message = "Compiling Kotlin %s { kt: %d, java: %d, srcjars: %d }" % (
+        ctx.label,
+        len(srcs.kt),
+        len(srcs.java),
+        len(srcs.src_jars)
+    )
 
-    ctx.action(
+    inputs, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder])
+    ctx.actions.run(
         mnemonic = "KotlinCompile",
-        inputs = compile_inputs,
+        inputs = depset([args_file]) + inputs + ctx.files.srcs + compile_jars,
         outputs = [
             output_jar,
             ctx.outputs.jdeps,
@@ -97,16 +91,17 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
             temp_directory,
             generated_classes_directory
         ],
-        executable = ctx.executable._kotlinw,
+        executable = toolchain.kotlinbuilder.files_to_run.executable,
         execution_requirements = {"supports-workers": "1"},
         arguments = ["@" + args_file.path],
-        progress_message="Compiling %d Kotlin source files to %s" % (len(ctx.files.srcs), output_jar.short_path),
+        progress_message = progress_message,
+        input_manifests = input_manifests
     )
 
 def _select_std_libs(ctx):
-    return ctx.files._kotlin_std
+    return ctx.toolchains[kt.defs.TOOLCHAIN_TYPE].jvm_stdlibs
 
-def _make_java_provider(ctx, input_deps=[], auto_deps=[], src_jars=[]):
+def _make_java_provider(ctx, srcs, input_deps=[], auto_deps=[]):
     """Creates the java_provider for a Kotlin target.
 
     This macro is distinct from the kotlin_make_providers as collecting the java_info is useful before the DefaultInfo is
@@ -122,6 +117,7 @@ def _make_java_provider(ctx, input_deps=[], auto_deps=[], src_jars=[]):
     Returns:
     A JavaInfo provider.
     """
+    runtime = ctx.toolchains[kt.defs.TOOLCHAIN_TYPE].jvm_runtime
     deps=utils.collect_all_jars(input_deps)
     exported_deps=utils.collect_all_jars(getattr(ctx.attr, "exports", []))
 
@@ -129,7 +125,7 @@ def _make_java_provider(ctx, input_deps=[], auto_deps=[], src_jars=[]):
     my_runtime_jars = exported_deps.transitive_runtime_jars + [ctx.outputs.jar]
 
     my_transitive_compile_jars = my_compile_jars + deps.transitive_compile_time_jars + exported_deps.transitive_compile_time_jars + auto_deps
-    my_transitive_runtime_jars = my_runtime_jars + deps.transitive_runtime_jars + exported_deps.transitive_runtime_jars + [ctx.file._kotlin_runtime] + auto_deps
+    my_transitive_runtime_jars = my_runtime_jars + deps.transitive_runtime_jars + exported_deps.transitive_runtime_jars + runtime + auto_deps
 
     # collect the runtime jars from the runtime_deps attribute.
     for jar in ctx.attr.runtime_deps:
@@ -139,13 +135,13 @@ def _make_java_provider(ctx, input_deps=[], auto_deps=[], src_jars=[]):
         use_ijar = False,
         # A list or set of output source jars that contain the uncompiled source files including the source files
         # generated by annotation processors if the case.
-        source_jars= src_jars + utils.actions.maybe_make_srcsjar(ctx),
+        source_jars = utils.actions.maybe_make_srcsjar(ctx, srcs),
         # A list or a set of jars that should be used at compilation for a given target.
         compile_time_jars = my_compile_jars,
         # A list or a set of jars that should be used at runtime for a given target.
-        runtime_jars=my_runtime_jars,
-        transitive_compile_time_jars= my_transitive_compile_jars,
-        transitive_runtime_jars=my_transitive_runtime_jars
+        runtime_jars = my_runtime_jars,
+        transitive_compile_time_jars = my_transitive_compile_jars,
+        transitive_runtime_jars = my_transitive_runtime_jars
     )
 
 def _make_providers(ctx, java_info, module_name, transitive_files=depset(order="default")):
@@ -207,13 +203,10 @@ def _compile_action(ctx, rule_kind, module_name, friend_paths=depset(), src_jars
 
     deps = ctx.attr.deps + getattr(ctx.attr, "friends", [])
 
-    srcs = []
-    src_jars = []
-    for f in ctx.files.srcs:
-        if f.path.endswith(".kt") or f.path.endswith(".java"):
-            srcs.append(f.path)
-        elif f.path.endswith(".srcjar"):
-            src_jars.append(f)
+    srcs = utils.partition_srcs(ctx.files.srcs)
+
+    if (len(srcs.kt) + len(srcs.java) == 0) and len(srcs.src_jars) == 0:
+        fail("no sources provided")
 
     # setup the compile action.
     _kotlin_do_compile_action(
@@ -223,8 +216,7 @@ def _compile_action(ctx, rule_kind, module_name, friend_paths=depset(), src_jars
         compile_jars = utils.collect_jars_for_compile(deps) + kotlin_auto_deps,
         module_name = module_name,
         friend_paths = friend_paths,
-        srcs = srcs,
-        src_jars = src_jars
+        srcs = srcs
     )
 
     # setup the merge action if needed.
@@ -232,7 +224,7 @@ def _compile_action(ctx, rule_kind, module_name, friend_paths=depset(), src_jars
         utils.actions.fold_jars(ctx, output_jar, output_merge_list)
 
     # create the java provider but the kotlin and default provider cannot be created here.
-    return _make_java_provider(ctx, deps, kotlin_auto_deps, src_jars)
+    return _make_java_provider(ctx, srcs, deps, kotlin_auto_deps)
 
 compile = struct(
     compile_action = _compile_action,

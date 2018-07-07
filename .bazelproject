@@ -17,6 +17,7 @@ directories:
   .
 
 targets:
+  -//docs/...
   //kotlin/builder:for_ide
   //:all_tests
   //examples/...

@@ -3,6 +3,8 @@
 [Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
 
 # Announcements
+* <b>Jun 29, 2018.</b> The commits from this date forward are compatible with bazel `>=0.14`. JDK9 host issues were 
+  fixed as well some other deprecations. I recommend skipping `0.15.0` if you   are on a Mac. 
 * <b>May 25, 2018.</b> Test "friend" support. A single friend dep can be provided to `kt_jvm_test` which allows the test
   to access internal members of the module under test.
 * <b>February 15, 2018.</b> Toolchains for the JVM rules. Currently this allow tweaking: 
