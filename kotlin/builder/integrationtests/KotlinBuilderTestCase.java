@@ -38,12 +38,16 @@ abstract class KotlinBuilderTestCase {
     return builder.getOutputs();
   }
 
+  protected KotlinModel.BuilderCommand.Directories directories() {
+    return builder.getDirectories();
+  }
+
   protected String label() {
     return Preconditions.checkNotNull(label);
   }
 
   private Path classDir() {
-    return Paths.get(outputs().getClassDirectory());
+    return Paths.get(directories().getClasses());
   }
 
   protected KotlinModel.BuilderCommand builderCommand() {
@@ -55,7 +59,8 @@ abstract class KotlinBuilderTestCase {
   }
 
   protected void addSource(String filename, String... lines) {
-    Path file = Preconditions.checkNotNull(inputSourceDir, "initialize test context").resolve(filename);
+    Path file =
+        Preconditions.checkNotNull(inputSourceDir, "initialize test context").resolve(filename);
     try (BufferedWriter writer = com.google.common.io.Files.newWriter(file.toFile(), UTF_8)) {
       writer.write(Joiner.on("\n").join(lines));
       String f = file.toString();
@@ -74,10 +79,13 @@ abstract class KotlinBuilderTestCase {
 
   protected void resetTestContext(String label) {
     this.label = label;
+    Path prefixPath = Paths.get(label);
+
+    createTestOuputDirectory(prefixPath);
+    inputSourceDir = Paths.get(createTestOuputDirectory(prefixPath.resolve("input_sources")));
+
     builder.clear();
-    KotlinModel.BuilderCommand.Outputs.Builder testOuputs = setupTestOutputs(label);
-    builder.setInfo(
-        KotlinModel.BuilderCommand.Info.newBuilder()
+    builder.getInfoBuilder()
             .setLabel("//some/bogus:" + label)
             .setKotlinModuleName("some_bogus_module")
             .setRuleKind("kt_jvm_library")
@@ -88,8 +96,17 @@ abstract class KotlinBuilderTestCase {
                             .setApiVersion("1.2")
                             .setCoroutines("enabled")
                             .setLanguageVersion("1.2"))
-                    .setJvm(KotlinModel.KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8"))));
-    builder.setOutputs(testOuputs);
+                    .setJvm(KotlinModel.KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
+    builder
+        .getDirectoriesBuilder()
+        .setClasses(prefixPath.resolve("classes").toAbsolutePath().toString())
+        .setGeneratedSources(prefixPath.resolve("sources").toAbsolutePath().toString())
+        .setTemp(prefixPath.resolve("temp").toAbsolutePath().toString())
+        .setGeneratedClasses(prefixPath.resolve("generated_classes").toAbsolutePath().toString());
+    builder
+        .getOutputsBuilder()
+        .setJar(prefixPath.resolve("jar_file.jar").toAbsolutePath().toString())
+        .setJdeps(prefixPath.resolve("jdeps_files.jdeps").toAbsolutePath().toString());
   }
 
   private static String createTestOuputDirectory(Path path) {
@@ -108,21 +125,10 @@ abstract class KotlinBuilderTestCase {
     }
   }
 
-  private KotlinModel.BuilderCommand.Outputs.Builder setupTestOutputs(String label) {
-    Path prefixPath = Paths.get(label);
-    createTestOuputDirectory(prefixPath);
-    inputSourceDir = Paths.get(createTestOuputDirectory(prefixPath.resolve("input_sources")));
-    return KotlinModel.BuilderCommand.Outputs.newBuilder()
-        .setClassDirectory(prefixPath.resolve("classes").toAbsolutePath().toString())
-        .setSourceGenDir(prefixPath.resolve("sources").toAbsolutePath().toString())
-        .setTempDirectory(prefixPath.resolve("temp").toAbsolutePath().toString())
-        .setOutputJdeps(prefixPath.resolve("jdeps_files.jdeps").toAbsolutePath().toString())
-        .setOutput(prefixPath.resolve("jar_file.jar").toAbsolutePath().toString());
-  }
-
   protected enum DirectoryType {
     ROOT,
     CLASSES,
+    GENERATED_CLASSES,
     TEMP,
     SOURCE_GEN;
 
@@ -130,13 +136,16 @@ abstract class KotlinBuilderTestCase {
       Path ret;
       switch (type) {
         case CLASSES:
-          ret = Paths.get(command.getOutputs().getClassDirectory());
+          ret = Paths.get(command.getDirectories().getClasses());
+          break;
+        case GENERATED_CLASSES:
+          ret = Paths.get(command.getDirectories().getGeneratedClasses());
           break;
         case TEMP:
-          ret = Paths.get(command.getOutputs().getTempDirectory());
+          ret = Paths.get(command.getDirectories().getTemp());
           break;
         case SOURCE_GEN:
-          ret = Paths.get(command.getOutputs().getSourceGenDir());
+          ret = Paths.get(command.getDirectories().getGeneratedSources());
           break;
         default:
           throw new RuntimeException("unhandled type: " + type);

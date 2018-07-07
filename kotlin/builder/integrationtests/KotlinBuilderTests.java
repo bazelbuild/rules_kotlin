@@ -3,11 +3,13 @@ package io.bazel.kotlin.builder;
 import com.google.common.truth.Truth;
 import com.google.devtools.build.lib.view.proto.Deps;
 import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor;
+import io.bazel.kotlin.model.KotlinModel;
 import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -28,23 +30,33 @@ public class KotlinBuilderTests extends KotlinBuilderTestCase {
     runCompileTask();
     assertFileExists(DirectoryType.CLASSES, "something/AClass.class");
     assertFileExists(DirectoryType.CLASSES, "something/AnotherClass.class");
-    assertFileExists(outputs().getOutput());
+    assertFileExists(outputs().getJar());
   }
 
   private void runCompileTask() {
+    KotlinModel.BuilderCommand command = builderCommand();
+    for (DirectoryType directoryType : DirectoryType.values()) {
+      try {
+        if (directoryType != DirectoryType.ROOT) {
+          Files.createDirectories(DirectoryType.select(directoryType, command));
+        }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
     int timeoutSeconds = 10;
     KotlinJvmCompilationExecutor executor = instance(KotlinJvmCompilationExecutor.class);
     try {
-      CompletableFuture.runAsync(() -> executor.compile(builderCommand()))
+      CompletableFuture.runAsync(() -> executor.compile(command))
           .get(timeoutSeconds, TimeUnit.SECONDS);
     } catch (TimeoutException e) {
       throw new AssertionError("did not complete in: " + timeoutSeconds);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    assertFileExists(outputs().getOutput());
-    assertFileExists(outputs().getOutputJdeps());
-    try (FileInputStream fs = new FileInputStream(Paths.get(outputs().getOutputJdeps()).toFile())) {
+    assertFileExists(outputs().getJar());
+    assertFileExists(outputs().getJdeps());
+    try (FileInputStream fs = new FileInputStream(Paths.get(outputs().getJdeps()).toFile())) {
       Deps.Dependencies dependencies = Deps.Dependencies.parseFrom(fs);
       Truth.assertThat(dependencies.getRuleLabel()).endsWith(label());
     } catch (IOException e) {

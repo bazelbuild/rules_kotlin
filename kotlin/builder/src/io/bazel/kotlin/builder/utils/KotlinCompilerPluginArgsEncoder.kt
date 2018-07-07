@@ -96,13 +96,13 @@ class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
         val javacArgs = mutableMapOf<String, String>(
             "-target" to command.info.toolchainInfo.jvm.jvmTarget
         )
-
+        val d = command.directories
         return command.info.plugins.takeIf { it.annotationProcessorsList.isNotEmpty() }?.let { plugin ->
             PluginArgs().let { arg ->
-                arg["sources"] = command.outputs.sourceGenDir.toString()
-                arg["classes"] = command.outputs.classDirectory.toString()
-                arg["stubs"] = command.outputs.tempDirectory.toString()
-                arg["incrementalData"] = command.outputs.tempDirectory.toString()
+                arg["sources"] = d.generatedSources.toString()
+                arg["classes"] = d.generatedClasses.toString()
+                arg["stubs"] = d.temp.toString()
+                arg["incrementalData"] = d.temp.toString()
                 arg["javacArguments"] = javacArgs.let(::encodeMap)
                 arg["aptMode"] = "stubsAndApt"
                 arg["correctErrorTypes"] = "true"

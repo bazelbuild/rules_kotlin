@@ -21,8 +21,8 @@ import com.google.inject.Singleton
 import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
+import io.bazel.kotlin.builder.utils.ensureDirectories
 import io.bazel.kotlin.model.KotlinModel
-import java.nio.file.Files
 import java.nio.file.Paths
 
 @Singleton
@@ -39,7 +39,12 @@ class KotlinBuilder @Inject internal constructor(
         commandBuilder.fromInput(args).let { execute(it) }
 
     fun execute(command: KotlinModel.BuilderCommand): Int {
-        ensureOutputDirectories(command)
+        ensureDirectories(
+            command.directories.classes,
+            command.directories.temp,
+            command.directories.generatedSources,
+            command.directories.generatedClasses
+        )
         val updatedCommand = expandWithSourceJarSources(command)
         return try {
             compilationExector.compile(updatedCommand)
@@ -47,12 +52,6 @@ class KotlinBuilder @Inject internal constructor(
         } catch (ex: CompilationStatusException) {
             ex.status
         }
-    }
-
-    private fun ensureOutputDirectories(command: KotlinModel.BuilderCommand) {
-        Files.createDirectories(Paths.get(command.outputs.classDirectory))
-        Files.createDirectories(Paths.get(command.outputs.tempDirectory))
-        Files.createDirectories(Paths.get(command.outputs.sourceGenDir))
     }
 
     /**
@@ -64,7 +63,7 @@ class KotlinBuilder @Inject internal constructor(
             command
         } else {
             val sourceUnpackDirectory =
-                Paths.get(command.outputs.tempDirectory).let {
+                Paths.get(command.directories.temp).let {
                     it.resolve("_srcjars").toFile().let {
                         try {
                             it.mkdirs(); it
@@ -75,7 +74,8 @@ class KotlinBuilder @Inject internal constructor(
                 }
             for (sourceJar in command.inputs.sourceJarsList) {
                 jarToolInvoker.invoke(
-                    listOf("xf", Paths.get(sourceJar).toAbsolutePath().toString()), sourceUnpackDirectory)
+                    listOf("xf", Paths.get(sourceJar).toAbsolutePath().toString()), sourceUnpackDirectory
+                )
             }
 
             commandBuilder.withSources(

@@ -55,7 +55,7 @@ private class DefaultJDepsGenerator @Inject constructor(
                         val res = invoker.run(
                             arrayOf(
                                 "-cp", command.inputs.joinedClasspath,
-                                command.outputs.output),
+                                command.outputs.jdeps),
                             writer)
                         out.toByteArray().inputStream().bufferedReader().readLines().let {
                             if (res != 0) {
@@ -64,7 +64,7 @@ private class DefaultJDepsGenerator @Inject constructor(
                             try {
                                 JdepsParser.parse(
                                     command.info.label,
-                                    command.outputs.output,
+                                    command.outputs.jdeps,
                                     command.inputs.joinedClasspath,
                                     it,
                                     isKotlinImplicit
@@ -76,7 +76,7 @@ private class DefaultJDepsGenerator @Inject constructor(
                     }
                 }
             }
-        Paths.get(command.outputs.outputJdeps).also {
+        Paths.get(command.outputs.jdeps).also {
             Files.deleteIfExists(it)
             FileOutputStream(Files.createFile(it).toFile()).use {
                 jdepsContent.writeTo(it)
