@@ -12,45 +12,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-proto_library(
-    name = "kotlin_model_proto",
-    srcs = [":kotlin_model.proto"],
-    visibility=["//visibility:public"]
-)
-
-java_proto_library(
-    name = "kotlin_model_java_proto",
-    deps = [":kotlin_model_proto"]
-)
-
-_PROTO_LIBS=["deps", "worker_protocol"]
-
-[proto_library(
-    name="%s_proto" % lib,
-    srcs=["%s.proto" % lib]
-    ) for lib in _PROTO_LIBS]
-
-[java_proto_library(
-    name="%s_java_proto" % lib,
-    deps=["%s_proto" % lib],
-    ) for lib in _PROTO_LIBS]
+# commented out till 0.16 is released. We aren't  prebuilding the libraries at the moment so it's fine.
+#proto_library(
+#    name = "kotlin_model_proto",
+#    srcs = [":kotlin_model.proto"],
+#    visibility=["//visibility:public"]
+#)
+#
+#java_proto_library(
+#    name = "kotlin_model_java_proto",
+#    deps = [":kotlin_model_proto"]
+#)
+#
+#_PROTO_LIBS=["deps", "worker_protocol"]
+#
+#[proto_library(
+#    name="%s_proto" % lib,
+#    srcs=["%s.proto" % lib]
+#    ) for lib in _PROTO_LIBS]
+#
+#[java_proto_library(
+#    name="%s_java_proto" % lib,
+#    deps=["%s_proto" % lib],
+#    ) for lib in _PROTO_LIBS]
+#
 
 java_import(
-    name = "proto",
-    jars = [
-        "jars/libdeps_proto-speed.jar",
-        "jars/libworker_protocol_proto-speed.jar",
-        "jars/libkotlin_model_proto-speed.jar"
-    ],
+    name = "deps",
+    jars = ["jars/libdeps_proto-speed.jar"],
     visibility = ["//kotlin/builder:__subpackages__"]
 )
 
-filegroup(
-    name = "files",
-    srcs = [
-        "jars/libdeps_proto-speed.jar",
-        "jars/libworker_protocol_proto-speed.jar"
-    ],
+java_import(
+    name = "worker",
+    jars = ["jars/libworker_protocol_proto-speed.jar"],
+    visibility = ["//kotlin/builder:__subpackages__"]
+)
+
+java_import(
+    name = "kotlin_model",
+    jars = ["jars/libkotlin_model_proto-speed.jar"],
     visibility = ["//kotlin/builder:__subpackages__"]
 )

@@ -119,51 +119,16 @@ load(
 )
 load("//third_party/jvm:workspace.bzl", _maven_dependencies="maven_dependencies")
 
-# _kt.defs.KT_COMPILER_REPO can't be used till skydoc is removed
-KT_COMPILER_REPO="com_github_jetbrains_kotlin"
-
-
 ########################################################################################################################
 # Rule Attributes
 ########################################################################################################################
 _implicit_deps = {
-    "_kotlin_compiler_classpath": attr.label_list(
-        allow_files = True,
-        default = [
-            Label("@" + KT_COMPILER_REPO + "//:compiler"),
-            Label("@" + KT_COMPILER_REPO + "//:reflect"),
-            Label("@" + KT_COMPILER_REPO + "//:script-runtime"),
-        ],
-    ),
-    "_kotlin_home": attr.label(
-        default = Label("@" + KT_COMPILER_REPO + "//:home"),
-        allow_files = True,
-        cfg = "host",
-    ),
-    "_kotlinw": attr.label(
-        default = Label("//kotlin/builder"),
-        executable = True,
-        cfg = "host",
-    ),
-    "_kotlin_runtime": attr.label(
-        single_file = True,
-        default = Label("@" + KT_COMPILER_REPO + "//:runtime"),
-    ),
-    "_kotlin_std": attr.label_list(default = [
-        Label("@" + KT_COMPILER_REPO + "//:stdlib"),
-        Label("@" + KT_COMPILER_REPO + "//:stdlib-jdk7"),
-        Label("@" + KT_COMPILER_REPO + "//:stdlib-jdk8"),
-    ]),
     "_kotlin_toolchain": attr.label_list(
         default = [
             Label("@io_bazel_rules_kotlin//kotlin:kt_toolchain_ide_info"),
         ],
+        cfg="host",
         allow_files = False,
-    ),
-    "_kotlin_reflect": attr.label(
-        single_file = True,
-        default =
-            Label("@" + KT_COMPILER_REPO + "//:reflect"),
     ),
     "_singlejar": attr.label(
         executable = True,
@@ -183,12 +148,10 @@ _implicit_deps = {
         default = Label("@bazel_tools//tools/jdk:java"),
         allow_files = True,
     ),
-    "_jdk": attr.label(
-        default = Label("@bazel_tools//tools/jdk"),
+    "_java_stub_template": attr.label(
         cfg = "host",
-        allow_files = True,
+        default = Label("@kt_java_stub_template//file"),
     ),
-    "_java_stub_template": attr.label(default = Label("@kt_java_stub_template//file")),
 }
 
 _common_attr = dict(_implicit_deps.items() + {

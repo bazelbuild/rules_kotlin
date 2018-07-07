@@ -30,6 +30,25 @@ def _derive_module_name(ctx):
         module_name = (ctx.label.package.lstrip("/").replace("/","_") + "-" + ctx.label.name.replace("/", "_"))
     return module_name
 
+def _partition_srcs(srcs):
+    kt_srcs = []
+    java_srcs = []
+    src_jars = []
+
+    for f in srcs:
+        if f.path.endswith(".kt"):
+            kt_srcs.append(f)
+        elif f.path.endswith(".java"):
+            java_srcs.append(f)
+        elif f.path.endswith(".srcjar"):
+            src_jars.append(f)
+
+    return struct (
+        kt = kt_srcs,
+        java = java_srcs,
+        src_jars = src_jars
+    )
+
 # DEPSET UTILS #################################################################################################################################################
 def _select_compile_jars(dep):
     """selects the correct compile time jar from a java provider"""
@@ -141,24 +160,31 @@ rm -f {resources_jar_output}
     return resources_jar_output
 
 # SRC JARS #####################################################################################################################################################
-def _maybe_make_srcsjar_action(ctx):
-    if len(ctx.files.srcs) > 0:
+def _maybe_make_srcsjar_action(ctx, srcs):
+    source_files = srcs.kt + srcs.java
+    if (len(source_files) + len(srcs.src_jars)) > 0:
         output_srcjar = ctx.actions.declare_file(ctx.label.name + "-sources.jar")
+
         args = ["--output", output_srcjar.path]
-        for i in ctx.files.srcs:
-            args += ["--resources", i.path]
+
+        for sj in srcs.src_jars:
+            args += ["--sources", sj.path]
+
+        for sf in source_files:
+            args += ["--resources", sf.path]
 
         ctx.action(
             mnemonic = "KotlinPackageSources",
-            inputs = ctx.files.srcs,
+            inputs = source_files + srcs.src_jars,
             outputs = [output_srcjar],
             executable = ctx.executable._singlejar,
             arguments = args,
-            progress_message="Creating Kotlin srcjar from %d srcs" % len(ctx.files.srcs),
+            progress_message="Creating Kotlin srcjar from %d srcs" % len(source_files),
         )
         return [output_srcjar]
     else:
         return []
+
 
 # PACKAGE JARS #################################################################################################################################################
 def _fold_jars_action(ctx, output_jar, input_jars):
@@ -213,5 +239,6 @@ utils = struct(
     collect_all_jars = _collect_all_jars,
     collect_jars_for_compile = _collect_jars_for_compile,
     restore_label = _restore_label,
-    derive_module_name = _derive_module_name
+    derive_module_name = _derive_module_name,
+    partition_srcs = _partition_srcs
 )
