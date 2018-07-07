@@ -40,7 +40,6 @@ class ArgMap(private val map: Map<String, List<String>>) {
     fun optional(key: String): List<String>? = map[key]
 }
 
-
 object ArgMaps {
     @JvmStatic
     fun from(args: List<String>): ArgMap =
@@ -55,7 +54,7 @@ object ArgMaps {
         var currentKey: String = args.first().also { require(isFlag(it)) { "first arg must be a flag" } }
         val currentValue = mutableListOf<String>()
         val mergeCurrent = {
-            argMap.computeIfAbsent(currentKey, { mutableListOf() }).addAll(currentValue)
+            argMap.computeIfAbsent(currentKey) { mutableListOf() }.addAll(currentValue)
             currentValue.clear()
         }
         args.drop(1).forEach {
