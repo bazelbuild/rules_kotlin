@@ -15,14 +15,14 @@ load("//kotlin/builder:bootstrap.bzl", "kotlin_worker_lib")
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
 
 # Should not be linked against to allow the compiler workspace to be switched out when toolchains support this.
-_COMPILER_DEPS = [
+COMPILER_DEPS = [
     "@com_github_jetbrains_kotlin//:compiler",
     "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
     "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
 ]
 
 # Common depset for the builder.
-_COMMON_DEPS = [
+COMMON_DEPS = [
     "//kotlin/builder/proto:deps",
     "//kotlin/builder/proto:kotlin_model",
     "//kotlin/builder/proto:worker",
@@ -47,7 +47,7 @@ kotlin_worker_lib(
     args = [
         "-jvm-target","1.8",
     ],
-    neverlink_deps = _COMPILER_DEPS,
+    neverlink_deps = COMPILER_DEPS,
 )
 
 # The builder library.
@@ -57,7 +57,7 @@ kotlin_worker_lib(
     args = [
         "-jvm-target","1.8",
     ],
-    deps = _COMMON_DEPS
+    deps = COMMON_DEPS
 )
 
 # This is a hack so that the builder and compiler sources can be picked up by intellij.
@@ -65,7 +65,7 @@ kt_jvm_library(
     name = "for_ide",
     srcs = glob(["src/**/*.kt"]),
     visibility = ["//visibility:private"],
-    deps = _COMMON_DEPS + _COMPILER_DEPS,
+    deps = COMMON_DEPS + COMPILER_DEPS,
 )
 
 # The builder artifact.
@@ -97,7 +97,7 @@ filegroup(
 java_library(
     name = "builder_for_tests",
     testonly = 1,
-    exports = _COMMON_DEPS + [
+    exports = COMMON_DEPS + [
         ":builder_lib",
         ":compiler_lib",
     ],

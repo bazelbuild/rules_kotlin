@@ -22,11 +22,9 @@ kotlin_stdlib = rule(
         "jars": attr.label_list(
             allow_files = True,
             mandatory = True,
-            cfg = "host",
         ),
         "srcjar": attr.label(
             allow_single_file = True,
-            cfg = "host",
         ),
     },
     implementation = _kt_jvm_import_impl,
