@@ -87,11 +87,15 @@ private class DefaultBuildCommandBuilder @Inject constructor(
     override fun fromInput(argMap: ArgMap): BuilderCommand =
         BuilderCommand.newBuilder().let { root ->
             with(root.outputsBuilder) {
-                classDirectory = argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR.flag)
-                tempDirectory = argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR.flag)
-                sourceGenDir = argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR.flag)
-                output = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT.flag)
-                outputJdeps = argMap.mandatorySingle("--output_jdeps")
+                jar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT.flag)
+                jdeps = argMap.mandatorySingle("--output_jdeps")
+            }
+
+            with(root.directoriesBuilder) {
+                classes = argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR.flag)
+                generatedClasses = argMap.mandatorySingle("--kotlin_generated_classdir")
+                temp = argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR.flag)
+                generatedSources = argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR.flag)
             }
 
             with(root.inputsBuilder) {

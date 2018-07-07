@@ -20,6 +20,7 @@ package io.bazel.kotlin.builder.utils
 import java.io.BufferedReader
 import java.io.File
 import java.io.PrintStream
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -72,6 +73,11 @@ fun Path.resolveVerifiedToAbsoluteString(vararg parts: String): String =
 
 fun Path.verified(): File = this.toFile().also { check(it.exists()) { "file did not exist: $this" } }
 
+fun ensureDirectories(vararg directories: String) {
+    for (directory in directories) {
+        Files.createDirectories(Paths.get(directory))
+    }
+}
 
 val Throwable.rootCause: Throwable
     get() {

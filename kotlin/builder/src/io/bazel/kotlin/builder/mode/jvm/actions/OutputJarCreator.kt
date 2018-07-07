@@ -33,9 +33,10 @@ private class DefaultOutputJarCreator @Inject constructor(
     private fun MutableList<String>.addAllFrom(dir: Path) = addAll(arrayOf("-C", dir.toString(), "."))
     override fun createOutputJar(command: KotlinModel.BuilderCommand) {
         mutableListOf(
-            "cf", command.outputs.output
+            "cf", command.outputs.jar
         ).also { args ->
-            args.addAllFrom(Paths.get(command.outputs.classDirectory))
+            args.addAllFrom(Paths.get(command.directories.classes))
+            args.addAllFrom(Paths.get(command.directories.generatedClasses))
         }.let { toolInvoker.invoke(it) }
     }
 }

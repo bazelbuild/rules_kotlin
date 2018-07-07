@@ -21,7 +21,6 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import io.bazel.kotlin.builder.BuildCommandBuilder
 import io.bazel.kotlin.builder.CompilationStatusException
-import io.bazel.kotlin.builder.ToolException
 import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor.Result
 import io.bazel.kotlin.builder.mode.jvm.actions.JDepsGenerator
 import io.bazel.kotlin.builder.mode.jvm.actions.JavaCompiler
@@ -67,7 +66,7 @@ private class DefaultKotlinJvmCompilationExecutor @Inject constructor(
         try {
             if (command.info.plugins.annotationProcessorsList.isNotEmpty()) {
                 kotlinCompiler.runAnnotationProcessor(command)
-                File(command.outputs.sourceGenDir).walkTopDown()
+                File(command.directories.generatedSources).walkTopDown()
                     .filter { it.isFile }
                     .map { it.path }
                     .iterator()
