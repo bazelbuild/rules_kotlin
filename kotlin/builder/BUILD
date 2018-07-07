@@ -23,7 +23,9 @@ _COMPILER_DEPS = [
 
 # Common depset for the builder.
 _COMMON_DEPS = [
-    "//kotlin/builder/proto",
+    "//kotlin/builder/proto:deps",
+    "//kotlin/builder/proto:kotlin_model",
+    "//kotlin/builder/proto:worker",
     "@com_github_jetbrains_kotlin//:preloader",
     "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
     "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java_util//jar",

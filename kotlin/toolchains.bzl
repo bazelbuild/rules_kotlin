@@ -43,8 +43,21 @@ register_toolchains("//:custom_toolchain")
 ```
 """
 
+_KT_COMPILER_REPO="com_github_jetbrains_kotlin"
+
 # The toolchain rules are not made private, at least the jvm ones so that they may be introspected in Intelij.
 _common_attrs = {
+    "kotlin_home": attr.label(
+        default = Label("@" + _KT_COMPILER_REPO + "//:home"),
+        allow_files = True,
+        cfg = "host"
+    ),
+    "kotlinbuilder": attr.label(
+        default = Label("//kotlin/builder"),
+        executable = True,
+        allow_files = True,
+        cfg = "host",
+    ),
     "language_version": attr.string(
         default = "1.2",
         values = [
@@ -70,6 +83,17 @@ _common_attrs = {
 }
 
 _kt_jvm_attrs = dict(_common_attrs.items() + {
+    "jvm_runtime": attr.label(
+        single_file = True,
+        default = Label("@" + _KT_COMPILER_REPO + "//:runtime"),
+    ),
+    "jvm_stdlibs": attr.label_list(
+        default = [
+            Label("@" + _KT_COMPILER_REPO + "//:stdlib"),
+            Label("@" + _KT_COMPILER_REPO + "//:stdlib-jdk7"),
+            Label("@" + _KT_COMPILER_REPO + "//:stdlib-jdk8"),
+        ]
+    ),
     "jvm_target": attr.string(
         default = "1.8",
         values = [
@@ -84,8 +108,16 @@ def _kotlin_toolchain_impl(ctx):
         label = _utils.restore_label(ctx.label),
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
+        coroutines = ctx.attr.coroutines,
+
         jvm_target = ctx.attr.jvm_target,
-        coroutines = ctx.attr.coroutines
+
+
+        kotlinbuilder = ctx.attr.kotlinbuilder,
+        kotlin_home = ctx.files.kotlin_home,
+
+        jvm_runtime = ctx.files.jvm_runtime,
+        jvm_stdlibs = ctx.files.jvm_stdlibs
     )
     return struct(providers=[toolchain])
 
