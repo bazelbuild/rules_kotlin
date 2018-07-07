@@ -15,6 +15,9 @@ load("//kotlin/internal:kt.bzl", "kt")
 load("//kotlin/internal:plugins.bzl", "plugins")
 load("//kotlin/internal:utils.bzl", "utils")
 
+def _declare_output_directory(ctx, aspect, dir_name):
+    return ctx.actions.declare_directory("_kotlinc/%s_%s/%s_%s" % (ctx.label.name, aspect, ctx.label.name, dir_name))
+
 def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_name, friend_paths, srcs, src_jars):
     """Internal macro that sets up a Kotlin compile action.
 
@@ -27,9 +30,11 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
         responsible for preparing the classpath. The stdlib (and jdk7 + jdk8) should generally be added to the classpath
         by the caller -- kotlin-reflect could be optional.
     """
-    classes_directory=ctx.actions.declare_directory(ctx.label.name + "_classes")
-    sourcegen_directory=ctx.actions.declare_directory(ctx.label.name + "_sourcegendir")
-    temp_directory=ctx.actions.declare_directory(ctx.label.name + "_tempdir")
+    classes_directory=_declare_output_directory(ctx, "jvm", "classes")
+    generated_classes_directory=_declare_output_directory(ctx, "jvm", "generated_classes")
+    sourcegen_directory=_declare_output_directory(ctx, "jvm", "sourcegenfiles")
+    temp_directory=_declare_output_directory(ctx, "jvm", "temp")
+
 
     tc=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
 
@@ -40,6 +45,7 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
         "--classdir", classes_directory.path,
         "--sourcegendir", sourcegen_directory.path,
         "--tempdir", temp_directory.path,
+        "--kotlin_generated_classdir", generated_classes_directory.path,
 
         "--output", output_jar.path,
         "--output_jdeps", ctx.outputs.jdeps.path,
@@ -83,7 +89,14 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
     ctx.action(
         mnemonic = "KotlinCompile",
         inputs = compile_inputs,
-        outputs = [output_jar, ctx.outputs.jdeps, sourcegen_directory, classes_directory, temp_directory],
+        outputs = [
+            output_jar,
+            ctx.outputs.jdeps,
+            sourcegen_directory,
+            classes_directory,
+            temp_directory,
+            generated_classes_directory
+        ],
         executable = ctx.executable._kotlinw,
         execution_requirements = {"supports-workers": "1"},
         arguments = ["@" + args_file.path],

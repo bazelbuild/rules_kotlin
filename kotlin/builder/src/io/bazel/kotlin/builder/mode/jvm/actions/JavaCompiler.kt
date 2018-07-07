@@ -31,12 +31,12 @@ private class DefaultJavaCompiler @Inject constructor(
     val javacInvoker: KotlinToolchain.JavacInvoker
 ) : JavaCompiler {
     override fun compile(command: BuilderCommand) {
-        val inputs = command.inputs
-        val outputs = command.outputs
-        if (inputs.javaSourcesList.isNotEmpty() || inputs.generatedJavaSourcesList.isNotEmpty()) {
+        val i = command.inputs
+        val d = command.directories
+        if (i.javaSourcesList.isNotEmpty() || i.generatedJavaSourcesList.isNotEmpty()) {
             val args = mutableListOf(
-                "-cp", "${outputs.classDirectory}/:${outputs.tempDirectory}/:${inputs.joinedClasspath}",
-                "-d", outputs.classDirectory
+                "-cp", "${d.classes}/:${d.temp}/:${i.joinedClasspath}",
+                "-d", d.classes
             ).let {
                 it.addAll(
                     // Kotlin takes care of annotation processing.
@@ -46,8 +46,8 @@ private class DefaultJavaCompiler @Inject constructor(
                     "-source", command.info.toolchainInfo.jvm.jvmTarget,
                     "-target", command.info.toolchainInfo.jvm.jvmTarget
                 )
-                it.addAll(inputs.javaSourcesList)
-                it.addAll(inputs.generatedJavaSourcesList)
+                it.addAll(i.javaSourcesList)
+                it.addAll(i.generatedJavaSourcesList)
                 it.toTypedArray()
             }
             javacInvoker.compile(args).takeIf { it != 0 }?.also { throw CompilationStatusException("javac failed",it) }

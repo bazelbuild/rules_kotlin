@@ -71,7 +71,7 @@ private class DefaultKotlinCompiler @Inject constructor(
 
         args
             .addAll("-module-name", command.info.kotlinModuleName)
-            .addAll("-d", command.outputs.classDirectory)
+            .addAll("-d", command.directories.classes)
 
         command.info.passthroughFlags?.takeIf { it.isNotBlank() }?.also { args.addAll(it.split(" ")) }
         return args

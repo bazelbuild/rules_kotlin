@@ -17,32 +17,45 @@ package bazel.kotlin;
 
 option java_package = "io.bazel.kotlin.model";
 
+// An abstract definition of an annotation processor. This is encoded into a format understood by kapt3.
+// +stable
 message AnnotationProcessor {
-    // the annotation processor class
+    // The annotation processor class.
     string processor_class = 1;
-    // bazel `java_plugin` generates_api setting.
+    // The Bazel `java_plugin` `generates_api` attribute.
     bool generates_api = 2;
-    // the classpath
+    // The full transitive classpath required for annotation processing.
     repeated string classpath = 3;
-
+    // The label of the plugin.
     string label = 4;
 }
 
+// A container for all of the types of compiler plugins needed by the kotlin compilers.
+// +stable
 message CompilerPlugins {
+    // Regular java annotation_processor descriptors.
     repeated AnnotationProcessor annotation_processors = 1;
 }
 
+// Toolchain info this contains info to be used to configure the compile tasks as well as configuring certain features
+// in IDE plugins.
+// +stable
 message KotlinToolchainInfo {
+    // Common properties that should be common to all platforms.
     message Common {
         // mandatory
         string language_version = 1;
-        //mandatory
+        // mandatory
         string api_version = 2;
+        // mandatory
         // oneof "enable", "warn" or "error"
         string coroutines = 3;
     }
 
+    // Properties specific to the JVM.
     message Jvm {
+        // The property is additionally to configure the source and target bytecode levels in kapt3, javac and kotlin.
+        // mandatory
         // oneof "1.6", or "1.8"
         string jvm_target = 1;
     }
@@ -51,6 +64,7 @@ message KotlinToolchainInfo {
     Jvm jvm = 2;
 }
 
+// Mested messages not marked with stable could be refactored.
 message BuilderCommand {
     message Info {
         string label = 1;
@@ -67,44 +81,65 @@ message BuilderCommand {
 
         CompilerPlugins plugins = 8;
 
-        // derived from plugins
-        repeated string encoded_plugin_descriptors=9;
+        // All of the plugin descriptors in the format kotlinc understands.
+        // +derived
+        repeated string encoded_plugin_descriptors = 9;
 
-        // friend jars -- kotlin compiler allows internal visibility access to these jars. Used for tests.
+        // Jars that the kotlin compiler will allow package private access to.
         repeated string friend_paths = 10;
     }
 
-    message Outputs {
-        string class_directory = 1;
-        string temp_directory = 2;
-        string source_gen_dir = 3;
+    // Directories used by the builder.
+    // +stable
+    message Directories {
+        // The directory the compiler should use for class files.
+        string classes = 1;
+        // The directory to use by annotation processors to produce classes.
+        string generated_classes = 2;
+        // The directory used by annotation processors. The generated sources are currently only java.
+        string generated_sources = 3;
+        // A temp directory that the compiler may use. The source_jars are expanding into here.
+        string temp = 4;
+    }
 
-        string output = 4;
-        string output_jdeps = 5;
+    // Outputs produced by the builder.
+    // +stable
+    message Outputs {
+        // The path to the primary output jar.
+        string jar = 1;
+        // The path to the jdeps file.
+        string jdeps = 2;
     }
 
     message Inputs {
+        // The full classpath
         repeated string classpath = 1;
-        // derived from command line classpath
+        // The full joined classpath
+        // +derived
         string joined_classpath = 2;
-
+        // Direct dependencies of the target.
         map<string, string> direct_dependencies = 3;
+        // Indirect dependencies of the target.
         map<string, string> indirect_dependencies = 4;
 
-        // partitioned from builder flags
+        // Partitioned from the builder flags and by expanding the source_jars.
+        // +derived
         repeated string kotlin_sources = 5;
-        // partitioned from builder flags
+        // Partitioned from the builder flags and by expanding the source_jars.
+        // +derived
         repeated string java_sources = 6;
-
-        // created during compilation
+        // Created during annotation processing and partitioned from the generated_sources directory.
+        // +dervived
         repeated string generated_kotlin_sources = 7;
-        // created during compilation
+        // Created during annotation processing and partitioned from the generated_sources directory.
+        // +derived
         repeated string generated_java_sources = 8;
-
+        // Jars containing additional sources.
         repeated string source_jars = 9;
     }
 
     Info info = 1;
-    Outputs outputs = 2;
-    Inputs inputs = 3;
+    Directories directories = 2;
+    Outputs outputs = 3;
+    Inputs inputs = 4;
 }
