@@ -16,5 +16,12 @@
 
 package io.bazel.kotlin.builder.utils
 
+import java.util.function.Predicate
+import java.util.regex.Pattern
+
 fun <T, C : MutableCollection<T>> C.addAll(vararg entries: T): C = this.also { addAll(entries) }
 
+private fun extensionMatcher(vararg ext: String): Predicate<String> =
+    Pattern.compile("^(.+?)${ext.joinToString("|\\.", prefix = "(\\.",postfix = ")$")}").asPredicate()
+
+val IS_JVM_SOURCE_FILE = extensionMatcher("kt", "java")
