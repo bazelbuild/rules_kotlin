@@ -18,6 +18,9 @@ kt_jvm_library(
     name = "assertion_test_case",
     srcs = ["AssertionTestCase.kt"],
     visibility=["//tests:__subpackages__"],
-    deps=["@com_github_jetbrains_kotlin//:kotlin-test"],
+    deps=[
+        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
+    ],
     testonly=1
 )

@@ -15,17 +15,28 @@
  */
 package io.bazel.kotlin.testing
 
+import com.google.common.hash.Hashing
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.concurrent.TimeUnit
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
-class TestCaseFailedException(description: String? = null, ex: Throwable) :
-    AssertionError(""""$description" failed, error: ${ex.message}""", ex)
+class TestCaseFailedException(name: String? = null, description: String? = null, cause: Throwable) :
+    AssertionError(""""${name?.let { "jar: $it " } ?: ""} "$description" failed, error: ${cause.message}""", cause)
 
 abstract class AssertionTestCase(root: String) : BasicAssertionTestCase() {
+    private lateinit var currentFile: File
+
     private val testRunfileRoot: Path = Paths.get(root).also {
         it.toFile().also {
             assert(it.exists()) { "runfile directory $root does not exist" }
@@ -33,30 +44,22 @@ abstract class AssertionTestCase(root: String) : BasicAssertionTestCase() {
         }
     }
 
-    private inline fun runTestCase(description: String? = null, op: () -> Unit) =
+    private inline fun runTestCase(name: String, description: String? = null, op: () -> Unit) =
         try {
             op()
         } catch (t: Throwable) {
             when (t) {
-                is AssertionError -> throw TestCaseFailedException(description, t)
-                is Exception -> throw TestCaseFailedException(description, t)
+                is AssertionError -> throw TestCaseFailedException(name, description, t)
+                is Exception -> throw TestCaseFailedException(name, description, t)
                 else -> throw t
             }
         }
 
-    private fun testCaseJar(jarName: String) = testRunfileRoot.resolve(jarName).toFile().let {
-        check(it.exists()) { "jar $jarName did not exist in test case root $testRunfileRoot" }
-        JarFile(it)
-    }
-
-    private fun jarTestCase(name: String, op: JarFile.() -> Unit) {
-        testCaseJar(name).also { op(it) }
-    }
-
     protected fun jarTestCase(name: String, description: String? = null, op: JarFile.() -> Unit) {
-        runTestCase(description, { jarTestCase(name, op) })
+        currentFile = testRunfileRoot.resolve(name).toFile()
+        check(currentFile.exists()) { "testFile $name did not exist in test case root $testRunfileRoot" }
+        runTestCase(name, description) { JarFile(currentFile).op() }
     }
-
 
     protected fun JarFile.assertContainsEntries(vararg entries: String) {
         entries.forEach {
@@ -64,6 +67,37 @@ abstract class AssertionTestCase(root: String) : BasicAssertionTestCase() {
                 fail("jar ${this.name} did not contain entry $it")
             }
         }
+    }
+
+    /**
+     * Validated the entry is compressed and has the DOS epoch for it's timestamp.
+     */
+    protected fun JarFile.assertEntryCompressedAndNormalizedTimestampYear(entry: String) {
+        checkNotNull(this.getJarEntry(entry)).also {
+            check(!it.isDirectory)
+            assertTrue("$entry is not compressed") { JarEntry.DEFLATED == it.method }
+            val modifiedTimestamp = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(it.lastModifiedTime.toMillis()), ZoneId.systemDefault()
+            )
+            assertTrue("normalized modification time stamps should have year 1980") { modifiedTimestamp.year == 1980 }
+        }
+    }
+
+    /**
+     * Assert the manifest in the jar is stamped.
+     */
+    protected fun JarFile.assertManifestStamped() {
+        assertNotNull(
+            manifest.mainAttributes.getValue("Target-Label"), "missing manifest entry Target-Label"
+        )
+        assertNotNull(
+            manifest.mainAttributes.getValue("Injecting-Rule-Kind"), "missing manifest entry Injecting-Rule-Kind"
+        )
+    }
+
+    protected fun validateFileSha256(expected: String) {
+        val result = Hashing.sha256().hashBytes(Files.readAllBytes(currentFile.toPath())).toString()
+        assertEquals(expected, result, "files did not hash as expected")
     }
 
     protected fun JarFile.assertDoesNotContainEntries(vararg entries: String) {
@@ -88,7 +122,10 @@ abstract class BasicAssertionTestCase {
             .start().let {
                 it.waitFor(5, TimeUnit.SECONDS)
                 assert(it.exitValue() == 0) {
-                    throw TestCaseFailedException(description, RuntimeException("non-zero return code: ${it.exitValue()}"))
+                    throw TestCaseFailedException(
+                        description = description,
+                        cause = RuntimeException("non-zero return code: ${it.exitValue()}")
+                    )
                 }
             }
     }

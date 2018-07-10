@@ -187,11 +187,17 @@ def _maybe_make_srcsjar_action(ctx, srcs):
 
 
 # PACKAGE JARS #################################################################################################################################################
-def _fold_jars_action(ctx, output_jar, input_jars):
-    args=["--output", output_jar.path]
+def _fold_jars_action(ctx, rule_kind, output_jar, input_jars):
+    args=[
+        "--normalize",
+        "--compression",
+        "--deploy_manifest_lines",
+            "Target-Label: %s" % str(ctx.label),
+            "Injecting-Rule-Kind: %s" % rule_kind,
+        "--output", output_jar.path
+    ]
     for i in input_jars:
         args += ["--sources", i.path]
-
     ctx.action(
         mnemonic = "KotlinFoldOutput",
         inputs = input_jars,
