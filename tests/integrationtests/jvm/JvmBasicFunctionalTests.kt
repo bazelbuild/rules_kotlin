@@ -55,7 +55,7 @@ class JvmBasicFunctionalTests : AssertionTestCase("tests/integrationtests/jvm/ba
             name = "test_embed_resources.jar",
             description = "Merging resources into the main output jar should still result in a normalized jar"
         ) {
-            validateFileSha256("0f263bd31bd6c7346058e0249043d1c6d47b01ff3c3609c6f0fc900dd63f54d2")
+            validateFileSha256("2d9175e9ecc6b9bc62f59ce861e9b67c6f64dd581f6cbd986c0a694b89e310b1")
             assertManifestStamped()
             assertEntryCompressedAndNormalizedTimestampYear("testresources/AClass.class")
             assertEntryCompressedAndNormalizedTimestampYear("tests/integrationtests/jvm/basic/testresources/resources/one/two/aFile.txt")
