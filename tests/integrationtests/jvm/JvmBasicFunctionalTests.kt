@@ -42,27 +42,6 @@ class JvmBasicFunctionalTests : AssertionTestCase("tests/integrationtests/jvm/ba
     }
 
     @Test
-    fun testJarNormalization() {
-        jarTestCase(
-            name = "test_module_name_lib.jar",
-            description = "Builder jars should be normalized with the same timestamps as singlejar and including stamp data"
-        ) {
-            validateFileSha256("513d14b29eb1b95b97bf7d34e2126a716c7d1012b259b5021c16b99ca82feeb5")
-            assertManifestStamped()
-            assertEntryCompressedAndNormalizedTimestampYear("helloworld/Main.class")
-        }
-        jarTestCase(
-            name = "test_embed_resources.jar",
-            description = "Merging resources into the main output jar should still result in a normalized jar"
-        ) {
-            validateFileSha256("2d9175e9ecc6b9bc62f59ce861e9b67c6f64dd581f6cbd986c0a694b89e310b1")
-            assertManifestStamped()
-            assertEntryCompressedAndNormalizedTimestampYear("testresources/AClass.class")
-            assertEntryCompressedAndNormalizedTimestampYear("tests/integrationtests/jvm/basic/testresources/resources/one/two/aFile.txt")
-        }
-    }
-
-    @Test
     fun testPropogateDeps() {
         assertExecutableRunfileSucceeds(
                 "propagation_rt_via_export_consumer",
