@@ -107,10 +107,6 @@ class KotlinToolchain private constructor(
     interface KotlincInvoker {
         fun compile(args: Array<String>, out: PrintStream): Int
     }
-
-    interface JarToolInvoker {
-        fun invoke(args: List<String>, directory: File? = null)
-    }
 }
 
 

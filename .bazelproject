@@ -28,3 +28,6 @@ test_sources:
 
 additional_languages:
   kotlin
+
+import_run_configurations:
+  tests/Bazel_all_local_tests.xml

@@ -19,3 +19,10 @@ test_suite(
         "//tests/integrationtests/jvm"
     ]
 )
+
+test_suite(
+    name = "integrationtests_local",
+    tests = [
+        "//tests/integrationtests/jvm:jvm_local"
+    ]
+)

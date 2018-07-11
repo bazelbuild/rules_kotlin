@@ -21,7 +21,9 @@ import com.google.inject.Singleton
 import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
+import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.ensureDirectories
+import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.model.KotlinModel
 import java.nio.file.Paths
 
@@ -29,7 +31,6 @@ import java.nio.file.Paths
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder @Inject internal constructor(
     private val commandBuilder: BuildCommandBuilder,
-    private val jarToolInvoker: KotlinToolchain.JarToolInvoker,
     private val compilationExector: KotlinJvmCompilationExecutor
 ) : CommandLineProgram {
     fun execute(args: List<String>): Int =
@@ -62,30 +63,15 @@ class KotlinBuilder @Inject internal constructor(
         if (command.inputs.sourceJarsList.isEmpty()) {
             command
         } else {
-            val sourceUnpackDirectory =
-                Paths.get(command.directories.temp).let {
-                    it.resolve("_srcjars").toFile().let {
-                        try {
-                            it.mkdirs(); it
-                        } catch (ex: Exception) {
-                            throw RuntimeException("could not create unpack directory at $it", ex)
-                        }
-                    }
-                }
-            for (sourceJar in command.inputs.sourceJarsList) {
-                jarToolInvoker.invoke(
-                    listOf("xf", Paths.get(sourceJar).toAbsolutePath().toString()), sourceUnpackDirectory
-                )
+            SourceJarExtractor(
+                destDir = Paths.get(command.directories.temp).resolve("_srcjars"),
+                fileMatcher = IS_JVM_SOURCE_FILE
+            ).also {
+                it.jarFiles.addAll(command.inputs.sourceJarsList.map { Paths.get(it) })
+                it.execute()
+            }.let {
+                commandBuilder.withSources(command, it.sourcesList.iterator())
             }
-
-            commandBuilder.withSources(
-                command,
-                sourceUnpackDirectory
-                    .walk()
-                    .filter { it.name.endsWith(".kt") || it.name.endsWith(".java") }
-                    .map { it.toString() }
-                    .iterator()
-            )
         }
 
     override fun apply(args: List<String>): Int {
