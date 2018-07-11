@@ -5,7 +5,7 @@ java_library(
         "@com_github_jetbrains_kotlin//:kotlin-reflect"
     ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 
@@ -17,7 +17,7 @@ java_library(
         "@com_github_jetbrains_kotlin//:kotlin-script-runtime"
     ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 
@@ -29,7 +29,7 @@ java_library(
         "@com_github_jetbrains_kotlin//:kotlin-stdlib"
     ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 
@@ -41,7 +41,7 @@ java_library(
         "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlin/kotlin_stdlib_common"
     ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 

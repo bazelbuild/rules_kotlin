@@ -26,7 +26,6 @@ java_plugin(
     deps = [
         "//third_party/jvm/com/google/auto/service:auto_service",
         "//third_party/jvm/com/google/guava",
-        "//third_party/jvm/com/google/auto:auto_common"
     ],
     processor_class = "com.google.auto.service.processor.AutoServiceProcessor",
     generates_api = 0

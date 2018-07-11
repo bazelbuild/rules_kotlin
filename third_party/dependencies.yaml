@@ -11,6 +11,10 @@ options:
   namePrefix: "io_bazel_rules_kotlin_"
 
 dependencies:
+  junit:
+    junit:
+      lang: "java"
+      version: "4.12"
   com.google.inject:
     guice:
       lang: "java"
@@ -19,7 +23,7 @@ dependencies:
     protobuf:
       modules: ["java", "java-util"]
       lang: "java"
-      version: "3.5.1"
+      version: "3.6.0"
   com.google.code.gson:
     gson:
       lang: "java"
@@ -45,6 +49,10 @@ dependencies:
       modules: ["", "compiler", "producers"]
       lang: "java"
       version: "2.16"
+  javax.inject:
+    javax.inject:
+      lang: "java"
+      version: "1"
   org.jetbrains.kotlinx:
     kotlinx-coroutines:
       modules: ["core"]

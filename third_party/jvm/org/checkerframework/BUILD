@@ -5,7 +5,7 @@ java_library(
         "//external:jar/io_bazel_rules_kotlin_org/checkerframework/checker_compat_qual"
     ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 

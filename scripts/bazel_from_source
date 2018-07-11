@@ -61,6 +61,14 @@ function _main {
         _build)
             _build_head_bazel
             ;;
+        _cd)
+            cd ${BAZEL_SOURCE}
+            ;;
+        _pull)
+            pushd ${BAZEL_SOURCE}
+            git fetch
+            git pull origin master
+            ;;
         *)
             _head_bazel ${CMD} $@
             ;;

@@ -59,8 +59,14 @@ java_library(
     exports = [
         "//external:jar/io_bazel_rules_kotlin_com/google/dagger/dagger_spi"
     ],
+    runtime_deps = [
+        "//third_party/jvm/com/google/guava:guava",
+        "//third_party/jvm/javax/inject:javax_inject",
+        ":dagger",
+        ":dagger_producers"
+    ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 
