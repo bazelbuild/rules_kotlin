@@ -11,11 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# The entire test suite excluding local tests.
 test_suite(
     name = "all_tests",
     tests = [
         "//kotlin/builder:unittests",
         "//kotlin/builder:integrationtests",
         "//tests/integrationtests"
+    ]
+)
+
+#  Local tests
+test_suite(
+    name = "all_local_tests",
+    tests = [
+        ":all_tests",
+        "//tests/integrationtests:integrationtests_local"
     ]
 )

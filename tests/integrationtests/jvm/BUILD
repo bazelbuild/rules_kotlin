@@ -22,6 +22,12 @@ kt_it_assertion_test(
 )
 
 kt_it_assertion_test(
+    name ="basic_local_tests",
+    cases="//tests/integrationtests/jvm/basic:cases",
+    test_class = "io.bazel.kotlin.testing.jvm.JvmBasicLocalTests",
+)
+
+kt_it_assertion_test(
     name = "kapt_tests",
     cases = "//tests/integrationtests/jvm/kapt:cases",
     test_class="io.bazel.kotlin.testing.jvm.KaptTests",
@@ -40,5 +46,12 @@ test_suite(
         ":kapt_tests",
         ":example_tests",
         "//tests/integrationtests/jvm/basic:friends_tests"
+    ]
+)
+
+test_suite(
+    name = "jvm_local",
+    tests = [
+        ":basic_local_tests"
     ]
 )
