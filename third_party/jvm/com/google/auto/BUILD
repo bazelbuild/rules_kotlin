@@ -4,8 +4,11 @@ java_library(
     exports = [
         "//external:jar/io_bazel_rules_kotlin_com/google/auto/auto_common"
     ],
+    runtime_deps = [
+        "//third_party/jvm/com/google/guava:guava"
+    ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 

@@ -52,8 +52,8 @@ skydoc_repositories()
 
 http_jar(
     name = "bazel_deps",
-    url = "https://github.com/axsy-dev/bazel-deps/releases/download/2/bazel-deps.jar",
-    sha256 = "bbd51188141f2bb09222a35675af25edbbb5b6507d779acb6c70c19e51cd67bd",
+    url = "https://github.com/hsyed/bazel-deps/releases/download/v0.1.0/parseproject_deploy.jar",
+    sha256 = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e",
 )
 
 load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")

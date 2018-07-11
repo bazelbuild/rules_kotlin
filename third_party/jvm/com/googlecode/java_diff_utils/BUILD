@@ -5,7 +5,7 @@ java_library(
         "//external:jar/io_bazel_rules_kotlin_com/googlecode/java_diff_utils/diffutils"
     ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 
