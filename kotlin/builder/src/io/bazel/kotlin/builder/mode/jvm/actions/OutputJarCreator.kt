@@ -16,10 +16,8 @@
 package io.bazel.kotlin.builder.mode.jvm.actions
 
 import com.google.inject.ImplementedBy
-import com.google.inject.Inject
-import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.model.KotlinModel
-import java.nio.file.Path
 import java.nio.file.Paths
 
 @ImplementedBy(DefaultOutputJarCreator::class)
@@ -27,16 +25,17 @@ interface OutputJarCreator {
     fun createOutputJar(command: KotlinModel.BuilderCommand)
 }
 
-private class DefaultOutputJarCreator @Inject constructor(
-    val toolInvoker: KotlinToolchain.JarToolInvoker
-) : OutputJarCreator {
-    private fun MutableList<String>.addAllFrom(dir: Path) = addAll(arrayOf("-C", dir.toString(), "."))
+private class DefaultOutputJarCreator : OutputJarCreator {
     override fun createOutputJar(command: KotlinModel.BuilderCommand) {
-        mutableListOf(
-            "cf", command.outputs.jar
-        ).also { args ->
-            args.addAllFrom(Paths.get(command.directories.classes))
-            args.addAllFrom(Paths.get(command.directories.generatedClasses))
-        }.let { toolInvoker.invoke(it) }
+        JarCreator(
+            path = Paths.get(command.outputs.jar),
+            normalize = true,
+            verbose = false
+        ).also {
+            it.addDirectory(Paths.get(command.directories.classes))
+            it.addDirectory(Paths.get(command.directories.generatedClasses))
+            it.setJarOwner(command.info.label, command.info.ruleKind)
+            it.execute()
+        }
     }
 }

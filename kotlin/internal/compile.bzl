@@ -221,7 +221,7 @@ def _compile_action(ctx, rule_kind, module_name, friend_paths=depset(), src_jars
 
     # setup the merge action if needed.
     if len(output_merge_list) > 0:
-        utils.actions.fold_jars(ctx, output_jar, output_merge_list)
+        utils.actions.fold_jars(ctx, rule_kind, output_jar, output_merge_list)
 
     # create the java provider but the kotlin and default provider cannot be created here.
     return _make_java_provider(ctx, srcs, deps, kotlin_auto_deps)
