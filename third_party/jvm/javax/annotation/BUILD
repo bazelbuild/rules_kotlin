@@ -5,7 +5,7 @@ java_library(
         "//external:jar/io_bazel_rules_kotlin_javax/annotation/jsr250_api"
     ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 

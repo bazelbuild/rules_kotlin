@@ -4,8 +4,11 @@ java_library(
     exports = [
         "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlinx/atomicfu_common"
     ],
+    runtime_deps = [
+        "//third_party/jvm/org/jetbrains/kotlin:kotlin_stdlib_common"
+    ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 
@@ -37,7 +40,7 @@ java_library(
         ":atomicfu_common"
     ],
     visibility = [
-        "//visibility:public"
+        "//third_party/jvm:__subpackages__"
     ]
 )
 
