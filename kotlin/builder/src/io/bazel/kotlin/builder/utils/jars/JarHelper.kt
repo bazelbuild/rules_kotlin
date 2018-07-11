@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Copied from bazel core and there is some code in other branches which will use the some of the unused elements. Fix
+// this later on.
 @file:Suppress("unused","MemberVisibilityCanBePrivate")
 package io.bazel.kotlin.builder.utils.jars
 
@@ -35,7 +37,6 @@ import java.util.zip.CRC32
  * Adjusting the timestamp for .class files is necessary since otherwise javac will recompile java
  * files if both the java file and its .class file are present.
  */
-
 open class JarHelper internal constructor (
     // The path to the Jar we want to create
     protected val jarPath: Path,
@@ -200,17 +201,17 @@ open class JarHelper internal constructor (
      * correspondence.
      *
      * @param path the path used to retrieve the timestamp in case normalize is disabled.
-     * @param bytes if this is null then the entry is a directory.
+     * @param data if this is empty array then the entry is a directory.
      */
-    protected fun JarOutputStream.copyEntry(name: String, path: Path? = null, bytes: ByteArray = EMPTY_BYTEARRAY) {
+    protected fun JarOutputStream.copyEntry(name: String, path: Path? = null, data: ByteArray = EMPTY_BYTEARRAY) {
         val outEntry = JarEntry(name)
         outEntry.time = when {
             normalize -> normalizedTimestamp(name)
             else -> Files.getLastModifiedTime(checkNotNull(path)).toMillis()
         }
-        outEntry.size = bytes.size.toLong()
+        outEntry.size = data.size.toLong()
 
-        if (bytes.isEmpty()) {
+        if (data.isEmpty()) {
             outEntry.method = JarEntry.STORED
             outEntry.crc = 0
             putNextEntry(outEntry)
@@ -218,13 +219,13 @@ open class JarHelper internal constructor (
             outEntry.method = storageMethod
             if (storageMethod == JarEntry.STORED) {
                 val crc = CRC32()
-                crc.update(bytes)
+                crc.update(data)
                 outEntry.crc = crc.value
                 putNextEntry(outEntry)
-                write(bytes)
+                write(data)
             } else {
                 putNextEntry(outEntry)
-                write(bytes)
+                write(data)
             }
         }
         closeEntry()
@@ -245,8 +246,6 @@ open class JarHelper internal constructor (
         // They must all be kept in sync.
         val TARGET_LABEL = Attributes.Name("Target-Label")
         val INJECTING_RULE_KIND = Attributes.Name("Injecting-Rule-Kind")
-
-        const val DOS_EPOCH_IN_JAVA_TIME = 315561600000L
 
         // ZIP timestamps have a resolution of 2 seconds.
         // see http://www.info-zip.org/FAQ.html#limits
