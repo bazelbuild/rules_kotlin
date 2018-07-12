@@ -58,7 +58,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                     .filter { it.isFile }
                     .map { it.path }
                     .iterator()
-                    .let { command.expandWithGeneratedSources(command, it) }
+                    .let { command.expandWithGeneratedSources(it) }
             } else {
                 command
             }

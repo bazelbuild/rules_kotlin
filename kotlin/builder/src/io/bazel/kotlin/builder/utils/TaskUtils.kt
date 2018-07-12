@@ -19,10 +19,9 @@ import io.bazel.kotlin.model.KotlinModel
 
 
 fun KotlinModel.CompilationTask.expandWithSources(
-    command: KotlinModel.CompilationTask,
     sources: Iterator<String>
 ): KotlinModel.CompilationTask =
-    command.updateBuilder { builder ->
+    updateBuilder { builder ->
         sources.partitionSources(
             { builder.inputsBuilder.addKotlinSources(it) },
             { builder.inputsBuilder.addJavaSources(it) })
@@ -30,10 +29,9 @@ fun KotlinModel.CompilationTask.expandWithSources(
 
 
 fun KotlinModel.CompilationTask.expandWithGeneratedSources(
-    command: KotlinModel.CompilationTask,
     sources: Iterator<String>
 ): KotlinModel.CompilationTask =
-    command.updateBuilder { builder ->
+    updateBuilder { builder ->
         sources.partitionSources(
             { builder.inputsBuilder.addGeneratedKotlinSources(it) },
             { builder.inputsBuilder.addGeneratedJavaSources(it) })
