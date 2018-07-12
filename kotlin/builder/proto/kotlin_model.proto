@@ -65,7 +65,7 @@ message KotlinToolchainInfo {
 }
 
 // Mested messages not marked with stable could be refactored.
-message BuilderCommand {
+message CompilationTask {
     message Info {
         string label = 1;
         // derived from label

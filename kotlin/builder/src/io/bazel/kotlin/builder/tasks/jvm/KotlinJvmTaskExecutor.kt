@@ -13,41 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.mode.jvm
+package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.common.base.Stopwatch
-import com.google.inject.ImplementedBy
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import io.bazel.kotlin.builder.BuildCommandBuilder
 import io.bazel.kotlin.builder.CompilationStatusException
-import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor.Result
-import io.bazel.kotlin.builder.mode.jvm.actions.JDepsGenerator
-import io.bazel.kotlin.builder.mode.jvm.actions.JavaCompiler
-import io.bazel.kotlin.builder.mode.jvm.actions.KotlinCompiler
-import io.bazel.kotlin.builder.mode.jvm.actions.OutputJarCreator
-import io.bazel.kotlin.builder.mode.jvm.utils.KotlinCompilerOutputSink
-import io.bazel.kotlin.model.KotlinModel.BuilderCommand
+import io.bazel.kotlin.builder.utils.expandWithGeneratedSources
+import io.bazel.kotlin.model.KotlinModel.CompilationTask
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-@ImplementedBy(DefaultKotlinJvmCompilationExecutor::class)
-interface KotlinJvmCompilationExecutor {
-    class Result(val timings: List<String>, val command: BuilderCommand)
-
-    fun compile(command: BuilderCommand): Result
-}
 
 @Singleton
-private class DefaultKotlinJvmCompilationExecutor @Inject constructor(
-    private val commandBuilder: BuildCommandBuilder,
+class KotlinJvmTaskExecutor @Inject internal constructor(
     private val kotlinCompiler: KotlinCompiler,
     private val outputSink: KotlinCompilerOutputSink,
     private val javaCompiler: JavaCompiler,
     private val jDepsGenerator: JDepsGenerator,
     private val outputJarCreator: OutputJarCreator
-) : KotlinJvmCompilationExecutor {
-    override fun compile(command: BuilderCommand): Result {
+) {
+    class Result(val timings: List<String>, val command: CompilationTask)
+
+    fun compile(command: CompilationTask): Result {
         val context = Context()
         val commandWithApSources = context.execute("kapt") {
             runAnnotationProcessors(command)
@@ -62,7 +50,7 @@ private class DefaultKotlinJvmCompilationExecutor @Inject constructor(
         return Result(context.timings, commandWithApSources)
     }
 
-    private fun runAnnotationProcessors(command: BuilderCommand): BuilderCommand =
+    private fun runAnnotationProcessors(command: CompilationTask): CompilationTask =
         try {
             if (command.info.plugins.annotationProcessorsList.isNotEmpty()) {
                 kotlinCompiler.runAnnotationProcessor(command)
@@ -70,16 +58,16 @@ private class DefaultKotlinJvmCompilationExecutor @Inject constructor(
                     .filter { it.isFile }
                     .map { it.path }
                     .iterator()
-                    .let { commandBuilder.withGeneratedSources(command, it) }
+                    .let { command.expandWithGeneratedSources(command, it) }
             } else {
                 command
             }
-        } catch(ex: CompilationStatusException) {
+        } catch (ex: CompilationStatusException) {
             ex.lines.also(outputSink::deliver)
             throw ex
         }
 
-    private fun compileClasses(context: Context, command: BuilderCommand) {
+    private fun compileClasses(context: Context, command: CompilationTask) {
         var kotlinError: CompilationStatusException? = null
         var result: List<String>? = null
         context.execute("kotlinc") {

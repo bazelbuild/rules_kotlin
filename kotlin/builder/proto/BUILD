@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+package(default_visibility=["//visibility:public"])
 # commented out till 0.16 is released. We aren't  prebuilding the libraries at the moment so it's fine.
+# TODO constrain the visibility  when fixing  the comments below as well
 #proto_library(
 #    name = "kotlin_model_proto",
 #    srcs = [":kotlin_model.proto"],
@@ -40,17 +41,14 @@
 java_import(
     name = "deps",
     jars = ["jars/libdeps_proto-speed.jar"],
-    visibility = ["//kotlin/builder:__subpackages__"]
 )
 
 java_import(
     name = "worker",
     jars = ["jars/libworker_protocol_proto-speed.jar"],
-    visibility = ["//kotlin/builder:__subpackages__"]
 )
 
 java_import(
     name = "kotlin_model",
     jars = ["jars/libkotlin_model_proto-speed.jar"],
-    visibility = ["//kotlin/builder:__subpackages__"]
 )

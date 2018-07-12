@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.mode.jvm.actions
+package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
 import com.google.inject.ImplementedBy
@@ -21,7 +21,6 @@ import com.google.inject.Inject
 import io.bazel.kotlin.builder.CompilationException
 import io.bazel.kotlin.builder.CompilationStatusException
 import io.bazel.kotlin.builder.KotlinToolchain
-import io.bazel.kotlin.builder.mode.jvm.utils.JdepsParser
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.rootCause
 import io.bazel.kotlin.model.KotlinModel
@@ -33,7 +32,7 @@ import java.nio.file.Paths
 
 @ImplementedBy(DefaultJDepsGenerator::class)
 interface JDepsGenerator {
-    fun generateJDeps(command: KotlinModel.BuilderCommand)
+    fun generateJDeps(command: KotlinModel.CompilationTask)
 }
 
 private class DefaultJDepsGenerator @Inject constructor(
@@ -42,7 +41,7 @@ private class DefaultJDepsGenerator @Inject constructor(
 ) : JDepsGenerator {
     private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(
         toolchain.kotlinHome.resolveVerified("lib").toPath(), *toolchain.kotlinStandardLibraries.toTypedArray())
-    override fun generateJDeps(command: KotlinModel.BuilderCommand) {
+    override fun generateJDeps(command: KotlinModel.CompilationTask) {
         val jdepsContent =
             if (command.inputs.classpathList.isEmpty()) {
                 Deps.Dependencies.newBuilder().let {

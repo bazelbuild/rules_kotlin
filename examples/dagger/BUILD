@@ -17,29 +17,29 @@ load("//kotlin:kotlin.bzl", "kt_jvm_library")
 
 java_plugin(
     name = "dagger_plugin",
+    processor_class = "dagger.internal.codegen.ComponentProcessor",
     deps = [
-        "//third_party/jvm/com/google/dagger:dagger_compiler",
-        "@//third_party/jvm/com/google/guava",
-        "//third_party/jvm/com/google/dagger:dagger_producers",
         "//third_party/jvm/com/google/dagger",
-        "//third_party/jvm/javax/inject:javax_inject"
+        "//third_party/jvm/com/google/dagger:dagger_compiler",
+        "//third_party/jvm/com/google/dagger:dagger_producers",
+        "//third_party/jvm/javax/inject:javax_inject",
+        "@//third_party/jvm/com/google/guava",
     ],
-    processor_class = "dagger.internal.codegen.ComponentProcessor"
 )
 
 java_library(
     name = "dagger_lib",
+    exported_plugins = ["dagger_plugin"],
     exports = [
+        "//third_party/jvm/com/google/dagger",
         "//third_party/jvm/javax/inject:javax_inject",
-        "//third_party/jvm/com/google/dagger"
     ],
-    exported_plugins = ["dagger_plugin"]
 )
 
 # Generate a srcjar to validate intellij plugin correctly attaches it.
 genrule(
     name = "tea_lib_src",
-    tools = ["@local_jdk//:jdk"],
+    outs = ["test.srcjar"],
     cmd = """
 cat << EOF > TeaPot.kt
 package tea
@@ -51,27 +51,27 @@ EOF
 external/local_jdk/bin/jar -cf $@ TeaPot.kt
 rm TeaPot.kt
 """,
-    outs = ["test.srcjar"]
+    tools = ["@local_jdk//:jdk"],
 )
 
 kt_jvm_library(
     name = "tea_lib",
-    srcs = [":tea_lib_src"]
+    srcs = [":tea_lib_src"],
 )
 
 kt_jvm_library(
     name = "coffee_lib",
     srcs = glob(["src/**"]),
     deps = [
-        ":tea_lib",
         ":dagger_lib",
-        "//third_party:kotlinx_coroutines"
+        ":tea_lib",
+        "//third_party:kotlinx_coroutines",
     ],
 )
 
 java_binary(
     name = "coffee_app",
     main_class = "coffee.CoffeeApp",
+    visibility = ["//visibility:public"],
     runtime_deps = [":coffee_lib"],
-    visibility = ["//visibility:public"]
 )

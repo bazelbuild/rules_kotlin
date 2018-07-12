@@ -13,31 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.mode.jvm.utils
+package io.bazel.kotlin.builder.tasks.jvm
 
-import com.google.inject.ImplementedBy
 import com.google.inject.Inject
 import com.google.inject.Provider
+import com.google.inject.Singleton
 import java.io.File
 import java.io.PrintStream
 import java.nio.file.Paths
 
-@ImplementedBy(DefaultOutputProcessorFactory::class)
-interface KotlinCompilerOutputSink {
-    fun deliver(line: String)
-    fun deliver(lines: List<String>)
-}
-
-private class DefaultOutputProcessorFactory @Inject constructor(
+@Singleton
+class KotlinCompilerOutputSink @Inject constructor(
     val streamProvider: Provider<PrintStream>
-) : KotlinCompilerOutputSink {
+) {
     private val executionRoot: String = Paths.get("").toAbsolutePath().toString() + File.separator
 
-    override fun deliver(line: String) {
+    fun deliver(line: String) {
         streamProvider.get().println(trimExecutionRootPrefix(line))
     }
 
-    override fun deliver(lines: List<String>) {
+    fun deliver(lines: List<String>) {
         streamProvider.get().also { stream -> lines.map(::trimExecutionRootPrefix).forEach(stream::println) }
     }
 

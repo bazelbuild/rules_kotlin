@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.mode.jvm.actions
+package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.inject.ImplementedBy
 import io.bazel.kotlin.builder.utils.jars.JarCreator
@@ -22,11 +22,11 @@ import java.nio.file.Paths
 
 @ImplementedBy(DefaultOutputJarCreator::class)
 interface OutputJarCreator {
-    fun createOutputJar(command: KotlinModel.BuilderCommand)
+    fun createOutputJar(command: KotlinModel.CompilationTask)
 }
 
 private class DefaultOutputJarCreator : OutputJarCreator {
-    override fun createOutputJar(command: KotlinModel.BuilderCommand) {
+    override fun createOutputJar(command: KotlinModel.CompilationTask) {
         JarCreator(
             path = Paths.get(command.outputs.jar),
             normalize = true,

@@ -15,27 +15,18 @@
  */
 package io.bazel.kotlin.builder
 
-import com.google.inject.ImplementedBy
-import com.google.inject.Inject
-import com.google.inject.Singleton
 import com.google.protobuf.util.JsonFormat
 import io.bazel.kotlin.builder.utils.ArgMap
-import io.bazel.kotlin.builder.utils.DefaultKotlinCompilerPluginArgsEncoder
+import io.bazel.kotlin.builder.utils.partitionSources
 import io.bazel.kotlin.model.KotlinModel
-import io.bazel.kotlin.model.KotlinModel.BuilderCommand
-
-
-@ImplementedBy(DefaultBuildCommandBuilder::class)
-interface BuildCommandBuilder {
-    fun fromInput(argMap: ArgMap): BuilderCommand
-    fun withSources(command: BuilderCommand, sources: Iterator<String>): BuilderCommand
-    fun withGeneratedSources(command: BuilderCommand, sources: Iterator<String>): BuilderCommand
-}
+import io.bazel.kotlin.model.KotlinModel.CompilationTask
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
-private class DefaultBuildCommandBuilder @Inject constructor(
-    private val pluginEncoder: DefaultKotlinCompilerPluginArgsEncoder
-) : BuildCommandBuilder {
+class TaskBuilder @Inject internal constructor(
+    private val pluginEncoder: KotlinCompilerPluginArgsEncoder
+) {
     companion object {
         @JvmStatic
         private val jsonTypeRegistry = JsonFormat.TypeRegistry.newBuilder()
@@ -84,8 +75,8 @@ private class DefaultBuildCommandBuilder @Inject constructor(
         TEST_ONLY("--testonly")
     }
 
-    override fun fromInput(argMap: ArgMap): BuilderCommand =
-        BuilderCommand.newBuilder().let { root ->
+    fun fromInput(argMap: ArgMap): CompilationTask =
+        CompilationTask.newBuilder().let { root ->
             with(root.outputsBuilder) {
                 jar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT.flag)
                 jdeps = argMap.mandatorySingle("--output_jdeps")
@@ -146,37 +137,5 @@ private class DefaultBuildCommandBuilder @Inject constructor(
             }
             root.build()
         }
-
-    override fun withSources(command: BuilderCommand, sources: Iterator<String>): BuilderCommand =
-        command.updateBuilder { builder ->
-            sources.partitionSources(
-                { builder.inputsBuilder.addKotlinSources(it) },
-                { builder.inputsBuilder.addJavaSources(it) })
-        }
-
-
-    override fun withGeneratedSources(command: BuilderCommand, sources: Iterator<String>): BuilderCommand =
-        command.updateBuilder { builder ->
-            sources.partitionSources(
-                { builder.inputsBuilder.addGeneratedKotlinSources(it) },
-                { builder.inputsBuilder.addGeneratedJavaSources(it) })
-        }
-
-    private fun BuilderCommand.updateBuilder(init: (BuilderCommand.Builder) -> Unit): BuilderCommand =
-        toBuilder().let {
-            init(it)
-            it.build()
-        }
-
-
-    private fun Iterator<String>.partitionSources(kt: (String) -> Unit, java: (String) -> Unit) {
-        forEach {
-            when {
-                it.endsWith(".kt") -> kt(it)
-                it.endsWith(".java") -> java(it)
-                else -> throw IllegalStateException("invalid source file type $it")
-            }
-        }
-    }
 }
 

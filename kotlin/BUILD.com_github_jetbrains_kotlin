@@ -1,0 +1,66 @@
+# Copyright 2018 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+package(default_visibility = ["//visibility:public"])
+
+# Kotlin home filegroup containing everything that is needed.
+filegroup(
+    name = "home",
+    srcs = glob(["**"]),
+)
+
+# Kotlin dependencies that are internal to this repo and are meant to be loaded at runtime.
+[
+    java_import(
+        name = "%s" % art,
+        jars = ["lib/%s.jar" % art],
+        neverlink = 1,
+    )
+    for art in [
+        "kotlin-annotation-processing",
+        "kotlin-annotation-processing-runtime",
+        "kotlin-compiler",
+    ]
+]
+
+# Kotlin dependencies that are internal to this repo and may be linked.
+[
+    java_import(
+        name = "%s" % art,
+        jars = ["lib/%s.jar" % art],
+    )
+    for art in [
+        "kotlin-preloader",
+    ]
+]
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_import")
+
+#  The Kotlin standard libraries. These should be setup in a Toolchain.
+[
+    kt_jvm_import(
+        name = "kotlin-%s" % art,
+        jars = ["lib/kotlin-%s.jar" % art],
+        srcjar = "lib/kotlin-%s-sources.jar" % art,
+        visibility = ["//visibility:public"],
+    )
+    for art in [
+        "runtime",
+        "stdlib",
+        "stdlib-jdk7",
+        "stdlib-jdk8",
+        "reflect",
+        "test",
+        "script-runtime",
+    ]
+]
