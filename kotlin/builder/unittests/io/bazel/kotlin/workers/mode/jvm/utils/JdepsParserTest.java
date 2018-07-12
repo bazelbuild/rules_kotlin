@@ -16,6 +16,7 @@
 package io.bazel.kotlin.builder.mode.jvm.utils;
 
 import com.google.devtools.build.lib.view.proto.Deps;
+import io.bazel.kotlin.builder.tasks.jvm.JdepsParser;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

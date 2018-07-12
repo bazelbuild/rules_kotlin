@@ -18,11 +18,8 @@ package io.bazel.kotlin.builder
 import com.google.inject.Inject
 import com.google.inject.Provider
 import com.google.inject.Singleton
-import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor
-import io.bazel.kotlin.builder.utils.ArgMap
-import io.bazel.kotlin.builder.utils.ArgMaps
-import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
-import io.bazel.kotlin.builder.utils.ensureDirectories
+import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.utils.*
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.model.KotlinModel
 import java.nio.file.Paths
@@ -30,8 +27,8 @@ import java.nio.file.Paths
 @Singleton
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder @Inject internal constructor(
-    private val commandBuilder: BuildCommandBuilder,
-    private val compilationExector: KotlinJvmCompilationExecutor
+    private val commandBuilder: TaskBuilder,
+    private val jvmTaskExecutor: KotlinJvmTaskExecutor
 ) : CommandLineProgram {
     fun execute(args: List<String>): Int =
         ArgMaps.from(args).let { execute(it) }
@@ -39,7 +36,7 @@ class KotlinBuilder @Inject internal constructor(
     fun execute(args: ArgMap): Int =
         commandBuilder.fromInput(args).let { execute(it) }
 
-    fun execute(command: KotlinModel.BuilderCommand): Int {
+    fun execute(command: KotlinModel.CompilationTask): Int {
         ensureDirectories(
             command.directories.classes,
             command.directories.temp,
@@ -48,7 +45,7 @@ class KotlinBuilder @Inject internal constructor(
         )
         val updatedCommand = expandWithSourceJarSources(command)
         return try {
-            compilationExector.compile(updatedCommand)
+            jvmTaskExecutor.compile(updatedCommand)
             0
         } catch (ex: CompilationStatusException) {
             ex.status
@@ -56,10 +53,10 @@ class KotlinBuilder @Inject internal constructor(
     }
 
     /**
-     * If any sourcejars were provided expand the jars sources and create a new [KotlinModel.BuilderCommand] with the
+     * If any sourcejars were provided expand the jars sources and create a new [KotlinModel.CompilationTask] with the
      * Java and Kotlin sources merged in.
      */
-    private fun expandWithSourceJarSources(command: KotlinModel.BuilderCommand): KotlinModel.BuilderCommand =
+    private fun expandWithSourceJarSources(command: KotlinModel.CompilationTask): KotlinModel.CompilationTask =
         if (command.inputs.sourceJarsList.isEmpty()) {
             command
         } else {
@@ -70,7 +67,7 @@ class KotlinBuilder @Inject internal constructor(
                 it.jarFiles.addAll(command.inputs.sourceJarsList.map { Paths.get(it) })
                 it.execute()
             }.let {
-                commandBuilder.withSources(command, it.sourcesList.iterator())
+                command.expandWithSources(command, it.sourcesList.iterator())
             }
         }
 

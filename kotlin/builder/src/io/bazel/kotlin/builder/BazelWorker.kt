@@ -61,8 +61,6 @@ interface CommandLineProgram {
 /**
  * Bazel worker runner.
  *
- *
- *
  * This class adapts a traditional command line program so it can be spawned by Bazel as a
  * persistent worker process that handles multiple invocations per JVM. It will also be backwards
  * compatible with being run as a normal single-invocation command.

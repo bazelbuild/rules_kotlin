@@ -112,9 +112,9 @@ load(
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
     _kt_jvm_library_impl = "kt_jvm_library_impl",
 )
+load("//kotlin:kotlin_releases.bzl", "KOTLIN_CURRENT_RELEASE")
 load(
     "//kotlin:kotlin_compiler_repositories.bzl",
-    "KOTLIN_CURRENT_RELEASE",
     _kotlin_compiler_repository = "kotlin_compiler_repositories",
 )
 load("//third_party/jvm:workspace.bzl", _maven_dependencies="maven_dependencies")

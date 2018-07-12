@@ -50,7 +50,6 @@ _common_attrs = {
     "kotlin_home": attr.label(
         default = Label("@" + _KT_COMPILER_REPO + "//:home"),
         allow_files = True,
-        cfg = "host"
     ),
     "kotlinbuilder": attr.label(
         default = Label("//kotlin/builder"),
@@ -84,14 +83,13 @@ _common_attrs = {
 
 _kt_jvm_attrs = dict(_common_attrs.items() + {
     "jvm_runtime": attr.label(
-        single_file = True,
-        default = Label("@" + _KT_COMPILER_REPO + "//:runtime"),
+        default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-runtime"),
     ),
     "jvm_stdlibs": attr.label_list(
         default = [
-            Label("@" + _KT_COMPILER_REPO + "//:stdlib"),
-            Label("@" + _KT_COMPILER_REPO + "//:stdlib-jdk7"),
-            Label("@" + _KT_COMPILER_REPO + "//:stdlib-jdk8"),
+            Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
+            Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk7"),
+            Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk8"),
         ]
     ),
     "jvm_target": attr.string(

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.mode.jvm.actions
+package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.inject.ImplementedBy
 import com.google.inject.Inject
@@ -27,8 +27,8 @@ import java.io.PrintStream
 
 @ImplementedBy(DefaultKotlinCompiler::class)
 interface KotlinCompiler {
-    fun runAnnotationProcessor(command: KotlinModel.BuilderCommand): List<String>
-    fun compile(command: KotlinModel.BuilderCommand): List<String>
+    fun runAnnotationProcessor(command: KotlinModel.CompilationTask): List<String>
+    fun compile(command: KotlinModel.CompilationTask): List<String>
 }
 
 // The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
@@ -40,11 +40,11 @@ interface KotlinCompiler {
 private class DefaultKotlinCompiler @Inject constructor(
     val compiler: KotlinToolchain.KotlincInvoker
 ) : KotlinCompiler {
-    override fun runAnnotationProcessor(command: KotlinModel.BuilderCommand): List<String> {
+    override fun runAnnotationProcessor(command: KotlinModel.CompilationTask): List<String> {
         check(command.info.plugins.annotationProcessorsList.isNotEmpty()) {
             "method called without annotation processors"
         }
-        return setupCompileContext(command).also {
+        return getCommonArgs(command).also {
             it.addAll(command.info.encodedPluginDescriptorsList)
             it.addAll(command.inputs.kotlinSourcesList)
             it.addAll(command.inputs.javaSourcesList)
@@ -52,11 +52,9 @@ private class DefaultKotlinCompiler @Inject constructor(
     }
 
     /**
-     * Evaluate the compilation context and add Metadata to the ctx if needed.
-     *
-     * @return The args to pass to the kotlin compile class.
+     * Return a list with the common arguments.
      */
-    private fun setupCompileContext(command: KotlinModel.BuilderCommand): MutableList<String> {
+    private fun getCommonArgs(command: KotlinModel.CompilationTask): MutableList<String> {
         val args = mutableListOf<String>()
 
         // use -- for flags not meant for the kotlin compiler
@@ -77,8 +75,8 @@ private class DefaultKotlinCompiler @Inject constructor(
         return args
     }
 
-    override fun compile(command: KotlinModel.BuilderCommand): List<String> =
-        with(setupCompileContext(command)) {
+    override fun compile(command: KotlinModel.CompilationTask): List<String> =
+        with(getCommonArgs(command)) {
             addAll(command.inputs.javaSourcesList)
             addAll(command.inputs.generatedJavaSourcesList)
             addAll(command.inputs.kotlinSourcesList)

@@ -13,26 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.utils
+package io.bazel.kotlin.builder
 
-import com.google.common.collect.ImmutableList
-import com.google.inject.ImplementedBy
-import com.google.inject.Inject
+
 import io.bazel.kotlin.builder.KotlinToolchain.CompilerPlugin
 import io.bazel.kotlin.model.KotlinModel
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
-@ImplementedBy(DefaultKotlinCompilerPluginArgsEncoder::class)
-interface KotlinCompilerPluginArgsEncoder {
-    fun encode(command: KotlinModel.BuilderCommandOrBuilder): List<String>
-}
-
-class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
+@Singleton
+internal class KotlinCompilerPluginArgsEncoder @Inject constructor(
     @CompilerPlugin.Kapt3
     private val kapt3: CompilerPlugin
-) : KotlinCompilerPluginArgsEncoder {
+) {
     companion object {
         private fun encodeMap(options: Map<String, String>): String {
             val os = ByteArrayOutputStream()
@@ -66,6 +62,7 @@ class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
             return Base64.getEncoder().encodeToString(os.toByteArray())
         }
     }
+
     /**
      * Plugin using the undocumented encoding format for kapt3
      */
@@ -83,15 +80,17 @@ class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
 
         // "configuration" is an undocumented kapt3 argument. preparing the arguments this way is the only way to get more than one annotation processor class
         // passed to kotlinc.
-        fun encode(): ImmutableList<String> =
-            ImmutableList.of(
+        fun encode(): List<String> =
+            listOf(
                 "-Xplugin=${kapt3.jarPath}",
-                "-P", "plugin:${kapt3.id}:configuration=${encodeMultiMap(tally)}"
+                "-P", "plugin:${kapt3.id}:configuration=${encodeMultiMap(
+                    tally
+                )}"
             )
     }
 
-    override fun encode(
-        command: KotlinModel.BuilderCommandOrBuilder
+    fun encode(
+        command: KotlinModel.CompilationTaskOrBuilder
     ): List<String> {
         val javacArgs = mutableMapOf<String, String>(
             "-target" to command.info.toolchainInfo.jvm.jvmTarget
@@ -103,7 +102,7 @@ class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
                 arg["classes"] = d.generatedClasses.toString()
                 arg["stubs"] = d.temp.toString()
                 arg["incrementalData"] = d.temp.toString()
-                arg["javacArguments"] = javacArgs.let(::encodeMap)
+                arg["javacArguments"] = javacArgs.let(Companion::encodeMap)
                 arg["aptMode"] = "stubsAndApt"
                 arg["correctErrorTypes"] = "true"
 //                arg["verbose"] = "true"
@@ -114,6 +113,6 @@ class DefaultKotlinCompilerPluginArgsEncoder @Inject internal constructor(
                     .joinToString(",") { it.processorClass }
                 arg.encode()
             }
-        }?.let { ImmutableList.copyOf(it) } ?: ImmutableList.of()
+        } ?: emptyList()
     }
 }

@@ -15,7 +15,6 @@
  */
 package io.bazel.kotlin.builder
 
-import com.google.common.collect.ImmutableSet
 import com.google.inject.*
 import com.google.inject.util.Modules
 import io.bazel.kotlin.builder.utils.resolveVerified
@@ -32,7 +31,7 @@ class KotlinToolchain private constructor(
     internal val javaHome: Path,
     val kotlinHome: Path,
     internal val classLoader: ClassLoader,
-    val kotlinStandardLibraries: ImmutableSet<String> = ImmutableSet.of(
+    val kotlinStandardLibraries: List<String> = listOf(
         "kotlin-stdlib.jar",
         "kotlin-stdlib-jdk7.jar",
         "kotlin-stdlib-jdk8.jar"
@@ -47,8 +46,8 @@ class KotlinToolchain private constructor(
         private fun createClassLoader(javaHome: Path, kotlinHome: Path): ClassLoader {
             val preloadJars = mutableListOf<File>().also {
                 it += kotlinHome.resolveVerified("lib", "kotlin-compiler.jar")
-                it +=  javaRunfiles.resolveVerified("io_bazel_rules_kotlin", "kotlin", "builder", "compiler_lib.jar")
-                if(!isJdk9OrNewer) {
+                it += javaRunfiles.resolveVerified("io_bazel_rules_kotlin", "kotlin", "builder", "compiler_lib.jar")
+                if (!isJdk9OrNewer) {
                     it += javaHome.resolveVerified("lib", "tools.jar")
                 }
             }
@@ -65,7 +64,11 @@ class KotlinToolchain private constructor(
             val javaHome = Paths.get(System.getProperty("java.home")).let {
                 it.takeIf { !it.endsWith(Paths.get("jre")) } ?: it.parent
             }
-            return KotlinToolchain(javaHome, kotlinHome, createClassLoader(javaHome, kotlinHome))
+            return KotlinToolchain(
+                javaHome,
+                kotlinHome,
+                createClassLoader(javaHome, kotlinHome)
+            )
         }
 
         /**

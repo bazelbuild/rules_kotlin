@@ -17,21 +17,6 @@ load("//kotlin/internal:kt.bzl", "kt")
 load("//kotlin/internal:rules.bzl", _kt_jvm_import_impl="kt_jvm_import_impl")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive="http_archive")
 
-kotlin_stdlib = rule(
-    attrs = {
-        "jars": attr.label_list(
-            allow_files = True,
-            mandatory = True,
-        ),
-        "srcjar": attr.label(
-            allow_single_file = True,
-        ),
-    },
-    implementation = _kt_jvm_import_impl,
-)
-
-"""Import Kotlin libraries that are part of the compiler release."""
-
 def _kt_toolchain_ide_info_impl(ctx):
     tc=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
     info = struct(

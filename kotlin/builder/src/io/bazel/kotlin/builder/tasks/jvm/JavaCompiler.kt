@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.mode.jvm.actions
+package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.inject.ImplementedBy
 import com.google.inject.Inject
 import io.bazel.kotlin.builder.CompilationStatusException
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
-import io.bazel.kotlin.model.KotlinModel.BuilderCommand
+import io.bazel.kotlin.model.KotlinModel.CompilationTask
 
 @ImplementedBy(DefaultJavaCompiler::class)
 interface JavaCompiler {
-    fun compile(command: BuilderCommand)
+    fun compile(command: CompilationTask)
 }
 
 private class DefaultJavaCompiler @Inject constructor(
     val javacInvoker: KotlinToolchain.JavacInvoker
 ) : JavaCompiler {
-    override fun compile(command: BuilderCommand) {
+    override fun compile(command: CompilationTask) {
         val i = command.inputs
         val d = command.directories
         if (i.javaSourcesList.isNotEmpty() || i.generatedJavaSourcesList.isNotEmpty()) {
@@ -50,7 +50,7 @@ private class DefaultJavaCompiler @Inject constructor(
                 it.addAll(i.generatedJavaSourcesList)
                 it.toTypedArray()
             }
-            javacInvoker.compile(args).takeIf { it != 0 }?.also { throw CompilationStatusException("javac failed",it) }
+            javacInvoker.compile(args).takeIf { it != 0 }?.also { throw CompilationStatusException("javac failed", it) }
         }
     }
 }
