@@ -67,7 +67,7 @@ class KotlinBuilder @Inject internal constructor(
                 it.jarFiles.addAll(command.inputs.sourceJarsList.map { Paths.get(it) })
                 it.execute()
             }.let {
-                command.expandWithSources(command, it.sourcesList.iterator())
+                command.expandWithSources(it.sourcesList.iterator())
             }
         }
 
