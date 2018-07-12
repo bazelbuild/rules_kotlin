@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.mode.jvm.utils
+package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
 import java.nio.file.Path

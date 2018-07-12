@@ -2,7 +2,8 @@ package io.bazel.kotlin.builder;
 
 import com.google.common.truth.Truth;
 import com.google.devtools.build.lib.view.proto.Deps;
-import io.bazel.kotlin.builder.mode.jvm.KotlinJvmCompilationExecutor;
+
+import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.model.KotlinModel;
 import org.junit.Test;
 
@@ -34,7 +35,7 @@ public class KotlinBuilderTests extends KotlinBuilderTestCase {
   }
 
   private void runCompileTask() {
-    KotlinModel.BuilderCommand command = builderCommand();
+    KotlinModel.CompilationTask command = builderCommand();
     for (DirectoryType directoryType : DirectoryType.values()) {
       try {
         if (directoryType != DirectoryType.ROOT) {
@@ -45,7 +46,7 @@ public class KotlinBuilderTests extends KotlinBuilderTestCase {
       }
     }
     int timeoutSeconds = 10;
-    KotlinJvmCompilationExecutor executor = instance(KotlinJvmCompilationExecutor.class);
+    KotlinJvmTaskExecutor executor = instance(KotlinJvmTaskExecutor.class);
     try {
       CompletableFuture.runAsync(() -> executor.compile(command))
           .get(timeoutSeconds, TimeUnit.SECONDS);

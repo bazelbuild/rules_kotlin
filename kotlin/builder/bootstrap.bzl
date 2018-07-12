@@ -11,72 +11,86 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library", "kt_jvm_import")
+load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
 
-_HEADER = """
-function join_by { local IFS="$$1"; shift; echo "$$*"; }
+_BOOTSTRAP_LIB_ARGS=["-jvm-target","1.8"]
 
-CP=$$(join_by : $(locations :%s))
-"""
+def _resolve_dep_label(d):
+    if d.startswith("//kotlin/builder/src/io/bazel/kotlin/builder") and not d.endswith("_for_ide"):
+        prefix, _, target = d.rpartition(":")
+        if target == None:
+            # untested
+            return d + "_for_ide"
+        else:
+            _ , _, target = d.rpartition("/")
+            return d + ":" + target + "_for_ide"
+    else:
+        return d
 
-# We manually call the Kotlin compiler by constructing the correct Java classpath, because the usual
-# "kotlinc" wrapper script fails to correctly detect KOTLIN_HOME unless we run with
-# --spawn_strategy=standalone
-def _gen_cmd(name, args):
-    return (_HEADER + """
-ARGS="%s"
+def kt_bootstrap_library(name, srcs, deps=[], neverlink_deps=[], runtime_deps=[]):
+    """
+    Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
 
-KOTLIN_HOME=external/com_github_jetbrains_kotlin
-java -Xmx256M -Xms32M -noverify \
-  -cp $${KOTLIN_HOME}/lib/kotlin-preloader.jar org.jetbrains.kotlin.preloading.Preloader \
-  -cp $${KOTLIN_HOME}/lib/kotlin-compiler.jar org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
-  -cp $${CP} -d $(OUTS) $${ARGS} $(SRCS)
-""") % (name,args)
+    The target is tagged `"no-ide"` as intellij can't compile it. A seperate private target is created which is suffixed
+    with `_for_ide`. If the dep is under the package `//kotlin/builder/src/io/bazel/kotlin/builder/...` then it will be
+    added to the `_for_ide` target by adding a `_for_ide` prefix.
 
-def kotlin_worker_lib(name, srcs, args = [], deps=[], runtime_deps=[], neverlink_deps=[]):
+    deps: the dependenices, the are setup as runtime_deps of the library.
+    neverlink_deps: deps that won't be linked. These deps are added to the `"for_ide"` target.
+    """
+    jar_label = name + "_jar"
     dep_label = name + "_deps"
-    jar_file_label =  name + "_file"
-    jar_name = name+".jar"
-    jar_sources_file_label = jar_file_label + "_sources"
-    jar_sources_name = name + "-sources.jar"
-
     native.filegroup(
         name = dep_label,
         srcs = deps + neverlink_deps,
-        visibility = ["//visibility:private"]
+        visibility=["//visibility:private"]
     )
+    command="""
+KOTLIN_HOME=external/com_github_jetbrains_kotlin
+
+function join_by { local IFS="$$1"; shift; echo "$$*"; }
+
+NAME=%s
+CP="$$(join_by : $(locations :%s))"
+ARGS="%s"
+
+java -Xmx256M -Xms32M -noverify \
+  -cp $${KOTLIN_HOME}/lib/kotlin-preloader.jar org.jetbrains.kotlin.preloading.Preloader \
+  -cp $${KOTLIN_HOME}/lib/kotlin-compiler.jar org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+  -cp $${CP} -d $${NAME}_temp.jar $${ARGS} $(SRCS)
+
+$(location @bazel_tools//tools/jdk:singlejar) \
+    --normalize \
+    --compression \
+    --sources $${NAME}_temp.jar \
+    --output $(OUTS)
+
+rm $${NAME}_temp.jar
+""" % (name, dep_label, " ".join(_BOOTSTRAP_LIB_ARGS))
     native.genrule(
-        name = jar_file_label,
+        name =  jar_label,
         tools = [
             "@com_github_jetbrains_kotlin//:home",
             "@local_jdk//:jdk",
+            "@bazel_tools//tools/jdk:singlejar",
             dep_label
         ],
         srcs = srcs,
-        outs = [jar_name],
-        cmd = _gen_cmd(dep_label, " ".join(args)),
-        visibility = ["//visibility:private"]
-    )
-    native.genrule(
-        name = jar_sources_file_label,
-        tools = [
-            "@local_jdk//:jdk",
-        ],
-        srcs = srcs,
-        outs = [jar_sources_name],
-        cmd = "jar cf $(OUTS) $(SRCS)",
-        visibility = ["//visibility:private"]
-    )
-
-    # Use kt_jvm_import so that ijarification doesn't ruin the worker lib.
-    kt_jvm_import(
-        name = name,
-        jars = [jar_name],
-        srcjar = jar_sources_name,
+        outs = [name + ".jar"],
         tags = ["no-ide"],
-        runtime_deps = (depset(runtime_deps) + deps).to_list(),
-        visibility = [
-            "//tests:__subpackages__",
-            "//kotlin:__subpackages__"
-        ]
+        visibility = ["//visibility:private"],
+        cmd = command
+    )
+    native.java_import(
+        name = name,
+        jars = [jar_label],
+        runtime_deps=deps + runtime_deps,
+        visibility=["//visibility:public"]
+    )
+    # hsyed todo this part of the graph should not be wired up outside of development.
+    _for_ide(
+        name = name + "_for_ide",
+        srcs = srcs,
+        deps = [_resolve_dep_label(d) for d in deps] + neverlink_deps,
+        visibility = ["//kotlin/builder:__subpackages__"]
     )

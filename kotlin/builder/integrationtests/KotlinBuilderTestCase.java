@@ -23,8 +23,8 @@ abstract class KotlinBuilderTestCase {
       Paths.get(Preconditions.checkNotNull(System.getenv("TEST_TMPDIR")));
   private static final AtomicInteger counter = new AtomicInteger(0);
 
-  private final KotlinModel.BuilderCommand.Builder builder =
-      KotlinModel.BuilderCommand.newBuilder();
+  private final KotlinModel.CompilationTask.Builder builder =
+      KotlinModel.CompilationTask.newBuilder();
   private final Injector injector = KotlinToolchain.createInjector(() -> System.out, null);
   private String label = null;
   private Path inputSourceDir = null;
@@ -34,11 +34,11 @@ abstract class KotlinBuilderTestCase {
     resetTestContext("a_test_" + counter.incrementAndGet());
   }
 
-  protected KotlinModel.BuilderCommand.Outputs outputs() {
+  protected KotlinModel.CompilationTask.Outputs outputs() {
     return builder.getOutputs();
   }
 
-  protected KotlinModel.BuilderCommand.Directories directories() {
+  protected KotlinModel.CompilationTask.Directories directories() {
     return builder.getDirectories();
   }
 
@@ -50,7 +50,7 @@ abstract class KotlinBuilderTestCase {
     return Paths.get(directories().getClasses());
   }
 
-  protected KotlinModel.BuilderCommand builderCommand() {
+  protected KotlinModel.CompilationTask builderCommand() {
     return builder.build();
   }
 
@@ -132,7 +132,7 @@ abstract class KotlinBuilderTestCase {
     TEMP,
     SOURCE_GEN;
 
-    protected static Path select(DirectoryType type, KotlinModel.BuilderCommand command) {
+    protected static Path select(DirectoryType type, KotlinModel.CompilationTask command) {
       Path ret;
       switch (type) {
         case CLASSES:

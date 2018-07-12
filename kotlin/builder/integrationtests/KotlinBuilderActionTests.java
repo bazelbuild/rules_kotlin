@@ -1,6 +1,6 @@
 package io.bazel.kotlin.builder;
 
-import io.bazel.kotlin.builder.mode.jvm.actions.KotlinCompiler;
+import io.bazel.kotlin.builder.tasks.jvm.KotlinCompiler;
 import org.junit.Test;
 
 public class KotlinBuilderActionTests extends KotlinBuilderTestCase {
