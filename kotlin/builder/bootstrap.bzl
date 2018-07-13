@@ -43,6 +43,7 @@ def kt_bootstrap_library(name, srcs, deps=[], neverlink_deps=[], runtime_deps=[]
     native.filegroup(
         name = dep_label,
         srcs = deps + neverlink_deps,
+        tags = ["no-ide"],
         visibility=["//visibility:private"]
     )
     command="""
@@ -84,6 +85,7 @@ rm $${NAME}_temp.jar
     native.java_import(
         name = name,
         jars = [jar_label],
+        tags = ["no-ide"],
         runtime_deps=deps + runtime_deps,
         visibility=["//visibility:public"]
     )
