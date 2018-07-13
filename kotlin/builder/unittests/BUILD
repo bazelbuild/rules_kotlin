@@ -17,7 +17,7 @@ java_test(
     srcs = glob(["**/*.java"]),
     test_class = "io.bazel.kotlin.builder.mode.jvm.utils.JdepsParserTest",
     deps = [
-        "//kotlin/builder/src/io/bazel/kotlin/builder",
+        "//kotlin/builder:builder_lib_for_tests",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@io_bazel_rules_kotlin//kotlin/builder/proto:deps",
         "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
