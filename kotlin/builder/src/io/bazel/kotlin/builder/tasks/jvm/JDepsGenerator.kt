@@ -21,6 +21,7 @@ import com.google.inject.Inject
 import io.bazel.kotlin.builder.CompilationException
 import io.bazel.kotlin.builder.CompilationStatusException
 import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.rootCause
 import io.bazel.kotlin.model.KotlinModel
@@ -51,9 +52,10 @@ private class DefaultJDepsGenerator @Inject constructor(
             } else {
                 ByteArrayOutputStream().use { out ->
                     PrintWriter(out).use { writer ->
+                        val joinedClasspath = command.inputs.joinedClasspath
                         val res = invoker.run(
                             arrayOf(
-                                "-cp", command.inputs.joinedClasspath,
+                                "-cp", joinedClasspath,
                                 command.outputs.jdeps),
                             writer)
                         out.toByteArray().inputStream().bufferedReader().readLines().let {
@@ -64,7 +66,7 @@ private class DefaultJDepsGenerator @Inject constructor(
                                 JdepsParser.parse(
                                     command.info.label,
                                     command.outputs.jdeps,
-                                    command.inputs.joinedClasspath,
+                                    joinedClasspath,
                                     it,
                                     isKotlinImplicit
                                 )
