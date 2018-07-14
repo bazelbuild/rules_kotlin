@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder
+package io.bazel.kotlin.builder.utils
 
 
-import io.bazel.kotlin.builder.KotlinToolchain.CompilerPlugin
 import io.bazel.kotlin.model.KotlinModel
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.util.*
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-internal class KotlinCompilerPluginArgsEncoder @Inject constructor(
-    @CompilerPlugin.Kapt3
-    private val kapt3: CompilerPlugin
+class KotlinCompilerPluginArgsEncoder(
+    private val jarPath: String,
+    private val pluginId: String
 ) {
     companion object {
         private fun encodeMap(options: Map<String, String>): String {
@@ -82,8 +78,8 @@ internal class KotlinCompilerPluginArgsEncoder @Inject constructor(
         // passed to kotlinc.
         fun encode(): List<String> =
             listOf(
-                "-Xplugin=${kapt3.jarPath}",
-                "-P", "plugin:${kapt3.id}:configuration=${encodeMultiMap(
+                "-Xplugin=$jarPath",
+                "-P", "plugin:$pluginId:configuration=${encodeMultiMap(
                     tally
                 )}"
             )

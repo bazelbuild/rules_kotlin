@@ -15,10 +15,6 @@ dependencies:
     junit:
       lang: "java"
       version: "4.12"
-  com.google.inject:
-    guice:
-      lang: "java"
-      version: "4.2.0"
   com.google.protobuf:
     protobuf:
       modules: ["java", "java-util"]

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder
+package io.bazel.kotlin.builder.tasks
 
 
 import com.google.devtools.build.lib.worker.WorkerProtocol
@@ -23,21 +23,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
-
-sealed class ToolException(
-    msg: String,
-    ex: Throwable? = null
-) : RuntimeException(msg, ex)
-
-class CompilationException(msg: String, cause: Throwable? = null) :
-    ToolException(msg, cause)
-
-class CompilationStatusException(
-    msg: String,
-    val status: Int,
-    val lines: List<String> = emptyList()
-) : ToolException("$msg:${lines.joinToString("\n", "\n")}")
-
 
 /**
  * Interface for command line programs.
@@ -161,7 +146,6 @@ class BazelWorker(
                     } catch (e: IOException) {
                         throw RuntimeException(e)
                     }
-
                 }
             }
         }

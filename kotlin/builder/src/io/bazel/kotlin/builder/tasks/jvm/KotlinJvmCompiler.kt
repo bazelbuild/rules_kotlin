@@ -15,11 +15,9 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import com.google.inject.ImplementedBy
-import com.google.inject.Inject
-import io.bazel.kotlin.builder.CompilationStatusException
-import io.bazel.kotlin.builder.KotlinCompilerPluginArgsEncoder
-import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
+import io.bazel.kotlin.builder.utils.KotlinCompilerPluginArgsEncoder
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.model.KotlinModel
@@ -27,12 +25,9 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
+import javax.inject.Inject
+import javax.inject.Singleton
 
-@ImplementedBy(DefaultKotlinCompiler::class)
-interface KotlinCompiler {
-    fun runAnnotationProcessor(command: KotlinModel.CompilationTask): List<String>
-    fun compile(command: KotlinModel.CompilationTask): List<String>
-}
 
 // The Kotlin compiler is not suited for javac compilation as of 1.2.21. The errors are not conveyed directly and would need to be preprocessed, also javac
 // invocations Configured via Kotlin use eager analysis in some corner cases this can result in classpath exceptions from the Java Compiler..
@@ -40,11 +35,12 @@ interface KotlinCompiler {
 // 1 is a standard compilation error
 // 2 is an internal error
 // 3 is the script execution error
-private class DefaultKotlinCompiler @Inject constructor(
-    val compiler: KotlinToolchain.KotlincInvoker,
-    val pluginArgsEncoder: KotlinCompilerPluginArgsEncoder
-) : KotlinCompiler {
-    override fun runAnnotationProcessor(command: KotlinModel.CompilationTask): List<String> {
+@Singleton
+internal class KotlinJvmCompiler @Inject constructor(
+    private val compiler: KotlinToolchain.KotlincInvoker,
+    private val pluginArgsEncoder: KotlinCompilerPluginArgsEncoder
+) {
+    fun runAnnotationProcessor(command: KotlinModel.CompilationTask): List<String> {
         check(command.info.plugins.annotationProcessorsList.isNotEmpty()) {
             "method called without annotation processors"
         }
@@ -79,7 +75,7 @@ private class DefaultKotlinCompiler @Inject constructor(
         return args
     }
 
-    override fun compile(command: KotlinModel.CompilationTask): List<String> =
+    fun compile(command: KotlinModel.CompilationTask): List<String> =
         with(getCommonArgs(command)) {
             addAll(command.inputs.javaSourcesList)
             addAll(command.inputs.kotlinSourcesList)

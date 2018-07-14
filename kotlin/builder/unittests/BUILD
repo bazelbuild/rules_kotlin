@@ -15,7 +15,7 @@ java_test(
     name = "unittests",
     size = "small",
     srcs = glob(["**/*.java"]),
-    test_class = "io.bazel.kotlin.builder.mode.jvm.utils.JdepsParserTest",
+    test_class = "io.bazel.kotlin.builder.tasks.jvm.JdepsParserTest",
     deps = [
         "//kotlin/builder:builder_lib_for_tests",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",

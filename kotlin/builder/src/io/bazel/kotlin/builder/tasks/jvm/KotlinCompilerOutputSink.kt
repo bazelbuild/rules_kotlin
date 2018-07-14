@@ -15,16 +15,17 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import com.google.inject.Inject
-import com.google.inject.Provider
-import com.google.inject.Singleton
+
 import java.io.File
 import java.io.PrintStream
 import java.nio.file.Paths
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
 @Singleton
-class KotlinCompilerOutputSink @Inject constructor(
-    val streamProvider: Provider<PrintStream>
+internal class KotlinCompilerOutputSink @Inject constructor(
+    private val streamProvider: Provider<PrintStream>
 ) {
     private val executionRoot: String = Paths.get("").toAbsolutePath().toString() + File.separator
 
