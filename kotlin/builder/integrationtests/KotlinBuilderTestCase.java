@@ -88,7 +88,8 @@ abstract class KotlinBuilderTestCase {
     builder.getInfoBuilder()
             .setLabel("//some/bogus:" + label)
             .setModuleName("some_bogus_module")
-            .setRuleKind("kt_jvm_library")
+            .setPlatform(KotlinModel.CompilationTask.Info.Platform.JVM)
+            .setRuleKind(KotlinModel.CompilationTask.Info.RuleKind.LIBRARY)
             .setToolchainInfo(
                 KotlinModel.KotlinToolchainInfo.newBuilder()
                     .setCommon(
