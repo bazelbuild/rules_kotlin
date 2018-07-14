@@ -103,7 +103,15 @@ class TaskBuilder @Inject internal constructor() {
 
             with(root.infoBuilder) {
                 label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL.flag)
-                ruleKind = argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND.flag)
+                argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND.flag).split("_").also {
+                    check(it.size == 3 && it[0] == "kt")
+                    platform = checkNotNull(CompilationTask.Info.Platform.valueOf(it[1].toUpperCase())) {
+                        "unrecognized platform ${it[1]}"
+                    }
+                    ruleKind = checkNotNull(CompilationTask.Info.RuleKind.valueOf(it[2].toUpperCase())) {
+                        "unrecognized rule kind ${it[2]}"
+                    }
+                }
                 moduleName = argMap.mandatorySingle("--kotlin_module_name").also {
                     check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
                 }

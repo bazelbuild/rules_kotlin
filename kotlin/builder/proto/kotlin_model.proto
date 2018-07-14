@@ -67,19 +67,33 @@ message KotlinToolchainInfo {
 // Mested messages not marked with stable could be refactored.
 message CompilationTask {
     message Info {
+        enum RuleKind {
+            LIBRARY = 0;
+            BINARY = 1;
+            TEST = 2;
+            IMPORT = 3;
+        }
+
+        enum Platform {
+            JVM = 0;
+            JS = 1;
+        }
+
         string label = 1;
-        // The rule kind requesting the build.
-        string rule_kind = 2;
+        // The Platform type.
+        Platform platform = 2;
+        // The kind of the rule.
+        RuleKind rule_kind = 3;
         // The name of the module being compiled.
-        string module_name = 3;
+        string module_name = 4;
         // Flags to be passed straight through to the compiler.
-        string passthrough_flags = 4;
+        string passthrough_flags = 5;
         // Toolchain info for this build.
-        KotlinToolchainInfo toolchain_info = 5;
+        KotlinToolchainInfo toolchain_info = 6;
         // Compiler plugin descriptors.
-        CompilerPlugins plugins = 6;
+        CompilerPlugins plugins = 7;
         // Paths to Jars that the kotlin compiler will allow package private access to.
-        repeated string friend_paths = 7;
+        repeated string friend_paths = 8;
     }
 
     // Directories used by the builder.

@@ -29,6 +29,8 @@ fun CompilationTask.expandWithSources(
 
 val CompilationTask.Inputs.joinedClasspath: String get() = this.classpathList.joinToString(File.pathSeparator)
 
+val CompilationTask.Info.bazelRuleKind: String get() = "kt_${platform.name.toLowerCase()}_${ruleKind.name.toLowerCase()}"
+
 private fun CompilationTask.updateBuilder(
     init: (CompilationTask.Builder) -> Unit
 ): CompilationTask =
