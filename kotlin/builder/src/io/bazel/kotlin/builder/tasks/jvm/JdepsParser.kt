@@ -20,9 +20,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.function.Predicate
-import java.util.stream.Stream
 
-class JdepsParser private constructor(private val filename: String, private val isImplicit: Predicate<String>) {
+internal class JdepsParser private constructor(private val filename: String, private val isImplicit: Predicate<String>) {
     private val packageSuffix: String = " ($filename)"
 
     private val depMap = HashMap<String, Deps.Dependency.Builder>()
@@ -120,7 +119,7 @@ class JdepsParser private constructor(private val filename: String, private val 
         ): Deps.Dependencies {
             val filename = Paths.get(classJar).fileName.toString()
             val jdepsParser = JdepsParser(filename, isImplicit)
-            Stream.of(*classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
+            classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.stream()
                 .forEach { x -> jdepsParser.consumeJarLine(x, Deps.Dependency.Kind.UNUSED) }
             jdepLines.forEach { jdepsParser.processLine(it) }
 

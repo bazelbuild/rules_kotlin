@@ -15,19 +15,16 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import com.google.inject.ImplementedBy
+import io.bazel.kotlin.model.KotlinModel
 import io.bazel.kotlin.builder.utils.bazelRuleKind
 import io.bazel.kotlin.builder.utils.jars.JarCreator
-import io.bazel.kotlin.model.KotlinModel
 import java.nio.file.Paths
+import javax.inject.Inject
+import javax.inject.Singleton
 
-@ImplementedBy(DefaultOutputJarCreator::class)
-interface OutputJarCreator {
-    fun createOutputJar(command: KotlinModel.CompilationTask)
-}
-
-private class DefaultOutputJarCreator : OutputJarCreator {
-    override fun createOutputJar(command: KotlinModel.CompilationTask) {
+@Singleton
+internal class OutputJarCreator @Inject constructor() {
+    fun createOutputJar(command: KotlinModel.CompilationTask) {
         JarCreator(
             path = Paths.get(command.outputs.jar),
             normalize = true,

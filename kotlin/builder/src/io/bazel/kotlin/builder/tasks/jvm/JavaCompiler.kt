@@ -15,23 +15,19 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import com.google.inject.ImplementedBy
-import com.google.inject.Inject
-import io.bazel.kotlin.builder.CompilationStatusException
-import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import io.bazel.kotlin.model.KotlinModel.CompilationTask
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
-import io.bazel.kotlin.model.KotlinModel.CompilationTask
+import javax.inject.Inject
+import javax.inject.Singleton
 
-@ImplementedBy(DefaultJavaCompiler::class)
-interface JavaCompiler {
-    fun compile(command: CompilationTask)
-}
-
-private class DefaultJavaCompiler @Inject constructor(
-    val javacInvoker: KotlinToolchain.JavacInvoker
-) : JavaCompiler {
-    override fun compile(command: CompilationTask) {
+@Singleton
+internal class JavaCompiler @Inject constructor(
+    private val javacInvoker: KotlinToolchain.JavacInvoker
+) {
+   fun compile(command: CompilationTask) {
         val i = command.inputs
         val d = command.directories
         if (i.javaSourcesList.isNotEmpty()) {

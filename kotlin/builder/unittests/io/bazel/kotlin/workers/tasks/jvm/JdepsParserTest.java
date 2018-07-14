@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.mode.jvm.utils;
+package io.bazel.kotlin.builder.tasks.jvm;
 
 import com.google.devtools.build.lib.view.proto.Deps;
-import io.bazel.kotlin.builder.tasks.jvm.JdepsParser;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("KotlinInternalInJava")
 @RunWith(JUnit4.class)
 public class JdepsParserTest {
   private static final String JDK8_FIXTURE =

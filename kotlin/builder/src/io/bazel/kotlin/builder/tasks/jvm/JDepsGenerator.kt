@@ -16,33 +16,29 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
-import com.google.inject.ImplementedBy
-import com.google.inject.Inject
-import io.bazel.kotlin.builder.CompilationException
-import io.bazel.kotlin.builder.CompilationStatusException
-import io.bazel.kotlin.builder.KotlinToolchain
+import io.bazel.kotlin.builder.toolchain.CompilationException
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import io.bazel.kotlin.model.KotlinModel
 import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.rootCause
-import io.bazel.kotlin.model.KotlinModel
 import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import java.io.PrintWriter
 import java.nio.file.Files
 import java.nio.file.Paths
+import javax.inject.Inject
+import javax.inject.Singleton
 
-@ImplementedBy(DefaultJDepsGenerator::class)
-interface JDepsGenerator {
-    fun generateJDeps(command: KotlinModel.CompilationTask)
-}
-
-private class DefaultJDepsGenerator @Inject constructor(
+@Singleton
+internal class JDepsGenerator  @Inject constructor(
     toolchain: KotlinToolchain,
-    val invoker: KotlinToolchain.JDepsInvoker
-) : JDepsGenerator {
+    private val invoker: KotlinToolchain.JDepsInvoker
+) {
     private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(
         toolchain.kotlinHome.resolveVerified("lib").toPath(), *toolchain.kotlinStandardLibraries.toTypedArray())
-    override fun generateJDeps(command: KotlinModel.CompilationTask) {
+    fun generateJDeps(command: KotlinModel.CompilationTask) {
         val jdepsContent =
             if (command.inputs.classpathList.isEmpty()) {
                 Deps.Dependencies.newBuilder().let {

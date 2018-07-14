@@ -26,3 +26,22 @@ kt_jvm_import(
         "@io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core//jar",
     ],
 )
+
+java_plugin(
+    name = "dagger_component_plugin",
+    generates_api = 1,
+    processor_class = "dagger.internal.codegen.ComponentProcessor",
+    deps = [
+        "//third_party/jvm/com/google/dagger:dagger_compiler",
+    ],
+    visibility = ["//visibility:private"]
+)
+
+java_library(
+    name = "dagger",
+    exported_plugins = [":dagger_component_plugin"],
+    exports = [
+        "//third_party/jvm/com/google/dagger",
+        "//third_party/jvm/javax/inject:javax_inject",
+    ],
+)

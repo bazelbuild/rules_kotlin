@@ -16,7 +16,7 @@ load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
 _BOOTSTRAP_LIB_ARGS=["-jvm-target","1.8"]
 
 def _resolve_dep_label(d):
-    if d.startswith("//kotlin/builder/src/io/bazel/kotlin/builder") and not d.endswith("_for_ide"):
+    if d.startswith("//kotlin/builder/src/io/bazel/kotlin") and not d.endswith("_for_ide"):
         prefix, _, target = d.rpartition(":")
         if target == None:
             # untested
