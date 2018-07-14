@@ -18,11 +18,14 @@ package io.bazel.kotlin.builder.tasks.jvm
 import com.google.inject.ImplementedBy
 import com.google.inject.Inject
 import io.bazel.kotlin.builder.CompilationStatusException
+import io.bazel.kotlin.builder.KotlinCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
+import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.model.KotlinModel
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.PrintStream
 
 @ImplementedBy(DefaultKotlinCompiler::class)
@@ -38,14 +41,15 @@ interface KotlinCompiler {
 // 2 is an internal error
 // 3 is the script execution error
 private class DefaultKotlinCompiler @Inject constructor(
-    val compiler: KotlinToolchain.KotlincInvoker
+    val compiler: KotlinToolchain.KotlincInvoker,
+    val pluginArgsEncoder: KotlinCompilerPluginArgsEncoder
 ) : KotlinCompiler {
     override fun runAnnotationProcessor(command: KotlinModel.CompilationTask): List<String> {
         check(command.info.plugins.annotationProcessorsList.isNotEmpty()) {
             "method called without annotation processors"
         }
         return getCommonArgs(command).also {
-            it.addAll(command.info.encodedPluginDescriptorsList)
+            it.addAll(pluginArgsEncoder.encode(command))
             it.addAll(command.inputs.kotlinSourcesList)
             it.addAll(command.inputs.javaSourcesList)
         }.let { invokeCompilePhase(it) }
@@ -64,11 +68,11 @@ private class DefaultKotlinCompiler @Inject constructor(
             "-language-version", command.info.toolchainInfo.common.languageVersion,
             "-jvm-target", command.info.toolchainInfo.jvm.jvmTarget,
             // https://github.com/bazelbuild/rules_kotlin/issues/69: remove once jetbrains adds a flag for it.
-            "--friend-paths", command.info.friendPathsList.joinToString(":")
+            "--friend-paths", command.info.friendPathsList.joinToString(File.pathSeparator)
         )
 
         args
-            .addAll("-module-name", command.info.kotlinModuleName)
+            .addAll("-module-name", command.info.moduleName)
             .addAll("-d", command.directories.classes)
 
         command.info.passthroughFlags?.takeIf { it.isNotBlank() }?.also { args.addAll(it.split(" ")) }
@@ -78,9 +82,7 @@ private class DefaultKotlinCompiler @Inject constructor(
     override fun compile(command: KotlinModel.CompilationTask): List<String> =
         with(getCommonArgs(command)) {
             addAll(command.inputs.javaSourcesList)
-            addAll(command.inputs.generatedJavaSourcesList)
             addAll(command.inputs.kotlinSourcesList)
-            addAll(command.inputs.generatedKotlinSourcesList)
             invokeCompilePhase(this)
         }
 

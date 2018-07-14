@@ -15,31 +15,23 @@
  */
 package io.bazel.kotlin.builder.utils
 
-import io.bazel.kotlin.model.KotlinModel
+import io.bazel.kotlin.model.KotlinModel.CompilationTask
+import java.io.File
 
-
-fun KotlinModel.CompilationTask.expandWithSources(
+fun CompilationTask.expandWithSources(
     sources: Iterator<String>
-): KotlinModel.CompilationTask =
+): CompilationTask =
     updateBuilder { builder ->
         sources.partitionSources(
             { builder.inputsBuilder.addKotlinSources(it) },
             { builder.inputsBuilder.addJavaSources(it) })
     }
 
+val CompilationTask.Inputs.joinedClasspath: String get() = this.classpathList.joinToString(File.pathSeparator)
 
-fun KotlinModel.CompilationTask.expandWithGeneratedSources(
-    sources: Iterator<String>
-): KotlinModel.CompilationTask =
-    updateBuilder { builder ->
-        sources.partitionSources(
-            { builder.inputsBuilder.addGeneratedKotlinSources(it) },
-            { builder.inputsBuilder.addGeneratedJavaSources(it) })
-    }
-
-private fun KotlinModel.CompilationTask.updateBuilder(
-    init: (KotlinModel.CompilationTask.Builder) -> Unit
-): KotlinModel.CompilationTask =
+private fun CompilationTask.updateBuilder(
+    init: (CompilationTask.Builder) -> Unit
+): CompilationTask =
     toBuilder().let {
         init(it)
         it.build()

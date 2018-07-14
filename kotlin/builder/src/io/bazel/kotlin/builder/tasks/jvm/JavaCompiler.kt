@@ -20,6 +20,7 @@ import com.google.inject.Inject
 import io.bazel.kotlin.builder.CompilationStatusException
 import io.bazel.kotlin.builder.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
+import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.model.KotlinModel.CompilationTask
 
 @ImplementedBy(DefaultJavaCompiler::class)
@@ -33,7 +34,7 @@ private class DefaultJavaCompiler @Inject constructor(
     override fun compile(command: CompilationTask) {
         val i = command.inputs
         val d = command.directories
-        if (i.javaSourcesList.isNotEmpty() || i.generatedJavaSourcesList.isNotEmpty()) {
+        if (i.javaSourcesList.isNotEmpty()) {
             val args = mutableListOf(
                 "-cp", "${d.classes}/:${d.temp}/:${i.joinedClasspath}",
                 "-d", d.classes
@@ -47,7 +48,6 @@ private class DefaultJavaCompiler @Inject constructor(
                     "-target", command.info.toolchainInfo.jvm.jvmTarget
                 )
                 it.addAll(i.javaSourcesList)
-                it.addAll(i.generatedJavaSourcesList)
                 it.toTypedArray()
             }
             javacInvoker.compile(args).takeIf { it != 0 }?.also { throw CompilationStatusException("javac failed", it) }

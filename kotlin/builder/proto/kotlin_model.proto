@@ -68,25 +68,18 @@ message KotlinToolchainInfo {
 message CompilationTask {
     message Info {
         string label = 1;
-        // derived from label
-        string package = 2;
-        // derived from label
-        string target = 3;
-
-        string rule_kind = 4;
-        string kotlin_module_name = 5;
-
-        string passthrough_flags = 6;
-        KotlinToolchainInfo toolchain_info = 7;
-
-        CompilerPlugins plugins = 8;
-
-        // All of the plugin descriptors in the format kotlinc understands.
-        // +derived
-        repeated string encoded_plugin_descriptors = 9;
-
-        // Jars that the kotlin compiler will allow package private access to.
-        repeated string friend_paths = 10;
+        // The rule kind requesting the build.
+        string rule_kind = 2;
+        // The name of the module being compiled.
+        string module_name = 3;
+        // Flags to be passed straight through to the compiler.
+        string passthrough_flags = 4;
+        // Toolchain info for this build.
+        KotlinToolchainInfo toolchain_info = 5;
+        // Compiler plugin descriptors.
+        CompilerPlugins plugins = 6;
+        // Paths to Jars that the kotlin compiler will allow package private access to.
+        repeated string friend_paths = 7;
     }
 
     // Directories used by the builder.
@@ -114,28 +107,18 @@ message CompilationTask {
     message Inputs {
         // The full classpath
         repeated string classpath = 1;
-        // The full joined classpath
-        // +derived
-        string joined_classpath = 2;
-        // Direct dependencies of the target.
-        map<string, string> direct_dependencies = 3;
-        // Indirect dependencies of the target.
-        map<string, string> indirect_dependencies = 4;
 
+        // Direct dependencies of the target.
+        map<string, string> direct_dependencies = 2;
+        // Indirect dependencies of the target.
+        map<string, string> indirect_dependencies = 3;
+
+        // Partitioned from the builder flags, expanding the source_jars.
+        repeated string kotlin_sources = 4;
         // Partitioned from the builder flags and by expanding the source_jars.
-        // +derived
-        repeated string kotlin_sources = 5;
-        // Partitioned from the builder flags and by expanding the source_jars.
-        // +derived
-        repeated string java_sources = 6;
-        // Created during annotation processing and partitioned from the generated_sources directory.
-        // +dervived
-        repeated string generated_kotlin_sources = 7;
-        // Created during annotation processing and partitioned from the generated_sources directory.
-        // +derived
-        repeated string generated_java_sources = 8;
+        repeated string java_sources = 5;
         // Jars containing additional sources.
-        repeated string source_jars = 9;
+        repeated string source_jars = 6;
     }
 
     Info info = 1;
