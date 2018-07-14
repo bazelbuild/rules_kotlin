@@ -19,7 +19,7 @@ import com.google.common.base.Stopwatch
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import io.bazel.kotlin.builder.CompilationStatusException
-import io.bazel.kotlin.builder.utils.expandWithGeneratedSources
+import io.bazel.kotlin.builder.utils.expandWithSources
 import io.bazel.kotlin.model.KotlinModel.CompilationTask
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -58,7 +58,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                     .filter { it.isFile }
                     .map { it.path }
                     .iterator()
-                    .let { command.expandWithGeneratedSources(it) }
+                    .let { command.expandWithSources(it) }
             } else {
                 command
             }

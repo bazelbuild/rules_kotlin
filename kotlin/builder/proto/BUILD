@@ -13,7 +13,7 @@
 # limitations under the License.
 package(default_visibility=["//visibility:public"])
 # commented out till 0.16 is released. We aren't  prebuilding the libraries at the moment so it's fine.
-# TODO constrain the visibility  when fixing  the comments below as well
+# TODO constrain the visibility when fixing  the comments below as well
 #proto_library(
 #    name = "kotlin_model_proto",
 #    srcs = [":kotlin_model.proto"],

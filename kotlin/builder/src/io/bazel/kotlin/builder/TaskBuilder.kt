@@ -24,9 +24,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class TaskBuilder @Inject internal constructor(
-    private val pluginEncoder: KotlinCompilerPluginArgsEncoder
-) {
+class TaskBuilder @Inject internal constructor() {
     companion object {
         @JvmStatic
         private val jsonTypeRegistry = JsonFormat.TypeRegistry.newBuilder()
@@ -101,15 +99,12 @@ class TaskBuilder @Inject internal constructor(
                 argMap.optional(JavaBuilderFlags.SOURCE_JARS.flag)?.also {
                     addAllSourceJars(it)
                 }
-
-
-                joinedClasspath = classpathList.joinToString(":")
             }
 
             with(root.infoBuilder) {
                 label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL.flag)
                 ruleKind = argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND.flag)
-                kotlinModuleName = argMap.mandatorySingle("--kotlin_module_name").also {
+                moduleName = argMap.mandatorySingle("--kotlin_module_name").also {
                     check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
                 }
                 passthroughFlags = argMap.optionalSingle("--kotlin_passthrough_flags")
@@ -123,16 +118,6 @@ class TaskBuilder @Inject internal constructor(
                         jsonFormat.merge(input, it)
                         it.build()
                     }
-                }
-
-                if (plugins.annotationProcessorsList.isNotEmpty()) {
-                    addAllEncodedPluginDescriptors(pluginEncoder.encode(root))
-                }
-
-                label.split(":").also {
-                    check(it.size == 2) { "the label ${root.info.label} is invalid" }
-                    `package` = it[0]
-                    target = it[1]
                 }
             }
             root.build()
