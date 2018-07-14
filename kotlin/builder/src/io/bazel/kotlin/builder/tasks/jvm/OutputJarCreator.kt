@@ -16,6 +16,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.inject.ImplementedBy
+import io.bazel.kotlin.builder.utils.bazelRuleKind
 import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.model.KotlinModel
 import java.nio.file.Paths
@@ -34,7 +35,7 @@ private class DefaultOutputJarCreator : OutputJarCreator {
         ).also {
             it.addDirectory(Paths.get(command.directories.classes))
             it.addDirectory(Paths.get(command.directories.generatedClasses))
-            it.setJarOwner(command.info.label, command.info.ruleKind)
+            it.setJarOwner(command.info.label, command.info.bazelRuleKind)
             it.execute()
         }
     }
