@@ -2,7 +2,7 @@ package io.bazel.kotlin.builder;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.inject.Injector;
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.KotlinModel;
 import org.junit.Before;
 
@@ -25,7 +25,12 @@ abstract class KotlinBuilderTestCase {
 
   private final KotlinModel.CompilationTask.Builder builder =
       KotlinModel.CompilationTask.newBuilder();
-  private final Injector injector = KotlinToolchain.createInjector(() -> System.out, null);
+  private final KotlinBuilderComponent component =
+      DaggerKotlinBuilderComponent.builder()
+          .out(System.err)
+          .toolchain(KotlinToolchain.createToolchain())
+          .build();
+
   private String label = null;
   private Path inputSourceDir = null;
 
@@ -54,8 +59,8 @@ abstract class KotlinBuilderTestCase {
     return builder.build();
   }
 
-  protected <T> T instance(Class<T> clazz) {
-    return injector.getInstance(clazz);
+  protected KotlinBuilderComponent component() {
+    return component;
   }
 
   protected void addSource(String filename, String... lines) {
@@ -85,19 +90,20 @@ abstract class KotlinBuilderTestCase {
     inputSourceDir = Paths.get(createTestOuputDirectory(prefixPath.resolve("input_sources")));
 
     builder.clear();
-    builder.getInfoBuilder()
-            .setLabel("//some/bogus:" + label)
-            .setModuleName("some_bogus_module")
-            .setPlatform(KotlinModel.CompilationTask.Info.Platform.JVM)
-            .setRuleKind(KotlinModel.CompilationTask.Info.RuleKind.LIBRARY)
-            .setToolchainInfo(
-                KotlinModel.KotlinToolchainInfo.newBuilder()
-                    .setCommon(
-                        KotlinModel.KotlinToolchainInfo.Common.newBuilder()
-                            .setApiVersion("1.2")
-                            .setCoroutines("enabled")
-                            .setLanguageVersion("1.2"))
-                    .setJvm(KotlinModel.KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
+    builder
+        .getInfoBuilder()
+        .setLabel("//some/bogus:" + label)
+        .setModuleName("some_bogus_module")
+        .setPlatform(KotlinModel.CompilationTask.Info.Platform.JVM)
+        .setRuleKind(KotlinModel.CompilationTask.Info.RuleKind.LIBRARY)
+        .setToolchainInfo(
+            KotlinModel.KotlinToolchainInfo.newBuilder()
+                .setCommon(
+                    KotlinModel.KotlinToolchainInfo.Common.newBuilder()
+                        .setApiVersion("1.2")
+                        .setCoroutines("enabled")
+                        .setLanguageVersion("1.2"))
+                .setJvm(KotlinModel.KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
     builder
         .getDirectoriesBuilder()
         .setClasses(prefixPath.resolve("classes").toAbsolutePath().toString())

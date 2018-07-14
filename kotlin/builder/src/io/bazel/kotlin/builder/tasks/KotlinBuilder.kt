@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder
+package io.bazel.kotlin.builder.tasks
 
-import com.google.inject.Inject
-import com.google.inject.Provider
-import com.google.inject.Singleton
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.utils.*
-import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.model.KotlinModel
+import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import java.nio.file.Paths
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder @Inject internal constructor(
-    private val commandBuilder: TaskBuilder,
+    private val taskBuilder: TaskBuilder,
     private val jvmTaskExecutor: KotlinJvmTaskExecutor
 ) : CommandLineProgram {
     fun execute(args: List<String>): Int =
         ArgMaps.from(args).let { execute(it) }
 
     fun execute(args: ArgMap): Int =
-        commandBuilder.fromInput(args).let { execute(it) }
+        taskBuilder.fromInput(args).let { execute(it) }
 
     fun execute(command: KotlinModel.CompilationTask): Int {
         ensureDirectories(
@@ -73,13 +73,5 @@ class KotlinBuilder @Inject internal constructor(
 
     override fun apply(args: List<String>): Int {
         return execute(args)
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val worker = KotlinToolchain.createInjector(Provider { System.err }).getInstance(BazelWorker::class.java)
-            System.exit(worker.apply(args.toList()))
-        }
     }
 }

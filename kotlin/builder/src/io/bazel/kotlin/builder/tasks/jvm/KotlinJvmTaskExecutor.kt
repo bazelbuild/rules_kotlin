@@ -15,24 +15,23 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import com.google.common.base.Stopwatch
-import com.google.inject.Inject
-import com.google.inject.Singleton
-import io.bazel.kotlin.builder.CompilationStatusException
-import io.bazel.kotlin.builder.utils.expandWithSources
-import io.bazel.kotlin.model.KotlinModel.CompilationTask
-import java.io.File
-import java.util.concurrent.TimeUnit
 
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
+import io.bazel.kotlin.model.KotlinModel.CompilationTask
+import io.bazel.kotlin.builder.utils.expandWithSources
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
-    private val kotlinCompiler: KotlinCompiler,
+    private val kotlinCompiler: KotlinJvmCompiler,
     private val outputSink: KotlinCompilerOutputSink,
     private val javaCompiler: JavaCompiler,
     private val jDepsGenerator: JDepsGenerator,
     private val outputJarCreator: OutputJarCreator
 ) {
+    @Suppress("unused")
     class Result(val timings: List<String>, val command: CompilationTask)
 
     fun compile(command: CompilationTask): Result {
@@ -90,15 +89,13 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
 
     internal class Context {
         val timings = mutableListOf<String>()
-        val sw: Stopwatch = Stopwatch.createUnstarted()
         inline fun <T> execute(name: String, task: () -> T): T {
-            sw.start()
+            val start = System.currentTimeMillis()
             return try {
                 task()
             } finally {
-                sw.stop()
-                timings += "$name: ${sw.elapsed(TimeUnit.MILLISECONDS)} ms"
-                sw.reset()
+                val stop = System.currentTimeMillis()
+                timings += "$name: ${stop - start} ms"
             }
         }
     }

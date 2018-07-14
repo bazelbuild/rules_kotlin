@@ -44,6 +44,12 @@ filegroup(
     ]
 ]
 
+# Kotlin annotations jar. Contains annotations like NotNull.
+java_import(
+    name = "annotations",
+    jars = ["lib/annotations-13.0.jar"],
+)
+
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_import")
 
 #  The Kotlin standard libraries. These should be setup in a Toolchain.
