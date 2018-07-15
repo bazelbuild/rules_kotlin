@@ -59,13 +59,18 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             SourceJarCreator(
                 sourceJarPath
             ).also { creator ->
+                // This check asserts that source jars were unpacked.
+                check(
+                    command.inputs.sourceJarsList.isEmpty() ||
+                            Files.exists(Paths.get(command.directories.temp).resolve("_srcjars"))
+                )
                 listOf(
+                    // Any (input) source jars should already have been expanded so do not add them here.
                     command.inputs.javaSourcesList.stream(),
-                    command.inputs.kotlinSourcesList.stream(),
-                    command.inputs.sourceJarsList.stream()
-                ).stream().flatMap { it.map { Paths.get(it) } }.also {
-                    creator.addSources(it)
-                }
+                    command.inputs.kotlinSourcesList.stream()
+                ).stream()
+                    .flatMap { it.map { Paths.get(it) } }
+                    .also { creator.addSources(it) }
                 creator.execute()
             }
         }
