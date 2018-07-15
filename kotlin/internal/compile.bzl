@@ -18,6 +18,24 @@ load("//kotlin/internal:utils.bzl", "utils")
 def _declare_output_directory(ctx, aspect, dir_name):
     return ctx.actions.declare_directory("_kotlinc/%s_%s/%s_%s" % (ctx.label.name, aspect, ctx.label.name, dir_name))
 
+def _common_init_args(ctx, rule_kind, module_name):
+    toolchain=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
+
+    args = ctx.actions.args()
+    args.set_param_file_format("multiline")
+    args.use_param_file("--flagfile=%s", use_always=True)
+
+    args.add("--target_label", ctx.label)
+    args.add("--rule_kind", rule_kind)
+    args.add("--kotlin_module_name", module_name)
+
+    args.add("--kotlin_jvm_target", toolchain.jvm_target)
+    args.add("--kotlin_api_version", toolchain.api_version)
+    args.add("--kotlin_language_version", toolchain.language_version)
+    args.add("--kotlin_passthrough_flags", "-Xcoroutines=%s" % toolchain.coroutines)
+
+    return args
+
 def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_name, friend_paths, srcs):
     """Internal macro that sets up a Kotlin compile action.
 
@@ -36,42 +54,27 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
     temp_directory=_declare_output_directory(ctx, "jvm", "temp")
 
     toolchain=ctx.toolchains[kt.defs.TOOLCHAIN_TYPE]
+    args = _common_init_args(ctx, rule_kind, module_name)
 
-    args = [
-        "--target_label", ctx.label,
-        "--rule_kind", rule_kind,
+    args.add("--classdir", classes_directory)
+    args.add("--sourcegendir", sourcegen_directory)
+    args.add("--tempdir", temp_directory)
+    args.add("--kotlin_generated_classdir", generated_classes_directory)
 
-        "--classdir", classes_directory.path,
-        "--sourcegendir", sourcegen_directory.path,
-        "--tempdir", temp_directory.path,
-        "--kotlin_generated_classdir", generated_classes_directory.path,
+    args.add("--output", output_jar)
+    args.add("--output_jdeps", ctx.outputs.jdeps)
+    args.add("--kotlin_output_srcjar", ctx.outputs.srcjar)
 
-        "--output", output_jar.path,
-        "--output_jdeps", ctx.outputs.jdeps.path,
-        "--classpath", "\n".join([f.path for f in compile_jars.to_list()]),
-        "--kotlin_friend_paths", "\n".join(friend_paths.to_list()),
-        "--kotlin_jvm_target", toolchain.jvm_target,
-        "--kotlin_api_version", toolchain.api_version,
-        "--kotlin_language_version", toolchain.language_version,
-        "--kotlin_module_name", module_name,
-        "--kotlin_passthrough_flags", "-Xcoroutines=%s" % toolchain.coroutines,
-        "--kotlin_output_srcjar", ctx.outputs.srcjar.path,
-    ]
+    args.add("--kotlin_friend_paths", "\n".join(friend_paths.to_list()))
 
-    if (len(srcs.kt) + len(srcs.java)) > 0:
-        args += ["--sources", "\n".join([s.path for s in (srcs.kt + srcs.java)])]
-
-    if len(srcs.src_jars) > 0:
-        args += ["--source_jars", "\n".join([sj.path for sj in srcs.src_jars])]
+    args.add("--classpath", compile_jars)
+    args.add_all("--sources", srcs.all_srcs, omit_if_empty=True)
+    args.add_all("--source_jars", srcs.src_jars, omit_if_empty=True)
 
     # Collect and prepare plugin descriptor for the worker.
     plugin_info=plugins.merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
     if len(plugin_info.annotation_processors) > 0:
-        args += [ "--kt-plugins", plugin_info.to_json() ]
-
-    # Declare and write out argument file.
-    args_file = ctx.actions.declare_file(ctx.label.name + ".jar-2.params")
-    ctx.actions.write(args_file, "\n".join(args))
+        args.add("--kt-plugins", plugin_info.to_json())
 
     progress_message = "Compiling Kotlin %s { kt: %d, java: %d, srcjars: %d }" % (
         ctx.label,
@@ -81,10 +84,9 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
     )
 
     inputs, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder])
-
     ctx.actions.run(
         mnemonic = "KotlinCompile",
-        inputs = depset([args_file]) + inputs + ctx.files.srcs + compile_jars,
+        inputs = depset(inputs) + ctx.files.srcs + compile_jars,
         outputs = [
             output_jar,
             ctx.outputs.jdeps,
@@ -96,7 +98,7 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
         ],
         executable = toolchain.kotlinbuilder.files_to_run.executable,
         execution_requirements = {"supports-workers": "1"},
-        arguments = ["@" + args_file.path],
+        arguments = [args],
         progress_message = progress_message,
         input_manifests = input_manifests
     )
