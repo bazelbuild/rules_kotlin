@@ -129,13 +129,13 @@ class SourceJarCreator(
      * Add a single source jar
      */
     private fun addSourceJar(path: Path) {
-        if(verbose) {
+        if (verbose) {
             System.err.println("adding source jar: $path")
         }
         JarFile(path.toFile()).use { jar ->
             for (entry in jar.entries()) {
                 if (!entry.isDirectory) {
-                    if (entry.name.endsWith(".kt") or entry.name.endsWith(".java")) {
+                    if (isJavaSourceLike(entry.name)) {
                         jar.getInputStream(entry).readBytes(entry.size.toInt()).also {
                             addEntry(entry.name, path, it)
                         }
@@ -162,7 +162,13 @@ class SourceJarCreator(
         }
         filenameHelper.visitDeferredEntries { path, jarFilename, bytes ->
             if (jarFilename == null) {
-                System.err.println("could not determine jar entry name for $path. Body:\n${bytes.toString(Charset.defaultCharset())}}")
+                if (verbose) {
+                    val body = bytes.toString(Charset.defaultCharset())
+                    System.err.println("""could not determine jar entry name for $path. Body:\n$body}""")
+                } else {
+                    // if not verbose silently add files at the root.
+                    addEntry(path.fileName.toString(), path, bytes)
+                }
             } else {
                 System.err.println("adding deferred source file $path -> $jarFilename")
                 addEntry(jarFilename, path, bytes)
