@@ -96,6 +96,10 @@ load(
     _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect",
 )
 load(
+    "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+)
+load(
     "//kotlin/internal/jvm:impl.bzl",
     _kt_jvm_binary_impl = "kt_jvm_binary_impl",
     _kt_jvm_import_impl = "kt_jvm_import_impl",
@@ -125,6 +129,12 @@ _implicit_deps = {
     "_java_stub_template": attr.label(
         cfg = "host",
         default = Label("@kt_java_stub_template//file"),
+    ),
+    "_toolchain": attr.label(
+        doc = """The Kotlin JVM Runtime. it's only purpose is to enable the Android native rules to discover the Kotlin
+        runtime for dexing""",
+        default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-runtime"),
+        cfg = "target",
     ),
 }
 

@@ -11,3 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+java_import(
+    name = "android_sdk",
+    jars = ["@bazel_tools//tools/android:android_jar"],
+    neverlink = 1,
+    visibility = ["//visibility:public"],
+)

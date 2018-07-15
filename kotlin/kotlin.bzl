@@ -20,3 +20,7 @@ load(
     "kt_jvm_library",
     "kt_jvm_test",
 )
+load(
+    "//kotlin/internal/jvm:android.bzl",
+    "kt_android_library",
+)
