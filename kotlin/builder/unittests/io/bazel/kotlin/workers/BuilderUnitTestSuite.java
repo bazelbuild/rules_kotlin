@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.testing.jvm
+package io.bazel.kotlin.builder;
 
-import io.bazel.kotlin.testing.BasicAssertionTestCase
-import org.junit.Test
+import io.bazel.kotlin.builder.tasks.jvm.JdepsParserTest;
+import io.bazel.kotlin.builder.utils.jars.SourceJarCreatorUnitTests;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-/**
- * These tests verify properties of the example.
- */
-class JvmExampleTests : BasicAssertionTestCase() {
-    @Test
-    fun daggerExampleIsRunnable() {
-        assertExecutableRunfileSucceeds(
-            "//examples/dagger/coffee_app",
-            description = "the dagger coffee_app should execute successfully"
-        )
-    }
-}
+@RunWith(Suite.class)
+@Suite.SuiteClasses({JdepsParserTest.class, SourceJarCreatorUnitTests.class})
+public class BuilderUnitTestSuite {}

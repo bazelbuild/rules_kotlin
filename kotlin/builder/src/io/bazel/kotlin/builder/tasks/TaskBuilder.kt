@@ -78,6 +78,7 @@ class TaskBuilder @Inject internal constructor() {
             with(root.outputsBuilder) {
                 jar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT.flag)
                 jdeps = argMap.mandatorySingle("--output_jdeps")
+                srcjar = argMap.mandatorySingle("--kotlin_output_srcjar")
             }
 
             with(root.directoriesBuilder) {

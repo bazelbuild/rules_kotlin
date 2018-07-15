@@ -39,7 +39,7 @@ java_library(
 # Generate a srcjar to validate intellij plugin correctly attaches it.
 genrule(
     name = "tea_lib_src",
-    outs = ["test.srcjar"],
+    outs = ["tea_lib_src.srcjar"],
     cmd = """
 cat << EOF > TeaPot.kt
 package tea
@@ -55,16 +55,13 @@ rm TeaPot.kt
 )
 
 kt_jvm_library(
-    name = "tea_lib",
-    srcs = [":tea_lib_src"],
-)
-
-kt_jvm_library(
     name = "coffee_lib",
-    srcs = glob(["src/**"]),
+    srcs = glob(["src/**"]) + [
+        # Adding a file ending with .srcjar is how code generation patterns are implemented.
+        ":tea_lib_src"
+    ],
     deps = [
         ":dagger_lib",
-        ":tea_lib",
         "//third_party:kotlinx_coroutines",
     ],
 )

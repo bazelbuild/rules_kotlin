@@ -17,9 +17,12 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
-import io.bazel.kotlin.model.KotlinModel.CompilationTask
 import io.bazel.kotlin.builder.utils.expandWithSources
+import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
+import io.bazel.kotlin.model.KotlinModel.CompilationTask
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,10 +46,29 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         context.execute("create jar") {
             outputJarCreator.createOutputJar(commandWithApSources)
         }
+        produceSourceJar(commandWithApSources)
         context.execute("generate jdeps") {
             jDepsGenerator.generateJDeps(commandWithApSources)
         }
         return Result(context.timings, commandWithApSources)
+    }
+
+    private fun produceSourceJar(command: CompilationTask) {
+        Paths.get(command.outputs.srcjar).also { sourceJarPath ->
+            Files.createFile(sourceJarPath)
+            SourceJarCreator(
+                sourceJarPath
+            ).also { creator ->
+                listOf(
+                    command.inputs.javaSourcesList.stream(),
+                    command.inputs.kotlinSourcesList.stream(),
+                    command.inputs.sourceJarsList.stream()
+                ).stream().flatMap { it.map { Paths.get(it) } }.also {
+                    creator.addSources(it)
+                }
+                creator.execute()
+            }
+        }
     }
 
     private fun runAnnotationProcessors(command: CompilationTask): CompilationTask =

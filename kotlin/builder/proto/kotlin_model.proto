@@ -116,6 +116,7 @@ message CompilationTask {
         string jar = 1;
         // The path to the jdeps file.
         string jdeps = 2;
+        string srcjar = 3;
     }
 
     message Inputs {
