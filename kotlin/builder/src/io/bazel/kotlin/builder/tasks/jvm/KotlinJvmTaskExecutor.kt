@@ -38,19 +38,25 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     class Result(val timings: List<String>, val command: CompilationTask)
 
     fun compile(command: CompilationTask): Result {
-        val context = Context()
-        val commandWithApSources = context.execute("kapt") {
-            runAnnotationProcessors(command)
+        // fix error handling
+        try {
+            val context = Context()
+            val commandWithApSources = context.execute("kapt") {
+                runAnnotationProcessors(command)
+            }
+            compileClasses(context, commandWithApSources)
+            context.execute("create jar") {
+                outputJarCreator.createOutputJar(commandWithApSources)
+            }
+            produceSourceJar(commandWithApSources)
+            context.execute("generate jdeps") {
+                jDepsGenerator.generateJDeps(commandWithApSources)
+            }
+            return Result(context.timings, commandWithApSources)
+
+        } catch (ex: Throwable) {
+            throw RuntimeException(ex)
         }
-        compileClasses(context, commandWithApSources)
-        context.execute("create jar") {
-            outputJarCreator.createOutputJar(commandWithApSources)
-        }
-        produceSourceJar(commandWithApSources)
-        context.execute("generate jdeps") {
-            jDepsGenerator.generateJDeps(commandWithApSources)
-        }
-        return Result(context.timings, commandWithApSources)
     }
 
     private fun produceSourceJar(command: CompilationTask) {

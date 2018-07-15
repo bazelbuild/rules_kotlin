@@ -52,54 +52,6 @@ def _partition_srcs(srcs):
         all_srcs = kt + java,
         src_jars = depset(src_jars)
     )
-
-# DEPSET UTILS #################################################################################################################################################
-def _select_compile_jars(dep):
-    """selects the correct compile time jar from a java provider"""
-    if not JavaInfo in dep:
-        return []
-    is_kotlin_provider = kt.info.KtInfo in dep
-    java_provider = dep[JavaInfo]
-    if is_kotlin_provider:
-       return java_provider.full_compile_jars
-    elif dep.label.workspace_root == "external/com_github_jetbrains_kotlin":
-         return java_provider.full_compile_jars
-    else:
-        return java_provider.compile_jars
-
-def _collect_jars_for_compile(deps):
-    """creates the compile jar depset, this should be strict including only the output jars of the listed dependencies.
-    """
-    compile_jars = depset()
-    for d in deps:
-        compile_jars += _select_compile_jars(d)
-    return compile_jars
-
-def _collect_all_jars(deps):
-    """
-    Merges a list of java providers into a struct of depsets.
-    """
-    compile_jars = depset()
-    runtime_jars = depset()
-    transitive_runtime_jars = depset()
-    transitive_compile_time_jars = depset()
-
-    for dep_target in deps:
-        if JavaInfo in dep_target:
-            java_provider = dep_target[JavaInfo]
-            compile_jars += java_provider.compile_jars
-            # the runtime_jar compile_jar seperation is here to support the exports concept.
-            runtime_jars += java_provider.full_compile_jars
-            transitive_compile_time_jars += java_provider.transitive_compile_time_jars
-            transitive_runtime_jars += java_provider.transitive_runtime_jars
-
-    return struct (
-        compile_jars = compile_jars,
-        runtime_jars = runtime_jars,
-        transitive_runtime_jars = transitive_runtime_jars,
-        transitive_compile_time_jars = transitive_compile_time_jars
-    )
-
 # RESOURCE JARS ################################################################################################################################################
 _CONVENTIONAL_RESOURCE_PATHS = [
     "src/main/resources",
@@ -217,8 +169,6 @@ utils = struct(
         fold_jars = _fold_jars_action,
         write_launcher = _write_launcher_action,
     ),
-    collect_all_jars = _collect_all_jars,
-    collect_jars_for_compile = _collect_jars_for_compile,
     restore_label = _restore_label,
     derive_module_name = _derive_module_name,
     partition_srcs = _partition_srcs
