@@ -159,7 +159,7 @@ _common_attr = dict(_implicit_deps.items() + {
         default = [],
         allow_files = [".srcjar", ".kt", ".java"],
     ),
-    "deps": attr.label_list(aspects = [_kt_jvm_plugin_aspect]),
+    "deps": attr.label_list(aspects = [_kt_jvm_plugin_aspect], providers=[JavaInfo]),
     "runtime_deps": attr.label_list(default = []),
     "resources": attr.label_list(
         default = [],
@@ -222,7 +222,8 @@ def kt_register_toolchains():
 ########################################################################################################################
 kt_jvm_library = rule(
     attrs = dict(_common_attr.items() + {
-        "exports": attr.label_list(default = []),
+        "exports": attr.label_list(default = [], providers=[JavaInfo]),
+        "neverlink": attr.bool(default=False),
     }.items()),
     outputs = _common_outputs,
     toolchains = [_kt.defs.TOOLCHAIN_TYPE],
@@ -247,6 +248,7 @@ Args:
   deps: A list of dependencies of this rule.See general comments about `deps` at [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).
   module_name: The name of the module, if not provided the module name is derived from the label. --e.g., `//some/package/path:label_name` is translated to
     `some_package_path-label_name`.
+  neverlink: If true only use this library for compilation and not at runtime.
 """
 
 kt_jvm_binary = rule(
@@ -278,6 +280,7 @@ kt_jvm_test = rule(
         ),
         "friends": attr.label_list(
             default = [],
+            providers = [JavaInfo]
         ),
         "test_class": attr.string(),
         "main_class": attr.string(default="com.google.testing.junit.runner.BazelTestRunner"),
