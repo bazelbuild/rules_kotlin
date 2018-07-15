@@ -84,13 +84,15 @@ _common_attrs = {
 _kt_jvm_attrs = dict(_common_attrs.items() + {
     "jvm_runtime": attr.label(
         default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-runtime"),
+        providers = [JavaInfo]
     ),
     "jvm_stdlibs": attr.label_list(
         default = [
             Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
             Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk7"),
             Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk8"),
-        ]
+        ],
+        providers = [JavaInfo]
     ),
     "jvm_target": attr.string(
         default = "1.8",
@@ -114,8 +116,8 @@ def _kotlin_toolchain_impl(ctx):
         kotlinbuilder = ctx.attr.kotlinbuilder,
         kotlin_home = ctx.files.kotlin_home,
 
-        jvm_runtime = ctx.files.jvm_runtime,
-        jvm_stdlibs = ctx.files.jvm_stdlibs
+        jvm_runtime = ctx.attr.jvm_runtime,
+        jvm_stdlibs = ctx.attr.jvm_stdlibs
     )
     return struct(providers=[toolchain])
 
