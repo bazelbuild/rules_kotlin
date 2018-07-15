@@ -158,34 +158,6 @@ rm -f {resources_jar_output}
         arguments=[]
     )
     return resources_jar_output
-
-# SRC JARS #####################################################################################################################################################
-def _maybe_make_srcsjar_action(ctx, srcs):
-    source_files = srcs.kt + srcs.java
-    if (len(source_files) + len(srcs.src_jars)) > 0:
-        output_srcjar = ctx.actions.declare_file(ctx.label.name + "-sources.jar")
-
-        args = ["--output", output_srcjar.path]
-
-        for sj in srcs.src_jars:
-            args += ["--sources", sj.path]
-
-        for sf in source_files:
-            args += ["--resources", sf.path]
-
-        ctx.action(
-            mnemonic = "KotlinPackageSources",
-            inputs = source_files + srcs.src_jars,
-            outputs = [output_srcjar],
-            executable = ctx.executable._singlejar,
-            arguments = args,
-            progress_message="Creating Kotlin srcjar from %d srcs" % len(source_files),
-        )
-        return [output_srcjar]
-    else:
-        return []
-
-
 # PACKAGE JARS #################################################################################################################################################
 def _fold_jars_action(ctx, rule_kind, output_jar, input_jars):
     args=[
@@ -239,7 +211,6 @@ utils = struct(
     actions = struct(
         build_resourcejar = _build_resourcejar_action,
         fold_jars = _fold_jars_action,
-        maybe_make_srcsjar = _maybe_make_srcsjar_action,
         write_launcher = _write_launcher_action,
     ),
     collect_all_jars = _collect_all_jars,
