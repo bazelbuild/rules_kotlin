@@ -1,0 +1,16 @@
+workspace(name="kotlin_android_examples")
+
+local_repository(
+    name = "io_bazel_rules_kotlin",
+    path = "../.."
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories()
+kt_register_toolchains()
+
+android_sdk_repository(
+    name = "androidsdk",
+    api_level = 27,
+    build_tools_version = "27.0.3"
+)

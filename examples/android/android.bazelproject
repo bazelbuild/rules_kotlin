@@ -1,0 +1,11 @@
+directories:
+  .
+
+targets:
+  //:android
+
+additional_languages:
+  kotlin
+  android
+
+android_sdk_platform: android-27
