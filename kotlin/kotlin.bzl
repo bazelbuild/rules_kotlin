@@ -191,7 +191,7 @@ _common_outputs = dict(
     jar = "%{name}.jar",
     jdeps = "%{name}.jdeps",
     # The params file, declared here so that validate it can be validated for testing.
-    jar_2_params = "%{name}.jar-2.params",
+#    jar_2_params = "%{name}.jar-2.params",
     srcjar = "%{name}-sources.jar",
 )
 

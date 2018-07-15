@@ -43,10 +43,14 @@ def _partition_srcs(srcs):
         elif f.path.endswith(".srcjar"):
             src_jars.append(f)
 
+    kt = depset(kt_srcs)
+    java = depset(java_srcs)
+
     return struct (
-        kt = kt_srcs,
-        java = java_srcs,
-        src_jars = src_jars
+        kt = kt,
+        java = java,
+        all_srcs = kt + java,
+        src_jars = depset(src_jars)
     )
 
 # DEPSET UTILS #################################################################################################################################################
