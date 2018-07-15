@@ -113,7 +113,8 @@ abstract class KotlinBuilderTestCase {
     builder
         .getOutputsBuilder()
         .setJar(prefixPath.resolve("jar_file.jar").toAbsolutePath().toString())
-        .setJdeps(prefixPath.resolve("jdeps_files.jdeps").toAbsolutePath().toString());
+        .setJdeps(prefixPath.resolve("jdeps_file.jdeps").toAbsolutePath().toString())
+        .setSrcjar(prefixPath.resolve("jar_file-sources.jar").toAbsolutePath().toString());
   }
 
   private static String createTestOuputDirectory(Path path) {
