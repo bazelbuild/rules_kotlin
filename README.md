@@ -19,7 +19,7 @@
 These rules were initially forked from [pubref/rules_kotlin](http://github.com/pubref/rules_kotlin).
 Key changes:
 
-* Replace the macros with three basic rules. `kotlin_binary`, `kotlin_library` and `kotlin_test`.
+* Replace the macros with three basic rules. `kt_jvm_binary`, `kt_jvm_library` and `kt_jvm_test`.
 * Use a single dep attribute instead of `java_dep` and `dep`.
 * Add support for the following standard java rules attributes:
   * `data`
