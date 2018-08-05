@@ -23,14 +23,16 @@ class JvmBasicLocalTests : AssertionTestCase("tests/integrationtests/jvm/basic")
     /*
      * (hsyed) This test is running locally because things hash differently on the ci servers. Don't have the time to
      * look into it.
+     *
+     * The hashes can change between kotlin compiler versions so this approach isn't sustainable.
      */
     @Test
     fun testJarNormalization() {
         jarTestCase(
             name = "test_module_name_lib.jar",
-            description = "Builder jars should be normalized with the same timestamps as singlejar and including stamp data"
+            description = "Builder jars should be normalized with and include stamp data"
         ) {
-            validateFileSha256("513d14b29eb1b95b97bf7d34e2126a716c7d1012b259b5021c16b99ca82feeb5")
+            validateFileSha256("f26827dd09160adb436b31a12aa3b86f6da8ae1c317150c264ed8d1427a68dea")
             assertManifestStamped()
             assertEntryCompressedAndNormalizedTimestampYear("helloworld/Main.class")
         }
@@ -38,10 +40,12 @@ class JvmBasicLocalTests : AssertionTestCase("tests/integrationtests/jvm/basic")
             name = "test_embed_resources.jar",
             description = "Merging resources into the main output jar should still result in a normalized jar"
         ) {
-            validateFileSha256("2d9175e9ecc6b9bc62f59ce861e9b67c6f64dd581f6cbd986c0a694b89e310b1")
+            validateFileSha256("270ea8758f38d9ef15013aea222cc8f609affaf9acc2f2cd206dbd73a4872082")
             assertManifestStamped()
             assertEntryCompressedAndNormalizedTimestampYear("testresources/AClass.class")
-            assertEntryCompressedAndNormalizedTimestampYear("tests/integrationtests/jvm/basic/testresources/resources/one/two/aFile.txt")
+            assertEntryCompressedAndNormalizedTimestampYear(
+                "tests/integrationtests/jvm/basic/testresources/resources/one/two/aFile.txt"
+            )
         }
     }
 }
