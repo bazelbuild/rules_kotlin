@@ -38,9 +38,9 @@ abstract class AssertionTestCase(root: String) : BasicAssertionTestCase() {
     private lateinit var currentFile: File
 
     private val testRunfileRoot: Path = Paths.get(root).also {
-        it.toFile().also {
-            assert(it.exists()) { "runfile directory $root does not exist" }
-            assert(it.isDirectory) { "runfile directory $root is not a directory" }
+        it.toFile().also { file ->
+            assert(file.exists()) { "runfile directory $root does not exist" }
+            assert(file.isDirectory) { "runfile directory $root is not a directory" }
         }
     }
 
@@ -97,7 +97,7 @@ abstract class AssertionTestCase(root: String) : BasicAssertionTestCase() {
 
     protected fun validateFileSha256(expected: String) {
         val result = Hashing.sha256().hashBytes(Files.readAllBytes(currentFile.toPath())).toString()
-        assertEquals(expected, result, "files did not hash as expected")
+        assertEquals(expected, result, "file $currentFile did not hash as expected")
     }
 
     protected fun JarFile.assertDoesNotContainEntries(vararg entries: String) {
