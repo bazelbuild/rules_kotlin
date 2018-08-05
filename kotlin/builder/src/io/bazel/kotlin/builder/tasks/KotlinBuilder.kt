@@ -17,12 +17,16 @@ package io.bazel.kotlin.builder.tasks
 
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
-import io.bazel.kotlin.builder.utils.*
+import io.bazel.kotlin.builder.utils.ArgMaps
+import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
+import io.bazel.kotlin.builder.utils.ensureDirectories
+import io.bazel.kotlin.builder.utils.expandWithSources
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.model.KotlinModel
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,13 +36,18 @@ class KotlinBuilder @Inject internal constructor(
     private val taskBuilder: TaskBuilder,
     private val jvmTaskExecutor: KotlinJvmTaskExecutor
 ) : CommandLineProgram {
+    companion object {
+        // regex that matches the regular bazel param file naming convention.
+        private val STANDARD_FLAGFILE_RE = Pattern.compile(""".*.jar-\d+.params$""").toRegex()
+    }
+
     fun execute(args: List<String>): Int {
         check(args.isNotEmpty() && args[0].startsWith("--flagfile=")) { "no flag file supplied" }
         val flagFile = args[0].replace("--flagfile=", "")
         val flagFilePath = Paths.get(flagFile)
         check(flagFilePath.toFile().exists()) { "flagfile $flagFile does not exist" }
         val task = when {
-            flagFile.endsWith(".jar-2.params") -> {
+            STANDARD_FLAGFILE_RE.matches(flagFile) -> {
                 Files.readAllLines(flagFilePath, UTF_8).let { loadedFlags ->
                     ArgMaps.from(loadedFlags).let {
                         taskBuilder.fromInput(it)
