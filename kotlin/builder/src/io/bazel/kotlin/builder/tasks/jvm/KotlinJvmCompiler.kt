@@ -16,11 +16,11 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
-import io.bazel.kotlin.builder.utils.KotlinCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import io.bazel.kotlin.builder.utils.KotlinCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
-import io.bazel.kotlin.model.KotlinModel
+import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -40,7 +40,7 @@ internal class KotlinJvmCompiler @Inject constructor(
     private val compiler: KotlinToolchain.KotlincInvoker,
     private val pluginArgsEncoder: KotlinCompilerPluginArgsEncoder
 ) {
-    fun runAnnotationProcessor(command: KotlinModel.CompilationTask): List<String> {
+    fun runAnnotationProcessor(command: JvmCompilationTask): List<String> {
         check(command.info.plugins.annotationProcessorsList.isNotEmpty()) {
             "method called without annotation processors"
         }
@@ -48,13 +48,13 @@ internal class KotlinJvmCompiler @Inject constructor(
             it.addAll(pluginArgsEncoder.encode(command))
             it.addAll(command.inputs.kotlinSourcesList)
             it.addAll(command.inputs.javaSourcesList)
-        }.let { invokeCompilePhase(it) }
+        }.let(::invokeCompilePhase)
     }
 
     /**
      * Return a list with the common arguments.
      */
-    private fun getCommonArgs(command: KotlinModel.CompilationTask): MutableList<String> {
+    private fun getCommonArgs(command: JvmCompilationTask): MutableList<String> {
         val args = mutableListOf<String>()
 
         // use -- for flags not meant for the kotlin compiler
@@ -75,7 +75,7 @@ internal class KotlinJvmCompiler @Inject constructor(
         return args
     }
 
-    fun compile(command: KotlinModel.CompilationTask): List<String> =
+    fun compile(command: JvmCompilationTask): List<String> =
         with(getCommonArgs(command)) {
             addAll(command.inputs.javaSourcesList)
             addAll(command.inputs.kotlinSourcesList)

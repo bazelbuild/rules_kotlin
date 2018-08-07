@@ -16,10 +16,11 @@
 package io.bazel.kotlin.builder.tasks
 
 import com.google.protobuf.util.JsonFormat
-import io.bazel.kotlin.builder.utils.ArgMap
-import io.bazel.kotlin.builder.utils.partitionSources
-import io.bazel.kotlin.model.KotlinModel
-import io.bazel.kotlin.model.KotlinModel.CompilationTask
+import io.bazel.kotlin.builder.tasks.TaskBuilder.JavaBuilderFlags.*
+import io.bazel.kotlin.builder.tasks.TaskBuilder.KotlinBuilderFlags.*
+import io.bazel.kotlin.builder.utils.*
+import io.bazel.kotlin.model.*
+import io.bazel.kotlin.model.KotlinModel.getDescriptor
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,8 +29,7 @@ class TaskBuilder @Inject internal constructor() {
     companion object {
         @JvmStatic
         private val jsonTypeRegistry = JsonFormat.TypeRegistry.newBuilder()
-            .add(KotlinModel.getDescriptor().messageTypes).build()
-
+            .add(getDescriptor().messageTypes).build()
 
         @JvmStatic
         private val jsonFormat: JsonFormat.Parser = JsonFormat.parser().usingTypeRegistry(jsonTypeRegistry)
@@ -38,7 +38,7 @@ class TaskBuilder @Inject internal constructor() {
     /**
      * Declares the flags used by the java builder.
      */
-    private enum class JavaBuilderFlags(val flag: String) {
+    private enum class JavaBuilderFlags(override val flag: String) : Flag {
         TARGET_LABEL("--target_label"),
         CLASSPATH("--classpath"),
         JAVAC_OPTS("--javacopts"),
@@ -70,65 +70,88 @@ class TaskBuilder @Inject internal constructor() {
         POST_PROCESSOR("--post_processor"),
         COMPRESS_JAR("--compress_jar"),
         RULE_KIND("--rule_kind"),
-        TEST_ONLY("--testonly")
+        TEST_ONLY("--testonly");
     }
 
-    fun fromInput(argMap: ArgMap): CompilationTask =
-        CompilationTask.newBuilder().let { root ->
+    enum class KotlinBuilderFlags(override val flag: String) : Flag {
+        MODULE_NAME("--kotlin_module_name"),
+        PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
+        API_VERSION("--kotlin_api_version"),
+        LANGUAGE_VERSION("--kotlin_language_version"),
+        JVM_TARGET("--kotlin_jvm_target"),
+        OUTPUT_SRCJAR("--kotlin_output_srcjar"),
+        GENERATED_CLASSDIR("--kotlin_generated_classdir"),
+        PLUGINS("--kotlin_plugins"),
+        FRIEND_PATHS("--kotlin_friend_paths"),
+        OUTPUT_JDEPS("--kotlin_output_jdeps"),
+        TASK_ID("--kotlin_task_id");
+    }
+
+    fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo =
+        with(CompilationTaskInfo.newBuilder()) {
+            label = argMap.mandatorySingle(TARGET_LABEL)
+            argMap.mandatorySingle(RULE_KIND).split("_").also {
+                check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
+                platform = checkNotNull(Platform.valueOf(it[1].toUpperCase())) {
+                    "unrecognized platform ${it[1]}"
+                }
+                ruleKind = checkNotNull(RuleKind.valueOf(it[2].toUpperCase())) {
+                    "unrecognized rule kind ${it[2]}"
+                }
+            }
+            moduleName = argMap.mandatorySingle(MODULE_NAME).also {
+                check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
+            }
+            passthroughFlags = argMap.optionalSingle(PASSTHROUGH_FLAGS)
+            argMap.optional(FRIEND_PATHS)?.let(::addAllFriendPaths)
+            toolchainInfoBuilder.commonBuilder.apiVersion = argMap.mandatorySingle(API_VERSION)
+            toolchainInfoBuilder.commonBuilder.languageVersion = argMap.mandatorySingle(LANGUAGE_VERSION)
+            build()
+        }
+
+
+    fun buildJvm(info: CompilationTaskInfo, argMap: ArgMap): JvmCompilationTask =
+        JvmCompilationTask.newBuilder().let { root ->
+            root.info = info
+
             with(root.outputsBuilder) {
-                jar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT.flag)
-                jdeps = argMap.mandatorySingle("--output_jdeps")
-                srcjar = argMap.mandatorySingle("--kotlin_output_srcjar")
+                jar = argMap.mandatorySingle(OUTPUT)
+                jdeps = argMap.mandatorySingle(OUTPUT_JDEPS)
+                srcjar = argMap.mandatorySingle(OUTPUT_SRCJAR)
             }
 
             with(root.directoriesBuilder) {
-                classes = argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR.flag)
-                generatedClasses = argMap.mandatorySingle("--kotlin_generated_classdir")
-                temp = argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR.flag)
-                generatedSources = argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR.flag)
+                classes = argMap.mandatorySingle(CLASSDIR)
+                generatedClasses = argMap.mandatorySingle(GENERATED_CLASSDIR)
+                temp = argMap.mandatorySingle(TEMPDIR)
+                generatedSources = argMap.mandatorySingle(SOURCEGEN_DIR)
             }
 
             with(root.inputsBuilder) {
-                addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH.flag))
-                putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY.flag))
-                putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.INDIRECT_DEPENDENCY.flag))
+                addAllClasspath(argMap.mandatory(CLASSPATH))
+                putAllIndirectDependencies(argMap.labelDepMap(DIRECT_DEPENDENCY))
+                putAllIndirectDependencies(argMap.labelDepMap(INDIRECT_DEPENDENCY))
 
-                argMap.optional(JavaBuilderFlags.SOURCES.flag)?.iterator()?.partitionSources(
+                argMap.optional(SOURCES)?.iterator()?.partitionSources(
                     { addKotlinSources(it) },
                     { addJavaSources(it) }
                 )
-                argMap.optional(JavaBuilderFlags.SOURCE_JARS.flag)?.also {
+                argMap.optional(SOURCE_JARS)?.also {
                     addAllSourceJars(it)
                 }
             }
 
             with(root.infoBuilder) {
-                label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL.flag)
-                argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND.flag).split("_").also {
-                    check(it.size == 3 && it[0] == "kt")
-                    platform = checkNotNull(CompilationTask.Info.Platform.valueOf(it[1].toUpperCase())) {
-                        "unrecognized platform ${it[1]}"
-                    }
-                    ruleKind = checkNotNull(CompilationTask.Info.RuleKind.valueOf(it[2].toUpperCase())) {
-                        "unrecognized rule kind ${it[2]}"
-                    }
-                }
-                moduleName = argMap.mandatorySingle("--kotlin_module_name").also {
-                    check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
-                }
-                passthroughFlags = argMap.optionalSingle("--kotlin_passthrough_flags")
-                addAllFriendPaths(argMap.mandatory("--kotlin_friend_paths"))
-                toolchainInfoBuilder.commonBuilder.apiVersion = argMap.mandatorySingle("--kotlin_api_version")
-                toolchainInfoBuilder.commonBuilder.languageVersion = argMap.mandatorySingle("--kotlin_language_version")
-                toolchainInfoBuilder.jvmBuilder.jvmTarget = argMap.mandatorySingle("--kotlin_jvm_target")
+                toolchainInfoBuilder.jvmBuilder.jvmTarget = argMap.mandatorySingle(JVM_TARGET)
 
-                argMap.optionalSingle("--kt-plugins")?.let { input ->
-                    plugins = KotlinModel.CompilerPlugins.newBuilder().let {
+                argMap.optionalSingle(PLUGINS)?.let { input ->
+                    plugins = CompilerPlugins.newBuilder().let {
                         jsonFormat.merge(input, it)
                         it.build()
                     }
                 }
             }
+
             root.build()
         }
 }

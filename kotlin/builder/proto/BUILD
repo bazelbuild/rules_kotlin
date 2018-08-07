@@ -12,31 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility=["//visibility:public"])
-# commented out till 0.16 is released. We aren't  prebuilding the libraries at the moment so it's fine.
-# TODO constrain the visibility when fixing  the comments below as well
-#proto_library(
-#    name = "kotlin_model_proto",
-#    srcs = [":kotlin_model.proto"],
-#    visibility=["//visibility:public"]
-#)
-#
-#java_proto_library(
-#    name = "kotlin_model_java_proto",
-#    deps = [":kotlin_model_proto"]
-#)
-#
-#_PROTO_LIBS=["deps", "worker_protocol"]
-#
-#[proto_library(
-#    name="%s_proto" % lib,
-#    srcs=["%s.proto" % lib]
-#    ) for lib in _PROTO_LIBS]
-#
-#[java_proto_library(
-#    name="%s_java_proto" % lib,
-#    deps=["%s_proto" % lib],
-#    ) for lib in _PROTO_LIBS]
-#
+
+proto_library(
+    name = "kotlin_model_proto",
+    srcs = [":kotlin_model.proto"],
+    visibility=["//visibility:public"]
+)
+
+java_proto_library(
+    name = "kotlin_model_java_proto",
+    deps = [":kotlin_model_proto"]
+)
+
+_PROTO_LIBS=["deps", "worker_protocol"]
+
+[proto_library(
+    name="%s_proto" % lib,
+    srcs=["%s.proto" % lib]
+    ) for lib in _PROTO_LIBS]
+
+[java_proto_library(
+    name="%s_java_proto" % lib,
+    deps=["%s_proto" % lib],
+    ) for lib in _PROTO_LIBS]
+
 
 java_import(
     name = "deps",

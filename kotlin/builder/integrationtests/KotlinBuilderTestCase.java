@@ -3,7 +3,10 @@ package io.bazel.kotlin.builder;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
-import io.bazel.kotlin.model.KotlinModel;
+import io.bazel.kotlin.model.JvmCompilationTask;
+import io.bazel.kotlin.model.KotlinToolchainInfo;
+import io.bazel.kotlin.model.Platform;
+import io.bazel.kotlin.model.RuleKind;
 import org.junit.Before;
 
 import java.io.BufferedWriter;
@@ -23,8 +26,7 @@ abstract class KotlinBuilderTestCase {
       Paths.get(Preconditions.checkNotNull(System.getenv("TEST_TMPDIR")));
   private static final AtomicInteger counter = new AtomicInteger(0);
 
-  private final KotlinModel.CompilationTask.Builder builder =
-      KotlinModel.CompilationTask.newBuilder();
+  private final JvmCompilationTask.Builder builder = JvmCompilationTask.newBuilder();
   private final KotlinBuilderComponent component =
       DaggerKotlinBuilderComponent.builder()
           .out(System.err)
@@ -39,11 +41,11 @@ abstract class KotlinBuilderTestCase {
     resetTestContext("a_test_" + counter.incrementAndGet());
   }
 
-  protected KotlinModel.CompilationTask.Outputs outputs() {
+  protected JvmCompilationTask.Outputs outputs() {
     return builder.getOutputs();
   }
 
-  protected KotlinModel.CompilationTask.Directories directories() {
+  protected JvmCompilationTask.Directories directories() {
     return builder.getDirectories();
   }
 
@@ -55,7 +57,7 @@ abstract class KotlinBuilderTestCase {
     return Paths.get(directories().getClasses());
   }
 
-  protected KotlinModel.CompilationTask builderCommand() {
+  protected JvmCompilationTask builderCommand() {
     return builder.build();
   }
 
@@ -94,16 +96,16 @@ abstract class KotlinBuilderTestCase {
         .getInfoBuilder()
         .setLabel("//some/bogus:" + label)
         .setModuleName("some_bogus_module")
-        .setPlatform(KotlinModel.CompilationTask.Info.Platform.JVM)
-        .setRuleKind(KotlinModel.CompilationTask.Info.RuleKind.LIBRARY)
+        .setPlatform(Platform.JVM)
+        .setRuleKind(RuleKind.LIBRARY)
         .setToolchainInfo(
-            KotlinModel.KotlinToolchainInfo.newBuilder()
+            KotlinToolchainInfo.newBuilder()
                 .setCommon(
-                    KotlinModel.KotlinToolchainInfo.Common.newBuilder()
+                    KotlinToolchainInfo.Common.newBuilder()
                         .setApiVersion("1.2")
                         .setCoroutines("enabled")
                         .setLanguageVersion("1.2"))
-                .setJvm(KotlinModel.KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
+                .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
     builder
         .getDirectoriesBuilder()
         .setClasses(prefixPath.resolve("classes").toAbsolutePath().toString())
@@ -140,7 +142,7 @@ abstract class KotlinBuilderTestCase {
     TEMP,
     SOURCE_GEN;
 
-    protected static Path select(DirectoryType type, KotlinModel.CompilationTask command) {
+    protected static Path select(DirectoryType type, JvmCompilationTask command) {
       Path ret;
       switch (type) {
         case CLASSES:

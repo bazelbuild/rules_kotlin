@@ -17,9 +17,10 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
+import io.bazel.kotlin.builder.toolchain.CompilationTaskExecutor
 import io.bazel.kotlin.builder.utils.expandWithSources
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
-import io.bazel.kotlin.model.KotlinModel.CompilationTask
+import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -33,16 +34,13 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     private val javaCompiler: JavaCompiler,
     private val jDepsGenerator: JDepsGenerator,
     private val outputJarCreator: OutputJarCreator
-) {
-    @Suppress("unused")
-    class Result(val timings: List<String>, val command: CompilationTask)
-
-    fun compile(command: CompilationTask): Result {
+) : CompilationTaskExecutor<JvmCompilationTask>() {
+    override fun execute(task: JvmCompilationTask): Result {
         // fix error handling
         try {
             val context = Context()
             val commandWithApSources = context.execute("kapt") {
-                runAnnotationProcessors(command)
+                runAnnotationProcessors(task)
             }
             compileClasses(context, commandWithApSources)
             context.execute("create jar") {
@@ -59,13 +57,14 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
     }
 
-    private fun produceSourceJar(command: CompilationTask) {
+
+    private fun produceSourceJar(command: JvmCompilationTask) {
         Paths.get(command.outputs.srcjar).also { sourceJarPath ->
             Files.createFile(sourceJarPath)
             SourceJarCreator(
                 sourceJarPath
             ).also { creator ->
-                // This check asserts that source jars were unpacked.
+                // This check asserts that source jars were unpacked if present.
                 check(
                     command.inputs.sourceJarsList.isEmpty() ||
                             Files.exists(Paths.get(command.directories.temp).resolve("_srcjars"))
@@ -75,14 +74,14 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                     command.inputs.javaSourcesList.stream(),
                     command.inputs.kotlinSourcesList.stream()
                 ).stream()
-                    .flatMap { it.map { Paths.get(it) } }
+                    .flatMap { it.map { p -> Paths.get(p) } }
                     .also { creator.addSources(it) }
                 creator.execute()
             }
         }
     }
 
-    private fun runAnnotationProcessors(command: CompilationTask): CompilationTask =
+    private fun runAnnotationProcessors(command: JvmCompilationTask): JvmCompilationTask =
         try {
             if (command.info.plugins.annotationProcessorsList.isNotEmpty()) {
                 kotlinCompiler.runAnnotationProcessor(command)
@@ -99,7 +98,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             throw ex
         }
 
-    private fun compileClasses(context: Context, command: CompilationTask) {
+    private fun compileClasses(context: Context, command: JvmCompilationTask) {
         var kotlinError: CompilationStatusException? = null
         var result: List<String>? = null
         context.execute("kotlinc") {
