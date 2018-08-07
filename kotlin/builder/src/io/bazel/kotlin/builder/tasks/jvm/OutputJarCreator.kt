@@ -15,16 +15,16 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import io.bazel.kotlin.model.KotlinModel
 import io.bazel.kotlin.builder.utils.bazelRuleKind
 import io.bazel.kotlin.builder.utils.jars.JarCreator
+import io.bazel.kotlin.model.JvmCompilationTask
 import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 internal class OutputJarCreator @Inject constructor() {
-    fun createOutputJar(command: KotlinModel.CompilationTask) {
+    fun createOutputJar(command: JvmCompilationTask) {
         JarCreator(
             path = Paths.get(command.outputs.jar),
             normalize = true,

@@ -37,16 +37,18 @@ def _common_init_args(ctx, rule_kind, module_name):
     return args
 
 def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_name, friend_paths, srcs):
-    """Internal macro that sets up a Kotlin compile action.
-
-    This macro only supports a single Kotlin compile operation for a rule.
+    """This macro performs a compile operation in a single action.
 
     Args:
       rule_kind: The rule kind,
       output_jar: The jar file that this macro will use as the output of the action.
+      module_name: The Kotlin module name, this must be provided and is used by the compiler for symbol mangling in
+         advanced use cases.
       compile_jars: The compile time jars provided on the classpath for the compile operations -- callers are
         responsible for preparing the classpath. The stdlib (and jdk7 + jdk8) should generally be added to the classpath
         by the caller -- kotlin-reflect could be optional.
+      friend_paths: A list of jars paths that this compilation unit should have package private access to.
+      srcs: a struct with the various input sources partitioned.
     """
     classes_directory=_declare_output_directory(ctx, "jvm", "classes")
     generated_classes_directory=_declare_output_directory(ctx, "jvm", "generated_classes")
@@ -62,7 +64,7 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
     args.add("--kotlin_generated_classdir", generated_classes_directory)
 
     args.add("--output", output_jar)
-    args.add("--output_jdeps", ctx.outputs.jdeps)
+    args.add("--kotlin_output_jdeps", ctx.outputs.jdeps)
     args.add("--kotlin_output_srcjar", ctx.outputs.srcjar)
 
     args.add("--kotlin_friend_paths", "\n".join(friend_paths.to_list()))
@@ -74,7 +76,7 @@ def _kotlin_do_compile_action(ctx, rule_kind, output_jar, compile_jars, module_n
     # Collect and prepare plugin descriptor for the worker.
     plugin_info=plugins.merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
     if len(plugin_info.annotation_processors) > 0:
-        args.add("--kt-plugins", plugin_info.to_json())
+        args.add("--kotlin_plugins", plugin_info.to_json())
 
     progress_message = "Compiling Kotlin %s { kt: %d, java: %d, srcjars: %d }" % (
         ctx.label,
@@ -168,26 +170,10 @@ def _compile_action(ctx, rule_kind, module_name, friend_paths=depset(), src_jars
     deps = [
         d[JavaInfo]
         for d in (
-            toolchain.jvm_stdlibs +
             getattr(ctx.attr, "friends", []) +
             ctx.attr.deps
         )
-    ]
-
-    runtime_deps = [
-        d[JavaInfo]
-        for d in (
-            ctx.attr.runtime_deps +
-            [toolchain.jvm_runtime]
-        )
-    ]
-
-    exports = [
-        d[JavaInfo]
-        for d in (
-            getattr(ctx.attr, "exports", [])
-        )
-    ]
+    ] + [toolchain.jvm_stdlibs]
 
     # setup the compile action.
     _kotlin_do_compile_action(
@@ -205,15 +191,14 @@ def _compile_action(ctx, rule_kind, module_name, friend_paths=depset(), src_jars
         utils.actions.fold_jars(ctx, rule_kind, output_jar, output_merge_list)
 
     # create the java provider but the kotlin and default provider cannot be created here.
-
     return JavaInfo(
         output_jar = ctx.outputs.jar,
         compile_jar = ctx.outputs.jar,
         source_jar = ctx.outputs.srcjar,
 #        jdeps = ctx.outputs.jdeps,
         deps = deps,
-        runtime_deps = runtime_deps,
-        exports = exports,
+        runtime_deps = [d[JavaInfo] for d in ctx.attr.runtime_deps],
+        exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
         neverlink = getattr(ctx.attr, "neverlink", False)
     )
 

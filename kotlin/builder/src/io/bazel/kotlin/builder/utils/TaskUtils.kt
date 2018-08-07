@@ -15,25 +15,26 @@
  */
 package io.bazel.kotlin.builder.utils
 
-import io.bazel.kotlin.model.KotlinModel.CompilationTask
+import io.bazel.kotlin.model.CompilationTaskInfo
+import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.File
 
-fun CompilationTask.expandWithSources(
+fun JvmCompilationTask.expandWithSources(
     sources: Iterator<String>
-): CompilationTask =
+): JvmCompilationTask =
     updateBuilder { builder ->
         sources.partitionSources(
             { builder.inputsBuilder.addKotlinSources(it) },
             { builder.inputsBuilder.addJavaSources(it) })
     }
 
-val CompilationTask.Inputs.joinedClasspath: String get() = this.classpathList.joinToString(File.pathSeparator)
+val JvmCompilationTask.Inputs.joinedClasspath: String get() = this.classpathList.joinToString(File.pathSeparator)
 
-val CompilationTask.Info.bazelRuleKind: String get() = "kt_${platform.name.toLowerCase()}_${ruleKind.name.toLowerCase()}"
+val CompilationTaskInfo.bazelRuleKind: String get() = "kt_${platform.name.toLowerCase()}_${ruleKind.name.toLowerCase()}"
 
-private fun CompilationTask.updateBuilder(
-    init: (CompilationTask.Builder) -> Unit
-): CompilationTask =
+private fun JvmCompilationTask.updateBuilder(
+    init: (JvmCompilationTask.Builder) -> Unit
+): JvmCompilationTask =
     toBuilder().let {
         init(it)
         it.build()

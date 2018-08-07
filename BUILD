@@ -22,7 +22,7 @@ test_suite(
     ]
 )
 
-#  Local tests
+#  Local tests. Tests that shouldn't be run on the CI server.
 test_suite(
     name = "all_local_tests",
     tests = [

@@ -21,13 +21,13 @@ import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
 import java.io.PrintStream
 import java.io.PrintWriter
+import java.lang.reflect.Method
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
 class KotlinToolchain private constructor(
-    internal val javaHome: Path,
     val kotlinHome: Path,
     val classLoader: ClassLoader,
     val kotlinStandardLibraries: List<String> = listOf(
@@ -66,27 +66,11 @@ class KotlinToolchain private constructor(
         @JvmStatic
         fun createToolchain(): KotlinToolchain {
             val kotlinHome = Paths.get("external", "com_github_jetbrains_kotlin")
-            val javaHome = Paths.get(System.getProperty("java.home")).let {
-                it.takeIf { !it.endsWith(Paths.get("jre")) } ?: it.parent
+            val javaHome = Paths.get(System.getProperty("java.home")).let { path ->
+                path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
             }
-            return KotlinToolchain(
-                javaHome,
-                kotlinHome,
-                createClassLoader(javaHome, kotlinHome)
-            )
+            return KotlinToolchain(kotlinHome, createClassLoader(javaHome, kotlinHome))
         }
-
-//        @JvmStatic
-//        fun createToolchainModule(outputProvider: Provider<PrintStream>): Module {
-//            val toolchain = createToolchain()
-//            return object : AbstractModule() {
-//                override fun configure() {
-//                    bind(PrintStream::class.java).toProvider(outputProvider)
-//                    bind(KotlinToolchain::class.java).toInstance(toolchain)
-//                    install(KotlinToolchainModule)
-//                }
-//            }
-//        }
     }
 
     data class CompilerPlugin(val jarPath: String, val id: String)
@@ -107,20 +91,33 @@ class KotlinToolchain private constructor(
         fun run(args: Array<String>, out: PrintWriter): Int = method.invoke(clazz, args, out) as Int
     }
 
-    @Singleton
-    class KotlincInvoker @Inject constructor(toolchain: KotlinToolchain) {
-        private val compilerClass = toolchain.classLoader.loadClass("io.bazel.kotlin.compiler.BazelK2JVMCompiler")
-        private val exitCodeClass = toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
+    open class KotlinCliToolInvoker internal constructor(
+        toolchain: KotlinToolchain,
+        clazz: String
+    ) {
+        private val compiler: Any
+        private val execMethod: Method
+        private val getCodeMethod: Method
 
-        private val compiler = compilerClass.getConstructor().newInstance()
-        private val execMethod = compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
-        private val getCodeMethod = exitCodeClass.getMethod("getCode")
+        init {
+            val compilerClass = toolchain.classLoader.loadClass(clazz)
+            val exitCodeClass = toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
+
+            compiler = compilerClass.getConstructor().newInstance()
+            execMethod = compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
+            getCodeMethod = exitCodeClass.getMethod("getCode")
+        }
 
         fun compile(args: Array<String>, out: PrintStream): Int {
             val exitCodeInstance = execMethod.invoke(compiler, out, args)
             return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
         }
     }
+
+    @Singleton
+    class KotlincInvoker @Inject constructor(
+        toolchain: KotlinToolchain
+    ) : KotlinCliToolInvoker(toolchain, "io.bazel.kotlin.compiler.BazelK2JVMCompiler")
 }
 
 

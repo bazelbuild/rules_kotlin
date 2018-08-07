@@ -16,6 +16,7 @@ syntax = "proto3";
 package bazel.kotlin;
 
 option java_package = "io.bazel.kotlin.model";
+option java_multiple_files = true;
 
 // An abstract definition of an annotation processor. This is encoded into a format understood by kapt3.
 // +stable
@@ -64,40 +65,40 @@ message KotlinToolchainInfo {
     Jvm jvm = 2;
 }
 
+enum RuleKind {
+    LIBRARY = 0;
+    BINARY = 1;
+    TEST = 2;
+    IMPORT = 3;
+}
+
+enum Platform {
+    JVM = 0;
+    JS = 1;
+}
+
+// Common info about a Kotlin compilation task, this message is shared by all compilation tasks.
+message CompilationTaskInfo {
+    string label = 1;
+    // The Platform type.
+    Platform platform = 2;
+    // The kind of the rule.
+    RuleKind rule_kind = 3;
+    // The name of the module being compiled.
+    string module_name = 4;
+    // Flags to be passed straight through to the compiler.
+    string passthrough_flags = 5;
+    // Toolchain info for this build.
+    KotlinToolchainInfo toolchain_info = 6;
+    // Compiler plugin descriptors.
+    CompilerPlugins plugins = 7;
+    // Paths to Jars that the kotlin compiler will allow package private access to.
+    repeated string friend_paths = 8;
+}
+
 // Mested messages not marked with stable could be refactored.
-message CompilationTask {
-    message Info {
-        enum RuleKind {
-            LIBRARY = 0;
-            BINARY = 1;
-            TEST = 2;
-            IMPORT = 3;
-        }
-
-        enum Platform {
-            JVM = 0;
-            JS = 1;
-        }
-
-        string label = 1;
-        // The Platform type.
-        Platform platform = 2;
-        // The kind of the rule.
-        RuleKind rule_kind = 3;
-        // The name of the module being compiled.
-        string module_name = 4;
-        // Flags to be passed straight through to the compiler.
-        string passthrough_flags = 5;
-        // Toolchain info for this build.
-        KotlinToolchainInfo toolchain_info = 6;
-        // Compiler plugin descriptors.
-        CompilerPlugins plugins = 7;
-        // Paths to Jars that the kotlin compiler will allow package private access to.
-        repeated string friend_paths = 8;
-    }
-
+message JvmCompilationTask {
     // Directories used by the builder.
-    // +stable
     message Directories {
         // The directory the compiler should use for class files.
         string classes = 1;
@@ -110,7 +111,6 @@ message CompilationTask {
     }
 
     // Outputs produced by the builder.
-    // +stable
     message Outputs {
         // The path to the primary output jar.
         string jar = 1;
@@ -122,21 +122,21 @@ message CompilationTask {
     message Inputs {
         // The full classpath
         repeated string classpath = 1;
-
         // Direct dependencies of the target.
         map<string, string> direct_dependencies = 2;
         // Indirect dependencies of the target.
         map<string, string> indirect_dependencies = 3;
-
-        // Partitioned from the builder flags, expanding the source_jars.
+        // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
+        // source_jars and from annotation processing.
         repeated string kotlin_sources = 4;
-        // Partitioned from the builder flags and by expanding the source_jars.
+        // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
+        // source_jars and from annotation processing.
         repeated string java_sources = 5;
         // Jars containing additional sources.
         repeated string source_jars = 6;
     }
 
-    Info info = 1;
+    CompilationTaskInfo info = 1;
     Directories directories = 2;
     Outputs outputs = 3;
     Inputs inputs = 4;
