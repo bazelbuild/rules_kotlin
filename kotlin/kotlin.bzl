@@ -159,8 +159,13 @@ _common_attr = dict(_implicit_deps.items() + {
         default = [],
         allow_files = [".srcjar", ".kt", ".java"],
     ),
-    "deps": attr.label_list(aspects = [_kt_jvm_plugin_aspect], providers=[JavaInfo]),
-    "runtime_deps": attr.label_list(default = []),
+    "deps": attr.label_list(
+        aspects = [_kt_jvm_plugin_aspect],
+        providers=[
+            [JavaInfo],
+        ],
+        allow_files = False),
+    "runtime_deps": attr.label_list(default = [], allow_files=False),
     "resources": attr.label_list(
         default = [],
         allow_files = True,
@@ -228,6 +233,7 @@ kt_jvm_library = rule(
     outputs = _common_outputs,
     toolchains = [_kt.defs.TOOLCHAIN_TYPE],
     implementation = _kt_jvm_library_impl,
+    provides = [JavaInfo, _kt.info.KtInfo]
 )
 
 """This rule compiles and links Kotlin and Java sources into a .jar file.
@@ -308,16 +314,20 @@ kt_jvm_import = rule(
         "jars": attr.label_list(
             allow_files = True,
             mandatory = True,
+            cfg = "target",
         ),
         "srcjar": attr.label(
             allow_single_file = True,
+            cfg = "target",
         ),
         "runtime_deps": attr.label_list(
             default = [],
             mandatory = False,
+            providers = [JavaInfo]
         )
     },
     implementation = _kt_jvm_import_impl,
+    provides = [JavaInfo, _kt.info.KtInfo]
 )
 
 # The pairing of src and class is used by intellij to attatch sources, this is picked up via the kt provider attribute.

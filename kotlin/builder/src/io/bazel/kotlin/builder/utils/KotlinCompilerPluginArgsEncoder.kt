@@ -16,7 +16,7 @@
 package io.bazel.kotlin.builder.utils
 
 
-import io.bazel.kotlin.model.KotlinModel
+import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.util.*
@@ -86,7 +86,7 @@ class KotlinCompilerPluginArgsEncoder(
     }
 
     fun encode(
-        command: KotlinModel.CompilationTaskOrBuilder
+        command: JvmCompilationTask
     ): List<String> {
         val javacArgs = mutableMapOf<String, String>(
             "-target" to command.info.toolchainInfo.jvm.jvmTarget
@@ -105,7 +105,7 @@ class KotlinCompilerPluginArgsEncoder(
 
                 arg["processors"] = plugin.annotationProcessorsList
                     .filter { it.processorClass.isNotEmpty() }
-                    .onEach { it.classpathList.forEach { arg.bindMulti("apclasspath", it) } }
+                    .onEach { processor -> processor.classpathList.forEach { arg.bindMulti("apclasspath", it) } }
                     .joinToString(",") { it.processorClass }
                 arg.encode()
             }

@@ -40,12 +40,22 @@ class ArgMap(private val map: Map<String, List<String>>) {
     fun optional(key: String): List<String>? = map[key]
 }
 
+interface Flag {
+    val flag: String
+}
+
+fun ArgMap.mandatorySingle(key: Flag) = mandatorySingle(key.flag)
+fun ArgMap.optionalSingle(key: Flag) = optionalSingle(key.flag)
+fun ArgMap.mandatory(key: Flag) = mandatory(key.flag)
+fun ArgMap.optional(key: Flag) = optional(key.flag)
+fun ArgMap.labelDepMap(key: Flag) = labelDepMap(key.flag)
+
 object ArgMaps {
     @JvmStatic
     fun from(args: List<String>): ArgMap =
         mutableMapOf<String, MutableList<String>>()
             .also { argsToMap(args, it) }
-            .let { ArgMap(it) }
+            .let(::ArgMap)
 
     @JvmStatic
     fun from(file: File): ArgMap = from(file.reader().readLines())

@@ -14,11 +14,11 @@
 workspace(name="io_bazel_rules_kotlin")
 load("//kotlin/internal:bootstrap.bzl",github_archive="github_archive")
 
-#github_archive(
-#    name = "com_google_protobuf",
-#    repo = "google/protobuf",
-#    commit = "106ffc04be1abf3ff3399f54ccf149815b287dd9",
-#)
+github_archive(
+    name = "com_google_protobuf",
+    repo = "google/protobuf",
+    commit = "106ffc04be1abf3ff3399f54ccf149815b287dd9",
+)
 
 github_archive(
     name = "build_bazel_rules_nodejs",

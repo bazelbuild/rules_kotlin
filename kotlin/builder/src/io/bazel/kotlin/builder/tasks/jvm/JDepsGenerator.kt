@@ -19,10 +19,10 @@ import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.toolchain.CompilationException
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
-import io.bazel.kotlin.model.KotlinModel
 import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.rootCause
+import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import java.io.PrintWriter
@@ -32,13 +32,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-internal class JDepsGenerator  @Inject constructor(
+internal class JDepsGenerator @Inject constructor(
     toolchain: KotlinToolchain,
     private val invoker: KotlinToolchain.JDepsInvoker
 ) {
     private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(
-        toolchain.kotlinHome.resolveVerified("lib").toPath(), *toolchain.kotlinStandardLibraries.toTypedArray())
-    fun generateJDeps(command: KotlinModel.CompilationTask) {
+        toolchain.kotlinHome.resolveVerified("lib").toPath(), *toolchain.kotlinStandardLibraries.toTypedArray()
+    )
+
+    fun generateJDeps(command: JvmCompilationTask) {
         val jdepsContent =
             if (command.inputs.classpathList.isEmpty()) {
                 Deps.Dependencies.newBuilder().let {
@@ -52,8 +54,10 @@ internal class JDepsGenerator  @Inject constructor(
                         val res = invoker.run(
                             arrayOf(
                                 "-cp", joinedClasspath,
-                                command.outputs.jdeps),
-                            writer)
+                                command.outputs.jdeps
+                            ),
+                            writer
+                        )
                         out.toByteArray().inputStream().bufferedReader().readLines().let {
                             if (res != 0) {
                                 throw CompilationStatusException("could not run jdeps tool", res, it)
@@ -75,9 +79,7 @@ internal class JDepsGenerator  @Inject constructor(
             }
         Paths.get(command.outputs.jdeps).also {
             Files.deleteIfExists(it)
-            FileOutputStream(Files.createFile(it).toFile()).use {
-                jdepsContent.writeTo(it)
-            }
+            FileOutputStream(Files.createFile(it).toFile()).use(jdepsContent::writeTo)
         }
     }
 }

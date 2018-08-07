@@ -84,7 +84,8 @@ _common_attrs = {
 _kt_jvm_attrs = dict(_common_attrs.items() + {
     "jvm_runtime": attr.label(
         default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-runtime"),
-        providers = [JavaInfo]
+        providers = [JavaInfo],
+        cfg = "target",
     ),
     "jvm_stdlibs": attr.label_list(
         default = [
@@ -92,7 +93,8 @@ _kt_jvm_attrs = dict(_common_attrs.items() + {
             Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk7"),
             Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk8"),
         ],
-        providers = [JavaInfo]
+        providers = [JavaInfo],
+        cfg = "target",
     ),
     "jvm_target": attr.string(
         default = "1.8",
@@ -104,7 +106,7 @@ _kt_jvm_attrs = dict(_common_attrs.items() + {
 }.items())
 
 def _kotlin_toolchain_impl(ctx):
-    toolchain = platform_common.ToolchainInfo(
+    toolchain = dict(
         label = _utils.restore_label(ctx.label),
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
@@ -112,18 +114,23 @@ def _kotlin_toolchain_impl(ctx):
 
         jvm_target = ctx.attr.jvm_target,
 
-
         kotlinbuilder = ctx.attr.kotlinbuilder,
         kotlin_home = ctx.files.kotlin_home,
 
-        jvm_runtime = ctx.attr.jvm_runtime,
-        jvm_stdlibs = ctx.attr.jvm_stdlibs
+        jvm_stdlibs = java_common.create_provider(
+            compile_time_jars = ctx.files.jvm_stdlibs,
+            runtime_jars = ctx.files.jvm_runtime,
+            use_ijar = False,
+        ),
     )
-    return struct(providers=[toolchain])
+    return [
+        platform_common.ToolchainInfo(**toolchain)
+    ]
 
 kt_toolchain = rule(
     attrs = _kt_jvm_attrs,
     implementation = _kotlin_toolchain_impl,
+    provides = [platform_common.ToolchainInfo],
 )
 
 """The kotlin jvm toolchain

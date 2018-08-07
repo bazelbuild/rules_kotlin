@@ -17,9 +17,9 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
-import io.bazel.kotlin.model.KotlinModel.CompilationTask
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
+import io.bazel.kotlin.model.JvmCompilationTask
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,7 +27,7 @@ import javax.inject.Singleton
 internal class JavaCompiler @Inject constructor(
     private val javacInvoker: KotlinToolchain.JavacInvoker
 ) {
-   fun compile(command: CompilationTask) {
+    fun compile(command: JvmCompilationTask) {
         val i = command.inputs
         val d = command.directories
         if (i.javaSourcesList.isNotEmpty()) {

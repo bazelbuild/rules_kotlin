@@ -22,7 +22,7 @@ import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.ensureDirectories
 import io.bazel.kotlin.builder.utils.expandWithSources
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
-import io.bazel.kotlin.model.KotlinModel
+import io.bazel.kotlin.model.JvmCompilationTask
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -50,16 +50,18 @@ class KotlinBuilder @Inject internal constructor(
             STANDARD_FLAGFILE_RE.matches(flagFile) -> {
                 Files.readAllLines(flagFilePath, UTF_8).let { loadedFlags ->
                     ArgMaps.from(loadedFlags).let {
-                        taskBuilder.fromInput(it)
+                        val taskInfo = taskBuilder.buildTaskInfo(it)
+                        taskBuilder.buildJvm(taskInfo, it)
                     }
                 }
             }
             else -> throw IllegalStateException("unknown flag file format for $flagFile")
         }
+
         return execute(task)
     }
 
-    fun execute(command: KotlinModel.CompilationTask): Int {
+    fun execute(command: JvmCompilationTask): Int {
         ensureDirectories(
             command.directories.classes,
             command.directories.temp,
@@ -68,7 +70,7 @@ class KotlinBuilder @Inject internal constructor(
         )
         val updatedCommand = expandWithSourceJarSources(command)
         return try {
-            jvmTaskExecutor.compile(updatedCommand)
+            jvmTaskExecutor.execute(updatedCommand)
             0
         } catch (ex: CompilationStatusException) {
             ex.status
@@ -76,10 +78,10 @@ class KotlinBuilder @Inject internal constructor(
     }
 
     /**
-     * If any sourcejars were provided expand the jars sources and create a new [KotlinModel.CompilationTask] with the
+     * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the
      * Java and Kotlin sources merged in.
      */
-    private fun expandWithSourceJarSources(command: KotlinModel.CompilationTask): KotlinModel.CompilationTask =
+    private fun expandWithSourceJarSources(command: JvmCompilationTask): JvmCompilationTask =
         if (command.inputs.sourceJarsList.isEmpty()) {
             command
         } else {
@@ -87,7 +89,7 @@ class KotlinBuilder @Inject internal constructor(
                 destDir = Paths.get(command.directories.temp).resolve("_srcjars"),
                 fileMatcher = IS_JVM_SOURCE_FILE
             ).also {
-                it.jarFiles.addAll(command.inputs.sourceJarsList.map { Paths.get(it) })
+                it.jarFiles.addAll(command.inputs.sourceJarsList.map { p -> Paths.get(p) })
                 it.execute()
             }.let {
                 command.expandWithSources(it.sourcesList.iterator())

@@ -62,7 +62,7 @@ class SourceJarCreator(
          */
         private val directoryToPackageMap = mutableMapOf<Path, String>()
         /**
-         * Entries for which packages could not be located.
+         * Entries for which packages paths could not be located during processing.
          */
         private val deferredEntries = mutableMapOf<Path, ByteArray>()
 
@@ -74,15 +74,10 @@ class SourceJarCreator(
          * Files like `package-info.java` could end up getting deferred if they have an annotation embedded on the same
          * line or files that have entries such as `/* weird comment */package lala`
          */
-        fun getFilename(sourceFile: Path, bytes: ByteArray): String? {
-            return directoryToPackageMap[sourceFile.parent].let { existingPackageName ->
-                existingPackageName ?: locatePackageLineInBody(bytes).also {
-                    if (it == null) {
-                        deferredEntries[sourceFile] = bytes
-                    }
-                }?.let { "$it/${sourceFile.fileName}" }
+        fun getFilenameOrDefer(sourceFile: Path, body: ByteArray): String? =
+            directoryToPackageMap[sourceFile.parent] ?: locatePackagePathOrDefer(sourceFile, body)?.let {
+                "$it/${sourceFile.fileName}"
             }
-        }
 
         /**
          * Visit any deferred entries.
@@ -95,16 +90,13 @@ class SourceJarCreator(
             }
         }
 
-        private fun locatePackageLineInBody(bytes: ByteArray): String? =
-            bytes.inputStream().bufferedReader().use {
-                var res = it.readLine()
-                while (res != null) {
-                    extractPackage(res)?.replace('.', '/')?.also {
-                        return@use it
-                    }
-                    res = it.readLine()
+        private fun locatePackagePathOrDefer(sourceFile: Path, body: ByteArray): String? =
+            body.inputStream().bufferedReader().useLines {
+                it.mapNotNull(::extractPackage).firstOrNull()?.replace('.', '/')
+            }.also {
+                if (it == null) {
+                    deferredEntries[sourceFile] = body
                 }
-                null
             }
     }
 
@@ -151,7 +143,7 @@ class SourceJarCreator(
      */
     private fun addJavaLikeSourceFile(sourceFile: Path) {
         val bytes = Files.readAllBytes(sourceFile)
-        filenameHelper.getFilename(sourceFile, bytes)?.also {
+        filenameHelper.getFilenameOrDefer(sourceFile, bytes)?.also {
             addEntry(it, sourceFile, bytes)
         }
     }
