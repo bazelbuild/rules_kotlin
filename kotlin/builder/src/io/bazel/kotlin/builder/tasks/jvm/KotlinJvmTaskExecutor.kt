@@ -18,8 +18,11 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskExecutor
+import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
+import io.bazel.kotlin.builder.utils.ensureDirectories
 import io.bazel.kotlin.builder.utils.expandWithSources
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
+import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.File
 import java.nio.file.Files
@@ -36,11 +39,12 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     private val outputJarCreator: OutputJarCreator
 ) : CompilationTaskExecutor<JvmCompilationTask>() {
     override fun execute(task: JvmCompilationTask): Result {
+        val preprocessedTask = preprocessingSteps(task)
         // fix error handling
         try {
             val context = Context()
             val commandWithApSources = context.execute("kapt") {
-                runAnnotationProcessors(task)
+                runAnnotationProcessors(preprocessedTask)
             }
             compileClasses(context, commandWithApSources)
             context.execute("create jar") {
@@ -57,6 +61,35 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
     }
 
+
+    private fun preprocessingSteps(command: JvmCompilationTask): JvmCompilationTask {
+        ensureDirectories(
+            command.directories.classes,
+            command.directories.temp,
+            command.directories.generatedSources,
+            command.directories.generatedClasses
+        )
+        return expandWithSourceJarSources(command)
+    }
+
+    /**
+     * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the
+     * Java and Kotlin sources merged in.
+     */
+    private fun expandWithSourceJarSources(command: JvmCompilationTask): JvmCompilationTask =
+        if (command.inputs.sourceJarsList.isEmpty()) {
+            command
+        } else {
+            SourceJarExtractor(
+                destDir = Paths.get(command.directories.temp).resolve("_srcjars"),
+                fileMatcher = IS_JVM_SOURCE_FILE
+            ).also {
+                it.jarFiles.addAll(command.inputs.sourceJarsList.map { p -> Paths.get(p) })
+                it.execute()
+            }.let {
+                command.expandWithSources(it.sourcesList.iterator())
+            }
+        }
 
     private fun produceSourceJar(command: JvmCompilationTask) {
         Paths.get(command.outputs.srcjar).also { sourceJarPath ->
