@@ -94,6 +94,8 @@ message CompilationTaskInfo {
     CompilerPlugins plugins = 7;
     // Paths to Jars that the kotlin compiler will allow package private access to.
     repeated string friend_paths = 8;
+    // The path of the primary output for the task, this is derived from the flagfile.
+    string primary_output_path = 9;
 }
 
 // Mested messages not marked with stable could be refactored.
