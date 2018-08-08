@@ -15,15 +15,12 @@
  */
 package io.bazel.kotlin.builder.tasks
 
+import com.google.protobuf.util.JsonFormat
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
-import io.bazel.kotlin.builder.utils.ArgMaps
-import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
-import io.bazel.kotlin.builder.utils.ensureDirectories
-import io.bazel.kotlin.builder.utils.expandWithSources
-import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
-import io.bazel.kotlin.model.JvmCompilationTask
-import java.nio.charset.StandardCharsets.UTF_8
+import io.bazel.kotlin.builder.utils.*
+import io.bazel.kotlin.model.*
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.regex.Pattern
@@ -33,70 +30,160 @@ import javax.inject.Singleton
 @Singleton
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder @Inject internal constructor(
-    private val taskBuilder: TaskBuilder,
     private val jvmTaskExecutor: KotlinJvmTaskExecutor
 ) : CommandLineProgram {
     companion object {
-        // regex that matches the regular bazel param file naming convention.
-        private val STANDARD_FLAGFILE_RE = Pattern.compile(""".*.jar-\d+.params$""").toRegex()
+        @JvmStatic
+        private val jsonTypeRegistry = JsonFormat.TypeRegistry.newBuilder()
+            .add(KotlinModel.getDescriptor().messageTypes).build()
+
+        @JvmStatic
+        private val jsonFormat: JsonFormat.Parser = JsonFormat.parser().usingTypeRegistry(jsonTypeRegistry)
+
+        @JvmStatic
+        private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
     }
 
-    fun execute(args: List<String>): Int {
-        check(args.isNotEmpty() && args[0].startsWith("--flagfile=")) { "no flag file supplied" }
-        val flagFile = args[0].replace("--flagfile=", "")
-        val flagFilePath = Paths.get(flagFile)
-        check(flagFilePath.toFile().exists()) { "flagfile $flagFile does not exist" }
-        val task = when {
-            STANDARD_FLAGFILE_RE.matches(flagFile) -> {
-                Files.readAllLines(flagFilePath, UTF_8).let { loadedFlags ->
-                    ArgMaps.from(loadedFlags).let {
-                        val taskInfo = taskBuilder.buildTaskInfo(it)
-                        taskBuilder.buildJvm(taskInfo, it)
+    override fun apply(args: List<String>): Int {
+        check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
+        val (flagFileName, primaryOutputPath, idx) =
+                checkNotNull(FLAGFILE_RE.matchEntire(args[0])) { "invalid flagfile ${args[0]}" }.destructured
+        val argMap = Files.readAllLines(Paths.get(flagFileName), StandardCharsets.UTF_8).let(ArgMaps::from)
+        val commonInfo = buildTaskInfo(argMap).also {
+            it.primaryOutputPath = primaryOutputPath
+        }.build()
+
+        try {
+            @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
+            when (commonInfo.platform) {
+                Platform.JVM -> executeJvmTask(commonInfo, argMap)
+                Platform.UNRECOGNIZED, Platform.JS -> throw IllegalStateException("unrecognized platform: $commonInfo")
+            }
+        } catch (ex: CompilationStatusException) {
+            return ex.status
+        }
+        return 0
+    }
+
+
+    /**
+     * Declares the flags used by the java builder.
+     */
+    private enum class JavaBuilderFlags(override val flag: String) : Flag {
+        TARGET_LABEL("--target_label"),
+        CLASSPATH("--classpath"),
+        JAVAC_OPTS("--javacopts"),
+        DEPENDENCIES("--dependencies"),
+        DIRECT_DEPENDENCIES("--direct_dependencies"),
+        DIRECT_DEPENDENCY("--direct_dependency"),
+        INDIRECT_DEPENDENCY("--indirect_dependency"),
+        STRICT_JAVA_DEPS("--strict_java_deps"),
+        OUTPUT_DEPS_PROTO("--output_deps_proto"),
+        DEPS_ARTIFACTS("--deps_artifacts"),
+        REDUCE_CLASSPATH("--reduce_classpath"),
+        SOURCEGEN_DIR("--sourcegendir"),
+        GENERATED_SOURCES_OUTPUT("--generated_sources_output"),
+        OUTPUT_MANIFEST_PROTO("--output_manifest_proto"),
+        SOURCES("--sources"),
+        SOURCE_ROOTS("--source_roots"),
+        SOURCE_JARS("--source_jars"),
+        SOURCE_PATH("--sourcepath"),
+        BOOT_CLASSPATH("--bootclasspath"),
+        PROCESS_PATH("--processorpath"),
+        PROCESSORS("--processors"),
+        EXT_CLASSPATH("--extclasspath"),
+        EXT_DIR("--extdir"),
+        OUTPUT("--output"),
+        NATIVE_HEADER_OUTPUT("--native_header_output"),
+        CLASSDIR("--classdir"),
+        TEMPDIR("--tempdir"),
+        GENDIR("--gendir"),
+        POST_PROCESSOR("--post_processor"),
+        COMPRESS_JAR("--compress_jar"),
+        RULE_KIND("--rule_kind"),
+        TEST_ONLY("--testonly");
+    }
+
+    private enum class KotlinBuilderFlags(override val flag: String) : Flag {
+        MODULE_NAME("--kotlin_module_name"),
+        PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
+        API_VERSION("--kotlin_api_version"),
+        LANGUAGE_VERSION("--kotlin_language_version"),
+        JVM_TARGET("--kotlin_jvm_target"),
+        OUTPUT_SRCJAR("--kotlin_output_srcjar"),
+        GENERATED_CLASSDIR("--kotlin_generated_classdir"),
+        PLUGINS("--kotlin_plugins"),
+        FRIEND_PATHS("--kotlin_friend_paths"),
+        OUTPUT_JDEPS("--kotlin_output_jdeps"),
+        TASK_ID("--kotlin_task_id");
+    }
+
+    private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
+        with(CompilationTaskInfo.newBuilder()) {
+            label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL)
+            argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND).split("_").also {
+                check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
+                platform = checkNotNull(Platform.valueOf(it[1].toUpperCase())) {
+                    "unrecognized platform ${it[1]}"
+                }
+                ruleKind = checkNotNull(RuleKind.valueOf(it[2].toUpperCase())) {
+                    "unrecognized rule kind ${it[2]}"
+                }
+            }
+            moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
+                check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
+            }
+            passthroughFlags = argMap.optionalSingle(KotlinBuilderFlags.PASSTHROUGH_FLAGS)
+            argMap.optional(KotlinBuilderFlags.FRIEND_PATHS)?.let(::addAllFriendPaths)
+            toolchainInfoBuilder.commonBuilder.apiVersion = argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
+            toolchainInfoBuilder.commonBuilder.languageVersion = argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
+            this
+        }
+
+    private fun executeJvmTask(info: CompilationTaskInfo, argMap: ArgMap) =
+        jvmTaskExecutor.execute(buildJvmTask(info,argMap))
+
+    private fun buildJvmTask(info: CompilationTaskInfo, argMap: ArgMap): JvmCompilationTask =
+        JvmCompilationTask.newBuilder().let { root ->
+            root.info = info
+
+            with(root.outputsBuilder) {
+                jar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT)
+                jdeps = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_JDEPS)
+                srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
+            }
+
+            with(root.directoriesBuilder) {
+                classes = argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR)
+                generatedClasses = argMap.mandatorySingle(KotlinBuilderFlags.GENERATED_CLASSDIR)
+                temp = argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR)
+                generatedSources = argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR)
+            }
+
+            with(root.inputsBuilder) {
+                addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH))
+                putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY))
+                putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.INDIRECT_DEPENDENCY))
+
+                argMap.optional(JavaBuilderFlags.SOURCES)?.iterator()?.partitionSources(
+                    { addKotlinSources(it) },
+                    { addJavaSources(it) }
+                )
+                argMap.optional(JavaBuilderFlags.SOURCE_JARS)?.also {
+                    addAllSourceJars(it)
+                }
+            }
+
+            with(root.infoBuilder) {
+                toolchainInfoBuilder.jvmBuilder.jvmTarget = argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET)
+
+                argMap.optionalSingle(KotlinBuilderFlags.PLUGINS)?.let { input ->
+                    plugins = CompilerPlugins.newBuilder().let {
+                        jsonFormat.merge(input, it)
+                        it.build()
                     }
                 }
             }
-            else -> throw IllegalStateException("unknown flag file format for $flagFile")
+            root.build()
         }
-
-        return execute(task)
-    }
-
-    fun execute(command: JvmCompilationTask): Int {
-        ensureDirectories(
-            command.directories.classes,
-            command.directories.temp,
-            command.directories.generatedSources,
-            command.directories.generatedClasses
-        )
-        val updatedCommand = expandWithSourceJarSources(command)
-        return try {
-            jvmTaskExecutor.execute(updatedCommand)
-            0
-        } catch (ex: CompilationStatusException) {
-            ex.status
-        }
-    }
-
-    /**
-     * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the
-     * Java and Kotlin sources merged in.
-     */
-    private fun expandWithSourceJarSources(command: JvmCompilationTask): JvmCompilationTask =
-        if (command.inputs.sourceJarsList.isEmpty()) {
-            command
-        } else {
-            SourceJarExtractor(
-                destDir = Paths.get(command.directories.temp).resolve("_srcjars"),
-                fileMatcher = IS_JVM_SOURCE_FILE
-            ).also {
-                it.jarFiles.addAll(command.inputs.sourceJarsList.map { p -> Paths.get(p) })
-                it.execute()
-            }.let {
-                command.expandWithSources(it.sourcesList.iterator())
-            }
-        }
-
-    override fun apply(args: List<String>): Int {
-        return execute(args)
-    }
 }
