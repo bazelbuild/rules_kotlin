@@ -19,28 +19,11 @@ import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.File
 
-fun JvmCompilationTask.expandWithSources(
-    sources: Iterator<String>
-): JvmCompilationTask =
-    updateBuilder { builder ->
-        sources.partitionSources(
-            { builder.inputsBuilder.addKotlinSources(it) },
-            { builder.inputsBuilder.addJavaSources(it) })
-    }
-
 val JvmCompilationTask.Inputs.joinedClasspath: String get() = this.classpathList.joinToString(File.pathSeparator)
 
 val CompilationTaskInfo.bazelRuleKind: String get() = "kt_${platform.name.toLowerCase()}_${ruleKind.name.toLowerCase()}"
 
-private fun JvmCompilationTask.updateBuilder(
-    init: (JvmCompilationTask.Builder) -> Unit
-): JvmCompilationTask =
-    toBuilder().let {
-        init(it)
-        it.build()
-    }
-
-fun Iterator<String>.partitionSources(kt: (String) -> Unit, java: (String) -> Unit) {
+fun Iterator<String>.partitionJvmSources(kt: (String) -> Unit, java: (String) -> Unit) {
     forEach {
         when {
             it.endsWith(".kt") -> kt(it)

@@ -99,7 +99,9 @@ class KotlinCompilerPluginArgsEncoder(
                 arg["javacArguments"] = javacArgs.let(Companion::encodeMap)
                 arg["aptMode"] = "stubsAndApt"
                 arg["correctErrorTypes"] = "true"
-                arg["verbose"] = context.isDebug.toString()
+                context.whenTracing {
+                    arg["verbose"] = "true"
+                }
 
                 arg["processors"] = plugin.annotationProcessorsList
                     .filter { it.processorClass.isNotEmpty() }
