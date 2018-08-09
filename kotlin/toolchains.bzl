@@ -71,6 +71,9 @@ _common_attrs = {
             "1.2",
         ],
     ),
+    "debug": attr.int(
+        doc="if this is non zero then the builder will produce debug logging."
+    ),
     "coroutines": attr.string(
         default = "enable",
         values = [
@@ -111,6 +114,7 @@ def _kotlin_toolchain_impl(ctx):
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
         coroutines = ctx.attr.coroutines,
+        debug = ctx.attr.debug,
 
         jvm_target = ctx.attr.jvm_target,
 
@@ -141,8 +145,17 @@ Args:
   coroutines: the -Xcoroutines flag, enabled by default as it's considered production ready 1.2.0 onward.
 """
 
-def define_kt_toolchain(name, language_version=None, api_version=None, jvm_target=None, coroutines=None):
-    """Define a Kotlin JVM Toolchain, the name is used in the `toolchain` rule so can be used to register the toolchain in the WORKSPACE file."""
+def define_kt_toolchain(
+    name,
+    language_version=None,
+    api_version=None,
+    jvm_target=None,
+    coroutines=None,
+    debug=0
+):
+    """Define a Kotlin JVM Toolchain, the name is used in the `toolchain` rule so can be used to register the toolchain
+    in the WORKSPACE file.
+    """
     impl_name = name + "_impl"
     kt_toolchain(
         name = impl_name,
@@ -150,6 +163,7 @@ def define_kt_toolchain(name, language_version=None, api_version=None, jvm_targe
         api_version = api_version,
         jvm_target = jvm_target,
         coroutines = coroutines,
+        debug=debug,
         visibility = ["//visibility:public"]
     )
     native.toolchain(
