@@ -17,6 +17,7 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import io.bazel.kotlin.builder.utils.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.KotlinCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
@@ -40,12 +41,12 @@ internal class KotlinJvmCompiler @Inject constructor(
     private val compiler: KotlinToolchain.KotlincInvoker,
     private val pluginArgsEncoder: KotlinCompilerPluginArgsEncoder
 ) {
-    fun runAnnotationProcessor(command: JvmCompilationTask): List<String> {
+    fun runAnnotationProcessor(context: CompilationTaskContext, command: JvmCompilationTask): List<String> {
         check(command.info.plugins.annotationProcessorsList.isNotEmpty()) {
             "method called without annotation processors"
         }
         return getCommonArgs(command).also {
-            it.addAll(pluginArgsEncoder.encode(command))
+            it.addAll(pluginArgsEncoder.encode(context, command))
             it.addAll(command.inputs.kotlinSourcesList)
             it.addAll(command.inputs.javaSourcesList)
         }.let(::invokeCompilePhase)

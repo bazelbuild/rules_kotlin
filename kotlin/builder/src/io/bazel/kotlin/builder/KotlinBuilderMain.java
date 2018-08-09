@@ -17,6 +17,8 @@ package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 
+import javax.inject.Provider;
+import java.io.PrintStream;
 import java.util.Arrays;
 
 public class KotlinBuilderMain {
@@ -24,7 +26,6 @@ public class KotlinBuilderMain {
     KotlinBuilderComponent component =
         DaggerKotlinBuilderComponent.builder()
             .toolchain(KotlinToolchain.createToolchain())
-            .out(System.err)
             .build();
     System.exit(component.worker().apply(Arrays.asList(args)));
   }
