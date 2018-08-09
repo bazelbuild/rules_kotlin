@@ -16,12 +16,25 @@ package(default_visibility = ["//visibility:public"])
 load("//kotlin:toolchains.bzl", "define_kt_toolchain")
 load("//kotlin/internal:bootstrap.bzl", "kt_toolchain_ide_info")
 
+config_setting(
+    name = "builder_debug_setting",
+    values = {
+        "define": "kt_debug=1"
+    }
+)
+
 toolchain_type(
     name = "kt_toolchain_type",
     visibility = ["//visibility:public"]
 )
 
-define_kt_toolchain(name = "default_toolchain")
+define_kt_toolchain(
+    name = "default_toolchain",
+    debug=select({
+        "//kotlin:builder_debug_setting": 1,
+        "//conditions:default": 0
+    })
+)
 
 kt_toolchain_ide_info(name="kt_toolchain_ide_info")
 
