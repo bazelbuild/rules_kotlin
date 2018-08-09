@@ -16,6 +16,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.*
 import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
@@ -29,7 +30,8 @@ import javax.inject.Singleton
 
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
-    private val kotlinCompiler: KotlinJvmCompiler,
+    private val compiler: KotlinToolchain.KotlincInvoker,
+    private val pluginArgsEncoder: KotlinCompilerPluginArgsEncoder,
     private val javaCompiler: JavaCompiler,
     private val jDepsGenerator: JDepsGenerator
 ) {
@@ -37,7 +39,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         // TODO fix error handling
         try {
             val preprocessedTask = task.preprocessingSteps(context)
-            context.execute("compile classes") { preprocessedTask.compileClasses(context) }
+            context.execute("compile classes") { preprocessedTask.compileAll(context) }
             context.execute("create jar") { preprocessedTask.createOutputJar() }
             context.execute("produce src jar") { preprocessedTask.produceSourceJar() }
             context.execute("generate jdeps") { preprocessedTask.generateJDeps() }
@@ -83,6 +85,42 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
     }
 
+    private fun JvmCompilationTask.runAnnotationProcessor(context: CompilationTaskContext): List<String> {
+        check(info.plugins.annotationProcessorsList.isNotEmpty()) {
+            "method called without annotation processors"
+        }
+        return getCommonArgs().let { args ->
+            args.addAll(pluginArgsEncoder.encode(context, this))
+            args.addAll(inputs.kotlinSourcesList)
+            args.addAll(inputs.javaSourcesList)
+            context.executeCompilerTask(args, false, compiler::compile)
+        }
+    }
+
+    /**
+     * Return a list with the common arguments.
+     */
+    private fun JvmCompilationTask.getCommonArgs(): MutableList<String> {
+        val args = mutableListOf<String>()
+
+        // use -- for flags not meant for the kotlin compiler
+        args.addAll(
+            "-cp", inputs.joinedClasspath,
+            "-api-version", info.toolchainInfo.common.apiVersion,
+            "-language-version", info.toolchainInfo.common.languageVersion,
+            "-jvm-target", info.toolchainInfo.jvm.jvmTarget,
+            // https://github.com/bazelbuild/rules_kotlin/issues/69: remove once jetbrains adds a flag for it.
+            "--friend-paths", info.friendPathsList.joinToString(File.pathSeparator)
+        )
+
+        args
+            .addAll("-module-name", info.moduleName)
+            .addAll("-d", directories.classes)
+
+        info.passthroughFlags?.takeIf { it.isNotBlank() }?.also { args.addAll(it.split(" ")) }
+        return args
+    }
+
     private fun JvmCompilationTask.runAnnotationProcessors(
         context: CompilationTaskContext
     ): JvmCompilationTask =
@@ -90,7 +128,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             if (info.plugins.annotationProcessorsList.isEmpty()) {
                 this
             } else {
-                val kaptOutput = kotlinCompiler.runAnnotationProcessor(context, this)
+                val kaptOutput = runAnnotationProcessor(context)
                 context.whenTracing { printLines("kapt output", kaptOutput) }
                 expandWithGeneratedSources()
             }
@@ -114,7 +152,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             it.execute()
         }
 
-    private fun JvmCompilationTask.compileClasses(context: CompilationTaskContext) {
+    private fun JvmCompilationTask.compileAll(context: CompilationTaskContext) {
         ensureDirectories(
             directories.classes
         )
@@ -122,7 +160,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         var result: List<String>? = null
         context.execute("kotlinc") {
             result = try {
-                kotlinCompiler.compile(this)
+                compileKotlin(context)
             } catch (ex: CompilationStatusException) {
                 kotlinError = ex
                 ex.lines
@@ -137,6 +175,16 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             kotlinError?.also { throw it }
         }
     }
+
+    /**
+     * Compiles Kotlin sources to classes. Does not compile Java sources.
+     */
+    fun JvmCompilationTask.compileKotlin(context: CompilationTaskContext): List<String> =
+        getCommonArgs().let { args ->
+            args.addAll(inputs.javaSourcesList)
+            args.addAll(inputs.kotlinSourcesList)
+            context.executeCompilerTask(args, false, compiler::compile)
+        }
 
     /**
      * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the

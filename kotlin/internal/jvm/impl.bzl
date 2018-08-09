@@ -11,10 +11,50 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("//kotlin/internal/jvm:compile.bzl", _kt_jvm_produce_jar_actions="kt_jvm_produce_jar_actions")
+load("//kotlin/internal:defs.bzl", _KtJvmInfo="KtJvmInfo")
 
-load("//kotlin/internal:compile.bzl", "compile")
-load("//kotlin/internal:kt.bzl", "kt")
-load("//kotlin/internal:utils.bzl", "utils")
+def _make_providers(ctx, providers, transitive_files=depset(order="default")):
+    return struct(
+        kt=providers.kt,
+        providers=[
+            providers.java,
+            providers.kt,
+            DefaultInfo(
+                files=depset([ctx.outputs.jar]),
+                runfiles=ctx.runfiles(
+                    transitive_files=transitive_files,
+                    collect_default=True
+                ),
+            )
+        ],
+    )
+
+def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args="", wrapper_preamble=""):
+    """Macro that writes out a launcher script shell script.
+      Args:
+        rjars: All of the runtime jars required to launch this java target.
+        main_class: the main class to launch.
+        jvm_flags: The flags that should be passed to the jvm.
+        args: Args that should be passed to the Binary.
+    """
+    classpath = ":".join(["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()])
+    jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
+    template = ctx.attr._java_stub_template.files.to_list()[0]
+
+    ctx.actions.expand_template(
+        template = template,
+        output = ctx.outputs.executable,
+        substitutions = {
+            "%classpath%": classpath,
+            "%java_start_class%": main_class,
+            "%javabin%": "JAVABIN=${RUNPATH}" + ctx.executable._java.short_path,
+            "%jvm_flags%": jvm_flags,
+            "%set_jacoco_metadata%": "",
+            "%workspace_prefix%": ctx.workspace_name + "/",
+        },
+        is_executable = True,
+    )
 
 def kt_jvm_import_impl(ctx):
     jars = depset()
@@ -71,70 +111,49 @@ def kt_jvm_import_impl(ctx):
         else:
             artifacts += [struct(class_jar=jar, ijar = None)]
 
-    kotlin_info=kt.info.KtInfo(outputs=struct(jars=artifacts))
+    kotlin_info=_KtJvmInfo(outputs=struct(jars=artifacts))
     default_info = DefaultInfo(files=depset(jars))
     return struct(kt = kotlin_info, providers= [default_info, java_info, kotlin_info])
 
 def kt_jvm_library_impl(ctx):
-    module_name=utils.derive_module_name(ctx)
-    return compile.make_providers(
+    return _make_providers(
         ctx,
-        compile.compile_action(ctx, "kt_jvm_library", module_name),
-        module_name,
-  )
+        _kt_jvm_produce_jar_actions(ctx, "kt_jvm_library")
+    )
 
 def kt_jvm_binary_impl(ctx):
-    module_name=utils.derive_module_name(ctx)
-    java_info = compile.compile_action(ctx, "kt_jvm_binary", module_name)
-    utils.actions.write_launcher(
+    providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_binary")
+    _write_launcher_action(
         ctx,
-        java_info.transitive_runtime_jars,
+        providers.java.transitive_runtime_jars,
         ctx.attr.main_class,
         ctx.attr.jvm_flags
     )
-    return compile.make_providers(
+    return _make_providers(
         ctx,
-        java_info,
-        module_name,
+        providers,
         depset(
             order = "default",
-            transitive=[java_info.transitive_runtime_jars],
+            transitive=[providers.java.transitive_runtime_jars],
             direct=[ctx.executable._java]
         ),
     )
 
 def kt_jvm_junit_test_impl(ctx):
-    module_name=utils.derive_module_name(ctx)
-    friend_paths=depset()
-
-    friends=getattr(ctx.attr, "friends", [])
-    if len(friends) > 1:
-        fail("only one friend is possible")
-    elif len(friends) == 1:
-        if friends[0][kt.info.KtInfo] == None:
-            fail("only kotlin dependencies can be friends")
-        else:
-            friend_paths += [j.path for j in friends[0][JavaInfo].compile_jars]
-            module_name = friends[0][kt.info.KtInfo].module_name
-
-    java_info = compile.compile_action(ctx, "kt_jvm_test", module_name,friend_paths)
-
-    transitive_runtime_jars = java_info.transitive_runtime_jars + ctx.files._bazel_test_runner
-    launcherJvmFlags = ["-ea", "-Dbazel.test_suite=%s"% ctx.attr.test_class]
-
-    utils.actions.write_launcher(
+    providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_test")
+    runtime_jars=providers.java.transitive_runtime_jars + ctx.files._bazel_test_runner
+    _write_launcher_action(
         ctx,
-        transitive_runtime_jars,
+        runtime_jars,
         main_class = ctx.attr.main_class,
-        jvm_flags = launcherJvmFlags + ctx.attr.jvm_flags,
+        jvm_flags = ["-ea", "-Dbazel.test_suite=%s"% ctx.attr.test_class] + ctx.attr.jvm_flags,
     )
-    return compile.make_providers(
+    return _make_providers(
         ctx,
-        java_info,
-        module_name,
+        providers,
         depset(
             order = "default",
-            transitive=[transitive_runtime_jars],
+            transitive=[runtime_jars],
             direct=[ctx.executable._java]
         ),
     )
