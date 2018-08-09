@@ -3,6 +3,7 @@ package io.bazel.kotlin.builder;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
+import io.bazel.kotlin.builder.utils.CompilationTaskContext;
 import io.bazel.kotlin.model.JvmCompilationTask;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
@@ -28,9 +29,7 @@ abstract class KotlinBuilderTestCase {
 
   private final JvmCompilationTask.Builder builder = JvmCompilationTask.newBuilder();
   private final KotlinBuilderComponent component =
-      DaggerKotlinBuilderComponent.builder()
-          .toolchain(KotlinToolchain.createToolchain())
-          .build();
+      DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
 
   private String label = null;
   private Path inputSourceDir = null;
@@ -54,6 +53,10 @@ abstract class KotlinBuilderTestCase {
 
   private Path classDir() {
     return Paths.get(directories().getClasses());
+  }
+
+  protected CompilationTaskContext context() {
+    return new CompilationTaskContext(builder.getInfo(), System.err);
   }
 
   protected JvmCompilationTask builderCommand() {

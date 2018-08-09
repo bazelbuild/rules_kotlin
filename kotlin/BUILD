@@ -13,31 +13,7 @@
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
 
-load("//kotlin:toolchains.bzl", "define_kt_toolchain")
-load("//kotlin/internal:bootstrap.bzl", "kt_toolchain_ide_info")
-
-config_setting(
-    name = "builder_debug_timings",
-    values = { "define": "kt_timings=1" }
-)
-
-config_setting(
-    name = "builder_debug_trace",
-    values = { "define": "kt_trace=1" }
-)
-
-define_kt_toolchain(
-    name = "default_toolchain",
-    debug=
-        select({
-            "//kotlin:builder_debug_trace": ["trace"],
-            "//conditions:default": []
-        }) +
-        select({
-            "//kotlin:builder_debug_timings": ["timings"],
-            "//conditions:default": []
-        })
-)
+load("//kotlin/internal:toolchains.bzl", "kt_toolchain_ide_info")
 
 toolchain_type(
     name = "kt_toolchain_type",
@@ -45,5 +21,3 @@ toolchain_type(
 )
 
 kt_toolchain_ide_info(name="kt_toolchain_ide_info")
-
-exports_files(["toolchains.bzl", "kotlin.bzl"], visibility=["//docs:__subpackages__"])

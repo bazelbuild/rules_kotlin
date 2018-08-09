@@ -11,14 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load(
-    "//kotlin/internal:utils.bzl",
-    _utils = "utils",
-)
-load(
-    "//kotlin/internal:kt.bzl",
-    _kt = "kt",
-)
+
+load("//kotlin/internal/common:common.bzl", _common="common")
+load("//kotlin/internal:defs.bzl", _TOOLCHAIN_TYPE="TOOLCHAIN_TYPE", _KT_COMPILER_REPO="KT_COMPILER_REPO")
 
 """Kotlin Toolchains
 
@@ -43,7 +38,7 @@ register_toolchains("//:custom_toolchain")
 ```
 """
 
-_KT_COMPILER_REPO="com_github_jetbrains_kotlin"
+
 
 # The toolchain rules are not made private, at least the jvm ones so that they may be introspected in Intelij.
 _common_attrs = {
@@ -114,7 +109,7 @@ _kt_jvm_attrs = dict(_common_attrs.items() + {
 
 def _kotlin_toolchain_impl(ctx):
     toolchain = dict(
-        label = _utils.restore_label(ctx.label),
+        label = _common.restore_label(ctx.label),
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
         coroutines = ctx.attr.coroutines,
@@ -149,6 +144,10 @@ Args:
   coroutines: the -Xcoroutines flag, enabled by default as it's considered production ready 1.2.0 onward.
 """
 
+def kt_register_toolchains():
+    """This macro registers all of the default toolchains."""
+    native.register_toolchains("@io_bazel_rules_kotlin//kotlin/internal:default_toolchain")
+
 def define_kt_toolchain(
     name,
     language_version=None,
@@ -172,7 +171,30 @@ def define_kt_toolchain(
     )
     native.toolchain(
         name = name,
-        toolchain_type = _kt.defs.TOOLCHAIN_TYPE,
+        toolchain_type = _TOOLCHAIN_TYPE,
         toolchain = impl_name,
         visibility = ["//visibility:public"]
     )
+
+def _kt_toolchain_ide_info_impl(ctx):
+    tc=ctx.toolchains[_TOOLCHAIN_TYPE]
+    info = struct(
+        label = tc.label,
+        common = struct(
+            language_version = tc.language_version,
+            api_version = tc.api_version,
+            coroutines = tc.coroutines
+        ),
+        jvm = struct(
+            jvm_target = tc.jvm_target,
+        )
+    )
+    ctx.actions.write(ctx.outputs.ide_info, info.to_json())
+    return [DefaultInfo(files=depset([ctx.outputs.ide_info]))]
+
+kt_toolchain_ide_info = rule(
+    outputs = {"ide_info": "kt_toolchain_ide_info.json"},
+    toolchains = [_TOOLCHAIN_TYPE],
+    implementation = _kt_toolchain_ide_info_impl,
+)
+

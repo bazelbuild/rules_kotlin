@@ -20,14 +20,12 @@ import dagger.Component;
 import dagger.Provides;
 import io.bazel.kotlin.builder.tasks.BazelWorker;
 import io.bazel.kotlin.builder.tasks.KotlinBuilder;
-import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmCompiler;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.builder.utils.KotlinCompilerPluginArgsEncoder;
 
 import javax.inject.Singleton;
 import java.io.PrintStream;
-import java.util.function.Supplier;
 
 @Singleton
 @dagger.Component(modules = {KotlinBuilderComponent.Module.class})
@@ -35,8 +33,6 @@ public interface KotlinBuilderComponent {
   KotlinToolchain toolchain();
 
   KotlinJvmTaskExecutor jvmTaskExecutor();
-
-  KotlinJvmCompiler jvmCompiler();
 
   BazelWorker worker();
 

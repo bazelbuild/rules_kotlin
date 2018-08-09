@@ -11,7 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal:kt.bzl", "kt")
+KtJvmPluginInfo = provider(
+    doc = "This provider contains the plugin info for the JVM aspect",
+    fields = {
+        "annotation_processors": "a serializeable list of structs containing annotation processor definitions",
+    },
+)
+
+_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = [])]
 
 def _mk_processor_entry(l,p):
     merged_info=java_common.merge([j[JavaInfo] for j in p.deps])
@@ -27,12 +34,14 @@ def _mk_processor_entry(l,p):
 def _merge_plugin_infos(attrs):
     tally={}
     annotation_processors=[]
-    for info in [a[kt.info.KtPluginInfo] for a in attrs]:
+    for info in [a[KtJvmPluginInfo] for a in attrs]:
         for p in info.annotation_processors:
             if p.label not in tally:
                 tally[p.label] = True
                 annotation_processors.append(p)
-    return kt.info.KtPluginInfo(annotation_processors=annotation_processors)
+    return KtJvmPluginInfo(
+        annotation_processors=annotation_processors
+    )
 
 def _restore_label(l):
     lbl = l.workspace_root
@@ -40,11 +49,9 @@ def _restore_label(l):
         lbl = lbl.replace("external/", "@")
     return lbl + "//" + l.package + ":" + l.name
 
-_EMPTY_PLUGIN_INFO = [kt.info.KtPluginInfo(annotation_processors = [])]
-
 def _kt_jvm_plugin_aspect_impl(target, ctx):
     if ctx.rule.kind == "java_plugin":
-        return [kt.info.KtPluginInfo(
+        return [KtJvmPluginInfo(
             annotation_processors = [_mk_processor_entry(_restore_label(ctx.label),ctx.rule.attr)]
         )]
     else:
@@ -54,10 +61,13 @@ def _kt_jvm_plugin_aspect_impl(target, ctx):
           return _EMPTY_PLUGIN_INFO
 
 kt_jvm_plugin_aspect = aspect(
+    doc = """This aspect processes collects Java Plugins info so that annotation processors may be configured for a
+rule.""",
     attr_aspects = [
         "plugins",
         "exported_plugins",
     ],
+    provides = [KtJvmPluginInfo],
     implementation = _kt_jvm_plugin_aspect_impl,
 )
 

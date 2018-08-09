@@ -11,27 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal:toolchains.bzl", "define_kt_toolchain")
-
-config_setting(
-    name = "builder_debug_timings",
-    values = { "define": "kt_timings=1" }
-)
-
-config_setting(
-    name = "builder_debug_trace",
-    values = { "define": "kt_trace=1" }
-)
-
-define_kt_toolchain(
-    name = "default_toolchain",
-    debug=
-        select({
-            ":builder_debug_trace": ["trace"],
-            "//conditions:default": []
-        }) +
-        select({
-            ":builder_debug_timings": ["timings"],
-            "//conditions:default": []
-        })
-)
