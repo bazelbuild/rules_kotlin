@@ -1,6 +1,9 @@
 test:
 	bazel test all_tests
 
+test.local:
+	bazel test all_local_tests
+
 test.no_worker:
 	bazel clean
 	bazel shutdown
@@ -9,6 +12,12 @@ test.no_worker:
 reformat:
 	buildifier -mode=fix -v kotlin/*.bzl
 	buildifier -mode=fix -v kotlin/internal/*.bzl
+
+deps.regen:
+	scripts/regen_deps
+
+proto.regen:
+	scripts/gen_proto_jars
 
 docs.regen:
 	bazel build //docs
