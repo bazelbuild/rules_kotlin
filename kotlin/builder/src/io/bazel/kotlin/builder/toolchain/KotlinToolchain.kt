@@ -108,6 +108,10 @@ class KotlinToolchain private constructor(
             getCodeMethod = exitCodeClass.getMethod("getCode")
         }
 
+        // Kotlin error codes:
+        // 1 is a standard compilation error
+        // 2 is an internal error
+        // 3 is the script execution error
         fun compile(args: Array<String>, out: PrintStream): Int {
             val exitCodeInstance = execMethod.invoke(compiler, out, args)
             return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
@@ -118,6 +122,11 @@ class KotlinToolchain private constructor(
     class KotlincInvoker @Inject constructor(
         toolchain: KotlinToolchain
     ) : KotlinCliToolInvoker(toolchain, "io.bazel.kotlin.compiler.BazelK2JVMCompiler")
+
+    @Singleton
+    class K2JSCompilerInvoker @Inject constructor(
+        toolchain: KotlinToolchain
+    ) : KotlinCliToolInvoker(toolchain, "org.jetbrains.kotlin.cli.js.K2JSCompiler")
 }
 
 

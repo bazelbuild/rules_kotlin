@@ -71,7 +71,7 @@ class KotlinBuilder @Inject internal constructor(
 
     private fun buildContext(args: List<String>): Pair<ArgMap, CompilationTaskContext> {
         check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
-        val (flagFileName, primaryOutputPath, idx) =
+        val (flagFileName, primaryOutputPath, _) =
                 checkNotNull(FLAGFILE_RE.matchEntire(args[0])) { "invalid flagfile ${args[0]}" }.destructured
         val argMap = Files.readAllLines(Paths.get(flagFileName), StandardCharsets.UTF_8).let(ArgMaps::from)
         val info = buildTaskInfo(argMap).also {

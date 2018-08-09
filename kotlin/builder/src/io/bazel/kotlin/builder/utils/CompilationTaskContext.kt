@@ -18,7 +18,10 @@ package io.bazel.kotlin.builder.utils
 
 import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.TextFormat
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.model.CompilationTaskInfo
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
 import java.nio.file.Paths
@@ -35,7 +38,9 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
         isTracing = debugging.contains("trace")
     }
 
-    fun reportUnhandledException(throwable: Throwable) { throwable.printStackTrace(out) }
+    fun reportUnhandledException(throwable: Throwable) {
+        throwable.printStackTrace(out)
+    }
 
     /**
      * Print a list of debugging lines.
@@ -57,7 +62,9 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
     }
 
     inline fun <T> whenTracing(block: CompilationTaskContext.() -> T): T? {
-        return if(isTracing) { block() } else null
+        return if (isTracing) {
+            block()
+        } else null
     }
 
     /**
@@ -79,6 +86,31 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
         return if (toPrint.startsWith(executionRoot)) {
             toPrint.replaceFirst(executionRoot, "")
         } else toPrint
+    }
+
+    /**
+     * Execute a compilation task.
+     *
+     * @throws CompilationStatusException if the compiler returns a status of anything but zero.
+     * @param args the compiler command line switches
+     * @param deliverOutput if this is true the output will be printed to out directly.
+     * @param compile the compilation method.
+     */
+    inline fun executeCompilerTask(
+        args: List<String>,
+        deliverOutput: Boolean,
+        compile: (Array<String>, PrintStream) -> Int
+    ): List<String> {
+        val outputStream = ByteArrayOutputStream()
+        val ps = PrintStream(outputStream)
+        val result = compile(args.toTypedArray(), ps)
+        val output = ByteArrayInputStream(outputStream.toByteArray()).bufferedReader().readLines()
+        if (result != 0) {
+            throw CompilationStatusException("compile phase failed", result, output)
+        } else if(deliverOutput) {
+            printCompilerOutput(output)
+        }
+        return output
     }
 
     /**
@@ -104,7 +136,7 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
      * @param succesfull true if the task finished succesfully.
      */
     fun finalize(succesfull: Boolean) {
-        if(succesfull) {
+        if (succesfull) {
             timings?.also { printLines("Task timings", it, prefix = "  * ") }
         }
     }

@@ -6,7 +6,7 @@ public class KotlinBuilderActionTests extends KotlinBuilderTestCase {
   @Test
   public void testCompileSimple() {
     addSource("AClass.kt", "package something;" + "class AClass{}");
-    component().jvmCompiler().compile(builderCommand());
+    component().jvmTaskExecutor().compileKotlin(builderCommand(), context());
     assertFileExists(DirectoryType.CLASSES, "something/AClass.class");
     assertFileDoesNotExist(outputs().getJar());
   }
