@@ -115,11 +115,13 @@ class KotlinBuilder @Inject internal constructor(
         PLUGINS("--kotlin_plugins"),
         FRIEND_PATHS("--kotlin_friend_paths"),
         OUTPUT_JDEPS("--kotlin_output_jdeps"),
+        DEBUG("--kotlin_debug"),
         TASK_ID("--kotlin_task_id");
     }
 
     private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
         with(CompilationTaskInfo.newBuilder()) {
+            debug = argMap.mandatorySingle(KotlinBuilderFlags.DEBUG).toInt()
             label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL)
             argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND).split("_").also {
                 check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }

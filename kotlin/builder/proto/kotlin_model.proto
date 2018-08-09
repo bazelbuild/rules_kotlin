@@ -96,6 +96,8 @@ message CompilationTaskInfo {
     repeated string friend_paths = 8;
     // The path of the primary output for the task, this is derived from the flagfile.
     string primary_output_path = 9;
+    // If this is true the builder will print out debug messages.
+    int32 debug = 10;
 }
 
 // Mested messages not marked with stable could be refactored.
