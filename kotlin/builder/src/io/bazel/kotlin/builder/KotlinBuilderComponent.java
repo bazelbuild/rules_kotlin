@@ -18,32 +18,32 @@ package io.bazel.kotlin.builder;
 import dagger.BindsInstance;
 import dagger.Component;
 import dagger.Provides;
+import io.bazel.kotlin.builder.tasks.BazelWorker;
 import io.bazel.kotlin.builder.tasks.KotlinBuilder;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmCompiler;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
-import io.bazel.kotlin.builder.tasks.BazelWorker;
 import io.bazel.kotlin.builder.utils.KotlinCompilerPluginArgsEncoder;
 
 import javax.inject.Singleton;
 import java.io.PrintStream;
+import java.util.function.Supplier;
 
 @Singleton
 @dagger.Component(modules = {KotlinBuilderComponent.Module.class})
 public interface KotlinBuilderComponent {
   KotlinToolchain toolchain();
+
   KotlinJvmTaskExecutor jvmTaskExecutor();
+
   KotlinJvmCompiler jvmCompiler();
+
   BazelWorker worker();
 
   @Component.Builder
   interface Builder {
     @BindsInstance
     KotlinBuilderComponent.Builder toolchain(KotlinToolchain toolchain);
-
-    @BindsInstance
-    KotlinBuilderComponent.Builder out(PrintStream out);
-
     KotlinBuilderComponent build();
   }
 
@@ -53,6 +53,11 @@ public interface KotlinBuilderComponent {
     public KotlinCompilerPluginArgsEncoder providePluginArgEncoder(KotlinToolchain toolchain) {
       return new KotlinCompilerPluginArgsEncoder(
           toolchain.getKapt3Plugin().getJarPath(), toolchain.getKapt3Plugin().getId());
+    }
+
+    @Provides
+    public PrintStream provideDebugPrintStream() {
+      return System.err;
     }
 
     @Provides

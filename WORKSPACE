@@ -39,7 +39,7 @@ sass_repositories()
 github_archive(
     name = "bazel_skylib",
     repo = "bazelbuild/bazel-skylib",
-    commit = "6301f974f02350fe973d8631cf1bb87ab8d2a2bd"
+    commit = "3fea8cb680f4a53a129f7ebace1a5a4d1e035914"
 )
 
 github_archive(

@@ -2,6 +2,7 @@ package io.bazel.kotlin.builder;
 
 import com.google.common.truth.Truth;
 import com.google.devtools.build.lib.view.proto.Deps;
+import io.bazel.kotlin.builder.utils.CompilationTaskContext;
 import io.bazel.kotlin.model.JvmCompilationTask;
 import org.junit.Test;
 
@@ -44,9 +45,13 @@ public class KotlinBuilderTests extends KotlinBuilderTestCase {
       }
     }
     int timeoutSeconds = 10;
-//    KotlinJvmTaskExecutor executor = instance(KotlinJvmTaskExecutor.class);
     try {
-      CompletableFuture.runAsync(() -> component().jvmTaskExecutor().execute(command))
+
+      CompletableFuture.runAsync(
+              () ->
+                  component()
+                      .jvmTaskExecutor()
+                      .execute(new CompilationTaskContext(command.getInfo(), System.err), command))
           .get(timeoutSeconds, TimeUnit.SECONDS);
     } catch (TimeoutException e) {
       throw new AssertionError("did not complete in: " + timeoutSeconds);

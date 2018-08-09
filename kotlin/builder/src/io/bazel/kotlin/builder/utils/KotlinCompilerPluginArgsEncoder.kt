@@ -85,9 +85,7 @@ class KotlinCompilerPluginArgsEncoder(
             )
     }
 
-    fun encode(
-        command: JvmCompilationTask
-    ): List<String> {
+    fun encode(context: CompilationTaskContext, command: JvmCompilationTask): List<String> {
         val javacArgs = mutableMapOf<String, String>(
             "-target" to command.info.toolchainInfo.jvm.jvmTarget
         )
@@ -101,7 +99,7 @@ class KotlinCompilerPluginArgsEncoder(
                 arg["javacArguments"] = javacArgs.let(Companion::encodeMap)
                 arg["aptMode"] = "stubsAndApt"
                 arg["correctErrorTypes"] = "true"
-//                arg["verbose"] = "true"
+                arg["verbose"] = context.isDebug.toString()
 
                 arg["processors"] = plugin.annotationProcessorsList
                     .filter { it.processorClass.isNotEmpty() }
