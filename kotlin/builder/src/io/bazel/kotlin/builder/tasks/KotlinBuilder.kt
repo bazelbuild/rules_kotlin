@@ -49,16 +49,24 @@ class KotlinBuilder @Inject internal constructor(
 
     override fun apply(args: List<String>): Int {
         val (argMap, context) = buildContext(args)
+        var success = false
+        var status = 0
         try {
             @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
             when (context.info.platform) {
                 Platform.JVM -> executeJvmTask(context, argMap)
                 Platform.UNRECOGNIZED, Platform.JS -> throw IllegalStateException("unrecognized platform: ${context.info}")
             }
+            success = true
         } catch (ex: CompilationStatusException) {
-            return ex.status
+            status = ex.status
+        } catch(throwable: Throwable) {
+            context.reportUnhandledException(throwable)
+            throw throwable
+        } finally {
+            context.finalize(success)
         }
-        return 0
+        return status
     }
 
     private fun buildContext(args: List<String>): Pair<ArgMap, CompilationTaskContext> {
@@ -129,7 +137,8 @@ class KotlinBuilder @Inject internal constructor(
 
     private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
         with(CompilationTaskInfo.newBuilder()) {
-            debug = argMap.mandatorySingle(KotlinBuilderFlags.DEBUG).toInt()
+            addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
+
             label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL)
             argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND).split("_").also {
                 check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
@@ -152,7 +161,9 @@ class KotlinBuilder @Inject internal constructor(
 
     private fun executeJvmTask(context: CompilationTaskContext, argMap: ArgMap) {
         val task = buildJvmTask(context.info, argMap)
-        context.debugPrintProto("jvm task message", task)
+        context.whenTracing {
+            printProto("jvm task message", task)
+        }
         jvmTaskExecutor.execute(context, task)
     }
 
@@ -178,7 +189,7 @@ class KotlinBuilder @Inject internal constructor(
                 putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY))
                 putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.INDIRECT_DEPENDENCY))
 
-                argMap.optional(JavaBuilderFlags.SOURCES)?.iterator()?.partitionSources(
+                argMap.optional(JavaBuilderFlags.SOURCES)?.iterator()?.partitionJvmSources(
                     { addKotlinSources(it) },
                     { addJavaSources(it) }
                 )

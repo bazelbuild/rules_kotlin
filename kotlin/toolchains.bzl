@@ -71,8 +71,12 @@ _common_attrs = {
             "1.2",
         ],
     ),
-    "debug": attr.int(
-        doc="if this is non zero then the builder will produce debug logging."
+    "debug": attr.string_list(
+        allow_empty=True,
+        doc="""Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to print
+timing information. `trace` will cause the builder to print tracing messages. These tags can be enabled via the default
+toolchain via the defines `kt_timings=1` and `kt_trace=1`. The tags may also be picked up via the `tags` attribute
+defined directly on the rules."""
     ),
     "coroutines": attr.string(
         default = "enable",
@@ -151,7 +155,7 @@ def define_kt_toolchain(
     api_version=None,
     jvm_target=None,
     coroutines=None,
-    debug=0
+    debug=[]
 ):
     """Define a Kotlin JVM Toolchain, the name is used in the `toolchain` rule so can be used to register the toolchain
     in the WORKSPACE file.
@@ -163,7 +167,7 @@ def define_kt_toolchain(
         api_version = api_version,
         jvm_target = jvm_target,
         coroutines = coroutines,
-        debug=debug,
+        debug = debug,
         visibility = ["//visibility:public"]
     )
     native.toolchain(

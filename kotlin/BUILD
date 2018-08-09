@@ -17,23 +17,31 @@ load("//kotlin:toolchains.bzl", "define_kt_toolchain")
 load("//kotlin/internal:bootstrap.bzl", "kt_toolchain_ide_info")
 
 config_setting(
-    name = "builder_debug_setting",
-    values = {
-        "define": "kt_debug=1"
-    }
+    name = "builder_debug_timings",
+    values = { "define": "kt_timings=1" }
+)
+
+config_setting(
+    name = "builder_debug_trace",
+    values = { "define": "kt_trace=1" }
+)
+
+define_kt_toolchain(
+    name = "default_toolchain",
+    debug=
+        select({
+            "//kotlin:builder_debug_trace": ["trace"],
+            "//conditions:default": []
+        }) +
+        select({
+            "//kotlin:builder_debug_timings": ["timings"],
+            "//conditions:default": []
+        })
 )
 
 toolchain_type(
     name = "kt_toolchain_type",
     visibility = ["//visibility:public"]
-)
-
-define_kt_toolchain(
-    name = "default_toolchain",
-    debug=select({
-        "//kotlin:builder_debug_setting": 1,
-        "//conditions:default": 0
-    })
 )
 
 kt_toolchain_ide_info(name="kt_toolchain_ide_info")

@@ -15,12 +15,9 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
-import io.bazel.kotlin.builder.utils.CompilationTaskContext
-import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
-import io.bazel.kotlin.builder.utils.ensureDirectories
-import io.bazel.kotlin.builder.utils.expandWithSources
+import io.bazel.kotlin.builder.utils.*
+import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.model.JvmCompilationTask
@@ -34,74 +31,50 @@ import javax.inject.Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
     private val kotlinCompiler: KotlinJvmCompiler,
     private val javaCompiler: JavaCompiler,
-    private val jDepsGenerator: JDepsGenerator,
-    private val outputJarCreator: OutputJarCreator
+    private val jDepsGenerator: JDepsGenerator
 ) {
     fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
-        val preprocessedTask = preprocessingSteps(task)
-        // fix error handling
+        // TODO fix error handling
         try {
-            val commandWithApSources = context.execute("kapt") {
-                runAnnotationProcessors(context, preprocessedTask)
-            }
-            compileClasses(context, commandWithApSources)
-            context.execute("create jar") {
-                outputJarCreator.createOutputJar(commandWithApSources)
-            }
-            produceSourceJar(commandWithApSources)
-            context.execute("generate jdeps") {
-                jDepsGenerator.generateJDeps(commandWithApSources)
-            }
+            val preprocessedTask = task.preprocessingSteps(context)
+            context.execute("compile classes") { preprocessedTask.compileClasses(context) }
+            context.execute("create jar") { preprocessedTask.createOutputJar() }
+            context.execute("produce src jar") { preprocessedTask.produceSourceJar() }
+            context.execute("generate jdeps") { preprocessedTask.generateJDeps() }
         } catch (ex: Throwable) {
             throw RuntimeException(ex)
         }
     }
 
-
-    private fun preprocessingSteps(command: JvmCompilationTask): JvmCompilationTask {
+    private fun JvmCompilationTask.preprocessingSteps(context: CompilationTaskContext): JvmCompilationTask {
         ensureDirectories(
-            command.directories.classes,
-            command.directories.temp,
-            command.directories.generatedSources,
-            command.directories.generatedClasses
+            directories.temp,
+            directories.generatedSources,
+            directories.generatedClasses
         )
-        return expandWithSourceJarSources(command)
+        val taskWithAdditionalSources = context.execute("expand sources") { expandWithSourceJarSources() }
+        return context.execute("kapt") { taskWithAdditionalSources.runAnnotationProcessors(context) }
     }
 
-    /**
-     * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the
-     * Java and Kotlin sources merged in.
-     */
-    private fun expandWithSourceJarSources(command: JvmCompilationTask): JvmCompilationTask =
-        if (command.inputs.sourceJarsList.isEmpty()) {
-            command
-        } else {
-            SourceJarExtractor(
-                destDir = Paths.get(command.directories.temp).resolve("_srcjars"),
-                fileMatcher = IS_JVM_SOURCE_FILE
-            ).also {
-                it.jarFiles.addAll(command.inputs.sourceJarsList.map { p -> Paths.get(p) })
-                it.execute()
-            }.let {
-                command.expandWithSources(it.sourcesList.iterator())
-            }
-        }
+    private fun JvmCompilationTask.generateJDeps() {
+        jDepsGenerator.generateJDeps(this)
+    }
 
-    private fun produceSourceJar(command: JvmCompilationTask) {
-        Paths.get(command.outputs.srcjar).also { sourceJarPath ->
+    private fun JvmCompilationTask.produceSourceJar() {
+        Paths.get(outputs.srcjar).also { sourceJarPath ->
             Files.createFile(sourceJarPath)
             SourceJarCreator(
                 sourceJarPath
             ).also { creator ->
                 // This check asserts that source jars were unpacked if present.
                 check(
-                    command.inputs.sourceJarsList.isEmpty() ||
-                            Files.exists(Paths.get(command.directories.temp).resolve("_srcjars"))
+                    inputs.sourceJarsList.isEmpty() ||
+                            Files.exists(Paths.get(directories.temp).resolve("_srcjars"))
                 )
                 listOf(
                     // Any (input) source jars should already have been expanded so do not add them here.
-                    command.inputs.javaSourcesList.stream(),
-                    command.inputs.kotlinSourcesList.stream()
+                    inputs.javaSourcesList.stream(),
+                    inputs.kotlinSourcesList.stream()
                 ).stream()
                     .flatMap { it.map { p -> Paths.get(p) } }
                     .also { creator.addSources(it) }
@@ -110,35 +83,46 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
     }
 
-    private fun runAnnotationProcessors(
-        context: CompilationTaskContext,
-        command: JvmCompilationTask
+    private fun JvmCompilationTask.runAnnotationProcessors(
+        context: CompilationTaskContext
     ): JvmCompilationTask =
         try {
-            if (command.info.plugins.annotationProcessorsList.isNotEmpty()) {
-                kotlinCompiler.runAnnotationProcessor(context, command)
-                File(command.directories.generatedSources).walkTopDown()
-                    .filter { it.isFile }
-                    .map { it.path }
-                    .iterator()
-                    .let { command.expandWithSources(it) }
+            if (info.plugins.annotationProcessorsList.isEmpty()) {
+                this
             } else {
-                command
+                val kaptOutput = kotlinCompiler.runAnnotationProcessor(context, this)
+                context.whenTracing { printLines("kapt output", kaptOutput) }
+                expandWithGeneratedSources()
             }
         } catch (ex: CompilationStatusException) {
             ex.lines.also(context::printCompilerOutput)
             throw ex
         }
 
-    private fun compileClasses(
-        context: CompilationTaskContext,
-        command: JvmCompilationTask
-    ) {
+    /**
+     * Produce the primary output jar.
+     */
+    private fun JvmCompilationTask.createOutputJar() =
+        JarCreator(
+            path = Paths.get(outputs.jar),
+            normalize = true,
+            verbose = false
+        ).also {
+            it.addDirectory(Paths.get(directories.classes))
+            it.addDirectory(Paths.get(directories.generatedClasses))
+            it.setJarOwner(info.label, info.bazelRuleKind)
+            it.execute()
+        }
+
+    private fun JvmCompilationTask.compileClasses(context: CompilationTaskContext) {
+        ensureDirectories(
+            directories.classes
+        )
         var kotlinError: CompilationStatusException? = null
         var result: List<String>? = null
         context.execute("kotlinc") {
             result = try {
-                kotlinCompiler.compile(command)
+                kotlinCompiler.compile(this)
             } catch (ex: CompilationStatusException) {
                 kotlinError = ex
                 ex.lines
@@ -146,11 +130,57 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
         try {
             context.execute("javac") {
-                javaCompiler.compile(command)
+                javaCompiler.compile(this)
             }
         } finally {
             checkNotNull(result).also(context::printCompilerOutput)
             kotlinError?.also { throw it }
         }
     }
+
+    /**
+     * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the
+     * Java and Kotlin sources merged in.
+     */
+    private fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask =
+        if (inputs.sourceJarsList.isEmpty())
+            this
+        else expandWithSources(
+            SourceJarExtractor(
+                destDir = Paths.get(directories.temp).resolve("_srcjars"),
+                fileMatcher = IS_JVM_SOURCE_FILE
+            ).also {
+                it.jarFiles.addAll(inputs.sourceJarsList.map { p -> Paths.get(p) })
+                it.execute()
+            }.sourcesList.iterator()
+        )
+
+    /**
+     * Create a new [JvmCompilationTask] with sources found in the generatedSources directory. This should be run after
+     * annotation processors have been run.
+     */
+    private fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
+        expandWithSources(
+            File(directories.generatedSources).walkTopDown()
+                .filter { it.isFile }
+                .map { it.path }
+                .iterator()
+        )
+
+    private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
+        updateBuilder { builder ->
+            sources.partitionJvmSources(
+                { builder.inputsBuilder.addKotlinSources(it) },
+                { builder.inputsBuilder.addJavaSources(it) })
+        }
+
+    private fun JvmCompilationTask.updateBuilder(
+        block: (JvmCompilationTask.Builder) -> Unit
+    ): JvmCompilationTask =
+        toBuilder().let {
+            block(it)
+            it.build()
+        }
 }
+
+

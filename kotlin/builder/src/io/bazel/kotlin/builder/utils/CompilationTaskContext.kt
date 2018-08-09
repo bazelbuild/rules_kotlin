@@ -25,39 +25,51 @@ import java.nio.file.Paths
 
 class CompilationTaskContext(val info: CompilationTaskInfo, private val out: PrintStream) {
     private val executionRoot: String = Paths.get("").toAbsolutePath().toString() + File.separator
-    private val timings = mutableListOf<String>()
-    val isDebug: Boolean = info.debug > 0
+    private val timings: MutableList<String>?
+    @PublishedApi
+    internal val isTracing: Boolean
 
-    /**
-     * Print debugging messages if it is enabled for the task.
-     */
-    fun debugPrint(msg: String) {
-        if (info.debug > 0) {
-            out.println(msg)
-        }
+    init {
+        val debugging = info.debugList.toSet()
+        timings = if (debugging.contains("timings")) mutableListOf() else null
+        isTracing = debugging.contains("trace")
     }
 
+    fun reportUnhandledException(throwable: Throwable) { throwable.printStackTrace(out) }
+
     /**
-     * Print a debugging message if it debugging is enabled for the task. The lines are tab seperated.
+     * Print a list of debugging lines.
+     *
+     * @param header a header string
+     * @param lines a list of lines to print out
+     * @param prefix a prefix to add to each line
+     * @param filterEmpty if empty lines should be discarded or not
      */
-    private inline fun debugPrintHeadedLines(header: String, lines: () -> String) {
-        if (info.debug > 0) {
-            out.println(if (header.endsWith(":")) header else "$header:")
-            out.print("|  ${lines().replace("\n", "\n|  ")}")
+    fun printLines(header: String, lines: List<String>, prefix: String = "|  ", filterEmpty: Boolean = false) {
+        check(header.isNotEmpty())
+        out.println(if (header.endsWith(":")) header else "$header:")
+        lines.forEach {
+            if (it.isNotEmpty() || !filterEmpty) {
+                out.println("$prefix$it")
+            }
         }
+        out.println()
+    }
+
+    inline fun <T> whenTracing(block: CompilationTaskContext.() -> T): T? {
+        return if(isTracing) { block() } else null
     }
 
     /**
      * Print a proto message if debugging is enabled for the task.
      */
-    fun debugPrintProto(header: String, msg: MessageOrBuilder) {
-        debugPrintHeadedLines(header) { TextFormat.printToString(msg) }
+    fun printProto(header: String, msg: MessageOrBuilder) {
+        printLines(header, TextFormat.printToString(msg).split("\n"), filterEmpty = true)
     }
 
-    fun printCompilerOutput(line: String) {
-        out.println(trimExecutionRootPrefix(line))
-    }
-
+    /**
+     * This method normalizes and reports the output from the Kotlin compiler.
+     */
     fun printCompilerOutput(lines: List<String>) {
         lines.map(::trimExecutionRootPrefix).forEach(out::println)
     }
@@ -69,13 +81,31 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
         } else toPrint
     }
 
+    /**
+     * Runs a task and records the timings.
+     */
     fun <T> execute(name: String, task: () -> T): T {
-        val start = System.currentTimeMillis()
-        return try {
+        return if (timings == null) {
             task()
-        } finally {
-            val stop = System.currentTimeMillis()
-            timings += "$name: ${stop - start} ms"
+        } else {
+            val start = System.currentTimeMillis()
+            try {
+                task()
+            } finally {
+                val stop = System.currentTimeMillis()
+                timings += "$name: ${stop - start} ms"
+            }
+        }
+    }
+
+    /**
+     * This method should be called at the end of builder invocation.
+     *
+     * @param succesfull true if the task finished succesfully.
+     */
+    fun finalize(succesfull: Boolean) {
+        if(succesfull) {
+            timings?.also { printLines("Task timings", it, prefix = "  * ") }
         }
     }
 }

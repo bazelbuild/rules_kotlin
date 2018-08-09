@@ -33,7 +33,14 @@ def _common_init_args(ctx, rule_kind, module_name):
     args.add("--kotlin_api_version", toolchain.api_version)
     args.add("--kotlin_language_version", toolchain.language_version)
     args.add("--kotlin_passthrough_flags", "-Xcoroutines=%s" % toolchain.coroutines)
-    args.add("--kotlin_debug", toolchain.debug)
+
+    debug = depset(toolchain.debug)
+    for tag in ctx.attr.tags:
+        if tag == "trace":
+            debug = debug + [tag]
+        if tag == "timings":
+            debug = debug + [tag]
+    args.add("--kotlin_debug", debug)
 
     return args
 
