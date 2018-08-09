@@ -29,7 +29,6 @@ abstract class KotlinBuilderTestCase {
   private final JvmCompilationTask.Builder builder = JvmCompilationTask.newBuilder();
   private final KotlinBuilderComponent component =
       DaggerKotlinBuilderComponent.builder()
-          .out(System.err)
           .toolchain(KotlinToolchain.createToolchain())
           .build();
 

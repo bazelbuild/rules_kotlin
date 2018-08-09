@@ -20,16 +20,19 @@ import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.utils.*
 import io.bazel.kotlin.model.*
+import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.regex.Pattern
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder @Inject internal constructor(
+    private val outputProvider: Provider<PrintStream>,
     private val jvmTaskExecutor: KotlinJvmTaskExecutor
 ) : CommandLineProgram {
     companion object {
@@ -45,24 +48,29 @@ class KotlinBuilder @Inject internal constructor(
     }
 
     override fun apply(args: List<String>): Int {
-        check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
-        val (flagFileName, primaryOutputPath, idx) =
-                checkNotNull(FLAGFILE_RE.matchEntire(args[0])) { "invalid flagfile ${args[0]}" }.destructured
-        val argMap = Files.readAllLines(Paths.get(flagFileName), StandardCharsets.UTF_8).let(ArgMaps::from)
-        val commonInfo = buildTaskInfo(argMap).also {
-            it.primaryOutputPath = primaryOutputPath
-        }.build()
-
+        val (argMap, context) = buildContext(args)
         try {
             @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
-            when (commonInfo.platform) {
-                Platform.JVM -> executeJvmTask(commonInfo, argMap)
-                Platform.UNRECOGNIZED, Platform.JS -> throw IllegalStateException("unrecognized platform: $commonInfo")
+            when (context.info.platform) {
+                Platform.JVM -> executeJvmTask(context, argMap)
+                Platform.UNRECOGNIZED, Platform.JS -> throw IllegalStateException("unrecognized platform: ${context.info}")
             }
         } catch (ex: CompilationStatusException) {
             return ex.status
         }
         return 0
+    }
+
+    private fun buildContext(args: List<String>): Pair<ArgMap, CompilationTaskContext> {
+        check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
+        val (flagFileName, primaryOutputPath, idx) =
+                checkNotNull(FLAGFILE_RE.matchEntire(args[0])) { "invalid flagfile ${args[0]}" }.destructured
+        val argMap = Files.readAllLines(Paths.get(flagFileName), StandardCharsets.UTF_8).let(ArgMaps::from)
+        val info = buildTaskInfo(argMap).also {
+            it.primaryOutputPath = primaryOutputPath
+        }.build()
+        val context = CompilationTaskContext(info, outputProvider.get())
+        return Pair(argMap, context)
     }
 
 
@@ -142,8 +150,11 @@ class KotlinBuilder @Inject internal constructor(
             this
         }
 
-    private fun executeJvmTask(info: CompilationTaskInfo, argMap: ArgMap) =
-        jvmTaskExecutor.execute(buildJvmTask(info,argMap))
+    private fun executeJvmTask(context: CompilationTaskContext, argMap: ArgMap) {
+        val task = buildJvmTask(context.info, argMap)
+        context.debugPrintProto("jvm task message", task)
+        jvmTaskExecutor.execute(context, task)
+    }
 
     private fun buildJvmTask(info: CompilationTaskInfo, argMap: ArgMap): JvmCompilationTask =
         JvmCompilationTask.newBuilder().let { root ->

@@ -17,7 +17,7 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
-import io.bazel.kotlin.builder.toolchain.CompilationTaskExecutor
+import io.bazel.kotlin.builder.utils.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.ensureDirectories
 import io.bazel.kotlin.builder.utils.expandWithSources
@@ -33,18 +33,16 @@ import javax.inject.Singleton
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
     private val kotlinCompiler: KotlinJvmCompiler,
-    private val outputSink: KotlinCompilerOutputSink,
     private val javaCompiler: JavaCompiler,
     private val jDepsGenerator: JDepsGenerator,
     private val outputJarCreator: OutputJarCreator
-) : CompilationTaskExecutor<JvmCompilationTask>() {
-    override fun execute(task: JvmCompilationTask): Result {
+) {
+    fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
         val preprocessedTask = preprocessingSteps(task)
         // fix error handling
         try {
-            val context = Context()
             val commandWithApSources = context.execute("kapt") {
-                runAnnotationProcessors(preprocessedTask)
+                runAnnotationProcessors(context, preprocessedTask)
             }
             compileClasses(context, commandWithApSources)
             context.execute("create jar") {
@@ -54,8 +52,6 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             context.execute("generate jdeps") {
                 jDepsGenerator.generateJDeps(commandWithApSources)
             }
-            return Result(context.timings, commandWithApSources)
-
         } catch (ex: Throwable) {
             throw RuntimeException(ex)
         }
@@ -114,10 +110,13 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
     }
 
-    private fun runAnnotationProcessors(command: JvmCompilationTask): JvmCompilationTask =
+    private fun runAnnotationProcessors(
+        context: CompilationTaskContext,
+        command: JvmCompilationTask
+    ): JvmCompilationTask =
         try {
             if (command.info.plugins.annotationProcessorsList.isNotEmpty()) {
-                kotlinCompiler.runAnnotationProcessor(command)
+                kotlinCompiler.runAnnotationProcessor(context, command)
                 File(command.directories.generatedSources).walkTopDown()
                     .filter { it.isFile }
                     .map { it.path }
@@ -127,11 +126,14 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                 command
             }
         } catch (ex: CompilationStatusException) {
-            ex.lines.also(outputSink::deliver)
+            ex.lines.also(context::printCompilerOutput)
             throw ex
         }
 
-    private fun compileClasses(context: Context, command: JvmCompilationTask) {
+    private fun compileClasses(
+        context: CompilationTaskContext,
+        command: JvmCompilationTask
+    ) {
         var kotlinError: CompilationStatusException? = null
         var result: List<String>? = null
         context.execute("kotlinc") {
@@ -147,21 +149,8 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                 javaCompiler.compile(command)
             }
         } finally {
-            checkNotNull(result).also(outputSink::deliver)
+            checkNotNull(result).also(context::printCompilerOutput)
             kotlinError?.also { throw it }
-        }
-    }
-
-    internal class Context {
-        val timings = mutableListOf<String>()
-        inline fun <T> execute(name: String, task: () -> T): T {
-            val start = System.currentTimeMillis()
-            return try {
-                task()
-            } finally {
-                val stop = System.currentTimeMillis()
-                timings += "$name: ${stop - start} ms"
-            }
         }
     }
 }

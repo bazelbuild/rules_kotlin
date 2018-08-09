@@ -40,10 +40,10 @@ java_library(
         ":builder_kt",
         "//kotlin/builder/proto:kotlin_model",
         "//third_party:dagger",
-        "@com_github_jetbrains_kotlin//:annotations",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
     ],
     runtime_deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
         "@io_bazel_rules_kotlin_com_google_code_gson_gson//jar",
