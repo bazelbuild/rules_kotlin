@@ -32,8 +32,10 @@ Key changes:
 * Mixed-Mode compilation (compile Java and Kotlin in one pass).
 
 # Quick Guide
-Consult the generated [documentation](https://bazelbuild.github.io/rules_kotlin). This section just contains a quick 
-overview. 
+This section just contains a quick overview. Consult the generated 
+[documentation](https://bazelbuild.github.io/rules_kotlin). Note: Skydoc documentation is no longer being generated. 
+Comprehensive documentation will have to wait till the new documentation generation tool is ready. A contribution to 
+port the documentation to the RST format like `rules_go` has would be very welcome !
 
 
 ## WORKSPACE

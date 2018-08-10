@@ -17,7 +17,6 @@ directories:
   .
 
 targets:
-  -//docs/...
   //:all_local_tests
   //examples/...
   # These targets are built for the ide only. Primary purpose is to ensure the builder can build the targets, but it's

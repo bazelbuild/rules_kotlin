@@ -21,41 +21,21 @@ github_archive(
     repo = "google/protobuf",
 )
 
-github_archive(
+git_repository(
+    name = "bazel_skylib",
+    remote = "https://github.com/bazelbuild/bazel-skylib.git",
+    tag = "0.5.0",
+)
+
+git_repository(
     name = "build_bazel_rules_nodejs",
-    commit = "df3d2f577ec57ef5a622c809288a29545470c15d",
-    repo = "bazelbuild/rules_nodejs",
+    remote = "https://github.com/bazelbuild/rules_nodejs.git",
+    tag = "0.11.4",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 
 node_repositories(package_json = [])
-
-github_archive(
-    name = "io_bazel_rules_sass",
-    commit = "38989d69ef3ba5847640f007fee5cc489be6ede9",
-    repo = "bazelbuild/rules_sass",
-)
-
-load("@io_bazel_rules_sass//sass:sass_repositories.bzl", "sass_repositories")
-
-sass_repositories()
-
-github_archive(
-    name = "bazel_skylib",
-    commit = "3fea8cb680f4a53a129f7ebace1a5a4d1e035914",
-    repo = "bazelbuild/bazel-skylib",
-)
-
-github_archive(
-    name = "io_bazel_skydoc",
-    commit = "f531844d137c7accc44d841c08a2a2a366688571",
-    repo = "bazelbuild/skydoc",
-)
-
-load("@io_bazel_skydoc//skylark:skylark.bzl", "skydoc_repositories")
-
-skydoc_repositories()
 
 http_jar(
     name = "bazel_deps",
