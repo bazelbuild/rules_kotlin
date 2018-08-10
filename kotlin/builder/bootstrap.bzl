@@ -13,7 +13,7 @@
 # limitations under the License.
 load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
 
-_BOOTSTRAP_LIB_ARGS=["-jvm-target","1.8"]
+_BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
 
 def _resolve_dep_label(d):
     if d.startswith("//kotlin/builder/src/io/bazel/kotlin") and not d.endswith("_for_ide"):
@@ -22,12 +22,12 @@ def _resolve_dep_label(d):
             # untested
             return d + "_for_ide"
         else:
-            _ , _, target = d.rpartition("/")
+            _, _, target = d.rpartition("/")
             return d + ":" + target + "_for_ide"
     else:
         return d
 
-def kt_bootstrap_library(name, srcs, deps=[], neverlink_deps=[], runtime_deps=[]):
+def kt_bootstrap_library(name, srcs, deps = [], neverlink_deps = [], runtime_deps = []):
     """
     Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
 
@@ -44,9 +44,9 @@ def kt_bootstrap_library(name, srcs, deps=[], neverlink_deps=[], runtime_deps=[]
         name = dep_label,
         srcs = deps + neverlink_deps,
         tags = ["no-ide"],
-        visibility=["//visibility:private"]
+        visibility = ["//visibility:private"],
     )
-    command="""
+    command = """
 KOTLIN_HOME=external/com_github_jetbrains_kotlin
 
 function join_by { local IFS="$$1"; shift; echo "$$*"; }
@@ -69,30 +69,31 @@ $(location @bazel_tools//tools/jdk:singlejar) \
 rm $${NAME}_temp.jar
 """ % (name, dep_label, " ".join(_BOOTSTRAP_LIB_ARGS))
     native.genrule(
-        name =  jar_label,
+        name = jar_label,
         tools = [
             "@com_github_jetbrains_kotlin//:home",
             "@local_jdk//:jdk",
             "@bazel_tools//tools/jdk:singlejar",
-            dep_label
+            dep_label,
         ],
         srcs = srcs,
         outs = [name + ".jar"],
         tags = ["no-ide"],
         visibility = ["//visibility:private"],
-        cmd = command
+        cmd = command,
     )
     native.java_import(
         name = name,
         jars = [jar_label],
         tags = ["no-ide"],
-        runtime_deps=deps + runtime_deps,
-        visibility=["//visibility:public"]
+        runtime_deps = deps + runtime_deps,
+        visibility = ["//visibility:public"],
     )
+
     # hsyed todo this part of the graph should not be wired up outside of development.
     _for_ide(
         name = name + "_for_ide",
         srcs = srcs,
         deps = [_resolve_dep_label(d) for d in deps] + neverlink_deps,
-        visibility = ["//kotlin/builder:__subpackages__"]
+        visibility = ["//kotlin/builder:__subpackages__"],
     )

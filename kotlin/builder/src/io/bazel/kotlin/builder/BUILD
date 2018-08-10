@@ -36,6 +36,11 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//kotlin/builder:__subpackages__"],
     exports = [":builder_kt"],
+    runtime_deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+        "@io_bazel_rules_kotlin_com_google_code_gson_gson//jar",
+    ],
     deps = [
         ":builder_kt",
         "//kotlin/builder/proto:kotlin_model",
@@ -43,9 +48,4 @@ java_library(
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
     ],
-    runtime_deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
-        "@io_bazel_rules_kotlin_com_google_code_gson_gson//jar",
-    ]
 )

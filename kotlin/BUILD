@@ -17,7 +17,7 @@ load("//kotlin/internal:toolchains.bzl", "kt_toolchain_ide_info")
 
 toolchain_type(
     name = "kt_toolchain_type",
-    visibility = ["//visibility:public"]
+    visibility = ["//visibility:public"],
 )
 
-kt_toolchain_ide_info(name="kt_toolchain_ide_info")
+kt_toolchain_ide_info(name = "kt_toolchain_ide_info")

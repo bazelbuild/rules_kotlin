@@ -1,4 +1,4 @@
-load("//kotlin/internal:defs.bzl", _TOOLCHAIN_TYPE="TOOLCHAIN_TYPE")
+load("//kotlin/internal:defs.bzl", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
 
 def _restore_label(l):
     lbl = l.workspace_root
@@ -7,17 +7,17 @@ def _restore_label(l):
     return lbl + "//" + l.package + ":" + l.name
 
 def _derive_module_name(ctx):
-    module_name=getattr(ctx.attr, "module_name", "")
+    module_name = getattr(ctx.attr, "module_name", "")
     if module_name == "":
-        module_name = (ctx.label.package.lstrip("/").replace("/","_") + "-" + ctx.label.name.replace("/", "_"))
+        module_name = (ctx.label.package.lstrip("/").replace("/", "_") + "-" + ctx.label.name.replace("/", "_"))
     return module_name
 
 def _init_builder_args(ctx, rule_kind, module_name):
-    toolchain=ctx.toolchains[_TOOLCHAIN_TYPE]
+    toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
 
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
-    args.use_param_file("--flagfile=%s", use_always=True)
+    args.use_param_file("--flagfile=%s", use_always = True)
 
     args.add("--target_label", ctx.label)
     args.add("--rule_kind", rule_kind)

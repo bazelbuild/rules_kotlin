@@ -11,18 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility=["//tests/integrationtests:__subpackages__"])
+package(default_visibility = ["//tests/integrationtests:__subpackages__"])
 
 test_suite(
     name = "integrationtests",
-    tests=[
-        "//tests/integrationtests/jvm"
-    ]
+    tests = [
+        "//tests/integrationtests/jvm",
+    ],
 )
 
 test_suite(
     name = "integrationtests_local",
     tests = [
-        "//tests/integrationtests/jvm:jvm_local"
-    ]
+        "//tests/integrationtests/jvm:jvm_local",
+    ],
 )
