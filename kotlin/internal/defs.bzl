@@ -18,7 +18,7 @@ TOOLCHAIN_TYPE = "@io_bazel_rules_kotlin//kotlin:kt_toolchain_type"
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 
-KtInfo = provider(
+KtJvmInfo = provider(
     fields = {
         "module_name": "the module name",
         "srcs": "the source files. [intelij-aspect]",

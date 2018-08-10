@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal:defs.bzl", "KtInfo", "TOOLCHAIN_TYPE")
+load("//kotlin/internal:defs.bzl", "KtJvmInfo", "TOOLCHAIN_TYPE")
 load("//kotlin/internal/jvm:plugins.bzl", "plugins")
 load("//kotlin/internal/common:common.bzl", "common")
 
@@ -146,13 +146,13 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, srcs):
         module_name=common.derive_module_name(ctx)
         friend_paths=depset()
     elif len(friends) == 1:
-        if friends[0][KtInfo] == None:
+        if friends[0][KtJvmInfo] == None:
             fail("only kotlin dependencies can be friends")
         elif ctx.attr.module_name:
             fail("if friends has been set then module_name cannot be provided")
         else:
             friend_paths=depset([j.path for j in friends[0][JavaInfo].compile_jars])
-            module_name = friends[0][KtInfo].module_name
+            module_name = friends[0][KtJvmInfo].module_name
     else:
         fail("only one friend is possible")
 
@@ -223,7 +223,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, srcs):
             exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
             neverlink = getattr(ctx.attr, "neverlink", False)
         ),
-        kt=KtInfo(
+        kt=KtJvmInfo(
             srcs=ctx.files.srcs,
             module_name = module_name,
             # intelij aspect needs this.
