@@ -20,27 +20,27 @@ KtJvmPluginInfo = provider(
 
 _EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = [])]
 
-def _mk_processor_entry(l,p):
-    merged_info=java_common.merge([j[JavaInfo] for j in p.deps])
+def _mk_processor_entry(l, p):
+    merged_info = java_common.merge([j[JavaInfo] for j in p.deps])
     classpath_jars = depset([cp for cp in merged_info.full_compile_jars])
     classpath_jars = classpath_jars + merged_info.transitive_runtime_jars
     return struct(
-          label=l,
-          processor_class=p.processor_class,
-          classpath=[cpj.path for cpj in classpath_jars.to_list()],
-          generates_api=p.generates_api,
+        label = l,
+        processor_class = p.processor_class,
+        classpath = [cpj.path for cpj in classpath_jars.to_list()],
+        generates_api = p.generates_api,
     )
 
 def _merge_plugin_infos(attrs):
-    tally={}
-    annotation_processors=[]
+    tally = {}
+    annotation_processors = []
     for info in [a[KtJvmPluginInfo] for a in attrs]:
         for p in info.annotation_processors:
             if p.label not in tally:
                 tally[p.label] = True
                 annotation_processors.append(p)
     return KtJvmPluginInfo(
-        annotation_processors=annotation_processors
+        annotation_processors = annotation_processors,
     )
 
 def _restore_label(l):
@@ -52,13 +52,12 @@ def _restore_label(l):
 def _kt_jvm_plugin_aspect_impl(target, ctx):
     if ctx.rule.kind == "java_plugin":
         return [KtJvmPluginInfo(
-            annotation_processors = [_mk_processor_entry(_restore_label(ctx.label),ctx.rule.attr)]
+            annotation_processors = [_mk_processor_entry(_restore_label(ctx.label), ctx.rule.attr)],
         )]
+    elif ctx.rule.kind == "java_library":
+        return [_merge_plugin_infos(ctx.rule.attr.exported_plugins)]
     else:
-      if ctx.rule.kind == "java_library":
-          return [_merge_plugin_infos(ctx.rule.attr.exported_plugins)]
-      else:
-          return _EMPTY_PLUGIN_INFO
+        return _EMPTY_PLUGIN_INFO
 
 kt_jvm_plugin_aspect = aspect(
     doc = """This aspect processes collects Java Plugins info so that annotation processors may be configured for a

@@ -18,9 +18,9 @@ java_test(
     test_class = "io.bazel.kotlin.builder.BuilderUnitTestSuite",
     deps = [
         "//kotlin/builder:builder_lib_for_tests",
-        "//third_party/jvm/com/google/truth:truth",
+        "//third_party/jvm/com/google/truth",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@io_bazel_rules_kotlin//kotlin/builder/proto:deps",
         "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
-    ]
+    ],
 )

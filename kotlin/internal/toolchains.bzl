@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin/internal/common:common.bzl", _common="common")
-load("//kotlin/internal:defs.bzl", _TOOLCHAIN_TYPE="TOOLCHAIN_TYPE", _KT_COMPILER_REPO="KT_COMPILER_REPO")
+load("//kotlin/internal/common:common.bzl", _common = "common")
+load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
 
 """Kotlin Toolchains
 
@@ -37,8 +37,6 @@ and then register it in the `WORKSPACE`:
 register_toolchains("//:custom_toolchain")
 ```
 """
-
-
 
 # The toolchain rules are not made private, at least the jvm ones so that they may be introspected in Intelij.
 _common_attrs = {
@@ -67,11 +65,11 @@ _common_attrs = {
         ],
     ),
     "debug": attr.string_list(
-        allow_empty=True,
-        doc="""Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to print
+        allow_empty = True,
+        doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to print
 timing information. `trace` will cause the builder to print tracing messages. These tags can be enabled via the default
 toolchain via the defines `kt_timings=1` and `kt_trace=1`. The tags may also be picked up via the `tags` attribute
-defined directly on the rules."""
+defined directly on the rules.""",
     ),
     "coroutines": attr.string(
         default = "enable",
@@ -114,12 +112,9 @@ def _kotlin_toolchain_impl(ctx):
         api_version = ctx.attr.api_version,
         coroutines = ctx.attr.coroutines,
         debug = ctx.attr.debug,
-
         jvm_target = ctx.attr.jvm_target,
-
         kotlinbuilder = ctx.attr.kotlinbuilder,
         kotlin_home = ctx.files.kotlin_home,
-
         jvm_stdlibs = java_common.create_provider(
             compile_time_jars = ctx.files.jvm_stdlibs,
             runtime_jars = ctx.files.jvm_runtime,
@@ -127,7 +122,7 @@ def _kotlin_toolchain_impl(ctx):
         ),
     )
     return [
-        platform_common.ToolchainInfo(**toolchain)
+        platform_common.ToolchainInfo(**toolchain),
     ]
 
 kt_toolchain = rule(
@@ -149,13 +144,12 @@ def kt_register_toolchains():
     native.register_toolchains("@io_bazel_rules_kotlin//kotlin/internal:default_toolchain")
 
 def define_kt_toolchain(
-    name,
-    language_version=None,
-    api_version=None,
-    jvm_target=None,
-    coroutines=None,
-    debug=[]
-):
+        name,
+        language_version = None,
+        api_version = None,
+        jvm_target = None,
+        coroutines = None,
+        debug = []):
     """Define a Kotlin JVM Toolchain, the name is used in the `toolchain` rule so can be used to register the toolchain
     in the WORKSPACE file.
     """
@@ -167,34 +161,33 @@ def define_kt_toolchain(
         jvm_target = jvm_target,
         coroutines = coroutines,
         debug = debug,
-        visibility = ["//visibility:public"]
+        visibility = ["//visibility:public"],
     )
     native.toolchain(
         name = name,
         toolchain_type = _TOOLCHAIN_TYPE,
         toolchain = impl_name,
-        visibility = ["//visibility:public"]
+        visibility = ["//visibility:public"],
     )
 
 def _kt_toolchain_ide_info_impl(ctx):
-    tc=ctx.toolchains[_TOOLCHAIN_TYPE]
+    tc = ctx.toolchains[_TOOLCHAIN_TYPE]
     info = struct(
         label = tc.label,
         common = struct(
             language_version = tc.language_version,
             api_version = tc.api_version,
-            coroutines = tc.coroutines
+            coroutines = tc.coroutines,
         ),
         jvm = struct(
             jvm_target = tc.jvm_target,
-        )
+        ),
     )
     ctx.actions.write(ctx.outputs.ide_info, info.to_json())
-    return [DefaultInfo(files=depset([ctx.outputs.ide_info]))]
+    return [DefaultInfo(files = depset([ctx.outputs.ide_info]))]
 
 kt_toolchain_ide_info = rule(
     outputs = {"ide_info": "kt_toolchain_ide_info.json"},
     toolchains = [_TOOLCHAIN_TYPE],
     implementation = _kt_toolchain_ide_info_impl,
 )
-

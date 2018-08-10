@@ -13,10 +13,11 @@
 # limitations under the License.
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
-load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_file="http_file", _http_archive="http_archive")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive", _http_file = "http_file")
 load("//kotlin/internal:defs.bzl", "KT_COMPILER_REPO")
 load("//kotlin/internal/repositories:compiler_releases.bzl", "KOTLIN_COMPILER_RELEASES", "KOTLIN_CURRENT_RELEASE")
-load("//third_party/jvm:workspace.bzl", _maven_dependencies="maven_dependencies")
+load("//third_party/jvm:workspace.bzl", _maven_dependencies = "maven_dependencies")
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
@@ -44,7 +45,7 @@ def _compiler_repositories(kotlin_release_version):
     This function should not be called directly instead `kotlin_repositories` from `//kotlin:kotlin.bzl` should be
     called to ensure common deps are loaded.
     """
-    release=KOTLIN_COMPILER_RELEASES[kotlin_release_version]
+    release = KOTLIN_COMPILER_RELEASES[kotlin_release_version]
     if not release:
         fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, KOTLIN_CURRENT_RELEASE))
 
@@ -52,22 +53,21 @@ def _compiler_repositories(kotlin_release_version):
         name = KT_COMPILER_REPO,
         url = release["url"],
         sha256 = release["sha256"],
-        build_file= "@io_bazel_rules_kotlin//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
+        build_file = "@io_bazel_rules_kotlin//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
         strip_prefix = "kotlinc",
     )
 
     _http_file(
         name = "kt_java_stub_template",
         urls = [("https://raw.githubusercontent.com/bazelbuild/bazel/" +
-               _BAZEL_JAVA_LAUNCHER_VERSION +
-           "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
-           "java_stub_template.txt")],
+                 _BAZEL_JAVA_LAUNCHER_VERSION +
+                 "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
+                 "java_stub_template.txt")],
         sha256 = "86660ee7d5b498ccf611a1e000564f45268dbf301e0b2b08c984dcecc6513f6e",
     )
 
 def kotlin_repositories(
-    kotlin_release_version=KOTLIN_CURRENT_RELEASE
-):
+        kotlin_release_version = KOTLIN_CURRENT_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:

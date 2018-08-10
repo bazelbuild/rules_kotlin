@@ -36,24 +36,24 @@ java_binary(
 
 filegroup(
     name = "data_for_tests",
+    testonly = 1,
     srcs = [
         ":compiler_lib",
         "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
         "@com_github_jetbrains_kotlin//:kotlin-compiler",
         "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
     ],
-    testonly = 1,
     visibility = ["//visibility:private"],
 )
 
 java_library(
     name = "builder_lib_for_tests",
-    runtime_deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-reflect",
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
-    ],
     testonly = 1,
     data = [":data_for_tests"],
+    visibility = [
+        "//kotlin/builder/integrationtests:__subpackages__",
+        "//kotlin/builder/unittests:__subpackages__",
+    ],
     exports = [
         "//kotlin/builder/src/io/bazel/kotlin/builder",
         "//third_party/jvm/com/google/truth",
@@ -63,8 +63,8 @@ java_library(
         "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
         "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
     ],
-    visibility = [
-        "//kotlin/builder/integrationtests:__subpackages__",
-        "//kotlin/builder/unittests:__subpackages__"
-    ]
+    runtime_deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-reflect",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+    ],
 )

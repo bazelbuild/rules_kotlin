@@ -13,10 +13,10 @@
 # limitations under the License.
 load("//kotlin/internal/repositories:repositories.bzl", "kotlin_repositories")
 load("//kotlin/internal:toolchains.bzl", "kt_register_toolchains")
-
-load("//kotlin/internal/jvm:jvm.bzl",
+load(
+    "//kotlin/internal/jvm:jvm.bzl",
     "kt_jvm_binary",
+    "kt_jvm_import",
     "kt_jvm_library",
     "kt_jvm_test",
-    "kt_jvm_import",
 )

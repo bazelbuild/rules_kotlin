@@ -58,7 +58,7 @@ kt_jvm_library(
     name = "coffee_lib",
     srcs = glob(["src/**"]) + [
         # Adding a file ending with .srcjar is how code generation patterns are implemented.
-        ":tea_lib_src"
+        ":tea_lib_src",
     ],
     deps = [
         ":dagger_lib",

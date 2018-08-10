@@ -18,22 +18,22 @@ KOTLIN_COMPILER_RELEASES = {
     "1.2.60": {
         "version": "1.2.60",
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.60/kotlin-compiler-1.2.60.zip",
-        "sha256": "ff79f695c9be0a500d4b56a69d0b8657b3d106d78a35101e792248af904a623d"
+        "sha256": "ff79f695c9be0a500d4b56a69d0b8657b3d106d78a35101e792248af904a623d",
     },
     "1.2.51": {
         "version": "1.2.51",
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.51/kotlin-compiler-1.2.51.zip",
-        "sha256": "8a74711c805d3d265b93c13d8c40af5b4dad324591450d2eef0eafc1c9a6f92c"
+        "sha256": "8a74711c805d3d265b93c13d8c40af5b4dad324591450d2eef0eafc1c9a6f92c",
     },
     "1.2.50": {
         "version": "1.2.50",
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.50/kotlin-compiler-1.2.50.zip",
-        "sha256": "bc062c303b376711097a27bda4c28047eda0744e9acc64b9db640c19c7d171a9"
+        "sha256": "bc062c303b376711097a27bda4c28047eda0744e9acc64b9db640c19c7d171a9",
     },
     "1.2.41": {
         "version": "1.2.41",
         "url": "https://github.com/JetBrains/kotlin/releases/download/v1.2.41/kotlin-compiler-1.2.41.zip",
-        "sha256": "af872772f268da5ca79d263b2943f1d694d475dddb80b6d408e9548805ed265c"
+        "sha256": "af872772f268da5ca79d263b2943f1d694d475dddb80b6d408e9548805ed265c",
     },
     "1.2.40": {
         "version": "1.2.40",
