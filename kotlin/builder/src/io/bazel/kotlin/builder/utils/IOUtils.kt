@@ -65,6 +65,12 @@ private fun BufferedReader.drainTo(pw: PrintStream) {
     lines().forEach(pw::println); close()
 }
 
+fun Path.resolveTwinVerified(extension: String): Path =
+    parent.resolve(
+        "${toFile().nameWithoutExtension}${if (extension.startsWith(".")) "" else "."}$extension"
+    ).verified().toPath()
+
+
 fun Path.resolveVerified(vararg parts: String): File =
     resolve(Paths.get(parts[0], *Arrays.copyOfRange(parts, 1, parts.size))).verified()
 
@@ -72,6 +78,8 @@ fun Path.resolveVerifiedToAbsoluteString(vararg parts: String): String =
     resolveVerified(*parts).absolutePath.toString()
 
 fun Path.verified(): File = this.toFile().also { check(it.exists()) { "file did not exist: $this" } }
+
+fun Path.verifiedPath(): Path = this.toFile().also { check(it.exists()) { "file did not exist: $this" } }.toPath()
 
 fun ensureDirectories(vararg directories: String) {
     for (directory in directories) {

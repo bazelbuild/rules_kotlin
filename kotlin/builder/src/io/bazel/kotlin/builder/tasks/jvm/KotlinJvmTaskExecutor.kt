@@ -85,15 +85,16 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
     }
 
-    private fun JvmCompilationTask.runAnnotationProcessor(context: CompilationTaskContext): List<String> {
-        check(info.plugins.annotationProcessorsList.isNotEmpty()) {
-            "method called without annotation processors"
-        }
+    private fun JvmCompilationTask.runAnnotationProcessor(
+        context: CompilationTaskContext,
+        printOnSuccess: Boolean = true
+    ): List<String> {
+        check(info.plugins.annotationProcessorsList.isNotEmpty()) { "method called without annotation processors" }
         return getCommonArgs().let { args ->
             args.addAll(pluginArgsEncoder.encode(context, this))
             args.addAll(inputs.kotlinSourcesList)
             args.addAll(inputs.javaSourcesList)
-            context.executeCompilerTask(args, false, compiler::compile)
+            context.executeCompilerTask(args, compiler::compile, printOnSuccess = printOnSuccess)
         }
     }
 
@@ -124,17 +125,17 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     private fun JvmCompilationTask.runAnnotationProcessors(
         context: CompilationTaskContext
     ): JvmCompilationTask =
-        try {
-            if (info.plugins.annotationProcessorsList.isEmpty()) {
-                this
-            } else {
-                val kaptOutput = runAnnotationProcessor(context)
-                context.whenTracing { printLines("kapt output", kaptOutput) }
+        if (info.plugins.annotationProcessorsList.isEmpty()) {
+            this
+        } else {
+            runAnnotationProcessor(context, printOnSuccess = !context.isTracing).let { outputLines ->
+                // if tracing is enabled the output should be formated in a special way, if we aren't tracing then any
+                // compiler output would make it's way to the console as is.
+                if (context.isTracing) {
+                    context.printLines("kapt output", outputLines)
+                }
                 expandWithGeneratedSources()
             }
-        } catch (ex: CompilationStatusException) {
-            ex.lines.also(context::printCompilerOutput)
-            throw ex
         }
 
     /**
@@ -160,16 +161,14 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         var result: List<String>? = null
         context.execute("kotlinc") {
             result = try {
-                compileKotlin(context)
+                compileKotlin(context, printOnFail = false)
             } catch (ex: CompilationStatusException) {
                 kotlinError = ex
                 ex.lines
             }
         }
         try {
-            context.execute("javac") {
-                javaCompiler.compile(this)
-            }
+            context.execute("javac") { javaCompiler.compile(this) }
         } finally {
             checkNotNull(result).also(context::printCompilerOutput)
             kotlinError?.also { throw it }
@@ -179,11 +178,11 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     /**
      * Compiles Kotlin sources to classes. Does not compile Java sources.
      */
-    fun JvmCompilationTask.compileKotlin(context: CompilationTaskContext): List<String> =
+    fun JvmCompilationTask.compileKotlin(context: CompilationTaskContext, printOnFail: Boolean = true) =
         getCommonArgs().let { args ->
             args.addAll(inputs.javaSourcesList)
             args.addAll(inputs.kotlinSourcesList)
-            context.executeCompilerTask(args, false, compiler::compile)
+            context.executeCompilerTask(args, compiler::compile, printOnFail = printOnFail)
         }
 
     /**
