@@ -15,21 +15,13 @@
 # Note: Written on a mac please make it compatible with linux if needed.
 #!/usr/bin/env bash
 
-# The script precompiles the ptoto deps. If this isn't used the client workspaces would have a dependency on protoc.
-# If (when) Bazel distributes a host protoc this file can be removed.
+buildifier -mode=fix -v $(find kotlin -type f \
+    -iname "*.bzl" -or \
+    -iname "BUILD" -or \
+    -iname "BUILD.com_github_jetbrains_kotlin"
+)
 
-WS_ROOT=$(bazel info workspace)
-PROTO_PATH=kotlin/builder/proto
-JAR_DIR=${WS_ROOT}/${PROTO_PATH}/jars
-
-function build_lib() {
-    bazel build //${PROTO_PATH}:$1_java_proto
-    local FILE=lib$1_proto-speed.jar
-    cp ${WS_ROOT}/bazel-bin/${PROTO_PATH}/${FILE} ${JAR_DIR}/${FILE}
-}
-
-build_lib "deps"
-build_lib "worker_protocol"
-build_lib "kotlin_model"
-
-chmod -R 0744 ${PROTO_PATH}/jars
+buildifier -mode=fix -v \
+    "third_party/BUILD" \
+    "WORKSPACE" \
+    "BUILD"

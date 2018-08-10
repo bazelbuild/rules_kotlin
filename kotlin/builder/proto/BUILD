@@ -11,31 +11,33 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility=["//visibility:public"])
+package(default_visibility = ["//visibility:public"])
 
 proto_library(
     name = "kotlin_model_proto",
     srcs = [":kotlin_model.proto"],
-    visibility=["//visibility:public"]
+    visibility = ["//visibility:public"],
 )
 
 java_proto_library(
     name = "kotlin_model_java_proto",
-    deps = [":kotlin_model_proto"]
+    deps = [":kotlin_model_proto"],
 )
 
-_PROTO_LIBS=["deps", "worker_protocol"]
+_PROTO_LIBS = [
+    "deps",
+    "worker_protocol",
+]
 
 [proto_library(
-    name="%s_proto" % lib,
-    srcs=["%s.proto" % lib]
-    ) for lib in _PROTO_LIBS]
+    name = "%s_proto" % lib,
+    srcs = ["%s.proto" % lib],
+) for lib in _PROTO_LIBS]
 
 [java_proto_library(
-    name="%s_java_proto" % lib,
-    deps=["%s_proto" % lib],
-    ) for lib in _PROTO_LIBS]
-
+    name = "%s_java_proto" % lib,
+    deps = ["%s_proto" % lib],
+) for lib in _PROTO_LIBS]
 
 java_import(
     name = "deps",

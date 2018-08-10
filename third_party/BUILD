@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
+
 load("//kotlin:kotlin.bzl", "kt_jvm_import")
 
 java_binary(
@@ -31,10 +32,10 @@ java_plugin(
     name = "dagger_component_plugin",
     generates_api = 1,
     processor_class = "dagger.internal.codegen.ComponentProcessor",
+    visibility = ["//visibility:private"],
     deps = [
         "//third_party/jvm/com/google/dagger:dagger_compiler",
     ],
-    visibility = ["//visibility:private"]
 )
 
 java_library(

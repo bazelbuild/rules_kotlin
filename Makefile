@@ -9,9 +9,8 @@ test.no_worker:
 	bazel shutdown
 	bazel test --strategy=KotlinCompile=local //:all_tests
 
-reformat:
-	buildifier -mode=fix -v kotlin/*.bzl
-	buildifier -mode=fix -v kotlin/internal/*.bzl
+sky.reflow:
+	scripts/reflow_skylark
 
 deps.regen:
 	scripts/regen_deps

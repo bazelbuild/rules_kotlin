@@ -11,47 +11,48 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility=["//visibility:private"])
+package(default_visibility = ["//visibility:private"])
+
 # The tests are written in Kotlin, so the tests inately test a lot of the rule functionality.
 load("//tests/rules:defs.bzl", "kt_it_assertion_test")
 
 kt_it_assertion_test(
     name = "basic_tests",
-    cases="//tests/integrationtests/jvm/basic:cases",
-    test_class="io.bazel.kotlin.testing.jvm.JvmBasicFunctionalTests",
+    cases = "//tests/integrationtests/jvm/basic:cases",
+    test_class = "io.bazel.kotlin.testing.jvm.JvmBasicFunctionalTests",
 )
 
 kt_it_assertion_test(
-    name ="basic_local_tests",
-    cases="//tests/integrationtests/jvm/basic:cases",
+    name = "basic_local_tests",
+    cases = "//tests/integrationtests/jvm/basic:cases",
     test_class = "io.bazel.kotlin.testing.jvm.JvmBasicLocalTests",
 )
 
 kt_it_assertion_test(
     name = "kapt_tests",
     cases = "//tests/integrationtests/jvm/kapt:cases",
-    test_class="io.bazel.kotlin.testing.jvm.KaptTests",
+    test_class = "io.bazel.kotlin.testing.jvm.KaptTests",
 )
 
 kt_it_assertion_test(
     name = "example_tests",
-    test_class="io.bazel.kotlin.testing.jvm.JvmExampleTests",
-    data = [  "//examples/dagger:coffee_app"]
+    data = ["//examples/dagger:coffee_app"],
+    test_class = "io.bazel.kotlin.testing.jvm.JvmExampleTests",
 )
 
 test_suite(
     name = "jvm",
     tests = [
         ":basic_tests",
-        ":kapt_tests",
         ":example_tests",
-        "//tests/integrationtests/jvm/basic:friends_tests"
-    ]
+        ":kapt_tests",
+        "//tests/integrationtests/jvm/basic:friends_tests",
+    ],
 )
 
 test_suite(
     name = "jvm_local",
     tests = [
-        ":basic_local_tests"
-    ]
+        ":basic_local_tests",
+    ],
 )

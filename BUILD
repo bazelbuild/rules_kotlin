@@ -16,10 +16,10 @@
 test_suite(
     name = "all_tests",
     tests = [
-        "//kotlin/builder/unittests",
         "//kotlin/builder/integrationtests",
-        "//tests/integrationtests"
-    ]
+        "//kotlin/builder/unittests",
+        "//tests/integrationtests",
+    ],
 )
 
 #  Local tests. Tests that shouldn't be run on the CI server.
@@ -27,6 +27,6 @@ test_suite(
     name = "all_local_tests",
     tests = [
         ":all_tests",
-        "//tests/integrationtests:integrationtests_local"
-    ]
+        "//tests/integrationtests:integrationtests_local",
+    ],
 )

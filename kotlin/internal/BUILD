@@ -15,23 +15,23 @@ load("//kotlin/internal:toolchains.bzl", "define_kt_toolchain")
 
 config_setting(
     name = "builder_debug_timings",
-    values = { "define": "kt_timings=1" }
+    values = {"define": "kt_timings=1"},
 )
 
 config_setting(
     name = "builder_debug_trace",
-    values = { "define": "kt_trace=1" }
+    values = {"define": "kt_trace=1"},
 )
 
 define_kt_toolchain(
     name = "default_toolchain",
-    debug=
+    debug =
         select({
             ":builder_debug_trace": ["trace"],
-            "//conditions:default": []
+            "//conditions:default": [],
         }) +
         select({
             ":builder_debug_timings": ["timings"],
-            "//conditions:default": []
-        })
+            "//conditions:default": [],
+        }),
 )

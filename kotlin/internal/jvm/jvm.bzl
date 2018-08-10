@@ -94,20 +94,22 @@ kt_jvm_binary(
 ########################################################################################################################
 # Common Definitions
 ########################################################################################################################
-load("//kotlin/internal:defs.bzl", _KtJvmInfo="KtJvmInfo", _TOOLCHAIN_TYPE="TOOLCHAIN_TYPE")
+load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
+
 # struct can't be used till skydoc is removed
 load(
     "//kotlin/internal/jvm:plugins.bzl",
-    _kt_jvm_plugin_aspect="kt_jvm_plugin_aspect",
-)
-# struct can't be used till skydoc is removed
-load("//kotlin/internal/jvm:impl.bzl",
-    _kt_jvm_binary_impl="kt_jvm_binary_impl",
-    _kt_jvm_import_impl="kt_jvm_import_impl",
-    _kt_jvm_junit_test_impl="kt_jvm_junit_test_impl",
-    _kt_jvm_library_impl="kt_jvm_library_impl",
+    _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect",
 )
 
+# struct can't be used till skydoc is removed
+load(
+    "//kotlin/internal/jvm:impl.bzl",
+    _kt_jvm_binary_impl = "kt_jvm_binary_impl",
+    _kt_jvm_import_impl = "kt_jvm_import_impl",
+    _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
+    _kt_jvm_library_impl = "kt_jvm_library_impl",
+)
 
 ########################################################################################################################
 # Rule Attributes
@@ -117,7 +119,7 @@ _implicit_deps = {
         default = [
             Label("@io_bazel_rules_kotlin//kotlin:kt_toolchain_ide_info"),
         ],
-        cfg="host",
+        cfg = "host",
         allow_files = False,
     ),
     "_singlejar": attr.label(
@@ -151,11 +153,12 @@ _common_attr = dict(_implicit_deps.items() + {
     ),
     "deps": attr.label_list(
         aspects = [_kt_jvm_plugin_aspect],
-        providers=[
+        providers = [
             [JavaInfo],
         ],
-        allow_files = False),
-    "runtime_deps": attr.label_list(default = [], allow_files=False),
+        allow_files = False,
+    ),
+    "runtime_deps": attr.label_list(default = [], allow_files = False),
     "resources": attr.label_list(
         default = [],
         allow_files = True,
@@ -171,7 +174,7 @@ _common_attr = dict(_implicit_deps.items() + {
         aspects = [_kt_jvm_plugin_aspect],
     ),
     "module_name": attr.string(
-        mandatory = False
+        mandatory = False,
     ),
 }.items())
 
@@ -188,27 +191,25 @@ _common_outputs = dict(
     jar = "%{name}.jar",
     jdeps = "%{name}.jdeps",
     # The params file, declared here so that validate it can be validated for testing.
-#    jar_2_params = "%{name}.jar-2.params",
+    #    jar_2_params = "%{name}.jar-2.params",
     srcjar = "%{name}-sources.jar",
 )
 
 _binary_outputs = dict(_common_outputs.items() + {
 }.items())
 
-
-
 ########################################################################################################################
 # Simple Rules:
 ########################################################################################################################
 kt_jvm_library = rule(
     attrs = dict(_common_attr.items() + {
-        "exports": attr.label_list(default = [], providers=[JavaInfo]),
-        "neverlink": attr.bool(default=False),
+        "exports": attr.label_list(default = [], providers = [JavaInfo]),
+        "neverlink": attr.bool(default = False),
     }.items()),
     outputs = _common_outputs,
     toolchains = [_TOOLCHAIN_TYPE],
     implementation = _kt_jvm_library_impl,
-    provides = [JavaInfo, _KtJvmInfo]
+    provides = [JavaInfo, _KtJvmInfo],
 )
 
 """This rule compiles and links Kotlin and Java sources into a .jar file.
@@ -234,7 +235,7 @@ Args:
 
 kt_jvm_binary = rule(
     attrs = dict(_runnable_common_attr.items() + {
-        "main_class": attr.string(mandatory = True)
+        "main_class": attr.string(mandatory = True),
     }.items()),
     executable = True,
     outputs = _binary_outputs,
@@ -261,10 +262,10 @@ kt_jvm_test = rule(
         ),
         "friends": attr.label_list(
             default = [],
-            providers = [JavaInfo, _KtJvmInfo]
+            providers = [JavaInfo, _KtJvmInfo],
         ),
         "test_class": attr.string(),
-        "main_class": attr.string(default="com.google.testing.junit.runner.BazelTestRunner"),
+        "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
     }.items()),
     executable = True,
     outputs = _binary_outputs,
@@ -298,11 +299,11 @@ kt_jvm_import = rule(
         "runtime_deps": attr.label_list(
             default = [],
             mandatory = False,
-            providers = [JavaInfo]
-        )
+            providers = [JavaInfo],
+        ),
     },
     implementation = _kt_jvm_import_impl,
-    provides = [JavaInfo, _KtJvmInfo]
+    provides = [JavaInfo, _KtJvmInfo],
 )
 
 # The pairing of src and class is used by intellij to attatch sources, this is picked up via the kt provider attribute.

@@ -15,5 +15,5 @@ java_test(
     name = "integrationtests",
     srcs = glob(["*.java"]),
     test_class = "io.bazel.kotlin.builder.KotlinBuilderTestSuite",
-    deps = ["//kotlin/builder:builder_lib_for_tests"]
+    deps = ["//kotlin/builder:builder_lib_for_tests"],
 )
