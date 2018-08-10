@@ -93,21 +93,27 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
      *
      * @throws CompilationStatusException if the compiler returns a status of anything but zero.
      * @param args the compiler command line switches
-     * @param deliverOutput if this is true the output will be printed to out directly.
+     * @param printOnFail if this is true the output will be printed if the task fails else the caller is responsible
+     *  for logging it by catching the [CompilationStatusException] excepotion.
      * @param compile the compilation method.
      */
     inline fun executeCompilerTask(
         args: List<String>,
-        deliverOutput: Boolean,
-        compile: (Array<String>, PrintStream) -> Int
+        compile: (Array<String>, PrintStream) -> Int,
+        printOnFail: Boolean = true,
+        printOnSuccess: Boolean = true
     ): List<String> {
         val outputStream = ByteArrayOutputStream()
         val ps = PrintStream(outputStream)
         val result = compile(args.toTypedArray(), ps)
         val output = ByteArrayInputStream(outputStream.toByteArray()).bufferedReader().readLines()
         if (result != 0) {
-            throw CompilationStatusException("compile phase failed", result, output)
-        } else if(deliverOutput) {
+            if (printOnFail) {
+                printCompilerOutput(output)
+            } else {
+                throw CompilationStatusException("compile phase failed", result, output)
+            }
+        } else if(printOnSuccess) {
             printCompilerOutput(output)
         }
         return output

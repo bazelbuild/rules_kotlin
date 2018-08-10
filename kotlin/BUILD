@@ -13,11 +13,7 @@
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
 
-load("//kotlin/internal:toolchains.bzl", "kt_toolchain_ide_info")
-
 toolchain_type(
     name = "kt_toolchain_type",
     visibility = ["//visibility:public"],
 )
-
-kt_toolchain_ide_info(name = "kt_toolchain_ide_info")

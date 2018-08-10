@@ -17,12 +17,3 @@ deps.regen:
 
 proto.regen:
 	scripts/gen_proto_jars
-
-docs.regen:
-	bazel build //docs
-	unzip -o bazel-bin/docs/docs-skydoc.zip -d docs
-
-docs.preview_local:
-	bazel build //docs --define local=1
-	unzip -o bazel-bin/docs/docs-skydoc.zip -d /tmp/rules_kotlin
-	open /tmp/rules_kotlin/index.html
