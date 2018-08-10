@@ -94,7 +94,7 @@ kt_jvm_binary(
 ########################################################################################################################
 # Common Definitions
 ########################################################################################################################
-load("//kotlin/internal:defs.bzl","KtInfo","TOOLCHAIN_TYPE")
+load("//kotlin/internal:defs.bzl", _KtJvmInfo="KtJvmInfo", _TOOLCHAIN_TYPE="TOOLCHAIN_TYPE")
 # struct can't be used till skydoc is removed
 load(
     "//kotlin/internal/jvm:plugins.bzl",
@@ -102,10 +102,10 @@ load(
 )
 # struct can't be used till skydoc is removed
 load("//kotlin/internal/jvm:impl.bzl",
-    "kt_jvm_binary_impl",
-    "kt_jvm_import_impl",
-    "kt_jvm_junit_test_impl",
-    "kt_jvm_library_impl",
+    _kt_jvm_binary_impl="kt_jvm_binary_impl",
+    _kt_jvm_import_impl="kt_jvm_import_impl",
+    _kt_jvm_junit_test_impl="kt_jvm_junit_test_impl",
+    _kt_jvm_library_impl="kt_jvm_library_impl",
 )
 
 
@@ -206,9 +206,9 @@ kt_jvm_library = rule(
         "neverlink": attr.bool(default=False),
     }.items()),
     outputs = _common_outputs,
-    toolchains = [TOOLCHAIN_TYPE],
-    implementation = kt_jvm_library_impl,
-    provides = [JavaInfo, KtInfo]
+    toolchains = [_TOOLCHAIN_TYPE],
+    implementation = _kt_jvm_library_impl,
+    provides = [JavaInfo, _KtJvmInfo]
 )
 
 """This rule compiles and links Kotlin and Java sources into a .jar file.
@@ -238,8 +238,8 @@ kt_jvm_binary = rule(
     }.items()),
     executable = True,
     outputs = _binary_outputs,
-    toolchains = [TOOLCHAIN_TYPE],
-    implementation = kt_jvm_binary_impl,
+    toolchains = [_TOOLCHAIN_TYPE],
+    implementation = _kt_jvm_binary_impl,
 )
 
 """Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper shell script uses a classpath that includes,
@@ -261,7 +261,7 @@ kt_jvm_test = rule(
         ),
         "friends": attr.label_list(
             default = [],
-            providers = [JavaInfo, KtInfo]
+            providers = [JavaInfo, _KtJvmInfo]
         ),
         "test_class": attr.string(),
         "main_class": attr.string(default="com.google.testing.junit.runner.BazelTestRunner"),
@@ -269,8 +269,8 @@ kt_jvm_test = rule(
     executable = True,
     outputs = _binary_outputs,
     test = True,
-    toolchains = [TOOLCHAIN_TYPE],
-    implementation = kt_jvm_junit_test_impl,
+    toolchains = [_TOOLCHAIN_TYPE],
+    implementation = _kt_jvm_junit_test_impl,
 )
 
 """Setup a simple kotlin_test.
@@ -301,8 +301,8 @@ kt_jvm_import = rule(
             providers = [JavaInfo]
         )
     },
-    implementation = kt_jvm_import_impl,
-    provides = [JavaInfo, KtInfo]
+    implementation = _kt_jvm_import_impl,
+    provides = [JavaInfo, _KtJvmInfo]
 )
 
 # The pairing of src and class is used by intellij to attatch sources, this is picked up via the kt provider attribute.
