@@ -131,7 +131,7 @@ class KotlinBuilder @Inject internal constructor(
         PLUGINS("--kotlin_plugins"),
         FRIEND_PATHS("--kotlin_friend_paths"),
         OUTPUT_JDEPS("--kotlin_output_jdeps"),
-        DEBUG("--kotlin_debug"),
+        DEBUG("--kotlin_debug_tags"),
         TASK_ID("--kotlin_task_id");
     }
 

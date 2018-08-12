@@ -47,7 +47,7 @@ def _kotlin_toolchain_impl(ctx):
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
-        kotlin_home = ctx.files.kotlin_home,
+        kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.create_provider(
             compile_time_jars = ctx.files.jvm_stdlibs,
             runtime_jars = ctx.files.jvm_runtime,
