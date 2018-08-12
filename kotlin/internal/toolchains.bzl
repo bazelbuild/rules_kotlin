@@ -12,8 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin/internal/common:common.bzl", _common = "common")
-load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
+load(
+    "//kotlin/internal/common:common.bzl",
+    _common = "common",
+)
+load(
+    "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KtJsInfo = "KtJsInfo",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
 
 """Kotlin Toolchains
 
@@ -53,6 +61,7 @@ def _kotlin_toolchain_impl(ctx):
             runtime_jars = ctx.files.jvm_runtime,
             use_ijar = False,
         ),
+        js_stdlibs = ctx.files.js_stdlibs,
     )
     return [
         platform_common.ToolchainInfo(**toolchain),
@@ -131,6 +140,16 @@ kt_toolchain = rule(
                 "1.6",
                 "1.8",
             ],
+        ),
+        "js_target": attr.string(
+            default = "v5",
+            values = ["v5"],
+        ),
+        "js_stdlibs": attr.label_list(
+            default = [
+                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-js"),
+            ],
+            providers = [_KtJsInfo],
         ),
     },
     implementation = _kotlin_toolchain_impl,

@@ -147,3 +147,25 @@ message JvmCompilationTask {
     Outputs outputs = 3;
     Inputs inputs = 4;
 }
+
+message JsCompilationTask {
+    message Outputs {
+        // The primary output
+        string js = 1;
+        string jar = 3;
+        string srcjar = 4;
+    }
+
+    message Inputs {
+        repeated string libraries = 1;
+        // Partitioned from the builder flags, expanding the source_jars.
+        repeated string kotlin_sources = 2;
+    }
+
+    CompilationTaskInfo info = 1;
+    Outputs outputs = 3;
+    Inputs inputs = 4;
+
+    // flags that should be passed through straight to the kotlinc-js compiler.
+    repeated string pass_through_flags = 5;
+}

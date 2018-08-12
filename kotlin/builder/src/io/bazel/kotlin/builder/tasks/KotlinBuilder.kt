@@ -16,6 +16,7 @@
 package io.bazel.kotlin.builder.tasks
 
 import com.google.protobuf.util.JsonFormat
+import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.utils.*
@@ -33,7 +34,8 @@ import javax.inject.Singleton
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder @Inject internal constructor(
     private val outputProvider: Provider<PrintStream>,
-    private val jvmTaskExecutor: KotlinJvmTaskExecutor
+    private val jvmTaskExecutor: KotlinJvmTaskExecutor,
+    private val jsTaskExecutor: Kotlin2JsTaskExecutor
 ) : CommandLineProgram {
     companion object {
         @JvmStatic
@@ -55,7 +57,8 @@ class KotlinBuilder @Inject internal constructor(
             @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
             when (context.info.platform) {
                 Platform.JVM -> executeJvmTask(context, argMap)
-                Platform.UNRECOGNIZED, Platform.JS -> throw IllegalStateException("unrecognized platform: ${context.info}")
+                Platform.JS -> executeJsTask(context, argMap)
+                Platform.UNRECOGNIZED -> throw IllegalStateException("unrecognized platform: ${context.info}")
             }
             success = true
         } catch (ex: CompilationStatusException) {
@@ -131,6 +134,9 @@ class KotlinBuilder @Inject internal constructor(
         PLUGINS("--kotlin_plugins"),
         FRIEND_PATHS("--kotlin_friend_paths"),
         OUTPUT_JDEPS("--kotlin_output_jdeps"),
+        OUTPUT_JS_JAR("--kotlin_output_js_jar"),
+        JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
+        JS_LIBRARIES("--kotlin_js_libraries"),
         DEBUG("--kotlin_debug_tags"),
         TASK_ID("--kotlin_task_id");
     }
@@ -157,6 +163,28 @@ class KotlinBuilder @Inject internal constructor(
             toolchainInfoBuilder.commonBuilder.apiVersion = argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
             toolchainInfoBuilder.commonBuilder.languageVersion = argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
             this
+        }
+
+    private fun executeJsTask(context: CompilationTaskContext, argMap: ArgMap) =
+        buildJsTask(context.info, argMap).let { jsTask ->
+            context.whenTracing { printProto("js task input", jsTask) }
+            jsTaskExecutor.execute(context, jsTask)
+        }
+
+    private fun buildJsTask(info: CompilationTaskInfo, argMap: ArgMap): JsCompilationTask =
+        with(JsCompilationTask.newBuilder()) {
+            this.info = info
+            with(inputsBuilder) {
+                addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_LIBRARIES))
+                addAllKotlinSources(argMap.mandatory(JavaBuilderFlags.SOURCES))
+            }
+            with(outputsBuilder) {
+                js = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT)
+                jar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_JS_JAR)
+                srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
+            }
+            addAllPassThroughFlags(argMap.mandatory(KotlinBuilderFlags.JS_PASSTHROUGH_FLAGS))
+            build()
         }
 
     private fun executeJvmTask(context: CompilationTaskContext, argMap: ArgMap) {
