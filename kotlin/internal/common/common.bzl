@@ -34,7 +34,7 @@ def _init_builder_args(ctx, rule_kind, module_name):
             debug = debug + [tag]
         if tag == "timings":
             debug = debug + [tag]
-    args.add("--kotlin_debug", debug)
+    args.add("--kotlin_debug_tags", debug)
 
     return args
 
