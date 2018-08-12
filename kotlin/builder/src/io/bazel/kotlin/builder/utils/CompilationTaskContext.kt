@@ -42,6 +42,8 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
         throwable.printStackTrace(out)
     }
 
+    @Suppress("unused")
+    fun print(msg: String) { out.println(msg) }
     /**
      * Print a list of debugging lines.
      *
@@ -110,9 +112,8 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
         if (result != 0) {
             if (printOnFail) {
                 printCompilerOutput(output)
-            } else {
-                throw CompilationStatusException("compile phase failed", result, output)
             }
+            throw CompilationStatusException("compile phase failed", result, output)
         } else if(printOnSuccess) {
             printCompilerOutput(output)
         }

@@ -185,7 +185,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, srcs):
     if len(plugin_info.annotation_processors) > 0:
         args.add("--kotlin_plugins", plugin_info.to_json())
 
-    progress_message = "Compiling Kotlin %s { kt: %d, java: %d, srcjars: %d }" % (
+    progress_message = "Compiling Kotlin to JVM %s { kt: %d, java: %d, srcjars: %d }" % (
         ctx.label,
         len(srcs.kt),
         len(srcs.java),
