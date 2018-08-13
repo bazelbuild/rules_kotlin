@@ -18,7 +18,7 @@ directories:
 
 targets:
   //:all_local_tests
-  //examples/...
+  //examples/dagger/...
   # These targets are built for the ide only. Primary purpose is to ensure the builder can build the targets, but it's
   # also a good way of testing the intellij plugin.
   //kotlin/builder/src/io/bazel/kotlin/builder:builder_kt_for_ide

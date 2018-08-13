@@ -183,6 +183,21 @@ _common_attr = _implicit_deps + {
     ),
 }
 
+_lib_common_attr = _common_attr + {
+    "exports": attr.label_list(
+        doc = """Exported libraries.
+
+        Deps listed here will be made available to other rules, as if the parents explicitly depended on
+        these deps. This is not true for regular (non-exported) deps.""",
+        default = [],
+        providers = [JavaInfo],
+    ),
+    "neverlink": attr.bool(
+        doc = """If true only use this library for compilation and not at runtime.""",
+        default = False,
+    ),
+}
+
 _runnable_common_attr = _common_attr + {
     "jvm_flags": attr.string_list(
         doc = """A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet
@@ -201,20 +216,7 @@ _common_outputs = dict(
 
 kt_jvm_library = rule(
     doc = """This rule compiles and links Kotlin and Java sources into a .jar file.""",
-    attrs = _common_attr + {
-        "exports": attr.label_list(
-            doc = """Exported libraries.
-
-            Deps listed here will be made available to other rules, as if the parents explicitly depended on
-            these deps. This is not true for regular (non-exported) deps.""",
-            default = [],
-            providers = [JavaInfo],
-        ),
-        "neverlink": attr.bool(
-            doc = """If true only use this library for compilation and not at runtime.""",
-            default = False,
-        ),
-    },
+    attrs = _lib_common_attr,
     outputs = _common_outputs,
     toolchains = [_TOOLCHAIN_TYPE],
     implementation = _kt_jvm_library_impl,
