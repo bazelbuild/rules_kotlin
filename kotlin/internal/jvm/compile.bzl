@@ -192,7 +192,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, srcs):
         len(srcs.src_jars),
     )
 
-    inputs, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder])
+    inputs, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder, toolchain.kotlin_home])
     ctx.actions.run(
         mnemonic = "KotlinCompile",
         inputs = depset(inputs) + ctx.files.srcs + compile_jars,
