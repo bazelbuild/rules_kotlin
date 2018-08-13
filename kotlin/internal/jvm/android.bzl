@@ -39,6 +39,6 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
 def kt_android_library(name, exports = [], visibility = None, **kwargs):
     native.android_library(
         name = name,
-        exports = exports + _kt_android_artifact(name, **kwargs),
+        exports = exports + _kt_android_artefact(name, **kwargs),
         visibility = visibility,
     )
