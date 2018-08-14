@@ -17,8 +17,8 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
-    "//kotlin/internal/common:common.bzl",
-    _common = "common",
+    "//kotlin/internal/utils:utils.bzl",
+    _utils = "utils",
 )
 
 # The following kt-js flags are currently not used.
@@ -44,10 +44,10 @@ def kt_js_library_impl(ctx):
 
     libraries = depset([d[_KtJsInfo].jar for d in ctx.attr.deps])
 
-    args = _common.init_args(
+    args = _utils.init_args(
         ctx,
         "kt_js_library",
-        _common.derive_module_name(ctx),
+        _utils.derive_module_name(ctx),
     )
 
     args.add_all(

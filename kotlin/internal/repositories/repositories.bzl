@@ -14,10 +14,24 @@
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive", _http_file = "http_file")
-load("//kotlin/internal:defs.bzl", "KT_COMPILER_REPO")
-load("//kotlin/internal/repositories:compiler_releases.bzl", "KOTLIN_COMPILER_RELEASES", "KOTLIN_CURRENT_RELEASE")
-load("//third_party/jvm:workspace.bzl", _maven_dependencies = "maven_dependencies")
+load(
+    "@bazel_tools//tools/build_defs/repo:http.bzl",
+    _http_archive = "http_archive",
+    _http_file = "http_file",
+)
+load(
+    "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+)
+load(
+    "//kotlin/internal/repositories:compiler_releases.bzl",
+    _KOTLIN_COMPILER_RELEASES = "KOTLIN_COMPILER_RELEASES",
+    _KOTLIN_CURRENT_RELEASE = "KOTLIN_CURRENT_RELEASE",
+)
+load(
+    "//third_party/jvm:workspace.bzl",
+    _maven_dependencies = "maven_dependencies",
+)
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
@@ -45,12 +59,12 @@ def _compiler_repositories(kotlin_release_version):
     This function should not be called directly instead `kotlin_repositories` from `//kotlin:kotlin.bzl` should be
     called to ensure common deps are loaded.
     """
-    release = KOTLIN_COMPILER_RELEASES[kotlin_release_version]
+    release = _KOTLIN_COMPILER_RELEASES[kotlin_release_version]
     if not release:
-        fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, KOTLIN_CURRENT_RELEASE))
+        fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, _KOTLIN_CURRENT_RELEASE))
 
     _http_archive(
-        name = KT_COMPILER_REPO,
+        name = _KT_COMPILER_REPO,
         url = release["url"],
         sha256 = release["sha256"],
         build_file = "@io_bazel_rules_kotlin//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
@@ -67,7 +81,7 @@ def _compiler_repositories(kotlin_release_version):
     )
 
 def kotlin_repositories(
-        kotlin_release_version = KOTLIN_CURRENT_RELEASE):
+        kotlin_release_version = _KOTLIN_CURRENT_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:

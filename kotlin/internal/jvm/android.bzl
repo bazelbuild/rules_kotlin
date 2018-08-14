@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load(
-    ":jvm.bzl",
+    "//kotlin/internal/jvm:jvm.bzl",
     _kt_jvm_library = "kt_jvm_library",
 )
 

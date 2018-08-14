@@ -11,8 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal/jvm:compile.bzl", _kt_jvm_produce_jar_actions = "kt_jvm_produce_jar_actions")
-load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo")
+load(
+    "//kotlin/internal/jvm:compile.bzl",
+    _kt_jvm_produce_jar_actions = "kt_jvm_produce_jar_actions",
+)
+load(
+    "//kotlin/internal:defs.bzl",
+    _KtJvmInfo = "KtJvmInfo",
+)
 
 def _make_providers(ctx, providers, transitive_files = depset(order = "default")):
     return struct(

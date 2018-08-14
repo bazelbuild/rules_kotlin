@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "//kotlin/internal/common:common.bzl",
-    _common = "common",
-)
-load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
     _KtJsInfo = "KtJsInfo",
@@ -48,7 +44,6 @@ register_toolchains("//:custom_toolchain")
 
 def _kotlin_toolchain_impl(ctx):
     toolchain = dict(
-        label = _common.restore_label(ctx.label),
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
         coroutines = ctx.attr.coroutines,
@@ -67,7 +62,7 @@ def _kotlin_toolchain_impl(ctx):
         platform_common.ToolchainInfo(**toolchain),
     ]
 
-kt_toolchain = rule(
+_kt_toolchain = rule(
     doc = """The kotlin toolchain. This should not be created directly `define_kt_toolchain` should be used. The
     rules themselves define the toolchain using that macro.""",
     attrs = {
@@ -157,7 +152,7 @@ kt_toolchain = rule(
 )
 
 def kt_register_toolchains():
-    """This macro registers all of the default toolchains."""
+    """This macro registers the kotlin toolchain."""
     native.register_toolchains("@io_bazel_rules_kotlin//kotlin/internal:default_toolchain")
 
 def define_kt_toolchain(
@@ -165,19 +160,24 @@ def define_kt_toolchain(
         language_version = None,
         api_version = None,
         jvm_target = None,
-        coroutines = None,
-        debug = []):
-    """Define a Kotlin JVM Toolchain, the name is used in the `toolchain` rule so can be used to register the toolchain
-    in the WORKSPACE file.
-    """
+        coroutines = None):
+    """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
-    kt_toolchain(
+    _kt_toolchain(
         name = impl_name,
         language_version = language_version,
         api_version = api_version,
         jvm_target = jvm_target,
         coroutines = coroutines,
-        debug = debug,
+        debug =
+            select({
+                "//kotlin/internal:builder_debug_trace": ["trace"],
+                "//conditions:default": [],
+            }) +
+            select({
+                "//kotlin/internal:builder_debug_timings": ["timings"],
+                "//conditions:default": [],
+            }),
         visibility = ["//visibility:public"],
     )
     native.toolchain(
