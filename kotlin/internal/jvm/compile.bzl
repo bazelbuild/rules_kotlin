@@ -27,24 +27,26 @@ load(
 
 # INTERNAL ACTIONS #####################################################################################################
 def _fold_jars_action(ctx, rule_kind, output_jar, input_jars):
-    args = [
+    """Set up an action to Fold the input jars into a normalized ouput jar."""
+    args = ctx.actions.args()
+    args.add_all([
         "--normalize",
         "--compression",
+    ])
+    args.add_all([
         "--deploy_manifest_lines",
         "Target-Label: %s" % str(ctx.label),
         "Injecting-Rule-Kind: %s" % rule_kind,
-        "--output",
-        output_jar.path,
-    ]
-    for i in input_jars:
-        args += ["--sources", i.path]
+    ])
+    args.add("--output", output_jar)
+    args.add_all(input_jars, before_each = "--sources")
     ctx.action(
-        mnemonic = "KotlinFoldOutput",
+        mnemonic = "KotlinFoldJars",
         inputs = input_jars,
         outputs = [output_jar],
         executable = ctx.executable._singlejar,
-        arguments = args,
-        progress_message = "Merging Kotlin output jar " + output_jar.short_path,
+        arguments = [args],
+        progress_message = "Merging Kotlin output jar %s from %d inputs" % (ctx.label, len(input_jars)),
     )
 
 _CONVENTIONAL_RESOURCE_PATHS = [
@@ -72,7 +74,7 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def _add_resources_cmd(ctx):
+def _resourcejar_args_action(ctx):
     res_cmd = []
     for f in ctx.files.resources:
         c_dir, res_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
@@ -85,28 +87,27 @@ def _add_resources_cmd(ctx):
             c_dir = c_dir,
         )
         res_cmd.extend([line])
-    return "".join(res_cmd)
+    zipper_args_file = ctx.actions.declare_file("%s_resources_zipper_args" % ctx.label.name)
+    ctx.actions.write(zipper_args_file, "".join(res_cmd))
+    return zipper_args_file
 
 def _build_resourcejar_action(ctx):
-    resources = _add_resources_cmd(ctx)
+    """sets up an action to build a resource jar for the target being compiled.
+    Returns:
+        The file resource jar file.
+    """
     resources_jar_output = ctx.actions.declare_file(ctx.label.name + "-resources.jar")
-    zipper_arg_path = ctx.actions.declare_file("%s_resources_zipper_args" % ctx.label.name)
-    ctx.file_action(zipper_arg_path, resources)
-    cmd = """
-rm -f {resources_jar_output}
-{zipper} c {resources_jar_output} @{path}
-""".format(
-        path = zipper_arg_path.path,
-        resources_jar_output = resources_jar_output.path,
-        zipper = ctx.executable._zipper.path,
-    )
+    zipper_args = _resourcejar_args_action(ctx)
     ctx.action(
         mnemonic = "KotlinZipResourceJar",
-        inputs = ctx.files.resources + [ctx.executable._zipper, zipper_arg_path],
+        inputs = ctx.files.resources + [ctx.executable._zipper, zipper_args],
         outputs = [resources_jar_output],
-        command = cmd,
+        command = "{zipper} c {resources_jar_output} @{path}".format(
+            path = zipper_args.path,
+            resources_jar_output = resources_jar_output.path,
+            zipper = ctx.executable._zipper.path,
+        ),
         progress_message = "Creating intermediate resource jar %s" % ctx.label,
-        arguments = [],
     )
     return resources_jar_output
 
