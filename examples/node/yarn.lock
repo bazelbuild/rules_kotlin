@@ -171,16 +171,6 @@ ipaddr.js@1.8.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-1.8.0.tgz#eaa33d6ddd7ace8f7f6fe0c9ca0440e706738b1e"
 
-kotlin-test@1.2.60:
-  version "1.2.60"
-  resolved "https://registry.yarnpkg.com/kotlin-test/-/kotlin-test-1.2.60.tgz#e238c48740a1c9f1c036d3c3db04d40f47c934db"
-  dependencies:
-    kotlin "1.2.60"
-
-kotlin@1.2.60:
-  version "1.2.60"
-  resolved "https://registry.yarnpkg.com/kotlin/-/kotlin-1.2.60.tgz#3d7ec2328a0d46281e21b9d7cf5314032217b010"
-
 media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"

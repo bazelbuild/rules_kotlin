@@ -82,7 +82,6 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_js_import")
         visibility = ["//visibility:public"],
     )
     for art in [
-        "jslib",
         "test-js",
         "stdlib-js",
     ]

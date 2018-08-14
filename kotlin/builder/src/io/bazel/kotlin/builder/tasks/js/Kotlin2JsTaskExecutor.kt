@@ -21,7 +21,6 @@ class Kotlin2JsTaskExecutor @Inject constructor(
     private val invoker: KotlinToolchain.K2JSCompilerInvoker
 ) {
     fun execute(context: CompilationTaskContext, task: JsCompilationTask) {
-        context.print(Paths.get(task.inputs.kotlinSourcesList[0]).toRealPath().toAbsolutePath().toString())
         task.compile(context)
 
         val jsPath = Paths.get(task.outputs.js)
