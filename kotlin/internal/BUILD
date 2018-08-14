@@ -23,15 +23,11 @@ config_setting(
     values = {"define": "kt_trace=1"},
 )
 
+toolchain_type(
+    name = "kt_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
 define_kt_toolchain(
     name = "default_toolchain",
-    debug =
-        select({
-            ":builder_debug_trace": ["trace"],
-            "//conditions:default": [],
-        }) +
-        select({
-            ":builder_debug_timings": ["timings"],
-            "//conditions:default": [],
-        }),
 )

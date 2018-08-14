@@ -90,7 +90,11 @@ kt_jvm_binary(
 ```
 """
 
-load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KtJvmInfo = "KtJvmInfo",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
 load(
     "//kotlin/internal/jvm:plugins.bzl",
     _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect",

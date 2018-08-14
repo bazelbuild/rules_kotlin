@@ -11,8 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal/repositories:repositories.bzl", "kotlin_repositories")
-load("//kotlin/internal:toolchains.bzl", "kt_register_toolchains")
+load(
+    "//kotlin/internal/repositories:repositories.bzl",
+    "kotlin_repositories",
+)
+load(
+    "//kotlin/internal:toolchains.bzl",
+    "kt_register_toolchains",
+)
 load(
     "//kotlin/internal/jvm:jvm.bzl",
     "kt_jvm_binary",
