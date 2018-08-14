@@ -18,7 +18,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:plugins.bzl",
-    _merge_plugin_infos = "merge_plugin_infos"
+    _merge_plugin_infos = "merge_plugin_infos",
 )
 load(
     "//kotlin/internal/utils:utils.bzl",
@@ -143,7 +143,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
 
     Args:
         rule_kind: The rule kind --e.g., `kt_jvm_library`.
-        output_jar: The jar file that this macro will use as the output of the action.
+        output_jar: The jar file that this macro will use as the output.
     Returns:
         A struct containing the providers JavaInfo (`java`) and `kt` (KtJvmInfo). This struct is not intended to be
         used as a legacy provider -- rather the caller should transform the result.
@@ -254,7 +254,12 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     )
 
 def kt_jvm_produce_jar_actions(ctx, rule_kind):
-    """Setup The actions to compile a jar and merge additional resources onto it. see `kt_jvm_compile_action`."""
+    """Setup The actions to compile a jar and if any resources or resource_jars were provided to merge these in with the
+    compilation output.
+
+    Returns:
+        see `kt_jvm_compile_action`.
+    """
 
     # The jar that is compiled from sources.
     output_jar = ctx.outputs.jar
