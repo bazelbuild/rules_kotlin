@@ -18,7 +18,8 @@ load(
 
 def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
-    Kotlin srcs. Returns a sequence of labels that a wrapping macro should export."""
+    Kotlin srcs. Returns a sequence of labels that a wrapping macro should export.
+    """
     base_name = name + "_base"
     kt_name = name + "_kt"
 
@@ -37,7 +38,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
     return [base_name, kt_name]
 
 def kt_android_library(name, exports = [], visibility = None, **kwargs):
-    """Creates a Android sandwich library. `srcs`, `deps`, `plugins` are routed to `kt_jvm_library` the other android
+    """Creates an Android sandwich library. `srcs`, `deps`, `plugins` are routed to `kt_jvm_library` the other android
     related attributes are handled by the native `android_library` rule.
     """
     native.android_library(
