@@ -25,7 +25,7 @@ kt_js_library(
 kt_js_library(
     name ="app",
     srcs = [":App.kt"],
-    deps = [":acme-routes"],
+    deps = [":acme-routes"]
 )
 
 # The binary demonstrates an express app composed of three modules. The modules can co-exist in the same directory.

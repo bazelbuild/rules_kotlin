@@ -13,6 +13,7 @@
 # limitations under the License.
 load(
     "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
     _KtJsInfo = "KtJsInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
@@ -55,6 +56,7 @@ def kt_js_library_impl(ctx):
         [
             "-source-map",
             "-meta-info",
+            "-no-stdlib",  # TODO remove this once the stdlib is not conveyed to node via the deps attribute.
             "-module-kind",
             ctx.attr.module_kind,
             "-target",
@@ -93,29 +95,51 @@ def kt_js_library_impl(ctx):
     return [
         DefaultInfo(
             files = depset([ctx.outputs.js, ctx.outputs.js_map]),
-            runfiles = ctx.runfiles(files = [
-                ctx.outputs.js,
-                ctx.outputs.js_map,
-            ]),
         ),
         _KtJsInfo(
+            js = ctx.outputs.js,
+            js_map = ctx.outputs.js_map,
             jar = ctx.outputs.jar,
             srcjar = ctx.outputs.srcjar,
         ),
     ]
 
-# This is just a placeholder at the moment.
 def kt_js_import_impl(ctx):
     if len(ctx.files.jars) != 1:
         fail("a single jar should be supplied, multiple jars not supported")
+    jar_file = ctx.files.jars[0]
 
-    files = depset(ctx.files.jars)
+    # Lock the jar name to the label name -- only make an exception for the compiler repo.
+    if not (ctx.label.workspace_root.startswith("external/") and ctx.label.workspace_root.endswith(_KT_COMPILER_REPO)):
+        expected_basename = "%s.jar" % ctx.label.name
+        if not jar_file.basename == expected_basename:
+            fail("label name %s is not the same as the jar name %s" % (jar_file.basename, expected_basename))
+
+    args = ctx.actions.args()
+    args.add("--jar", jar_file)
+    args.add("--out", ctx.outputs.js)
+    args.add("--aux", ctx.outputs.js_map)
+
+    inputs, _, input_manifest = ctx.resolve_command(tools = [ctx.attr._importer])
+    ctx.actions.run(
+        inputs = inputs + [jar_file],
+        executable = ctx.executable._importer,
+        outputs = [
+            ctx.outputs.js,
+            ctx.outputs.js_map,
+        ],
+        arguments = [args],
+        input_manifests = input_manifest,
+    )
+
     return [
         DefaultInfo(
-            files = files,
+            files = depset([ctx.outputs.js, ctx.outputs.js_map]),
         ),
         _KtJsInfo(
-            jar = ctx.attr.jars[0],
-            srcjar = ctx.attr.srcjar,
+            js = ctx.outputs.js,
+            js_map = ctx.outputs.js_map,
+            jar = jar_file,
+            srcjar = ctx.files.srcjar[0],
         ),
     ]
