@@ -18,8 +18,6 @@ KtJvmPluginInfo = provider(
     },
 )
 
-_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = [])]
-
 def _mk_processor_entry(l, p):
     merged_info = java_common.merge([j[JavaInfo] for j in p.deps])
     classpath_jars = depset([cp for cp in merged_info.full_compile_jars])
@@ -31,7 +29,16 @@ def _mk_processor_entry(l, p):
         generates_api = p.generates_api,
     )
 
-def _merge_plugin_infos(attrs):
+def _restore_label(l):
+    lbl = l.workspace_root
+    if lbl.startswith("external/"):
+        lbl = lbl.replace("external/", "@")
+    return lbl + "//" + l.package + ":" + l.name
+
+_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = [])]
+
+def merge_plugin_infos(attrs):
+    """Merge all of the plugin infos found in the provided sequence of attributes."""
     tally = {}
     annotation_processors = []
     for info in [a[KtJvmPluginInfo] for a in attrs]:
@@ -43,36 +50,22 @@ def _merge_plugin_infos(attrs):
         annotation_processors = annotation_processors,
     )
 
-def _restore_label(l):
-    lbl = l.workspace_root
-    if lbl.startswith("external/"):
-        lbl = lbl.replace("external/", "@")
-    return lbl + "//" + l.package + ":" + l.name
-
 def _kt_jvm_plugin_aspect_impl(target, ctx):
     if ctx.rule.kind == "java_plugin":
         return [KtJvmPluginInfo(
             annotation_processors = [_mk_processor_entry(_restore_label(ctx.label), ctx.rule.attr)],
         )]
     elif ctx.rule.kind == "java_library":
-        return [_merge_plugin_infos(ctx.rule.attr.exported_plugins)]
+        return [merge_plugin_infos(ctx.rule.attr.exported_plugins)]
     else:
         return _EMPTY_PLUGIN_INFO
 
 kt_jvm_plugin_aspect = aspect(
-    doc = """This aspect processes collects Java Plugins info so that annotation processors may be configured for a
-rule.""",
+    doc = """This aspect collects Java Plugins info and other Kotlin compiler plugin configurations from the graph.""",
     attr_aspects = [
         "plugins",
         "exported_plugins",
     ],
     provides = [KtJvmPluginInfo],
     implementation = _kt_jvm_plugin_aspect_impl,
-)
-
-"""renders a java info into a kt.info.KtPluginInfo."""
-
-plugins = struct(
-    kt_jvm_plugin_aspect = kt_jvm_plugin_aspect,
-    merge_plugin_infos = _merge_plugin_infos,
 )

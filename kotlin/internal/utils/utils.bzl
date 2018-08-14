@@ -1,18 +1,26 @@
-load("//kotlin/internal:defs.bzl", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
+load(
+    "//kotlin/internal:defs.bzl",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
 
 def _restore_label(l):
+    """Restore a label struct to a canonical label string."""
     lbl = l.workspace_root
     if lbl.startswith("external/"):
         lbl = lbl.replace("external/", "@")
     return lbl + "//" + l.package + ":" + l.name
 
+# TODO unexport this once init builder args can take care of friends.
 def _derive_module_name(ctx):
+    """Gets the `module_name` attribute if it's set in the ctx, otherwise derive a unique module name using the elements
+    found in the label."""
     module_name = getattr(ctx.attr, "module_name", "")
     if module_name == "":
         module_name = (ctx.label.package.lstrip("/").replace("/", "_") + "-" + ctx.label.name.replace("/", "_"))
     return module_name
 
 def _init_builder_args(ctx, rule_kind, module_name):
+    """Initialize an arg object for a task that will be executed by the Kotlin Builder."""
     toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
 
     args = ctx.actions.args()
@@ -38,12 +46,8 @@ def _init_builder_args(ctx, rule_kind, module_name):
 
     return args
 
-def _declare_output_directory(ctx, aspect, dir_name):
-    return ctx.actions.declare_directory("_kotlinc/%s_%s/%s_%s" % (ctx.label.name, aspect, ctx.label.name, dir_name))
-
-common = struct(
+utils = struct(
     init_args = _init_builder_args,
-    declare_output_directory = _declare_output_directory,
     restore_label = _restore_label,
     derive_module_name = _derive_module_name,
 )

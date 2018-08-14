@@ -13,7 +13,7 @@
 # limitations under the License.#
 
 # The Kotlin Toolchain type.
-TOOLCHAIN_TYPE = "@io_bazel_rules_kotlin//kotlin:kt_toolchain_type"
+TOOLCHAIN_TYPE = "@io_bazel_rules_kotlin//kotlin/internal:kt_toolchain_type"
 
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
