@@ -1,0 +1,33 @@
+workspace(name = "kotlin_node_examples")
+
+local_repository(
+    name = "io_bazel_rules_kotlin",
+    path = "../.."
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories()
+kt_register_toolchains()
+
+git_repository(
+    name = "bazel_skylib",
+    remote = "https://github.com/bazelbuild/bazel-skylib.git",
+    tag = "0.5.0",
+)
+
+git_repository(
+    name = "build_bazel_rules_nodejs",
+    remote = "https://github.com/bazelbuild/rules_nodejs.git",
+    tag = "0.11.4",
+)
+load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
+
+node_repositories(package_json = [])
+
+load("@build_bazel_rules_nodejs//:defs.bzl", "yarn_install")
+
+yarn_install(
+    name = "node_ws",
+    package_json = "//:package.json",
+    yarn_lock = "//:yarn.lock",
+)

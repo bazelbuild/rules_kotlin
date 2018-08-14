@@ -21,22 +21,6 @@ github_archive(
     repo = "google/protobuf",
 )
 
-git_repository(
-    name = "bazel_skylib",
-    remote = "https://github.com/bazelbuild/bazel-skylib.git",
-    tag = "0.5.0",
-)
-
-git_repository(
-    name = "build_bazel_rules_nodejs",
-    remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.11.4",
-)
-
-load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
-
-node_repositories(package_json = [])
-
 http_jar(
     name = "bazel_deps",
     sha256 = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e",

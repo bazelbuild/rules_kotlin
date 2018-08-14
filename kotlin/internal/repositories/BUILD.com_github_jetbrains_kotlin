@@ -70,3 +70,20 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_import")
         "script-runtime",
     ]
 ]
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_js_import")
+
+#  The Kotlin standard libraries. These should be setup in a Toolchain.
+[
+    kt_js_import(
+        name = "kotlin-%s" % art,
+        jars = ["lib/kotlin-%s.jar" % art],
+        srcjar = "lib/kotlin-%s-sources.jar" % art,
+        visibility = ["//visibility:public"],
+    )
+    for art in [
+        "jslib",
+        "test-js",
+        "stdlib-js",
+    ]
+]

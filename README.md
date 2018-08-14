@@ -3,6 +3,7 @@
 [Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
 
 # Announcements
+* <b>August 14, 2018.</b> Js support. No documentation yet but see the nested example workspace `examples/node`.
 * <b>August 14, 2018.</b> Android support. No documentation but it's a simple integration. see 
   `kotlin/internal/jvm/android.bzl`.
 * <b>Jun 29, 2018.</b> The commits from this date forward are compatible with bazel `>=0.14`. JDK9 host issues were 
