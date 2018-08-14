@@ -14,6 +14,11 @@
 directories:
   # Add the directories you want added as source here
   # By default, we've added your entire workspace ('.')
+  -examples/node/bazel-node
+  -examples/node/bazel-bin
+  -examples/node/bazel-genfiles
+  -examples/node/bazel-out
+  -examples/node/bazel-testlogs
   .
 
 targets:

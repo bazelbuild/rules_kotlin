@@ -26,12 +26,10 @@ KtJvmInfo = provider(
     },
 )
 
-# TODO when kt_js_import is capable of unpacking the jars and making the js and js_map files available then uncomment
-# the fields below.
 KtJsInfo = provider(
     fields = {
-        # "js": "The primary output of the library",
-        # "js_map": "The map file for the library",
+        "js": "The primary output of the library",
+        "js_map": "The map file for the library",
         "jar": "A jar of the library.",
         "srcjar": "The jar containing the sources of the library",
     },

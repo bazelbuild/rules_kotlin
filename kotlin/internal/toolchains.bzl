@@ -56,7 +56,7 @@ def _kotlin_toolchain_impl(ctx):
             runtime_jars = ctx.files.jvm_runtime,
             use_ijar = False,
         ),
-        js_stdlibs = ctx.files.js_stdlibs,
+        js_stdlibs = ctx.attr.js_stdlibs,
     )
     return [
         platform_common.ToolchainInfo(**toolchain),

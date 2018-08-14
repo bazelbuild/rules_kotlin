@@ -2,9 +2,7 @@
   "name": "node_packages",
   "version": "1.0.0",
   "dependencies": {
-    "express": "^4.16.3",
-    "kotlin": "1.2.60",
-    "kotlin-test": "1.2.60"
+    "express": "^4.16.3"
   },
   "devDependencies": {
     "source-map-support": "^0.5.6"
