@@ -16,9 +16,8 @@
 test_suite(
     name = "all_tests",
     tests = [
-        "//kotlin/builder/integrationtests",
-        "//kotlin/builder/unittests",
-        "//tests/integrationtests",
+        "//src/test/kotlin/io/bazel/kotlin:assertion_tests",
+        "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
     ],
 )
 
@@ -27,6 +26,6 @@ test_suite(
     name = "all_local_tests",
     tests = [
         ":all_tests",
-        "//tests/integrationtests:integrationtests_local",
+        "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
     ],
 )
