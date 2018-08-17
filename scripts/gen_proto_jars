@@ -19,7 +19,7 @@
 # If (when) Bazel distributes a host protoc this file can be removed.
 
 WS_ROOT=$(bazel info workspace)
-PROTO_PATH=kotlin/builder/proto
+PROTO_PATH=src/main/protobuf
 JAR_DIR=${WS_ROOT}/${PROTO_PATH}/jars
 
 function build_lib() {

@@ -26,15 +26,14 @@ targets:
   //examples/dagger/...
   # These targets are built for the ide only. Primary purpose is to ensure the builder can build the targets, but it's
   # also a good way of testing the intellij plugin.
-  //kotlin/builder/src/io/bazel/kotlin/builder:builder_kt_for_ide
-  //kotlin/builder:compiler_lib_for_ide
+  //src/main/kotlin/io/bazel/kotlin/builder:builder_kt_for_ide
+  //src/main/kotlin:compiler_lib_for_ide
 
 test_sources:
-  */unittests/*
-  */integrationtests/*
+  src/test/*
 
 additional_languages:
   kotlin
 
 import_run_configurations:
-  tests/Bazel_all_local_tests.xml
+  src/test/Bazel_all_local_tests.xml
