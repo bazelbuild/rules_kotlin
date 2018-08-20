@@ -27,7 +27,7 @@ def _resolve_dep_label(d):
     else:
         return d
 
-def kt_bootstrap_library(name, srcs, deps = [], neverlink_deps = [], runtime_deps = []):
+def kt_bootstrap_library(name, srcs, visibility = [], deps = [], neverlink_deps = [], runtime_deps = []):
     """
     Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
 
@@ -87,7 +87,7 @@ rm $${NAME}_temp.jar
         jars = [jar_label],
         tags = ["no-ide"],
         runtime_deps = deps + runtime_deps,
-        visibility = ["//visibility:private"],
+        visibility = visibility,
     )
 
     # hsyed todo this part of the graph should not be wired up outside of development.

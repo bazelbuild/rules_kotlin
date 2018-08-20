@@ -23,6 +23,7 @@ kt_bootstrap_library(
         "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
         "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
     ],
+    visibility = ["//src/test/kotlin/io/bazel/kotlin/builder:__subpackages__"],
 )
 
 # The builder artifact.
@@ -54,11 +55,11 @@ java_library(
         "//src/test:__subpackages__",
     ],
     exports = [
-        "//src/main/kotlin/io/bazel/kotlin/builder:builder",
-        "//third_party/jvm/com/google/truth",
-        "//third_party/jvm/junit",
+        "//src/main/kotlin/io/bazel/kotlin/builder",
         "//src/main/protobuf:deps",
         "//src/main/protobuf:kotlin_model",
+        "//third_party/jvm/com/google/truth",
+        "//third_party/jvm/junit",
         "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
         "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
     ],

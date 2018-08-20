@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility=["//visibility:private"])
+package(default_visibility = ["//visibility:private"])
+
 load("//kotlin:kotlin.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test")
 
 kt_jvm_binary(
@@ -104,7 +105,7 @@ java_binary(
 kt_jvm_library(
     name = "test_friends_library",
     srcs = ["test_friends/Service.kt"],
-    visibility = ["//src/test/kotlin:__subpackages__"]
+    visibility = ["//src/test/kotlin:__subpackages__"],
 )
 
 filegroup(

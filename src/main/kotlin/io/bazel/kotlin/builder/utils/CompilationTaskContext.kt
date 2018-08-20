@@ -15,7 +15,6 @@
  */
 package io.bazel.kotlin.builder.utils
 
-
 import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.TextFormat
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
@@ -27,8 +26,10 @@ import java.io.PrintStream
 import java.nio.file.Paths
 
 class CompilationTaskContext(val info: CompilationTaskInfo, private val out: PrintStream) {
+    private val start = System.currentTimeMillis()
     private val executionRoot: String = Paths.get("").toAbsolutePath().toString() + File.separator
-    private val timings: MutableList<String>?
+    private var timings: MutableList<String>?
+    private var level = -1
     @PublishedApi
     internal val isTracing: Boolean
 
@@ -42,7 +43,11 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
         throwable.printStackTrace(out)
     }
 
-    fun print(msg: String) { out.println(msg) }
+    @Suppress("unused")
+    fun print(msg: String) {
+        out.println(msg)
+    }
+
     /**
      * Print a list of debugging lines.
      *
@@ -113,7 +118,7 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
                 printCompilerOutput(output)
             }
             throw CompilationStatusException("compile phase failed", result, output)
-        } else if(printOnSuccess) {
+        } else if (printOnSuccess) {
             printCompilerOutput(output)
         }
         return output
@@ -122,28 +127,46 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
     /**
      * Runs a task and records the timings.
      */
-    fun <T> execute(name: String, task: () -> T): T {
+    fun <T> execute(name: String, task: () -> T): T = execute({ name }, task)
+
+    /**
+     * Runs a task and records the timings.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun <T> execute(name: () -> String, task: () -> T): T {
         return if (timings == null) {
             task()
-        } else {
-            val start = System.currentTimeMillis()
-            try {
-                task()
-            } finally {
-                val stop = System.currentTimeMillis()
-                timings += "$name: ${stop - start} ms"
+        } else pushTimedTask(name(), task)
+    }
+
+    private inline fun <T> pushTimedTask(name: String, task: () -> T): T {
+        level += 1
+        val previousTimings = timings
+        timings = mutableListOf()
+        return try {
+            System.currentTimeMillis().let { start ->
+                task().also {
+                    val stop = System.currentTimeMillis()
+                    previousTimings!! += "${"  ".repeat(level)} * $name: ${stop - start} ms"
+                    previousTimings.addAll(timings!!)
+                }
             }
+        } finally {
+            level -= 1
+            timings = previousTimings
         }
     }
 
     /**
      * This method should be called at the end of builder invocation.
      *
-     * @param succesfull true if the task finished succesfully.
+     * @param successful true if the task finished successfully.
      */
-    fun finalize(succesfull: Boolean) {
-        if (succesfull) {
-            timings?.also { printLines("Task timings", it, prefix = "  * ") }
+    fun finalize(successful: Boolean) {
+        if (successful) {
+            timings?.also {
+                printLines("Task timings for ${info.label} (total: ${System.currentTimeMillis() - start} ms)", it)
+            }
         }
     }
 }

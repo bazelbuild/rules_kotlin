@@ -38,28 +38,26 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
         // TODO fix error handling
         try {
-            val preprocessedTask = task.preprocessingSteps(context)
+            val preprocessedTask = task.preProcessingSteps(context)
             context.execute("compile classes") { preprocessedTask.compileAll(context) }
             context.execute("create jar") { preprocessedTask.createOutputJar() }
             context.execute("produce src jar") { preprocessedTask.produceSourceJar() }
-            context.execute("generate jdeps") { preprocessedTask.generateJDeps() }
+            context.execute("generate jdeps") { jDepsGenerator.generateJDeps(preprocessedTask) }
         } catch (ex: Throwable) {
             throw RuntimeException(ex)
         }
     }
 
-    private fun JvmCompilationTask.preprocessingSteps(context: CompilationTaskContext): JvmCompilationTask {
+    private fun JvmCompilationTask.preProcessingSteps(context: CompilationTaskContext): JvmCompilationTask {
         ensureDirectories(
             directories.temp,
             directories.generatedSources,
             directories.generatedClasses
         )
         val taskWithAdditionalSources = context.execute("expand sources") { expandWithSourceJarSources() }
-        return context.execute("kapt") { taskWithAdditionalSources.runAnnotationProcessors(context) }
-    }
-
-    private fun JvmCompilationTask.generateJDeps() {
-        jDepsGenerator.generateJDeps(this)
+        return context.execute({
+            "kapt (${info.plugins.annotationProcessorsList.joinToString(", ") { it.processorClass }})"
+        }) { taskWithAdditionalSources.runAnnotationProcessors(context) }
     }
 
     private fun JvmCompilationTask.produceSourceJar() {
@@ -129,7 +127,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             this
         } else {
             runAnnotationProcessor(context, printOnSuccess = !context.isTracing).let { outputLines ->
-                // if tracing is enabled the output should be formated in a special way, if we aren't tracing then any
+                // if tracing is enabled the output should be formatted in a special way, if we aren't tracing then any
                 // compiler output would make it's way to the console as is.
                 if (context.isTracing) {
                     context.printLines("kapt output", outputLines)
