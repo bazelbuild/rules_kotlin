@@ -15,13 +15,13 @@
 # Note: Written on a mac please make it compatible with linux if needed.
 #!/usr/bin/env bash
 
-buildifier -mode=fix -v $(find kotlin -type f \
+buildifier -showlog -mode=fix -v $(find src -type f \
     -iname "*.bzl" -or \
     -iname "BUILD" -or \
     -iname "BUILD.com_github_jetbrains_kotlin"
 )
 
-buildifier -mode=fix -v \
+buildifier -showlog -mode=fix -v \
     "third_party/BUILD" \
     "WORKSPACE" \
     "BUILD"

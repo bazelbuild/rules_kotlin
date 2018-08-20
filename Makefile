@@ -17,3 +17,6 @@ deps.regen:
 
 proto.regen:
 	scripts/gen_proto_jars
+
+install.tools:
+	go get github.com/bazelbuild/buildtools/buildifier
