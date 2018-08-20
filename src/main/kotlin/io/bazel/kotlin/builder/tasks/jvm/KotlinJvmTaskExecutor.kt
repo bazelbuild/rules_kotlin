@@ -36,16 +36,11 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     private val jDepsGenerator: JDepsGenerator
 ) {
     fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
-        // TODO fix error handling
-        try {
-            val preprocessedTask = task.preProcessingSteps(context)
-            context.execute("compile classes") { preprocessedTask.compileAll(context) }
-            context.execute("create jar") { preprocessedTask.createOutputJar() }
-            context.execute("produce src jar") { preprocessedTask.produceSourceJar() }
-            context.execute("generate jdeps") { jDepsGenerator.generateJDeps(preprocessedTask) }
-        } catch (ex: Throwable) {
-            throw RuntimeException(ex)
-        }
+        val preprocessedTask = task.preProcessingSteps(context)
+        context.execute("compile classes") { preprocessedTask.compileAll(context) }
+        context.execute("create jar") { preprocessedTask.createOutputJar() }
+        context.execute("produce src jar") { preprocessedTask.produceSourceJar() }
+        context.execute("generate jdeps") { jDepsGenerator.generateJDeps(preprocessedTask) }
     }
 
     private fun JvmCompilationTask.preProcessingSteps(context: CompilationTaskContext): JvmCompilationTask {
@@ -166,7 +161,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             }
         }
         try {
-            context.execute("javac") { javaCompiler.compile(this) }
+            context.execute("javac") { javaCompiler.compile(context, this) }
         } finally {
             checkNotNull(result).also(context::printCompilerOutput)
             kotlinError?.also { throw it }
@@ -176,7 +171,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     /**
      * Compiles Kotlin sources to classes. Does not compile Java sources.
      */
-    fun JvmCompilationTask.compileKotlin(context: CompilationTaskContext, printOnFail: Boolean = true) =
+    private fun JvmCompilationTask.compileKotlin(context: CompilationTaskContext, printOnFail: Boolean = true) =
         getCommonArgs().let { args ->
             args.addAll(inputs.javaSourcesList)
             args.addAll(inputs.kotlinSourcesList)

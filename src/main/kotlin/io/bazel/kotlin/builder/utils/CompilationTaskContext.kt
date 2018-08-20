@@ -27,7 +27,9 @@ import java.nio.file.Paths
 
 class CompilationTaskContext(val info: CompilationTaskInfo, private val out: PrintStream) {
     private val start = System.currentTimeMillis()
-    private val executionRoot: String = Paths.get("").toAbsolutePath().toString() + File.separator
+    private val executionRoot: String = Paths.get(
+        System.getProperty("user.dir")
+    ).toAbsolutePath().toString() + File.separator
     private var timings: MutableList<String>?
     private var level = -1
     @PublishedApi
@@ -100,7 +102,7 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
      * @throws CompilationStatusException if the compiler returns a status of anything but zero.
      * @param args the compiler command line switches
      * @param printOnFail if this is true the output will be printed if the task fails else the caller is responsible
-     *  for logging it by catching the [CompilationStatusException] excepotion.
+     *  for logging it by catching the [CompilationStatusException] exception.
      * @param compile the compilation method.
      */
     inline fun executeCompilerTask(

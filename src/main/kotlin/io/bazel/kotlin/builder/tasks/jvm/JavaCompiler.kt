@@ -15,11 +15,12 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import io.bazel.kotlin.builder.utils.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.model.JvmCompilationTask
+import java.io.PrintWriter
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,14 +28,14 @@ import javax.inject.Singleton
 internal class JavaCompiler @Inject constructor(
     private val javacInvoker: KotlinToolchain.JavacInvoker
 ) {
-    fun compile(command: JvmCompilationTask) {
+    fun compile(context: CompilationTaskContext, command: JvmCompilationTask) {
         val i = command.inputs
         val d = command.directories
         if (i.javaSourcesList.isNotEmpty()) {
             val args = mutableListOf(
                 "-cp", "${d.classes}/:${d.temp}/:${i.joinedClasspath}",
                 "-d", d.classes
-            ).let {
+            ).also {
                 it.addAll(
                     // Kotlin takes care of annotation processing.
                     "-proc:none",
@@ -44,9 +45,10 @@ internal class JavaCompiler @Inject constructor(
                     "-target", command.info.toolchainInfo.jvm.jvmTarget
                 )
                 it.addAll(i.javaSourcesList)
-                it.toTypedArray()
             }
-            javacInvoker.compile(args).takeIf { it != 0 }?.also { throw CompilationStatusException("javac failed", it) }
+            context.executeCompilerTask(args, { a, pw ->
+                javacInvoker.compile(a, PrintWriter(pw))
+            })
         }
     }
 }
