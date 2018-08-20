@@ -1,16 +1,18 @@
 package io.bazel.kotlin.builder;
 
+import io.bazel.kotlin.builder.toolchain.CompilationException;
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.utils.CompilationTaskContext;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import org.junit.rules.ExternalResource;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -109,8 +111,13 @@ public abstract class KotlinBuilderResource extends ExternalResource {
     return Objects.requireNonNull(instanceRoot);
   }
 
+  public List<String> outLines() {
+    return outLines;
+  }
+
   @Override
   protected void before() throws Throwable {
+    outLines = null;
     label = "a_test_" + counter.incrementAndGet();
     setTimeout(DEFAULT_TIMEOUT);
     try {
@@ -152,6 +159,7 @@ public abstract class KotlinBuilderResource extends ExternalResource {
 
   private int DEFAULT_TIMEOUT = 10;
   private int timeoutSeconds = DEFAULT_TIMEOUT;
+  private List<String> outLines = null;
 
   /**
    * sets the timeout for the builder tasks.
@@ -165,20 +173,37 @@ public abstract class KotlinBuilderResource extends ExternalResource {
   }
 
   <T, R> R runCompileTask(
-      CompilationTaskContext context, T task, BiFunction<CompilationTaskContext, T, R> operation) {
+      CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
     String curDir = System.getProperty("user.dir");
-    System.setProperty("user.dir", instanceRoot().toAbsolutePath().toString());
-    try {
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    try (PrintStream outputStream = new PrintStream(byteArrayOutputStream)) {
+      System.setProperty("user.dir", instanceRoot().toAbsolutePath().toString());
       CompletableFuture<R> future =
-          CompletableFuture.supplyAsync(() -> operation.apply(context, task));
+          CompletableFuture.supplyAsync(
+              () -> operation.apply(new CompilationTaskContext(info, outputStream), task));
       return timeoutSeconds > 0 ? future.get(timeoutSeconds, TimeUnit.SECONDS) : future.get();
-
+    } catch (ExecutionException e) {
+      if (e.getCause() instanceof CompilationStatusException) {
+        throw (CompilationStatusException) e.getCause();
+      } else if (e.getCause() instanceof CompilationException) {
+        throw (CompilationException) e.getCause();
+      } else {
+        throw new RuntimeException(e.getCause());
+      }
     } catch (TimeoutException e) {
       throw new AssertionError("did not complete in: " + timeoutSeconds);
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
       System.setProperty("user.dir", curDir);
+      outLines =
+          Collections.unmodifiableList(
+              new BufferedReader(
+                      new InputStreamReader(
+                          new ByteArrayInputStream(byteArrayOutputStream.toByteArray())))
+                  .lines()
+                  .peek(System.err::println)
+                  .collect(Collectors.toList()));
     }
   }
 
@@ -195,10 +220,10 @@ public abstract class KotlinBuilderResource extends ExternalResource {
     assertFileExistence(resolved(dir, filePath), false);
   }
 
-  private static void assertFileExistence(Stream<Path> pathStream, boolean shouldexist) {
+  private static void assertFileExistence(Stream<Path> pathStream, boolean shouldExist) {
     pathStream.forEach(
         path -> {
-          if (shouldexist)
+          if (shouldExist)
             assertWithMessage("file did not exist: " + path).that(path.toFile().exists()).isTrue();
           else assertWithMessage("file existed: " + path).that(path.toFile().exists()).isFalse();
         });
@@ -212,7 +237,7 @@ public abstract class KotlinBuilderResource extends ExternalResource {
   /**
    * Normalize a path string.
    *
-   * @param path a path using '/' as the seperator.
+   * @param path a path using '/' as the separator.
    * @return a path string suitable for the target platform.
    */
   private static Path toPlatformPath(String path) {
