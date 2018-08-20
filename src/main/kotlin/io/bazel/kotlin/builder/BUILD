@@ -21,10 +21,10 @@ kt_bootstrap_library(
         "utils/**/*.kt",
     ]),
     deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-preloader",
         "//src/main/protobuf:deps",
         "//src/main/protobuf:kotlin_model",
         "//src/main/protobuf:worker",
+        "@com_github_jetbrains_kotlin//:kotlin-preloader",
         "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
         "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java_util//jar",
         "@io_bazel_rules_kotlin_javax_inject_javax_inject//jar",
@@ -34,7 +34,7 @@ kt_bootstrap_library(
 java_library(
     name = "builder",
     srcs = glob(["*.java"]),
-    visibility = ["//src/main/kotlin:__subpackages__"],
+    visibility = ["//src:__subpackages__"],
     exports = [":builder_kt"],
     runtime_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",

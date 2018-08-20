@@ -11,15 +11,38 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility=["//visibility:private"])
+package(default_visibility = ["//visibility:private"])
+
 load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
+
+_COMMON_DEPS = [
+    "//src/main/kotlin/io/bazel/kotlin/builder",
+    "//src/main/protobuf:kotlin_model",
+    "//third_party/jvm/com/google/truth",
+    "//third_party/jvm/junit",
+    "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
+]
 
 java_library(
     name = "test_lib",
     testonly = 1,
-    srcs = [":KotlinBuilderTestCase.java"],
-    exports = ["//src/main/kotlin:builder_lib_for_tests"],
-    deps = ["//src/main/kotlin:builder_lib_for_tests"],
+    srcs = [
+        "KotlinBuilderJvmTestTask.java",
+        "KotlinBuilderResource.java",
+    ],
+    data = [
+        "//src/main/kotlin:compiler_lib",
+        "@com_github_jetbrains_kotlin//:home",
+    ],
+    exports = _COMMON_DEPS + [
+        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
+        "//src/main/protobuf:deps",
+    ],
+    runtime_deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-reflect",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+    ],
+    deps = _COMMON_DEPS,
 )
 
 kt_rules_test(
@@ -35,15 +58,17 @@ kt_rules_test(
 kt_rules_test(
     name = "KotlinBuilderJvmTest",
     srcs = ["tasks/jvm/KotlinBuilderJvmTest.java"],
+    data = [
+        "//third_party/jvm/com/google/auto/value:auto_value",
+    ],
 )
 
 test_suite(
     name = "builder_tests",
     tests = [
-        ":SourceJarCreatorTest",
         ":JdepsParserTest",
-        ":KotlinBuilderJvmTest"
+        ":KotlinBuilderJvmTest",
+        ":SourceJarCreatorTest",
     ],
-    visibility = ["//visibility:public"]
+    visibility = ["//visibility:public"],
 )
-
