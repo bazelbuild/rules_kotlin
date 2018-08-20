@@ -94,7 +94,7 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource {
   public void runCompileTask(BiConsumer<CompilationTaskContext, JvmCompilationTask> operation) {
     JvmCompilationTask task = taskBuilder.build();
     super.runCompileTask(
-        new CompilationTaskContext(task.getInfo(), System.err),
+        task.getInfo(),
         task,
         (ctx, t) -> {
           operation.accept(ctx, t);
@@ -105,7 +105,6 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource {
   @SuppressWarnings("unused")
   public <R> R runCompileTask(BiFunction<CompilationTaskContext, JvmCompilationTask, R> operation) {
     JvmCompilationTask task = taskBuilder.build();
-    return super.runCompileTask(
-        new CompilationTaskContext(task.getInfo(), System.err), task, operation);
+    return super.runCompileTask(task.getInfo(), task, operation);
   }
 }

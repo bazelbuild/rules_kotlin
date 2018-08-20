@@ -5,6 +5,7 @@ import io.bazel.kotlin.builder.KotlinBuilderComponent;
 import io.bazel.kotlin.builder.KotlinBuilderJvmTestTask;
 import io.bazel.kotlin.builder.KotlinBuilderResource.Dep;
 import io.bazel.kotlin.builder.KotlinBuilderResource.DirectoryType;
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.builder.utils.CompilationTaskContext;
 import io.bazel.kotlin.model.AnnotationProcessor;
@@ -13,6 +14,10 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.List;
+import java.util.function.Consumer;
+
+import static com.google.common.truth.Truth.assertThat;
 import static io.bazel.kotlin.builder.KotlinBuilderResource.KOTLIN_ANNOTATIONS;
 import static io.bazel.kotlin.builder.KotlinBuilderResource.KOTLIN_STDLIB;
 
@@ -154,24 +159,37 @@ public class KotlinBuilderJvmTest {
   }
 
   @Test
+  public void testKotlinErrorRendering() {
+    ctx.addSource("AClass.kt", "package something;" + "class AClass{");
+    testExpectingCompileError(lines -> assertThat(lines.get(0)).startsWith("sources/AClass"));
+  }
+
+  @Test
+  public void testJavaErrorRendering() {
+    ctx.addSource("AClass.kt", "package something;" + "class AClass{}");
+    ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
+    testExpectingCompileError(lines -> assertThat(lines.get(0)).startsWith("sources/AnotherClass"));
+  }
+
+  @Test
   @Ignore("The Kotlin compiler expects a single kotlin file at least.")
   public void testCompileSingleJavaFile() {
     ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
     ctx.runCompileTask(this::jvmCompilationTask);
   }
 
-  @Test
-  @Ignore(
-      "This test needs to test the output of error handling by the compiler, when the kotlin compiler compiles java "
-          + "this test needs to validate it.")
-  public void testWithJavaError() {
-    ctx.addSource("AClass.kt", "package something;" + "class AClass{}");
-    ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
-    ctx.runCompileTask(this::jvmCompilationTask);
-  }
-
   private void jvmCompilationTask(CompilationTaskContext taskContext, JvmCompilationTask task) {
     component.jvmTaskExecutor().execute(taskContext, task);
     ctx.assertFilesExist(task.getOutputs().getJar(), task.getOutputs().getJdeps());
+  }
+
+  private void testExpectingCompileError(Consumer<List<String>> validator) {
+    try {
+      ctx.runCompileTask(this::jvmCompilationTask);
+    } catch (CompilationStatusException ex) {
+      validator.accept(ctx.outLines());
+      return;
+    }
+    throw new RuntimeException("expected an exception");
   }
 }
