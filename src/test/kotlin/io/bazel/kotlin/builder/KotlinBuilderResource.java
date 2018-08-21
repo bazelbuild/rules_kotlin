@@ -3,7 +3,7 @@ package io.bazel.kotlin.builder;
 import io.bazel.kotlin.builder.toolchain.CompilationException;
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.utils.CompilationTaskContext;
-import io.bazel.kotlin.model.CompilationTaskInfo;
+import io.bazel.kotlin.model.*;
 import org.junit.rules.ExternalResource;
 
 import java.io.*;
@@ -16,13 +16,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertWithMessage;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-public abstract class KotlinBuilderResource extends ExternalResource {
+public abstract class KotlinBuilderResource<T> extends ExternalResource {
   public enum DirectoryType {
     INSTANCE_ROOT("test root", null),
     EXTERNAL("bazel external directory", null),
@@ -96,30 +99,50 @@ public abstract class KotlinBuilderResource extends ExternalResource {
           Dep.simpleOf("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar");
 
   private static final AtomicInteger counter = new AtomicInteger(0);
+  private static final int DEFAULT_TIMEOUT = 10;
+
   private Path instanceRoot = null;
   private String label = null;
+  private int timeoutSeconds = DEFAULT_TIMEOUT;
+  private List<String> outLines = null;
 
   KotlinBuilderResource() {}
 
   abstract CompilationTaskInfo.Builder infoBuilder();
 
-  String label() {
+  abstract T buildTask();
+
+  final String label() {
     return Objects.requireNonNull(label);
   }
 
-  Path instanceRoot() {
+  final Path instanceRoot() {
     return Objects.requireNonNull(instanceRoot);
   }
 
-  public List<String> outLines() {
+  @SuppressWarnings("WeakerAccess")
+  public final List<String> outLines() {
     return outLines;
   }
 
   @Override
   protected void before() throws Throwable {
     outLines = null;
-    label = "a_test_" + counter.incrementAndGet();
     setTimeout(DEFAULT_TIMEOUT);
+    label = "a_test_" + counter.incrementAndGet();
+    infoBuilder()
+        .setLabel("//some/bogus:" + label())
+        .setModuleName("some_bogus_module")
+        .setPlatform(Platform.JVM)
+        .setRuleKind(RuleKind.LIBRARY)
+        .setToolchainInfo(
+            KotlinToolchainInfo.newBuilder()
+                .setCommon(
+                    KotlinToolchainInfo.Common.newBuilder()
+                        .setApiVersion("1.2")
+                        .setCoroutines("enabled")
+                        .setLanguageVersion("1.2"))
+                .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
     try {
       this.instanceRoot = Files.createDirectory(BAZEL_TEST_DIR.resolve(Paths.get(label)));
     } catch (IOException e) {
@@ -135,7 +158,7 @@ public abstract class KotlinBuilderResource extends ExternalResource {
     }
   }
 
-  Path directory(DirectoryType type) {
+  final Path directory(DirectoryType type) {
     switch (type) {
       case INSTANCE_ROOT:
         return instanceRoot;
@@ -157,9 +180,15 @@ public abstract class KotlinBuilderResource extends ExternalResource {
     infoBuilder().addAllDebug(Arrays.asList(tags));
   }
 
-  private int DEFAULT_TIMEOUT = 10;
-  private int timeoutSeconds = DEFAULT_TIMEOUT;
-  private List<String> outLines = null;
+  final Path writeSourceFile(String filename, String[] lines) {
+    Path path = directory(DirectoryType.SOURCES).resolve(filename).toAbsolutePath();
+    try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
+      fos.write(String.join("\n", lines).getBytes(UTF_8));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return path;
+  }
 
   /**
    * sets the timeout for the builder tasks.
@@ -172,7 +201,7 @@ public abstract class KotlinBuilderResource extends ExternalResource {
     this.timeoutSeconds = timeoutSeconds;
   }
 
-  <T, R> R runCompileTask(
+  private <R> R runCompileTask(
       CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
     String curDir = System.getProperty("user.dir");
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -207,11 +236,45 @@ public abstract class KotlinBuilderResource extends ExternalResource {
     }
   }
 
+  public final void runCompileTask(BiConsumer<CompilationTaskContext, T> operation) {
+    CompilationTaskInfo info = infoBuilder().build();
+    T task = buildTask();
+    runCompileTask(
+        info,
+        task,
+        (ctx, t) -> {
+          operation.accept(ctx, task);
+          return null;
+        });
+  }
+
+  @SuppressWarnings("unused")
+  public final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
+    return runCompileTask(infoBuilder().build(), buildTask(), operation);
+  }
+
+  /**
+   * Run a compilation task expecting it to fail with a {@link CompilationStatusException}.
+   *
+   * @param task the compilation task
+   * @param validator a consumer for the output produced by the task.
+   */
+  public final void runFailingCompileTaskAndValidateOutput(
+      BiConsumer<CompilationTaskContext, T> task, Consumer<List<String>> validator) {
+    try {
+      runCompileTask(task);
+    } catch (CompilationStatusException ex) {
+      validator.accept(outLines());
+      return;
+    }
+    throw new RuntimeException("compilation task should have failed.");
+  }
+
   public final void assertFilesExist(DirectoryType dir, String... paths) {
     assertFileExistence(resolved(dir, paths), true);
   }
 
-  public void assertFilesExist(String... paths) {
+  public final void assertFilesExist(String... paths) {
     assertFileExistence(Stream.of(paths).map(Paths::get), true);
   }
 

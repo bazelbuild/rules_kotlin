@@ -5,7 +5,6 @@ import io.bazel.kotlin.builder.KotlinBuilderComponent;
 import io.bazel.kotlin.builder.KotlinBuilderJvmTestTask;
 import io.bazel.kotlin.builder.KotlinBuilderResource.Dep;
 import io.bazel.kotlin.builder.KotlinBuilderResource.DirectoryType;
-import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.builder.utils.CompilationTaskContext;
 import io.bazel.kotlin.model.AnnotationProcessor;
@@ -13,9 +12,6 @@ import io.bazel.kotlin.model.JvmCompilationTask;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 import static com.google.common.truth.Truth.assertThat;
 import static io.bazel.kotlin.builder.KotlinBuilderResource.KOTLIN_ANNOTATIONS;
@@ -161,14 +157,17 @@ public class KotlinBuilderJvmTest {
   @Test
   public void testKotlinErrorRendering() {
     ctx.addSource("AClass.kt", "package something;" + "class AClass{");
-    testExpectingCompileError(lines -> assertThat(lines.get(0)).startsWith("sources/AClass"));
+    ctx.runFailingCompileTaskAndValidateOutput(
+        this::jvmCompilationTask, lines -> assertThat(lines.get(0)).startsWith("sources/AClass"));
   }
 
   @Test
   public void testJavaErrorRendering() {
     ctx.addSource("AClass.kt", "package something;" + "class AClass{}");
     ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
-    testExpectingCompileError(lines -> assertThat(lines.get(0)).startsWith("sources/AnotherClass"));
+    ctx.runFailingCompileTaskAndValidateOutput(
+        this::jvmCompilationTask,
+        lines -> assertThat(lines.get(0)).startsWith("sources/AnotherClass"));
   }
 
   @Test
@@ -181,15 +180,5 @@ public class KotlinBuilderJvmTest {
   private void jvmCompilationTask(CompilationTaskContext taskContext, JvmCompilationTask task) {
     component.jvmTaskExecutor().execute(taskContext, task);
     ctx.assertFilesExist(task.getOutputs().getJar(), task.getOutputs().getJdeps());
-  }
-
-  private void testExpectingCompileError(Consumer<List<String>> validator) {
-    try {
-      ctx.runCompileTask(this::jvmCompilationTask);
-    } catch (CompilationStatusException ex) {
-      validator.accept(ctx.outLines());
-      return;
-    }
-    throw new RuntimeException("expected an exception");
   }
 }
