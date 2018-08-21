@@ -16,6 +16,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -119,7 +120,7 @@ internal class JdepsParser private constructor(private val filename: String, pri
         ): Deps.Dependencies {
             val filename = Paths.get(classJar).fileName.toString()
             val jdepsParser = JdepsParser(filename, isImplicit)
-            classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.stream()
+            classPath.split(File.pathSeparator).dropLastWhile { it.isEmpty() }.stream()
                 .forEach { x -> jdepsParser.consumeJarLine(x, Deps.Dependency.Kind.UNUSED) }
             jdepLines.forEach { jdepsParser.processLine(it) }
 
