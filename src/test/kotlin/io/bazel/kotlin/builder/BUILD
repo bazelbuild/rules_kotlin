@@ -27,6 +27,7 @@ java_library(
     name = "test_lib",
     testonly = 1,
     srcs = [
+        "KotlinBuilderJsTestTask.java",
         "KotlinBuilderJvmTestTask.java",
         "KotlinBuilderResource.java",
     ],
@@ -63,10 +64,16 @@ kt_rules_test(
     ],
 )
 
+kt_rules_test(
+    name = "KotlinBuilderJsTest",
+    srcs = ["tasks/js/KotlinBuilderJsTest.java"],
+)
+
 test_suite(
     name = "builder_tests",
     tests = [
         ":JdepsParserTest",
+        ":KotlinBuilderJsTest",
         ":KotlinBuilderJvmTest",
         ":SourceJarCreatorTest",
     ],

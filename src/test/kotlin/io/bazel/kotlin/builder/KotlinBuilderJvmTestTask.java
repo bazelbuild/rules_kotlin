@@ -1,20 +1,12 @@
 package io.bazel.kotlin.builder;
 
-import io.bazel.kotlin.builder.utils.CompilationTaskContext;
-import io.bazel.kotlin.model.*;
+import io.bazel.kotlin.model.AnnotationProcessor;
+import io.bazel.kotlin.model.CompilationTaskInfo;
+import io.bazel.kotlin.model.JvmCompilationTask;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource {
-
+public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCompilationTask> {
   private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
 
   @Override
@@ -23,24 +15,15 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource {
   }
 
   @Override
-  protected void before() throws Throwable {
-    super.before();
-    taskBuilder.clear();
+  JvmCompilationTask buildTask() {
+    return taskBuilder.build();
+  }
 
-    taskBuilder
-        .getInfoBuilder()
-        .setLabel("//some/bogus:" + label())
-        .setModuleName("some_bogus_module")
-        .setPlatform(Platform.JVM)
-        .setRuleKind(RuleKind.LIBRARY)
-        .setToolchainInfo(
-            KotlinToolchainInfo.newBuilder()
-                .setCommon(
-                    KotlinToolchainInfo.Common.newBuilder()
-                        .setApiVersion("1.2")
-                        .setCoroutines("enabled")
-                        .setLanguageVersion("1.2"))
-                .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
+  @Override
+  protected void before() throws Throwable {
+    taskBuilder.clear();
+    super.before();
+
     taskBuilder
         .getDirectoriesBuilder()
         .setClasses(directory(DirectoryType.CLASSES).toAbsolutePath().toString())
@@ -56,20 +39,13 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource {
   }
 
   public void addSource(String filename, String... lines) {
-    Path path = directory(DirectoryType.SOURCES).resolve(filename).toAbsolutePath();
-    try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
-      fos.write(String.join("\n", lines).getBytes(UTF_8));
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-
-    String pathAsString = path.toString();
+    String pathAsString = super.writeSourceFile(filename, lines).toString();
     if (pathAsString.endsWith(".kt")) {
       taskBuilder.getInputsBuilder().addKotlinSources(pathAsString);
     } else if (pathAsString.endsWith(".java")) {
       taskBuilder.getInputsBuilder().addJavaSources(pathAsString);
     } else {
-      throw new RuntimeException("unhandled file type: " + path.toString());
+      throw new RuntimeException("unhandled file type: " + pathAsString);
     }
   }
 
@@ -89,22 +65,5 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource {
               String depString = dependency.toString();
               taskBuilder.getInputsBuilder().addClasspath(depString);
             });
-  }
-
-  public void runCompileTask(BiConsumer<CompilationTaskContext, JvmCompilationTask> operation) {
-    JvmCompilationTask task = taskBuilder.build();
-    super.runCompileTask(
-        task.getInfo(),
-        task,
-        (ctx, t) -> {
-          operation.accept(ctx, t);
-          return null;
-        });
-  }
-
-  @SuppressWarnings("unused")
-  public <R> R runCompileTask(BiFunction<CompilationTaskContext, JvmCompilationTask, R> operation) {
-    JvmCompilationTask task = taskBuilder.build();
-    return super.runCompileTask(task.getInfo(), task, operation);
   }
 }

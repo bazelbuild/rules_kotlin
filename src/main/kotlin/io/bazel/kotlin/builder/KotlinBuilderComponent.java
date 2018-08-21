@@ -20,6 +20,7 @@ import dagger.Component;
 import dagger.Provides;
 import io.bazel.kotlin.builder.tasks.BazelWorker;
 import io.bazel.kotlin.builder.tasks.KotlinBuilder;
+import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.builder.utils.KotlinCompilerPluginArgsEncoder;
@@ -34,12 +35,15 @@ public interface KotlinBuilderComponent {
 
   KotlinJvmTaskExecutor jvmTaskExecutor();
 
+  Kotlin2JsTaskExecutor jsTaskExecutor();
+
   BazelWorker worker();
 
   @Component.Builder
   interface Builder {
     @BindsInstance
     KotlinBuilderComponent.Builder toolchain(KotlinToolchain toolchain);
+
     KotlinBuilderComponent build();
   }
 
