@@ -51,22 +51,31 @@ KOTLIN_HOME=external/com_github_jetbrains_kotlin
 
 function join_by { local IFS="$$1"; shift; echo "$$*"; }
 
+case "$$(uname -s)" in
+    CYGWIN*|MINGW32*|MSYS*)
+        SEP=";"
+        ;;
+    *)
+        SEP=":"
+        ;;
+esac
+
 NAME=%s
-CP="$$(join_by : $(locations :%s))"
+CP="$$(join_by $$SEP $(locations :%s))"
 ARGS="%s"
 
 java -Xmx256M -Xms32M -noverify \
   -cp $${KOTLIN_HOME}/lib/kotlin-preloader.jar org.jetbrains.kotlin.preloading.Preloader \
   -cp $${KOTLIN_HOME}/lib/kotlin-compiler.jar org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
-  -cp $${CP} -d $${NAME}_temp.jar $${ARGS} $(SRCS)
+  -cp $${CP} -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)
 
-$(location @bazel_tools//tools/jdk:singlejar) \
+java -jar $(location @bazel_tools//tools/jdk:singlejar) \
     --normalize \
     --compression \
-    --sources $${NAME}_temp.jar \
+    --sources $(@D)/$${NAME}_temp.jar \
     --output $(OUTS)
 
-rm $${NAME}_temp.jar
+rm $(@D)/$${NAME}_temp.jar
 """ % (name, dep_label, " ".join(_BOOTSTRAP_LIB_ARGS))
     native.genrule(
         name = jar_label,
