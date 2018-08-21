@@ -9,6 +9,7 @@ import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import io.bazel.kotlin.builder.utils.resolveTwinVerified
 import io.bazel.kotlin.builder.utils.verifiedPath
 import io.bazel.kotlin.model.JsCompilationTask
+import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -35,7 +36,7 @@ class Kotlin2JsTaskExecutor @Inject constructor(
     private fun JsCompilationTask.compile(context: CompilationTaskContext) {
         val args = mutableListOf<String>().also {
             it.addAll(passThroughFlagsList)
-            it.addAll("-libraries", inputs.librariesList.joinToString(":"))
+            it.addAll("-libraries", inputs.librariesList.joinToString(File.pathSeparator))
             it.addAll("-output", outputs.js)
             it.addAll(inputs.kotlinSourcesList)
         }
