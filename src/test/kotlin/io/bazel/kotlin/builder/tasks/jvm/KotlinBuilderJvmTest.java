@@ -158,7 +158,8 @@ public class KotlinBuilderJvmTest {
   public void testKotlinErrorRendering() {
     ctx.addSource("AClass.kt", "package something;" + "class AClass{");
     ctx.runFailingCompileTaskAndValidateOutput(
-        this::jvmCompilationTask, lines -> assertThat(lines.get(0)).startsWith("sources/AClass"));
+        this::jvmCompilationTask,
+        lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass")));
   }
 
   @Test
@@ -167,7 +168,7 @@ public class KotlinBuilderJvmTest {
     ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
     ctx.runFailingCompileTaskAndValidateOutput(
         this::jvmCompilationTask,
-        lines -> assertThat(lines.get(0)).startsWith("sources/AnotherClass"));
+        lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AnotherClass")));
   }
 
   @Test

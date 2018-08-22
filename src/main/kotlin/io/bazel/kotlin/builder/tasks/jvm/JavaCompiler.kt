@@ -20,6 +20,7 @@ import io.bazel.kotlin.builder.utils.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.model.JvmCompilationTask
+import java.io.File
 import java.io.PrintWriter
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,12 +29,18 @@ import javax.inject.Singleton
 internal class JavaCompiler @Inject constructor(
     private val javacInvoker: KotlinToolchain.JavacInvoker
 ) {
+    companion object {
+        /**
+         * Separator for a directory in the classpath.
+         */
+        private val DIR_SEP = "${File.separatorChar}${File.pathSeparator}"
+    }
     fun compile(context: CompilationTaskContext, command: JvmCompilationTask) {
         val i = command.inputs
         val d = command.directories
         if (i.javaSourcesList.isNotEmpty()) {
             val args = mutableListOf(
-                "-cp", "${d.classes}/:${d.temp}/:${i.joinedClasspath}",
+                "-cp", "${d.classes}$DIR_SEP${d.temp}$DIR_SEP${i.joinedClasspath}",
                 "-d", d.classes
             ).also {
                 it.addAll(

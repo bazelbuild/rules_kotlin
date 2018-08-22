@@ -2,6 +2,7 @@ package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.CompilationException;
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
+import io.bazel.kotlin.builder.utils.BazelRunFiles;
 import io.bazel.kotlin.builder.utils.CompilationTaskContext;
 import io.bazel.kotlin.model.*;
 import org.junit.rules.ExternalResource;
@@ -51,17 +52,17 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
   public abstract static class Dep {
     private Dep() {}
 
-    abstract Stream<Path> compileJars();
+    abstract Stream<String> compileJars();
 
     private static class Simple extends Dep {
-      private final List<Path> compileJars;
+      private final List<String> compileJars;
 
-      private Simple(List<Path> compileJars) {
+      private Simple(List<String> compileJars) {
         this.compileJars = compileJars;
       }
 
       @Override
-      Stream<Path> compileJars() {
+      Stream<String> compileJars() {
         return compileJars.stream();
       }
     }
@@ -72,16 +73,12 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
     }
 
     public static List<String> classpathOf(Dep... dependencies) {
-      return merge(dependencies).compileJars().map(Path::toString).collect(Collectors.toList());
+      return merge(dependencies).compileJars().collect(Collectors.toList());
     }
 
     public static Dep simpleOf(String compileJar) {
-      return new Simple(Collections.singletonList(toPlatformPath(compileJar).toAbsolutePath()));
-    }
-
-    @SuppressWarnings("unused")
-    static Dep simpleOf(Path compileJar) {
-      return new Simple(Collections.singletonList(compileJar));
+      return new Simple(
+          Collections.singletonList(BazelRunFiles.resolveVerified(compileJar).getAbsolutePath()));
     }
   }
 
@@ -304,10 +301,15 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
    * @return a path string suitable for the target platform.
    */
   private static Path toPlatformPath(String path) {
+    assert !path.startsWith("/") : path + " is an absolute path";
     String[] parts = path.split("/");
     return parts.length == 1
         ? Paths.get(parts[0])
         : Paths.get(parts[0], Arrays.copyOfRange(parts, 1, parts.length));
+  }
+
+  public final String toPlatform(String path) {
+    return KotlinBuilderResource.toPlatformPath(path).toString();
   }
 
   @SuppressWarnings("unused")
