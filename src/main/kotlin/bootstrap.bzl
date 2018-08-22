@@ -75,7 +75,7 @@ rm $${NAME}_temp.jar
             "@bazel_tools//tools/jdk:singlejar",
             dep_label,
         ],
-        toolchains = ["@bazel_tools//tools/jdk:current_java_runtime"],
+        toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
         srcs = srcs,
         outs = [name + ".jar"],
         tags = ["no-ide"],

@@ -50,7 +50,7 @@ EOF
 $(JAVABASE)/bin/jar -cf $@ TeaPot.kt
 rm TeaPot.kt
 """,
-    toolchains = ["@bazel_tools//tools/jdk:current_java_runtime"],
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
 )
 
 kt_jvm_library(
