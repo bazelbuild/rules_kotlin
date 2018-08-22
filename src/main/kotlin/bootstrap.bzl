@@ -55,7 +55,7 @@ NAME=%s
 CP="$$(join_by : $(locations :%s))"
 ARGS="%s"
 
-java -Xmx256M -Xms32M -noverify \
+$(JAVA) -Xmx256M -Xms32M -noverify \
   -cp $${KOTLIN_HOME}/lib/kotlin-preloader.jar org.jetbrains.kotlin.preloading.Preloader \
   -cp $${KOTLIN_HOME}/lib/kotlin-compiler.jar org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
   -cp $${CP} -d $${NAME}_temp.jar $${ARGS} $(SRCS)
@@ -72,10 +72,10 @@ rm $${NAME}_temp.jar
         name = jar_label,
         tools = [
             "@com_github_jetbrains_kotlin//:home",
-            "@local_jdk//:jdk",
             "@bazel_tools//tools/jdk:singlejar",
             dep_label,
         ],
+        toolchains = ["@bazel_tools//tools/jdk:current_java_runtime"],
         srcs = srcs,
         outs = [name + ".jar"],
         tags = ["no-ide"],

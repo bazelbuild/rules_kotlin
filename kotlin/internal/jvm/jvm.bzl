@@ -250,6 +250,9 @@ kt_jvm_binary = rule(
             doc = """Name of class with main() method to use as entry point.""",
             mandatory = True,
         ),
+        "_jdk": attr.label(
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+        ),
     }.items()),
     executable = True,
     outputs = _common_outputs,
@@ -280,6 +283,9 @@ kt_jvm_test = rule(
             default = "",
         ),
         "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
+        "_jdk": attr.label(
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+        ),
     },
     executable = True,
     outputs = _common_outputs,
