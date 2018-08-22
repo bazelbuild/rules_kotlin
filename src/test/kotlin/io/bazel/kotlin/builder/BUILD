@@ -27,6 +27,7 @@ java_library(
     name = "test_lib",
     testonly = 1,
     srcs = [
+        "Dep.java",
         "KotlinBuilderJsTestTask.java",
         "KotlinBuilderJvmTestTask.java",
         "KotlinBuilderResource.java",
@@ -43,7 +44,9 @@ java_library(
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
     ],
-    deps = _COMMON_DEPS,
+    deps = _COMMON_DEPS + [
+        "//third_party:autovalue",
+    ],
 )
 
 kt_rules_test(
@@ -57,16 +60,21 @@ kt_rules_test(
 )
 
 kt_rules_test(
-    name = "KotlinBuilderJvmTest",
-    srcs = ["tasks/jvm/KotlinBuilderJvmTest.java"],
+    name = "KotlinBuilderJvmBasicTest",
+    srcs = ["tasks/jvm/KotlinBuilderJvmBasicTest.java"],
+)
+
+kt_rules_test(
+    name = "KotlinBuilderJvmKaptTest",
+    srcs = ["tasks/jvm/KotlinBuilderJvmKaptTest.java"],
     data = [
         "//third_party/jvm/com/google/auto/value:auto_value",
-    ],
+    ]
 )
 
 kt_rules_test(
     name = "KotlinBuilderJsTest",
-    srcs = ["tasks/js/KotlinBuilderJsTest.java"],
+    srcs = ["tasks/js/KotlinBuilderJsTest.java"]
 )
 
 test_suite(
@@ -74,7 +82,8 @@ test_suite(
     tests = [
         ":JdepsParserTest",
         ":KotlinBuilderJsTest",
-        ":KotlinBuilderJvmTest",
+        ":KotlinBuilderJvmKaptTest",
+        ":KotlinBuilderJvmBasicTest",
         ":SourceJarCreatorTest",
     ],
     visibility = ["//visibility:public"],
