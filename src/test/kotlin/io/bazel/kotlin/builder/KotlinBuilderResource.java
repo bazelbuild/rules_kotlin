@@ -1,9 +1,27 @@
+/*
+ * Copyright 2018 The Bazel Authors. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.CompilationException;
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.utils.CompilationTaskContext;
-import io.bazel.kotlin.model.*;
+import io.bazel.kotlin.model.CompilationTaskInfo;
+import io.bazel.kotlin.model.KotlinToolchainInfo;
+import io.bazel.kotlin.model.Platform;
+import io.bazel.kotlin.model.RuleKind;
 import org.junit.rules.ExternalResource;
 
 import java.io.*;
@@ -16,7 +34,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -48,55 +65,9 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
     }
   }
 
-  public abstract static class Dep {
-    private Dep() {}
-
-    abstract Stream<Path> compileJars();
-
-    private static class Simple extends Dep {
-      private final List<Path> compileJars;
-
-      private Simple(List<Path> compileJars) {
-        this.compileJars = compileJars;
-      }
-
-      @Override
-      Stream<Path> compileJars() {
-        return compileJars.stream();
-      }
-    }
-
-    static Dep merge(Dep... dependencies) {
-      return new Simple(
-          Stream.of(dependencies).flatMap(Dep::compileJars).collect(Collectors.toList()));
-    }
-
-    public static List<String> classpathOf(Dep... dependencies) {
-      return merge(dependencies).compileJars().map(Path::toString).collect(Collectors.toList());
-    }
-
-    public static Dep simpleOf(String compileJar) {
-      return new Simple(Collections.singletonList(toPlatformPath(compileJar).toAbsolutePath()));
-    }
-
-    @SuppressWarnings("unused")
-    static Dep simpleOf(Path compileJar) {
-      return new Simple(Collections.singletonList(compileJar));
-    }
-  }
-
   private static final Path
       BAZEL_TEST_DIR = Paths.get(Objects.requireNonNull(System.getenv("TEST_TMPDIR"))),
       EXTERNAL_PATH = Paths.get("external");
-  @SuppressWarnings("unused")
-  public static Dep
-      KOTLIN_ANNOTATIONS =
-          Dep.simpleOf("external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar"),
-      KOTLIN_STDLIB = Dep.simpleOf("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar"),
-      KOTLIN_STDLIB_JDK7 =
-          Dep.simpleOf("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar"),
-      KOTLIN_STDLIB_JDK8 =
-          Dep.simpleOf("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar");
 
   private static final AtomicInteger counter = new AtomicInteger(0);
   private static final int DEFAULT_TIMEOUT = 10;
@@ -236,21 +207,10 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
     }
   }
 
-  public final void runCompileTask(BiConsumer<CompilationTaskContext, T> operation) {
+  final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
     CompilationTaskInfo info = infoBuilder().build();
     T task = buildTask();
-    runCompileTask(
-        info,
-        task,
-        (ctx, t) -> {
-          operation.accept(ctx, task);
-          return null;
-        });
-  }
-
-  @SuppressWarnings("unused")
-  public final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
-    return runCompileTask(infoBuilder().build(), buildTask(), operation);
+    return runCompileTask(info, task, (ctx, t) -> operation.apply(ctx, task));
   }
 
   /**
@@ -260,9 +220,9 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
    * @param validator a consumer for the output produced by the task.
    */
   public final void runFailingCompileTaskAndValidateOutput(
-      BiConsumer<CompilationTaskContext, T> task, Consumer<List<String>> validator) {
+      Runnable task, Consumer<List<String>> validator) {
     try {
-      runCompileTask(task);
+      task.run();
     } catch (CompilationStatusException ex) {
       validator.accept(outLines());
       return;
@@ -274,7 +234,7 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
     assertFileExistence(resolved(dir, paths), true);
   }
 
-  public final void assertFilesExist(String... paths) {
+  final void assertFilesExist(String... paths) {
     assertFileExistence(Stream.of(paths).map(Paths::get), true);
   }
 
@@ -304,10 +264,15 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
    * @return a path string suitable for the target platform.
    */
   private static Path toPlatformPath(String path) {
+    assert !path.startsWith("/") : path + " is an absolute path";
     String[] parts = path.split("/");
     return parts.length == 1
         ? Paths.get(parts[0])
         : Paths.get(parts[0], Arrays.copyOfRange(parts, 1, parts.length));
+  }
+
+  public final String toPlatform(String path) {
+    return KotlinBuilderResource.toPlatformPath(path).toString();
   }
 
   @SuppressWarnings("unused")
