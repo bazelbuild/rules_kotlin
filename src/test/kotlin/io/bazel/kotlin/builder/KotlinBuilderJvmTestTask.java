@@ -1,13 +1,53 @@
+/*
+ * Copyright 2018 The Bazel Authors. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.bazel.kotlin.builder;
 
+import com.google.common.collect.ImmutableSet;
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.AnnotationProcessor;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCompilationTask> {
+  @SuppressWarnings({"unused", "WeakerAccess"})
+  public static Dep
+      KOTLIN_ANNOTATIONS =
+          Dep.importJar(
+              "kotlin-annotations",
+              "external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar"),
+      KOTLIN_STDLIB =
+          Dep.importJar(
+              "kotlin-stdlib", "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar"),
+      KOTLIN_STDLIB_JDK7 =
+          Dep.importJar(
+              "kotlin-stdlib-jdk7",
+              "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar"),
+      KOTLIN_STDLIB_JDK8 =
+          Dep.importJar(
+              "kotlin-stdlib-jdk8",
+              "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar");
+
   private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
+  private static final KotlinBuilderComponent component =
+      DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
 
   @Override
   CompilationTaskInfo.Builder infoBuilder() {
@@ -20,7 +60,7 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCom
   }
 
   @Override
-  protected void before() throws Throwable {
+  protected final void before() throws Throwable {
     taskBuilder.clear();
     super.before();
 
@@ -36,6 +76,14 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCom
         .setJar(instanceRoot().resolve("jar_file.jar").toAbsolutePath().toString())
         .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString())
         .setSrcjar(instanceRoot().resolve("jar_file-sources.jar").toAbsolutePath().toString());
+  }
+
+  private void resetForNext() {
+    try {
+      before();
+    } catch (Throwable throwable) {
+      throw new RuntimeException(throwable);
+    }
   }
 
   public void addSource(String filename, String... lines) {
@@ -57,12 +105,34 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCom
   }
 
   public void addDirectDependencies(Dep... dependencies) {
-    Dep.merge(dependencies)
-        .compileJars()
-        .forEach(
-            (dependency) ->
-                taskBuilder
-                    .getInputsBuilder()
-                    .addClasspath(dependency));
+    Dep.classpathOf(dependencies)
+        .forEach((dependency) -> taskBuilder.getInputsBuilder().addClasspath(dependency));
+  }
+
+  private Dep currentDep() {
+    return Dep.builder()
+        .label(label())
+        .compileJars(ImmutableSet.of(taskBuilder.getOutputs().getJar()))
+        .runtimeDeps(ImmutableSet.copyOf(taskBuilder.getInputs().getClasspathList()))
+        .build();
+  }
+
+  @SafeVarargs
+  public final Dep runCompileTask(Consumer<KotlinBuilderJvmTestTask>... setup) {
+    Stream.of(setup).forEach(it -> it.accept(this));
+    return runCompileTask(
+        (taskContext, task) -> {
+          component.jvmTaskExecutor().execute(taskContext, task);
+          assertFilesExist(task.getOutputs().getJar(), task.getOutputs().getJdeps());
+          return currentDep();
+        });
+  }
+
+  /** Run a single compile task returning a dep and resetting the context. */
+  @SafeVarargs
+  public final Dep supplyDepTask(Consumer<KotlinBuilderJvmTestTask>... setup) {
+    Dep dep = runCompileTask(setup);
+    resetForNext();
+    return dep;
   }
 }

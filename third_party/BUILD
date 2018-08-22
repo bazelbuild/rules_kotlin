@@ -29,6 +29,21 @@ kt_jvm_import(
 )
 
 java_plugin(
+    name = "autovalue_plugin",
+    generates_api = 1,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    visibility = ["//visibility:private"],
+    deps = ["//third_party/jvm/com/google/auto/value:auto_value"],
+)
+
+java_library(
+    name = "autovalue",
+    exported_plugins = [":autovalue_plugin"],
+    neverlink = 1,
+    exports = ["//third_party/jvm/com/google/auto/value:auto_value"],
+)
+
+java_plugin(
     name = "dagger_component_plugin",
     generates_api = 1,
     processor_class = "dagger.internal.codegen.ComponentProcessor",
