@@ -30,7 +30,8 @@ public class KotlinBuilderJsTest {
   public void testJsErrorRendering() {
     ctx.addSource("AClass.kt", "package something", "class AClass{");
     ctx.runFailingCompileTaskAndValidateOutput(
-        this::jsCompilationTask, lines -> assertThat(lines.get(0)).startsWith("sources/AClass.kt"));
+        this::jsCompilationTask,
+        lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass.kt")));
   }
 
   private void jsCompilationTask(CompilationTaskContext taskContext, JsCompilationTask task) {

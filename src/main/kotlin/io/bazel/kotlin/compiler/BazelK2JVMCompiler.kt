@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
+import java.io.File
 
 @Suppress("unused")
 class BazelK2JVMCompiler(private val delegate: K2JVMCompiler = K2JVMCompiler()) {
@@ -34,7 +35,7 @@ class BazelK2JVMCompiler(private val delegate: K2JVMCompiler = K2JVMCompiler()) 
             // https://github.com/bazelbuild/rules_kotlin/issues/69: remove once jetbrains adds a flag for it.
                 args[i].startsWith("--friend-paths") -> {
                     i++
-                    friendsPaths = args[i].split(":").toTypedArray()
+                    friendsPaths = args[i].split(File.pathSeparator).toTypedArray()
                 }
                 else -> tally += args[i]
             }
