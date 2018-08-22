@@ -60,10 +60,9 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCom
     Dep.merge(dependencies)
         .compileJars()
         .forEach(
-            (dependency) -> {
-              assert dependency.toFile().exists();
-              String depString = dependency.toString();
-              taskBuilder.getInputsBuilder().addClasspath(depString);
-            });
+            (dependency) ->
+                taskBuilder
+                    .getInputsBuilder()
+                    .addClasspath(dependency));
   }
 }

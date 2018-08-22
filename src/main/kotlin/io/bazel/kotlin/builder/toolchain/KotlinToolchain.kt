@@ -15,6 +15,7 @@
  */
 package io.bazel.kotlin.builder.toolchain
 
+import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
@@ -45,31 +46,38 @@ class KotlinToolchain private constructor(
         internal val NO_ARGS = arrayOf<Any>()
 
         private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
-        private val javaRunfiles get() = Paths.get(System.getenv("JAVA_RUNFILES"))
 
-        private fun createClassLoader(javaHome: Path, kotlinHome: Path): ClassLoader {
-            val preloadJars = mutableListOf<File>().also {
-                it += kotlinHome.resolveVerified("lib", "kotlin-compiler.jar")
-                it += javaRunfiles.resolveVerified("io_bazel_rules_kotlin", "src", "main", "kotlin", "compiler_lib.jar")
-                if (!isJdk9OrNewer) {
-                    it += javaHome.resolveVerified("lib", "tools.jar")
-                }
-            }
-            return ClassPreloadingUtils.preloadClasses(
-                preloadJars,
+        private fun createClassLoader(javaHome: Path, baseJars: List<File>): ClassLoader =
+            ClassPreloadingUtils.preloadClasses(
+                mutableListOf<File>().also {
+                    it += baseJars
+                    if (!isJdk9OrNewer) {
+                        it += javaHome.resolveVerified("lib", "tools.jar")
+                    }
+                },
                 Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
                 ClassLoader.getSystemClassLoader(),
                 null
             )
-        }
 
         @JvmStatic
         fun createToolchain(): KotlinToolchain {
-            val kotlinHome = Paths.get("external", "com_github_jetbrains_kotlin")
             val javaHome = Paths.get(System.getProperty("java.home")).let { path ->
                 path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
             }
-            return KotlinToolchain(kotlinHome, createClassLoader(javaHome, kotlinHome))
+            val kotlinCompilerJar = BazelRunFiles.resolveVerified(
+                "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
+            return KotlinToolchain(
+                kotlinCompilerJar.toPath().parent.parent,
+                createClassLoader(
+                    javaHome,
+                    listOf(
+                        kotlinCompilerJar,
+                        BazelRunFiles.resolveVerified(
+                            "io_bazel_rules_kotlin", "src", "main", "kotlin", "compiler_lib.jar")
+                    )
+                )
+            )
         }
     }
 

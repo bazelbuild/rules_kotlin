@@ -47,32 +47,47 @@ def kt_bootstrap_library(name, srcs, visibility = [], deps = [], neverlink_deps 
         visibility = ["//visibility:private"],
     )
     command = """
-KOTLIN_HOME=external/com_github_jetbrains_kotlin
-
 function join_by { local IFS="$$1"; shift; echo "$$*"; }
-
+case "$$(uname -s)" in
+    CYGWIN*|MINGW32*|MSYS*)
+        SEP=";"
+        ;;
+    *)
+        SEP=":"
+        ;;
+esac
 NAME=%s
-CP="$$(join_by : $(locations :%s))"
+CP="$$(join_by $$SEP $(locations :%s))"
 ARGS="%s"
 
-java -Xmx256M -Xms32M -noverify \
-  -cp $${KOTLIN_HOME}/lib/kotlin-preloader.jar org.jetbrains.kotlin.preloading.Preloader \
-  -cp $${KOTLIN_HOME}/lib/kotlin-compiler.jar org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
-  -cp $${CP} -d $${NAME}_temp.jar $${ARGS} $(SRCS)
+$(JAVA) -Xmx256M -Xms32M -noverify \
+  -cp $(location @com_github_jetbrains_kotlin//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
+  -cp $(location @com_github_jetbrains_kotlin//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+  -cp $${CP} -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)
 
-$(location @bazel_tools//tools/jdk:singlejar) \
+case "$(location @bazel_tools//tools/jdk:singlejar)" in
+    *.jar)
+        SJ="$(JAVA) -jar $(location @bazel_tools//tools/jdk:singlejar)"
+        ;;
+    *)
+        SJ="$(location @bazel_tools//tools/jdk:singlejar)"
+        ;;
+esac
+
+$$SJ \
     --normalize \
     --compression \
-    --sources $${NAME}_temp.jar \
+    --sources $(@D)/$${NAME}_temp.jar \
     --output $(OUTS)
 
-rm $${NAME}_temp.jar
+rm $(@D)/$${NAME}_temp.jar
 """ % (name, dep_label, " ".join(_BOOTSTRAP_LIB_ARGS))
     native.genrule(
         name = jar_label,
         tools = [
             "@com_github_jetbrains_kotlin//:home",
-            "@local_jdk//:jdk",
+            "@com_github_jetbrains_kotlin//:kotlin-preloader",
+            "@com_github_jetbrains_kotlin//:kotlin-compiler",
             "@bazel_tools//tools/jdk:singlejar",
             dep_label,
         ],
@@ -80,6 +95,9 @@ rm $${NAME}_temp.jar
         outs = [name + ".jar"],
         tags = ["no-ide"],
         visibility = ["//visibility:private"],
+        toolchains = [
+            "@bazel_tools//tools/jdk:current_host_java_runtime",
+        ],
         cmd = command,
     )
     native.java_import(
