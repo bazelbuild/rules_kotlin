@@ -23,15 +23,18 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
     base_name = name + "_base"
     kt_name = name + "_kt"
 
+    base_deps = deps + ["@io_bazel_rules_kotlin//kotlin/internal/jvm:android_sdk"]
+
     native.android_library(
         name = base_name,
         visibility = ["//visibility:private"],
+        deps = base_deps,
         **kwargs
     )
     _kt_jvm_library(
         name = kt_name,
         srcs = srcs,
-        deps = deps + ["@io_bazel_rules_kotlin//kotlin/internal/jvm:android_sdk", base_name],
+        deps = base_deps + [base_name],
         plugins = plugins,
         visibility = ["//visibility:private"],
     )
