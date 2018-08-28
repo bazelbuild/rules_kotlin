@@ -69,12 +69,12 @@ kt_rules_test(
     srcs = ["tasks/jvm/KotlinBuilderJvmKaptTest.java"],
     data = [
         "//third_party/jvm/com/google/auto/value:auto_value",
-    ]
+    ],
 )
 
 kt_rules_test(
     name = "KotlinBuilderJsTest",
-    srcs = ["tasks/js/KotlinBuilderJsTest.java"]
+    srcs = ["tasks/js/KotlinBuilderJsTest.java"],
 )
 
 test_suite(
@@ -82,8 +82,8 @@ test_suite(
     tests = [
         ":JdepsParserTest",
         ":KotlinBuilderJsTest",
-        ":KotlinBuilderJvmKaptTest",
         ":KotlinBuilderJvmBasicTest",
+        ":KotlinBuilderJvmKaptTest",
         ":SourceJarCreatorTest",
     ],
     visibility = ["//visibility:public"],

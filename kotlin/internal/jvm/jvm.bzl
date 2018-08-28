@@ -124,11 +124,8 @@ _implicit_deps = {
         default = Label("@bazel_tools//tools/zip:zipper"),
         allow_files = True,
     ),
-    "_java": attr.label(
-        executable = True,
-        cfg = "host",
-        default = Label("@bazel_tools//tools/jdk:java"),
-        allow_files = True,
+    "_java_runtime": attr.label(
+        default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
     ),
     "_java_stub_template": attr.label(
         cfg = "host",
