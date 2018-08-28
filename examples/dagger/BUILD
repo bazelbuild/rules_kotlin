@@ -43,15 +43,14 @@ genrule(
     cmd = """
 cat << EOF > TeaPot.kt
 package tea
-
 object TeaPot {
     fun isEmpty() = true
 }
 EOF
-external/local_jdk/bin/jar -cf $@ TeaPot.kt
+$(JAVABASE)/bin/jar -cf $@ TeaPot.kt
 rm TeaPot.kt
 """,
-    tools = ["@local_jdk//:jdk"],
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
 )
 
 kt_jvm_library(
