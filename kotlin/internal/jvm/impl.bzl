@@ -47,6 +47,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
     classpath = ":".join(["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()])
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
+    javabin = str(ctx.attr._jdk[java_common.JavaRuntimeInfo].java_executable_exec_path)
 
     ctx.actions.expand_template(
         template = template,
@@ -54,7 +55,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
         substitutions = {
             "%classpath%": classpath,
             "%java_start_class%": main_class,
-            "%javabin%": "JAVABIN=${RUNPATH}" + ctx.executable._java.short_path,
+            "%javabin%": javabin,
             "%jvm_flags%": jvm_flags,
             "%set_jacoco_metadata%": "",
             "%workspace_prefix%": ctx.workspace_name + "/",

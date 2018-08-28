@@ -6,6 +6,9 @@ platforms:
   ubuntu1604:
     test_targets:
     - "//:all_tests"
+  rbe_ubuntu1604:
+    test_targets:
+    - "//:all_tests"
   macos:
     test_targets:
     - "//:all_tests"
