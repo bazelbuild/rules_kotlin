@@ -18,26 +18,6 @@ package bazel.kotlin;
 option java_package = "io.bazel.kotlin.model";
 option java_multiple_files = true;
 
-// An abstract definition of an annotation processor. This is encoded into a format understood by kapt3.
-// +stable
-message AnnotationProcessor {
-    // The annotation processor class.
-    string processor_class = 1;
-    // The Bazel `java_plugin` `generates_api` attribute.
-    bool generates_api = 2;
-    // The full transitive classpath required for annotation processing.
-    repeated string classpath = 3;
-    // The label of the plugin.
-    string label = 4;
-}
-
-// A container for all of the types of compiler plugins needed by the kotlin compilers.
-// +stable
-message CompilerPlugins {
-    // Regular java annotation_processor descriptors.
-    repeated AnnotationProcessor annotation_processors = 1;
-}
-
 // Toolchain info this contains info to be used to configure the compile tasks as well as configuring certain features
 // in IDE plugins.
 // +stable
@@ -90,16 +70,14 @@ message CompilationTaskInfo {
     string passthrough_flags = 5;
     // Toolchain info for this build.
     KotlinToolchainInfo toolchain_info = 6;
-    // Compiler plugin descriptors.
-    CompilerPlugins plugins = 7;
     // Paths to Jars that the kotlin compiler will allow package private access to.
-    repeated string friend_paths = 8;
+    repeated string friend_paths = 7;
     // The path of the primary output for the task, this is derived from the flagfile.
-    string primary_output_path = 9;
+    string primary_output_path = 8;
     // Strings to enable various debugging behaviours
     // trace: enables trace logging.
     // timings: causes timing information to be printed at the of an action.
-    repeated string debug = 10;
+    repeated string debug = 9;
 }
 
 // Mested messages not marked with stable could be refactored.
@@ -140,6 +118,10 @@ message JvmCompilationTask {
         repeated string java_sources = 5;
         // Jars containing additional sources.
         repeated string source_jars = 6;
+        // Annotation processor FQNames
+        repeated string processors = 7;
+        // Annotation processor classpath.
+        repeated string processorpaths = 8;
     }
 
     CompilationTaskInfo info = 1;

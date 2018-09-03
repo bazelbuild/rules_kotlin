@@ -27,7 +27,7 @@ java_library(
     name = "test_lib",
     testonly = 1,
     srcs = [
-        "Dep.java",
+        "Deps.java",
         "KotlinBuilderJsTestTask.java",
         "KotlinBuilderJvmTestTask.java",
         "KotlinBuilderResource.java",

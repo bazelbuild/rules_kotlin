@@ -39,7 +39,6 @@ java_library(
     runtime_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
-        "@io_bazel_rules_kotlin_com_google_code_gson_gson//jar",
     ],
     deps = [
         ":builder_kt",

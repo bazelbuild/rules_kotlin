@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.util.*
 
+// TODO(hs) move the kapt specific stuff to the JVM package.
 class KotlinCompilerPluginArgsEncoder(
     private val jarPath: String,
     private val pluginId: String
@@ -76,21 +77,18 @@ class KotlinCompilerPluginArgsEncoder(
 
         // "configuration" is an undocumented kapt3 argument. preparing the arguments this way is the only way to get more than one annotation processor class
         // passed to kotlinc.
-        fun encode(): List<String> =
-            listOf(
-                "-Xplugin=$jarPath",
-                "-P", "plugin:$pluginId:configuration=${encodeMultiMap(
-                    tally
-                )}"
-            )
+        fun encode(): List<String> = listOf(
+            "-Xplugin=$jarPath",
+            "-P", "plugin:$pluginId:configuration=${encodeMultiMap(tally)}"
+        )
     }
 
-    fun encode(context: CompilationTaskContext, command: JvmCompilationTask): List<String> {
+    fun encode(context: CompilationTaskContext, task: JvmCompilationTask): List<String> {
         val javacArgs = mutableMapOf<String, String>(
-            "-target" to command.info.toolchainInfo.jvm.jvmTarget
+            "-target" to task.info.toolchainInfo.jvm.jvmTarget
         )
-        val d = command.directories
-        return command.info.plugins.takeIf { it.annotationProcessorsList.isNotEmpty() }?.let { plugin ->
+        val d = task.directories
+        return if (task.inputs.processorsList.isNotEmpty()) {
             PluginArgs().let { arg ->
                 arg["sources"] = d.generatedSources.toString()
                 arg["classes"] = d.generatedClasses.toString()
@@ -102,13 +100,12 @@ class KotlinCompilerPluginArgsEncoder(
                 context.whenTracing {
                     arg["verbose"] = "true"
                 }
-
-                arg["processors"] = plugin.annotationProcessorsList
-                    .filter { it.processorClass.isNotEmpty() }
-                    .onEach { processor -> processor.classpathList.forEach { arg.bindMulti("apclasspath", it) } }
-                    .joinToString(",") { it.processorClass }
+                arg["processors"] = task.inputs.processorsList.joinToString(",")
+                task.inputs.processorpathsList.forEach { arg.bindMulti("apclasspath", it) }
                 arg.encode()
             }
-        } ?: emptyList()
+        } else {
+            emptyList()
+        }
     }
 }
