@@ -15,7 +15,6 @@
  */
 package io.bazel.kotlin.builder.tasks
 
-import com.google.protobuf.util.JsonFormat
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
@@ -39,13 +38,6 @@ class KotlinBuilder @Inject internal constructor(
 ) : CommandLineProgram {
     companion object {
         @JvmStatic
-        private val jsonTypeRegistry = JsonFormat.TypeRegistry.newBuilder()
-            .add(KotlinModel.getDescriptor().messageTypes).build()
-
-        @JvmStatic
-        private val jsonFormat: JsonFormat.Parser = JsonFormat.parser().usingTypeRegistry(jsonTypeRegistry)
-
-        @JvmStatic
         private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
     }
 
@@ -63,7 +55,7 @@ class KotlinBuilder @Inject internal constructor(
             success = true
         } catch (ex: CompilationStatusException) {
             status = ex.status
-        } catch(throwable: Throwable) {
+        } catch (throwable: Throwable) {
             context.reportUnhandledException(throwable)
             throw throwable
         } finally {
@@ -108,7 +100,7 @@ class KotlinBuilder @Inject internal constructor(
         SOURCE_JARS("--source_jars"),
         SOURCE_PATH("--sourcepath"),
         BOOT_CLASSPATH("--bootclasspath"),
-        PROCESS_PATH("--processorpath"),
+        PROCESSOR_PATH("--processorpath"),
         PROCESSORS("--processors"),
         EXT_CLASSPATH("--extclasspath"),
         EXT_DIR("--extdir"),
@@ -131,7 +123,6 @@ class KotlinBuilder @Inject internal constructor(
         JVM_TARGET("--kotlin_jvm_target"),
         OUTPUT_SRCJAR("--kotlin_output_srcjar"),
         GENERATED_CLASSDIR("--kotlin_generated_classdir"),
-        PLUGINS("--kotlin_plugins"),
         FRIEND_PATHS("--kotlin_friend_paths"),
         OUTPUT_JDEPS("--kotlin_output_jdeps"),
         OUTPUT_JS_JAR("--kotlin_output_js_jar"),
@@ -217,6 +208,9 @@ class KotlinBuilder @Inject internal constructor(
                 putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY))
                 putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.INDIRECT_DEPENDENCY))
 
+                addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
+                addAllProcessorpaths(argMap.optional(JavaBuilderFlags.PROCESSOR_PATH) ?: emptyList())
+
                 argMap.optional(JavaBuilderFlags.SOURCES)?.iterator()?.partitionJvmSources(
                     { addKotlinSources(it) },
                     { addJavaSources(it) }
@@ -228,13 +222,6 @@ class KotlinBuilder @Inject internal constructor(
 
             with(root.infoBuilder) {
                 toolchainInfoBuilder.jvmBuilder.jvmTarget = argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET)
-
-                argMap.optionalSingle(KotlinBuilderFlags.PLUGINS)?.let { input ->
-                    plugins = CompilerPlugins.newBuilder().let {
-                        jsonFormat.merge(input, it)
-                        it.build()
-                    }
-                }
             }
             root.build()
         }

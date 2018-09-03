@@ -15,16 +15,18 @@
  */
 package io.bazel.kotlin.builder;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
-import io.bazel.kotlin.model.AnnotationProcessor;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static io.bazel.kotlin.builder.Deps.*;
 
 public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCompilationTask> {
   @SuppressWarnings({"unused", "WeakerAccess"})
@@ -98,10 +100,18 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCom
   }
 
   public void addAnnotationProcessors(AnnotationProcessor... annotationProcessors) {
+    Preconditions.checkState(
+        taskBuilder.getInputs().getProcessorsList().isEmpty(), "processors already set");
+    HashSet<String> processorClasses = new HashSet<>();
     taskBuilder
-        .getInfoBuilder()
-        .getPluginsBuilder()
-        .addAllAnnotationProcessors(Arrays.asList(annotationProcessors));
+        .getInputsBuilder()
+        .addAllProcessorpaths(
+            Stream.of(annotationProcessors)
+                .peek(it -> processorClasses.add(it.processClass()))
+                .flatMap(it -> it.processorPath().stream())
+                .distinct()
+                .collect(Collectors.toList()))
+        .addAllProcessors(processorClasses);
   }
 
   public void addDirectDependencies(Dep... dependencies) {

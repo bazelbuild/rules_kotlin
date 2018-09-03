@@ -15,10 +15,10 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm;
 
-import io.bazel.kotlin.builder.Dep;
+import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
+import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.KotlinBuilderJvmTestTask;
 import io.bazel.kotlin.builder.KotlinBuilderResource;
-import io.bazel.kotlin.model.AnnotationProcessor;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,11 +38,10 @@ public class KotlinBuilderJvmKaptTest {
           "external/io_bazel_rules_kotlin_com_google_auto_value_auto_value"
               + "/jar/io_bazel_rules_kotlin_com_google_auto_value_auto_value.jar");
   private static final AnnotationProcessor AUTO_VALUE_ANNOTATION_PROCESSOR =
-      AnnotationProcessor.newBuilder()
-          .setLabel("autovalue")
-          .setProcessorClass("com.google.auto.value.processor.AutoValueProcessor")
-          .addAllClasspath(
-              Dep.classpathOf(AUTO_VALUE, KOTLIN_ANNOTATIONS).collect(Collectors.toList()))
+      AnnotationProcessor.builder()
+          .processClass("com.google.auto.value.processor.AutoValueProcessor")
+          .processorPath(
+              Dep.classpathOf(AUTO_VALUE, KOTLIN_ANNOTATIONS).collect(Collectors.toSet()))
           .build();
 
   @Rule public KotlinBuilderJvmTestTask ctx = new KotlinBuilderJvmTestTask();
