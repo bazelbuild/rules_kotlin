@@ -46,7 +46,6 @@ In the project's `WORKSPACE`, declare the external repository and initialize the
 this:
 
 ```build
-kotlin_release_version="1.2.30"
 rules_kotlin_version = "67f4a6050584730ebae7f8a40435a209f8e0b48e"
 
 http_archive(
@@ -57,7 +56,7 @@ http_archive(
 )
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories(kotlin_release_version=kotlin_release_version)
+kotlin_repositories()
 kt_register_toolchains()
 ```
 

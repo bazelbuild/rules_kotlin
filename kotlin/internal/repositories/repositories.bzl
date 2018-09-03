@@ -24,16 +24,18 @@ load(
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
 )
 load(
-    "//kotlin/internal/repositories:compiler_releases.bzl",
-    _KOTLIN_COMPILER_RELEASES = "KOTLIN_COMPILER_RELEASES",
-    _KOTLIN_CURRENT_RELEASE = "KOTLIN_CURRENT_RELEASE",
-)
-load(
     "//third_party/jvm:workspace.bzl",
     _maven_dependencies = "maven_dependencies",
 )
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
+
+_KOTLIN_CURRENT_COMPILER_RELEASE = {
+    "urls": [
+        "https://github.com/JetBrains/kotlin/releases/download/v1.2.61/kotlin-compiler-1.2.61.zip",
+    ],
+    "sha256": "be6d45385029ae99dee38fc77f554bddd49761067a532bfbf6bbf1b7348d5bbf",
+}
 
 def github_archive(name, repo, commit, build_file_content = None):
     if build_file_content:
@@ -52,22 +54,18 @@ def github_archive(name, repo, commit, build_file_content = None):
             type = "zip",
         )
 
-def _compiler_repositories(kotlin_release_version):
-    """
-    Prime the compiler repository.
+def kotlin_repositories(compiler_release = _KOTLIN_CURRENT_COMPILER_RELEASE):
+    """Call this in the WORKSPACE file to setup the Kotlin rules.
 
-    This function should not be called directly instead `kotlin_repositories` from `//kotlin:kotlin.bzl` should be
-    called to ensure common deps are loaded.
+    Args:
+        compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
     """
-    release = _KOTLIN_COMPILER_RELEASES[kotlin_release_version]
-    if not release:
-        fail('"%s" not a valid kotlin release, current release is "%s"' % (kotlin_release_version, _KOTLIN_CURRENT_RELEASE))
-
+    _maven_dependencies()
     _http_archive(
         name = _KT_COMPILER_REPO,
-        url = release["url"],
-        sha256 = release["sha256"],
-        build_file = "@io_bazel_rules_kotlin//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
+        urls = compiler_release["urls"],
+        sha256 = compiler_release["sha256"],
+        build_file = "//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
         strip_prefix = "kotlinc",
     )
 
@@ -79,14 +77,3 @@ def _compiler_repositories(kotlin_release_version):
                  "java_stub_template.txt")],
         sha256 = "86660ee7d5b498ccf611a1e000564f45268dbf301e0b2b08c984dcecc6513f6e",
     )
-
-def kotlin_repositories(
-        kotlin_release_version = _KOTLIN_CURRENT_RELEASE):
-    """Call this in the WORKSPACE file to setup the Kotlin rules.
-
-    Args:
-      kotlin_release_version: The kotlin compiler release version. If this is not set the latest release version is
-      chosen by default.
-    """
-    _maven_dependencies()
-    _compiler_repositories(kotlin_release_version)
