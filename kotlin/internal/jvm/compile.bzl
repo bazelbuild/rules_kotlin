@@ -199,7 +199,13 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     # Collect and prepare plugin descriptor for the worker.
     plugin_info = _merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
     if len(plugin_info.annotation_processors) > 0:
-        args.add("--kotlin_plugins", plugin_info.to_json())
+        processors = depset()
+        processorpath = depset()
+        for p in plugin_info.annotation_processors:
+            processors += [p.processor_class]
+            processorpath += p.classpath
+        args.add("--processors", processors)
+        args.add("--processorpath", processorpath)
 
     progress_message = "Compiling Kotlin to JVM %s { kt: %d, java: %d, srcjars: %d }" % (
         ctx.label,
