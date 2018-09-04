@@ -60,9 +60,6 @@ kotlin_repositories()
 kt_register_toolchains()
 ```
 
-If you omit `kotlin_release_version` and just call `kotlin_repositories()` with no arguments,
-you'll get the current kotlin compiler version (at least as known to the rules_kotlin project).
-
 ## BUILD files
 
 In your project's `BUILD` files, load the kotlin rules and use them like so:
