@@ -15,7 +15,6 @@
  */
 package io.bazel.kotlin.builder;
 
-import io.bazel.kotlin.builder.toolchain.CompilationException;
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.utils.CompilationTaskContext;
 import io.bazel.kotlin.model.CompilationTaskInfo;
@@ -29,10 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -70,11 +65,9 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
       EXTERNAL_PATH = Paths.get("external");
 
   private static final AtomicInteger counter = new AtomicInteger(0);
-  private static final int DEFAULT_TIMEOUT = 10;
 
   private Path instanceRoot = null;
   private String label = null;
-  private int timeoutSeconds = DEFAULT_TIMEOUT;
   private List<String> outLines = null;
 
   KotlinBuilderResource() {}
@@ -99,7 +92,6 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
   @Override
   protected void before() throws Throwable {
     outLines = null;
-    setTimeout(DEFAULT_TIMEOUT);
     label = "a_test_" + counter.incrementAndGet();
     infoBuilder()
         .setLabel("//some/bogus:" + label())
@@ -161,39 +153,13 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
     return path;
   }
 
-  /**
-   * sets the timeout for the builder tasks.
-   *
-   * @param timeoutSeconds a timeout in seconds. For debugging purposes it can be set to <= 0 which
-   *     means wait indefinitely.
-   */
-  @SuppressWarnings("WeakerAccess")
-  public final void setTimeout(int timeoutSeconds) {
-    this.timeoutSeconds = timeoutSeconds;
-  }
-
   private <R> R runCompileTask(
       CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
     String curDir = System.getProperty("user.dir");
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     try (PrintStream outputStream = new PrintStream(byteArrayOutputStream)) {
       System.setProperty("user.dir", instanceRoot().toAbsolutePath().toString());
-      CompletableFuture<R> future =
-          CompletableFuture.supplyAsync(
-              () -> operation.apply(new CompilationTaskContext(info, outputStream), task));
-      return timeoutSeconds > 0 ? future.get(timeoutSeconds, TimeUnit.SECONDS) : future.get();
-    } catch (ExecutionException e) {
-      if (e.getCause() instanceof CompilationStatusException) {
-        throw (CompilationStatusException) e.getCause();
-      } else if (e.getCause() instanceof CompilationException) {
-        throw (CompilationException) e.getCause();
-      } else {
-        throw new RuntimeException(e.getCause());
-      }
-    } catch (TimeoutException e) {
-      throw new AssertionError("did not complete in: " + timeoutSeconds);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+      return operation.apply(new CompilationTaskContext(info, outputStream), task);
     } finally {
       System.setProperty("user.dir", curDir);
       outLines =
