@@ -339,6 +339,10 @@ kt_jvm_import = rule(
             mandatory = False,
             providers = [JavaInfo],
         ),
+        "neverlink": attr.bool(
+            doc = """If true only use this library for compilation and not at runtime.""",
+            default = False,
+        ),
     },
     implementation = _kt_jvm_import_impl,
     provides = [JavaInfo, _KtJvmInfo],
