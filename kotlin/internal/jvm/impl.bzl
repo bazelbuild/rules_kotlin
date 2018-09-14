@@ -64,63 +64,77 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
     )
 
 def kt_jvm_import_impl(ctx):
-    jars = depset()
-    source_jars = depset()
-    runtime_jars = depset()
-    transitive_compile_time_jars = depset()
-    transitive_runtime_jars = depset()
-
+    jars = []
     if ctx.file.srcjar:
-        source_jars += [ctx.file.srcjar]
+        source_jars = [ctx.file.srcjar]
+    else:
+        source_jars = []
 
-    if hasattr(ctx.attr, "runtime_deps"):
-        for jar in ctx.attr.runtime_deps:
-            transitive_runtime_jars += jar[JavaInfo].transitive_runtime_jars
-
+    # TODO after a while remove the for block, the checks after it,and simplify the source-jar to jar allignment.
+    # There must be a single jar jar and it can either be a filegroup or a JavaInfo.
     for jar in ctx.attr.jars:
+        # If a JavaInfo is available it's because it was picked up from a `maven_jar` style attribute -- e.g.,
+        # @com_google_guava_guava//jar. so the transitive_compile_jars or the transitive_runtime_jars should not be
+        # visited -- descending into these results in ijars entering the graph.
         if JavaInfo in jar:
-            jars += jar[JavaInfo].full_compile_jars
-            source_jars += jar[JavaInfo].transitive_source_jars
-            transitive_compile_time_jars += jar[JavaInfo].transitive_compile_time_jars
-            transitive_runtime_jars += jar[JavaInfo].transitive_runtime_jars
+            jars += jar[JavaInfo].full_compile_jars.to_list()
+            source_jars += jar[JavaInfo].transitive_source_jars.to_list()
         else:
+            # this branch occurs when the attr was a filegroup.
             for file in jar.files:
                 if file.basename.endswith("-sources.jar"):
-                    source_jars += [file]
+                    source_jars.append(file)
                 elif file.basename.endswith(".jar"):
-                    jars += [file]
+                    jars.append(file)
                 else:
                     fail("a jar pointing to a filegroup must either end with -sources.jar or .jar")
 
-    runtime_jars += jars
-    transitive_compile_time_jars += jars
-    transitive_runtime_jars += jars
+    if len(jars) > 1:
+        print("got more than one jar, this is an error create an issue")
+        print(jars)
+    if len(source_jars) > 1:
+        print("got more than one source jar, this is an error create an issue")
+        print(source_jars)
 
-    java_info = java_common.create_provider(
-        use_ijar = False,
-        source_jars = source_jars,
-        compile_time_jars = jars,
-        runtime_jars = runtime_jars,
-        transitive_compile_time_jars = transitive_compile_time_jars,
-        transitive_runtime_jars = transitive_runtime_jars,
-    )
-
-    # This is needed for intellij plugin, try to pair up jars with their sources so that the sources are mounted
+    # This was needed for intellij plugin, try to pair up jars with their sources so that the sources are mounted
     # correctly.
     source_tally = {}
-    for sj in source_jars.to_list():
+    for sj in source_jars:
         if sj.basename.endswith("-sources.jar"):
             source_tally[sj.basename.replace("-sources.jar", ".jar")] = sj
     artifacts = []
-    for jar in jars.to_list():
+    for jar in jars:
         if jar.basename in source_tally:
             artifacts += [struct(class_jar = jar, source_jar = source_tally[jar.basename], ijar = None)]
         else:
             artifacts += [struct(class_jar = jar, ijar = None)]
 
-    kotlin_info = _KtJvmInfo(outputs = struct(jars = artifacts))
-    default_info = DefaultInfo(files = depset(jars))
-    return struct(kt = kotlin_info, providers = [default_info, java_info, kotlin_info])
+    # Normalize to None if no source jars discovered
+    if len(source_jars) == 0:
+        source_jar = None
+    else:
+        source_jar = source_jars[0]
+
+    kt_info = _KtJvmInfo(
+        module_name = "",
+        outputs = struct(
+            jars = artifacts,
+        ),
+    )
+    return struct(
+        kt = kt_info,
+        providers = [
+            DefaultInfo(files = depset(jars)),
+            JavaInfo(
+                output_jar = jars[0],
+                compile_jar = jars[0],
+                source_jar = source_jar,
+                runtime_deps = ctx.attr.runtime_deps,
+                neverlink = getattr(ctx.attr, "neverlink", False),
+            ),
+            kt_info,
+        ],
+    )
 
 def kt_jvm_library_impl(ctx):
     return _make_providers(

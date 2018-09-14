@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_import", "kt_js_import")
 
 # Kotlin home filegroup containing everything that is needed.
 filegroup(
@@ -19,38 +20,30 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-# Kotlin dependencies that are internal to this repo and are meant to be loaded at runtime.
+# Kotlin dependencies that are internal to this repo and are meant to be loaded manually into a classloader.
 [
-    java_import(
-        name = "%s" % art,
-        jars = ["lib/%s.jar" % art],
+    kt_jvm_import(
+        name = "kotlin-%s" % art,
+        jars = ["lib/kotlin-%s.jar" % art],
         neverlink = 1,
     )
     for art in [
-        "kotlin-annotation-processing",
-        "kotlin-annotation-processing-runtime",
-        "kotlin-compiler",
+        "annotation-processing",
+        "annotation-processing-runtime",
+        "compiler",
     ]
 ]
 
 # Kotlin dependencies that are internal to this repo and may be linked.
 [
     java_import(
-        name = "%s" % art,
-        jars = ["lib/%s.jar" % art],
+        name = "kotlin-%s" % art,
+        jars = ["lib/kotlin-%s.jar" % art],
     )
     for art in [
-        "kotlin-preloader",
+        "preloader",
     ]
 ]
-
-# Kotlin annotations jar. Contains annotations like NotNull.
-java_import(
-    name = "annotations",
-    jars = ["lib/annotations-13.0.jar"],
-)
-
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_import")
 
 #  The Kotlin standard libraries. These should be setup in a Toolchain.
 [
@@ -71,9 +64,7 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_import")
     ]
 ]
 
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_js_import")
-
-#  The Kotlin standard libraries. These should be setup in a Toolchain.
+#  The Kotlin JS standard libraries. These should be setup in a Toolchain.
 [
     kt_js_import(
         name = "kotlin-%s" % art,
