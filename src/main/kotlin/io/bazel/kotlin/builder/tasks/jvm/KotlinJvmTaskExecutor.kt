@@ -96,15 +96,12 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
      */
     private fun JvmCompilationTask.getCommonArgs(): MutableList<String> {
         val args = mutableListOf<String>()
-
-        // use -- for flags not meant for the kotlin compiler
         args.addAll(
             "-cp", inputs.joinedClasspath,
             "-api-version", info.toolchainInfo.common.apiVersion,
             "-language-version", info.toolchainInfo.common.languageVersion,
             "-jvm-target", info.toolchainInfo.jvm.jvmTarget,
-            // https://github.com/bazelbuild/rules_kotlin/issues/69: remove once jetbrains adds a flag for it.
-            "--friend-paths", info.friendPathsList.joinToString(File.pathSeparator)
+            "-Xfriend-paths=${info.friendPathsList.joinToString(File.pathSeparator)}"
         )
 
         args
