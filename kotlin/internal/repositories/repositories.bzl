@@ -65,7 +65,7 @@ def kotlin_repositories(compiler_release = _KOTLIN_CURRENT_COMPILER_RELEASE):
         name = _KT_COMPILER_REPO,
         urls = compiler_release["urls"],
         sha256 = compiler_release["sha256"],
-        build_file = "//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
+        build_file = "@io_bazel_rules_kotlin//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
         strip_prefix = "kotlinc",
     )
 
