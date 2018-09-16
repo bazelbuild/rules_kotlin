@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_import", "kt_js_import")
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_js_import", "kt_jvm_import")
 
 # Kotlin home filegroup containing everything that is needed.
 filegroup(
@@ -60,6 +61,7 @@ filegroup(
         "stdlib-jdk8",
         "reflect",
         "test",
+        "test-junit5",
         "script-runtime",
     ]
 ]

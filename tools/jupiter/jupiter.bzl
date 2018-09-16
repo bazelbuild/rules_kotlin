@@ -11,17 +11,4 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#!/usr/bin/env bash
-# Note: Written on a mac please make it compatible with linux if needed.
-#!/usr/bin/env bash
-
-buildifier -showlog -mode=fix -v $(find src kotlin tools -type f \
-    -iname "*.bzl" -or \
-    -iname "BUILD" -or \
-    -iname "BUILD.com_github_jetbrains_kotlin"
-)
-
-buildifier -showlog -mode=fix -v \
-    "third_party/BUILD" \
-    "WORKSPACE" \
-    "BUILD"
+load("//tools/jupiter/internal:junit4.bzl", "jupiter_junit4_test")

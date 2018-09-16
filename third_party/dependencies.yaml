@@ -11,10 +11,30 @@ options:
   namePrefix: "io_bazel_rules_kotlin_"
 
 dependencies:
+# tag::jupiter[]
   junit:
     junit:
       lang: "java"
       version: "4.12"
+  org.apiguardian:
+    apiguardian-api:
+      lang: "java"
+      version: "1.0.0"
+  org.junit.vintage:
+    junit-vintage-engine:
+      lang: "java"
+      version: "5.3.1"
+  org.junit.jupiter:
+    junit-jupiter:
+      lang: "java"
+      modules: ["api", "engine", "params"]
+      version: "5.3.1"
+  org.junit.platform:
+    junit-platform:
+      lang: "java"
+      modules: ["console", "suite-api", "launcher", "commons", "engine", "runner"]
+      version: "1.3.1"
+# end::jupiter[]
   com.google.protobuf:
     protobuf:
       modules: ["java", "java-util"]
