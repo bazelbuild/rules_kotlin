@@ -21,6 +21,7 @@ import org.junit.platform.suite.api.UseTechnicalNames;
 import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.ExcludeTags;
+
 """
 
 _KOTLIN_DIALECT = struct(
@@ -64,29 +65,29 @@ def _mk_list_ann(dialect, name, lst):
     return ret
 
 def _mk_class(c, sep):
-    parts = c.split(".")
-    cn = parts[len(parts) - 1]
-    if not cn.endswith("Test"):
-        print(c)
-        print(cn)
-        fail("test class must end with Test")
-    return ("%s%sclass" % (cn, sep))
+    if not (c.endswith("Test") or c.endswith("Tests")):
+        fail("test class must end with Test or Tests")
+    return ("%s%sclass" % (c, sep))
 
 def _gen_suite_class(name, dialect, select_classes, select_packages, exclude_tags):
     if (len(select_classes) + len(select_packages)) == 0:
         fail("must have at least a singe entry in test_class, select_classes or select_packages")
     suite_class_name = name
     suite_class_file = "%s.%s" % (suite_class_name, dialect.file_ext)
-    imports = "\n".join(["import %s;" % c for c in select_classes]) + "\n\n"
     annotations = (
         _mk_default_annotations(dialect) +
         _mk_list_ann(dialect, "SelectClasses", ["    %s" % _mk_class(c, dialect.cls_sep) for c in select_classes]) +
         _mk_list_ann(dialect, "SelectPackages", ["    \"%s\"" % p for p in select_packages]) +
-        _mk_list_ann(dialect, "ExcludeTags", ["    \"%s\"" % p for p in exclude_tags])
+        _mk_list_ann(dialect, "ExcludeTags", ["    \"%s\"" % p for p in exclude_tags]) +
+        "\n"
     )
 
     clz = """public class %s {}""" % suite_class_name
-
+    suite_class_body = (
+        dialect.header +
+        annotations +
+        clz
+    )
     native.genrule(
         name = "%s_suite_gen" % name,
         outs = [suite_class_file],
@@ -94,12 +95,7 @@ def _gen_suite_class(name, dialect, select_classes, select_packages, exclude_tag
 cat <<EOF >> $@
 %s
 EOF
-""" % (
-            dialect.header +
-            imports +
-            annotations +
-            clz
-        ),
+""" % suite_class_body,
     )
     return (suite_class_name, suite_class_file)
 
