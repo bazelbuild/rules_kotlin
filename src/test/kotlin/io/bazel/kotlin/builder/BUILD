@@ -21,6 +21,7 @@ _COMMON_DEPS = [
     "//third_party/jvm/com/google/truth",
     "//third_party/jvm/junit",
     "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
+    "//third_party/jvm/com/google/code/findbugs:jsr305",
 ]
 
 java_library(
@@ -28,9 +29,10 @@ java_library(
     testonly = 1,
     srcs = [
         "Deps.java",
-        "KotlinBuilderJsTestTask.java",
-        "KotlinBuilderJvmTestTask.java",
-        "KotlinBuilderResource.java",
+        "DirectoryType.java",
+        "KotlinAbstractTestBuilder.java",
+        "KotlinJsTestBuilder.java",
+        "KotlinJvmTestBuilder.java",
     ],
     data = [
         "//src/main/kotlin:compiler_lib",

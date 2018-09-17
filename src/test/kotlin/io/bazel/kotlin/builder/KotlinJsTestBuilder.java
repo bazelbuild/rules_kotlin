@@ -19,21 +19,19 @@ import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JsCompilationTask;
 
-import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Consumer;
 
-public final class KotlinBuilderJsTestTask extends KotlinBuilderResource<JsCompilationTask> {
+public final class KotlinJsTestBuilder extends KotlinAbstractTestBuilder<JsCompilationTask> {
   private static final List<String> PASSTHROUGH_FLAGS =
       Arrays.asList("-source-map", "-meta-info", "-module-kind", "commonjs", "-target", "v5");
   private static final JsCompilationTask.Builder taskBuilder = JsCompilationTask.newBuilder();
   private static final KotlinBuilderComponent component =
       DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
-
-  @Override
-  CompilationTaskInfo.Builder infoBuilder() {
-    return taskBuilder.getInfoBuilder();
-  }
+  private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
+      EnumSet.of(DirectoryType.SOURCES);
 
   @Override
   JsCompilationTask buildTask() {
@@ -41,10 +39,9 @@ public final class KotlinBuilderJsTestTask extends KotlinBuilderResource<JsCompi
   }
 
   @Override
-  protected final void before() throws Throwable {
-    taskBuilder.clear();
-    super.before();
-
+  void setupForNext(CompilationTaskInfo.Builder infoBuilder) {
+    taskBuilder.clear().setInfo(infoBuilder);
+    DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
     taskBuilder.addAllPassThroughFlags(PASSTHROUGH_FLAGS);
     taskBuilder
         .getOutputsBuilder()
@@ -53,12 +50,17 @@ public final class KotlinBuilderJsTestTask extends KotlinBuilderResource<JsCompi
         .setJs(instanceRoot().resolve(label() + ".js").toAbsolutePath().toString());
   }
 
-  public void addSource(String filename, String... lines) {
-    Path sourcePath = super.writeSourceFile(filename, lines);
-    taskBuilder.getInputsBuilder().addKotlinSources(sourcePath.toString());
+  public final class TaskBuilder {
+    public void addSource(String filename, String... lines) {
+      taskBuilder.getInputsBuilder().addKotlinSources(writeSourceFile(filename, lines).toString());
+    }
   }
 
-  public void runCompilationTask() {
+  private final TaskBuilder taskBuilderInstance = new TaskBuilder();
+
+  public void runCompilationTask(Consumer<TaskBuilder> setup) {
+    resetForNext();
+    setup.accept(taskBuilderInstance);
     runCompileTask(
         (taskContext, task) -> {
           component.jsTaskExecutor().execute(taskContext, task);
