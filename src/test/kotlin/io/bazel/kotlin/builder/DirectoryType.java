@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.util.EnumSet;
 
 public enum DirectoryType {
-  /** The rest of the paths are instance relative. */
   SOURCES("sources", Paths.get("sources")),
   CLASSES("compiled classes", Paths.get("classes")),
   GENERATED_CLASSES("generated classes", Paths.get("generated_classes")),
