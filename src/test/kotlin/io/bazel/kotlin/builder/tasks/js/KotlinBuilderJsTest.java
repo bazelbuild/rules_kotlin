@@ -1,6 +1,6 @@
 package io.bazel.kotlin.builder.tasks.js;
 
-import io.bazel.kotlin.builder.KotlinBuilderJsTestTask;
+import io.bazel.kotlin.builder.KotlinJsTestBuilder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,19 +10,20 @@ import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(JUnit4.class)
 public class KotlinBuilderJsTest {
-  @Rule public KotlinBuilderJsTestTask ctx = new KotlinBuilderJsTestTask();
+  private static final KotlinJsTestBuilder builder = new KotlinJsTestBuilder();
 
   @Test
   public void testSimpleJsCompile() {
-    ctx.addSource("AClass.kt", "package something", "class AClass{}");
-    ctx.runCompilationTask();
+    builder.runCompilationTask(
+        it -> it.addSource("AClass.kt", "package something", "class AClass{}"));
   }
 
   @Test
   public void testJsErrorRendering() {
-    ctx.addSource("AClass.kt", "package something", "class AClass{");
-    ctx.runFailingCompileTaskAndValidateOutput(
-        ctx::runCompilationTask,
-        lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass.kt")));
+    builder.runFailingCompileTaskAndValidateOutput(
+        () ->
+            builder.runCompilationTask(
+                it -> it.addSource("AClass.kt", "package something", "class AClass{")),
+        lines -> assertThat(lines.get(0)).startsWith(builder.toPlatform("sources/AClass.kt")));
   }
 }

@@ -17,17 +17,16 @@ package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.utils.CompilationTaskContext;
-import io.bazel.kotlin.model.CompilationTaskInfo;
-import io.bazel.kotlin.model.KotlinToolchainInfo;
-import io.bazel.kotlin.model.Platform;
-import io.bazel.kotlin.model.RuleKind;
-import org.junit.rules.ExternalResource;
+import io.bazel.kotlin.model.*;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -37,42 +36,17 @@ import java.util.stream.Stream;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public abstract class KotlinBuilderResource<T> extends ExternalResource {
-  public enum DirectoryType {
-    INSTANCE_ROOT("test root", null),
-    EXTERNAL("bazel external directory", null),
-    /** The rest of the paths are instance relative. */
-    SOURCES("sources", Paths.get("sources")),
-    CLASSES("compiled classes", Paths.get("classes")),
-    GENERATED_CLASSES("generated classes", Paths.get("generated_classes")),
-    TEMP("temp directory", Paths.get("temp")),
-    SOURCE_GEN("generated sources directory", Paths.get("generated_sources"));
-
-    private static final EnumSet<DirectoryType> INSTANCE_TYPES =
-        EnumSet.of(SOURCES, CLASSES, SOURCE_GEN, GENERATED_CLASSES, TEMP);
-
-    final String name;
-    private final Path relativePath;
-
-    DirectoryType(String name, Path relativePath) {
-      this.name = name;
-      this.relativePath = relativePath;
-    }
-  }
-
-  private static final Path
-      BAZEL_TEST_DIR = Paths.get(Objects.requireNonNull(System.getenv("TEST_TMPDIR"))),
-      EXTERNAL_PATH = Paths.get("external");
+abstract class KotlinAbstractTestBuilder<T> {
+  private static final Path BAZEL_TEST_DIR =
+      Paths.get(Objects.requireNonNull(System.getenv("TEST_TMPDIR")));
 
   private static final AtomicInteger counter = new AtomicInteger(0);
-
+  private final CompilationTaskInfo.Builder infoBuilder = CompilationTaskInfo.newBuilder();
   private Path instanceRoot = null;
   private String label = null;
   private List<String> outLines = null;
 
-  KotlinBuilderResource() {}
-
-  abstract CompilationTaskInfo.Builder infoBuilder();
+  abstract void setupForNext(CompilationTaskInfo.Builder infoBuilder);
 
   abstract T buildTask();
 
@@ -89,11 +63,10 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
     return outLines;
   }
 
-  @Override
-  protected void before() throws Throwable {
+  final void resetForNext() {
     outLines = null;
     label = "a_test_" + counter.incrementAndGet();
-    infoBuilder()
+    infoBuilder
         .setLabel("//some/bogus:" + label())
         .setModuleName("some_bogus_module")
         .setPlatform(Platform.JVM)
@@ -111,36 +84,16 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-
-    for (DirectoryType instanceType : DirectoryType.INSTANCE_TYPES) {
-      try {
-        Files.createDirectory(instanceRoot.resolve(instanceType.relativePath));
-      } catch (IOException e) {
-        throw new RuntimeException("could not create instance directory: " + instanceType.name, e);
-      }
-    }
+    setupForNext(infoBuilder);
   }
 
   final Path directory(DirectoryType type) {
-    switch (type) {
-      case INSTANCE_ROOT:
-        return instanceRoot;
-      case EXTERNAL:
-        return KotlinBuilderResource.EXTERNAL_PATH;
-      case SOURCES:
-      case CLASSES:
-      case GENERATED_CLASSES:
-      case TEMP:
-      case SOURCE_GEN:
-        return instanceRoot.resolve(type.relativePath);
-      default:
-        throw new IllegalStateException(type.toString());
-    }
+    return type.resolve(instanceRoot);
   }
 
   @SuppressWarnings("unused")
   public final void setDebugTags(String... tags) {
-    infoBuilder().addAllDebug(Arrays.asList(tags));
+    infoBuilder.addAllDebug(Arrays.asList(tags));
   }
 
   final Path writeSourceFile(String filename, String[] lines) {
@@ -174,9 +127,8 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
   }
 
   final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
-    CompilationTaskInfo info = infoBuilder().build();
     T task = buildTask();
-    return runCompileTask(info, task, (ctx, t) -> operation.apply(ctx, task));
+    return runCompileTask(infoBuilder.build(), task, (ctx, t) -> operation.apply(ctx, task));
   }
 
   /**
@@ -238,7 +190,7 @@ public abstract class KotlinBuilderResource<T> extends ExternalResource {
   }
 
   public final String toPlatform(String path) {
-    return KotlinBuilderResource.toPlatformPath(path).toString();
+    return KotlinAbstractTestBuilder.toPlatformPath(path).toString();
   }
 
   @SuppressWarnings("unused")

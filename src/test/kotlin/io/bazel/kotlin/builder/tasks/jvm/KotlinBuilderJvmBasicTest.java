@@ -15,67 +15,81 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm;
 
-import io.bazel.kotlin.builder.KotlinBuilderJvmTestTask;
-import io.bazel.kotlin.builder.KotlinBuilderResource.DirectoryType;
+import io.bazel.kotlin.builder.Deps;
+import io.bazel.kotlin.builder.DirectoryType;
+import io.bazel.kotlin.builder.KotlinJvmTestBuilder;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.function.Consumer;
 
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(JUnit4.class)
 public class KotlinBuilderJvmBasicTest {
-  @Rule public KotlinBuilderJvmTestTask ctx = new KotlinBuilderJvmTestTask();
+  private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
 
   @Test
   public void testSimpleMixedModeCompile() {
-    ctx.addSource("AClass.kt", "package something;" + "class AClass{}");
-    ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
-    ctx.runCompileTask();
+    ctx.runCompileTask(
+        c -> {
+          c.addSource("AClass.kt", "package something;" + "class AClass{}");
+          c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
+        });
     ctx.assertFilesExist(
         DirectoryType.CLASSES, "something/AClass.class", "something/AnotherClass.class");
   }
 
   @Test
   public void testMixedBiReferences() {
-    ctx.addSource(
-        "AClass.java",
-        "package a;",
-        "",
-        "import b.BClass;",
-        "",
-        "public class AClass {",
-        "  static BClass b = new BClass();",
-        "}");
-    ctx.addSource(
-        "BClass.kt",
-        "package b",
-        "",
-        "import a.AClass",
-        "",
-        "class BClass() {",
-        "  val a = AClass()",
-        "}");
-    ctx.runCompileTask();
+    ctx.runCompileTask(
+        it -> {
+          it.addSource(
+              "AClass.java",
+              "package a;",
+              "",
+              "import b.BClass;",
+              "",
+              "public class AClass {",
+              "  static BClass b = new BClass();",
+              "}");
+          it.addSource(
+              "BClass.kt",
+              "package b",
+              "",
+              "import a.AClass",
+              "",
+              "class BClass() {",
+              "  val a = AClass()",
+              "}");
+        });
     ctx.assertFilesExist(DirectoryType.CLASSES, "a/AClass.class", "b/BClass.class");
   }
 
   @Test
   public void testKotlinErrorRendering() {
-    ctx.addSource("AClass.kt", "package something;" + "class AClass{");
     ctx.runFailingCompileTaskAndValidateOutput(
-        ctx::runCompileTask,
+        () ->
+            ctx.runCompileTask(
+                c -> c.addSource("AClass.kt", "package something;" + "class AClass{")),
         lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass")));
   }
 
   @Test
   public void testJavaErrorRendering() {
-    ctx.addSource("AClass.kt", "package something;" + "class AClass{}");
-    ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
     ctx.runFailingCompileTaskAndValidateOutput(
-        ctx::runCompileTask,
+        () ->
+            ctx.runCompileTask(
+                c -> {
+                  c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                  c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
+                }),
         lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AnotherClass")));
   }
 
@@ -84,5 +98,43 @@ public class KotlinBuilderJvmBasicTest {
   public void testCompileSingleJavaFile() {
     ctx.runCompileTask(
         (c) -> c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}"));
+  }
+
+  private static final Consumer<KotlinJvmTestBuilder.TaskBuilder> SETUP_NORMALIZATION_TEST_SOURCES =
+      ctx -> {
+        ctx.addSource("AClass.kt", "package something;\n" + "class AClass{}");
+        ctx.addSource("BClass.kt", "package something;\n" + "class BClass{}");
+      };
+
+  @Test
+  public void testCompiledJarIsNormalized() {
+    Deps.Dep previous = ctx.runCompileTask(SETUP_NORMALIZATION_TEST_SOURCES);
+    Deps.Dep recompiled =
+        ctx.runCompileTask(ctx -> ctx.setLabel(previous.label()), SETUP_NORMALIZATION_TEST_SOURCES);
+    assertThat(previous.label()).isEqualTo(recompiled.label());
+    assertThat(hashDep(previous.singleCompileJar()))
+        .isEqualTo(hashDep(recompiled.singleCompileJar()));
+    assertThat(previous.sourceJar()).isNotEmpty();
+    assertThat(hashDep(previous.sourceJar())).isEqualTo(hashDep(recompiled.sourceJar()));
+  }
+
+  @Test
+  public void testSourceJarIsNormalized() {
+    Deps.Dep previous = ctx.runCompileTask(SETUP_NORMALIZATION_TEST_SOURCES);
+    Deps.Dep recompiled =
+        ctx.runCompileTask(ctx -> ctx.setLabel(previous.label()), SETUP_NORMALIZATION_TEST_SOURCES);
+    assertThat(previous.sourceJar()).isNotEmpty();
+    assertThat(hashDep(previous.sourceJar())).isEqualTo(hashDep(recompiled.sourceJar()));
+  }
+
+  private static String hashDep(String path) {
+    try {
+      //noinspection UnstableApiUsage
+      return com.google.common.hash.Hashing.sha256()
+          .hashBytes(Files.readAllBytes(Paths.get(path)))
+          .toString();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }
