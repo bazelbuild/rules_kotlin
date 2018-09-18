@@ -17,9 +17,8 @@ package io.bazel.kotlin.builder.tasks.jvm;
 
 import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
-import io.bazel.kotlin.builder.KotlinBuilderJvmTestTask;
-import io.bazel.kotlin.builder.KotlinBuilderResource;
-import org.junit.Rule;
+import io.bazel.kotlin.builder.DirectoryType;
+import io.bazel.kotlin.builder.KotlinJvmTestBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -27,8 +26,8 @@ import org.junit.runners.JUnit4;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static io.bazel.kotlin.builder.KotlinBuilderJvmTestTask.KOTLIN_ANNOTATIONS;
-import static io.bazel.kotlin.builder.KotlinBuilderJvmTestTask.KOTLIN_STDLIB;
+import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_ANNOTATIONS;
+import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_STDLIB;
 
 @RunWith(JUnit4.class)
 public class KotlinBuilderJvmKaptTest {
@@ -44,9 +43,9 @@ public class KotlinBuilderJvmKaptTest {
               Dep.classpathOf(AUTO_VALUE, KOTLIN_ANNOTATIONS).collect(Collectors.toSet()))
           .build();
 
-  @Rule public KotlinBuilderJvmTestTask ctx = new KotlinBuilderJvmTestTask();
+  private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
 
-  private static final Consumer<KotlinBuilderJvmTestTask> ADD_AUTO_VALUE_PLUGIN =
+  private static final Consumer<KotlinJvmTestBuilder.TaskBuilder> ADD_AUTO_VALUE_PLUGIN =
       (c) -> {
         c.addAnnotationProcessors(AUTO_VALUE_ANNOTATION_PROCESSOR);
         c.addDirectDependencies(AUTO_VALUE, KOTLIN_STDLIB);
@@ -76,19 +75,18 @@ public class KotlinBuilderJvmKaptTest {
                     + "}"));
 
     ctx.assertFilesExist(
-        KotlinBuilderResource.DirectoryType.CLASSES,
+        DirectoryType.CLASSES,
         "autovalue/TestKtValue.class",
         "autovalue/AutoValue_TestKtValue.class");
-    ctx.assertFilesExist(
-        KotlinBuilderResource.DirectoryType.SOURCE_GEN, "autovalue/AutoValue_TestKtValue.java");
+    ctx.assertFilesExist(DirectoryType.SOURCE_GEN, "autovalue/AutoValue_TestKtValue.java");
   }
 
   @Test
   public void testMixedKaptBiReferences() {
     ctx.runCompileTask(
         ADD_AUTO_VALUE_PLUGIN,
-        ctx -> {
-          ctx.addSource(
+        it -> {
+          it.addSource(
               "TestKtValue.kt",
               "package autovalue.a\n"
                   + "\n"
@@ -107,7 +105,7 @@ public class KotlinBuilderJvmKaptTest {
                   + "    }\n"
                   + "}");
 
-          ctx.addSource(
+          it.addSource(
               "TestAutoValue.java",
               "package autovalue.b;\n"
                   + "\n"
@@ -132,11 +130,11 @@ public class KotlinBuilderJvmKaptTest {
                   + "}");
         });
     ctx.assertFilesExist(
-        KotlinBuilderResource.DirectoryType.SOURCE_GEN,
+        DirectoryType.SOURCE_GEN,
         "autovalue/a/AutoValue_TestKtValue.java",
         "autovalue/b/AutoValue_TestAutoValue.java");
     ctx.assertFilesExist(
-        KotlinBuilderResource.DirectoryType.CLASSES,
+        DirectoryType.CLASSES,
         "autovalue/a/AutoValue_TestKtValue.class",
         "autovalue/b/AutoValue_TestAutoValue.class");
   }

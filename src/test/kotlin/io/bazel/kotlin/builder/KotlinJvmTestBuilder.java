@@ -16,19 +16,20 @@
 package io.bazel.kotlin.builder;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
+import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
+import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.bazel.kotlin.builder.Deps.*;
-
-public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCompilationTask> {
+public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCompilationTask> {
   @SuppressWarnings({"unused", "WeakerAccess"})
   public static Dep
       KOTLIN_ANNOTATIONS =
@@ -51,20 +52,19 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCom
   private static final KotlinBuilderComponent component =
       DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
 
-  @Override
-  CompilationTaskInfo.Builder infoBuilder() {
-    return taskBuilder.getInfoBuilder();
-  }
+  private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
+      EnumSet.of(
+          DirectoryType.SOURCES,
+          DirectoryType.CLASSES,
+          DirectoryType.SOURCE_GEN,
+          DirectoryType.GENERATED_CLASSES,
+          DirectoryType.TEMP);
 
   @Override
-  JvmCompilationTask buildTask() {
-    return taskBuilder.build();
-  }
+  void setupForNext(CompilationTaskInfo.Builder taskInfo) {
+    taskBuilder.clear().setInfo(taskInfo);
 
-  @Override
-  protected final void before() throws Throwable {
-    taskBuilder.clear();
-    super.before();
+    DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
 
     taskBuilder
         .getDirectoriesBuilder()
@@ -73,6 +73,7 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCom
         .setTemp(directory(DirectoryType.TEMP).toAbsolutePath().toString())
         .setGeneratedClasses(
             directory(DirectoryType.GENERATED_CLASSES).toAbsolutePath().toString());
+
     taskBuilder
         .getOutputsBuilder()
         .setJar(instanceRoot().resolve("jar_file.jar").toAbsolutePath().toString())
@@ -80,69 +81,66 @@ public final class KotlinBuilderJvmTestTask extends KotlinBuilderResource<JvmCom
         .setSrcjar(instanceRoot().resolve("jar_file-sources.jar").toAbsolutePath().toString());
   }
 
-  private void resetForNext() {
-    try {
-      before();
-    } catch (Throwable throwable) {
-      throw new RuntimeException(throwable);
+  @Override
+  JvmCompilationTask buildTask() {
+    return taskBuilder.build();
+  }
+
+  public class TaskBuilder {
+    TaskBuilder() {}
+
+    public void setLabel(String label) {
+      taskBuilder.getInfoBuilder().setLabel(label);
+    }
+
+    public void addSource(String filename, String... lines) {
+      String pathAsString = writeSourceFile(filename, lines).toString();
+      if (pathAsString.endsWith(".kt")) {
+        taskBuilder.getInputsBuilder().addKotlinSources(pathAsString);
+      } else if (pathAsString.endsWith(".java")) {
+        taskBuilder.getInputsBuilder().addJavaSources(pathAsString);
+      } else {
+        throw new RuntimeException("unhandled file type: " + pathAsString);
+      }
+    }
+
+    public void addAnnotationProcessors(AnnotationProcessor... annotationProcessors) {
+      Preconditions.checkState(
+          taskBuilder.getInputs().getProcessorsList().isEmpty(), "processors already set");
+      HashSet<String> processorClasses = new HashSet<>();
+      taskBuilder
+          .getInputsBuilder()
+          .addAllProcessorpaths(
+              Stream.of(annotationProcessors)
+                  .peek(it -> processorClasses.add(it.processClass()))
+                  .flatMap(it -> it.processorPath().stream())
+                  .distinct()
+                  .collect(Collectors.toList()))
+          .addAllProcessors(processorClasses);
+    }
+
+    public void addDirectDependencies(Dep... dependencies) {
+      Dep.classpathOf(dependencies)
+          .forEach((dependency) -> taskBuilder.getInputsBuilder().addClasspath(dependency));
     }
   }
 
-  public void addSource(String filename, String... lines) {
-    String pathAsString = super.writeSourceFile(filename, lines).toString();
-    if (pathAsString.endsWith(".kt")) {
-      taskBuilder.getInputsBuilder().addKotlinSources(pathAsString);
-    } else if (pathAsString.endsWith(".java")) {
-      taskBuilder.getInputsBuilder().addJavaSources(pathAsString);
-    } else {
-      throw new RuntimeException("unhandled file type: " + pathAsString);
-    }
-  }
-
-  public void addAnnotationProcessors(AnnotationProcessor... annotationProcessors) {
-    Preconditions.checkState(
-        taskBuilder.getInputs().getProcessorsList().isEmpty(), "processors already set");
-    HashSet<String> processorClasses = new HashSet<>();
-    taskBuilder
-        .getInputsBuilder()
-        .addAllProcessorpaths(
-            Stream.of(annotationProcessors)
-                .peek(it -> processorClasses.add(it.processClass()))
-                .flatMap(it -> it.processorPath().stream())
-                .distinct()
-                .collect(Collectors.toList()))
-        .addAllProcessors(processorClasses);
-  }
-
-  public void addDirectDependencies(Dep... dependencies) {
-    Dep.classpathOf(dependencies)
-        .forEach((dependency) -> taskBuilder.getInputsBuilder().addClasspath(dependency));
-  }
-
-  private Dep currentDep() {
-    return Dep.builder()
-        .label(label())
-        .compileJars(ImmutableSet.of(taskBuilder.getOutputs().getJar()))
-        .runtimeDeps(ImmutableSet.copyOf(taskBuilder.getInputs().getClasspathList()))
-        .build();
-  }
+  private TaskBuilder taskBuilderInstance = new TaskBuilder();
 
   @SafeVarargs
-  public final Dep runCompileTask(Consumer<KotlinBuilderJvmTestTask>... setup) {
-    Stream.of(setup).forEach(it -> it.accept(this));
+  public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
+    resetForNext();
+    Stream.of(setup).forEach(it -> it.accept(taskBuilderInstance));
     return runCompileTask(
         (taskContext, task) -> {
           component.jvmTaskExecutor().execute(taskContext, task);
           assertFilesExist(task.getOutputs().getJar(), task.getOutputs().getJdeps());
-          return currentDep();
+          return Dep.builder()
+              .label(taskBuilder.getInfo().getLabel())
+              .compileJars(ImmutableList.of(taskBuilder.getOutputs().getJar()))
+              .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
+              .sourceJar(taskBuilder.getOutputs().getSrcjar())
+              .build();
         });
-  }
-
-  /** Run a single compile task returning a dep and resetting the context. */
-  @SafeVarargs
-  public final Dep supplyDepTask(Consumer<KotlinBuilderJvmTestTask>... setup) {
-    Dep dep = runCompileTask(setup);
-    resetForNext();
-    return dep;
   }
 }

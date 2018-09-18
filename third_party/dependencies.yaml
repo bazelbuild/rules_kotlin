@@ -11,6 +11,10 @@ options:
   namePrefix: "io_bazel_rules_kotlin_"
 
 dependencies:
+  com.google.code.findbugs:
+    jsr305:
+      lang: "java"
+      version: "3.0.2"
   junit:
     junit:
       lang: "java"

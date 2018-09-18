@@ -16,9 +16,12 @@
 package io.bazel.kotlin.builder;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.utils.BazelRunFiles;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -31,22 +34,33 @@ public final class Deps {
 
     public abstract String moduleName();
 
-    public abstract Set<String> runtimeDeps();
+    public abstract List<String> runtimeDeps();
 
-    public abstract Set<String> compileJars();
+    public abstract List<String> compileJars();
+
+    @Nullable
+    public abstract String sourceJar();
+
+    @Nullable
+    public abstract String jdeps();
 
     public static Builder builder() {
-      return new AutoValue_Deps_Dep.Builder().runtimeDeps(ImmutableSet.of());
+      return new AutoValue_Deps_Dep.Builder().runtimeDeps(ImmutableList.of());
+    }
+
+    public final String singleCompileJar() {
+      Preconditions.checkState(compileJars().size() == 1);
+      return compileJars().get(0);
     }
 
     @SuppressWarnings("UnusedReturnValue")
     @AutoValue.Builder
     public abstract static class Builder {
-      public abstract Builder compileJars(Set<String> compileJars);
+      public abstract Builder compileJars(List<String> compileJars);
 
       public abstract Builder label(String label);
 
-      public abstract Builder runtimeDeps(Set<String> runtimeDeps);
+      public abstract Builder runtimeDeps(List<String> runtimeDeps);
 
       public abstract Builder moduleName(String moduleName);
 
@@ -55,6 +69,10 @@ public final class Deps {
       abstract Optional<String> moduleName();
 
       abstract Dep autoBuild();
+
+      public abstract Builder sourceJar(String sourceJar);
+
+      public abstract Builder jdeps(String jdeps);
 
       public Dep build() {
         if (!moduleName().isPresent()) {
@@ -73,7 +91,8 @@ public final class Deps {
     public static Dep importJar(String label, String compileJar) {
       return Dep.builder()
           .label(label)
-          .compileJars(ImmutableSet.of(BazelRunFiles.resolveVerified(compileJar).getAbsolutePath()))
+          .compileJars(
+              ImmutableList.of(BazelRunFiles.resolveVerified(compileJar).getAbsolutePath()))
           .build();
     }
   }
