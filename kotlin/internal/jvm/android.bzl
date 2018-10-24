@@ -36,6 +36,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
         srcs = srcs,
         deps = base_deps + [base_name],
         plugins = plugins,
+        testonly = kwargs.get("testonly", default=0),
         visibility = ["//visibility:private"],
     )
     return [base_name, kt_name]
@@ -48,4 +49,5 @@ def kt_android_library(name, exports = [], visibility = None, **kwargs):
         name = name,
         exports = exports + _kt_android_artifact(name, **kwargs),
         visibility = visibility,
+        testonly = kwargs.get("testonly", default=0),
     )
