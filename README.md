@@ -46,6 +46,8 @@ In the project's `WORKSPACE`, declare the external repository and initialize the
 this:
 
 ```build
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 rules_kotlin_version = "67f4a6050584730ebae7f8a40435a209f8e0b48e"
 
 http_archive(

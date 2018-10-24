@@ -27,6 +27,8 @@ http_jar(
     url = "https://github.com/hsyed/bazel-deps/releases/download/v0.1.0/parseproject_deploy.jar",
 )
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_archive(
     name = "bazel_toolchains",
     sha256 = "af577935530a3b5a1be02170682b1a0f6fa08641ff5b7785e44afd1435bce75a",
