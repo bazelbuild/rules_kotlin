@@ -1,0 +1,47 @@
+options:
+  languages: [ "java" ]
+  licenses: [ "notice" ]
+  resolverType: "coursier"
+  resolvers:
+  - id: "mavencentral"
+    type: "default"
+    url: https://repo.maven.apache.org/maven2/
+  thirdPartyDirectory: "third_party/jvm"
+  buildHeader:
+  - load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_import")
+  - licenses(["notice"])
+
+dependencies:
+  org.jetbrains.kotlin:
+    kotlin-stdlib:
+      lang: kotlin
+      version: 1.2.70
+      exclude:
+      - "org.jetbrains.kotlin:kotlin-stdlib-common"
+
+  org.jetbrains.kotlinx:
+    kotlinx-coroutines-core:
+      lang: kotlin
+      version: 0.30.1
+      exclude:
+      - "org.jetbrains.kotlin:kotlin-stdlib-common"
+    kotlinx-coroutines-jdk8:
+      lang: kotlin
+      version: 0.30.1
+      exclude:
+      - "org.jetbrains.kotlin:kotlin-stdlib-common"
+    kotlinx-coroutines-core-common:
+      lang: kotlin
+      version: 0.30.1
+      exclude:
+      - "org.jetbrains.kotlin:kotlin-stdlib-common"
+    atomicfu-common:
+      lang: kotlin
+      version: 0.11.10
+      exclude:
+      - "org.jetbrains.kotlin:kotlin-stdlib-common"
+
+  junit:
+    junit:
+      lang: java
+      version: "4.12"

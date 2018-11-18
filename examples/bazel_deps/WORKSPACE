@@ -1,0 +1,14 @@
+workspace(name = "kotlin_bazel_deps_example")
+
+local_repository(
+    name = "io_bazel_rules_kotlin",
+    path = "../.."
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories()
+kt_register_toolchains()
+
+# load external libraries from dependencies.yaml
+load("//third_party:workspace.bzl", "maven_dependencies")
+maven_dependencies()

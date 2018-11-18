@@ -1,0 +1,10 @@
+directories:
+  # exclude download from run_bazel_deps.sh
+  -bazel-deps
+  .
+
+targets:
+  //:all
+
+additional_languages:
+  kotlin
