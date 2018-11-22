@@ -40,7 +40,7 @@ def _fold_jars_action(ctx, rule_kind, output_jar, input_jars):
     ])
     args.add("--output", output_jar)
     args.add_all(input_jars, before_each = "--sources")
-    ctx.action(
+    ctx.actions.run(
         mnemonic = "KotlinFoldJars",
         inputs = input_jars,
         outputs = [output_jar],
@@ -98,7 +98,7 @@ def _build_resourcejar_action(ctx):
     """
     resources_jar_output = ctx.actions.declare_file(ctx.label.name + "-resources.jar")
     zipper_args = _resourcejar_args_action(ctx)
-    ctx.action(
+    ctx.actions.run_shell(
         mnemonic = "KotlinZipResourceJar",
         inputs = ctx.files.resources + [ctx.executable._zipper, zipper_args],
         outputs = [resources_jar_output],
@@ -285,7 +285,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     # If the merge list is not empty the kotlin compiler should compile to an intermediate jar.
     if len(output_merge_list) > 0:
         # Declare the intermediate jar
-        kt_compile_output_jar = ctx.new_file(ctx.label.name + "-ktclass.jar")
+        kt_compile_output_jar = ctx.actions.declare_file(ctx.label.name + "-ktclass.jar")
 
         # the first entry in the merge list is the result of the kotlin compile action.
         output_merge_list = [kt_compile_output_jar] + output_merge_list
