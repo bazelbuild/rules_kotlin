@@ -31,7 +31,7 @@ class KotlinNormalizationAssertionTest : KotlinAssertionTestCase("src/test/data/
             name = "test_module_name_lib.jar",
             description = "Builder jars should be normalized with and include stamp data"
         ) {
-            validateFileSha256("1d26035bda6f384b9cc6bbe5a5bf0727b4da0aeec59545c421de32775149d4cf")
+            validateFileSha256("a6eca5f9db22d5fb2914efa821cb553c213cdc05df5d0b7cbe1e58e6d308b513")
             assertManifestStamped()
             assertEntryCompressedAndNormalizedTimestampYear("helloworld/Main.class")
         }
@@ -39,7 +39,7 @@ class KotlinNormalizationAssertionTest : KotlinAssertionTestCase("src/test/data/
             name = "test_embed_resources.jar",
             description = "Merging resources into the main output jar should still result in a normalized jar"
         ) {
-            validateFileSha256("ff35e9779be25c5803ab74cd5cee46bfd35da9412fe78395d1ebc2fb2e20880a")
+            validateFileSha256("e3fff23417b6624a5a6445e367456f8fea6a47ed4a529626b8723a36475ba58a")
             assertManifestStamped()
             assertEntryCompressedAndNormalizedTimestampYear("testresources/AClass.class")
             assertEntryCompressedAndNormalizedTimestampYear(

@@ -80,7 +80,7 @@ open class JarHelper internal constructor (
     }
 
     /**
-     * Returns the time for a new Jar file entry in milliseconds since the epoch. Uses JarCreator.DEFAULT_TIMESTAMP]
+     * Returns the time for a new Jar file entry in milliseconds since the epoch. Uses [JarCreator.DEFAULT_TIMESTAMP]
      * for normalized entries, [System.currentTimeMillis] otherwise.
      *
      * @param filename The name of the file for which we are entering the time
@@ -236,12 +236,12 @@ open class JarHelper internal constructor (
         const val MANIFEST_NAME = JarFile.MANIFEST_NAME
         const val SERVICES_DIR = "META-INF/services/"
         internal val EMPTY_BYTEARRAY = ByteArray(0)
+
         /** Normalize timestamps.  */
-        val DEFAULT_TIMESTAMP = LocalDateTime.of(1980, 1, 1, 0, 0, 0)
+        val DEFAULT_TIMESTAMP = LocalDateTime.of(2010, 1, 1, 0, 0, 0)
             .atZone(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
-
         // These attributes are used by JavaBuilder, Turbine, and ijar.
         // They must all be kept in sync.
         val TARGET_LABEL = Attributes.Name("Target-Label")
