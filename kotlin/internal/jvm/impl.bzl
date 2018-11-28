@@ -81,7 +81,7 @@ def kt_jvm_import_impl(ctx):
             source_jars += jar[JavaInfo].transitive_source_jars.to_list()
         else:
             # this branch occurs when the attr was a filegroup.
-            for file in jar.files:
+            for file in jar.files.to_list():
                 if file.basename.endswith("-sources.jar"):
                     source_jars.append(file)
                 elif file.basename.endswith(".jar"):
