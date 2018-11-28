@@ -107,6 +107,7 @@ load(
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
     _kt_jvm_library_impl = "kt_jvm_library_impl",
 )
+load("//kotlin/internal/utils:utils.bzl", "utils")
 
 _implicit_deps = {
     "_singlejar": attr.label(
@@ -136,61 +137,64 @@ _implicit_deps = {
     ),
 }
 
-_common_attr = _implicit_deps + {
-    "srcs": attr.label_list(
-        doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
+_common_attr = utils.add_dicts(
+    _implicit_deps,
+    {
+        "srcs": attr.label_list(
+            doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.""",
-        default = [],
-        allow_files = [".srcjar", ".kt", ".java"],
-    ),
-    "deps": attr.label_list(
-        doc = """A list of dependencies of this rule.See general comments about `deps` at
+            default = [],
+            allow_files = [".srcjar", ".kt", ".java"],
+        ),
+        "deps": attr.label_list(
+            doc = """A list of dependencies of this rule.See general comments about `deps` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
-        aspects = [_kt_jvm_plugin_aspect],
-        providers = [
-            [JavaInfo],
-        ],
-        allow_files = False,
-    ),
-    "runtime_deps": attr.label_list(
-        doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
+            aspects = [_kt_jvm_plugin_aspect],
+            providers = [
+                [JavaInfo],
+            ],
+            allow_files = False,
+        ),
+        "runtime_deps": attr.label_list(
+            doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
         appear on the runtime classpath, but unlike them, not on the compile-time classpath.""",
-        default = [],
-        allow_files = False,
-    ),
-    "resources": attr.label_list(
-        doc = """A list of files that should be include in a Java jar.""",
-        default = [],
-        allow_files = True,
-    ),
-    "resource_strip_prefix": attr.string(
-        doc = """The path prefix to strip from Java resources, files residing under common prefix such as
+            default = [],
+            allow_files = False,
+        ),
+        "resources": attr.label_list(
+            doc = """A list of files that should be include in a Java jar.""",
+            default = [],
+            allow_files = True,
+        ),
+        "resource_strip_prefix": attr.string(
+            doc = """The path prefix to strip from Java resources, files residing under common prefix such as
         `src/main/resources` or `src/test/resources` will have stripping applied by convention.""",
-        default = "",
-    ),
-    "resource_jars": attr.label_list(
-        doc = """Set of archives containing Java resources. If specified, the contents of these jars are merged into
+            default = "",
+        ),
+        "resource_jars": attr.label_list(
+            doc = """Set of archives containing Java resources. If specified, the contents of these jars are merged into
         the output jar.""",
-        default = [],
-    ),
-    "data": attr.label_list(
-        doc = """The list of files needed by this rule at runtime. See general comments about `data` at
+            default = [],
+        ),
+        "data": attr.label_list(
+            doc = """The list of files needed by this rule at runtime. See general comments about `data` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
-        allow_files = True,
-    ),
-    "plugins": attr.label_list(
-        default = [],
-        aspects = [_kt_jvm_plugin_aspect],
-    ),
-    "module_name": attr.string(
-        doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
+            allow_files = True,
+        ),
+        "plugins": attr.label_list(
+            default = [],
+            aspects = [_kt_jvm_plugin_aspect],
+        ),
+        "module_name": attr.string(
+            doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
         `//some/package/path:label_name` is translated to
         `some_package_path-label_name`.""",
-        mandatory = False,
-    ),
-}
+            mandatory = False,
+        ),
+    },
+)
 
-_lib_common_attr = _common_attr + {
+_lib_common_attr = utils.add_dicts(_common_attr, {
     "exports": attr.label_list(
         doc = """Exported libraries.
 
@@ -203,15 +207,15 @@ _lib_common_attr = _common_attr + {
         doc = """If true only use this library for compilation and not at runtime.""",
         default = False,
     ),
-}
+})
 
-_runnable_common_attr = _common_attr + {
+_runnable_common_attr = utils.add_dicts(_common_attr, {
     "jvm_flags": attr.string_list(
         doc = """A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet
         support make variable substitution.""",
         default = [],
     ),
-}
+})
 
 _common_outputs = dict(
     jar = "%{name}.jar",
@@ -257,7 +261,7 @@ kt_jvm_test = rule(
     * The kotlin test library is not added implicitly, it is available with the label
     `@com_github_jetbrains_kotlin//:kotlin-test`.
     """,
-    attrs = _runnable_common_attr + {
+    attrs = utils.add_dicts(_runnable_common_attr, {
         "_bazel_test_runner": attr.label(
             default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
             allow_files = True,
@@ -273,7 +277,7 @@ kt_jvm_test = rule(
             default = "",
         ),
         "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
-    },
+    }),
     executable = True,
     outputs = _common_outputs,
     test = True,
