@@ -100,7 +100,8 @@ def _build_resourcejar_action(ctx):
     zipper_args = _resourcejar_args_action(ctx)
     ctx.actions.run_shell(
         mnemonic = "KotlinZipResourceJar",
-        inputs = ctx.files.resources + [ctx.executable._zipper, zipper_args],
+        inputs = ctx.files.resources + [zipper_args],
+        tools = [ctx.executable._zipper],
         outputs = [resources_jar_output],
         command = "{zipper} c {resources_jar_output} @{path}".format(
             path = zipper_args.path,
@@ -129,13 +130,10 @@ def _partition_srcs(srcs):
         elif f.path.endswith(".srcjar"):
             src_jars.append(f)
 
-    kt = depset(kt_srcs)
-    java = depset(java_srcs)
-
     return struct(
-        kt = kt,
-        java = java,
-        all_srcs = kt + java,
+        kt = depset(kt_srcs),
+        java = depset(java_srcs),
+        all_srcs = depset(kt_srcs + java_srcs),
         src_jars = depset(src_jars),
     )
 
@@ -152,7 +150,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
 
     srcs = _partition_srcs(ctx.files.srcs)
-    if (len(srcs.kt) + len(srcs.java) == 0) and len(srcs.src_jars) == 0:
+    if not srcs.kt and not srcs.java and not srcs.src_jars:
         fail("no sources provided")
 
     # TODO extract and move this into common. Need to make it generic first.
@@ -169,7 +167,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         elif ctx.attr.module_name:
             fail("if friends has been set then module_name cannot be provided")
         else:
-            friend_paths = depset([j.path for j in friends[0][JavaInfo].compile_jars])
+            friend_paths = depset([j.path for j in friends[0][JavaInfo].compile_jars.to_list()])
             module_name = friends[0][_KtJvmInfo].module_name
     else:
         fail("only one friend is possible")
@@ -181,10 +179,10 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
 
     args = _utils.init_args(ctx, rule_kind, module_name)
 
-    args.add("--classdir", classes_directory)
-    args.add("--sourcegendir", sourcegen_directory)
-    args.add("--tempdir", temp_directory)
-    args.add("--kotlin_generated_classdir", generated_classes_directory)
+    args.add("--classdir", classes_directory.path)
+    args.add("--sourcegendir", sourcegen_directory.path)
+    args.add("--tempdir", temp_directory.path)
+    args.add("--kotlin_generated_classdir", generated_classes_directory.path)
 
     args.add("--output", output_jar)
     args.add("--kotlin_output_jdeps", ctx.outputs.jdeps)
@@ -192,32 +190,33 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
 
     args.add("--kotlin_friend_paths", "\n".join(friend_paths.to_list()))
 
-    args.add("--classpath", compile_jars)
+    args.add_all("--classpath", compile_jars)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars, omit_if_empty = True)
 
     # Collect and prepare plugin descriptor for the worker.
     plugin_info = _merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
     if len(plugin_info.annotation_processors) > 0:
-        processors = depset()
-        processorpath = depset()
+        processors = []
+        processorpath = []
         for p in plugin_info.annotation_processors:
             processors += [p.processor_class]
             processorpath += p.classpath
-        args.add("--processors", processors)
-        args.add("--processorpath", processorpath)
+        args.add_all("--processors", processors)
+        args.add_all("--processorpath", processorpath)
 
     progress_message = "Compiling Kotlin to JVM %s { kt: %d, java: %d, srcjars: %d }" % (
         ctx.label,
-        len(srcs.kt),
-        len(srcs.java),
-        len(srcs.src_jars),
+        len(srcs.kt.to_list()),
+        len(srcs.java.to_list()),
+        len(srcs.src_jars.to_list()),
     )
 
-    inputs, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder, toolchain.kotlin_home])
+    tools, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder, toolchain.kotlin_home])
     ctx.actions.run(
         mnemonic = "KotlinCompile",
-        inputs = depset(inputs) + ctx.files.srcs + compile_jars,
+        inputs = depset(ctx.files.srcs, transitive = [compile_jars]),
+        tools = tools,
         outputs = [
             output_jar,
             ctx.outputs.jdeps,
