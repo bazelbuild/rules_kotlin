@@ -92,16 +92,13 @@ kt_jvm_binary(
 
 load(
     "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
     "//kotlin/internal/jvm:plugins.bzl",
     _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect",
-)
-load(
-    "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
 )
 load(
     "//kotlin/internal/jvm:impl.bzl",
@@ -180,7 +177,6 @@ _common_attr = _implicit_deps + {
         doc = """The list of files needed by this rule at runtime. See general comments about `data` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
         allow_files = True,
-        cfg = "data",
     ),
     "plugins": attr.label_list(
         default = [],

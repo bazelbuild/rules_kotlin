@@ -57,7 +57,6 @@ kt_js_library = rule(
         "data": attr.label_list(
             allow_files = True,
             default = [],
-            cfg = "data",
         ),
         "deps": attr.label_list(
             doc = """A list of other kotlin JS libraries.""",
@@ -119,9 +118,8 @@ kt_js_import = rule(
             mandatory = True,
         ),
         "srcjar": attr.label(
-            allow_files = ["-sources.jar"],
             mandatory = False,
-            single_file = True,
+            allow_single_file = ["-sources.jar"],
         ),
         "runtime_deps": attr.label_list(
             default = [],
