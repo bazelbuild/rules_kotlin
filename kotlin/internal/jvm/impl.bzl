@@ -162,7 +162,7 @@ def kt_jvm_binary_impl(ctx):
 
 def kt_jvm_junit_test_impl(ctx):
     providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_test")
-    runtime_jars = providers.java.transitive_runtime_jars + ctx.files._bazel_test_runner
+    runtime_jars = depset(ctx.files._bazel_test_runner, transitive = [providers.java.transitive_runtime_jars])
     _write_launcher_action(
         ctx,
         runtime_jars,

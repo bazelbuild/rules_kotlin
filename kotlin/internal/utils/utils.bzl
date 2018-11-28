@@ -42,11 +42,32 @@ def _init_builder_args(ctx, rule_kind, module_name):
             debug = debug + [tag]
         if tag == "timings":
             debug = debug + [tag]
-    args.add("--kotlin_debug_tags", debug)
+    args.add_all("--kotlin_debug_tags", debug, omit_if_empty = False)
 
     return args
 
+# Copied from https://github.com/bazelbuild/bazel-skylib/blob/master/lib/dicts.bzl
+# Remove it if we add a dependency on skylib.
+def _add_dicts(*dictionaries):
+    """Returns a new `dict` that has all the entries of the given dictionaries.
+    If the same key is present in more than one of the input dictionaries, the
+    last of them in the argument list overrides any earlier ones.
+    This function is designed to take zero or one arguments as well as multiple
+    dictionaries, so that it follows arithmetic identities and callers can avoid
+    special cases for their inputs: the sum of zero dictionaries is the empty
+    dictionary, and the sum of a single dictionary is a copy of itself.
+    Args:
+      *dictionaries: Zero or more dictionaries to be added.
+    Returns:
+      A new `dict` that has all the entries of the given dictionaries.
+    """
+    result = {}
+    for d in dictionaries:
+        result.update(d)
+    return result
+
 utils = struct(
+    add_dicts = _add_dicts,
     init_args = _init_builder_args,
     restore_label = _restore_label,
     derive_module_name = _derive_module_name,
