@@ -150,8 +150,8 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
 
     srcs = _partition_srcs(ctx.files.srcs)
-    if not srcs.kt and not srcs.java and not srcs.src_jars:
-        fail("no sources provided")
+    if not srcs.kt and not srcs.java and not srcs.src_jars and ctx.attr.deps:
+        fail("no sources provided, but deps were declared. Did you mean runtime_deps?")
 
     # TODO extract and move this into common. Need to make it generic first.
     friends = getattr(ctx.attr, "friends", [])
