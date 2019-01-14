@@ -21,13 +21,13 @@ github_archive(
     repo = "google/protobuf",
 )
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+
 http_jar(
     name = "bazel_deps",
     sha256 = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e",
     url = "https://github.com/hsyed/bazel-deps/releases/download/v0.1.0/parseproject_deploy.jar",
 )
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_toolchains",
