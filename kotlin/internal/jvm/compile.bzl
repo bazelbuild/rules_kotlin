@@ -231,6 +231,9 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         arguments = [args],
         progress_message = progress_message,
         input_manifests = input_manifests,
+        env = {
+            "LC_CTYPE": "en_US.UTF-8" # For Java source files
+        },
     )
 
     return struct(
