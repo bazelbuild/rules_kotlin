@@ -28,7 +28,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
     native.android_library(
         name = base_name,
         visibility = ["//visibility:private"],
-        deps = base_deps,
+        exports = base_deps,
         **kwargs
     )
     _kt_jvm_library(
