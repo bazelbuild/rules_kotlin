@@ -120,9 +120,10 @@ def kt_js_import_impl(ctx):
     args.add("--out", ctx.outputs.js)
     args.add("--aux", ctx.outputs.js_map)
 
-    inputs, _, input_manifest = ctx.resolve_command(tools = [ctx.attr._importer])
+    tools, _, input_manifest = ctx.resolve_command(tools = [ctx.attr._importer])
     ctx.actions.run(
-        inputs = inputs + [jar_file],
+        inputs = [jar_file],
+        tools = tools,
         executable = ctx.executable._importer,
         outputs = [
             ctx.outputs.js,

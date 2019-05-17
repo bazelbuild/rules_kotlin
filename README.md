@@ -3,6 +3,7 @@
 [Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
 
 # Announcements
+* <b>February 20, 2019.</b> [Future directions](https://github.com/bazelbuild/rules_kotlin/issues/174) of rules_kotlin.
 * <b>August 14, 2018.</b> Js support. No documentation yet but see the nested example workspace `examples/node`.
 * <b>August 14, 2018.</b> Android support. No documentation but it's a simple integration. see 
   `kotlin/internal/jvm/android.bzl`.
@@ -46,6 +47,8 @@ In the project's `WORKSPACE`, declare the external repository and initialize the
 this:
 
 ```build
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 rules_kotlin_version = "67f4a6050584730ebae7f8a40435a209f8e0b48e"
 
 http_archive(

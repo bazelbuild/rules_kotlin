@@ -21,6 +21,8 @@ github_archive(
     repo = "google/protobuf",
 )
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+
 http_jar(
     name = "bazel_deps",
     sha256 = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e",
@@ -29,12 +31,20 @@ http_jar(
 
 http_archive(
     name = "bazel_toolchains",
-    sha256 = "cefb6ccf86ca592baaa029bcef04148593c0efe8f734542f10293ea58f170715",
-    strip_prefix = "bazel-toolchains-cdea5b8675914d0a354d89f108de5d28e54e0edc",
+    sha256 = "4b1468b254a572dbe134cc1fd7c6eab1618a72acd339749ea343bd8f55c3b7eb",
+    strip_prefix = "bazel-toolchains-d665ccfa3e9c90fa789671bf4ef5f7c19c5715c4",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/cdea5b8675914d0a354d89f108de5d28e54e0edc.tar.gz",
-        "https://github.com/bazelbuild/bazel-toolchains/archive/cdea5b8675914d0a354d89f108de5d28e54e0edc.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/d665ccfa3e9c90fa789671bf4ef5f7c19c5715c4.tar.gz",
+        "https://github.com/bazelbuild/bazel-toolchains/archive/d665ccfa3e9c90fa789671bf4ef5f7c19c5715c4.tar.gz",
     ],
+)
+
+load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
+
+# Creates toolchain configuration for remote execution with BuildKite CI
+# for rbe_ubuntu1604
+rbe_autoconfig(
+    name = "buildkite_config",
 )
 
 load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
