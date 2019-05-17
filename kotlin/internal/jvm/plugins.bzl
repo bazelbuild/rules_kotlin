@@ -49,7 +49,7 @@ def _kt_jvm_plugin_aspect_impl(target, ctx):
                 struct(
                     label = _utils.restore_label(ctx.label),
                     processor_class = processor.processor_class,
-                    classpath = [cp.path for cp in merged_deps.transitive_runtime_jars],
+                    classpath = [cp.path for cp in merged_deps.transitive_runtime_jars.to_list()],
                     generates_api = processor.generates_api,
                 ),
             ],
