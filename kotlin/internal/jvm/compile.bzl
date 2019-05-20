@@ -52,6 +52,8 @@ def _fold_jars_action(ctx, rule_kind, output_jar, input_jars):
 _CONVENTIONAL_RESOURCE_PATHS = [
     "src/main/resources",
     "src/test/resources",
+    "bazel-out/k8-fastbuild/genfiles",
+    "bazel-out/k8-fastbuild/bin",
 ]
 
 def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
@@ -77,7 +79,7 @@ def _adjust_resources_path(path, resource_strip_prefix):
 def _resourcejar_args_action(ctx):
     res_cmd = []
     for f in ctx.files.resources:
-        c_dir, res_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
+        c_dir, res_path = _adjust_resources_path(f.path, ctx.attr.resource_strip_prefix)
         target_path = res_path
         if target_path[0] == "/":
             target_path = target_path[1:]
