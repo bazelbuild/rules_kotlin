@@ -1,9 +1,9 @@
 ---
 platforms:
-  ubuntu1404:
+  ubuntu1604:
     test_targets:
     - "//:all_tests"
-  ubuntu1604:
+  ubuntu1804:
     test_targets:
     - "//:all_tests"
   rbe_ubuntu1604:
