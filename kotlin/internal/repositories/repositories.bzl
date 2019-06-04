@@ -30,9 +30,11 @@ load(
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.8.1"
 
+_KOTLIN_COMPILER_VERSION = "1.2.70"
+
 _KOTLIN_CURRENT_COMPILER_RELEASE = {
     "urls": [
-        "https://github.com/JetBrains/kotlin/releases/download/v1.2.70/kotlin-compiler-1.2.70.zip",
+        "https://github.com/JetBrains/kotlin/releases/download/v%s/kotlin-compiler-%s.zip" % (_KOTLIN_COMPILER_VERSION, _KOTLIN_COMPILER_VERSION),
     ],
     "sha256": "a23a40a3505e78563100b9e6cfd7f535fbf6593b69a5c470800fbafbeccf8434",
 }
