@@ -12,7 +12,7 @@ Contributions made by corporations are covered by a different agreement than the
 
 Contribution process
 
-Explain your idea and discuss your plan with members of the team. The best way to do this is to create an issue or comment on an existing issue.
-Prepare a git commit with your change. Don't forget to add tests. Run the existing tests with bazel test //.... Update README.md if appropriate.
-Create a pull request. This will start the code review process. All submissions, including submissions by project members, require review.
-You may be asked to make some changes. You'll also need to sign the CLA at this point, if you haven't done so already. Our continuous integration bots will test your change automatically on supported platforms. Once everything looks good, your change will be merged.
+* Explain your idea and discuss your plan with members of the team. The best way to do this is to create an issue or comment on an existing issue.
+* Prepare a git commit with your change. Don't forget to add tests. Run the existing tests with bazel test //.... Update README.md if appropriate.
+* Create a pull request. This will start the code review process. All submissions, including submissions by project members, require review.
+* You may be asked to make some changes. You'll also need to sign the CLA at this point, if you haven't done so already. Our continuous integration bots will test your change automatically on supported platforms. Once everything looks good, your change will be merged.
