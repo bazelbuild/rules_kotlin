@@ -127,9 +127,9 @@ def kt_jvm_import_impl(ctx):
             DefaultInfo(files = depset(jars)),
             JavaInfo(
                 output_jar = jars[0],
-                compile_jar = jars[0],
-                source_jar = source_jar,
-                runtime_deps = ctx.attr.runtime_deps,
+                source_jars = [source_jar] if bool(source_jar) else [],
+                runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps if JavaInfo in dep],
+                use_ijar = False,
                 neverlink = getattr(ctx.attr, "neverlink", False),
             ),
             kt_info,
