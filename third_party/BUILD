@@ -40,7 +40,7 @@ java_library(
     name = "autovalue",
     exported_plugins = [":autovalue_plugin"],
     neverlink = 1,
-    exports = ["//third_party/jvm/com/google/auto/value:auto_value"],
+    exports = ["//third_party/jvm/com/google/auto/value:auto_value_annotations"],
 )
 
 java_plugin(
@@ -60,4 +60,11 @@ java_library(
         "//third_party/jvm/com/google/dagger",
         "//third_party/jvm/javax/inject:javax_inject",
     ],
+)
+
+java_binary(
+    name = "jarjar_runner",
+    main_class = "org.pantsbuild.jarjar.Main",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["//third_party/jvm/org/pantsbuild:jarjar"],
 )

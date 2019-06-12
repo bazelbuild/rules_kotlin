@@ -1,0 +1,1 @@
+rule dagger.** io.bazel.kotlin.builder.dagger.@1
