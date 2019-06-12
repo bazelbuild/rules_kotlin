@@ -1,47 +1,42 @@
 licenses(["notice"])
+
 java_library(
     name = "atomicfu_common",
-    exports = [
-        "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlinx/atomicfu_common"
-    ],
-    runtime_deps = [
-        "//third_party/jvm/org/jetbrains/kotlin:kotlin_stdlib_common"
-    ],
     visibility = [
-        "//third_party/jvm:__subpackages__"
-    ]
-)
-
-
-
-java_library(
-    name = "kotlinx_coroutines_core",
-    exports = [
-        "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlinx/kotlinx_coroutines_core"
+        "//third_party/jvm:__subpackages__",
     ],
-    runtime_deps = [
-        "//third_party/jvm/org/jetbrains/kotlin:kotlin_stdlib",
-        ":kotlinx_coroutines_core_common"
-    ],
-    visibility = [
-        "//visibility:public"
-    ]
-)
-
-
-
-java_library(
-    name = "kotlinx_coroutines_core_common",
     exports = [
-        "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlinx/kotlinx_coroutines_core_common"
+        "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlinx/atomicfu_common",
     ],
     runtime_deps = [
         "//third_party/jvm/org/jetbrains/kotlin:kotlin_stdlib_common",
-        ":atomicfu_common"
     ],
-    visibility = [
-        "//third_party/jvm:__subpackages__"
-    ]
 )
 
+java_library(
+    name = "kotlinx_coroutines_core",
+    visibility = [
+        "//visibility:public",
+    ],
+    exports = [
+        "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlinx/kotlinx_coroutines_core",
+    ],
+    runtime_deps = [
+        ":kotlinx_coroutines_core_common",
+        "//third_party/jvm/org/jetbrains/kotlin:kotlin_stdlib",
+    ],
+)
 
+java_library(
+    name = "kotlinx_coroutines_core_common",
+    visibility = [
+        "//third_party/jvm:__subpackages__",
+    ],
+    exports = [
+        "//external:jar/io_bazel_rules_kotlin_org/jetbrains/kotlinx/kotlinx_coroutines_core_common",
+    ],
+    runtime_deps = [
+        ":atomicfu_common",
+        "//third_party/jvm/org/jetbrains/kotlin:kotlin_stdlib_common",
+    ],
+)
