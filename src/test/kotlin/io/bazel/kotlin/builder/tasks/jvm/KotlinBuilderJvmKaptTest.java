@@ -31,16 +31,21 @@ import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_STDLIB;
 
 @RunWith(JUnit4.class)
 public class KotlinBuilderJvmKaptTest {
-  private static final Dep AUTO_VALUE =
-      Dep.importJar(
-          "autovalue",
-          "external/io_bazel_rules_kotlin_com_google_auto_value_auto_value"
-              + "/jar/io_bazel_rules_kotlin_com_google_auto_value_auto_value.jar");
+    private static final Dep AUTO_VALUE_ANNOTATIONS =
+            Dep.importJar(
+                    "autovalue",
+                    "external/io_bazel_rules_kotlin_com_google_auto_value_auto_value_annotations"
+                            + "/jar/io_bazel_rules_kotlin_com_google_auto_value_auto_value_annotations.jar");
+    private static final Dep AUTO_VALUE =
+            Dep.importJar(
+                    "autovalue",
+                    "external/io_bazel_rules_kotlin_com_google_auto_value_auto_value"
+                            + "/jar/io_bazel_rules_kotlin_com_google_auto_value_auto_value.jar");
   private static final AnnotationProcessor AUTO_VALUE_ANNOTATION_PROCESSOR =
       AnnotationProcessor.builder()
           .processClass("com.google.auto.value.processor.AutoValueProcessor")
           .processorPath(
-              Dep.classpathOf(AUTO_VALUE, KOTLIN_ANNOTATIONS).collect(Collectors.toSet()))
+              Dep.classpathOf(AUTO_VALUE_ANNOTATIONS, AUTO_VALUE, KOTLIN_ANNOTATIONS).collect(Collectors.toSet()))
           .build();
 
   private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
@@ -48,7 +53,7 @@ public class KotlinBuilderJvmKaptTest {
   private static final Consumer<KotlinJvmTestBuilder.TaskBuilder> ADD_AUTO_VALUE_PLUGIN =
       (c) -> {
         c.addAnnotationProcessors(AUTO_VALUE_ANNOTATION_PROCESSOR);
-        c.addDirectDependencies(AUTO_VALUE, KOTLIN_STDLIB);
+        c.addDirectDependencies(AUTO_VALUE_ANNOTATIONS, AUTO_VALUE, KOTLIN_STDLIB);
       };
 
   @Test

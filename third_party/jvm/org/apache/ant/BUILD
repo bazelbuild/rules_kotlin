@@ -1,21 +1,24 @@
 licenses(["notice"])
 
 java_library(
-    name = "checker_compat_qual",
+    name = "ant",
     visibility = [
         "//third_party/jvm:__subpackages__",
     ],
     exports = [
-        "//external:jar/io_bazel_rules_kotlin_org/checkerframework/checker_compat_qual",
+        "//external:jar/io_bazel_rules_kotlin_org/apache/ant/ant",
+    ],
+    runtime_deps = [
+        ":ant_launcher",
     ],
 )
 
 java_library(
-    name = "checker_qual",
+    name = "ant_launcher",
     visibility = [
         "//third_party/jvm:__subpackages__",
     ],
     exports = [
-        "//external:jar/io_bazel_rules_kotlin_org/checkerframework/checker_qual",
+        "//external:jar/io_bazel_rules_kotlin_org/apache/ant/ant_launcher",
     ],
 )
