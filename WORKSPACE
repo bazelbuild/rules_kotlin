@@ -13,15 +13,32 @@
 # limitations under the License.
 workspace(name = "io_bazel_rules_kotlin")
 
+local_repository(
+    name = "node_example",
+    path = "examples/node",
+)
+
 load("//kotlin/internal/repositories:repositories.bzl", "github_archive")
 
 github_archive(
     name = "com_google_protobuf",
-    commit = "106ffc04be1abf3ff3399f54ccf149815b287dd9",
+    commit = "09745575a923640154bcf307fba8aedff47f240a",  # v3.8.0, as of 2019-05-28
     repo = "google/protobuf",
+    sha256 = "76ee4ba47dec6146872b6cd051ae5bd12897ef0b1523d5aeb56d81a5a4ca885a",
 )
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+
+http_archive(
+    name = "bazel_skylib",
+    urls = ["https://github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz"],
+    strip_prefix = "bazel-skylib-0.8.0",
+    sha256 = "2ea8a5ed2b448baf4a6855d3ce049c4c452a6470b1efd1504fdb7c1c134d220a",
+)
 
 http_jar(
     name = "bazel_deps",
@@ -31,11 +48,11 @@ http_jar(
 
 http_archive(
     name = "bazel_toolchains",
-    sha256 = "4b1468b254a572dbe134cc1fd7c6eab1618a72acd339749ea343bd8f55c3b7eb",
-    strip_prefix = "bazel-toolchains-d665ccfa3e9c90fa789671bf4ef5f7c19c5715c4",
+    sha256 = "5962fe677a43226c409316fcb321d668fc4b7fa97cb1f9ef45e7dc2676097b26",
+    strip_prefix = "bazel-toolchains-be10bee3010494721f08a0fccd7f57411a1e773e",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/d665ccfa3e9c90fa789671bf4ef5f7c19c5715c4.tar.gz",
-        "https://github.com/bazelbuild/bazel-toolchains/archive/d665ccfa3e9c90fa789671bf4ef5f7c19c5715c4.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/be10bee3010494721f08a0fccd7f57411a1e773e.tar.gz",
+        "https://github.com/bazelbuild/bazel-toolchains/archive/be10bee3010494721f08a0fccd7f57411a1e773e.tar.gz",
     ],
 )
 
