@@ -13,6 +13,7 @@
 # limitations under the License.
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
+load("//third_party:jarjar.bzl", "jar_jar")
 
 # The compiler library, this is co-located in the kotlin compiler classloader.
 kt_bootstrap_library(
@@ -26,11 +27,25 @@ kt_bootstrap_library(
     visibility = ["//src/test/kotlin/io/bazel/kotlin/builder:__subpackages__"],
 )
 
-# The builder artifact.
+java_binary(
+    name = "builder_raw",
+    create_executable = False,
+    runtime_deps = ["//src/main/kotlin/io/bazel/kotlin/builder"],
+)
+
+# The builder artifact. Shaded to ensure that libraries it uses are not leaked to
+# the code it's running against (e.g. dagger)
+jar_jar(
+    name = "builder_jar_jar",
+    input_jar = ":builder_raw_deploy.jar",
+    rules = "shade.jarjar",
+)
+
 java_binary(
     name = "builder",
     data = [":compiler_lib.jar"],
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
+    runtime_deps = [":builder_jar_jar"],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//src/main/kotlin/io/bazel/kotlin/builder"],
 )
+

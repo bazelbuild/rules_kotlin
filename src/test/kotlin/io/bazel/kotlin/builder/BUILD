@@ -71,6 +71,7 @@ kt_rules_test(
     srcs = ["tasks/jvm/KotlinBuilderJvmKaptTest.java"],
     data = [
         "//third_party/jvm/com/google/auto/value:auto_value",
+        "//third_party/jvm/com/google/auto/value:auto_value_annotations",
     ],
 )
 

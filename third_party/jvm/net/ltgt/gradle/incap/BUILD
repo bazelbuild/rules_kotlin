@@ -1,11 +1,11 @@
 licenses(["notice"])
 
 java_library(
-    name = "diffutils",
+    name = "incap",
     visibility = [
         "//third_party/jvm:__subpackages__",
     ],
     exports = [
-        "//external:jar/io_bazel_rules_kotlin_com/googlecode/java_diff_utils/diffutils",
+        "//external:jar/io_bazel_rules_kotlin_net/ltgt/gradle/incap/incap",
     ],
 )
