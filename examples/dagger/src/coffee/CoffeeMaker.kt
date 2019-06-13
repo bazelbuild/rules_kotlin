@@ -16,8 +16,8 @@
 package coffee
 
 import dagger.Lazy
-import kotlinx.coroutines.experimental.DefaultDispatcher
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CoffeeMaker @Inject internal constructor(
@@ -28,7 +28,7 @@ class CoffeeMaker @Inject internal constructor(
 
     suspend fun brew() {
         // this function is async to verify intellij support for coroutines.
-        withContext(DefaultDispatcher) {
+        withContext(Dispatchers.Default) {
             heater.get().on()
             pump.pump()
             println(" [_]P coffee! [_]P ")

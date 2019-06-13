@@ -34,12 +34,12 @@ dependencies:
       version: "0.45"
   com.google.auto.service:
     auto-service:
-      modules: ["", "auto-service-annotations"]
+      modules: ["", "annotations"]
       lang: "java"
       version: "1.0-rc5"
   com.google.auto.value:
     auto-value:
-      modules: ["", "auto-value-annotations"]
+      modules: ["", "annotations"]
       lang: "java"
       version: "1.6.5"
   com.google.dagger:
@@ -55,7 +55,7 @@ dependencies:
     kotlinx-coroutines:
       modules: ["core"]
       lang: "java"
-      version : "0.23.1"
+      version : "1.1.1"
   org.pantsbuild:
     jarjar:
       lang: "java"
