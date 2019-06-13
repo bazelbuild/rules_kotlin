@@ -61,7 +61,7 @@ kt_jvm_library(
     ],
     deps = [
         ":dagger_lib",
-        "//third_party:kotlinx_coroutines",
+        "//third_party/jvm/org/jetbrains/kotlinx:kotlinx_coroutines_core",
     ],
 )
 

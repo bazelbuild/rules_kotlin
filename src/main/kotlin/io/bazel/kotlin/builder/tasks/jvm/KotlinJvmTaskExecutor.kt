@@ -96,12 +96,13 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
      */
     private fun JvmCompilationTask.getCommonArgs(): MutableList<String> {
         val args = mutableListOf<String>()
+        val friendPaths= info.friendPathsList.map { Paths.get(it).toAbsolutePath() }
         args.addAll(
             "-cp", inputs.joinedClasspath,
             "-api-version", info.toolchainInfo.common.apiVersion,
             "-language-version", info.toolchainInfo.common.languageVersion,
             "-jvm-target", info.toolchainInfo.jvm.jvmTarget,
-            "-Xfriend-paths=${info.friendPathsList.joinToString(File.pathSeparator)}"
+            "-Xfriend-paths=${friendPaths.joinToString(File.pathSeparator)}"
         )
 
         args

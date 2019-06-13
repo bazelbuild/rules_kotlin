@@ -48,4 +48,3 @@ java_binary(
     runtime_deps = [":builder_jar_jar"],
     visibility = ["//visibility:public"],
 )
-
