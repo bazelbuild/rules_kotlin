@@ -6,7 +6,6 @@ java_library(
         "//visibility:public",
     ],
     exports = [
-        ":auto_service_annotations",
         "//external:jar/io_bazel_rules_kotlin_com/google/auto/service/auto_service",
     ],
     runtime_deps = [

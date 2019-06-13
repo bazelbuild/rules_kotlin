@@ -6,7 +6,6 @@ java_library(
         "//visibility:public",
     ],
     exports = [
-        ":auto_value_annotations",
         "//external:jar/io_bazel_rules_kotlin_com/google/auto/value/auto_value",
     ],
 )

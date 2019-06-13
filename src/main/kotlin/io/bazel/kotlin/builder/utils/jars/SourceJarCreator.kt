@@ -128,7 +128,7 @@ class SourceJarCreator(
             for (entry in jar.entries()) {
                 if (!entry.isDirectory) {
                     if (isJavaSourceLike(entry.name)) {
-                        jar.getInputStream(entry).readBytes(entry.size.toInt()).also {
+                        jar.getInputStream(entry).readBytes().also {
                             addEntry(entry.name, path, it)
                         }
                     }
