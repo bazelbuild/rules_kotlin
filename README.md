@@ -2,7 +2,8 @@
 
 # A fork of the legacy branch of bazelbuild/rules_kotlin
 
-Current version: ***`legacy_modded-0_26_1-01`***
+Current release: ***`legacy_modded-0_26_1-01`***
+Maintained branch: `legacy_continued`
 
 # Announcements
 * <b>June 12, 2019.</b> Kotlin 1.3 support, and release of `legacy_modded-0_26_1-01`
