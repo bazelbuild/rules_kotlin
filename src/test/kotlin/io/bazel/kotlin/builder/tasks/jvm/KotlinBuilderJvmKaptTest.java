@@ -26,14 +26,13 @@ import org.junit.runners.JUnit4;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_ANNOTATIONS;
-import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_STDLIB;
+import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.*;
 
 @RunWith(JUnit4.class)
 public class KotlinBuilderJvmKaptTest {
     private static final Dep AUTO_VALUE_ANNOTATIONS =
             Dep.importJar(
-                    "autovalue",
+                    "autovalue_annotations",
                     "external/io_bazel_rules_kotlin_com_google_auto_value_auto_value_annotations"
                             + "/jar/io_bazel_rules_kotlin_com_google_auto_value_auto_value_annotations.jar");
     private static final Dep AUTO_VALUE =
@@ -53,7 +52,7 @@ public class KotlinBuilderJvmKaptTest {
   private static final Consumer<KotlinJvmTestBuilder.TaskBuilder> ADD_AUTO_VALUE_PLUGIN =
       (c) -> {
         c.addAnnotationProcessors(AUTO_VALUE_ANNOTATION_PROCESSOR);
-        c.addDirectDependencies(AUTO_VALUE_ANNOTATIONS, AUTO_VALUE, KOTLIN_STDLIB);
+        c.addDirectDependencies(AUTO_VALUE_ANNOTATIONS, KOTLIN_ANNOTATIONS, KOTLIN_STDLIB);
       };
 
   @Test

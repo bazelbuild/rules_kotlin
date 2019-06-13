@@ -21,6 +21,13 @@ filegroup(
     srcs = glob(["**"]),
 )
 
+
+kt_jvm_import(
+    name = "annotations",
+    jars = ["lib/annotations-13.0.jar"],
+    neverlink = 1,
+)
+
 # Kotlin dependencies that are internal to this repo and are meant to be loaded manually into a classloader.
 [
     kt_jvm_import(
@@ -55,7 +62,6 @@ filegroup(
         visibility = ["//visibility:public"],
     )
     for art in [
-        "runtime",
         "stdlib",
         "stdlib-jdk7",
         "stdlib-jdk8",
