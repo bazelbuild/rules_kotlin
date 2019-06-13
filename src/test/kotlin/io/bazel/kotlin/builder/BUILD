@@ -20,7 +20,7 @@ _COMMON_DEPS = [
     "//src/main/protobuf:kotlin_model",
     "//third_party/jvm/com/google/truth",
     "//third_party/jvm/junit",
-    "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
+    "//third_party/jvm/com/google/guava",
     "//third_party/jvm/com/google/code/findbugs:jsr305",
 ]
 

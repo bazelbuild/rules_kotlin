@@ -46,7 +46,6 @@ def _kotlin_toolchain_impl(ctx):
     toolchain = dict(
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
-        coroutines = ctx.attr.coroutines,
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
@@ -79,19 +78,21 @@ _kt_toolchain = rule(
             cfg = "host",
         ),
         "language_version": attr.string(
-            doc = "this is the -languag_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
-            default = "1.2",
+            doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
+            default = "1.3",
             values = [
                 "1.1",
                 "1.2",
+                "1.3",
             ],
         ),
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
-            default = "1.2",
+            default = "1.3",
             values = [
                 "1.1",
                 "1.2",
+                "1.3",
             ],
         ),
         "debug": attr.string_list(
@@ -101,24 +102,18 @@ _kt_toolchain = rule(
             using `tags` attribute defined directly on the rules.""",
             allow_empty = True,
         ),
-        "coroutines": attr.string(
-            doc = "the -Xcoroutines flag, enabled by default as it's considered production ready 1.2.0 onward.",
-            default = "enable",
-            values = [
-                "enable",
-                "warn",
-                "error",
-            ],
-        ),
-        "jvm_runtime": attr.label(
+        "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
-            default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-runtime"),
+            default = [
+                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib")
+            ],
             providers = [JavaInfo],
             cfg = "target",
         ),
         "jvm_stdlibs": attr.label_list(
             doc = "The jvm stdlibs. This is internal.",
             default = [
+                Label("@" + _KT_COMPILER_REPO + "//:annotations"),
                 Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
                 Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk7"),
                 # JDK8 is being added blindly but I think we will probably not support bytecode levels 1.6 when the
@@ -159,8 +154,7 @@ def define_kt_toolchain(
         name,
         language_version = None,
         api_version = None,
-        jvm_target = None,
-        coroutines = None):
+        jvm_target = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
     _kt_toolchain(
@@ -168,14 +162,13 @@ def define_kt_toolchain(
         language_version = language_version,
         api_version = api_version,
         jvm_target = jvm_target,
-        coroutines = coroutines,
         debug =
             select({
-                "//kotlin/internal:builder_debug_trace": ["trace"],
+                "@io_bazel_rules_kotlin//kotlin/internal:builder_debug_trace": ["trace"],
                 "//conditions:default": [],
             }) +
             select({
-                "//kotlin/internal:builder_debug_timings": ["timings"],
+                "@io_bazel_rules_kotlin//kotlin/internal:builder_debug_timings": ["timings"],
                 "//conditions:default": [],
             }),
         visibility = ["//visibility:public"],

@@ -15,6 +15,7 @@
  */
 package io.bazel.kotlin
 
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -25,6 +26,9 @@ class KotlinNormalizationAssertionTest : KotlinAssertionTestCase("src/test/data/
      *
      * The hashes can change between kotlin compiler versions so this approach isn't sustainable.
      */
+    // (cgruber) per the above, this relies on hashes, which are volatile between kotlinc versions,
+    // so I'm disabling it.
+    @Ignore
     @Test
     fun testJarNormalization() {
         jarTestCase(
