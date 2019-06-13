@@ -1,10 +1,16 @@
-[![Build status](https://badge.buildkite.com/a8860e94a7378491ce8f50480e3605b49eb2558cfa851bbf9b.svg)](https://buildkite.com/bazel/kotlin-postsubmit)
+[![Build Status](https://badge.buildkite.com/72a7641b782f6f365efb775d7efb6b6ac4ea33f7db4ae7db55.svg)](https://buildkite.com/christian-gruber-open-source-stuffs/gruber-rules-kotlin-presubmit)
 
-[Skydoc documentation](https://bazelbuild.github.io/rules_kotlin)
+# A fork of the legacy branch of bazelbuild/rules_kotlin
+
+Current version: ***`legacy_modded-0_26_1-01`***
 
 # Announcements
-* <b>April 1, 2019.</b> [Roadmap](https://github.com/bazelbuild/rules_kotlin/blob/master/ROADMAP.md) for rules_kotlin published.
+* <b>June 12, 2019.</b> Kotlin 1.3 support, and release of `legacy_modded-0_26_1-01`
+* <b>June 11, 2019.</b> Fix to kotlin worker to allow modern dagger to be used in kapt. (worker was leaking its dagger dep)
+* <b>May 17, 2019.</b> More changes from upstream (mostly fixes for bazel version bump) and releases from the fork
+* <b>April 1, 2019.</b> [Roadmap](https://github.com/bazelbuild/rules_kotlin/blob/master/ROADMAP.md) for rules_kotlin published.  The `cgruber` fork will continue until the legacy branch in the parent repo can be updated (or no one needs the fork)
 * <b>February 20, 2019.</b> [Future directions](https://github.com/bazelbuild/rules_kotlin/issues/174) of rules_kotlin.
+* <b>October 24, 2018.</b> Christian Gruber forks the main kotlin rules repository, adding in two fixes.
 * <b>August 14, 2018.</b> Js support. No documentation yet but see the nested example workspace `examples/node`.
 * <b>August 14, 2018.</b> Android support. No documentation but it's a simple integration. see 
   `kotlin/internal/jvm/android.bzl`.
@@ -21,11 +27,14 @@
 
 # Overview 
 
-These rules were initially forked from [pubref/rules_kotlin](http://github.com/pubref/rules_kotlin).
+These rules were initially forked from [pubref/rules_kotlin](http://github.com/pubref/rules_kotlin), and then re-forked from [bazelbuild/rules_kotlin](http://github.com/bazelbuild/rules_kotlin)
+
 Key changes:
 
 * Replace the macros with three basic rules. `kt_jvm_binary`, `kt_jvm_library` and `kt_jvm_test`.
-* Use a single dep attribute instead of `java_dep` and `dep`.
+* Android rules. `kt_android_library` and `kt_android_binary`
+* Friend support for tests (supports access to `internal` types and functions)
+* Use a single `deps` attribute instead of `java_dep` and `dep`.
 * Add support for the following standard java rules attributes:
   * `data`
   * `resource_jars`
@@ -35,13 +44,11 @@ Key changes:
   * `exports`
 * Persistent worker support.
 * Mixed-Mode compilation (compile Java and Kotlin in one pass).
+* Configurable Kotlinc distribtution and verison
+* Configurable Toolchain
+* Kotlin 1.3 support
 
 # Quick Guide
-This section just contains a quick overview. Consult the generated 
-[documentation](https://bazelbuild.github.io/rules_kotlin). Note: Skydoc documentation is no longer being generated. 
-Comprehensive documentation will have to wait till the new documentation generation tool is ready. A contribution to 
-port the documentation to the RST format like `rules_go` has would be very welcome !
-
 
 ## WORKSPACE
 In the project's `WORKSPACE`, declare the external repository and initialize the toolchains, like
@@ -50,18 +57,19 @@ this:
 ```build
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "67f4a6050584730ebae7f8a40435a209f8e0b48e"
-
+rules_kotlin_version = "legacy-modded-0_26_1-01"
+rules_kotlin_sha = "b943379a6b48156cb542cee4502a463a6e2edeb307d1a4cabd0309ca2bf3f10f"
 http_archive(
     name = "io_bazel_rules_kotlin",
-    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
+    urls = ["https://github.com/cgruber/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
     type = "zip",
-    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version
+    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
+    sha256 = rules_kotlin_sha,
 )
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories()
-kt_register_toolchains()
+kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
 ## BUILD files
@@ -78,6 +86,49 @@ kt_jvm_library(
         "//path/to/dependency",
     ],
 )
+```
+
+## Custom toolchain
+
+To enable a custom toolchain (to configure language level, etc.)
+do the following.  In a `<workspace>/BUILD.bazel` file define the following:
+
+```
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "define_kt_toolchain")
+
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", or "1.3"
+    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.6" or "1.8"
+    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", or "1.3"
+)
+```
+
+and then in your `WORKSPACE` file, instead of `kt_register_toolchains()` do
+
+```
+register_toolchains("//:kotlin_toolchain")
+```
+
+## Custom kotlinc distribution (and version)
+
+To choose a different kotlinc distribution (only 1.3 variants supported), do the following
+in your `WORKSPACE` file (or import from a `.bzl` file:
+
+```
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories")
+
+KOTLIN_VERSION = "1.3.31"
+KOTLINC_RELEASE_SHA = "107325d56315af4f59ff28db6837d03c2660088e3efeb7d4e41f3e01bb848d6a"
+
+KOTLINC_RELEASE = {
+    "urls": [
+        "https://github.com/JetBrains/kotlin/releases/download/v{v}/kotlin-compiler-{v}.zip".format(v = KOTLIN_VERSION),
+    ],
+    "sha256": KOTLINC_RELEASE_SHA,
+}
+
+kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 ```
 
 # License
