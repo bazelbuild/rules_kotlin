@@ -1,7 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:jvm.bzl", "jvm_maven_import_external")
 
 def _jar_jar_impl(ctx):
-    ctx.action(
+    ctx.actions.run(
         inputs = [ctx.file.rules, ctx.file.input_jar],
         outputs = [ctx.outputs.jar],
         executable = ctx.executable.jarjar_runner,
