@@ -20,8 +20,8 @@ def _jar_jar_impl(ctx):
 jar_jar = rule(
     implementation = _jar_jar_impl,
     attrs = {
-        "input_jar": attr.label(allow_files = True, single_file = True),
-        "rules": attr.label(allow_files = True, single_file = True),
+        "input_jar": attr.label(allow_single_file = True),
+        "rules": attr.label(allow_single_file = True),
         "jarjar_runner": attr.label(
             executable = True,
             cfg = "host",
