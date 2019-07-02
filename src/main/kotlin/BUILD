@@ -46,5 +46,11 @@ java_binary(
     data = [":compiler_lib.jar"],
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     runtime_deps = [":builder_jar_jar"],
+    jvm_flags = [
+        "-XX:+IgnoreUnrecognizedVMOptions",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
+    ],
     visibility = ["//visibility:public"],
 )
