@@ -2,10 +2,13 @@
 
 # A fork of the legacy branch of bazelbuild/rules_kotlin
 
-Current release: ***`legacy_modded-0_26_1-01`***
+Current release: ***`legacy_modded-0_26_1-02`***
 Maintained branch: `legacy_continued`
 
 # Announcements
+
+* <b>June 20, 2019.</b> Fix to support 0.27.0 and release of `legacy_modded-0_26_1-02`
+  * Serious reconsideration of the version naming scheme...
 * <b>June 12, 2019.</b> Kotlin 1.3 support, and release of `legacy_modded-0_26_1-01`
 * <b>June 11, 2019.</b> Fix to kotlin worker to allow modern dagger to be used in kapt. (worker was leaking its dagger dep)
 * <b>May 17, 2019.</b> More changes from upstream (mostly fixes for bazel version bump) and releases from the fork
@@ -58,8 +61,8 @@ this:
 ```build
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy-modded-0_26_1-01"
-rules_kotlin_sha = "b943379a6b48156cb542cee4502a463a6e2edeb307d1a4cabd0309ca2bf3f10f"
+rules_kotlin_version = "legacy-modded-0_26_1-02"
+rules_kotlin_sha = "245d0bc1511048aaf82afd0fa8a83e8c3b5afdff0ae4fbcae25e03bb2c6f1a1a"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/cgruber/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
