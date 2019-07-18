@@ -114,13 +114,14 @@ _kt_toolchain = rule(
         ),
         "jvm_runtime": attr.label(
             doc = "The implicit jvm runtime libraries. This is internal.",
-            default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-runtime"),
+            default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
             providers = [JavaInfo],
             cfg = "target",
         ),
         "jvm_stdlibs": attr.label_list(
             doc = "The jvm stdlibs. This is internal.",
             default = [
+                Label("@" + _KT_COMPILER_REPO + "//:annotations"),
                 Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
                 Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk7"),
                 # JDK8 is being added blindly but I think we will probably not support bytecode levels 1.6 when the

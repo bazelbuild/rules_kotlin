@@ -132,7 +132,7 @@ _implicit_deps = {
     "_toolchain": attr.label(
         doc = """The Kotlin JVM Runtime. it's only purpose is to enable the Android native rules to discover the Kotlin
         runtime for dexing""",
-        default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-runtime"),
+        default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
         cfg = "target",
     ),
 }
@@ -311,9 +311,9 @@ kt_jvm_import = rule(
 
      # Import a single kotlin jar.
      kt_jvm_import(
-         name = "kotlin-runtime",
-         jars = ["lib/kotlin-runtime.jar"],
-         srcjar = "lib/kotlin-runtime-sources.jar"
+         name = "kotlin-stdlib",
+         jars = ["lib/kotlin-stdlib.jar"],
+         srcjar = "lib/kotlin-stdlib-sources.jar"
      )
      ```
     """,
