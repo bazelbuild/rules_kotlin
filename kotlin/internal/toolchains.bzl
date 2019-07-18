@@ -79,7 +79,7 @@ _kt_toolchain = rule(
             cfg = "host",
         ),
         "language_version": attr.string(
-            doc = "this is the -languag_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
+            doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
             default = "1.3",
             values = [
                 "1.1",
