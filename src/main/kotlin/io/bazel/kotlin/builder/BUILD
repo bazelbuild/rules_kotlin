@@ -45,6 +45,7 @@ java_library(
         "//src/main/protobuf:kotlin_model",
         "//third_party:dagger",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+        "@com_github_jetbrains_kotlin//:annotations",
         "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
     ],
 )
