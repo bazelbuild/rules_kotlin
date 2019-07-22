@@ -40,7 +40,7 @@ java_library(
     name = "autovalue",
     exported_plugins = [":autovalue_plugin"],
     neverlink = 1,
-    exports = ["//third_party/jvm/com/google/auto/value:auto_value"],
+    exports = ["//third_party/jvm/com/google/auto/value:auto_value_annotations"],
 )
 
 java_plugin(
