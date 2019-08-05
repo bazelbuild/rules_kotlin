@@ -59,7 +59,6 @@ def _kotlin_toolchain_impl(ctx):
         for jar in ctx.files.jvm_runtime
     ]
 
-    java_provider
     toolchain = dict(
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
