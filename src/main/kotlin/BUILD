@@ -29,7 +29,10 @@ kt_bootstrap_library(
 # The builder artifact.
 java_binary(
     name = "builder",
-    data = [":compiler_lib.jar"],
+    data = [
+        ":compiler_lib.jar",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
+    ],
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],
     runtime_deps = ["//src/main/kotlin/io/bazel/kotlin/builder"],
