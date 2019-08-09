@@ -23,3 +23,13 @@ fun ProcessBuilder.withEnv(key: String, value: String): ProcessBuilder {
 /** Starts the process and blocks until it terminates or the timeout is reached. */
 fun ProcessBuilder.exec(timeout: Long = 30, unit: TimeUnit = TimeUnit.MINUTES): Process =
     this.start().also { it.waitFor(timeout, unit) }
+
+// padEnd with a default.
+fun String.pad(width: Int = VERSION_WIDTH) = this.padEnd(width)
+
+/** Returns the substring after the delimiter, or itself if the delelimiter is not found */
+fun String.after(delimiter: String) =
+    with(this.split(delimiter, limit = 2)) {
+        if (size > 1) this[1]
+        else this[0]
+    }
