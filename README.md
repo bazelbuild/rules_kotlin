@@ -142,10 +142,10 @@ effort testing)?
 
 | Compatibility | legacy_continued | Errors |
 | ---- | ----  | ---- |
-| 0.16.0 | ![No]  | Compiling Kotlin to JVM //examples/dagger:coffee_lib { kt: 8, java: 0, srcjars: 1 } failed (Exit 1) |
-| 0.16.1 | ![No]  | Compiling Kotlin to JVM //examples/dagger:coffee_lib { kt: 8, java: 0, srcjars: 1 } failed (Exit 1) |
-| 0.17.1 | ![No]  | Compiling Kotlin to JVM //examples/dagger:coffee_lib { kt: 8, java: 0, srcjars: 1 } failed (Exit 1) |
-| 0.17.2 | ![No]  | Compiling Kotlin to JVM //examples/dagger:coffee_lib { kt: 8, java: 0, srcjars: 1 } failed (Exit 1) |
+| 0.16.0 | ![No]  | Compilation failed (Exit 1) |
+| 0.16.1 | ![No]  | Compilation failed (Exit 1) |
+| 0.17.1 | ![No]  | Compilation failed (Exit 1) |
+| 0.17.2 | ![No]  | Compilation failed (Exit 1) |
 | 0.18.0 | ![Yes] |  |
 | 0.18.1 | ![Yes] |  |
 | 0.19.0 | ![Yes] |  |
