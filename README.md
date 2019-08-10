@@ -140,36 +140,36 @@ kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 Which version of *rules_kotlin* can you use with which version of Bazel (best
 effort testing)?
 
-| Compatibility | legacy_continued | Errors |
-| ---- | ----  | ---- |
-| 0.16.0 | ![No]  | Compilation failed (Exit 1) |
-| 0.16.1 | ![No]  | Compilation failed (Exit 1) |
-| 0.17.1 | ![No]  | Compilation failed (Exit 1) |
-| 0.17.2 | ![No]  | Compilation failed (Exit 1) |
-| 0.18.0 | ![Yes] |  |
-| 0.18.1 | ![Yes] |  |
-| 0.19.0 | ![Yes] |  |
-| 0.19.1 | ![Yes] |  |
-| 0.19.2 | ![Yes] |  |
-| 0.20.0 | ![Yes] |  |
-| 0.21.0 | ![Yes] |  |
-| 0.22.0 | ![Yes] |  |
-| 0.23.0 | ![Yes] |  |
-| 0.23.1 | ![Yes] |  |
-| 0.23.2 | ![Yes] |  |
-| 0.24.0 | ![Yes] |  |
-| 0.24.1 | ![Yes] |  |
-| 0.25.0 | ![Yes] |  |
-| 0.25.1 | ![Yes] |  |
-| 0.25.2 | ![Yes] |  |
-| 0.25.3 | ![Yes] |  |
-| 0.26.0 | ![Yes] |  |
-| 0.26.1 | ![Yes] |  |
-| 0.27.0 | ![Yes] |  |
-| 0.27.1 | ![Yes] |  |
-| 0.27.2 | ![Yes] |  |
-| 0.28.0 | ![Yes] |  |
-| 0.28.1 | ![Yes] |  |
+| Version | HEAD   |  |
+| ------  | ----   | ---- |
+| 0.16.0  | ![No]  |  |
+| 0.16.1  | ![No]  |  |
+| 0.17.1  | ![No]  |  |
+| 0.17.2  | ![No]  |  |
+| 0.18.0  | ![Yes] |  |
+| 0.18.1  | ![Yes] |  |
+| 0.19.0  | ![Yes] |  |
+| 0.19.1  | ![Yes] |  |
+| 0.19.2  | ![Yes] |  |
+| 0.20.0  | ![Yes] |  |
+| 0.21.0  | ![Yes] |  |
+| 0.22.0  | ![Yes] |  |
+| 0.23.0  | ![Yes] |  |
+| 0.23.1  | ![Yes] |  |
+| 0.23.2  | ![Yes] |  |
+| 0.24.0  | ![Yes] |  |
+| 0.24.1  | ![Yes] |  |
+| 0.25.0  | ![Yes] |  |
+| 0.25.1  | ![Yes] |  |
+| 0.25.2  | ![Yes] |  |
+| 0.25.3  | ![Yes] |  |
+| 0.26.0  | ![Yes] |  |
+| 0.26.1  | ![Yes] |  |
+| 0.27.0  | ![Yes] |  |
+| 0.27.1  | ![Yes] |  |
+| 0.27.2  | ![Yes] |  |
+| 0.28.0  | ![Yes] |  |
+| 0.28.1  | ![Yes] |  |
 
 [Yes]: https://img.shields.io/static/v1.svg?label=&message=Yes&color=green
 [No]: https://img.shields.io/static/v1.svg?label=&message=No&color=red
