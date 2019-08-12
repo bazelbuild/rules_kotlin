@@ -2,7 +2,7 @@
 
 # A fork of the legacy branch of bazelbuild/rules_kotlin
 
-Current release: ***`legacy_modded-0_26_1-02`***
+Current release: ***`legacy-modded-0_26_1-02`***
 Maintained branch: `legacy_continued`
 
 # Announcements
