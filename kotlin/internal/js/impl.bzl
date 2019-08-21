@@ -65,7 +65,7 @@ def kt_js_library_impl(ctx):
     )
 
     args.add("--output", ctx.outputs.js)
-    args.add("--kotlin_js_dir", out_dir)  # TODO
+    args.add("--kotlin_js_dir", out_dir.path)
     args.add("--kotlin_output_js_jar", ctx.outputs.jar)
     args.add("--kotlin_output_srcjar", ctx.outputs.srcjar)
 
@@ -76,7 +76,7 @@ def kt_js_library_impl(ctx):
 
     ctx.actions.run(
         mnemonic = "KotlinCompile",
-        inputs = depset(inputs) + libraries + ctx.files.srcs,
+        inputs = depset(inputs + ctx.files.srcs, transitive = [libraries]),
         outputs = [
             ctx.outputs.js,
             ctx.outputs.js_map,

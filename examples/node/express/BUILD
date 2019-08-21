@@ -33,5 +33,5 @@ nodejs_binary(
     name = "express",
     node_modules = "@node_ws//:node_modules",
     data = [":app"],
-    entry_point = "kotlin_node_examples/express/app.js",
+    entry_point = ":app.js",
 )
