@@ -65,7 +65,7 @@ def kt_js_library_impl(ctx):
     )
 
     args.add("--output", ctx.outputs.js)
-    args.add("--kotlin_js_dir", out_dir)  # TODO
+    args.add("--kotlin_js_dir", out_dir.path)
     args.add("--kotlin_output_js_jar", ctx.outputs.jar)
     args.add("--kotlin_output_srcjar", ctx.outputs.srcjar)
 
@@ -76,7 +76,7 @@ def kt_js_library_impl(ctx):
 
     ctx.actions.run(
         mnemonic = "KotlinCompile",
-        inputs = depset(inputs) + libraries + ctx.files.srcs,
+        inputs = depset(inputs + ctx.files.srcs, transitive = [libraries]),
         outputs = [
             ctx.outputs.js,
             ctx.outputs.js_map,
@@ -104,6 +104,19 @@ def kt_js_library_impl(ctx):
         ),
     ]
 
+def _strip_version(jarfile):
+    """strip version suffix if present
+       e.g. kotlinx-html-js-0.6.12.jar ->  kotlinx-html-js.jar
+    """
+    if not jarfile.endswith(".jar"):
+        fail("_strip_version expects paths ending with .jar")
+    segments = jarfile[:-len(".jar")].split("-")
+    # Remove the last segment if all digits separated by dot
+    parts = segments[-1].split(".")
+    if len([p for p in parts if not p.isdigit()]) == 0:
+        segments = segments[0:-1]
+    return "%s.jar" % "-".join(segments)
+
 def kt_js_import_impl(ctx):
     if len(ctx.files.jars) != 1:
         fail("a single jar should be supplied, multiple jars not supported")
@@ -112,7 +125,7 @@ def kt_js_import_impl(ctx):
     # Lock the jar name to the label name -- only make an exception for the compiler repo.
     if not (ctx.label.workspace_root.startswith("external/") and ctx.label.workspace_root.endswith(_KT_COMPILER_REPO)):
         expected_basename = "%s.jar" % ctx.label.name
-        if not jar_file.basename == expected_basename:
+        if _strip_version(jar_file.basename) != expected_basename:
             fail("label name %s is not the same as the jar name %s" % (jar_file.basename, expected_basename))
 
     args = ctx.actions.args()
