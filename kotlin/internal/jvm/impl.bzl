@@ -20,6 +20,11 @@ load(
     _KtJvmInfo = "KtJvmInfo",
 )
 
+load(
+    "//kotlin/internal/utils:utils.bzl",
+    _utils = "utils",
+)
+
 def _make_providers(ctx, providers, transitive_files = depset(order = "default")):
     return struct(
         kt = providers.kt,
@@ -116,7 +121,7 @@ def kt_jvm_import_impl(ctx):
         source_jar = source_jars[0]
 
     kt_info = _KtJvmInfo(
-        module_name = "",
+        module_name = _utils.derive_module_name(ctx),
         outputs = struct(
             jars = artifacts,
         ),
@@ -129,6 +134,7 @@ def kt_jvm_import_impl(ctx):
                 output_jar = jars[0],
                 source_jars = [source_jar] if bool(source_jar) else [],
                 runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps if JavaInfo in dep],
+                exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
                 use_ijar = False,
                 neverlink = getattr(ctx.attr, "neverlink", False),
             ),
