@@ -156,7 +156,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     # TODO extract and move this into common. Need to make it generic first.
     friends = getattr(ctx.attr, "friends", [])
     deps = [d[JavaInfo] for d in friends + ctx.attr.deps] + [toolchain.jvm_stdlibs]
-    compile_jars = java_common.merge(deps).compile_jars
+    compile_jars = java_common.merge(deps).transitive_compile_time_jars
 
     if len(friends) == 0:
         module_name = _utils.derive_module_name(ctx)
