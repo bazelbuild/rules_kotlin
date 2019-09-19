@@ -53,6 +53,7 @@ internal class JDepsGenerator @Inject constructor(
                         val joinedClasspath = command.inputs.joinedClasspath
                         val res = invoker.run(
                             arrayOf(
+                                "--multi-release", "base",
                                 "-cp", joinedClasspath,
                                 command.outputs.jdeps
                             ),
