@@ -51,8 +51,10 @@ internal class JDepsGenerator @Inject constructor(
                 ByteArrayOutputStream().use { out ->
                     PrintWriter(out).use { writer ->
                         val joinedClasspath = command.inputs.joinedClasspath
+                        val version = Integer.parseInt(System.getProperty("java.version").split('.')[1])
+                        val multiRelease = if (version > 8) arrayOf("--multi-release", "base") else arrayOf()
                         val res = invoker.run(
-                            arrayOf(
+                            multiRelease + arrayOf(
                                 "-cp", joinedClasspath,
                                 command.outputs.jdeps
                             ),
