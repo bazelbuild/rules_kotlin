@@ -43,6 +43,22 @@ register_toolchains("//:custom_toolchain")
 """
 
 def _kotlin_toolchain_impl(ctx):
+    compile_time_providers = [
+        JavaInfo(
+            output_jar = jar,
+            compile_jar = jar,
+            neverlink = True,
+        )
+        for jar in ctx.files.jvm_stdlibs
+    ]
+    runtime_providers = [
+        JavaInfo(
+            output_jar = jar,
+            compile_jar = jar,
+        )
+        for jar in ctx.files.jvm_runtime
+    ]
+
     toolchain = dict(
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
@@ -50,11 +66,7 @@ def _kotlin_toolchain_impl(ctx):
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
         kotlin_home = ctx.attr.kotlin_home,
-        jvm_stdlibs = java_common.create_provider(
-            compile_time_jars = ctx.files.jvm_stdlibs,
-            runtime_jars = ctx.files.jvm_runtime,
-            use_ijar = False,
-        ),
+        jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         js_stdlibs = ctx.attr.js_stdlibs,
     )
     return [
