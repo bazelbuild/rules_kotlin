@@ -43,7 +43,10 @@ jar_jar(
 
 java_binary(
     name = "builder",
-    data = [":compiler_lib.jar"],
+    data = [
+        ":compiler_lib.jar",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
+    ],
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     runtime_deps = [":builder_jar_jar"],
     jvm_flags = [
