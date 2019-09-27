@@ -61,8 +61,8 @@ this:
 ```build
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy-modded-0_26_1-02"
-rules_kotlin_sha = "245d0bc1511048aaf82afd0fa8a83e8c3b5afdff0ae4fbcae25e03bb2c6f1a1a"
+rules_kotlin_version = "legacy_modded-0_29_0-01"
+rules_kotlin_sha = "3a44c095fdd0565327bfde1195452705eee37c27ea9fdd85843992f304a27767"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/cgruber/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
@@ -170,6 +170,10 @@ effort testing)?
 | 0.27.2  | ![Yes] |  |
 | 0.28.0  | ![Yes] |  |
 | 0.28.1  | ![Yes] |  |
+| 0.28.1  | ![Yes] |  |
+| 0.29.0  | ![Yes] |  |
+| 0.29.1  | ![Yes] |  |
+| 1.0.0rc3  | ![No] |  |
 
 [Yes]: https://img.shields.io/static/v1.svg?label=&message=Yes&color=green
 [No]: https://img.shields.io/static/v1.svg?label=&message=No&color=red
