@@ -15,10 +15,27 @@ package(default_visibility = ["//visibility:public"])
 
 load("//kotlin:kotlin.bzl", "kt_jvm_import")
 
+
 java_binary(
     name = "bazel_deps",
     main_class = "com.github.johnynek.bazel_deps.ParseProject",
     runtime_deps = ["@bazel_deps//jar"],
+)
+
+sh_test(
+    name = "force_import_load_test",
+    srcs = ["//:scripts/noop.sh"],
+    data = [":force_import_load_deploy.jar"],
+)
+
+# This binary isn't used except to test the two usages of kt_jvm_import below.
+java_binary(
+    name = "force_import_load",
+    create_executable = False,
+    runtime_deps = [
+        ":kotlinx_coroutines",
+        ":kotlinx_coroutines_common",
+    ]
 )
 
 kt_jvm_import(
@@ -26,6 +43,12 @@ kt_jvm_import(
     jars = [
         "@io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core//jar",
     ],
+)
+
+kt_jvm_import(
+    name = "kotlinx_coroutines_common",
+    jar = "@io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core_common//jar:io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core_common.jar",
+    srcjar = "@io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core_common//jar:io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core_common-sources.jar",
 )
 
 java_plugin(
