@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+exports_files([
+    "scripts/noop.sh",
+])
+
 # The entire test suite excluding local tests.
 test_suite(
     name = "all_tests",
