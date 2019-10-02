@@ -68,74 +68,64 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
         is_executable = True,
     )
 
+def _unify_jars(ctx):
+    if bool(ctx.attr.jar):
+        return struct(class_jar = ctx.file.jar, source_jar = ctx.file.srcjar, ijar = None)
+    else:
+        # Legacy handling.
+        jars = []
+        source_jars = [ctx.file.srcjar] if ctx.file.srcjar else []
+
+        # TODO after a while remove the for block, the checks after it,and simplify the source-jar to jar allignment.
+        # There must be a single jar jar and it can either be a filegroup or a JavaInfo.
+        for jar in ctx.attr.jars:
+            # If a JavaInfo is available it's because it was picked up from a `maven_jar` style attribute -- e.g.,
+            # @com_google_guava_guava//jar. so the transitive_compile_jars or the transitive_runtime_jars should not be
+            # visited -- descending into these results in ijars entering the graph.
+            if JavaInfo in jar:
+                jars += jar[JavaInfo].full_compile_jars.to_list()
+                source_jars += jar[JavaInfo].transitive_source_jars.to_list()
+            else:
+                # this branch occurs when the attr was a filegroup.
+                for file in jar.files.to_list():
+                    if file.basename.endswith("-sources.jar"):
+                        source_jars.append(file)
+                    elif file.basename.endswith(".jar"):
+                        jars.append(file)
+                    else:
+                        fail("a jar pointing to a filegroup must either end with -sources.jar or .jar")
+
+        if len(jars) > 1:
+            fail("got more than one jar, this is an error create an issue: %s" % jars)
+        if len(source_jars) > 1:
+            fail("got more than one source jar. " +
+                "Did you include both srcjar and a sources jar in the jars attribute?: " +
+                jars)
+            print(source_jars)
+        return struct(class_jar = jars[0], source_jar = source_jars[0] if len(source_jars) == 1 else None, ijar = None)
+
 def kt_jvm_import_impl(ctx):
-    jars = []
-    if ctx.file.srcjar:
-        source_jars = [ctx.file.srcjar]
-    else:
-        source_jars = []
+    if bool(ctx.attr.jars) and bool(ctx.attr.jar):
+        fail("Cannot use both jars= and jar= attribute.  Prefer jar=")
 
-    # TODO after a while remove the for block, the checks after it,and simplify the source-jar to jar allignment.
-    # There must be a single jar jar and it can either be a filegroup or a JavaInfo.
-    for jar in ctx.attr.jars:
-        # If a JavaInfo is available it's because it was picked up from a `maven_jar` style attribute -- e.g.,
-        # @com_google_guava_guava//jar. so the transitive_compile_jars or the transitive_runtime_jars should not be
-        # visited -- descending into these results in ijars entering the graph.
-        if JavaInfo in jar:
-            jars += jar[JavaInfo].full_compile_jars.to_list()
-            source_jars += jar[JavaInfo].transitive_source_jars.to_list()
-        else:
-            # this branch occurs when the attr was a filegroup.
-            for file in jar.files.to_list():
-                if file.basename.endswith("-sources.jar"):
-                    source_jars.append(file)
-                elif file.basename.endswith(".jar"):
-                    jars.append(file)
-                else:
-                    fail("a jar pointing to a filegroup must either end with -sources.jar or .jar")
-
-    if len(jars) > 1:
-        print("got more than one jar, this is an error create an issue")
-        print(jars)
-    if len(source_jars) > 1:
-        print("got more than one source jar, this is an error create an issue")
-        print(source_jars)
-
-    # This was needed for intellij plugin, try to pair up jars with their sources so that the sources are mounted
-    # correctly.
-    source_tally = {}
-    for sj in source_jars:
-        if sj.basename.endswith("-sources.jar"):
-            source_tally[sj.basename.replace("-sources.jar", ".jar")] = sj
-    artifacts = []
-    for jar in jars:
-        if jar.basename in source_tally:
-            artifacts += [struct(class_jar = jar, source_jar = source_tally[jar.basename], ijar = None)]
-        else:
-            artifacts += [struct(class_jar = jar, ijar = None)]
-
-    # Normalize to None if no source jars discovered
-    if len(source_jars) == 0:
-        source_jar = None
-    else:
-        source_jar = source_jars[0]
-
+    artifact = _unify_jars(ctx)
     kt_info = _KtJvmInfo(
         module_name = _utils.derive_module_name(ctx),
         outputs = struct(
-            jars = artifacts,
+            jars = [artifact],
         ),
     )
+    all_files = [artifact.class_jar] + ([artifact.source_jar] if bool(artifact.source_jar) else [])
     return struct(
         kt = kt_info,
         providers = [
-            DefaultInfo(files = depset(jars)),
+            DefaultInfo(files = depset(all_files)),
             JavaInfo(
-                output_jar = jars[0],
-                source_jars = [source_jar] if bool(source_jar) else [],
+                output_jar = artifact.class_jar,
+                compile_jar = artifact.class_jar,
+                source_jar = artifact.source_jar,
                 runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps if JavaInfo in dep],
                 exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
-                use_ijar = False,
                 neverlink = getattr(ctx.attr, "neverlink", False),
             ),
             kt_info,
