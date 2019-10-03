@@ -2,10 +2,11 @@
 
 # A fork of the legacy branch of bazelbuild/rules_kotlin
 
-Current release: ***`legacy_modded-0_29_0-01`***
+Current release: ***`legacy-modded-1_0_0-01`***
 Maintained branch: `legacy_continued`
 
 # Announcements
+* <b>Oct 2, 2019.</b> Fixes to bazel 1.0.0 (as of rc4) `legacy_modded-1_0_0-01`
 * <b>Sept 27, 2019.</b> Fixes to support latest versions and bring upstream in, release `legacy_modded-0_29_0-01`
 * <b>June 20, 2019.</b> Fix to support 0.27.0 and release of `legacy_modded-0_26_1-02`
   * Serious reconsideration of the version naming scheme...
@@ -61,8 +62,8 @@ this:
 ```build
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy_modded-0_29_0-01"
-rules_kotlin_sha = "3a44c095fdd0565327bfde1195452705eee37c27ea9fdd85843992f304a27767"
+rules_kotlin_version = "legacy-modded-1_0_0-01"
+rules_kotlin_sha = "b7984b28e0a1e010e225a3ecdf0f49588b7b9365640af783bd01256585cbb3ae"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/cgruber/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
@@ -173,7 +174,7 @@ effort testing)?
 | 0.28.1  | ![Yes] |  |
 | 0.29.0  | ![Yes] |  |
 | 0.29.1  | ![Yes] |  |
-| 1.0.0rc3  | ![No] |  |
+| 1.0.0rc4  | ![Yes] |  |
 
 [Yes]: https://img.shields.io/static/v1.svg?label=&message=Yes&color=green
 [No]: https://img.shields.io/static/v1.svg?label=&message=No&color=red
