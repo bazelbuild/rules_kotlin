@@ -1,11 +1,12 @@
-[![Build Status](https://badge.buildkite.com/72a7641b782f6f365efb775d7efb6b6ac4ea33f7db4ae7db55.svg)](https://buildkite.com/christian-gruber-open-source-stuffs/gruber-rules-kotlin-presubmit)
+[![Build Status](https://badge.buildkite.com/a8860e94a7378491ce8f50480e3605b49eb2558cfa851bbf9b.svg)](https://buildkite.com/bazel/kotlin-postsubmit)
 
-# A fork of the legacy branch of bazelbuild/rules_kotlin
+# Bazel Kotlin Rules
 
-Current release: ***`legacy-modded-1_0_0-01`***
-Maintained branch: `legacy_continued`
+Current release: ***`TBD`***
+Main branch: `master`
 
 # Announcements
+* <b>Oct 3, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
 * <b>Oct 2, 2019.</b> NOTE: `legacy_modded-1_0_0-01` will be the last release on this fork, prior to upstreaming to github.com/bazelbuild/rules_kotlin.  For any further releases after this one, please look at that repository.
 * <b>Oct 2, 2019.</b> Fixes to bazel 1.0.0 (as of rc4). Release `legacy_modded-1_0_0-01`
 * <b>Sept 27, 2019.</b> Fixes to support latest versions and bring upstream in, release `legacy_modded-0_29_0-01`
@@ -33,26 +34,32 @@ Maintained branch: `legacy_continued`
 
 # Overview 
 
-These rules were initially forked from [pubref/rules_kotlin](http://github.com/pubref/rules_kotlin), and then re-forked from [bazelbuild/rules_kotlin](http://github.com/bazelbuild/rules_kotlin)
+**rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other bazel language
+rules. It also supports `jvm`, `android`, and `js` flavors, with the prefix `kt_jvm` and `kt_js`, and 
+`kt_android` typically applied to the rules (the exception being kt_android_test, which doesn't exist.
+Users should use an android_local_test that takes a kt_android_library as a dependency).
 
-Key changes:
+Limited "friend" support is available, in the form of tests being friends of their library for the
+system under test, allowing `internal` access to types and functions.
 
-* Replace the macros with three basic rules. `kt_jvm_binary`, `kt_jvm_library` and `kt_jvm_test`.
-* Android rules. `kt_android_library` and `kt_android_binary`
-* Friend support for tests (supports access to `internal` types and functions)
-* Use a single `deps` attribute instead of `java_dep` and `dep`.
-* Add support for the following standard java rules attributes:
+Also, jvm rules support the following standard java rules attributes:
   * `data`
   * `resource_jars`
   * `runtime_deps`
   * `resources`
   * `resources_strip_prefix`
   * `exports`
-* Persistent worker support.
-* Mixed-Mode compilation (compile Java and Kotlin in one pass).
-* Configurable Kotlinc distribtution and verison
-* Configurable Toolchain
-* Kotlin 1.3 support
+  
+Android rules also support custom_package for `R.java` generation, `manifest=`, `resource_files`, etc.
+
+Other features:
+  * Persistent worker support.
+  * Mixed-Mode compilation (compile Java and Kotlin in one pass).
+  * Configurable Kotlinc distribtution and version
+  * Configurable Toolchain
+  * Kotlin 1.3 support
+  
+Javascript is reported to work, but is not as well maintained (at present)
 
 # Quick Guide
 
@@ -137,6 +144,12 @@ KOTLINC_RELEASE = {
 kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 ```
 
+## Third party dependencies 
+_(e.g. maven artifacts)_
+
+Third party (external) artifacts can be brought in with systems such as [rules_jvm_external](https://github.com/bazelbuild/rules_jvm_external) or [bazel_maven_repository](https://github.com/square/bazel_maven_repository) or [bazel-deps](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use java_import, as this will cause bazel to make an interface-only (ijar), or ABI jar, and the native ijar tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of [rules_jvm_external] and [bazel_maven_repository] are known to work with kotlin.
+
+
 # Bazel Kotlin Rules compatibility
 
 Which version of *rules_kotlin* can you use with which version of Bazel (best
@@ -180,6 +193,10 @@ effort testing)?
 [Yes]: https://img.shields.io/static/v1.svg?label=&message=Yes&color=green
 [No]: https://img.shields.io/static/v1.svg?label=&message=No&color=red
 [Unknown]: https://img.shields.io/static/v1.svg?label=&message=???&color=lightgrey
+
+# History
+
+These rules were initially forked from [pubref/rules_kotlin](http://github.com/pubref/rules_kotlin), and then re-forked from [bazelbuild/rules_kotlin](http://github.com/bazelbuild/rules_kotlin). They were merged back into this repository in October, 2019.
 
 # License
 
