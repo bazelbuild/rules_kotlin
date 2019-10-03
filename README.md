@@ -2,7 +2,7 @@
 
 # Bazel Kotlin Rules
 
-Current release: ***`TBD`***
+Current release: ***`TBD`***<br />
 Main branch: `master`
 
 # Announcements
