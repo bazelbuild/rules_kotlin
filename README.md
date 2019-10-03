@@ -5,32 +5,12 @@
 Current release: ***`TBD`***<br />
 Main branch: `master`
 
-# Announcements
+# News!
 * <b>Oct 3, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
 * <b>Oct 2, 2019.</b> NOTE: `legacy_modded-1_0_0-01` will be the last release on this fork, prior to upstreaming to github.com/bazelbuild/rules_kotlin.  For any further releases after this one, please look at that repository.
 * <b>Oct 2, 2019.</b> Fixes to bazel 1.0.0 (as of rc4). Release `legacy_modded-1_0_0-01`
-* <b>Sept 27, 2019.</b> Fixes to support latest versions and bring upstream in, release `legacy_modded-0_29_0-01`
-* <b>June 20, 2019.</b> Fix to support 0.27.0 and release of `legacy_modded-0_26_1-02`
-  * Serious reconsideration of the version naming scheme...
-* <b>June 12, 2019.</b> Kotlin 1.3 support, and release of `legacy_modded-0_26_1-01`
-* <b>June 11, 2019.</b> Fix to kotlin worker to allow modern dagger to be used in kapt. (worker was leaking its dagger dep)
-* <b>May 17, 2019.</b> More changes from upstream (mostly fixes for bazel version bump) and releases from the fork
-* <b>April 1, 2019.</b> [Roadmap](https://github.com/bazelbuild/rules_kotlin/blob/master/ROADMAP.md) for rules_kotlin published.  The `cgruber` fork will continue until the legacy branch in the parent repo can be updated (or no one needs the fork)
-* <b>February 20, 2019.</b> [Future directions](https://github.com/bazelbuild/rules_kotlin/issues/174) of rules_kotlin.
-* <b>October 24, 2018.</b> Christian Gruber forks the main kotlin rules repository, adding in two fixes.
-* <b>August 14, 2018.</b> Js support. No documentation yet but see the nested example workspace `examples/node`.
-* <b>August 14, 2018.</b> Android support. No documentation but it's a simple integration. see 
-  `kotlin/internal/jvm/android.bzl`.
-* <b>Jun 29, 2018.</b> The commits from this date forward are compatible with bazel `>=0.14`. JDK9 host issues were 
-  fixed as well some other deprecations. I recommend skipping `0.15.0` if you   are on a Mac. 
-* <b>May 25, 2018.</b> Test "friend" support. A single friend dep can be provided to `kt_jvm_test` which allows the test
-  to access internal members of the module under test.
-* <b>February 15, 2018.</b> Toolchains for the JVM rules. Currently this allow tweaking: 
-    * The JVM target (bytecode level).
-    * API and Language levels.
-    * Coroutines, enabled by default. 
-* <b>February 9, 2018.</b> Annotation processing.
-* <b>February 5, 2018. JVM rule name change:</b> the prefix has changed from `kotlin_` to `kt_jvm_`.
+
+For older news, please see [Changelog](CHANGELOG.md)
 
 # Overview 
 
