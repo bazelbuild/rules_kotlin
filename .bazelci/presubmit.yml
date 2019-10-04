@@ -3,9 +3,11 @@ platforms:
   ubuntu1604:
     test_targets:
     - "//:all_tests"
+    - "//examples/dagger/..."
   ubuntu1804:
     test_targets:
     - "//:all_tests"
+    - "//examples/dagger/..."
   rbe_ubuntu1604:
     test_targets:
     - "--"
@@ -14,6 +16,7 @@ platforms:
     # execution compatible, do not run them for now.
     - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmFriendsVisibilityTest"
     - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmBasicAssertionTest"
+    - "//examples/dagger/..."
     test_flags:
     # Override the default worker strategy for remote builds (worker strategy
     # cannot be used with remote builds)
@@ -21,3 +24,4 @@ platforms:
   macos:
     test_targets:
     - "//:all_tests"
+    - "//examples/dagger/..."
