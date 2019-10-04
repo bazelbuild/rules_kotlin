@@ -19,7 +19,6 @@ load(
     "//kotlin/internal:defs.bzl",
     _KtJvmInfo = "KtJvmInfo",
 )
-
 load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
@@ -99,8 +98,8 @@ def _unify_jars(ctx):
             fail("got more than one jar, this is an error create an issue: %s" % jars)
         if len(source_jars) > 1:
             fail("got more than one source jar. " +
-                "Did you include both srcjar and a sources jar in the jars attribute?: " +
-                jars)
+                 "Did you include both srcjar and a sources jar in the jars attribute?: " +
+                 jars)
             print(source_jars)
         return struct(class_jar = jars[0], source_jar = source_jars[0] if len(source_jars) == 1 else None, ijar = None)
 
@@ -156,14 +155,33 @@ def kt_jvm_binary_impl(ctx):
         ),
     )
 
+_SPLIT_STRINGS = [
+    "src/test/java/",
+    "javatests/",
+    "java/",
+    "test/",
+]
+
 def kt_jvm_junit_test_impl(ctx):
     providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_test")
     runtime_jars = depset(ctx.files._bazel_test_runner, transitive = [providers.java.transitive_runtime_jars])
+
+    test_class = ctx.attr.test_class
+
+    # If no test_class, do a best-effort attempt to infer one.
+    if not bool(ctx.attr.test_class):
+        for file in ctx.files.srcs:
+            if file.basename.split(".")[0] == ctx.attr.name:
+                for splitter in _SPLIT_STRINGS:
+                    elements = file.short_path.split(splitter, maxsplit = 1)
+                    if len(elements) == 2:
+                        test_class = elements[1].split(".")[0].replace("/", ".")
+
     _write_launcher_action(
         ctx,
         runtime_jars,
         main_class = ctx.attr.main_class,
-        jvm_flags = ["-ea", "-Dbazel.test_suite=%s" % ctx.attr.test_class] + ctx.attr.jvm_flags,
+        jvm_flags = ["-ea", "-Dbazel.test_suite=%s" % test_class] + ctx.attr.jvm_flags,
     )
     return _make_providers(
         ctx,
