@@ -98,8 +98,8 @@ def _unify_jars(ctx):
             fail("got more than one jar, this is an error create an issue: %s" % jars)
         if len(source_jars) > 1:
             fail("got more than one source jar. " +
-                 "Did you include both srcjar and a sources jar in the jars attribute?: " +
-                 jars)
+                "Did you include both srcjar and a sources jar in the jars attribute?: " +
+                jars)
             print(source_jars)
         return struct(class_jar = jars[0], source_jar = source_jars[0] if len(source_jars) == 1 else None, ijar = None)
 

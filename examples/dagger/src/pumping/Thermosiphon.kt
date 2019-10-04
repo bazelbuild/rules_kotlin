@@ -13,10 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package coffee
+package pumping
 
-internal interface Heater {
-    val isHot: Boolean
-    fun on()
-    fun off()
+import heating.Heater
+import javax.inject.Inject
+import time.Delayer
+
+internal class Thermosiphon
+    @Inject constructor(private val heater: Heater, private val delayer: Delayer) :
+    Pump {
+
+    override fun pump() {
+        if (heater.isHot) {
+            println("=> => pumping => =>")
+            delayer.delay()
+        }
+    }
 }

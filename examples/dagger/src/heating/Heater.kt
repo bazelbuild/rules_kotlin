@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package coffee
+package heating
 
-import dagger.Binds
-import dagger.Module
+abstract class Heater {
+    abstract val isHot: Boolean
 
-@Module
-internal abstract class PumpModule {
-    @Binds
-    internal abstract fun providePump(pump: Thermosiphon): Pump
+    internal abstract val isOn: Boolean
+
+    abstract fun on()
+    abstract fun off()
 }

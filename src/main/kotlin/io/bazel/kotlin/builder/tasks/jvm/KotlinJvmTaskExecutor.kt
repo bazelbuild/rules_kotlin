@@ -28,6 +28,12 @@ import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Due to an inconsistency in the handling of -Xfriends-path, jvm uses a comma (property list
+ * separator), js uses the system path separator.
+ */
+const val X_FRIENDS_PATH_SEPARATOR = ","
+
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
     private val compiler: KotlinToolchain.KotlincInvoker,
@@ -96,15 +102,18 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
      */
     private fun JvmCompilationTask.getCommonArgs(): MutableList<String> {
         val args = mutableListOf<String>()
-        val friendPaths= info.friendPathsList.map { Paths.get(it).toAbsolutePath() }
+        val friendPaths = info.friendPathsList.map { Paths.get(it).toAbsolutePath() }
+        val cp = inputs.joinedClasspath
+            .split(File.pathSeparator)
+            .map { Paths.get(it).toAbsolutePath() }
+            .joinToString(File.pathSeparator)
         args.addAll(
-            "-cp", inputs.joinedClasspath,
+            "-cp", cp,
             "-api-version", info.toolchainInfo.common.apiVersion,
             "-language-version", info.toolchainInfo.common.languageVersion,
             "-jvm-target", info.toolchainInfo.jvm.jvmTarget,
-            "-Xfriend-paths=${friendPaths.joinToString(File.pathSeparator)}"
+            "-Xfriend-paths=${friendPaths.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
         )
-
         args
             .addAll("-module-name", info.moduleName)
             .addAll("-d", directories.classes)
@@ -220,5 +229,3 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             it.build()
         }
 }
-
-

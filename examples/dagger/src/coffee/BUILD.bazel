@@ -11,30 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility = ["//visibility:private"])
-
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
-
-java_plugin(
-    name = "dagger_plugin",
-    processor_class = "dagger.internal.codegen.ComponentProcessor",
-    deps = [
-        "//third_party/jvm/com/google/dagger",
-        "//third_party/jvm/com/google/dagger:dagger_compiler",
-        "//third_party/jvm/com/google/dagger:dagger_producers",
-        "//third_party/jvm/javax/inject:javax_inject",
-        "@//third_party/jvm/com/google/guava",
-    ],
-)
-
-java_library(
-    name = "dagger_lib",
-    exported_plugins = ["dagger_plugin"],
-    exports = [
-        "//third_party/jvm/com/google/dagger",
-        "//third_party/jvm/javax/inject:javax_inject",
-    ],
-)
 
 # Generate a srcjar to validate intellij plugin correctly attaches it.
 genrule(
@@ -54,20 +31,18 @@ rm TeaPot.kt
 )
 
 kt_jvm_library(
-    name = "coffee_lib",
-    srcs = glob(["src/**"]) + [
+    name = "coffee",
+    srcs = glob(["*.kt"]) + [
         # Adding a file ending with .srcjar is how code generation patterns are implemented.
         ":tea_lib_src",
     ],
+    friend = "//examples/dagger/src/heating",
+    visibility = ["//examples/dagger:__subpackages__"],
     deps = [
-        ":dagger_lib",
+        "//examples/dagger/src/heating",
+        "//examples/dagger/src/pumping",
+        "//examples/dagger/src/time",
+        "//third_party:dagger",
         "//third_party/jvm/org/jetbrains/kotlinx:kotlinx_coroutines_core",
     ],
-)
-
-java_binary(
-    name = "coffee_app",
-    main_class = "coffee.CoffeeApp",
-    visibility = ["//visibility:public"],
-    runtime_deps = [":coffee_lib"],
 )

@@ -18,8 +18,7 @@ and `kt_js`, and `kt_android` typically applied to the rules (the exception bein
 `kt_android_local_test`, which doesn't exist. Use an `android_local_test` that takes a 
 `kt_android_library` as a dependency).
 
-Limited "friend" support is available, in the form of tests being friends of their library for the
-system under test, allowing `internal` access to types and functions.
+Friend support for tests and other use-cases (supports access to `internal` types and functions)
 
 Also, jvm rules support the following standard java rules attributes:
   * `data`
@@ -110,8 +109,8 @@ in your `WORKSPACE` file (or import from a `.bzl` file:
 ```
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories")
 
-KOTLIN_VERSION = "1.3.31"
-KOTLINC_RELEASE_SHA = "107325d56315af4f59ff28db6837d03c2660088e3efeb7d4e41f3e01bb848d6a"
+KOTLIN_VERSION = "1.3.50"
+KOTLINC_RELEASE_SHA = "69424091a6b7f52d93eed8bba2ace921b02b113dbb71388d704f8180a6bdc6ec"
 
 KOTLINC_RELEASE = {
     "urls": [
@@ -122,6 +121,43 @@ KOTLINC_RELEASE = {
 
 kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 ```
+
+## Friends/Internal support
+
+The rules support kotlin `internal` visibility (usually accessible only to the compilation unit)
+by allowing a library or test to specify that it is friends with another library like so:
+
+```
+kt_jvm_library(
+    name = "foo",
+    srcs = glob(["*.kt"]),
+    friend = "//some/other:target",
+    # ...
+)
+```
+
+> Note: declaring friends of a kt_android_library requires adding `_kt` to the target, e.g.
+> `//some/other:target_kt`.  This is because the `kt_android_library` rule is a macro with a
+> `kt_jvm_library` under the hood, and the surfaced rule is an android rule which doesn't have
+> kotlin aware bazel providers. This will be fixed in the future.
+
+This grants access to `internal` members of `//some/other:target`. A library can only be friends
+with one other library, which must be a kotlin-aware target. It inherits the module name from that
+library. Only one friend can be declared, because of the assumptions made here about module
+membership.  Since friendship can be transitive (see below), this constrains the visibility so it
+does not become an arbitrarily growing lattice of trust, defeating the purpose.
+
+Very common use-cases for this are:
+
+  * tests and test-libraries depending on internals of the system under test.
+  * clusters of targets that represent one logical unit, with public, private,
+     fake, testing-utilities, configuration, or other targets that comprise the
+     whole unit.
+
+Friendship has limited transitivity. Consider projects `C`, `B`, and `A` with a dependency
+relationship `C->B->A`.  If `C` declares friendship in `B`, and `B` declares friendship with `A`,
+then they are all treated as logically one module for `internal` purposes. However it doesn't
+skip. Once the line of friendship is broken, a separate module is presumed by kotlinc. 
 
 ## Third party dependencies 
 _(e.g. maven artifacts)_
