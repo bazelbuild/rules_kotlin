@@ -6,18 +6,17 @@ Current release: ***`TBD`***<br />
 Main branch: `master`
 
 # News!
-* <b>Oct 3, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
-* <b>Oct 2, 2019.</b> NOTE: `legacy_modded-1_0_0-01` will be the last release on this fork, prior to upstreaming to github.com/bazelbuild/rules_kotlin.  For any further releases after this one, please look at that repository.
-* <b>Oct 2, 2019.</b> Fixes to bazel 1.0.0 (as of rc4). Release `legacy_modded-1_0_0-01`
+* <b>Oct 5, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
 
 For older news, please see [Changelog](CHANGELOG.md)
 
 # Overview 
 
-**rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other bazel language
-rules. It also supports `jvm`, `android`, and `js` flavors, with the prefix `kt_jvm` and `kt_js`, and 
-`kt_android` typically applied to the rules (the exception being kt_android_test, which doesn't exist.
-Users should use an android_local_test that takes a kt_android_library as a dependency).
+**rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other bazel 
+language rules. It also supports `jvm`, `android`, and `js` flavors, with the prefix `kt_jvm`
+and `kt_js`, and `kt_android` typically applied to the rules (the exception being 
+`kt_android_local_test`, which doesn't exist. Use an `android_local_test` that takes a 
+`kt_android_library` as a dependency).
 
 Limited "friend" support is available, in the form of tests being friends of their library for the
 system under test, allowing `internal` access to types and functions.
@@ -128,51 +127,6 @@ kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 _(e.g. maven artifacts)_
 
 Third party (external) artifacts can be brought in with systems such as [rules_jvm_external](https://github.com/bazelbuild/rules_jvm_external) or [bazel_maven_repository](https://github.com/square/bazel_maven_repository) or [bazel-deps](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use java_import, as this will cause bazel to make an interface-only (ijar), or ABI jar, and the native ijar tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of [rules_jvm_external] and [bazel_maven_repository] are known to work with kotlin.
-
-
-# Bazel Kotlin Rules compatibility
-
-Which version of *rules_kotlin* can you use with which version of Bazel (best
-effort testing)?
-
-| Version | HEAD   |  |
-| ------  | ----   | ---- |
-| 0.16.0  | ![No]  |  |
-| 0.16.1  | ![No]  |  |
-| 0.17.1  | ![No]  |  |
-| 0.17.2  | ![No]  |  |
-| 0.18.0  | ![Yes] |  |
-| 0.18.1  | ![Yes] |  |
-| 0.19.0  | ![Yes] |  |
-| 0.19.1  | ![Yes] |  |
-| 0.19.2  | ![Yes] |  |
-| 0.20.0  | ![Yes] |  |
-| 0.21.0  | ![Yes] |  |
-| 0.22.0  | ![Yes] |  |
-| 0.23.0  | ![Yes] |  |
-| 0.23.1  | ![Yes] |  |
-| 0.23.2  | ![Yes] |  |
-| 0.24.0  | ![Yes] |  |
-| 0.24.1  | ![Yes] |  |
-| 0.25.0  | ![Yes] |  |
-| 0.25.1  | ![Yes] |  |
-| 0.25.2  | ![Yes] |  |
-| 0.25.3  | ![Yes] |  |
-| 0.26.0  | ![Yes] |  |
-| 0.26.1  | ![Yes] |  |
-| 0.27.0  | ![Yes] |  |
-| 0.27.1  | ![Yes] |  |
-| 0.27.2  | ![Yes] |  |
-| 0.28.0  | ![Yes] |  |
-| 0.28.1  | ![Yes] |  |
-| 0.28.1  | ![Yes] |  |
-| 0.29.0  | ![Yes] |  |
-| 0.29.1  | ![Yes] |  |
-| 1.0.0rc4  | ![Yes] |  |
-
-[Yes]: https://img.shields.io/static/v1.svg?label=&message=Yes&color=green
-[No]: https://img.shields.io/static/v1.svg?label=&message=No&color=red
-[Unknown]: https://img.shields.io/static/v1.svg?label=&message=???&color=lightgrey
 
 # History
 
