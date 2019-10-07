@@ -28,6 +28,12 @@ kt_jvm_import(
     neverlink = 1,
 )
 
+kt_jvm_import(
+    name = "android-extensions-compiler",
+    jars = ["lib/android-extensions-compiler.jar"],
+    neverlink = 1,
+)
+
 # Kotlin dependencies that are internal to this repo and are meant to be loaded manually into a classloader.
 [
     kt_jvm_import(

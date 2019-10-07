@@ -126,6 +126,7 @@ _kt_toolchain = rule(
             doc = "The jvm stdlibs. This is internal.",
             default = [
                 Label("@" + _KT_COMPILER_REPO + "//:annotations"),
+                Label("@" + _KT_COMPILER_REPO + "//:android-extensions-compiler"),
                 Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
                 Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk7"),
                 # JDK8 is being added blindly but I think we will probably not support bytecode levels 1.6 when the
