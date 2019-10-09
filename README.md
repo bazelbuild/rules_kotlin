@@ -151,10 +151,10 @@ kt_jvm_library(
 )
 ```
 
-> Note: declaring friends of a kt_android_library requires adding _kt to the target, e.g.
-> `//some/other:target_kt`.  This is because the kt_android_library rule is a macro with a
-> `kt_jvm_library` under the hood, and the surfaced rule is an android_rule which doesn't have
-> kotlin providers. This will be fixed in the future.
+> Note: declaring friends of a kt_android_library requires adding `_kt` to the target, e.g.
+> `//some/other:target_kt`.  This is because the `kt_android_library` rule is a macro with a
+> `kt_jvm_library` under the hood, and the surfaced rule is an android rule which doesn't have
+> kotlin aware bazel providers. This will be fixed in the future.
 
 This grants access to `internal` members of `//some/other:target`. A library can only be friends
 with one other library, which must be a kotlin-aware target. It inherits the module name from that
