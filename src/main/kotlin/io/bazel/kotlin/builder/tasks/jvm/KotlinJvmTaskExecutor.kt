@@ -173,6 +173,14 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         getCommonArgs().let { args ->
             args.addAll(inputs.javaSourcesList)
             args.addAll(inputs.kotlinSourcesList)
+            if ( inputs.classpathList.any { classpath -> "kotlin-android-extensions-runtime" in classpath } ) {
+                inputs.classpathList.firstOrNull { classpath -> "android-extensions-compiler" in classpath }
+                    ?.let { compiler ->
+                        args += "-Xplugin=$compiler"
+                        args += "-P"
+                        args += "plugin:org.jetbrains.kotlin.android:experimental=true"
+                    }
+            }
             context.executeCompilerTask(args, compiler::compile, printOnFail = printOnFail)
         }
 
