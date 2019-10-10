@@ -53,7 +53,7 @@ rules_kotlin_version = "legacy-modded-1_0_0-01"
 rules_kotlin_sha = "b7984b28e0a1e010e225a3ecdf0f49588b7b9365640af783bd01256585cbb3ae"
 http_archive(
     name = "io_bazel_rules_kotlin",
-    urls = ["https://github.com/cgruber/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
     type = "zip",
     strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
     sha256 = rules_kotlin_sha,
