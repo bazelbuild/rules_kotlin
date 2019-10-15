@@ -6,7 +6,7 @@ import org.junit.Test
 import time.Delayer
 
 class BasicTest {
-    @Test fun FooTest() {
+    @Test fun `test that internal member is transitively visible`() {
         val heater = ElectricHeater(object : Delayer {
             override fun delay() {
                 println("fake delay")

@@ -38,7 +38,7 @@ internal class DripCoffeeModule {
 }
 
 @Module
-abstract class Bindings {
+internal abstract class Bindings {
     @Binds @Singleton
     internal abstract fun bindHeater(heater: ElectricHeater): Heater
 }
