@@ -120,7 +120,7 @@ abstract class BasicAssertionTestCase {
         ProcessBuilder().command("bash", "-c", Paths.get(executable).fileName.toString())
             .also { it.directory(executable.resolveDirectory()) }
             .start().let {
-                it.waitFor(5, TimeUnit.SECONDS)
+                it.waitFor(10, TimeUnit.SECONDS)
                 assert(it.exitValue() == 0) {
                     throw TestCaseFailedException(
                         description = description,

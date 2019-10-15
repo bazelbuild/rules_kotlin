@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package coffee
+package pumping
 
-import javax.inject.Inject
+import dagger.Binds
+import dagger.Module
 
-internal class Thermosiphon @Inject
-constructor(private val heater: Heater) : Pump {
-
-    override fun pump() {
-        if (heater.isHot) {
-            println("=> => pumping => =>")
-        }
-    }
+@Module
+abstract class PumpModule {
+    @Binds
+    internal abstract fun providePump(pump: Thermosiphon): Pump
 }

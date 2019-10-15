@@ -16,9 +16,11 @@
 package coffee
 
 import dagger.Lazy
+import heating.Heater
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
+import pumping.Pump
 
 class CoffeeMaker @Inject internal constructor(
     // Create a possibly costly heater only when we use it.
@@ -33,6 +35,9 @@ class CoffeeMaker @Inject internal constructor(
             pump.pump()
             println(" [_]P coffee! [_]P ")
             heater.get().off()
+        }
+        withContext(Dispatchers.Default) {
+            if (heater.get().isOn) throw IllegalStateException("Heater should be off")
         }
     }
 }

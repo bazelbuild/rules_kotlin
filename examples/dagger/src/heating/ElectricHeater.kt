@@ -13,32 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package coffee
+package heating
 
-import dagger.Binds
-import dagger.Module
-import dagger.Provides
-import heating.ElectricHeater
-import heating.Heater
-import javax.inject.Singleton
-import pumping.PumpModule
+import javax.inject.Inject
 import time.Delayer
 
-@Module(includes = arrayOf(PumpModule::class, Bindings::class))
-internal class DripCoffeeModule {
-    @Provides
-    @Singleton
-    fun provideDelayer(): Delayer {
-        return object : Delayer {
-            override fun delay() {
-                Thread.sleep(1000)
-            }
-        }
-    }
-}
+class ElectricHeater
+    @Inject constructor(private val delayer: Delayer) : Heater() {
 
-@Module
-internal abstract class Bindings {
-    @Binds @Singleton
-    internal abstract fun bindHeater(heater: ElectricHeater): Heater
+    override var isHot: Boolean = false
+    override var isOn: Boolean = false
+
+    override fun on() {
+        isOn = true
+        println("~ ~ ~ heating ~ ~ ~")
+        delayer.delay()
+        this.isHot = true
+    }
+
+    override fun off() {
+        this.isOn = false
+        println("~ ~ ~ cooling ~ ~ ~")
+        delayer.delay()
+        this.isHot = false
+    }
 }

@@ -137,6 +137,21 @@ def _partition_srcs(srcs):
         src_jars = depset(src_jars),
     )
 
+def _handle_legacy_friends(ctx):
+    # TODO extract and move this into common. Need to make it generic first.
+    friend = getattr(ctx.attr, "friend", None)
+
+    # Reduce to a single friend if more than one is set (old API)
+    friends = getattr(ctx.attr, "friends", [])
+    if len(friends) == 1:
+        if bool(friend):
+            fail("Can only use friend or friends, but not both. Please only set `friend=`")
+        print("`friends=` is deprecated, please use `friend=` with a single target")
+        friend = friends[0]
+    if len(friends) > 1:
+        fail("only one friend is possible")
+    return friend
+
 def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     """This macro sets up a compile action for a Kotlin jar.
 
@@ -153,24 +168,23 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     if not srcs.kt and not srcs.java and not srcs.src_jars:
         fail("no sources provided")
 
-    # TODO extract and move this into common. Need to make it generic first.
-    friends = getattr(ctx.attr, "friends", [])
-    deps = [d[JavaInfo] for d in friends + ctx.attr.deps] + [toolchain.jvm_stdlibs]
+    friend = _handle_legacy_friends(ctx)
+    deps = [d[JavaInfo] for d in ctx.attr.deps] + [toolchain.jvm_stdlibs] + ([friend[JavaInfo]] if bool(friend) else [])
     compile_jars = java_common.merge(deps).transitive_compile_time_jars
-
-    if len(friends) == 0:
-        module_name = _utils.derive_module_name(ctx)
-        friend_paths = depset()
-    elif len(friends) == 1:
-        if friends[0][_KtJvmInfo] == None:
+    if bool(friend):
+        if friend[_KtJvmInfo] == None:
             fail("only kotlin dependencies can be friends")
         elif ctx.attr.module_name:
             fail("if friends has been set then module_name cannot be provided")
         else:
-            friend_paths = depset([j.path for j in friends[0][JavaInfo].compile_jars.to_list()])
-            module_name = friends[0][_KtJvmInfo].module_name
+            friend_paths = depset(
+                direct = [x.class_jar.path for x in friend[JavaInfo].outputs.jars],
+                transitive = [friend[_KtJvmInfo].friend_paths],
+            )
+            module_name = friend[_KtJvmInfo].module_name
     else:
-        fail("only one friend is possible")
+        module_name = _utils.derive_module_name(ctx)
+        friend_paths = depset()
 
     classes_directory = _declare_output_directory(ctx, "jvm", "classes")
     generated_classes_directory = _declare_output_directory(ctx, "jvm", "generated_classes")
@@ -187,8 +201,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     args.add("--output", output_jar)
     args.add("--kotlin_output_jdeps", ctx.outputs.jdeps)
     args.add("--kotlin_output_srcjar", ctx.outputs.srcjar)
-
-    args.add("--kotlin_friend_paths", "\n".join(friend_paths.to_list()))
+    args.add("--kotlin_friend_paths", "\n".join([d for d in friend_paths.to_list()]))
 
     args.add_all("--classpath", compile_jars)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
@@ -232,7 +245,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         progress_message = progress_message,
         input_manifests = input_manifests,
         env = {
-            "LC_CTYPE": "en_US.UTF-8" # For Java source files
+            "LC_CTYPE": "en_US.UTF-8",  # For Java source files
         },
     )
 
@@ -250,6 +263,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
             module_name = module_name,
+            friend_paths = friend_paths,
             # intelij aspect needs this.
             outputs = struct(
                 jdeps = ctx.outputs.jdeps,

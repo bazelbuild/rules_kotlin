@@ -1,0 +1,22 @@
+load("//kotlin:kotlin.bzl", "kt_jvm_library", "kt_jvm_test")
+
+kt_jvm_library(
+    name = "testlib",
+    srcs = ["BasicTestUtil.kt"],
+    friend = "//examples/dagger/src/heating",
+    deps = [
+        "//examples/dagger/src/heating",
+    ],
+)
+
+kt_jvm_test(
+    name = "BasicTest",
+    srcs = ["BasicTest.kt"],
+    friends = [":testlib"],  # old syntax
+    deps = [
+        ":testlib",
+        "//examples/dagger/src/heating",
+        "//third_party/jvm/com/google/truth",
+        "//third_party/jvm/junit",
+    ],
+)

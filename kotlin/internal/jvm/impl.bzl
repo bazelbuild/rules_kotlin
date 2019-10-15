@@ -173,7 +173,7 @@ def kt_jvm_junit_test_impl(ctx):
         for file in ctx.files.srcs:
             if file.basename.split(".")[0] == ctx.attr.name:
                 for splitter in _SPLIT_STRINGS:
-                    elements = file.short_path.split(splitter, maxsplit = 1)
+                    elements = file.short_path.split(splitter, 1)
                     if len(elements) == 2:
                         test_class = elements[1].split(".")[0].replace("/", ".")
 
