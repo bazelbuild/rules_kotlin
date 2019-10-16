@@ -37,6 +37,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], friend = None
         deps = base_deps + [base_name],
         plugins = plugins,
         testonly = kwargs.get("testonly", default = 0),
+        friend = friend,
         # must be public to be referenced as friends.
         # TODO: rework this into a proper android provider giving rule, so we can avoid all this.
         visibility = ["//visibility:public"],
