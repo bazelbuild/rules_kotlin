@@ -138,7 +138,6 @@ def _partition_srcs(srcs):
     )
 
 def _handle_legacy_friends(ctx):
-    # TODO extract and move this into common. Need to make it generic first.
     friend = getattr(ctx.attr, "friend", None)
 
     # Reduce to a single friend if more than one is set (old API)
