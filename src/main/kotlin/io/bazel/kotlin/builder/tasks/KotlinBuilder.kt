@@ -54,6 +54,7 @@ class KotlinBuilder @Inject internal constructor(
             }
             success = true
         } catch (ex: CompilationStatusException) {
+            System.err.println("Compilation failure: ${ex.message}")
             status = ex.status
         } catch (throwable: Throwable) {
             context.reportUnhandledException(throwable)
