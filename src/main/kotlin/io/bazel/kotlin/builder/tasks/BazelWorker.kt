@@ -82,19 +82,16 @@ class BazelWorker(
                         System.setErr(ps)
                         while (true) {
                             val request = WorkerProtocol.WorkRequest.parseDelimitedFrom(realStdIn) ?: return 0
-                            var exitCode: Int
-
-                            exitCode = try {
+                            val exitCode = try {
                                 delegate.apply(loadArguments(request.argumentsList, true))
                             } catch (e: RuntimeException) {
-                                if (wasInterrupted(e)) {
-                                    return INTERUPTED_STATUS
+                                return if (wasInterrupted(e)) INTERUPTED_STATUS
+                                else ERROR_STATUS.also {
+                                    System.err.println(
+                                        "ERROR: Worker threw uncaught exception with args: ${request.argumentsList.joinToString(" ")}"
+                                    )
+                                    e.printStackTrace(System.err)
                                 }
-                                System.err.println(
-                                    "ERROR: Worker threw uncaught exception with args: " + request.argumentsList.stream().collect(Collectors.joining(" "))
-                                )
-                                e.printStackTrace(System.err)
-                                ERROR_STATUS
                             }
 
                             WorkerProtocol.WorkResponse.newBuilder()
