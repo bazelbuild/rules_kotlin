@@ -89,6 +89,7 @@ internal class JDepsGenerator @Inject constructor(
  * for a major version of "1" and if it's so, use the minor version as the major one.
  */
 private fun String.majorJavaVersion(): Int {
-    val (major, minor) = this.trim().split('.').map(Integer::parseInt)
-    return if (major == 1) minor else major
+    val (major, minor) = this.trim().split('.')
+    val parsedMajor = Integer.parseInt(major)
+    return if (parsedMajor == 1) Integer.parseInt(minor) else parsedMajor
 }
