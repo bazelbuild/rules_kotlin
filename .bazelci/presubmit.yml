@@ -30,5 +30,5 @@ tasks:
     include_json_profile:
       - build
       - test
-    test_targets:
+    build_targets:
       - //...
