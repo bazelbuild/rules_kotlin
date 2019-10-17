@@ -23,6 +23,7 @@ import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.File
+import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -57,6 +58,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
 
     private fun JvmCompilationTask.produceSourceJar() {
         Paths.get(outputs.srcjar).also { sourceJarPath ->
+            Files.deleteIfExists(sourceJarPath)
             Files.createFile(sourceJarPath)
             SourceJarCreator(
                 sourceJarPath
