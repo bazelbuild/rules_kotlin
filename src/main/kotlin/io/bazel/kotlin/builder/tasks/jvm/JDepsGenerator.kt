@@ -51,20 +51,16 @@ internal class JDepsGenerator @Inject constructor(
                 ByteArrayOutputStream().use { out ->
                     PrintWriter(out).use { writer ->
                         val joinedClasspath = command.inputs.joinedClasspath
-                        val version = Integer.parseInt(System.getProperty("java.version").split('.')[1])
-                        val multiRelease = if (version > 8) arrayOf("--multi-release", "base") else arrayOf()
-                        val res = invoker.run(
-                            multiRelease + arrayOf(
-                                "-cp", joinedClasspath,
-                                command.outputs.jdeps
-                            ),
-                            writer
-                        )
+                        val version = System.getProperty("java.version").majorJavaVersion()
+                        val multiRelease =
+                            if (version < 9) arrayOf() else arrayOf("--multi-release", "base")
+                        val jdepsPath = command.outputs.jdeps
+                        val args = multiRelease + arrayOf("-cp", joinedClasspath, jdepsPath)
+                        val res = invoker.run(args, writer)
                         out.toByteArray().inputStream().bufferedReader().readLines().let {
                             if (res != 0) {
                                 throw CompilationStatusException("could not run jdeps tool", res, it)
-                            }
-                            try {
+                            } else try {
                                 JdepsParser.parse(
                                     command.info.label,
                                     command.outputs.jdeps,
@@ -84,4 +80,15 @@ internal class JDepsGenerator @Inject constructor(
             FileOutputStream(Files.createFile(it).toFile()).use(jdepsContent::writeTo)
         }
     }
+}
+
+/**
+ * Extract the normalized major version from the java.version property.
+ *
+ * This is complex as later versions stopped reporting "1.x.y" format in favor of "x.y", so check
+ * for a major version of "1" and if it's so, use the minor version as the major one.
+ */
+private fun String.majorJavaVersion(): Int {
+    val (major, minor) = this.trim().split('.').map(Integer::parseInt)
+    return if (major == 1) minor else major
 }
