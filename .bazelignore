@@ -1,0 +1,4 @@
+# Some examples have their own WORKSPACE. Ignore as part of this root WORKSPACE so
+# we don't break trying to build separate workspaces using wildcards like //...
+examples/trivial
+examples/node
