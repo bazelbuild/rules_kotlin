@@ -24,7 +24,7 @@ filegroup(
 
 kt_jvm_import(
     name = "annotations",
-    jars = ["lib/annotations-13.0.jar"],
+    jar = "lib/annotations-13.0.jar",
     neverlink = 1,
 )
 
@@ -32,7 +32,7 @@ kt_jvm_import(
 [
     kt_jvm_import(
         name = "kotlin-%s" % art,
-        jars = ["lib/kotlin-%s.jar" % art],
+        jar = "lib/kotlin-%s.jar" % art,
         neverlink = 1,
     )
     for art in [
@@ -57,7 +57,7 @@ kt_jvm_import(
 [
     kt_jvm_import(
         name = "kotlin-%s" % art,
-        jars = ["lib/kotlin-%s.jar" % art],
+        jar = "lib/kotlin-%s.jar" % art,
         srcjar = "lib/kotlin-%s-sources.jar" % art,
         visibility = ["//visibility:public"],
     )
