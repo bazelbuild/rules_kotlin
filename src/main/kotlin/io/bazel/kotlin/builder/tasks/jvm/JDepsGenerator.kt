@@ -85,8 +85,10 @@ internal class JDepsGenerator @Inject constructor(
 /**
  * Extract the normalized major version from the java.version property.
  *
- * This is complex as later versions stopped reporting "1.x.y" format in favor of "x.y", so check
- * for a major version of "1" and if it's so, use the minor version as the major one.
+ * This is more complex than simply taking the first term because later versions of the JVM changed
+ * from reporting the version in the `1.x.y_z` format (e.g. `1.8.0_202`) in favor of `x.y.z` (e.g.
+ * `11.0.1`). As a result, this function checks for a major version of "1" and if it's so, use the
+ * minor version as the major one. Otherwise, it uses the first term as the major version.
  */
 private fun String.majorJavaVersion(): Int {
     val (major, minor) = this.trim().split('.')
