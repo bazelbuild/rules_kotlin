@@ -1,5 +1,7 @@
 ---
-platforms:
+validate_config: 1
+bazel: 1.0.0
+tasks:
   ubuntu1604:
     test_targets:
     - "//:all_tests"
@@ -21,3 +23,12 @@ platforms:
   macos:
     test_targets:
     - "//:all_tests"
+  examples:
+    name: Example - Trivial
+    platform: ubuntu1804
+    working_directory: examples/trivial
+    include_json_profile:
+      - build
+      - test
+    build_targets:
+      - //...

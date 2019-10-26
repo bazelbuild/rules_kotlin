@@ -54,6 +54,7 @@ class KotlinBuilder @Inject internal constructor(
             }
             success = true
         } catch (ex: CompilationStatusException) {
+            System.err.println("Compilation failure: ${ex.message}")
             status = ex.status
         } catch (throwable: Throwable) {
             context.reportUnhandledException(throwable)
@@ -75,7 +76,6 @@ class KotlinBuilder @Inject internal constructor(
         val context = CompilationTaskContext(info, outputProvider.get())
         return Pair(argMap, context)
     }
-
 
     /**
      * Declares the flags used by the java builder.
