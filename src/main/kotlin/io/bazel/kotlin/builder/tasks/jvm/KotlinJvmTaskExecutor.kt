@@ -57,6 +57,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
 
     private fun JvmCompilationTask.produceSourceJar() {
         Paths.get(outputs.srcjar).also { sourceJarPath ->
+            Files.deleteIfExists(sourceJarPath)
             Files.createFile(sourceJarPath)
             SourceJarCreator(
                 sourceJarPath
@@ -96,7 +97,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
      */
     private fun JvmCompilationTask.getCommonArgs(): MutableList<String> {
         val args = mutableListOf<String>()
-        val friendPaths= info.friendPathsList.map { Paths.get(it).toAbsolutePath() }
+        val friendPaths = info.friendPathsList.map { Paths.get(it).toAbsolutePath() }
         args.addAll(
             "-cp", inputs.joinedClasspath,
             "-api-version", info.toolchainInfo.common.apiVersion,
@@ -220,5 +221,3 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             it.build()
         }
 }
-
-
