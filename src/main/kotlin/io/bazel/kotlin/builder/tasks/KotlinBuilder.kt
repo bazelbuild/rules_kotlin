@@ -77,7 +77,6 @@ class KotlinBuilder @Inject internal constructor(
         return Pair(argMap, context)
     }
 
-
     /**
      * Declares the flags used by the java builder.
      */

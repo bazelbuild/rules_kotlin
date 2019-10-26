@@ -23,7 +23,6 @@ import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.File
-import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -98,7 +97,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
      */
     private fun JvmCompilationTask.getCommonArgs(): MutableList<String> {
         val args = mutableListOf<String>()
-        val friendPaths= info.friendPathsList.map { Paths.get(it).toAbsolutePath() }
+        val friendPaths = info.friendPathsList.map { Paths.get(it).toAbsolutePath() }
         args.addAll(
             "-cp", inputs.joinedClasspath,
             "-api-version", info.toolchainInfo.common.apiVersion,
@@ -222,5 +221,3 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             it.build()
         }
 }
-
-

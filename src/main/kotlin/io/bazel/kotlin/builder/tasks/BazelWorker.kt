@@ -15,14 +15,12 @@
  */
 package io.bazel.kotlin.builder.tasks
 
-
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import io.bazel.kotlin.builder.utils.rootCause
 import java.io.*
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.stream.Collectors
 
 /**
  * Interface for command line programs.
@@ -41,7 +39,6 @@ interface CommandLineProgram {
      */
     fun apply(args: List<String>): Int
 }
-
 
 /**
  * Bazel worker runner.
@@ -101,7 +98,7 @@ class BazelWorker(
                                 .writeDelimitedTo(realStdOut)
                             realStdOut.flush()
                             buffer.reset()
-                            System.gc()  // be a good little worker process and consume less memory when idle
+                            System.gc() // be a good little worker process and consume less memory when idle
                         }
                     }
                 }
