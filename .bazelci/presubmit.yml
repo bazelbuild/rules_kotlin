@@ -23,7 +23,13 @@ tasks:
   macos:
     test_targets:
     - "//:all_tests"
-  examples:
+  example-android:
+    name: "Example: Android"
+    platform: ubuntu1804
+    working_directory: examples/android
+    test_targets:
+      - //...
+  examples-trivial:
     name: Example - Trivial
     platform: ubuntu1804
     working_directory: examples/trivial
