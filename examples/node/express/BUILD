@@ -19,13 +19,20 @@ load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
 kt_js_library(
     name = "acme-routes",
     srcs = [":Routes.kt"],
-    deps = ["//express/auth:acme-auth"],
+    deps = [
+        "//express/auth:acme-auth", 
+        "//:kotlinx-atomicfu",
+        "//:kotlinx-coroutines-core",
+    ],
 )
 
 kt_js_library(
     name ="app",
     srcs = [":App.kt"],
-    deps = [":acme-routes"]
+    deps = [
+        ":acme-routes", 
+        "//:kotlinx-coroutines-core",
+    ],
 )
 
 # The binary demonstrates an express app composed of three modules. The modules can co-exist in the same directory.
