@@ -122,16 +122,14 @@ def kt_js_import_impl(ctx):
         fail("a single jar should be supplied, multiple jars not supported")
     jar_file = ctx.files.jars[0]
 
-    # Lock the jar name to the label name -- only make an exception for the compiler repo.
-    if not (ctx.label.workspace_root.startswith("external/") and ctx.label.workspace_root.endswith(_KT_COMPILER_REPO)):
-        expected_basename = "%s.jar" % ctx.label.name
-        if _strip_version(jar_file.basename) != expected_basename:
-            fail("label name %s is not the same as the jar name %s" % (jar_file.basename, expected_basename))
+    srcjar = ctx.files.srcjar[0] if len(ctx.files.srcjar) == 1 else None
 
     args = ctx.actions.args()
     args.add("--jar", jar_file)
-    args.add("--out", ctx.outputs.js)
-    args.add("--aux", ctx.outputs.js_map)
+    args.add("--import_pattern", "^[^/.]+\\.js$")
+    args.add("--import_out", ctx.outputs.js)
+    args.add("--aux_pattern", "^[^/]+\\.js\\.map$")
+    args.add("--aux_out", ctx.outputs.js_map)
 
     tools, _, input_manifest = ctx.resolve_command(tools = [ctx.attr._importer])
     ctx.actions.run(
@@ -154,6 +152,6 @@ def kt_js_import_impl(ctx):
             js = ctx.outputs.js,
             js_map = ctx.outputs.js_map,
             jar = jar_file,
-            srcjar = ctx.files.srcjar[0],
+            srcjar = srcjar,
         ),
     ]
