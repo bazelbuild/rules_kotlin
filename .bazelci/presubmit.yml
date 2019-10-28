@@ -1,6 +1,6 @@
 ---
 validate_config: 1
-bazel: 1.0.0
+bazel: 1.1.0
 tasks:
   ubuntu1604:
     test_targets:
@@ -23,8 +23,14 @@ tasks:
   macos:
     test_targets:
     - "//:all_tests"
-  examples:
-    name: Example - Trivial
+  example-android:
+    name: "Example - Android"
+    platform: ubuntu1804
+    working_directory: examples/android
+    test_targets:
+      - //...
+  examples-trivial:
+    name: "Example - Trivial"
     platform: ubuntu1804
     working_directory: examples/trivial
     include_json_profile:
