@@ -1,0 +1,47 @@
+load("@build_bazel_rules_android//android:rules.bzl", "android_binary")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+# An app that consumes android-kt deps
+android_binary(
+    name = "app",
+    custom_package = "examples.android.app",
+    incremental_dexing = 0,
+    manifest = "src/main/AndroidManifest.xml",
+    multidex = "native",
+    deps = [
+        "//lib",
+    ],
+)
+
+# An app that consumes jvm-kt libs
+android_binary(
+    name = "app2",
+    custom_package = "examples.android.app",
+    incremental_dexing = 0,
+    manifest = "src/main/AndroidManifest.xml",
+    multidex = "native",
+    deps = [
+        "//lib2",
+    ],
+)
+
+# An app that consumes android-kt deps, and does incremental dexing.
+android_binary(
+    name = "app3",
+    custom_package = "examples.android.app",
+    incremental_dexing = 1,
+    manifest = "src/main/AndroidManifest.xml",
+    multidex = "native",
+    deps = [
+        "//lib",
+    ],
+)
+
+build_test(
+    name = "force_build_apks_test",
+    targets = [
+        ":app.apk",
+        ":app2.apk",
+        ":app3.apk",
+    ],
+)
