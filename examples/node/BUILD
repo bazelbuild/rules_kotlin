@@ -14,6 +14,10 @@
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_js_import")
 
 # Create kt_js_imports for KotlinX's Coroutines and Atomicfu libraries.
+#
+# These could be imported using package.json and NPM, but they are here as an example of how to 
+# use KotlinJS libraries hosted on Maven directly.
+#
 # Note: It's important that the `name`s correspond to the base name of the library only (ie. not-ending with -js/_js)
 kt_js_import(
     name = "kotlinx-coroutines-core",

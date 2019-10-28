@@ -58,6 +58,12 @@ kt_rules_e2e_test(
 )
 
 kt_rules_e2e_test(
+    name = "KotlinJsCoroutinesHelloworldExampleTest",
+    srcs = ["KotlinJsCoroutinesHelloworldExampleTest.kt"],
+    data = ["@node_example//coroutines-helloworld"],
+)
+
+kt_rules_e2e_test(
     name = "KotlinJvmFriendsVisibilityTest",
     srcs = ["KotlinJvmFriendsVisibilityTest.kt"],
     friends = ["//src/test/data/jvm/basic:test_friends_library"],
@@ -71,6 +77,7 @@ kt_rules_e2e_test(
 test_suite(
     name = "assertion_tests",
     tests = [
+        "KotlinJsCoroutinesHelloworldExampleTest",
         "KotlinJvm13Test",
         "KotlinJvmBasicAssertionTest",
         "KotlinJvmDaggerExampleTest",

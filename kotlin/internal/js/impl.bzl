@@ -122,9 +122,7 @@ def kt_js_import_impl(ctx):
         fail("a single jar should be supplied, multiple jars not supported")
     jar_file = ctx.files.jars[0]
 
-    srcjar = None
-    if len(ctx.files.srcjar) == 1:
-        srcjar = ctx.files.srcjar[0]
+    srcjar = ctx.files.srcjar[0] if len(ctx.files.srcjar) == 1 else None
 
     args = ctx.actions.args()
     args.add("--jar", jar_file)
