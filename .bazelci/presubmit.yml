@@ -32,3 +32,12 @@ tasks:
       - test
     build_targets:
       - //...
+  examples-nodejs:
+    name: Example - Node Helloworld
+    platform: ubuntu1804
+    working_directory: examples/node/coroutines-helloworld
+    include_json_profile:
+      - build
+      - test
+    build_targets:
+      - //coroutines-helloworld/...
