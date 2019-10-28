@@ -16,6 +16,7 @@ import os
 import re
 import zipfile
 import tempfile
+import shutil
 
 
 def _is_jar(jar):
@@ -56,7 +57,7 @@ def _extract_root_entry(jar, filename_pattern, output_path, touch=False):
     jar.extract(target, path=temp_dir)
 
     # Move the temp file into the final output location.
-    os.rename(temp_file, output_path)
+    shutil.move(temp_file, output_path)
 
 
 def _main(p):
