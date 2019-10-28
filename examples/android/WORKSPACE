@@ -4,10 +4,6 @@ RULES_JVM_EXTERNAL_TAG = "2.8"
 
 RULES_JVM_EXTERNAL_SHA = "79c9850690d7614ecdb72d68394f994fef7534b292c4867ce5e7dec0aa7bdfad"
 
-ANDROID_API = 28
-
-ANDROID_TOOLS_VERSION = "28.0.2"
-
 http_archive(
     name = "rules_jvm_external",
     sha256 = RULES_JVM_EXTERNAL_SHA,
@@ -25,8 +21,6 @@ maven_install(
         "org.hamcrest:hamcrest-library:1.3",
     ],
     repositories = [
-        # Private repositories are supported through HTTP Basic auth
-        "http://username:password@localhost:8081/artifactory/my-repository",
         "https://jcenter.bintray.com/",
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
@@ -48,15 +42,9 @@ load(
     "android_sdk_repository",
 )
 
-android_sdk_repository(
-    name = "androidsdk",
-    api_level = ANDROID_API,
-    build_tools_version = ANDROID_TOOLS_VERSION,
-)
+android_sdk_repository(name = "androidsdk")
 
-android_ndk_repository(
-    name = "androidndk",  # Required. Name *must* be "androidndk".
-)
+android_ndk_repository(name = "androidndk")  # Required. Name *must* be "androidndk".
 
 # Directly load the kotlin rules from the parent repo.
 local_repository(
@@ -69,3 +57,12 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_reg
 kotlin_repositories()
 
 kt_register_toolchains()
+
+# Skylib, for build_test, so don't bother initializing the unit test infrastructure.
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
+    urls = [
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+    ],
+)
