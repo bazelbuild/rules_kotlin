@@ -14,31 +14,19 @@
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_js_library")
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
 
-# routes and auth have acme prepended to the rule name as these are the names of the resulting jars. The name of the
-# jar is the name of the module, and thus the name of the require statements.
 kt_js_library(
-    name = "acme-routes",
-    srcs = [":Routes.kt"],
+    name = "app",
+    srcs = ["Main.kt"],
     deps = [
-        "//express/auth:acme-auth", 
-        "//:kotlinx-atomicfu",
         "//:kotlinx-coroutines-core",
     ],
+    visibility = ["//visibility:public"],
 )
 
-kt_js_library(
-    name ="app",
-    srcs = [":App.kt"],
-    deps = [
-        ":acme-routes", 
-        "//:kotlinx-coroutines-core",
-    ],
-)
-
-# The binary demonstrates an express app composed of three modules. The modules can co-exist in the same directory.
 nodejs_binary(
-    name = "express",
+    name = "coroutines-helloworld",
     node_modules = "@node_ws//:node_modules",
     data = [":app"],
     entry_point = ":app.js",
+    visibility = ["//visibility:public"],
 )

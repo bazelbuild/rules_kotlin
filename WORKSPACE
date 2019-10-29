@@ -69,3 +69,44 @@ load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 kotlin_repositories()
 
 kt_register_toolchains()
+
+# The following are to support building and running nodejs examples from src/test
+
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "3356c6b767403392bab018ce91625f6d15ff8f11c6d772dc84bc9cada01c669a",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/0.36.1/rules_nodejs-0.36.1.tar.gz"],
+)
+
+load("@build_bazel_rules_nodejs//:defs.bzl", "yarn_install")
+
+yarn_install(
+    name = "node_ws",
+    package_json = "@node_example//:package.json",
+    yarn_lock = "@node_example//:yarn.lock",
+)
+
+RULES_JVM_EXTERNAL_TAG = "2.7"
+
+RULES_JVM_EXTERNAL_SHA = "f04b1466a00a2845106801e0c5cec96841f49ea4e7d1df88dc8e4bf31523df74"
+
+http_archive(
+    name = "rules_jvm_external",
+    sha256 = RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
+)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    artifacts = [
+        "org.jetbrains.kotlinx:atomicfu-js:0.13.1",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.2",
+    ],
+    repositories = [
+        "https://maven-central.storage.googleapis.com/repos/central/data/",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+
