@@ -2,10 +2,11 @@
 
 # Bazel Kotlin Rules
 
-Current release: ***`TBD`***<br />
+Current release: ***`legacy-1.3.0-rc1`***<br />
 Main branch: `master`
 
 # News!
+* <b>Oct 29, 2019.</b> Released version [1.3.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc1). 
 * <b>Oct 5, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
 
 For older news, please see [Changelog](CHANGELOG.md)
@@ -49,8 +50,8 @@ this:
 ```build
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy-modded-1_0_0-01"
-rules_kotlin_sha = "b7984b28e0a1e010e225a3ecdf0f49588b7b9365640af783bd01256585cbb3ae"
+rules_kotlin_version = "legacy-1.3.0-rc1"
+rules_kotlin_sha = "9de078258235ea48021830b1669bbbb678d7c3bdffd3435f4c0817c921a88e42"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
@@ -127,6 +128,10 @@ kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 _(e.g. maven artifacts)_
 
 Third party (external) artifacts can be brought in with systems such as [rules_jvm_external](https://github.com/bazelbuild/rules_jvm_external) or [bazel_maven_repository](https://github.com/square/bazel_maven_repository) or [bazel-deps](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use java_import, as this will cause bazel to make an interface-only (ijar), or ABI jar, and the native ijar tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of [rules_jvm_external] and [bazel_maven_repository] are known to work with kotlin.
+
+## Examples
+
+Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, etc.
 
 # History
 
