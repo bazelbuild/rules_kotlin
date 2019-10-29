@@ -1,8 +1,12 @@
-# Announcements and Changes
+# Announcements and Notable Changes
 
 |  Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News  | 
 | :----------- | -------- |
-| Oct 3, 2019  | [cgruber/rules_kotlin](github.com/cgruber/rules_kotlin) upstreamed into this repository.  | 
+| Oct 29, 2019 | Released version [1.3.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc1). | 
+| Oct 28, 2019 | Fix various regressions (#217, #221, #222).  | 
+| Oct 28, 2019 | Improve file handling for maven-packaged JS jars in `kt_js_import()` (#223).  | 
+| Oct 15, 2019 | Infer the test class from the test name in `kt_jvm_unit_test()` (#209).  | 
+| Oct 5, 2019  | [cgruber/rules_kotlin](github.com/cgruber/rules_kotlin) upstreamed into this repository.  | 
 | Oct 2, 2019  | Fixes to bazel 1.0.0 (as of rc4). Release (cgruber) `legacy_modded-1_0_0-01` | 
 | Oct 2, 2019  | NOTE: (cgruber) `legacy_modded-1_0_0-01` will be the last release on this fork, prior to upstreaming to github.com/bazelbuild/rules_kotlin.  For any further releases after this one, please look at that repository. | 
 | Oct 2, 2019  | Fixes to bazel 1.0.0 (as of rc4). Release (cgruber) `legacy_modded-1_0_0-01` | 
@@ -21,3 +25,5 @@
 | Feb 15, 2018 | Toolchains for the JVM rules. Currently this allow tweaking The JVM target (bytecode level), API and Language levels. Coroutines, enabled by default. | 
 | Feb 9, 2018  | Annotation processing (kapt) support
 | Feb 5, 2018  | JVM rule name change:</b> the prefix has changed from `kotlin_` to `kt_jvm_`.
+
+For fixes and more detail, please view the [list of pull requests](https://github.com/bazelbuild/rules_kotlin/pulls?q=is%3Apr+is%3Aclosed).
