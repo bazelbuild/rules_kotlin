@@ -6,6 +6,7 @@ kt_jvm_library(
     deps = [
         "//:java_deps",
     ],
+    kotlincopts = ["-Xuse-experimental=kotlin.ExperimentalMultiplatform"],
 )
 
 java_binary(

@@ -191,6 +191,10 @@ _common_attr = utils.add_dicts(
         `some_package_path-label_name`.""",
             mandatory = False,
         ),
+        "kotlincopts": attr.string_list(
+            doc = """Flags to pass to kotlinc compiler.""",
+            default = []
+        ),
     },
 )
 
