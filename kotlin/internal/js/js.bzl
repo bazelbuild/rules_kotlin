@@ -87,6 +87,10 @@ kt_js_library = rule(
             doc = "internal attribute",
             mandatory = False,
         ),
+        "kotlincopts": attr.string_list(
+            doc = """Flags to pass to kotlinc compiler.""",
+            default = []
+        ),
         "_toolchain": attr.label(
             doc = """The Kotlin JS Runtime.""",
             default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-js"),
