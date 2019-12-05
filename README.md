@@ -6,6 +6,8 @@ Current release: ***`legacy-1.3.0-rc1`***<br />
 Main branch: `master`
 
 # News!
+* <b>Dec 5, 2019.</b> Released version [1.3.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc2).
+* <b>Dec 5, 2019.</b> Fix for problem with jdeps generation (#235).
 * <b>Oct 29, 2019.</b> Released version [1.3.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc1). 
 * <b>Oct 5, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
 
@@ -50,8 +52,8 @@ this:
 ```build
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy-1.3.0-rc1"
-rules_kotlin_sha = "9de078258235ea48021830b1669bbbb678d7c3bdffd3435f4c0817c921a88e42"
+rules_kotlin_version = "legacy-1.3.0-rc2"
+rules_kotlin_sha = "dc1c76f91228ddaf4f7ca4190b82d61939e95369f61dea715e8be28792072b1b"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
