@@ -2,6 +2,8 @@
 
 |  Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News  | 
 | :----------- | -------- |
+| Dec 5, 2019 | Released version [1.3.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc2). | 
+| Dec 5, 2019 | Fix for problem with jdeps generation (#235). | 
 | Oct 29, 2019 | Released version [1.3.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc1). | 
 | Oct 28, 2019 | Fix various regressions (#217, #221, #222).  | 
 | Oct 28, 2019 | Improve file handling for maven-packaged JS jars in `kt_js_import()` (#223).  | 
