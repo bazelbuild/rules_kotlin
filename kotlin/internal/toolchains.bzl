@@ -142,6 +142,10 @@ _kt_toolchain = rule(
             values = [
                 "1.6",
                 "1.8",
+                "9",
+                "10",
+                "11",
+                "12",
             ],
         ),
         "js_target": attr.string(
