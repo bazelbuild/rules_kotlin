@@ -247,6 +247,10 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
             exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
             neverlink = getattr(ctx.attr, "neverlink", False),
         ),
+        kotlin_toolchain = platform_common.ToolchainInfo(
+            language_version = toolchain.api_version,
+            sdk_library_targets = toolchain.jvm_stdlibs.compile_jars,
+        ),
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
             module_name = module_name,

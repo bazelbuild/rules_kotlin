@@ -27,9 +27,11 @@ load(
 def _make_providers(ctx, providers, transitive_files = depset(order = "default")):
     return struct(
         kt = providers.kt,
+        kotlin_toolchain = providers.kotlin_toolchain,
         providers = [
             providers.java,
             providers.kt,
+            providers.kotlin_toolchain,
             DefaultInfo(
                 files = depset([ctx.outputs.jar]),
                 runfiles = ctx.runfiles(
