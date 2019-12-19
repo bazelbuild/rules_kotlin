@@ -49,5 +49,6 @@ def kt_android_library(name, exports = [], visibility = None, **kwargs):
         name = name,
         exports = exports + _kt_android_artifact(name, **kwargs),
         visibility = visibility,
+        tags = kwargs.get("tags", default=None),
         testonly = kwargs.get("testonly", default=0),
     )
