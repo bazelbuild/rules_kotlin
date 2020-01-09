@@ -112,12 +112,12 @@ internal class JdepsParser private constructor(private val filename: String, pri
 
         fun parse(
             label: String,
-            classJar: String,
+            jarFile: String,
             classPath: MutableList<String>,
             lines: List<String>,
             isImplicit: Predicate<String>
         ): Deps.Dependencies {
-            val filename = Paths.get(classJar).fileName.toString()
+            val filename = Paths.get(jarFile).fileName.toString()
             val jdepsParser = JdepsParser(filename, isImplicit)
             classPath.forEach { x -> jdepsParser.consumeJarLine(x, Deps.Dependency.Kind.UNUSED) }
             lines.forEach { jdepsParser.processLine(it) }
