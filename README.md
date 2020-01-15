@@ -2,10 +2,12 @@
 
 # Bazel Kotlin Rules
 
-Current release: ***`legacy-1.3.0-rc3`***<br />
+Current release: ***`legacy-1.3.0-rc4`***<br />
 Main branch: `master`
 
 # News!
+* <b>Jan 15, 2020.</b> Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4).
+* <b>Jan 15, 2020.</b> Bug fixes and tweaks (#255, #257).
 * <b>Dec 6, 2019.</b> Released version [1.3.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc3).
 * <b>Dec 6, 2019.</b> Add support for later java versions as target platforms (#236).
 * <b>Dec 5, 2019.</b> Released version [1.3.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc2).
@@ -54,8 +56,8 @@ this:
 ```build
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy-1.3.0-rc3"
-rules_kotlin_sha = "54678552125753d9fc0a37736d140f1d2e69778d3e52cf454df41a913b964ede"
+rules_kotlin_version = "legacy-1.3.0-rc4"
+rules_kotlin_sha = "fe32ced5273bcc2f9e41cea65a28a9184a77f3bc30fea8a5c47b3d3bfc801dff"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
