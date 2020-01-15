@@ -250,6 +250,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
             module_name = module_name,
+            language_version = toolchain.api_version,
             # intelij aspect needs this.
             outputs = struct(
                 jdeps = ctx.outputs.jdeps,

@@ -23,6 +23,7 @@ KtJvmInfo = provider(
         "module_name": "the module name",
         "srcs": "the source files. [intelij-aspect]",
         "outputs": "output jars produced by this rule. [intelij-aspect]",
+        "language_version": "version of kotlin used. [intellij-aspect]",
     },
 )
 
