@@ -156,7 +156,9 @@ def kt_jvm_binary_impl(ctx):
 
 _SPLIT_STRINGS = [
     "src/test/java/",
+    "src/test/kotlin/",
     "javatests/",
+    "kotlin/",
     "java/",
     "test/",
 ]
