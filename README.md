@@ -19,7 +19,7 @@ For older news, please see [Changelog](CHANGELOG.md)
 
 # Overview 
 
-**rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other bazel 
+**rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other Bazel 
 language rules. It also supports `jvm`, `android`, and `js` flavors, with the prefix `kt_jvm`
 and `kt_js`, and `kt_android` typically applied to the rules (the exception being 
 `kt_android_local_test`, which doesn't exist. Use an `android_local_test` that takes a 
@@ -28,7 +28,7 @@ and `kt_js`, and `kt_android` typically applied to the rules (the exception bein
 Limited "friend" support is available, in the form of tests being friends of their library for the
 system under test, allowing `internal` access to types and functions.
 
-Also, jvm rules support the following standard java rules attributes:
+Also, `kt_jvm_*` rules support the following standard `java_*` rules attributes:
   * `data`
   * `resource_jars`
   * `runtime_deps`
@@ -49,11 +49,11 @@ Javascript is reported to work, but is not as well maintained (at present)
 
 # Quick Guide
 
-## WORKSPACE
+## `WORKSPACE`
 In the project's `WORKSPACE`, declare the external repository and initialize the toolchains, like
 this:
 
-```build
+```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 rules_kotlin_version = "legacy-1.3.0-rc4"
@@ -71,11 +71,11 @@ kotlin_repositories() # if you want the default. Otherwise see custom kotlinc di
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
-## BUILD files
+## `BUILD` files
 
-In your project's `BUILD` files, load the kotlin rules and use them like so:
+In your project's `BUILD` files, load the Kotlin rules and use them like so:
 
-```
+```python
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
 
 kt_jvm_library(
@@ -92,7 +92,7 @@ kt_jvm_library(
 To enable a custom toolchain (to configure language level, etc.)
 do the following.  In a `<workspace>/BUILD.bazel` file define the following:
 
-```
+```python
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
@@ -105,16 +105,16 @@ define_kt_toolchain(
 
 and then in your `WORKSPACE` file, instead of `kt_register_toolchains()` do
 
-```
+```python
 register_toolchains("//:kotlin_toolchain")
 ```
 
-## Custom kotlinc distribution (and version)
+## Custom `kotlinc` distribution (and version)
 
-To choose a different kotlinc distribution (only 1.3 variants supported), do the following
+To choose a different `kotlinc` distribution (only 1.3 variants supported), do the following
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
-```
+```python
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories")
 
 KOTLIN_VERSION = "1.3.31"
@@ -131,9 +131,9 @@ kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 ```
 
 ## Third party dependencies 
-_(e.g. maven artifacts)_
+_(e.g. Maven artifacts)_
 
-Third party (external) artifacts can be brought in with systems such as [rules_jvm_external](https://github.com/bazelbuild/rules_jvm_external) or [bazel_maven_repository](https://github.com/square/bazel_maven_repository) or [bazel-deps](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use java_import, as this will cause bazel to make an interface-only (ijar), or ABI jar, and the native ijar tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of [rules_jvm_external] and [bazel_maven_repository] are known to work with kotlin.
+Third party (external) artifacts can be brought in with systems such as [`rules_jvm_external`](https://github.com/bazelbuild/rules_jvm_external) or [`bazel_maven_repository`](https://github.com/square/bazel_maven_repository) or [`bazel-deps`](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use `java_import`, as this will cause bazel to make an interface-only (`ijar`), or ABI jar, and the native `ijar` tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of `rules_jvm_external` and `bazel_maven_repository` are known to work with Kotlin.
 
 ## Examples
 
