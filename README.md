@@ -2,7 +2,7 @@
 
 # Bazel Kotlin Rules
 
-Current release: ***`legacy-1.3.0-rc1`***<br />
+Current release: ***`legacy-1.3.0-rc3`***<br />
 Main branch: `master`
 
 # News!
