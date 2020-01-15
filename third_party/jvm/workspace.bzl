@@ -20,6 +20,7 @@ def _jar_artifact_impl(ctx):
         srcjar_attr = '\n    srcjar = ":%s",' % src_name
 
     build_file_contents = """
+load("@rules_java//java:defs.bzl", "java_import")
 package(default_visibility = ['//visibility:public'])
 java_import(
     name = 'jar',

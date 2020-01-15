@@ -13,6 +13,7 @@
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
 
+load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("//kotlin:kotlin.bzl", "kt_jvm_import")
 
 

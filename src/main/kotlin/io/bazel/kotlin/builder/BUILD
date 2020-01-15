@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@rules_java//java:defs.bzl", "java_library")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
 kt_bootstrap_library(
