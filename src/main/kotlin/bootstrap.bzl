@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@rules_java//java:defs.bzl", "java_import", "java_library")
 load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
 
 _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
@@ -100,7 +101,7 @@ rm $(@D)/$${NAME}_temp.jar
         ],
         cmd = command,
     )
-    native.java_import(
+    java_import(
         name = name,
         jars = [jar_label],
         tags = ["no-ide"],
