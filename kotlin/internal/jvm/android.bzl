@@ -15,6 +15,7 @@ load(
     "//kotlin/internal/jvm:jvm.bzl",
     _kt_jvm_library = "kt_jvm_library",
 )
+load("@build_bazel_rules_android//android:rules.bzl", "android_library")
 
 def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
@@ -25,7 +26,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
 
     base_deps = deps + ["@io_bazel_rules_kotlin//kotlin/internal/jvm:android_sdk"]
 
-    native.android_library(
+    android_library(
         name = base_name,
         visibility = ["//visibility:private"],
         exports = base_deps,
@@ -36,7 +37,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
         srcs = srcs,
         deps = base_deps + [base_name],
         plugins = plugins,
-        testonly = kwargs.get("testonly", default=0),
+        testonly = kwargs.get("testonly", default = 0),
         visibility = ["//visibility:private"],
     )
     return [base_name, kt_name]
@@ -45,10 +46,10 @@ def kt_android_library(name, exports = [], visibility = None, **kwargs):
     """Creates an Android sandwich library. `srcs`, `deps`, `plugins` are routed to `kt_jvm_library` the other android
     related attributes are handled by the native `android_library` rule.
     """
-    native.android_library(
+    android_library(
         name = name,
         exports = exports + _kt_android_artifact(name, **kwargs),
         visibility = visibility,
-        tags = kwargs.get("tags", default=None),
-        testonly = kwargs.get("testonly", default=0),
+        tags = kwargs.get("tags", default = None),
+        testonly = kwargs.get("testonly", default = 0),
     )

@@ -13,6 +13,15 @@
 # limitations under the License.
 workspace(name = "io_bazel_rules_kotlin")
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+load("//kotlin/internal/repositories:repositories.bzl", "github_archive")
+
+RULES_ANDROID_TAG = "0.1.1"
+RULES_ANDROID_SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806"
+
+RULES_JVM_EXTERNAL_TAG = "3.0"
+RULES_JVM_EXTERNAL_SHA = "62133c125bf4109dfd9d2af64830208356ce4ef8b165a6ef15bbff7460b35c3a"
+
 RULES_NODEJS_VERSION = "0.36.1"
 RULES_NODEJS_SHA = "3356c6b767403392bab018ce91625f6d15ff8f11c6d772dc84bc9cada01c669a"
 
@@ -29,12 +38,14 @@ BAZEL_DEPS_VERSION = "0.1.0"
 BAZEL_DEPS_SHA = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e"
 
 
-local_repository(
-    name = "node_example",
-    path = "examples/node",
-)
+local_repository(name = "node_example", path = "examples/node")
 
-load("//kotlin/internal/repositories:repositories.bzl", "github_archive")
+http_archive(
+    name = "build_bazel_rules_android",
+    sha256 = RULES_ANDROID_SHA,
+    strip_prefix = "rules_android-0.1.1",
+    url = "https://github.com/bazelbuild/rules_android/archive/v%s.zip" % RULES_ANDROID_TAG,
+)
 
 github_archive(
     name = "com_google_protobuf",
@@ -44,10 +55,7 @@ github_archive(
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
 protobuf_deps()
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
 http_archive(
     name = "bazel_skylib",
@@ -72,39 +80,27 @@ http_archive(
     ],
 )
 
-load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
-
 # Creates toolchain configuration for remote execution with BuildKite CI
 # for rbe_ubuntu1604
-rbe_autoconfig(
-    name = "buildkite_config",
-)
+load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
+rbe_autoconfig(name = "buildkite_config")
 
 load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-
 kotlin_repositories()
-
 kt_register_toolchains()
 
 # The following are to support building and running nodejs examples from src/test
-
 http_archive(
     name = "build_bazel_rules_nodejs",
     sha256 = RULES_NODEJS_SHA,
     url = "https://github.com/bazelbuild/rules_nodejs/releases/download/{0}/rules_nodejs-{0}.tar.gz".format(RULES_NODEJS_VERSION),
 )
-
 load("@build_bazel_rules_nodejs//:defs.bzl", "yarn_install")
-
 yarn_install(
     name = "node_ws",
     package_json = "@node_example//:package.json",
     yarn_lock = "@node_example//:yarn.lock",
 )
-
-RULES_JVM_EXTERNAL_TAG = "2.7"
-
-RULES_JVM_EXTERNAL_SHA = "f04b1466a00a2845106801e0c5cec96841f49ea4e7d1df88dc8e4bf31523df74"
 
 http_archive(
     name = "rules_jvm_external",
@@ -112,9 +108,7 @@ http_archive(
     strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
-
 load("@rules_jvm_external//:defs.bzl", "maven_install")
-
 maven_install(
     artifacts = [
         "org.jetbrains.kotlinx:atomicfu-js:0.13.1",
@@ -125,4 +119,3 @@ maven_install(
         "https://repo1.maven.org/maven2",
     ],
 )
-

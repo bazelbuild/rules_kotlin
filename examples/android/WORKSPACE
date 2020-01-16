@@ -1,8 +1,22 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+RULES_ANDROID_TAG = "0.1.1"
+RULES_ANDROID_SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806"
 RULES_JVM_EXTERNAL_TAG = "2.8"
-
 RULES_JVM_EXTERNAL_SHA = "79c9850690d7614ecdb72d68394f994fef7534b292c4867ce5e7dec0aa7bdfad"
+SKYLIB_TAG = "1.0.2"
+SKYLIB_SHA = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44"
+
+http_archive(
+    name = "build_bazel_rules_android",
+    sha256 = RULES_ANDROID_SHA,
+    strip_prefix = "rules_android-0.1.1",
+    url = "https://github.com/bazelbuild/rules_android/archive/v%s.zip" % RULES_ANDROID_TAG,
+)
+
+load("@build_bazel_rules_android//android:rules.bzl", "android_ndk_repository", "android_sdk_repository")
+android_sdk_repository(name = "androidsdk")
+android_ndk_repository(name = "androidndk")  # Required. Name *must* be "androidndk".
 
 http_archive(
     name = "rules_jvm_external",
@@ -27,42 +41,15 @@ maven_install(
     ],
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "build_bazel_rules_android",
-    sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
-    strip_prefix = "rules_android-0.1.1",
-    urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
-)
-
-load(
-    "@build_bazel_rules_android//android:rules.bzl",
-    "android_ndk_repository",
-    "android_sdk_repository",
-)
-
-android_sdk_repository(name = "androidsdk")
-
-android_ndk_repository(name = "androidndk")  # Required. Name *must* be "androidndk".
-
 # Directly load the kotlin rules from the parent repo.
-local_repository(
-    name = "io_bazel_rules_kotlin",
-    path = "../..",
-)
-
+local_repository(name = "io_bazel_rules_kotlin", path = "../..")
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-
 kotlin_repositories()
-
 kt_register_toolchains()
 
-# Skylib, for build_test, so don't bother initializing the unit test infrastructure.
+# Skylib, only to get build_test(), so don't bother initializing the unit test infrastructure.
 http_archive(
     name = "bazel_skylib",
-    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
-    urls = [
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
-    ],
+    url = "https://github.com/bazelbuild/bazel-skylib/releases/download/{0}/bazel-skylib-{0}.tar.gz".format(SKYLIB_TAG),
+    sha256 = SKYLIB_SHA,
 )
