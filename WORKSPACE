@@ -13,6 +13,22 @@
 # limitations under the License.
 workspace(name = "io_bazel_rules_kotlin")
 
+RULES_NODEJS_VERSION = "0.36.1"
+RULES_NODEJS_SHA = "3356c6b767403392bab018ce91625f6d15ff8f11c6d772dc84bc9cada01c669a"
+
+BAZEL_TOOLCHAINS_VERSION = "be10bee3010494721f08a0fccd7f57411a1e773e"
+BAZEL_TOOLCHAINS_SHA = "5962fe677a43226c409316fcb321d668fc4b7fa97cb1f9ef45e7dc2676097b26"
+
+SKYLIB_VERSION = "0.8.0"
+SKYLIB_SHA = "2ea8a5ed2b448baf4a6855d3ce049c4c452a6470b1efd1504fdb7c1c134d220a"
+
+PROTOBUF_GIT_COMMIT = "09745575a923640154bcf307fba8aedff47f240a"  # v3.8.0, as of 2019-05-28
+PROTOBUF_SHA = "76ee4ba47dec6146872b6cd051ae5bd12897ef0b1523d5aeb56d81a5a4ca885a"
+
+BAZEL_DEPS_VERSION = "0.1.0"
+BAZEL_DEPS_SHA = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e"
+
+
 local_repository(
     name = "node_example",
     path = "examples/node",
@@ -22,9 +38,9 @@ load("//kotlin/internal/repositories:repositories.bzl", "github_archive")
 
 github_archive(
     name = "com_google_protobuf",
-    commit = "09745575a923640154bcf307fba8aedff47f240a",  # v3.8.0, as of 2019-05-28
+    commit = PROTOBUF_GIT_COMMIT,
     repo = "google/protobuf",
-    sha256 = "76ee4ba47dec6146872b6cd051ae5bd12897ef0b1523d5aeb56d81a5a4ca885a",
+    sha256 = PROTOBUF_SHA,
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -35,24 +51,24 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
 http_archive(
     name = "bazel_skylib",
-    urls = ["https://github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz"],
-    strip_prefix = "bazel-skylib-0.8.0",
-    sha256 = "2ea8a5ed2b448baf4a6855d3ce049c4c452a6470b1efd1504fdb7c1c134d220a",
+    urls = ["https://github.com/bazelbuild/bazel-skylib/archive/%s.tar.gz" % SKYLIB_VERSION],
+    strip_prefix = "bazel-skylib-%s" % SKYLIB_VERSION,
+    sha256 = SKYLIB_SHA,
 )
 
 http_jar(
     name = "bazel_deps",
-    sha256 = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e",
-    url = "https://github.com/hsyed/bazel-deps/releases/download/v0.1.0/parseproject_deploy.jar",
+    sha256 = BAZEL_DEPS_SHA,
+    url = "https://github.com/hsyed/bazel-deps/releases/download/v%s/parseproject_deploy.jar" % BAZEL_DEPS_VERSION,
 )
 
 http_archive(
     name = "bazel_toolchains",
-    sha256 = "5962fe677a43226c409316fcb321d668fc4b7fa97cb1f9ef45e7dc2676097b26",
-    strip_prefix = "bazel-toolchains-be10bee3010494721f08a0fccd7f57411a1e773e",
+    sha256 = BAZEL_TOOLCHAINS_SHA,
+    strip_prefix = "bazel-toolchains-%s" % BAZEL_TOOLCHAINS_VERSION,
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/be10bee3010494721f08a0fccd7f57411a1e773e.tar.gz",
-        "https://github.com/bazelbuild/bazel-toolchains/archive/be10bee3010494721f08a0fccd7f57411a1e773e.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/%s.tar.gz" % BAZEL_TOOLCHAINS_VERSION,
+        "https://github.com/bazelbuild/bazel-toolchains/archive/%s.tar.gz" % BAZEL_TOOLCHAINS_VERSION,
     ],
 )
 
@@ -74,8 +90,8 @@ kt_register_toolchains()
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "3356c6b767403392bab018ce91625f6d15ff8f11c6d772dc84bc9cada01c669a",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/0.36.1/rules_nodejs-0.36.1.tar.gz"],
+    sha256 = RULES_NODEJS_SHA,
+    url = "https://github.com/bazelbuild/rules_nodejs/releases/download/{0}/rules_nodejs-{0}.tar.gz".format(RULES_NODEJS_VERSION),
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "yarn_install")
