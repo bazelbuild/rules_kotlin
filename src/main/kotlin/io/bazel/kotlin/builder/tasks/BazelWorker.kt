@@ -114,6 +114,7 @@ class BazelWorker(
             if (wasInterrupted(e)) {
                 return INTERUPTED_STATUS
             }
+            throw e
         } catch (e: RuntimeException) {
             if (wasInterrupted(e)) {
                 return INTERUPTED_STATUS
