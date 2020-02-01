@@ -23,6 +23,7 @@ load(
 #
 
 def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
+
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
