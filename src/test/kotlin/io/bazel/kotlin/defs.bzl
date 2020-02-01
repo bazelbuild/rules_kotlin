@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@rules_java//java:defs.bzl", "java_test")
 load("//kotlin:kotlin.bzl", "kt_jvm_test")
 
 def _get_class_name(kwargs):
@@ -30,7 +31,7 @@ def kt_rules_test(name, **kwargs):
         if f.endswith(".kt"):
             kt_jvm_test(name = name, **kwargs)
             return
-    native.java_test(name = name, **kwargs)
+    java_test(name = name, **kwargs)
 
 def kt_rules_e2e_test(name, **kwargs):
     kwargs.setdefault("size", "small")
