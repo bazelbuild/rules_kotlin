@@ -17,6 +17,9 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("//kotlin:kotlin.bzl", "kt_jvm_import")
 
 
+exports_files(["empty.jar"])
+
+
 java_binary(
     name = "bazel_deps",
     main_class = "com.github.johnynek.bazel_deps.ParseProject",
