@@ -75,3 +75,10 @@ release_archive(
         "BUILD.release.bazel": "BUILD.bazel",
     },
 )
+
+java_import(
+    name = "android_sdk",
+    jars = ["@bazel_tools//tools/android:android_jar"],
+    neverlink = 1,
+    visibility = ["//visibility:public"],
+)
