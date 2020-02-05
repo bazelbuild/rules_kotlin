@@ -117,7 +117,7 @@ _kt_toolchain = rule(
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
             default = [
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib")
+                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
             ],
             providers = [JavaInfo],
             cfg = "target",

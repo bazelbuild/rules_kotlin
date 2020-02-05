@@ -15,6 +15,7 @@ load("@rules_java//java:defs.bzl", "java_binary")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
 load("//third_party:jarjar.bzl", "jar_jar")
+load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
 # The compiler library, this is co-located in the kotlin compiler classloader.
 kt_bootstrap_library(
@@ -48,13 +49,50 @@ java_binary(
         ":compiler_lib.jar",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
-    main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
-    runtime_deps = [":builder_jar_jar"],
     jvm_flags = [
         "-XX:+IgnoreUnrecognizedVMOptions",
         "--add-opens=java.base/java.nio=ALL-UNNAMED",
         "--add-opens=java.base/java.lang=ALL-UNNAMED",
         "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
     ],
+    main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],
+    runtime_deps = [":builder_jar_jar"],
+)
+
+release_archive(
+    name = "pkg",
+    srcs = [
+        ":compiler_lib.jar",
+    ],
+    # Generate the release build file, relying on precompiled jars.
+    dist_files = {
+        "BUILD": """
+java_import(
+  name = "import_builder",
+  jars = ["kotlin_deploy.jar"],
+)
+
+java_import(
+  name = "compiler_lib",
+  jars = ["compiler_lib.jar"],
+)
+
+java_binary(
+  name = "builder",
+  main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
+  visibility = ["//visibility:public"],
+  runtime_deps = [":import_builder"],
+  data = [
+    ":compiler_lib",
+    "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
+  ],
+)
+""",
+    },
+    package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
+    renames = {
+        # must rename, otherwise it creates a cyclical dependency in the release.
+        ":builder_deploy.jar": "kotlin_deploy.jar",
+    },
 )

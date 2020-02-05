@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("//kotlin/internal/utils:utils.bzl", "utils")
 
 exports_files([
     "scripts/noop.sh",
@@ -31,5 +33,20 @@ test_suite(
     tests = [
         ":all_tests",
         "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
+    ],
+)
+
+# Release target.
+release_archive(
+    name = "rules_kotlin_release",
+    dist_files = {
+        "BUILD": "",
+        "WORKSPACE": """workspace(name = "io_bazel_rules_kotlin")""",
+    },
+    extension = "tgz",
+    deps = [
+        "//kotlin:pkg",
+        "//src/main/kotlin:pkg",
+        "//third_party:pkg",
     ],
 )

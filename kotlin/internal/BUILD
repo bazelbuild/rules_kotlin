@@ -13,6 +13,27 @@
 # limitations under the License.
 
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
+load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
 # Configures the toolchains
 kt_configure_toolchains()
+
+
+# Distribution setup.
+release_archive(
+    name = "pkg",
+    visibility = ["//visibility:public"],
+    srcs = glob(["*.bzl"]),
+    dist_files = {
+      "BUILD": """
+load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
+kt_configure_toolchains()
+""",
+    },
+    deps = [
+       "//kotlin/internal/js:pkg",
+       "//kotlin/internal/jvm:pkg",
+       "//kotlin/internal/repositories:pkg",
+       "//kotlin/internal/utils:pkg",
+    ],
+)

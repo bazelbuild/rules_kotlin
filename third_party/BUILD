@@ -15,10 +15,9 @@ package(default_visibility = ["//visibility:public"])
 
 load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("//kotlin:kotlin.bzl", "kt_jvm_import")
-
+load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
 exports_files(["empty.jar"])
-
 
 java_binary(
     name = "bazel_deps",
@@ -39,7 +38,7 @@ java_binary(
     runtime_deps = [
         ":kotlinx_coroutines",
         ":kotlinx_coroutines_common",
-    ]
+    ],
 )
 
 kt_jvm_import(
@@ -102,3 +101,22 @@ java_import(
     neverlink = 1,
     visibility = ["//visibility:public"],
 )
+
+release_archive(
+    name = "pkg",
+    visibility = ["//visibility:public"],
+    srcs = ["empty.jar"],
+    dist_files = {
+      "BUILD" : """
+exports_files(["empty.jar"])
+
+java_import(
+    name = "android_sdk",
+    jars = ["@bazel_tools//tools/android:android_jar"],
+    neverlink = 1,
+    visibility = ["//visibility:public"],
+)
+"""
+    },
+)
+

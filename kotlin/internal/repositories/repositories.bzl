@@ -23,10 +23,6 @@ load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
 )
-load(
-    "//third_party/jvm:workspace.bzl",
-    _maven_dependencies = "maven_dependencies",
-)
 
 _BAZEL_JAVA_LAUNCHER_VERSION = "0.28.1"
 
@@ -62,7 +58,6 @@ def kotlin_repositories(compiler_release = _KOTLIN_CURRENT_COMPILER_RELEASE):
     Args:
         compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
     """
-    _maven_dependencies()
     _http_archive(
         name = _KT_COMPILER_REPO,
         urls = compiler_release["urls"],
