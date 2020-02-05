@@ -95,3 +95,10 @@ java_binary(
     visibility = ["//visibility:public"],
     runtime_deps = ["//third_party/jvm/org/pantsbuild:jarjar"],
 )
+
+java_import(
+    name = "android_sdk",
+    jars = ["@bazel_tools//tools/android:android_jar"],
+    neverlink = 1,
+    visibility = ["//visibility:public"],
+)
