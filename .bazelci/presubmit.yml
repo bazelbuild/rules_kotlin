@@ -31,7 +31,7 @@ tasks:
     name: "Example - Android"
     platform: ubuntu1804
     shell_command:
-      - "bazel build //:rules_kotlin_release rm -rf /tmp/rules_kotlin && mdir -p /tmp/rules_kotlin && tar -C /tmp/rule_kotlin -xvf bazel-bin/rules_kotlin_release.tgz"
+      - "bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin && mdir -p /tmp/rules_kotlin && tar -C /tmp/rule_kotlin -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/android
     test_flags:
       - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin"
