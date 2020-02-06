@@ -38,7 +38,6 @@ load(
     _kt_js_library = "kt_js_library_macro",
 )
 
-define_kt_toolchain = _define_kt_toolchain
 kt_js_library = _kt_js_library
 kt_js_import = _kt_js_import
 kt_register_toolchains = _kt_register_toolchains

@@ -18,11 +18,12 @@ load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder",
-    "//src/main/protobuf:kotlin_model",
-    "//third_party/jvm/com/google/truth",
-    "//third_party/jvm/junit",
-    "//third_party/jvm/com/google/guava",
-    "//third_party/jvm/com/google/code/findbugs:jsr305",
+    "//src/main/protobuf:kotlin_model_java_proto",
+    "//src/main/protobuf:deps_java_proto",
+    "@kotlin_rules_maven//:com_google_truth_truth",
+    "@kotlin_rules_maven//:junit_junit",
+    "@kotlin_rules_maven//:com_google_guava_guava",
+    "@kotlin_rules_maven//:com_google_code_findbugs_jsr305",
 ]
 
 java_library(
@@ -40,8 +41,7 @@ java_library(
         "@com_github_jetbrains_kotlin//:home",
     ],
     exports = _COMMON_DEPS + [
-        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
-        "//src/main/protobuf:deps",
+        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
     ],
     runtime_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
@@ -71,8 +71,12 @@ kt_rules_test(
     name = "KotlinBuilderJvmKaptTest",
     srcs = ["tasks/jvm/KotlinBuilderJvmKaptTest.java"],
     data = [
-        "//third_party/jvm/com/google/auto/value:auto_value",
-        "//third_party/jvm/com/google/auto/value:auto_value_annotations",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+    ],
+    jvm_flags = [
+        "-Dauto_value=$(location @kotlin_rules_maven//:com_google_auto_value_auto_value)",
+        "-Dauto_value_annotations=$(location @kotlin_rules_maven//:com_google_auto_value_auto_value_annotations)",
     ],
 )
 

@@ -13,44 +13,12 @@
 # limitations under the License.
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
-
+load("//kotlin/internal/repositories:setup.bzl", "kt_configure")
 load(
-    "@bazel_tools//tools/build_defs/repo:http.bzl",
-    _http_archive = "http_archive",
-    _http_file = "http_file",
-)
-load(
-    "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-)
-load(
-    "//third_party/jvm:workspace.bzl",
-    _maven_dependencies = "maven_dependencies",
-)
-load(
-    "//kotlin/internal/repositories:nomaven_repositories.bzl",
+    "//kotlin/internal/repositories:release_repositories.bzl",
+    _release_kotlin_repositories = "kotlin_repositories",
     "KOTLIN_CURRENT_COMPILER_RELEASE",
-    _kotlin_repositories_no_maven = "kotlin_repositories",
 )
-
-def github_archive(name, repo, commit, build_file_content = None, sha256 = None):
-    if build_file_content:
-        _http_archive(
-            name = name,
-            strip_prefix = "%s-%s" % (repo.split("/")[1], commit),
-            url = "https://github.com/%s/archive/%s.zip" % (repo, commit),
-            type = "zip",
-            build_file_content = build_file_content,
-            sha256 = sha256,
-        )
-    else:
-        _http_archive(
-            name = name,
-            strip_prefix = "%s-%s" % (repo.split("/")[1], commit),
-            url = "https://github.com/%s/archive/%s.zip" % (repo, commit),
-            type = "zip",
-            sha256 = sha256,
-        )
 
 def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -58,5 +26,5 @@ def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
     Args:
         compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
     """
-    _maven_dependencies()
-    _kotlin_repositories_no_maven(compiler_release)
+    kt_configure()
+    _release_kotlin_repositories(compiler_release)

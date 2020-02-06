@@ -55,9 +55,7 @@ java_binary(
         "--add-opens=java.base/java.lang=ALL-UNNAMED",
         "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
     ],
-    main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],
-    runtime_deps = [":builder_jar_jar"],
 )
 
 release_archive(
