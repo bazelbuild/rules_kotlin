@@ -108,5 +108,4 @@ release_archive(
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
-    visibility = ["//visibility:public"],
 )
