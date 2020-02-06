@@ -20,6 +20,6 @@ release_archive(
         "BUILD.com_github_jetbrains_kotlin",
     ],
     src_map = {
-        "nomaven_repositories.bzl" : "repositories.bzl",
-    }
+        "nomaven_repositories.bzl": "repositories.bzl",
+    },
 )

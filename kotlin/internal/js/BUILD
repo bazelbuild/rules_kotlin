@@ -26,7 +26,7 @@ release_archive(
         "*.bzl",
         "*.py",
     ]),
-   src_map = {
-       "BUILD.release.bazel" : "BUILD.bazel"
-   }
+    src_map = {
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
 )

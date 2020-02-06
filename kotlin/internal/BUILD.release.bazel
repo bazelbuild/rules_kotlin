@@ -13,4 +13,5 @@
 # limitations under the License.
 
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
+
 kt_configure_toolchains()

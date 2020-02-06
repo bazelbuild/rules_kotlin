@@ -18,7 +18,6 @@ load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
 )
-
 load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     _http_archive = "http_archive",
@@ -35,24 +34,24 @@ KOTLIN_CURRENT_COMPILER_RELEASE = {
 }
 
 def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
-     """Call this in the WORKSPACE file to setup the Kotlin rules.
+    """Call this in the WORKSPACE file to setup the Kotlin rules.
 
-     Args:
-         compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
-     """
-     _http_archive(
-            name = _KT_COMPILER_REPO,
-            urls = compiler_release["urls"],
-            sha256 = compiler_release["sha256"],
-            build_file = "@io_bazel_rules_kotlin//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
-            strip_prefix = "kotlinc",
+    Args:
+        compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
+    """
+    _http_archive(
+        name = _KT_COMPILER_REPO,
+        urls = compiler_release["urls"],
+        sha256 = compiler_release["sha256"],
+        build_file = "@io_bazel_rules_kotlin//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
+        strip_prefix = "kotlinc",
     )
 
-     _http_file(
+    _http_file(
         name = "kt_java_stub_template",
         urls = [("https://raw.githubusercontent.com/bazelbuild/bazel/" +
                  BAZEL_JAVA_LAUNCHER_VERSION +
                  "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
                  "java_stub_template.txt")],
         sha256 = "e6531a6539ec1e38fec5e20523ff4bfc883e1cc0209eb658fe82eb918eb49657",
-     )
+    )

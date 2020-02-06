@@ -14,7 +14,7 @@
 
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
-def release_archive(name, srcs = None, src_map = {}, package_dir = None, extension="tgz", deps=None):
+def release_archive(name, srcs = None, src_map = {}, package_dir = None, extension = "tgz", deps = None):
     """
     Creates an tar of the srcs, and renamed label artifacts.
 

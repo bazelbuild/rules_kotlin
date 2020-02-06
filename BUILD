@@ -40,8 +40,8 @@ test_suite(
 release_archive(
     name = "rules_kotlin_release",
     src_map = {
-        "BUILD.release.bazel.bazel" : "BUILD.bazel",
-        "WORKSPACE.release.bazel" : "WORKSPACE",
+        "BUILD.release.bazel.bazel": "BUILD.bazel",
+        "WORKSPACE.release.bazel": "WORKSPACE",
     },
     deps = [
         "//kotlin:pkg",

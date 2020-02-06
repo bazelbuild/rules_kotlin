@@ -27,13 +27,11 @@ load(
     "//third_party/jvm:workspace.bzl",
     _maven_dependencies = "maven_dependencies",
 )
-
 load(
     "//kotlin/internal/repositories:nomaven_repositories.bzl",
-    _kotlin_repositories_no_maven = "kotlin_repositories",
     "KOTLIN_CURRENT_COMPILER_RELEASE",
+    _kotlin_repositories_no_maven = "kotlin_repositories",
 )
-
 
 def github_archive(name, repo, commit, build_file_content = None, sha256 = None):
     if build_file_content:

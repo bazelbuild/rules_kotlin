@@ -104,10 +104,9 @@ java_import(
 
 release_archive(
     name = "pkg",
-    visibility = ["//visibility:public"],
     srcs = ["empty.jar"],
     src_map = {
-      "BUILD.release.bazel" : "BUILD.bazel",
+        "BUILD.release.bazel": "BUILD.bazel",
     },
+    visibility = ["//visibility:public"],
 )
-
