@@ -58,8 +58,6 @@ kotlin_repositories()
 
 kt_register_toolchains()
 
-load("@io_bazel_rules_kotlin//third_party/jvm:workspace.bzl", "maven_dependencies")
-maven_dependencies()
 
 # Skylib, for build_test, so don't bother initializing the unit test infrastructure.
 http_archive(

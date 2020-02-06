@@ -9,9 +9,6 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_reg
 kotlin_repositories()
 kt_register_toolchains()
 
-load("@io_bazel_rules_kotlin//third_party/jvm:workspace.bzl", "maven_dependencies")
-maven_dependencies()
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "build_bazel_rules_nodejs",

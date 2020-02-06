@@ -15,5 +15,11 @@ load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
 release_archive(
     name = "pkg",
-    srcs = glob(["*.*"]) + ["BUILD"],
+    srcs = [
+        "BUILD",
+        "BUILD.com_github_jetbrains_kotlin",
+    ],
+    renames = {
+        "nomaven_repositories.bzl" : "repositories.bzl",
+    }
 )

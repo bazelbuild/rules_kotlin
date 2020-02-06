@@ -11,9 +11,6 @@ kotlin_repositories()
 
 kt_register_toolchains()
 
-load("@io_bazel_rules_kotlin//third_party/jvm:workspace.bzl", "maven_dependencies")
-maven_dependencies()
-
 RULES_JVM_EXTERNAL_TAG = "2.7"
 
 RULES_JVM_EXTERNAL_SHA = "f04b1466a00a2845106801e0c5cec96841f49ea4e7d1df88dc8e4bf31523df74"
