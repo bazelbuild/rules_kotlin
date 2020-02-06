@@ -74,10 +74,11 @@ def release_archive(name, srcs = None, src_map = {}, package_dir = None, extensi
 
     pkg_tar(
         name = name,
-        srcs = srcs if srcs == None else [],
+        srcs = srcs if srcs != None else [],
         extension = extension,
+        package_dir = package_dir,
         visibility = ["//visibility:public"],
-        deps = deps if deps == None else [],
+        deps = deps if deps != None else [],
     )
 
 def _rename_impl(ctx):

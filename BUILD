@@ -40,7 +40,7 @@ test_suite(
 release_archive(
     name = "rules_kotlin_release",
     src_map = {
-        "BUILD.release.bazel.bazel": "BUILD.bazel",
+        "BUILD.release.bazel": "BUILD.bazel",
         "WORKSPACE.release.bazel": "WORKSPACE",
     },
     deps = [
