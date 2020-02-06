@@ -19,7 +19,7 @@ release_archive(
         "BUILD",
         "BUILD.com_github_jetbrains_kotlin",
     ],
-    renames = {
+    src_map = {
         "nomaven_repositories.bzl" : "repositories.bzl",
     }
 )

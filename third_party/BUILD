@@ -106,17 +106,8 @@ release_archive(
     name = "pkg",
     visibility = ["//visibility:public"],
     srcs = ["empty.jar"],
-    dist_files = {
-      "BUILD" : """
-exports_files(["empty.jar"])
-
-java_import(
-    name = "android_sdk",
-    jars = ["@bazel_tools//tools/android:android_jar"],
-    neverlink = 1,
-    visibility = ["//visibility:public"],
-)
-"""
+    src_map = {
+      "BUILD.release.bazel" : "BUILD.bazel",
     },
 )
 

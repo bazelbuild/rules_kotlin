@@ -19,16 +19,11 @@ load("//kotlin/internal/utils:packager.bzl", "release_archive")
 kt_configure_toolchains()
 
 
-# Distribution setup.
 release_archive(
     name = "pkg",
-    visibility = ["//visibility:public"],
     srcs = glob(["*.bzl"]),
-    dist_files = {
-      "BUILD": """
-load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
-kt_configure_toolchains()
-""",
+    src_map = {
+      "BUILD.release.bazel" : "BUILD.bazel",
     },
     deps = [
        "//kotlin/internal/js:pkg",

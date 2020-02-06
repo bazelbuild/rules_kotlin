@@ -65,34 +65,9 @@ release_archive(
     srcs = [
         ":compiler_lib.jar",
     ],
-    # Generate the release build file, relying on precompiled jars.
-    dist_files = {
-        "BUILD": """
-java_import(
-  name = "import_builder",
-  jars = ["kotlin_deploy.jar"],
-)
-
-java_import(
-  name = "compiler_lib",
-  jars = ["compiler_lib.jar"],
-)
-
-java_binary(
-  name = "builder",
-  main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
-  visibility = ["//visibility:public"],
-  runtime_deps = [":import_builder"],
-  data = [
-    ":compiler_lib",
-    "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
-  ],
-)
-""",
-    },
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
-    renames = {
-        # must rename, otherwise it creates a cyclical dependency in the release.
-        ":builder_deploy.jar": "kotlin_deploy.jar",
+    src_map = {
+        ":builder_deploy.jar": "kotlin_worker.jar",
+        "BUILD.release.bazel" :"BUILD.bazel",
     },
 )

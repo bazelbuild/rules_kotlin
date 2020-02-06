@@ -39,11 +39,10 @@ test_suite(
 # Release target.
 release_archive(
     name = "rules_kotlin_release",
-    dist_files = {
-        "BUILD": "",
-        "WORKSPACE": """workspace(name = "io_bazel_rules_kotlin")""",
+    src_map = {
+        "BUILD.release.bazel.bazel" : "BUILD.bazel",
+        "WORKSPACE.release.bazel" : "WORKSPACE",
     },
-    extension = "tgz",
     deps = [
         "//kotlin:pkg",
         "//src/main/kotlin:pkg",
