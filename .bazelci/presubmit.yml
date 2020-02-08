@@ -30,9 +30,9 @@ tasks:
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
-    shell_command:
-      - "bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin && mdir -p /tmp/rules_kotlin && tar -C /tmp/rule_kotlin -xvf bazel-bin/rules_kotlin_release.tgz"
-    working_directory: examples/android
+    shell_commands:
+      - "cd .. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin && mkdir -p /tmp/rules_kotlin && tar -C /tmp/rules_kotlin -xvf bazel-bin/rules_kotlin_release.tgz"
+   working_directory: examples/android
     test_flags:
       - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin"
     test_targets:
@@ -40,8 +40,8 @@ tasks:
   examples-trivial:
     name: "Example - Trivial"
     platform: ubuntu1804
-    shell_command:
-      - "rm -rf /tmp/rules_kotlin && mdir -p /tmp/rules_kotlin && tar -C /tmp/rule_kotlin -xvf bazel-bin/rules_kotlin_release.tgz"
+    shell_commands:
+      - "cd .. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin && mkdir -p /tmp/rules_kotlin && tar -C /tmp/rules_kotlin -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/trivial
     test_flags:
       - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin"
@@ -53,8 +53,8 @@ tasks:
   examples-nodejs:
     name: Example - Node
     platform: ubuntu1804
-    shell_command:
-      - "rm -rf /tmp/rules_kotlin && mdir -p /tmp/rules_kotlin && tar -C /tmp/rule_kotlin -xvf bazel-bin/rules_kotlin_release.tgz"
+    shell_commands:
+      - "cd .. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin && mkdir -p /tmp/rules_kotlin && tar -C /tmp/rules_kotlin -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/node
     include_json_profile:
       - build
