@@ -4,14 +4,14 @@ bazel: 1.1.0
 tasks:
   ubuntu1604:
     build_targets:
-      - "//:rules_kotlin_release_release"
+      - "//:rules_kotlin_release"
     test_targets:
       - "//:all_tests"
   ubuntu1804:
     test_targets:
       - "//:all_tests"
     build_targets:
-      - "//:rules_kotlin_release_release"
+      - "//:rules_kotlin_release"
   rbe_ubuntu1604:
     test_targets:
     - "--"
