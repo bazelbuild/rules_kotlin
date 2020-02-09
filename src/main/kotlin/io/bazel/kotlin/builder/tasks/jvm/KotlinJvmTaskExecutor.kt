@@ -209,8 +209,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     private fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
         expandWithSources(
             File(directories.generatedSources).walkTopDown()
-                .filter { it.isFile }
-                .filter { IS_JVM_SOURCE_FILE.test(it.name) }
+                .filter { it.isFile && IS_JVM_SOURCE_FILE.test(it.name) }
                 .map { it.path }
                 .iterator()
         )
