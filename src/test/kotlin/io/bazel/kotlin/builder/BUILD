@@ -13,6 +13,7 @@
 # limitations under the License.
 package(default_visibility = ["//visibility:private"])
 
+load("@rules_java//java:defs.bzl", "java_library")
 load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 _COMMON_DEPS = [
