@@ -2,6 +2,7 @@
 
 |  Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News  | 
 | :----------- | -------- |
+| Feb 9, 2020  | Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`) | 
 | Jan 15, 2019  | Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4). | 
 | Jan 15, 2019  | Bug fixes and tweaks (#255, #257). | 
 | Dec 6, 2019  | Released version [1.3.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc3). | 
