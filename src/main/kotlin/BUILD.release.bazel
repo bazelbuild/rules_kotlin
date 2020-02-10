@@ -12,9 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
+java_import(
+    name = "import_builder",
+    jars = ["kotlin_worker.jar"],
+)
 
-release_archive(
-    name = "pkg",
-    srcs = glob(["*.bzl"]) + ["BUILD"],
+java_import(
+    name = "compiler_lib",
+    jars = ["compiler_lib.jar"],
+)
+
+java_binary(
+    name = "builder",
+    data = [
+        ":compiler_lib",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
+    ],
+    main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":import_builder"],
 )
