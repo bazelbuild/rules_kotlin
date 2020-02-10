@@ -264,6 +264,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
             srcs = ctx.files.srcs,
             module_name = module_name,
             friend_paths = friend_paths,
+            language_version = toolchain.api_version,
             # intelij aspect needs this.
             outputs = struct(
                 jdeps = ctx.outputs.jdeps,

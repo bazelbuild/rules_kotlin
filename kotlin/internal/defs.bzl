@@ -24,6 +24,7 @@ KtJvmInfo = provider(
         "friend_paths": "The target(s) that this library can see the internals of.",
         "srcs": "the source files. [intelij-aspect]",
         "outputs": "output jars produced by this rule. [intelij-aspect]",
+        "language_version": "version of kotlin used. [intellij-aspect]",
     },
 )
 
