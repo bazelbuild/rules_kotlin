@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
+exports_files(["empty.jar"])
 
-release_archive(
-    name = "pkg",
-    srcs = glob(["*.bzl"]) + ["BUILD"],
+java_import(
+    name = "android_sdk",
+    jars = ["@bazel_tools//tools/android:android_jar"],
+    neverlink = 1,
+    visibility = ["//visibility:public"],
 )

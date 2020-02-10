@@ -117,7 +117,7 @@ _kt_toolchain = rule(
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
             default = [
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib")
+                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
             ],
             providers = [JavaInfo],
             cfg = "target",
@@ -194,4 +194,27 @@ def define_kt_toolchain(
         toolchain_type = _TOOLCHAIN_TYPE,
         toolchain = impl_name,
         visibility = ["//visibility:public"],
+    )
+
+def kt_configure_toolchains():
+    """
+    Defines the toolchain_type and default toolchain for kotlin compilation.
+    """
+    native.config_setting(
+        name = "builder_debug_timings",
+        values = {"define": "kt_timings=1"},
+    )
+
+    native.config_setting(
+        name = "builder_debug_trace",
+        values = {"define": "kt_trace=1"},
+    )
+
+    native.toolchain_type(
+        name = "kt_toolchain_type",
+        visibility = ["//visibility:public"],
+    )
+
+    define_kt_toolchain(
+        name = "default_toolchain",
     )

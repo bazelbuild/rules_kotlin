@@ -336,6 +336,9 @@ kt_jvm_import = rule(
             doc = """The sources for the class jar.""",
             allow_single_file = True,
             cfg = "target",
+            # TODO(https://github.com/bazelbuild/intellij/issues/1616): Remove when the Intellij Aspect has the
+            #  correct null checks.
+            default = "@io_bazel_rules_kotlin//third_party:empty.jar",
         ),
         "runtime_deps": attr.label_list(
             doc = """Additional runtime deps.""",

@@ -111,6 +111,7 @@ def _strip_version(jarfile):
     if not jarfile.endswith(".jar"):
         fail("_strip_version expects paths ending with .jar")
     segments = jarfile[:-len(".jar")].split("-")
+
     # Remove the last segment if all digits separated by dot
     parts = segments[-1].split(".")
     if len([p for p in parts if not p.isdigit()]) == 0:
