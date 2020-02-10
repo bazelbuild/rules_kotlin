@@ -58,6 +58,7 @@ kotlin_repositories()
 
 kt_register_toolchains()
 
+
 # Skylib, for build_test, so don't bother initializing the unit test infrastructure.
 http_archive(
     name = "bazel_skylib",
@@ -65,4 +66,10 @@ http_archive(
     urls = [
         "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
     ],
+)
+
+http_archive(
+    name = "rules_pkg",
+    url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.2.4/rules_pkg-0.2.4.tar.gz",
+    sha256 = "4ba8f4ab0ff85f2484287ab06c0d871dcb31cc54d439457d28fd4ae14b18450a",
 )

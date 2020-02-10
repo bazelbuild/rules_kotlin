@@ -15,6 +15,7 @@ load("@rules_java//java:defs.bzl", "java_binary")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
 load("//third_party:jarjar.bzl", "jar_jar")
+load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
 # The compiler library, this is co-located in the kotlin compiler classloader.
 kt_bootstrap_library(
@@ -48,13 +49,25 @@ java_binary(
         ":compiler_lib.jar",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
-    main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
-    runtime_deps = [":builder_jar_jar"],
     jvm_flags = [
         "-XX:+IgnoreUnrecognizedVMOptions",
         "--add-opens=java.base/java.nio=ALL-UNNAMED",
         "--add-opens=java.base/java.lang=ALL-UNNAMED",
         "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
     ],
+    main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],
+    runtime_deps = [":builder_jar_jar"],
+)
+
+release_archive(
+    name = "pkg",
+    srcs = [
+        ":compiler_lib.jar",
+    ],
+    package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
+    src_map = {
+        ":builder_deploy.jar": "kotlin_worker.jar",
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
 )

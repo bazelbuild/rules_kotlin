@@ -3,13 +3,17 @@ validate_config: 1
 bazel: 1.1.0
 tasks:
   ubuntu1604:
+    build_targets:
+      - "//:rules_kotlin_release"
     test_targets:
-    - "//:all_tests"
-    - "//examples/dagger/..."
+      - "//:all_tests"
+      - "//examples/dagger/..."
   ubuntu1804:
     test_targets:
-    - "//:all_tests"
-    - "//examples/dagger/..."
+      - "//:all_tests"
+      - "//examples/dagger/..."
+    build_targets:
+      - "//:rules_kotlin_release"
   rbe_ubuntu1604:
     test_targets:
     - "--"
@@ -30,13 +34,21 @@ tasks:
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
+    shell_command:
+      - "cd .. && bazel build //:rules_kotlin_release_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release_release.tgz"
     working_directory: examples/android
+    test_flags:
+      - "--override_repository=io_bazel_rules_kotlin_release=/tmp/rules_kotlin_release"
     test_targets:
       - //...
   examples-trivial:
     name: "Example - Trivial"
     platform: ubuntu1804
+    shell_command:
+      - "cd .. && bazel build //:rules_kotlin_release_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release_release.tgz"
     working_directory: examples/trivial
+    test_flags:
+      - "--override_repository=io_bazel_rules_kotlin_release=/tmp/rules_kotlin_release"
     include_json_profile:
       - build
       - test
@@ -45,10 +57,14 @@ tasks:
   examples-nodejs:
     name: Example - Node
     platform: ubuntu1804
+    shell_command:
+      - "cd bazel build //:rules_kotlin_release_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release_release.tgz"
     working_directory: examples/node
     include_json_profile:
       - build
       - test
+    test_flags:
+      - "--override_repository=io_bazel_rules_kotlin_release=/tmp/rules_kotlin_release"
     build_targets:
       - //coroutines-helloworld/...
       - //express/...

@@ -23,7 +23,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], friend = None
     base_name = name + "_base"
     kt_name = name + "_kt"
 
-    base_deps = deps + ["@io_bazel_rules_kotlin//kotlin/internal/jvm:android_sdk"]
+    base_deps = deps + ["@io_bazel_rules_kotlin//third_party:android_sdk"]
 
     native.android_library(
         name = base_name,
@@ -52,6 +52,6 @@ def kt_android_library(name, exports = [], visibility = None, **kwargs):
         name = name,
         exports = exports + _kt_android_artifact(name, **kwargs),
         visibility = visibility,
-        tags = kwargs.get("tags", default=None),
-        testonly = kwargs.get("testonly", default=0),
+        tags = kwargs.get("tags", default = None),
+        testonly = kwargs.get("testonly", default = 0),
     )

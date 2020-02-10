@@ -22,7 +22,6 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-
 kt_jvm_import(
     name = "annotations",
     jar = "lib/annotations-13.0.jar",
