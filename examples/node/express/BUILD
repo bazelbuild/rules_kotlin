@@ -20,17 +20,17 @@ kt_js_library(
     name = "acme-routes",
     srcs = [":Routes.kt"],
     deps = [
-        "//express/auth:acme-auth", 
         "//:kotlinx-atomicfu",
         "//:kotlinx-coroutines-core",
+        "//express/auth:acme-auth",
     ],
 )
 
 kt_js_library(
-    name ="app",
+    name = "app",
     srcs = [":App.kt"],
     deps = [
-        ":acme-routes", 
+        ":acme-routes",
         "//:kotlinx-coroutines-core",
     ],
 )
@@ -38,7 +38,7 @@ kt_js_library(
 # The binary demonstrates an express app composed of three modules. The modules can co-exist in the same directory.
 nodejs_binary(
     name = "express",
-    node_modules = "@node_ws//:node_modules",
     data = [":app"],
     entry_point = ":app.js",
+    node_modules = "@node_ws//:node_modules",
 )

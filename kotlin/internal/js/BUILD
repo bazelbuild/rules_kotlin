@@ -11,9 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
+# TODO(https://github.com/bazelbuild/rules_kotlin/issues/270): Replace with Starlark
 py_binary(
     name = "importer",
     srcs = ["importer.py"],
     visibility = ["//visibility:public"],
+)
+
+release_archive(
+    name = "pkg",
+    srcs = glob([
+        "*.bzl",
+        "*.py",
+    ]),
+    src_map = {
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
 )
