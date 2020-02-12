@@ -2,12 +2,11 @@ package io.bazel.kotlin.builder.tasks.js
 
 import io.bazel.kotlin.builder.toolchain.CompilationException
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
-import io.bazel.kotlin.builder.utils.CompilationTaskContext
+import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import io.bazel.kotlin.builder.utils.resolveTwinVerified
-import io.bazel.kotlin.builder.utils.verifiedPath
 import io.bazel.kotlin.model.JsCompilationTask
 import java.io.FileOutputStream
 import java.nio.file.Files
