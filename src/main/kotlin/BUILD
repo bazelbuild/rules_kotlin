@@ -26,7 +26,7 @@ kt_bootstrap_library(
         "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
         "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
     ],
-    visibility = ["//src/test/kotlin/io/bazel/kotlin/builder:__subpackages__"],
+    visibility = ["//src:__subpackages__"],
 )
 
 java_binary(

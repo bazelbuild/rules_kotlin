@@ -29,6 +29,7 @@ kt_bootstrap_library(
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
+        "//src/main/kotlin:compiler_lib"
     ],
 )
 
