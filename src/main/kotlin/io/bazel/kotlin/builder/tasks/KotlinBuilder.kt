@@ -18,6 +18,7 @@ package io.bazel.kotlin.builder.tasks
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
+import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.*
 import io.bazel.kotlin.model.*
 import java.io.PrintStream

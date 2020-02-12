@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.utils
+package io.bazel.kotlin.builder.toolchain
 
 import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.TextFormat
-import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.model.CompilationTaskInfo
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
