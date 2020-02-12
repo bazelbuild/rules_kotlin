@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.utils
+package io.bazel.kotlin.builder.toolchain
 
 
-import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream

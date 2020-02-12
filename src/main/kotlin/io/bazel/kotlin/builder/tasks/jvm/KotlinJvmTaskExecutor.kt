@@ -22,6 +22,7 @@ import io.bazel.kotlin.builder.utils.*
 import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
+import io.bazel.kotlin.builder.toolchain.KotlinCompilerPluginArgsEncoder
 import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.File
 import java.nio.file.Files
@@ -37,10 +38,10 @@ const val X_FRIENDS_PATH_SEPARATOR = ","
 
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
-    private val compiler: KotlinToolchain.KotlincInvoker,
-    private val pluginArgsEncoder: KotlinCompilerPluginArgsEncoder,
-    private val javaCompiler: JavaCompiler,
-    private val jDepsGenerator: JDepsGenerator
+        private val compiler: KotlinToolchain.KotlincInvoker,
+        private val pluginArgsEncoder: KotlinCompilerPluginArgsEncoder,
+        private val javaCompiler: JavaCompiler,
+        private val jDepsGenerator: JDepsGenerator
 ) {
     fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
         val preprocessedTask = task.preProcessingSteps(context)
