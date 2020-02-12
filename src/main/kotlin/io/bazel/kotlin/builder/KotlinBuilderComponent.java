@@ -23,7 +23,7 @@ import io.bazel.kotlin.builder.tasks.KotlinBuilder;
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
-import io.bazel.kotlin.builder.utils.KotlinCompilerPluginArgsEncoder;
+import io.bazel.kotlin.builder.toolchain.KotlinCompilerPluginArgsEncoder;
 
 import javax.inject.Singleton;
 import java.io.PrintStream;
