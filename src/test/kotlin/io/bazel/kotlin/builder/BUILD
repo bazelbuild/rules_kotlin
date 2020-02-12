@@ -18,6 +18,7 @@ load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder",
+    "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
     "//src/main/protobuf:kotlin_model_java_proto",
     "//src/main/protobuf:deps_java_proto",
     "@kotlin_rules_maven//:com_google_truth_truth",
