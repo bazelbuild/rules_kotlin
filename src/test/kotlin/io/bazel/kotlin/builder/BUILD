@@ -67,7 +67,7 @@ kt_rules_test(
     srcs = ["tasks/jvm/KotlinBuilderJvmBasicTest.java"],
 )
 
-# TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handle jvm_import data better.
+# TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handles jvm_import data better.
 _MAVEN_CENTRAL_PREFIX = "@kotlin_rules_maven//:v1/https/maven-central.storage.googleapis.com/repos/central/data"
 _AUTO_VALUE_PREFIX = "%s/com/google/auto/value" % _MAVEN_CENTRAL_PREFIX
 _AUTO_VALUE_JAR = _AUTO_VALUE_PREFIX+ "/auto-value/1.6.5/auto-value-1.6.5.jar"
