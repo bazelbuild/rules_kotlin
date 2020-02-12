@@ -16,6 +16,7 @@
 package io.bazel.kotlin.builder.utils
 
 
+import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream

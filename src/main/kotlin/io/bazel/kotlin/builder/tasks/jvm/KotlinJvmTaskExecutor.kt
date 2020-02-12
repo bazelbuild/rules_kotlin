@@ -16,6 +16,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
+import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.*
 import io.bazel.kotlin.builder.utils.jars.JarCreator
@@ -85,8 +86,8 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     }
 
     private fun JvmCompilationTask.runAnnotationProcessor(
-        context: CompilationTaskContext,
-        printOnSuccess: Boolean = true
+            context: CompilationTaskContext,
+            printOnSuccess: Boolean = true
     ): List<String> {
         check(inputs.processorsList.isNotEmpty()) { "method called without annotation processors" }
         return getCommonArgs().let { args ->

@@ -16,7 +16,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
-import io.bazel.kotlin.builder.utils.CompilationTaskContext
+import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.model.JvmCompilationTask
