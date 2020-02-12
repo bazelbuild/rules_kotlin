@@ -143,7 +143,7 @@ Third party (external) artifacts can be brought in with systems such as [`rules_
 
 
 # Development Setup Guide
-To use the rules directly from git, an additional dependency downloads are required. 
+To use the rules directly from the rules_kotlin workspace (i.e. not the release artifact) additional dependency downloads are required. 
 
 In the project's `WORKSPACE`, change the setup:
 ```python
