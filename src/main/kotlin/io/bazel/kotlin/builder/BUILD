@@ -17,9 +17,9 @@ load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 kt_bootstrap_library(
     name = "builder_kt",
     srcs = glob([
-        "toolchain/*.kt",
         "tasks/**/*.kt",
     ]),
+    visibility = ["//src:__subpackages__"],
     deps = [
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",
@@ -29,6 +29,7 @@ kt_bootstrap_library(
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
         "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
+        "//src/main/kotlin/io/bazel/kotlin/builder/toolchain:toolchain",
     ],
 )
 
@@ -50,5 +51,7 @@ java_library(
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
+         "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
+         "//src/main/kotlin/io/bazel/kotlin/builder/toolchain:toolchain",
     ],
 )
