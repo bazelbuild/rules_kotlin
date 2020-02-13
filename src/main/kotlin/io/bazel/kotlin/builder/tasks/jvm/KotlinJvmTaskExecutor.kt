@@ -130,11 +130,11 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         if (inputs.processorsList.isEmpty()) {
             this
         } else {
-            runAnnotationProcessor(context, printOnSuccess = !context.isTracing).let { outputLines ->
+            runAnnotationProcessor(context, printOnSuccess = context.whenTracing { false }?:true).let { outputLines ->
                 // if tracing is enabled the output should be formatted in a special way, if we aren't tracing then any
                 // compiler output would make it's way to the console as is.
-                if (context.isTracing) {
-                    context.printLines("kapt output", outputLines)
+                context.whenTracing {
+                    printLines("kapt output", outputLines)
                 }
                 expandWithGeneratedSources()
             }
