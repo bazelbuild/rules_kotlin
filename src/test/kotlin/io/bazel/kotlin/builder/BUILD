@@ -39,7 +39,7 @@ java_library(
         "KotlinJvmTestBuilder.java",
     ],
     data = [
-        "//src/main/kotlin:compiler_lib",
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
     ],
     exports = _COMMON_DEPS + [
