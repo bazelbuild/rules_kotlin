@@ -168,7 +168,7 @@ _common_attr = utils.add_dicts(
         ),
         "resource_strip_prefix": attr.string(
             doc = """The path prefix to strip from Java resources, files residing under common prefix such as
-        `src/main/resources` or `src/test/resources` will have stripping applied by convention.""",
+        `src/main/resources` or `src/test/resources` or `kotlin` will have stripping applied by convention.""",
             default = "",
         ),
         "resource_jars": attr.label_list(

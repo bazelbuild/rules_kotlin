@@ -52,6 +52,7 @@ def _fold_jars_action(ctx, rule_kind, output_jar, input_jars):
 _CONVENTIONAL_RESOURCE_PATHS = [
     "src/main/resources",
     "src/test/resources",
+    "kotlin",
 ]
 
 def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
