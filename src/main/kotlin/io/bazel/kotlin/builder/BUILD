@@ -22,13 +22,13 @@ kt_bootstrap_library(
         "utils/**/*.kt",
     ]),
     deps = [
-        "//src/main/protobuf:deps",
-        "//src/main/protobuf:kotlin_model",
-        "//src/main/protobuf:worker",
+        "//src/main/protobuf:deps_java_proto",
+        "//src/main/protobuf:kotlin_model_java_proto",
+        "//src/main/protobuf:worker_protocol_java_proto",
         "@com_github_jetbrains_kotlin//:kotlin-preloader",
-        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
-        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java_util//jar",
-        "@io_bazel_rules_kotlin_javax_inject_javax_inject//jar",
+        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
+        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
+        "@kotlin_rules_maven//:javax_inject_javax_inject",
     ],
 )
 
@@ -43,10 +43,12 @@ java_library(
     ],
     deps = [
         ":builder_kt",
-        "//src/main/protobuf:kotlin_model",
+        "//src/main/protobuf:deps_java_proto",
+        "//src/main/protobuf:kotlin_model_java_proto",
+        "//src/main/protobuf:worker_protocol_java_proto",
         "//third_party:dagger",
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
-        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
+        "@kotlin_rules_maven//:javax_inject_javax_inject",
     ],
 )

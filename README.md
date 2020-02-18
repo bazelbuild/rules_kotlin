@@ -141,6 +141,31 @@ _(e.g. Maven artifacts)_
 
 Third party (external) artifacts can be brought in with systems such as [`rules_jvm_external`](https://github.com/bazelbuild/rules_jvm_external) or [`bazel_maven_repository`](https://github.com/square/bazel_maven_repository) or [`bazel-deps`](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use `java_import`, as this will cause bazel to make an interface-only (`ijar`), or ABI jar, and the native `ijar` tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of `rules_jvm_external` and `bazel_maven_repository` are known to work with Kotlin.
 
+# Development Setup Guide
+To use the rules directly from the rules_kotlin workspace (i.e. not the release artifact) additional dependency downloads are required. 
+
+In the project's `WORKSPACE`, change the setup:
+```python
+load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+kt_download_local_dev_dependencies()
+
+
+
+rules_kotlin_version = "legacy-1.3.0-rc4"
+rules_kotlin_sha = "fe32ced5273bcc2f9e41cea65a28a9184a77f3bc30fea8a5c47b3d3bfc801dff"
+http_archive(
+    name = "io_bazel_rules_kotlin",
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
+    type = "zip",
+    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
+    sha256 = rules_kotlin_sha,
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
+```
+
 ## Examples
 
 Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, etc.
@@ -157,4 +182,3 @@ This project is licensed under the [Apache 2.0 license](LICENSE), as are all con
 
 See the [CONTRIBUTING](CONTRIBUTING.md) doc for information about how to contribute to
 this project.
-
