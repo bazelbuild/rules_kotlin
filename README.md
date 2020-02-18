@@ -6,6 +6,7 @@ Current release: ***`legacy-1.3.0`***<br />
 Main branch: `master`
 
 # News!
+* <b>Feb 18, 2020.</b> Changes to how the rules are consumed are live (prefer the release tarball or use development instructions, as stated in the readme).
 * <b>Feb 9, 2020.</b> Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`)
 * <b>Jan 15, 2020.</b> Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4).
 * <b>Jan 15, 2020.</b> Bug fixes and tweaks (#255, #257).
@@ -146,21 +147,15 @@ To use the rules directly from the rules_kotlin workspace (i.e. not the release 
 
 In the project's `WORKSPACE`, change the setup:
 ```python
-load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
-kt_download_local_dev_dependencies()
 
-
-
-rules_kotlin_version = "legacy-1.3.0-rc4"
-rules_kotlin_sha = "fe32ced5273bcc2f9e41cea65a28a9184a77f3bc30fea8a5c47b3d3bfc801dff"
-http_archive(
+# Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
+local_repository(
     name = "io_bazel_rules_kotlin",
-    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
-    type = "zip",
-    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
-    sha256 = rules_kotlin_sha,
+    path = "../path/to/rules_kotlin_clone",
 )
 
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_download_local_dev_dependencies")
+kt_download_local_dev_dependencies()
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
