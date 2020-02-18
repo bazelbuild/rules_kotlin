@@ -17,27 +17,6 @@ package(default_visibility = ["//visibility:private"])
 
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
 
-java_plugin(
-    name = "dagger_plugin",
-    processor_class = "dagger.internal.codegen.ComponentProcessor",
-    deps = [
-        "//third_party/jvm/com/google/dagger",
-        "//third_party/jvm/com/google/dagger:dagger_compiler",
-        "//third_party/jvm/com/google/dagger:dagger_producers",
-        "//third_party/jvm/javax/inject:javax_inject",
-        "@//third_party/jvm/com/google/guava",
-    ],
-)
-
-java_library(
-    name = "dagger_lib",
-    exported_plugins = ["dagger_plugin"],
-    exports = [
-        "//third_party/jvm/com/google/dagger",
-        "//third_party/jvm/javax/inject:javax_inject",
-    ],
-)
-
 # Generate a srcjar to validate intellij plugin correctly attaches it.
 genrule(
     name = "tea_lib_src",
@@ -62,8 +41,8 @@ kt_jvm_library(
         ":tea_lib_src",
     ],
     deps = [
-        ":dagger_lib",
-        "//third_party/jvm/org/jetbrains/kotlinx:kotlinx_coroutines_core",
+        "//third_party:dagger",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 

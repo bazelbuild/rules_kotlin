@@ -19,54 +19,19 @@ load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
 exports_files(["empty.jar"])
 
-java_binary(
-    name = "bazel_deps",
-    main_class = "com.github.johnynek.bazel_deps.ParseProject",
-    runtime_deps = ["@bazel_deps//jar"],
-)
-
-sh_test(
-    name = "force_import_load_test",
-    srcs = ["//:scripts/noop.sh"],
-    data = [":force_import_load_deploy.jar"],
-)
-
-# This binary isn't used except to test the two usages of kt_jvm_import below.
-java_binary(
-    name = "force_import_load",
-    create_executable = False,
-    runtime_deps = [
-        ":kotlinx_coroutines",
-        ":kotlinx_coroutines_common",
-    ],
-)
-
-kt_jvm_import(
-    name = "kotlinx_coroutines",
-    jars = [
-        "@io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core//jar",
-    ],
-)
-
-kt_jvm_import(
-    name = "kotlinx_coroutines_common",
-    jar = "@io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core_common//jar:io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core_common.jar",
-    srcjar = "@io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core_common//jar:io_bazel_rules_kotlin_org_jetbrains_kotlinx_kotlinx_coroutines_core_common-sources.jar",
-)
-
 java_plugin(
     name = "autovalue_plugin",
     generates_api = 1,
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
     visibility = ["//visibility:private"],
-    deps = ["//third_party/jvm/com/google/auto/value:auto_value"],
+    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
 )
 
 java_library(
     name = "autovalue",
     exported_plugins = [":autovalue_plugin"],
     neverlink = 1,
-    exports = ["//third_party/jvm/com/google/auto/value:auto_value_annotations"],
+    exports = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
 )
 
 java_plugin(
@@ -75,7 +40,7 @@ java_plugin(
     processor_class = "dagger.internal.codegen.ComponentProcessor",
     visibility = ["//visibility:private"],
     deps = [
-        "//third_party/jvm/com/google/dagger:dagger_compiler",
+        "@kotlin_rules_maven//:com_google_dagger_dagger_compiler",
     ],
 )
 
@@ -83,8 +48,8 @@ java_library(
     name = "dagger",
     exported_plugins = [":dagger_component_plugin"],
     exports = [
-        "//third_party/jvm/com/google/dagger",
-        "//third_party/jvm/javax/inject:javax_inject",
+        "@kotlin_rules_maven//:com_google_dagger_dagger",
+        "@kotlin_rules_maven//:javax_inject_javax_inject",
     ],
 )
 
@@ -92,9 +57,10 @@ java_binary(
     name = "jarjar_runner",
     main_class = "org.pantsbuild.jarjar.Main",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//third_party/jvm/org/pantsbuild:jarjar"],
+    runtime_deps = ["@kotlin_rules_maven//:org_pantsbuild_jarjar"],
 )
 
+# TODO(bazelbuild/rules_kotlin/issues/273): Remove android_sdk import.
 java_import(
     name = "android_sdk",
     jars = ["@bazel_tools//tools/android:android_jar"],
