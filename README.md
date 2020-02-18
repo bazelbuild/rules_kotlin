@@ -6,7 +6,7 @@ Current release: ***`legacy-1.3.0`***<br />
 Main branch: `master`
 
 # News!
-* <b>Feb 18, 2020.</b> Changes to how the rules are consumed are live (prefer release tarball or use development instructions, as stated int he readme).
+* <b>Feb 18, 2020.</b> Changes to how the rules are consumed are live (prefer the release tarball or use development instructions, as stated in the readme).
 * <b>Feb 9, 2020.</b> Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`)
 * <b>Jan 15, 2020.</b> Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4).
 * <b>Jan 15, 2020.</b> Bug fixes and tweaks (#255, #257).
@@ -151,7 +151,7 @@ In the project's `WORKSPACE`, change the setup:
 # Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
 local_repository(
     name = "io_bazel_rules_kotlin",
-    path = "<path_to_checked_out_rules_kotlin>",
+    path = "../path/to/rules_kotlin_clone",
 )
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_download_local_dev_dependencies")
