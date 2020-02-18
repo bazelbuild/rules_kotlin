@@ -22,14 +22,14 @@ kt_jvm_library(
     srcs = ["KotlinAssertionTestCase.kt"],
     visibility = ["//visibility:public"],
     exports = [
-        "//third_party/jvm/com/google/truth",
-        "//third_party/jvm/junit",
         "@com_github_jetbrains_kotlin//:kotlin-test",
-        "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
+        "@kotlin_rules_maven//:com_google_guava_guava",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
     ],
     deps = [
         "@com_github_jetbrains_kotlin//:kotlin-test",
-        "@io_bazel_rules_kotlin_com_google_guava_guava//jar",
+        "@kotlin_rules_maven//:com_google_guava_guava",
     ],
 )
 

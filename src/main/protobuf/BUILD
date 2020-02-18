@@ -15,6 +15,19 @@ load("@rules_java//java:defs.bzl", "java_import")
 
 package(default_visibility = ["//visibility:public"])
 
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_java//java:defs.bzl", "java_proto_library")
+
+alias(
+    name = "deps_java_proto",
+    actual = "@deps//:java_proto",
+)
+
+alias(
+    name = "worker_protocol_java_proto",
+    actual = "@worker_protocol//:java_proto",
+)
+
 proto_library(
     name = "kotlin_model_proto",
     srcs = [":kotlin_model.proto"],
@@ -26,32 +39,11 @@ java_proto_library(
     deps = [":kotlin_model_proto"],
 )
 
-_PROTO_LIBS = [
-    "deps",
-    "worker_protocol",
-]
-
-[proto_library(
-    name = "%s_proto" % lib,
-    srcs = ["%s.proto" % lib],
-) for lib in _PROTO_LIBS]
-
-[java_proto_library(
-    name = "%s_java_proto" % lib,
-    deps = ["%s_proto" % lib],
-) for lib in _PROTO_LIBS]
-
-java_import(
-    name = "deps",
-    jars = ["jars/libdeps_proto-speed.jar"],
-)
-
-java_import(
-    name = "worker",
-    jars = ["jars/libworker_protocol_proto-speed.jar"],
-)
-
-java_import(
-    name = "kotlin_model",
-    jars = ["jars/libkotlin_model_proto-speed.jar"],
+java_library(
+    name = "protobuf",
+    exports = [
+        ":deps_java_proto",
+        ":kotlin_model_java_proto",
+        ":worker_protocol_java_proto",
+    ],
 )
