@@ -48,7 +48,7 @@ def kt_download_local_dev_dependencies():
         strip_prefix = "protobuf-%s" % PROTOBUF_VERSION,
         urls = [
             "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % PROTOBUF_VERSION,
-            "https://github.com/protocolbuffers/protobuf/archive/v3.11.3.tar.gz" % PROTOBUF_VERSION,
+            "https://github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % PROTOBUF_VERSION,
         ],
     )
 
