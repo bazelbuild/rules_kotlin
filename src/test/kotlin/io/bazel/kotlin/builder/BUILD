@@ -18,11 +18,12 @@ load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder",
-    "//src/main/protobuf:kotlin_model",
-    "//third_party/jvm/com/google/truth",
-    "//third_party/jvm/junit",
-    "//third_party/jvm/com/google/guava",
-    "//third_party/jvm/com/google/code/findbugs:jsr305",
+    "//src/main/protobuf:kotlin_model_java_proto",
+    "//src/main/protobuf:deps_java_proto",
+    "@kotlin_rules_maven//:com_google_truth_truth",
+    "@kotlin_rules_maven//:junit_junit",
+    "@kotlin_rules_maven//:com_google_guava_guava",
+    "@kotlin_rules_maven//:com_google_code_findbugs_jsr305",
 ]
 
 java_library(
@@ -40,8 +41,7 @@ java_library(
         "@com_github_jetbrains_kotlin//:home",
     ],
     exports = _COMMON_DEPS + [
-        "@io_bazel_rules_kotlin_com_google_protobuf_protobuf_java//jar",
-        "//src/main/protobuf:deps",
+        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
     ],
     runtime_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
@@ -67,12 +67,22 @@ kt_rules_test(
     srcs = ["tasks/jvm/KotlinBuilderJvmBasicTest.java"],
 )
 
+# TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handles jvm_import data better.
+_MAVEN_CENTRAL_PREFIX = "@kotlin_rules_maven//:v1/https/maven-central.storage.googleapis.com/repos/central/data"
+_AUTO_VALUE_PREFIX = "%s/com/google/auto/value" % _MAVEN_CENTRAL_PREFIX
+_AUTO_VALUE_JAR = _AUTO_VALUE_PREFIX+ "/auto-value/1.6.5/auto-value-1.6.5.jar"
+_AUTO_VALUE_ANNOTATIONS_JAR =  _AUTO_VALUE_PREFIX+  "/auto-value-annotations/1.6.5/auto-value-annotations-1.6.5.jar"
+
 kt_rules_test(
     name = "KotlinBuilderJvmKaptTest",
     srcs = ["tasks/jvm/KotlinBuilderJvmKaptTest.java"],
     data = [
-        "//third_party/jvm/com/google/auto/value:auto_value",
-        "//third_party/jvm/com/google/auto/value:auto_value_annotations",
+       _AUTO_VALUE_JAR,
+       _AUTO_VALUE_ANNOTATIONS_JAR,
+    ],
+    jvm_flags = [
+        "-Dauto_value=$(location %s)" %  _AUTO_VALUE_JAR,
+        "-Dauto_value_annotations=$(location %s)" % _AUTO_VALUE_ANNOTATIONS_JAR,
     ],
 )
 

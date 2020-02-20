@@ -17,16 +17,16 @@ load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
 kt_js_library(
     name = "app",
     srcs = ["Main.kt"],
+    visibility = ["//visibility:public"],
     deps = [
         "//:kotlinx-coroutines-core",
     ],
-    visibility = ["//visibility:public"],
 )
 
 nodejs_binary(
     name = "coroutines-helloworld",
-    node_modules = "@node_ws//:node_modules",
     data = [":app"],
     entry_point = ":app.js",
+    node_modules = "@node_ws//:node_modules",
     visibility = ["//visibility:public"],
 )

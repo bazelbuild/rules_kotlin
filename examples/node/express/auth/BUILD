@@ -16,5 +16,5 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_js_library")
 kt_js_library(
     name = "acme-auth",
     srcs = ["Auth.kt"],
-    visibility=["//visibility:public"]
+    visibility = ["//visibility:public"],
 )

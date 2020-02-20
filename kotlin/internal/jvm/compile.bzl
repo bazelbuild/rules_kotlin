@@ -52,6 +52,7 @@ def _fold_jars_action(ctx, rule_kind, output_jar, input_jars):
 _CONVENTIONAL_RESOURCE_PATHS = [
     "src/main/resources",
     "src/test/resources",
+    "kotlin",
 ]
 
 def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
@@ -232,7 +233,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         progress_message = progress_message,
         input_manifests = input_manifests,
         env = {
-            "LC_CTYPE": "en_US.UTF-8" # For Java source files
+            "LC_CTYPE": "en_US.UTF-8",  # For Java source files
         },
     )
 

@@ -11,22 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-workspace(name = "io_bazel_rules_kotlin")
 
-
-load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
-kt_download_local_dev_dependencies()
-
-load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories()
-kt_register_toolchains()
-
-# Creates toolchain configuration for remote execution with BuildKite CI
-# for rbe_ubuntu1604
-load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
-rbe_autoconfig(
-    name = "buildkite_config",
+java_import(
+    name = "import_builder",
+    jars = ["kotlin_worker.jar"],
 )
 
-android_sdk_repository(name = "androidsdk")
-android_ndk_repository(name = "androidndk")
+java_import(
+    name = "compiler_lib",
+    jars = ["compiler_lib.jar"],
+)
+
+java_binary(
+    name = "builder",
+    data = [
+        ":compiler_lib",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
+    ],
+    main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":import_builder"],
+)

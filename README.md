@@ -2,10 +2,12 @@
 
 # Bazel Kotlin Rules
 
-Current release: ***`legacy-1.3.0-rc4`***<br />
+Current release: ***`legacy-1.3.0`***<br />
 Main branch: `master`
 
 # News!
+* <b>Feb 18, 2020.</b> Changes to how the rules are consumed are live (prefer the release tarball or use development instructions, as stated in the readme).
+* <b>Feb 9, 2020.</b> Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`)
 * <b>Jan 15, 2020.</b> Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4).
 * <b>Jan 15, 2020.</b> Bug fixes and tweaks (#255, #257).
 * <b>Dec 6, 2019.</b> Released version [1.3.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc3).
@@ -61,8 +63,8 @@ this:
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy-1.3.0-rc4"
-rules_kotlin_sha = "fe32ced5273bcc2f9e41cea65a28a9184a77f3bc30fea8a5c47b3d3bfc801dff"
+rules_kotlin_version = "legacy-1.3.0"
+rules_kotlin_sha = "4fd769fb0db5d3c6240df8a9500515775101964eebdf85a3f9f0511130885fde"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
@@ -140,6 +142,25 @@ _(e.g. Maven artifacts)_
 
 Third party (external) artifacts can be brought in with systems such as [`rules_jvm_external`](https://github.com/bazelbuild/rules_jvm_external) or [`bazel_maven_repository`](https://github.com/square/bazel_maven_repository) or [`bazel-deps`](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use `java_import`, as this will cause bazel to make an interface-only (`ijar`), or ABI jar, and the native `ijar` tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of `rules_jvm_external` and `bazel_maven_repository` are known to work with Kotlin.
 
+# Development Setup Guide
+To use the rules directly from the rules_kotlin workspace (i.e. not the release artifact) additional dependency downloads are required. 
+
+In the project's `WORKSPACE`, change the setup:
+```python
+
+# Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
+local_repository(
+    name = "io_bazel_rules_kotlin",
+    path = "../path/to/rules_kotlin_clone",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_download_local_dev_dependencies")
+kt_download_local_dev_dependencies()
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
+```
+
 ## Examples
 
 Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, etc.
@@ -156,4 +177,3 @@ This project is licensed under the [Apache 2.0 license](LICENSE), as are all con
 
 See the [CONTRIBUTING](CONTRIBUTING.md) doc for information about how to contribute to
 this project.
-
