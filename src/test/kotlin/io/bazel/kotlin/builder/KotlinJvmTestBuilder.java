@@ -22,7 +22,6 @@ import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
-
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.function.Consumer;
@@ -32,26 +31,13 @@ import java.util.stream.Stream;
 public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCompilationTask> {
   @SuppressWarnings({"unused", "WeakerAccess"})
   public static Dep
-      KOTLIN_ANNOTATIONS =
-          Dep.importJar(
-              "kotlin-annotations",
-              "external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar"),
-      KOTLIN_STDLIB =
-          Dep.importJar(
-              "kotlin-stdlib", "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar"),
-      KOTLIN_STDLIB_JDK7 =
-          Dep.importJar(
-              "kotlin-stdlib-jdk7",
-              "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar"),
-      KOTLIN_STDLIB_JDK8 =
-          Dep.importJar(
-              "kotlin-stdlib-jdk8",
-              "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar");
+      KOTLIN_ANNOTATIONS = Dep.fromLabel("@com_github_jetbrains_kotlin//:annotations"),
+      KOTLIN_STDLIB = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib"),
+      KOTLIN_STDLIB_JDK7 = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7"),
+      KOTLIN_STDLIB_JDK8 = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8"),
+      JVM_ABI_GEN = Dep.fromLabel("//src/main/kotlin:jvm-abi-gen");
 
   private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
-  private static final KotlinBuilderComponent component =
-      DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
-
   private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
       EnumSet.of(
           DirectoryType.SOURCES,
