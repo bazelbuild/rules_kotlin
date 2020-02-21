@@ -63,7 +63,7 @@ abstract class KotlinAbstractTestBuilder<T> {
     return outLines;
   }
 
-  final void resetForNext() {
+  public final void resetForNext() {
     outLines = null;
     label = "a_test_" + counter.incrementAndGet();
     infoBuilder
@@ -96,14 +96,22 @@ abstract class KotlinAbstractTestBuilder<T> {
     infoBuilder.addAllDebug(Arrays.asList(tags));
   }
 
-  final Path writeSourceFile(String filename, String[] lines) {
-    Path path = directory(DirectoryType.SOURCES).resolve(filename).toAbsolutePath();
+  final Path writeFile(DirectoryType dirType, String filename, String[] lines) {
+    Path path = directory(dirType).resolve(filename).toAbsolutePath();
     try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
       fos.write(String.join("\n", lines).getBytes(UTF_8));
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
     return path;
+  }
+
+  public final Path writeSourceFile(String filename, String[] lines) {
+    return writeFile(DirectoryType.SOURCES, filename, lines);
+  }
+
+  public final Path writeGeneratedSourceFile(String filename, String[] lines) {
+    return writeFile(DirectoryType.SOURCE_GEN, filename, lines);
   }
 
   private <R> R runCompileTask(
