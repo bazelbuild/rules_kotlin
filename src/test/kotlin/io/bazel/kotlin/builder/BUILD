@@ -67,6 +67,12 @@ kt_rules_test(
     srcs = ["tasks/jvm/KotlinBuilderJvmBasicTest.java"],
 )
 
+kt_rules_test(
+    name = "KotlinJvmTaskExecutorTest",
+    srcs = ["tasks/jvm/KotlinJvmTaskExecutorTest.kt"],
+    deps = ["@com_github_jetbrains_kotlin//:kotlin-test"],
+)
+
 # TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handles jvm_import data better.
 _MAVEN_CENTRAL_PREFIX = "@kotlin_rules_maven//:v1/https/maven-central.storage.googleapis.com/repos/central/data"
 _AUTO_VALUE_PREFIX = "%s/com/google/auto/value" % _MAVEN_CENTRAL_PREFIX
@@ -98,6 +104,7 @@ test_suite(
         ":KotlinBuilderJsTest",
         ":KotlinBuilderJvmBasicTest",
         ":KotlinBuilderJvmKaptTest",
+        ":KotlinJvmTaskExecutorTest",
         ":SourceJarCreatorTest",
     ],
     visibility = ["//visibility:public"],
