@@ -82,13 +82,20 @@ class BazelWorker(
                             val exitCode = try {
                                 delegate.apply(loadArguments(request.argumentsList, true))
                             } catch (e: RuntimeException) {
-                                return if (wasInterrupted(e)) INTERUPTED_STATUS
+                                val innerExitCode = if (wasInterrupted(e)) INTERUPTED_STATUS
                                 else ERROR_STATUS.also {
                                     System.err.println(
                                         "ERROR: Worker threw uncaught exception with args: ${request.argumentsList.joinToString(" ")}"
                                     )
                                     e.printStackTrace(System.err)
                                 }
+                                WorkerProtocol.WorkResponse.newBuilder()
+                                        .setOutput(buffer.toString())
+                                        .setExitCode(innerExitCode)
+                                        .build()
+                                        .writeDelimitedTo(realStdOut)
+                                realStdOut.flush()
+                                return innerExitCode
                             }
 
                             WorkerProtocol.WorkResponse.newBuilder()
