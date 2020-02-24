@@ -82,12 +82,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
   }
 
   @Override
-  JvmCompilationTask buildTask() {
+  public JvmCompilationTask buildTask() {
     return taskBuilder.build();
   }
 
   public class TaskBuilder {
-    TaskBuilder() {}
+    public TaskBuilder() {}
 
     public void setLabel(String label) {
       taskBuilder.getInfoBuilder().setLabel(label);

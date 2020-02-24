@@ -201,31 +201,31 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                 it.execute()
             }.sourcesList.iterator()
         )
+}
 
-    /**
-     * Create a new [JvmCompilationTask] with sources found in the generatedSources directory. This should be run after
-     * annotation processors have been run.
-     */
-    private fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
-        expandWithSources(
-            File(directories.generatedSources).walkTopDown()
-                .filter { it.isFile }
-                .map { it.path }
-                .iterator()
-        )
+/**
+ * Create a new [JvmCompilationTask] with sources found in the generatedSources directory. This should be run after
+ * annotation processors have been run.
+ */
+fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
+    expandWithSources(
+        File(directories.generatedSources).walkTopDown()
+            .filter { it.isFile && IS_JVM_SOURCE_FILE.test(it.name) }
+            .map { it.path }
+            .iterator()
+    )
 
-    private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
-        updateBuilder { builder ->
-            sources.partitionJvmSources(
+fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
+    updateBuilder { builder ->
+        sources.partitionJvmSources(
                 { builder.inputsBuilder.addKotlinSources(it) },
                 { builder.inputsBuilder.addJavaSources(it) })
-        }
+    }
 
-    private fun JvmCompilationTask.updateBuilder(
+fun JvmCompilationTask.updateBuilder(
         block: (JvmCompilationTask.Builder) -> Unit
-    ): JvmCompilationTask =
-        toBuilder().let {
-            block(it)
-            it.build()
-        }
-}
+): JvmCompilationTask =
+    toBuilder().let {
+        block(it)
+        it.build()
+    }
