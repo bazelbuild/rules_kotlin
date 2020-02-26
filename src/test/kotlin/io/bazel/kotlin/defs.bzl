@@ -30,7 +30,6 @@ def kt_rules_test(name, **kwargs):
     args.setdefault("jvm_flags", [])
     args["deps"] = args.setdefault("deps", []) + ["//src/test/kotlin/io/bazel/kotlin/builder:test_lib"]
     for dep in [
-        "//src/main/kotlin:jvm-abi-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
