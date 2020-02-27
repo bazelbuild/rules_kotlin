@@ -154,7 +154,7 @@ local_repository(
     path = "../path/to/rules_kotlin_clone",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_download_local_dev_dependencies")
+load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 kt_download_local_dev_dependencies()
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
