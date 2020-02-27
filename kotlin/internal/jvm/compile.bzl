@@ -114,8 +114,8 @@ def _build_resourcejar_action(ctx):
     return resources_jar_output
 
 # MAIN ACTIONS #########################################################################################################
-def _declare_output_directory(ctx, aspect, dir_name):
-    return ctx.actions.declare_directory("_kotlinc/%s_%s/%s_%s" % (ctx.label.name, aspect, ctx.label.name, dir_name))
+def _output_dir_path(ctx, aspect, dir_name):
+    return "_kotlinc/%s_%s/%s_%s" % (ctx.label.name, aspect, ctx.label.name, dir_name)
 
 def _partition_srcs(srcs):
     """Partition sources for the jvm aspect."""
@@ -173,17 +173,17 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     else:
         fail("only one friend is possible")
 
-    classes_directory = _declare_output_directory(ctx, "jvm", "classes")
-    generated_classes_directory = _declare_output_directory(ctx, "jvm", "generated_classes")
-    sourcegen_directory = _declare_output_directory(ctx, "jvm", "sourcegenfiles")
-    temp_directory = _declare_output_directory(ctx, "jvm", "temp")
+    classes_directory = _output_dir_path(ctx, "jvm", "classes")
+    generated_classes_directory = _output_dir_path(ctx, "jvm", "generated_classes")
+    sourcegen_directory = _output_dir_path(ctx, "jvm", "sourcegenfiles")
+    temp_directory = _output_dir_path(ctx, "jvm", "temp")
 
     args = _utils.init_args(ctx, rule_kind, module_name)
 
-    args.add("--classdir", classes_directory.path)
-    args.add("--sourcegendir", sourcegen_directory.path)
-    args.add("--tempdir", temp_directory.path)
-    args.add("--kotlin_generated_classdir", generated_classes_directory.path)
+    args.add("--classdir", classes_directory)
+    args.add("--sourcegendir", sourcegen_directory)
+    args.add("--tempdir", temp_directory)
+    args.add("--kotlin_generated_classdir", generated_classes_directory)
 
     args.add("--output", output_jar)
     args.add("--kotlin_output_jdeps", ctx.outputs.jdeps)
@@ -222,10 +222,6 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
             output_jar,
             ctx.outputs.jdeps,
             ctx.outputs.srcjar,
-            sourcegen_directory,
-            classes_directory,
-            temp_directory,
-            generated_classes_directory,
         ],
         executable = toolchain.kotlinbuilder.files_to_run.executable,
         execution_requirements = {"supports-workers": "1"},
