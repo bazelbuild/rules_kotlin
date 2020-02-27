@@ -19,6 +19,7 @@ load(
 load(
     "//kotlin/internal/jvm:plugins.bzl",
     _merge_plugin_infos = "merge_plugin_infos",
+    _plugin_mappers = "mappers",
 )
 load(
     "//kotlin/internal/utils:utils.bzl",
@@ -196,15 +197,19 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     args.add_all("--source_jars", srcs.src_jars, omit_if_empty = True)
 
     # Collect and prepare plugin descriptor for the worker.
-    plugin_info = _merge_plugin_infos(ctx.attr.plugins + ctx.attr.deps)
-    if len(plugin_info.annotation_processors) > 0:
-        processors = []
-        processorpath = []
-        for p in plugin_info.annotation_processors:
-            processors += [p.processor_class]
-            processorpath += p.classpath
-        args.add_all("--processors", processors)
-        args.add_all("--processorpath", processorpath)
+    plugins = _plugin_mappers.targets_to_kt_plugins(ctx.attr.plugins + ctx.attr.deps)
+    args.add_all(
+        "--processors",
+        plugins,
+        map_each = _plugin_mappers.kt_plugin_to_processor,
+        omit_if_empty = True,
+    )
+    args.add_all(
+        "--processorpath",
+        plugins,
+        map_each = _plugin_mappers.kt_plugin_to_processorpath,
+        omit_if_empty = True,
+    )
 
     progress_message = "Compiling Kotlin to JVM %s { kt: %d, java: %d, srcjars: %d }" % (
         ctx.label,
