@@ -40,6 +40,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
     context.execute("compile classes") {
       preprocessedTask.compileAll(context, compiler, javaCompiler)
     }
+
     context.execute("create jar") { preprocessedTask.createOutputJar() }
     context.execute("produce src jar") { preprocessedTask.produceSourceJar() }
     context.execute("generate jdeps") { jDepsGenerator.generateJDeps(preprocessedTask) }
