@@ -23,14 +23,17 @@ BAZEL_TOOLCHAINS_SHA = "5962fe677a43226c409316fcb321d668fc4b7fa97cb1f9ef45e7dc26
 SKYLIB_VERSION = "0.8.0"
 SKYLIB_SHA = "2ea8a5ed2b448baf4a6855d3ce049c4c452a6470b1efd1504fdb7c1c134d220a"
 
-PROTOBUF_GIT_COMMIT = "09745575a923640154bcf307fba8aedff47f240a"  # v3.8.0, as of 2019-05-28
-PROTOBUF_SHA = "76ee4ba47dec6146872b6cd051ae5bd12897ef0b1523d5aeb56d81a5a4ca885a"
+PROTOBUF_VERSION = "3.11.3"
+PROTOBUF_SHA = "cf754718b0aa945b00550ed7962ddc167167bd922b842199eeb6505e6f344852"
 
 BAZEL_DEPS_VERSION = "0.1.0"
 BAZEL_DEPS_SHA = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e"
 
 RULES_JVM_EXTERNAL_TAG = "2.7"
 RULES_JVM_EXTERNAL_SHA = "f04b1466a00a2845106801e0c5cec96841f49ea4e7d1df88dc8e4bf31523df74"
+
+RULES_PROTO_GIT_COMMIT = "f6b8d89b90a7956f6782a4a3609b2f0eee3ce965"
+RULES_PROTO_SHA = "4d421d51f9ecfe9bf96ab23b55c6f2b809cbaf0eea24952683e397decfbd0dd0"
 
 def kt_download_local_dev_dependencies():
     """
@@ -39,21 +42,24 @@ def kt_download_local_dev_dependencies():
     Must be called before setup_dependencies in the WORKSPACE.
     """
     maybe(
-           http_archive,
+        http_archive,
         name = "com_google_protobuf",
-        sha256 = "b404fe166de66e9a5e6dab43dc637070f950cdba2a8a4c9ed9add354ed4f6525",
-        strip_prefix = "protobuf-b4f193788c9f0f05d7e0879ea96cd738630e5d51",
-        url = "https://github.com/protocolbuffers/protobuf/archive/b4f193788c9f0f05d7e0879ea96cd738630e5d51.zip",
+        sha256 = PROTOBUF_SHA,
+        strip_prefix = "protobuf-%s" % PROTOBUF_VERSION,
+        urls = [
+            "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % PROTOBUF_VERSION,
+            "https://github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % PROTOBUF_VERSION,
+        ],
     )
 
     maybe(
         http_archive,
         name = "rules_proto",
-        sha256 = "602e7161d9195e50246177e7c55b2f39950a9cf7366f74ed5f22fd45750cd208",
-        strip_prefix = "rules_proto-97d8af4dc474595af3900dd85cb3a29ad28cc313",
+        sha256 = RULES_PROTO_SHA,
+        strip_prefix = "rules_proto-%s" % RULES_PROTO_GIT_COMMIT,
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
-            "https://github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % RULES_PROTO_GIT_COMMIT,
+            "https://github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % RULES_PROTO_GIT_COMMIT,
         ],
     )
 
