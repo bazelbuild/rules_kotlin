@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.bazel.kotlin.builder.utils
+package io.bazel.kotlin.builder.toolchain
 
 import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.TextFormat
-import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.model.CompilationTaskInfo
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -32,8 +31,7 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
     ).toAbsolutePath().toString() + File.separator
     private var timings: MutableList<String>?
     private var level = -1
-    @PublishedApi
-    internal val isTracing: Boolean
+    private val isTracing: Boolean
 
     init {
         val debugging = info.debugList.toSet()
@@ -69,7 +67,7 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
         out.println()
     }
 
-    inline fun <T> whenTracing(block: CompilationTaskContext.() -> T): T? {
+    fun <T> whenTracing(block: CompilationTaskContext.() -> T): T? {
         return if (isTracing) {
             block()
         } else null
@@ -105,7 +103,7 @@ class CompilationTaskContext(val info: CompilationTaskInfo, private val out: Pri
      *  for logging it by catching the [CompilationStatusException] exception.
      * @param compile the compilation method.
      */
-    inline fun executeCompilerTask(
+    fun executeCompilerTask(
         args: List<String>,
         compile: (Array<String>, PrintStream) -> Int,
         printOnFail: Boolean = true,
