@@ -16,7 +16,7 @@
 package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
-import io.bazel.kotlin.builder.utils.CompilationTaskContext;
+import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.model.*;
 
 import java.io.*;

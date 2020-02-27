@@ -12,22 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@rules_java//java:defs.bzl", "java_binary")
-load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
 load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
-
-# The compiler library, this is co-located in the kotlin compiler classloader.
-kt_bootstrap_library(
-    name = "compiler_lib",
-    srcs = glob(["io/bazel/kotlin/compiler/*.kt"]),
-    neverlink_deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
-        "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
-        "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
-    ],
-    visibility = ["//src/test/kotlin/io/bazel/kotlin/builder:__subpackages__"],
-)
 
 java_binary(
     name = "builder_raw",
@@ -46,7 +33,7 @@ jar_jar(
 java_binary(
     name = "builder",
     data = [
-        ":compiler_lib.jar",
+        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
     jvm_flags = [
@@ -63,7 +50,7 @@ java_binary(
 release_archive(
     name = "pkg",
     srcs = [
-        ":compiler_lib.jar",
+        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
     ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
