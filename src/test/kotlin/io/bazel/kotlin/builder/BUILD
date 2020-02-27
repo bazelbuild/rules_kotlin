@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility = ["//visibility:private"])
+package(default_visibility = ["//src:__subpackages__"])
 
 load("@rules_java//java:defs.bzl", "java_library")
 load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder",
+     "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
+    "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
     "//src/main/protobuf:kotlin_model_java_proto",
     "//src/main/protobuf:deps_java_proto",
     "@kotlin_rules_maven//:com_google_truth_truth",
@@ -37,7 +39,7 @@ java_library(
         "KotlinJvmTestBuilder.java",
     ],
     data = [
-        "//src/main/kotlin:compiler_lib",
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
     ],
     exports = _COMMON_DEPS + [
@@ -52,60 +54,11 @@ java_library(
     ],
 )
 
-kt_rules_test(
-    name = "SourceJarCreatorTest",
-    srcs = ["utils/jars/SourceJarCreatorTest.java"],
-)
-
-kt_rules_test(
-    name = "JdepsParserTest",
-    srcs = ["tasks/jvm/JdepsParserTest.java"],
-)
-
-kt_rules_test(
-    name = "KotlinBuilderJvmBasicTest",
-    srcs = ["tasks/jvm/KotlinBuilderJvmBasicTest.java"],
-)
-
-kt_rules_test(
-    name = "KotlinJvmTaskExecutorTest",
-    srcs = ["tasks/jvm/KotlinJvmTaskExecutorTest.kt"],
-    deps = ["@com_github_jetbrains_kotlin//:kotlin-test"],
-)
-
-# TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handles jvm_import data better.
-_MAVEN_CENTRAL_PREFIX = "@kotlin_rules_maven//:v1/https/maven-central.storage.googleapis.com/repos/central/data"
-_AUTO_VALUE_PREFIX = "%s/com/google/auto/value" % _MAVEN_CENTRAL_PREFIX
-_AUTO_VALUE_JAR = _AUTO_VALUE_PREFIX+ "/auto-value/1.6.5/auto-value-1.6.5.jar"
-_AUTO_VALUE_ANNOTATIONS_JAR =  _AUTO_VALUE_PREFIX+  "/auto-value-annotations/1.6.5/auto-value-annotations-1.6.5.jar"
-
-kt_rules_test(
-    name = "KotlinBuilderJvmKaptTest",
-    srcs = ["tasks/jvm/KotlinBuilderJvmKaptTest.java"],
-    data = [
-       _AUTO_VALUE_JAR,
-       _AUTO_VALUE_ANNOTATIONS_JAR,
-    ],
-    jvm_flags = [
-        "-Dauto_value=$(location %s)" %  _AUTO_VALUE_JAR,
-        "-Dauto_value_annotations=$(location %s)" % _AUTO_VALUE_ANNOTATIONS_JAR,
-    ],
-)
-
-kt_rules_test(
-    name = "KotlinBuilderJsTest",
-    srcs = ["tasks/js/KotlinBuilderJsTest.java"],
-)
-
 test_suite(
     name = "builder_tests",
     tests = [
-        ":JdepsParserTest",
-        ":KotlinBuilderJsTest",
-        ":KotlinBuilderJvmBasicTest",
-        ":KotlinBuilderJvmKaptTest",
-        ":KotlinJvmTaskExecutorTest",
-        ":SourceJarCreatorTest",
+        "//src/test/kotlin/io/bazel/kotlin/builder/utils",
+        "//src/test/kotlin/io/bazel/kotlin/builder/tasks",
     ],
     visibility = ["//visibility:public"],
 )

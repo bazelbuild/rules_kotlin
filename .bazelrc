@@ -1,4 +1,4 @@
 build --strategy=KotlinCompile=worker
-build --test_output=errors
+build --test_output=all
 build --verbose_failures
 
