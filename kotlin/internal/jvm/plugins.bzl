@@ -42,7 +42,6 @@ mappers = struct(
     kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
 )
 
-# TODO(bazelbuild/rules_kotlin/issues/289):Stop flattening depsets.
 def merge_plugin_infos(attrs):
     """Merge all of the plugin infos found in the provided sequence of attributes.
     Returns:
