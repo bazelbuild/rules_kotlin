@@ -105,7 +105,8 @@ class KotlinBuilder @Inject internal constructor(
       JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
       JS_LIBRARIES("--kotlin_js_libraries"),
       DEBUG("--kotlin_debug_tags"),
-      TASK_ID("--kotlin_task_id");
+      TASK_ID("--kotlin_task_id"),
+      ABI_JAR("--abi_jar");
     }
   }
 
@@ -225,10 +226,18 @@ class KotlinBuilder @Inject internal constructor(
       root.info = info
 
       with(root.outputsBuilder) {
-        jar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT)
-        srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
+          argMap.optionalSingleIf(JavaBuilderFlags.OUTPUT) {
+            argMap.hasAll(KotlinBuilderFlags.ABI_JAR)
+          }?.let { jar = it }
+          argMap.optionalSingleIf(KotlinBuilderFlags.OUTPUT_SRCJAR) {
+            argMap.hasAll(KotlinBuilderFlags.ABI_JAR)
+          }?.let { srcjar = it }
 
         argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
+
+          argMap.optionalSingleIf(KotlinBuilderFlags.ABI_JAR) {
+            argMap.hasAll(JavaBuilderFlags.OUTPUT, KotlinBuilderFlags.OUTPUT_SRCJAR)
+          }?.let { abijar = it }
       }
 
         with(root.directoriesBuilder)
