@@ -12,7 +12,10 @@ def _jar_jar_impl(ctx):
             output_jar = ctx.outputs.jar,
             compile_jar = ctx.outputs.jar,
         ),
-        DefaultInfo(files = depset([ctx.outputs.jar])),
+        DefaultInfo(
+            files = depset([ctx.outputs.jar]),
+            runfiles = ctx.runfiles(files = [ctx.outputs.jar]),
+        ),
     ]
 
 jar_jar = rule(
