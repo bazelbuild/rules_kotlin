@@ -30,11 +30,19 @@ jar_jar(
     rules = "shade.jarjar",
 )
 
+jar_jar(
+    name = "skip-code-gen",
+    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
+    rules = "shade.jarjar",
+    visibility=["//visibility:public"],
+)
+
 java_binary(
     name = "builder",
     data = [
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
+        "//src/main/kotlin:skip-code-gen",
     ],
     jvm_flags = [
         "-XX:+IgnoreUnrecognizedVMOptions",
