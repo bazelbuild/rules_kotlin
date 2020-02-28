@@ -19,25 +19,35 @@ load(
 KtJvmPluginInfo = provider(
     doc = "This provider contains the plugin info for the JVM aspect",
     fields = {
-        "annotation_processors": "a serializeable list of structs containing annotation processor definitions",
+        "annotation_processors": "depset of structs containing annotation processor definitions",
     },
 )
 
-_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = [])]
+_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = depset())]
+
+# Mapping functions for args.add_all.
+# These preserve the transitive depsets until needed.
+def _kt_plugin_to_processor(processor):
+    return processor.processor_class
+
+def _kt_plugin_to_processorpath(processor):
+    return [j.path for j in processor.classpath.to_list()]
+
+def _targets_to_kt_plugins(targets):
+    return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if t[KtJvmPluginInfo]])
+
+mappers = struct(
+    targets_to_kt_plugins = _targets_to_kt_plugins,
+    kt_plugin_to_processor = _kt_plugin_to_processor,
+    kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
+)
 
 def merge_plugin_infos(attrs):
     """Merge all of the plugin infos found in the provided sequence of attributes.
     Returns:
         A KtJvmPluginInfo provider, Each of the entries is serializable."""
-    tally = {}
-    annotation_processors = []
-    for info in [a[KtJvmPluginInfo] for a in attrs]:
-        for p in info.annotation_processors:
-            if p.label not in tally:
-                tally[p.label] = True
-                annotation_processors.append(p)
     return KtJvmPluginInfo(
-        annotation_processors = annotation_processors,
+        annotation_processors = _targets_to_kt_plugins(attrs),
     )
 
 def _kt_jvm_plugin_aspect_impl(target, ctx):
@@ -45,14 +55,14 @@ def _kt_jvm_plugin_aspect_impl(target, ctx):
         processor = ctx.rule.attr
         merged_deps = java_common.merge([j[JavaInfo] for j in processor.deps])
         return [KtJvmPluginInfo(
-            annotation_processors = [
+            annotation_processors = depset([
                 struct(
                     label = _utils.restore_label(ctx.label),
                     processor_class = processor.processor_class,
-                    classpath = [cp.path for cp in merged_deps.transitive_runtime_jars.to_list()],
+                    classpath = merged_deps.transitive_runtime_jars,
                     generates_api = processor.generates_api,
                 ),
-            ],
+            ]),
         )]
     elif ctx.rule.kind == "java_library":
         return [merge_plugin_infos(ctx.rule.attr.exported_plugins)]
