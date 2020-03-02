@@ -24,10 +24,13 @@ import java.nio.file.Path
 /**
  * CompilationArgs collects the arguments for executing the Kotlin compiler.
  */
-internal class CompilationArgs(
+class CompilationArgs(
   val args: MutableList<String> = mutableListOf(),
   private val dfs: FileSystem = FileSystems.getDefault()
 ) {
+
+  operator fun plus(other: CompilationArgs): CompilationArgs = CompilationArgs(
+      (args.asSequence() + other.args.asSequence()).toMutableList())
 
   fun givenNotEmpty(value: String, map: (String) -> Collection<String>): CompilationArgs {
     if (value.isNotEmpty()) {
@@ -65,4 +68,11 @@ internal class CompilationArgs(
   }
 
   fun list(): List<String> = args.toList()
+
+  fun given(cond: Boolean, valueProvider: () -> String): CompilationArgs {
+    if (cond) {
+      return value(valueProvider())
+    }
+    return this
+  }
 }

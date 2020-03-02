@@ -23,15 +23,12 @@ import javax.inject.Inject
 class KtAbiPluginArgs @Inject constructor(
   val toolchain: KotlinToolchain
 ) {
-  fun args(outputDir: String, generateCode: Boolean): List<String> {
-    return listOf(
-        "-Xplugin=${toolchain.jvmAbiGen.jarPath}",
-        "-P",
-        "plugin:${toolchain.jvmAbiGen.id}:outputDir=${outputDir}"
-    ) + if (!generateCode) {
-      listOf("-Xplugin=${toolchain.skipCodeGen.jarPath}")
-    } else {
-      emptyList()
-    }
+  fun args(outputDir: String, generateCode: Boolean): CompilationArgs {
+    return CompilationArgs()
+        .value( "-Xplugin=${toolchain.jvmAbiGen.jarPath}")
+        .flag("-P",  "plugin:${toolchain.jvmAbiGen.id}:outputDir=${outputDir}")
+        .given(generateCode) {
+          "-Xplugin=${toolchain.skipCodeGen.jarPath}"
+        }
   }
 }

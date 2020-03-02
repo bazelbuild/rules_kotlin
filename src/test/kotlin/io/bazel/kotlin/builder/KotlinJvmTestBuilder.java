@@ -34,6 +34,14 @@ import java.util.stream.Stream;
 
 public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCompilationTask> {
 
+  @SuppressWarnings({"unused", "WeakerAccess"})
+  public static Dep
+      KOTLIN_ANNOTATIONS = Dep.fromLabel("@com_github_jetbrains_kotlin//:annotations"),
+      KOTLIN_STDLIB = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib"),
+      KOTLIN_STDLIB_JDK7 = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7"),
+      KOTLIN_STDLIB_JDK8 = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8"),
+      JVM_ABI_GEN = Dep.fromLabel("@com_github_jetbrains_kotlin//:jvm-abi-gen");
+
     private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
     private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
             EnumSet.of(
@@ -66,7 +74,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     }
 
     @Override
-    public JvmCompilationTask buildTask() {
+  JvmCompilationTask buildTask() {
         return taskBuilder.build();
     }
 
@@ -93,6 +101,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     JvmCompilationTask.Outputs outputs = task.getOutputs();
                     assertFilesExist(
                             Stream.of(
+                  outputs.getAbijar(),
                                     outputs.getJar(),
                                     outputs.getJdeps(),
                                     outputs.getSrcjar())
@@ -102,7 +111,9 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
                     return Dep.builder()
                             .label(taskBuilder.getInfo().getLabel())
-                            .compileJars(ImmutableList.of(outputs.getJar()))
+              .compileJars(ImmutableList.of(
+                  outputs.getAbijar().isEmpty() ? outputs.getJar() : outputs.getAbijar()
+              ))
                             .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
                             .sourceJar(taskBuilder.getOutputs().getSrcjar())
                             .build();
@@ -110,8 +121,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     }
 
     public class TaskBuilder {
-        public TaskBuilder() {
-        }
+    TaskBuilder() {}
 
         public void setLabel(String label) {
             taskBuilder.getInfoBuilder().setLabel(label);
@@ -165,5 +175,11 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
             return this;
         }
+
+    public TaskBuilder outputAbiJar() {
+      taskBuilder.getOutputsBuilder()
+          .setAbijar(instanceRoot().resolve("abi.jar").toAbsolutePath().toString());
+      return this;
+    }
     }
 }

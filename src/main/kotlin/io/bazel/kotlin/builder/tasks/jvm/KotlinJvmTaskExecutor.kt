@@ -38,6 +38,18 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
   private val jDepsGenerator: JDepsGenerator,
   private val abiPlugins: KtAbiPluginArgs
 ) {
+
+  private fun combine(one: Throwable?, two: Throwable?): Throwable? {
+    return when {
+      one != null && two != null -> {
+        one.addSuppressed(two)
+        return one
+      }
+      one != null -> one
+      else -> two
+    }
+  }
+
   fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
     val preprocessedTask = task
       .preProcessingSteps(context)
@@ -45,37 +57,44 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
 
     context.execute("compile classes") {
       preprocessedTask.apply {
-        var kotlinError: CompilationStatusException? = null
-        var result: List<String> = emptyList()
-        // skip compilation if there are no kt files.
-        if (inputs.kotlinSourcesCount > 0) {
-          context.execute("kotlinc") {
-            result = try {
-              val args = commonArgs().plus(
-                  outputs.jar.takeIf(String::isNotEmpty)?.let {
-                    argsForCompile()
-                  } ?: emptyList()
-              ).plus(
-                  outputs.abijar.takeIf(String::isNotEmpty)?.let {
-                    abiPlugins.args(directories.classes, generateCode = outputs.jar.isNotEmpty())
-                  } ?: emptyList()
-              )
-              compileKotlin(context,
-                  compiler,
-                  compilerArguments = args,
-                  printOnFail = false)
-            } catch (ex: CompilationStatusException) {
-              kotlinError = ex
-              ex.lines
+        sequenceOf(
+            runCatching {
+              context.execute("kotlinc") {
+                compileKotlin(context,
+                    compiler,
+                    args = baseArgs()
+                        .givenNotEmpty(outputs.jar) {
+                          codeGenArgs().list()
+                        }.givenNotEmpty(outputs.abijar) {
+                          abiPlugins.args(directories.classes,
+                              generateCode = outputs.jar.isNotEmpty()).list()
+                        },
+                    printOnFail = true
+                )
+              }
+            },
+            runCatching {
+              context.execute("javac") {
+                javaCompiler.compile(context, this)
+              }
             }
+        ).map {
+          it.exceptionOrNull() to (it.getOrNull() ?: emptyList())
+        }.map {
+          when (it.first) {
+            // TODO(issue/296): remove when the CompilationStatusException is unified.
+            is CompilationStatusException -> it.first to (it.first as CompilationStatusException).lines
+            else -> it
           }
-        }
-        try {
-          context.execute("javac") { javaCompiler.compile(context, this) }
-        } finally {
-          result.apply(context::printCompilerOutput)
-          kotlinError?.also { throw it }
-        }
+        } .fold(Pair<Throwable?, List<String>>(null, emptyList())) { acc, result ->
+              combine(acc.first, result.first) to acc.second + result.second
+            }.apply {
+              second.apply(context::printCompilerOutput)
+              first?.let {
+                throw it
+              }
+            }
+
         if (outputs.jar.isNotEmpty()) {
           context.execute("create jar", ::createOutputJar)
           context.execute("produce src jar", ::produceSourceJar)
