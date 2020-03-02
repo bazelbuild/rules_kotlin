@@ -24,14 +24,28 @@ def _get_class_name(kwargs):
         return kwargs["test_classes"]
 
 def kt_rules_test(name, **kwargs):
-    kwargs.setdefault("size", "small")
-    kwargs["deps"] = kwargs.setdefault("deps", []) + ["//src/test/kotlin/io/bazel/kotlin/builder:test_lib"]
-    kwargs.setdefault("test_class", _get_class_name(kwargs))
-    for f in kwargs.get("srcs"):
+    args = dict(kwargs.items())
+    args.setdefault("size", "small")
+    args.setdefault("data", [])
+    args.setdefault("jvm_flags", [])
+    args["deps"] = args.setdefault("deps", []) + ["//src/test/kotlin/io/bazel/kotlin/builder:test_lib"]
+    for dep in [
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
+        "@com_github_jetbrains_kotlin//:annotations",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+    ] + args["data"]:
+        if dep not in args["data"]:
+            args["data"] += [dep]
+        args["jvm_flags"] += ["-D%s=$(rootpath %s)" %(dep.replace("/",".").replace(":","."), dep)]
+
+    args.setdefault("test_class", _get_class_name(kwargs))
+    for f in args.get("srcs"):
         if f.endswith(".kt"):
-            kt_jvm_test(name = name, **kwargs)
+            kt_jvm_test(name = name, **args)
             return
-    java_test(name = name, **kwargs)
+    java_test(name = name, **args)
 
 def kt_rules_e2e_test(name, **kwargs):
     kwargs.setdefault("size", "small")
