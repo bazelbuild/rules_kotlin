@@ -15,6 +15,7 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
@@ -36,13 +37,38 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
   private val jDepsGenerator: JDepsGenerator
 ) {
   fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
-    val preprocessedTask = task.preProcessingSteps(context, pluginArgsEncoder, compiler)
+    val preprocessedTask = task
+        .preProcessingSteps(context)
+        .runAnnotationProcessors(context, pluginArgsEncoder, compiler)
+
     context.execute("compile classes") {
-      preprocessedTask.compileAll(context, compiler, javaCompiler)
+      preprocessedTask.apply {
+        var kotlinError: CompilationStatusException? = null
+        var result: List<String> = listOf()
+        // skip compilation if there are no kt files.
+        if (inputs.kotlinSourcesCount > 0) {
+          context.execute("kotlinc") {
+            result = try {
+              compileKotlin(context, compiler, printOnFail = false)
+            } catch (ex: CompilationStatusException) {
+              kotlinError = ex
+              ex.lines
+            }
+          }
+        }
+        try {
+          context.execute("javac") { javaCompiler.compile(context, this) }
+        } finally {
+          result.apply(context::printCompilerOutput)
+          kotlinError?.also { throw it }
+        }
+      }
     }
 
     context.execute("create jar") { preprocessedTask.createOutputJar() }
     context.execute("produce src jar") { preprocessedTask.produceSourceJar() }
-    context.execute("generate jdeps") { jDepsGenerator.generateJDeps(preprocessedTask) }
+    if (preprocessedTask.outputs.jdeps.isNotEmpty()) {
+      context.execute("generate jdeps") { jDepsGenerator.generateJDeps(preprocessedTask) }
+    }
   }
 }

@@ -19,39 +19,27 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
+import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
-
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCompilationTask> {
+
   @SuppressWarnings({"unused", "WeakerAccess"})
   public static Dep
-      KOTLIN_ANNOTATIONS =
-          Dep.importJar(
-              "kotlin-annotations",
-              "external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar"),
-      KOTLIN_STDLIB =
-          Dep.importJar(
-              "kotlin-stdlib", "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar"),
-      KOTLIN_STDLIB_JDK7 =
-          Dep.importJar(
-              "kotlin-stdlib-jdk7",
-              "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar"),
-      KOTLIN_STDLIB_JDK8 =
-          Dep.importJar(
-              "kotlin-stdlib-jdk8",
-              "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar");
+      KOTLIN_ANNOTATIONS = Dep.fromLabel("@com_github_jetbrains_kotlin//:annotations"),
+      KOTLIN_STDLIB = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib"),
+      KOTLIN_STDLIB_JDK7 = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7"),
+      KOTLIN_STDLIB_JDK8 = Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8");
 
   private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
-  private static final KotlinBuilderComponent component =
-      DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
-
   private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
       EnumSet.of(
           DirectoryType.SOURCES,
@@ -73,17 +61,52 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         .setTemp(directory(DirectoryType.TEMP).toAbsolutePath().toString())
         .setGeneratedClasses(
             directory(DirectoryType.GENERATED_CLASSES).toAbsolutePath().toString());
-
-    taskBuilder
-        .getOutputsBuilder()
-        .setJar(instanceRoot().resolve("jar_file.jar").toAbsolutePath().toString())
-        .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString())
-        .setSrcjar(instanceRoot().resolve("jar_file-sources.jar").toAbsolutePath().toString());
   }
 
   @Override
   public JvmCompilationTask buildTask() {
     return taskBuilder.build();
+  }
+
+  private TaskBuilder taskBuilderInstance = new TaskBuilder();
+
+  @SafeVarargs
+  public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
+    return executeTask(component().jvmTaskExecutor()::execute, setup);
+  }
+
+  private KotlinBuilderComponent component() {
+    return DaggerKotlinBuilderComponent.builder()
+        .toolchain(KotlinToolchain.createToolchain())
+        .build();
+  }
+
+  private Dep executeTask(
+      BiConsumer<CompilationTaskContext, JvmCompilationTask> executor,
+      Consumer<TaskBuilder>[] setup) {
+    resetForNext();
+    Stream.of(setup).forEach(it -> it.accept(taskBuilderInstance));
+    return runCompileTask(
+        (taskContext, task) -> {
+          executor.accept(taskContext, task);
+
+          JvmCompilationTask.Outputs outputs = task.getOutputs();
+          assertFilesExist(
+              Stream.of(
+                  outputs.getJar(),
+                  outputs.getJdeps(),
+                  outputs.getSrcjar())
+                  .filter(p -> !p.isEmpty())
+                  .toArray(String[]::new)
+          );
+
+          return Dep.builder()
+              .label(taskBuilder.getInfo().getLabel())
+              .compileJars(ImmutableList.of(outputs.getJar()))
+              .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
+              .sourceJar(taskBuilder.getOutputs().getSrcjar())
+              .build();
+        });
   }
 
   public class TaskBuilder {
@@ -123,24 +146,23 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
       Dep.classpathOf(dependencies)
           .forEach((dependency) -> taskBuilder.getInputsBuilder().addClasspath(dependency));
     }
-  }
 
-  private TaskBuilder taskBuilderInstance = new TaskBuilder();
+    public TaskBuilder outputSrcJar() {
+      taskBuilder.getOutputsBuilder()
+          .setSrcjar(instanceRoot().resolve("jar_file-sources.jar").toAbsolutePath().toString());
+      return this;
+    }
 
-  @SafeVarargs
-  public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
-    resetForNext();
-    Stream.of(setup).forEach(it -> it.accept(taskBuilderInstance));
-    return runCompileTask(
-        (taskContext, task) -> {
-          component.jvmTaskExecutor().execute(taskContext, task);
-          assertFilesExist(task.getOutputs().getJar(), task.getOutputs().getJdeps());
-          return Dep.builder()
-              .label(taskBuilder.getInfo().getLabel())
-              .compileJars(ImmutableList.of(taskBuilder.getOutputs().getJar()))
-              .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
-              .sourceJar(taskBuilder.getOutputs().getSrcjar())
-              .build();
-        });
+    public TaskBuilder outputJar() {
+      taskBuilder.getOutputsBuilder()
+          .setJar(instanceRoot().resolve("jar_file.jar").toAbsolutePath().toString());
+      return this;
+    }
+
+    public TaskBuilder outputJdeps() {
+      taskBuilder.getOutputsBuilder()
+          .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
+      return this;
+    }
   }
 }
