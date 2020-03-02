@@ -18,16 +18,14 @@ package io.bazel.kotlin.builder.tasks.jvm;
 import io.bazel.kotlin.builder.Deps;
 import io.bazel.kotlin.builder.DirectoryType;
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -35,22 +33,53 @@ import static com.google.common.truth.Truth.assertThat;
 public class KotlinBuilderJvmBasicTest {
   private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
 
+  private static final Consumer<KotlinJvmTestBuilder.TaskBuilder> SETUP_NORMALIZATION_TEST_SOURCES =
+      ctx -> {
+        ctx.addSource("AClass.kt", "package something;\n" + "class AClass{}");
+        ctx.addSource("BClass.kt", "package something;\n" + "class BClass{}");
+        ctx.outputJar().outputSrcJar();
+      };
+
   @Test
   public void testSimpleMixedModeCompile() {
     ctx.runCompileTask(
         c -> {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
+          c.outputJar().outputSrcJar();
         });
     ctx.assertFilesExist(
         DirectoryType.CLASSES, "something/AClass.class", "something/AnotherClass.class");
   }
 
   @Test
+  public void testGeneratesJDeps() {
+    ctx.runCompileTask(
+        c -> {
+          c.addSource("AClass.kt", "package something;" + "class AClass{}");
+          c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
+          // declaring outputJdeps also asserts existance after compile.
+          c.outputJar().outputSrcJar().outputJdeps();
+        });
+  }
+
+  @Test
+  public void testKotlinErrorRendering() {
+    ctx.runFailingCompileTaskAndValidateOutput(
+        () ->
+            ctx.runCompileTask(
+                c -> {
+                  c.addSource("AClass.kt", "package something;" + "class AClass{");
+                  c.outputJar().outputSrcJar();
+                }),
+        lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass")));
+  }
+
+  @Test
   public void testMixedBiReferences() {
     ctx.runCompileTask(
-        it -> {
-          it.addSource(
+        ctx -> {
+          ctx.addSource(
               "AClass.java",
               "package a;",
               "",
@@ -59,7 +88,7 @@ public class KotlinBuilderJvmBasicTest {
               "public class AClass {",
               "  static BClass b = new BClass();",
               "}");
-          it.addSource(
+          ctx.addSource(
               "BClass.kt",
               "package b",
               "",
@@ -68,17 +97,20 @@ public class KotlinBuilderJvmBasicTest {
               "class BClass() {",
               "  val a = AClass()",
               "}");
+          ctx.outputSrcJar()
+              .outputJar();
         });
     ctx.assertFilesExist(DirectoryType.CLASSES, "a/AClass.class", "b/BClass.class");
   }
 
   @Test
-  public void testKotlinErrorRendering() {
-    ctx.runFailingCompileTaskAndValidateOutput(
-        () ->
-            ctx.runCompileTask(
-                c -> c.addSource("AClass.kt", "package something;" + "class AClass{")),
-        lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass")));
+  public void testCompileSingleJavaFile() {
+    ctx.runCompileTask(
+        (ctx) -> {
+          ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
+          ctx.outputSrcJar()
+              .outputJar();
+        });
   }
 
   @Test
@@ -89,22 +121,10 @@ public class KotlinBuilderJvmBasicTest {
                 c -> {
                   c.addSource("AClass.kt", "package something;" + "class AClass{}");
                   c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
+                  c.outputJar().outputSrcJar();
                 }),
         lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AnotherClass")));
   }
-
-  @Test
-  @Ignore("The Kotlin compiler expects a single kotlin file at least.")
-  public void testCompileSingleJavaFile() {
-    ctx.runCompileTask(
-        (c) -> c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}"));
-  }
-
-  private static final Consumer<KotlinJvmTestBuilder.TaskBuilder> SETUP_NORMALIZATION_TEST_SOURCES =
-      ctx -> {
-        ctx.addSource("AClass.kt", "package something;\n" + "class AClass{}");
-        ctx.addSource("BClass.kt", "package something;\n" + "class BClass{}");
-      };
 
   @Test
   public void testCompiledJarIsNormalized() {

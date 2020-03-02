@@ -19,61 +19,97 @@ package io.bazel.kotlin.builder.utils
 import java.io.File
 
 class ArgMap(private val map: Map<String, List<String>>) {
-    /**
-     * Get the mandatory single value from a key
-     */
-    fun mandatorySingle(key: String): String =
-        optionalSingle(key) ?: throw IllegalArgumentException("$key is not optional")
+  /**
+   * Get the mandatory single value from a key
+   */
+  private fun mandatorySingle(key: String): String =
+      optionalSingle(key) ?: throw IllegalArgumentException("$key is not optional")
 
-    fun labelDepMap(key: String) = optional(key)?.asSequence()?.windowed(2, 2)?.map { it[0] to it[1] }?.toMap() ?: emptyMap()
+  private fun labelDepMap(key: String) =
+      optional(key)
+          ?.asSequence()
+          ?.windowed(2, 2)
+          ?.map { it[0] to it[1] }
+          ?.toMap()
+          ?: emptyMap()
 
-    fun optionalSingle(key: String): String? =
-        optional(key)?.let {
-            when (it.size) {
-                0 -> throw IllegalArgumentException("$key did not have a value")
-                1 -> it[0]
-                else -> throw IllegalArgumentException("$key should have a single value")
-            }
+  private fun optionalSingle(key: String): String? =
+      optional(key)?.let {
+        when (it.size) {
+          0 -> throw IllegalArgumentException("$key did not have a value")
+          1 -> it[0]
+          else -> throw IllegalArgumentException("$key should have a single value")
         }
+      }
 
-    fun mandatory(key: String): List<String> = optional(key) ?: throw IllegalArgumentException("$key is not optional")
-    fun optional(key: String): List<String>? = map[key]
+  private fun optionalSingleIf(key: String, condition: () -> Boolean): String? {
+    return if (condition()) {
+      optionalSingle(key)
+    } else {
+      mandatorySingle(key)
+    }
+  }
+
+  private fun hasAll(keys: Array<String>): Boolean {
+    return keys.all { optional(it)?.isNotEmpty() ?: false }
+  }
+
+  private fun hasAny(keys: Array<String>): Boolean {
+    return keys.any { optional(it)?.isNotEmpty() ?: false }
+  }
+
+  private fun mandatory(key: String): List<String> = optional(key)
+      ?: throw IllegalArgumentException(
+          "$key is not optional")
+
+  private fun optional(key: String): List<String>? = map[key]
+
+  fun mandatorySingle(key: Flag) = mandatorySingle(key.flag)
+  fun optionalSingle(key: Flag) = optionalSingle(key.flag)
+  fun optionalSingleIf(key: Flag, condition: () -> Boolean) =
+      optionalSingleIf(key.flag, condition)
+
+  fun hasAll(vararg keys: Flag) = hasAll(keys.map(Flag::flag).toTypedArray())
+  fun hasAny(vararg keys: Flag) = hasAny(keys.map(Flag::flag).toTypedArray())
+  fun mandatory(key: Flag) = mandatory(key.flag)
+  fun optional(key: Flag) = optional(key.flag)
+  fun labelDepMap(key: Flag) = labelDepMap(key.flag)
+
 }
 
 interface Flag {
-    val flag: String
+  val flag: String
 }
 
-fun ArgMap.mandatorySingle(key: Flag) = mandatorySingle(key.flag)
-fun ArgMap.optionalSingle(key: Flag) = optionalSingle(key.flag)
-fun ArgMap.mandatory(key: Flag) = mandatory(key.flag)
-fun ArgMap.optional(key: Flag) = optional(key.flag)
-fun ArgMap.labelDepMap(key: Flag) = labelDepMap(key.flag)
-
 object ArgMaps {
-    @JvmStatic
-    fun from(args: List<String>): ArgMap =
-        mutableMapOf<String, MutableList<String>>()
-            .also { argsToMap(args, it) }
-            .let(::ArgMap)
+  @JvmStatic
+  fun from(args: List<String>): ArgMap =
+      mutableMapOf<String, MutableList<String>>()
+          .also { argsToMap(args, it) }
+          .let(::ArgMap)
 
-    @JvmStatic
-    fun from(file: File): ArgMap = from(file.reader().readLines())
+  @JvmStatic
+  fun from(file: File): ArgMap = from(file.reader().readLines())
 
-    private fun argsToMap(args: List<String>, argMap: MutableMap<String, MutableList<String>>, isFlag: (String) -> Boolean = { it.startsWith("--") }) {
-        var currentKey: String = args.first().also { require(isFlag(it)) { "first arg must be a flag" } }
-        val currentValue = mutableListOf<String>()
-        val mergeCurrent = {
-            argMap.computeIfAbsent(currentKey) { mutableListOf() }.addAll(currentValue)
-            currentValue.clear()
-        }
-        args.drop(1).forEach {
-            if (it.startsWith("--")) {
-                mergeCurrent()
-                currentKey = it
-            } else {
-                currentValue.add(it)
-            }
-        }.also { mergeCurrent() }
+  private fun argsToMap(
+    args: List<String>,
+    argMap: MutableMap<String, MutableList<String>>,
+    isFlag: (String) -> Boolean = { it.startsWith("--") }
+  ) {
+    var currentKey: String =
+        args.first().also { require(isFlag(it)) { "first arg must be a flag" } }
+    val currentValue = mutableListOf<String>()
+    val mergeCurrent = {
+      argMap.computeIfAbsent(currentKey) { mutableListOf() }.addAll(currentValue)
+      currentValue.clear()
     }
+    args.drop(1).forEach {
+      if (it.startsWith("--")) {
+        mergeCurrent()
+        currentKey = it
+      } else {
+        currentValue.add(it)
+      }
+    }.also { mergeCurrent() }
+  }
 }
