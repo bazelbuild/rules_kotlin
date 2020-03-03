@@ -43,7 +43,7 @@ fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
     "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
   }
   .flag("-d", directories.classes)
-  .givenNotEmpty(info.passthroughFlags) { it.split(" ") }
+    .given(info.passthroughFlags).notEmpty { flags -> values(flags.split(" ")) }
 
 fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
   .flag("-cp").absolutePaths(inputs.classpathList) {

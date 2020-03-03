@@ -63,13 +63,17 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                 compileKotlin(context,
                     compiler,
                     args = baseArgs()
-                        .givenNotEmpty(outputs.jar) {
-                          codeGenArgs().list()
-                        }.givenNotEmpty(outputs.abijar) {
-                          abiPlugins.args(directories.classes,
-                              generateCode = outputs.jar.isNotEmpty()).list()
+                        .given(outputs.jar).notEmpty {
+                          append(codeGenArgs())
+                        }.given(outputs.abijar).notEmpty {
+                          plugin(abiPlugins.jvmAbiGen) {
+                            flag("outputDir", directories.classes)
+                          }
+                          given(outputs.jar).empty {
+                            plugin(abiPlugins.skipCodeGen)
+                          }
                         },
-                    printOnFail = true
+                    printOnFail = false
                 )
               }
             },
@@ -79,21 +83,22 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
               }
             }
         ).map {
-          it.exceptionOrNull() to (it.getOrNull() ?: emptyList())
+          (it.getOrNull() ?: emptyList()) to it.exceptionOrNull()
         }.map {
-          when (it.first) {
+          when (it.second) {
             // TODO(issue/296): remove when the CompilationStatusException is unified.
-            is CompilationStatusException -> it.first to (it.first as CompilationStatusException).lines
+            is CompilationStatusException ->
+              (it.second as CompilationStatusException).lines + it.first to it.second
             else -> it
           }
-        } .fold(Pair<Throwable?, List<String>>(null, emptyList())) { acc, result ->
-              combine(acc.first, result.first) to acc.second + result.second
-            }.apply {
-              second.apply(context::printCompilerOutput)
-              first?.let {
-                throw it
-              }
-            }
+        }.fold(Pair<List<String>, Throwable?>(emptyList(), null)) { acc, result ->
+          acc.first + result.first to combine(acc.second, result.second)
+        }.apply {
+          first.apply(context::printCompilerOutput)
+          second?.let {
+            throw it
+          }
+        }
 
         if (outputs.jar.isNotEmpty()) {
           context.execute("create jar", ::createOutputJar)

@@ -18,17 +18,8 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
-import javax.inject.Inject
 
-class KtAbiPluginArgs @Inject constructor(
-  val toolchain: KotlinToolchain
-) {
-  fun args(outputDir: String, generateCode: Boolean): CompilationArgs {
-    return CompilationArgs()
-        .value( "-Xplugin=${toolchain.jvmAbiGen.jarPath}")
-        .flag("-P",  "plugin:${toolchain.jvmAbiGen.id}:outputDir=${outputDir}")
-        .given(generateCode) {
-          "-Xplugin=${toolchain.skipCodeGen.jarPath}"
-        }
-  }
-}
+class KtAbiPluginArgs constructor(
+  val jvmAbiGen: KotlinToolchain.CompilerPlugin,
+  val skipCodeGen: KotlinToolchain.CompilerPlugin
+)
