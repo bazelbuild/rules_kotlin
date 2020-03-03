@@ -57,6 +57,9 @@ java_binary(
 
 release_archive(
     name = "pkg",
+    srcs = [
+         ":skip-code-gen.jar",
+    ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
         ":builder_deploy.jar": "kotlin_worker.jar",

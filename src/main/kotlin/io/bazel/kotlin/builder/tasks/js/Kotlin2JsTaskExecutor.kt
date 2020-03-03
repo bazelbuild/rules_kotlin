@@ -55,12 +55,8 @@ class Kotlin2JsTaskExecutor @Inject constructor(private val invoker: KotlinToolc
   private fun JsCompilationTask.createSourceJar() {
     try {
       SourceJarCreator(Paths.get(outputs.srcjar), false).also { creator ->
-                    creator.addSources(
-                        inputs.kotlinSourcesList.map { Paths.get(it) }
-                            .stream()
-                    )
-                }
-                .execute()
+                creator.addSources(inputs.kotlinSourcesList.map { Paths.get(it) }.stream())
+            }.execute()
     } catch (ex: Throwable) {
       throw CompilationException("could not create source jar", ex)
     }
@@ -70,10 +66,7 @@ class Kotlin2JsTaskExecutor @Inject constructor(private val invoker: KotlinToolc
    * Append the meta file to the JS file. This is an accepted pattern, and it allows us to not have to export the
    * meta.js file with the js.
    */
-    private fun appendMetaToPrimary(
-        jsPath: Path,
-        jsMetaFile: Path
-    ) {
+    private fun appendMetaToPrimary(jsPath: Path, jsMetaFile: Path) {
     try {
       FileOutputStream(jsPath.toFile(), true).use { Files.copy(jsMetaFile, it) }
     } catch (ex: Throwable) {
@@ -81,10 +74,7 @@ class Kotlin2JsTaskExecutor @Inject constructor(private val invoker: KotlinToolc
     }
   }
 
-    private fun JsCompilationTask.createJar(
-        jsDirectoryPath: Path,
-        rootEntries: List<Path>
-    ) {
+    private fun JsCompilationTask.createJar(jsDirectoryPath: Path, rootEntries: List<Path>) {
     try {
       val outputJarPath = Paths.get(outputs.jar)
 

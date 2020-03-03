@@ -75,45 +75,12 @@ public class KotlinBuilderJvmBasicTest {
 
     @Test
     public void testGeneratesJDeps() {
-        ctx.runCompileTask(
-                c -> {
-                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
-                    c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
-          // declaring outputJdeps also asserts existence after compile.
-          c.outputJar().outputSrcJar().outputJdeps();
-        });
-  }
-
-  @Test
-  public void testGeneratesAbiOnly() {
-    Deps.Dep d = ctx.runCompileTask(
-        c -> {
-          c.addSource("AClass.kt", "package something;" + "class AClass{}");
-          c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
-          c.outputAbiJar();
-        });
-    ctx.runCompileTask(
-        c -> {
-          c.addDirectDependencies(d);
-          c.addSource("Dependent.kt",
-              "package dep;",
-              "import something.AClass",
-              "class Dependent{}");
-                    c.outputJar().outputSrcJar().outputJdeps();
-                });
-    }
-
-  @Test
-  public void testGeneratesAbiJarSource() {
     ctx.runCompileTask(
         c -> {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
           // declaring outputJdeps also asserts existance after compile.
-          c.outputJar();
-          c.outputSrcJar();
-          c.outputJdeps();
-          c.outputAbiJar();
+          c.outputJar().outputSrcJar().outputJdeps();
         });
   }
 
@@ -127,57 +94,6 @@ public class KotlinBuilderJvmBasicTest {
                                     c.outputJar().outputSrcJar();
                                 }),
                 lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass")));
-    }
-
-    @Test
-    public void testMixedBiReferences() {
-        ctx.runCompileTask(
-                ctx -> {
-                    ctx.addSource(
-                            "AClass.java",
-                            "package a;",
-                            "",
-                            "import b.BClass;",
-                            "",
-                            "public class AClass {",
-                            "  static BClass b = new BClass();",
-                            "}");
-                    ctx.addSource(
-                            "BClass.kt",
-                            "package b",
-                            "",
-                            "import a.AClass",
-                            "",
-                            "class BClass() {",
-                            "  val a = AClass()",
-                            "}");
-                    ctx.outputSrcJar()
-                            .outputJar();
-                });
-        ctx.assertFilesExist(DirectoryType.CLASSES, "a/AClass.class", "b/BClass.class");
-    }
-
-    @Test
-    public void testCompileSingleJavaFile() {
-        ctx.runCompileTask(
-                (ctx) -> {
-                    ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
-                    ctx.outputSrcJar()
-                            .outputJar();
-                });
-    }
-
-    @Test
-    public void testJavaErrorRendering() {
-        ctx.runFailingCompileTaskAndValidateOutput(
-                () ->
-                        ctx.runCompileTask(
-                                c -> {
-                                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
-                                    c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
-                                    c.outputJar().outputSrcJar();
-                                }),
-                lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AnotherClass")));
     }
 
     @Test

@@ -191,8 +191,7 @@ class KotlinBuilder @Inject internal constructor(
     with(JsCompilationTask.newBuilder()) {
       this.info = info
 
-        with(directoriesBuilder)
-        {
+        with(directoriesBuilder) {
           temp = workingDir.toString()
         }
 

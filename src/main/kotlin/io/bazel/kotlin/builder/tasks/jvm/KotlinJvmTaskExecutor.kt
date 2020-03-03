@@ -79,7 +79,11 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             },
             runCatching {
               context.execute("javac") {
-                javaCompiler.compile(context, this)
+                if (outputs.jar.isNotEmpty()) {
+                  javaCompiler.compile(context, this)
+                } else {
+                  emptyList()
+                }
               }
             }
         ).map {
