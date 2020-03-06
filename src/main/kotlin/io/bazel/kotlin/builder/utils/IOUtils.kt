@@ -1,17 +1,18 @@
 /*
- * Copyright 2018 The Bazel Authors. All rights reserved.
+ * Copyright 2020 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 @file:JvmName("IOUtils")
 
@@ -70,23 +71,21 @@ fun Path.resolveTwinVerified(extension: String): Path =
     "${toFile().nameWithoutExtension}${if (extension.startsWith(".")) "" else "."}$extension"
   ).verified().toPath()
 
+fun Path.resolveNewDirectories(vararg parts: String) = Files.createDirectories(
+    parts.fold(this, Path::resolve))
+
 fun Path.resolveVerified(vararg parts: String): File =
   resolve(Paths.get(parts[0], *Arrays.copyOfRange(parts, 1, parts.size))).verified()
 
 fun Path.resolveVerifiedToAbsoluteString(vararg parts: String): String =
   resolveVerified(*parts).absolutePath.toString()
 
-fun Path.verified(): File =
-  this.toFile().also { check(it.exists()) { "file did not exist: $this" } }
+fun Path.verified(): File = this.toFile()
+    .also { check(it.exists()) { "file did not exist: $this" } }
 
-fun Path.verifiedPath(): Path =
-  this.toFile().also { check(it.exists()) { "file did not exist: $this" } }.toPath()
+fun Path.verifiedPath(): Path = this.toFile()
+    .also { check(it.exists()) { "file did not exist: $this" } }.toPath()
 
-fun ensureDirectories(vararg directories: String) {
-  for (directory in directories) {
-    Files.createDirectories(Paths.get(directory))
-  }
-}
 
 val Throwable.rootCause: Throwable
   get() {

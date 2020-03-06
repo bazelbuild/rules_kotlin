@@ -1,17 +1,18 @@
 /*
- * Copyright 2018 The Bazel Authors. All rights reserved.
+ * Copyright 2020 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 package io.bazel.kotlin.builder;
 
@@ -141,60 +142,69 @@ abstract class KotlinAbstractTestBuilder<T> {
         return writeFile(DirectoryType.SOURCE_GEN, filename, lines);
     }
 
+  private static void assertFileExistence(Stream<Path> pathStream, boolean shouldExist) {
+    pathStream.forEach(
+        path -> {
+          if (shouldExist) {
+            assertWithMessage("file did not exist: " + path).that(path.toFile().exists()).isTrue();
+          } else {
+            assertWithMessage("file existed: " + path).that(path.toFile().exists()).isFalse();
+          }
+        });
+  }
+
+  final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
+    T task = buildTask();
+    return runCompileTask(infoBuilder.build(), task, (ctx, t) -> operation.apply(ctx, task));
+  }
+
     private <R> R runCompileTask(
             CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
-        String curDir = System.getProperty("user.dir");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (PrintStream outputStream = new PrintStream(byteArrayOutputStream)) {
-            System.setProperty("user.dir", instanceRoot().toAbsolutePath().toString());
-            return operation.apply(new CompilationTaskContext(info, outputStream), task);
+      return operation.apply(new CompilationTaskContext(info, outputStream,
+          instanceRoot().toAbsolutePath().toString()), task);
         } finally {
-            System.setProperty("user.dir", curDir);
-            outLines =
-                    Collections.unmodifiableList(
-                            new BufferedReader(
-                                    new InputStreamReader(
-                                            new ByteArrayInputStream(byteArrayOutputStream.toByteArray())))
-                                    .lines()
-                                    .peek(System.err::println)
-                                    .collect(Collectors.toList()));
-        }
+      outLines =
+          Collections.unmodifiableList(
+              new BufferedReader(
+                  new InputStreamReader(
+                      new ByteArrayInputStream(byteArrayOutputStream.toByteArray())))
+                  .lines()
+                  .peek(System.err::println)
+                  .collect(Collectors.toList()));
+    }
+  }
+
+  public final void assertFilesExist(DirectoryType dir, String... paths) {
+    assertFileExistence(resolved(dir, paths), true);
+  }
+
+  final void assertFilesExist(String... paths) {
+    assertFileExistence(Stream.of(paths).map(Paths::get), true);
+  }
+
+  @SuppressWarnings("unused")
+  public final void assertFilesDoNotExist(DirectoryType dir, String... filePath) {
+    assertFileExistence(resolved(dir, filePath), false);
     }
 
-    final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
-        T task = buildTask();
-        return runCompileTask(infoBuilder.build(), task, (ctx, t) -> operation.apply(ctx, task));
+  /**
+   * Run a compilation task expecting it to fail with a {@link CompilationStatusException}.
+   *
+   * @param task      the compilation task
+   * @param validator a consumer for the output produced by the task.
+   */
+  public final void runFailingCompileTaskAndValidateOutput(
+      Runnable task, Consumer<List<String>> validator) {
+    try {
+      task.run();
+    } catch (CompilationStatusException ex) {
+      validator.accept(outLines());
+      return;
     }
-
-    /**
-     * Run a compilation task expecting it to fail with a {@link CompilationStatusException}.
-     *
-     * @param task      the compilation task
-     * @param validator a consumer for the output produced by the task.
-     */
-    public final void runFailingCompileTaskAndValidateOutput(
-            Runnable task, Consumer<List<String>> validator) {
-        try {
-            task.run();
-        } catch (CompilationStatusException ex) {
-            validator.accept(outLines());
-            return;
-        }
-        throw new RuntimeException("compilation task should have failed.");
-    }
-
-    public final void assertFilesExist(DirectoryType dir, String... paths) {
-        assertFileExistence(resolved(dir, paths), true);
-    }
-
-    final void assertFilesExist(String... paths) {
-        assertFileExistence(Stream.of(paths).map(Paths::get), true);
-    }
-
-    @SuppressWarnings("unused")
-    public final void assertFilesDoNotExist(DirectoryType dir, String... filePath) {
-        assertFileExistence(resolved(dir, filePath), false);
-    }
+    throw new RuntimeException("compilation task should have failed.");
+  }
 
     private Stream<Path> resolved(DirectoryType dir, String... filePath) {
         Path directory = directory(dir);

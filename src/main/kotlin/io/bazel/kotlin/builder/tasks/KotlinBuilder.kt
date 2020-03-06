@@ -1,17 +1,18 @@
 /*
- * Copyright 2018 The Bazel Authors. All rights reserved.
+ * Copyright 2020 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 package io.bazel.kotlin.builder.tasks
 
@@ -23,6 +24,7 @@ import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.builder.utils.partitionJvmSources
+import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.JsCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask
@@ -32,6 +34,7 @@ import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.Path
 import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.inject.Provider
@@ -49,14 +52,14 @@ class KotlinBuilder @Inject internal constructor(
     private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
   }
 
-  override fun apply(args: List<String>): Int {
-    val (argMap, context) = buildContext(args)
+  override fun apply(workingDir: Path, args: List<String>): Int {
+    val (argMap, context) = buildContext(workingDir, args)
     var success = false
     var status = 0
     try {
       @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
       when (context.info.platform) {
-        Platform.JVM -> executeJvmTask(context, argMap)
+        Platform.JVM -> executeJvmTask(context, workingDir, argMap)
         Platform.JS -> executeJsTask(context, argMap)
         Platform.UNRECOGNIZED -> throw IllegalStateException(
           "unrecognized platform: ${context.info}"
@@ -74,7 +77,10 @@ class KotlinBuilder @Inject internal constructor(
     return status
   }
 
-  private fun buildContext(args: List<String>): Pair<ArgMap, CompilationTaskContext> {
+  private fun buildContext(
+    workingDir: Path,
+    args: List<String>
+  ): Pair<ArgMap, CompilationTaskContext> {
     check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
     val (flagFileName, primaryOutputPath, _) =
       checkNotNull(
@@ -85,7 +91,7 @@ class KotlinBuilder @Inject internal constructor(
     val info = buildTaskInfo(argMap).also {
       it.primaryOutputPath = primaryOutputPath
     }.build()
-    val context = CompilationTaskContext(info, outputProvider.get())
+    val context = CompilationTaskContext(info, outputProvider.get(), workingDir.toString())
     return Pair(argMap, context)
   }
 
@@ -192,15 +198,19 @@ class KotlinBuilder @Inject internal constructor(
       build()
     }
 
-  private fun executeJvmTask(context: CompilationTaskContext, argMap: ArgMap) {
-    val task = buildJvmTask(context.info, argMap)
+  private fun executeJvmTask(context: CompilationTaskContext, workingDir: Path, argMap: ArgMap) {
+    val task = buildJvmTask(context.info, workingDir, argMap)
     context.whenTracing {
       printProto("jvm task message", task)
     }
     jvmTaskExecutor.execute(context, task)
   }
 
-  private fun buildJvmTask(info: CompilationTaskInfo, argMap: ArgMap): JvmCompilationTask =
+  private fun buildJvmTask(
+    info: CompilationTaskInfo,
+    workingDir: Path,
+    argMap: ArgMap
+  ): JvmCompilationTask =
     JvmCompilationTask.newBuilder().let { root ->
       root.info = info
 
@@ -211,11 +221,17 @@ class KotlinBuilder @Inject internal constructor(
         argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
       }
 
-      with(root.directoriesBuilder) {
-        classes = argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR)
-        generatedClasses = argMap.mandatorySingle(KotlinBuilderFlags.GENERATED_CLASSDIR)
-        temp = argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR)
-        generatedSources = argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR)
+        with(root.directoriesBuilder)
+        {
+          classes =
+              workingDir.resolveNewDirectories(argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR))
+                  .toString()
+          generatedClasses = workingDir.resolveNewDirectories(
+              argMap.mandatorySingle(KotlinBuilderFlags.GENERATED_CLASSDIR)).toString()
+          temp = workingDir.resolveNewDirectories(argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR))
+              .toString()
+          generatedSources = workingDir.resolveNewDirectories(
+              argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR)).toString()
       }
 
       with(root.inputsBuilder) {
