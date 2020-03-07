@@ -23,12 +23,13 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
-import java.nio.file.Paths
+import java.nio.file.FileSystems
 
 class CompilationTaskContext(
-    val info: CompilationTaskInfo,
-    private val out: PrintStream,
-    private val executionRoot: String
+  val info: CompilationTaskInfo,
+  private val out: PrintStream,
+  private val executionRoot: String = FileSystems.getDefault().getPath("").toAbsolutePath()
+      .toString() + File.separator
 ) {
   private val start = System.currentTimeMillis()
   private var timings: MutableList<String>?
@@ -173,9 +174,7 @@ class CompilationTaskContext(
     if (successful) {
       timings?.also {
         printLines(
-          "Task timings for ${info.label} (total: ${System.currentTimeMillis() - start} ms)",
-          it
-        )
+            "Task timings for ${info.label} (total: ${System.currentTimeMillis() - start} ms)", it)
       }
     }
   }

@@ -33,7 +33,7 @@ import io.bazel.kotlin.model.RuleKind
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.regex.Pattern
 import javax.inject.Inject
@@ -50,10 +50,65 @@ class KotlinBuilder @Inject internal constructor(
   companion object {
     @JvmStatic
     private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
+
+    /**
+     * Declares the flags used by the java builder.
+     */
+    enum class JavaBuilderFlags(override val flag: String) : Flag {
+      TARGET_LABEL("--target_label"),
+      CLASSPATH("--classpath"),
+      JAVAC_OPTS("--javacopts"),
+      DEPENDENCIES("--dependencies"),
+      DIRECT_DEPENDENCIES("--direct_dependencies"),
+      DIRECT_DEPENDENCY("--direct_dependency"),
+      INDIRECT_DEPENDENCY("--indirect_dependency"),
+      STRICT_JAVA_DEPS("--strict_java_deps"),
+      OUTPUT_DEPS_PROTO("--output_deps_proto"),
+      DEPS_ARTIFACTS("--deps_artifacts"),
+      REDUCE_CLASSPATH("--reduce_classpath"),
+      SOURCEGEN_DIR("--sourcegendir"),
+      GENERATED_SOURCES_OUTPUT("--generated_sources_output"),
+      OUTPUT_MANIFEST_PROTO("--output_manifest_proto"),
+      SOURCES("--sources"),
+      SOURCE_ROOTS("--source_roots"),
+      SOURCE_JARS("--source_jars"),
+      SOURCE_PATH("--sourcepath"),
+      BOOT_CLASSPATH("--bootclasspath"),
+      PROCESSOR_PATH("--processorpath"),
+      PROCESSORS("--processors"),
+      EXT_CLASSPATH("--extclasspath"),
+      EXT_DIR("--extdir"),
+      OUTPUT("--output"),
+      NATIVE_HEADER_OUTPUT("--native_header_output"),
+      CLASSDIR("--classdir"),
+      TEMPDIR("--tempdir"),
+      GENDIR("--gendir"),
+      POST_PROCESSOR("--post_processor"),
+      COMPRESS_JAR("--compress_jar"),
+      RULE_KIND("--rule_kind"),
+      TEST_ONLY("--testonly");
+    }
+
+    enum class KotlinBuilderFlags(override val flag: String) : Flag {
+      MODULE_NAME("--kotlin_module_name"),
+      PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
+      API_VERSION("--kotlin_api_version"),
+      LANGUAGE_VERSION("--kotlin_language_version"),
+      JVM_TARGET("--kotlin_jvm_target"),
+      OUTPUT_SRCJAR("--kotlin_output_srcjar"),
+      GENERATED_CLASSDIR("--kotlin_generated_classdir"),
+      FRIEND_PATHS("--kotlin_friend_paths"),
+      OUTPUT_JDEPS("--kotlin_output_jdeps"),
+      OUTPUT_JS_JAR("--kotlin_output_js_jar"),
+      JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
+      JS_LIBRARIES("--kotlin_js_libraries"),
+      DEBUG("--kotlin_debug_tags"),
+      TASK_ID("--kotlin_task_id");
+    }
   }
 
   override fun apply(workingDir: Path, args: List<String>): Int {
-    val (argMap, context) = buildContext(workingDir, args)
+    val (argMap, context) = buildContext(args)
     var success = false
     var status = 0
     try {
@@ -62,8 +117,7 @@ class KotlinBuilder @Inject internal constructor(
         Platform.JVM -> executeJvmTask(context, workingDir, argMap)
         Platform.JS -> executeJsTask(context, argMap)
         Platform.UNRECOGNIZED -> throw IllegalStateException(
-          "unrecognized platform: ${context.info}"
-        )
+            "unrecognized platform: ${context.info}")
       }
       success = true
     } catch (ex: CompilationStatusException) {
@@ -77,77 +131,17 @@ class KotlinBuilder @Inject internal constructor(
     return status
   }
 
-  private fun buildContext(
-    workingDir: Path,
-    args: List<String>
-  ): Pair<ArgMap, CompilationTaskContext> {
+  private fun buildContext(args: List<String>): Pair<ArgMap, CompilationTaskContext> {
     check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
-    val (flagFileName, primaryOutputPath, _) =
-      checkNotNull(
-        FLAGFILE_RE.matchEntire(args[0])
-      ) { "invalid flagfile ${args[0]}" }.destructured
-    val argMap =
-      Files.readAllLines(Paths.get(flagFileName), StandardCharsets.UTF_8).let(ArgMaps::from)
-    val info = buildTaskInfo(argMap).also {
-      it.primaryOutputPath = primaryOutputPath
-    }.build()
-    val context = CompilationTaskContext(info, outputProvider.get(), workingDir.toString())
+    val lines = FLAGFILE_RE.matchEntire(args[0])?.groups?.get(1)?.let {
+      Files.readAllLines(FileSystems.getDefault().getPath(it.value), StandardCharsets.UTF_8)
+    } ?: args
+
+    val argMap = ArgMaps.from(lines)
+    val info = buildTaskInfo(argMap).build()
+    val context =
+        CompilationTaskContext(info, outputProvider.get())
     return Pair(argMap, context)
-  }
-
-  /**
-   * Declares the flags used by the java builder.
-   */
-  private enum class JavaBuilderFlags(override val flag: String) : Flag {
-    TARGET_LABEL("--target_label"),
-    CLASSPATH("--classpath"),
-    JAVAC_OPTS("--javacopts"),
-    DEPENDENCIES("--dependencies"),
-    DIRECT_DEPENDENCIES("--direct_dependencies"),
-    DIRECT_DEPENDENCY("--direct_dependency"),
-    INDIRECT_DEPENDENCY("--indirect_dependency"),
-    STRICT_JAVA_DEPS("--strict_java_deps"),
-    OUTPUT_DEPS_PROTO("--output_deps_proto"),
-    DEPS_ARTIFACTS("--deps_artifacts"),
-    REDUCE_CLASSPATH("--reduce_classpath"),
-    SOURCEGEN_DIR("--sourcegendir"),
-    GENERATED_SOURCES_OUTPUT("--generated_sources_output"),
-    OUTPUT_MANIFEST_PROTO("--output_manifest_proto"),
-    SOURCES("--sources"),
-    SOURCE_ROOTS("--source_roots"),
-    SOURCE_JARS("--source_jars"),
-    SOURCE_PATH("--sourcepath"),
-    BOOT_CLASSPATH("--bootclasspath"),
-    PROCESSOR_PATH("--processorpath"),
-    PROCESSORS("--processors"),
-    EXT_CLASSPATH("--extclasspath"),
-    EXT_DIR("--extdir"),
-    OUTPUT("--output"),
-    NATIVE_HEADER_OUTPUT("--native_header_output"),
-    CLASSDIR("--classdir"),
-    TEMPDIR("--tempdir"),
-    GENDIR("--gendir"),
-    POST_PROCESSOR("--post_processor"),
-    COMPRESS_JAR("--compress_jar"),
-    RULE_KIND("--rule_kind"),
-    TEST_ONLY("--testonly");
-  }
-
-  private enum class KotlinBuilderFlags(override val flag: String) : Flag {
-    MODULE_NAME("--kotlin_module_name"),
-    PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
-    API_VERSION("--kotlin_api_version"),
-    LANGUAGE_VERSION("--kotlin_language_version"),
-    JVM_TARGET("--kotlin_jvm_target"),
-    OUTPUT_SRCJAR("--kotlin_output_srcjar"),
-    GENERATED_CLASSDIR("--kotlin_generated_classdir"),
-    FRIEND_PATHS("--kotlin_friend_paths"),
-    OUTPUT_JDEPS("--kotlin_output_jdeps"),
-    OUTPUT_JS_JAR("--kotlin_output_js_jar"),
-    JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
-    JS_LIBRARIES("--kotlin_js_libraries"),
-    DEBUG("--kotlin_debug_tags"),
-    TASK_ID("--kotlin_task_id");
   }
 
   private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =

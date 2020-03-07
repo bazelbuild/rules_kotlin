@@ -23,9 +23,15 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "KotlinWorkerTest",
+    srcs = ["jvm/KotlinWorkerTest.kt"],
+)
+
+kt_rules_test(
     name = "KotlinBuilderJvmBasicTest",
     srcs = ["jvm/KotlinBuilderJvmBasicTest.java"],
 )
+
 
 # TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handles jvm_import data better.
 _MAVEN_CENTRAL_PREFIX = "@kotlin_rules_maven//:v1/https/maven-central.storage.googleapis.com/repos/central/data"

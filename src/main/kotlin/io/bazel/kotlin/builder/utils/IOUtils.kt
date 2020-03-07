@@ -20,6 +20,7 @@ package io.bazel.kotlin.builder.utils
 
 import java.io.BufferedReader
 import java.io.File
+import java.io.InterruptedIOException
 import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -96,3 +97,11 @@ val Throwable.rootCause: Throwable
     } while (cause != null && result != cause)
     return result
   }
+
+fun Throwable.wasInterrupted(): Boolean {
+  val cause = rootCause
+  if (cause is InterruptedException || cause is InterruptedIOException) {
+    return true
+  }
+  return false
+}
