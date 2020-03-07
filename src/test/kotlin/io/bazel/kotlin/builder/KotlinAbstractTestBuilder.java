@@ -22,8 +22,15 @@ import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
 import io.bazel.kotlin.model.RuleKind;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -152,7 +159,7 @@ abstract class KotlinAbstractTestBuilder<T> {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (PrintStream outputStream = new PrintStream(byteArrayOutputStream)) {
             return operation.apply(new CompilationTaskContext(info, outputStream,
-                    instanceRoot().toAbsolutePath().toString() + File.separator), task);
+          instanceRoot().toAbsolutePath().toString() + File.separator), task);
         } finally {
             outLines =
                     Collections.unmodifiableList(
