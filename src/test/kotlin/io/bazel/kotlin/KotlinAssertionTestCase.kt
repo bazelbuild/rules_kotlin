@@ -79,7 +79,7 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
             val modifiedTimestamp = LocalDateTime.ofInstant(
                 Instant.ofEpochMilli(it.lastModifiedTime.toMillis()), ZoneId.systemDefault()
             )
-            assertTrue("normalized modification time stamps should have year 1980") { modifiedTimestamp.year == 1980 }
+            assertTrue("normalized modification time stamps should have year 2010") { modifiedTimestamp.year == 2010 }
         }
     }
 
