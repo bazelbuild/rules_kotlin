@@ -41,6 +41,7 @@ internal fun JvmCompilationTask.commonArgs(): CompilationArgs = baseArgs()
       "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
     }
     .flag("-d", directories.classes)
+    .values(info.toolchainInfo.common.extraCoptsList)
     .givenNotEmpty(info.passthroughFlags) { it.split(" ") }
 
 internal fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()

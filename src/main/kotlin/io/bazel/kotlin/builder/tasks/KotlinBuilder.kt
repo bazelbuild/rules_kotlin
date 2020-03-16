@@ -139,6 +139,7 @@ class KotlinBuilder @Inject internal constructor(
         JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
         JS_LIBRARIES("--kotlin_js_libraries"),
         DEBUG("--kotlin_debug_tags"),
+        EXTRA_COPTS("--extra_copts"),
         TASK_ID("--kotlin_task_id");
     }
 
@@ -165,6 +166,9 @@ class KotlinBuilder @Inject internal constructor(
             argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
         toolchainInfoBuilder.commonBuilder.languageVersion =
             argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
+        toolchainInfoBuilder.commonBuilder.addAllExtraCopts(
+            argMap.optional(KotlinBuilderFlags.EXTRA_COPTS) ?: emptyList<String>()
+        )
         this
       }
 

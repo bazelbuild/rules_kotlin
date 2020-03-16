@@ -31,6 +31,9 @@ message KotlinToolchainInfo {
         // mandatory
         // oneof "enable", "warn" or "error"
         string coroutines = 3;
+        // optional
+        // extra kotlinc options to be passed into compiler
+        repeated string extra_copts = 4;
     }
 
     // Properties specific to the JVM.
