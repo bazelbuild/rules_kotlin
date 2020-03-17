@@ -21,11 +21,11 @@ import org.junit.Test
  * These tests verify properties of the example.
  */
 class KotlinJvmDaggerExampleTest : BasicAssertionTestCase() {
-    @Test
-    fun daggerExampleIsRunnable() {
-        assertExecutableRunfileSucceeds(
-            "//examples/dagger/coffee_app",
-            description = "the dagger coffee_app should execute successfully"
-        )
-    }
+  @Test
+  fun daggerExampleIsRunnable() {
+    assertExecutableRunfileSucceeds(
+      "//examples/dagger/coffee_app",
+      description = "the dagger coffee_app should execute successfully"
+    )
+  }
 }

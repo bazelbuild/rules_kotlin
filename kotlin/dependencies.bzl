@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load(
+    "//kotlin/internal/repositories:download.bzl",
+    _kt_download_local_dev_dependencies = "kt_download_local_dev_dependencies",
+)
 
-load("//kotlin/internal/repositories:download.bzl",
-    _kt_download_local_dev_dependencies="kt_download_local_dev_dependencies")
-
-kt_download_local_dev_dependencies=_kt_download_local_dev_dependencies
+kt_download_local_dev_dependencies = _kt_download_local_dev_dependencies

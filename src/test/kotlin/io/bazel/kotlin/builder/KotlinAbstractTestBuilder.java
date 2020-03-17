@@ -21,14 +21,8 @@ import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
 import io.bazel.kotlin.model.RuleKind;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.UncheckedIOException;
+
+import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,184 +41,184 @@ import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 abstract class KotlinAbstractTestBuilder<T> {
-  private static final Path BAZEL_TEST_DIR =
-      FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"));
+    private static final Path BAZEL_TEST_DIR =
+            FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"));
 
-  private static final AtomicInteger counter = new AtomicInteger(0);
-  private final CompilationTaskInfo.Builder infoBuilder = CompilationTaskInfo.newBuilder();
-  private Path instanceRoot = null;
-  private String label = null;
-  private List<String> outLines = null;
+    private static final AtomicInteger counter = new AtomicInteger(0);
+    private final CompilationTaskInfo.Builder infoBuilder = CompilationTaskInfo.newBuilder();
+    private Path instanceRoot = null;
+    private String label = null;
+    private List<String> outLines = null;
 
-  abstract void setupForNext(CompilationTaskInfo.Builder infoBuilder);
-
-  abstract T buildTask();
-
-  final String label() {
-    return Objects.requireNonNull(label);
-  }
-
-  final Path instanceRoot() {
-    return Objects.requireNonNull(instanceRoot);
-  }
-
-  @SuppressWarnings("WeakerAccess")
-  public final List<String> outLines() {
-    return outLines;
-  }
-
-  public final void resetForNext() {
-    outLines = null;
-    label = "a_test_" + counter.incrementAndGet();
-    infoBuilder
-        .setLabel("//some/bogus:" + label())
-        .setModuleName("some_bogus_module")
-        .setPlatform(Platform.JVM)
-        .setRuleKind(RuleKind.LIBRARY)
-        .setToolchainInfo(
-            KotlinToolchainInfo.newBuilder()
-                .setCommon(
-                    KotlinToolchainInfo.Common.newBuilder()
-                        .setApiVersion("1.2")
-                        .setCoroutines("enabled")
-                        .setLanguageVersion("1.2"))
-                .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
-    try {
-      this.instanceRoot = Files.createTempDirectory(BAZEL_TEST_DIR, label);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+    private static void assertFileExistence(Stream<Path> pathStream, boolean shouldExist) {
+        pathStream.forEach(
+                path -> {
+                    if (shouldExist)
+                        assertWithMessage("file did not exist: " + path).that(path.toFile().exists()).isTrue();
+                    else assertWithMessage("file existed: " + path).that(path.toFile().exists()).isFalse();
+                });
     }
-    setupForNext(infoBuilder);
-  }
 
-  final Path directory(DirectoryType type) {
-    return type.resolve(instanceRoot);
-  }
-
-  @SuppressWarnings("unused")
-  public final void setDebugTags(String... tags) {
-    infoBuilder.addAllDebug(Arrays.asList(tags));
-  }
-
-  final Path writeFile(DirectoryType dirType, String filename, String[] lines) {
-    Path path = directory(dirType).resolve(filename).toAbsolutePath();
-    try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
-      fos.write(String.join("\n", lines).getBytes(UTF_8));
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+    /**
+     * Normalize a path string.
+     *
+     * @param path a path using '/' as the separator.
+     * @return a path string suitable for the target platform.
+     */
+    private static Path toPlatformPath(String path) {
+        assert !path.startsWith("/") : path + " is an absolute path";
+        String[] parts = path.split("/");
+        return parts.length == 1
+                ? Paths.get(parts[0])
+                : Paths.get(parts[0], Arrays.copyOfRange(parts, 1, parts.length));
     }
-    return path;
-  }
 
-  public final Path writeSourceFile(String filename, String[] lines) {
-    return writeFile(DirectoryType.SOURCES, filename, lines);
-  }
+    abstract void setupForNext(CompilationTaskInfo.Builder infoBuilder);
 
-  public final Path writeGeneratedSourceFile(String filename, String[] lines) {
-    return writeFile(DirectoryType.SOURCE_GEN, filename, lines);
-  }
+    abstract T buildTask();
 
-  private <R> R runCompileTask(
-      CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
-    String curDir = System.getProperty("user.dir");
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    try (PrintStream outputStream = new PrintStream(byteArrayOutputStream)) {
-      System.setProperty("user.dir", instanceRoot().toAbsolutePath().toString());
-      return operation.apply(new CompilationTaskContext(info, outputStream), task);
-    } finally {
-      System.setProperty("user.dir", curDir);
-      outLines =
-          Collections.unmodifiableList(
-              new BufferedReader(
-                      new InputStreamReader(
-                          new ByteArrayInputStream(byteArrayOutputStream.toByteArray())))
-                  .lines()
-                  .peek(System.err::println)
-                  .collect(Collectors.toList()));
+    final String label() {
+        return Objects.requireNonNull(label);
     }
-  }
 
-  final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
-    T task = buildTask();
-    return runCompileTask(infoBuilder.build(), task, (ctx, t) -> operation.apply(ctx, task));
-  }
-
-  /**
-   * Run a compilation task expecting it to fail with a {@link CompilationStatusException}.
-   *
-   * @param task the compilation task
-   * @param validator a consumer for the output produced by the task.
-   */
-  public final void runFailingCompileTaskAndValidateOutput(
-      Runnable task, Consumer<List<String>> validator) {
-    try {
-      task.run();
-    } catch (CompilationStatusException ex) {
-      validator.accept(outLines());
-      return;
+    final Path instanceRoot() {
+        return Objects.requireNonNull(instanceRoot);
     }
-    throw new RuntimeException("compilation task should have failed.");
-  }
 
-  public final void assertFilesExist(DirectoryType dir, String... paths) {
-    assertFileExistence(resolved(dir, paths), true);
-  }
-
-  final void assertFilesExist(String... paths) {
-    assertFileExistence(Stream.of(paths).map(Paths::get), true);
-  }
-
-  @SuppressWarnings("unused")
-  public final void assertFilesDoNotExist(DirectoryType dir, String... filePath) {
-    assertFileExistence(resolved(dir, filePath), false);
-  }
-
-  private static void assertFileExistence(Stream<Path> pathStream, boolean shouldExist) {
-    pathStream.forEach(
-        path -> {
-          if (shouldExist)
-            assertWithMessage("file did not exist: " + path).that(path.toFile().exists()).isTrue();
-          else assertWithMessage("file existed: " + path).that(path.toFile().exists()).isFalse();
-        });
-  }
-
-  private Stream<Path> resolved(DirectoryType dir, String... filePath) {
-    Path directory = directory(dir);
-    return Stream.of(filePath).map(f -> directory.resolve(toPlatformPath(f)));
-  }
-
-  /**
-   * Normalize a path string.
-   *
-   * @param path a path using '/' as the separator.
-   * @return a path string suitable for the target platform.
-   */
-  private static Path toPlatformPath(String path) {
-    assert !path.startsWith("/") : path + " is an absolute path";
-    String[] parts = path.split("/");
-    return parts.length == 1
-        ? Paths.get(parts[0])
-        : Paths.get(parts[0], Arrays.copyOfRange(parts, 1, parts.length));
-  }
-
-  public final String toPlatform(String path) {
-    return KotlinAbstractTestBuilder.toPlatformPath(path).toString();
-  }
-
-  @SuppressWarnings("unused")
-  private Stream<Path> directoryContents(DirectoryType type) {
-    try {
-      return Files.walk(directory(type)).map(p -> directory(type).relativize(p));
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+    @SuppressWarnings("WeakerAccess")
+    public final List<String> outLines() {
+        return outLines;
     }
-  }
 
-  @SuppressWarnings("unused")
-  public final void logDirectoryContents(DirectoryType type) {
-    System.out.println(
-        directoryContents(type)
-            .map(Path::toString)
-            .collect(Collectors.joining("\n", "directory " + type.name + " contents:\n", "")));
-  }
+    public final void resetForNext() {
+        outLines = null;
+        label = "a_test_" + counter.incrementAndGet();
+        infoBuilder
+                .setLabel("//some/bogus:" + label())
+                .setModuleName("some_bogus_module")
+                .setPlatform(Platform.JVM)
+                .setRuleKind(RuleKind.LIBRARY)
+                .setToolchainInfo(
+                        KotlinToolchainInfo.newBuilder()
+                                .setCommon(
+                                        KotlinToolchainInfo.Common.newBuilder()
+                                                .setApiVersion("1.2")
+                                                .setCoroutines("enabled")
+                                                .setLanguageVersion("1.2"))
+                                .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
+        try {
+            this.instanceRoot = Files.createTempDirectory(BAZEL_TEST_DIR, label);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        setupForNext(infoBuilder);
+    }
+
+    final Path directory(DirectoryType type) {
+        return type.resolve(instanceRoot);
+    }
+
+    @SuppressWarnings("unused")
+    public final void setDebugTags(String... tags) {
+        infoBuilder.addAllDebug(Arrays.asList(tags));
+    }
+
+    final Path writeFile(DirectoryType dirType, String filename, String[] lines) {
+        Path path = directory(dirType).resolve(filename).toAbsolutePath();
+        try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
+            fos.write(String.join("\n", lines).getBytes(UTF_8));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return path;
+    }
+
+    public final Path writeSourceFile(String filename, String[] lines) {
+        return writeFile(DirectoryType.SOURCES, filename, lines);
+    }
+
+    public final Path writeGeneratedSourceFile(String filename, String[] lines) {
+        return writeFile(DirectoryType.SOURCE_GEN, filename, lines);
+    }
+
+    private <R> R runCompileTask(
+            CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
+        String curDir = System.getProperty("user.dir");
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (PrintStream outputStream = new PrintStream(byteArrayOutputStream)) {
+            System.setProperty("user.dir", instanceRoot().toAbsolutePath().toString());
+            return operation.apply(new CompilationTaskContext(info, outputStream), task);
+        } finally {
+            System.setProperty("user.dir", curDir);
+            outLines =
+                    Collections.unmodifiableList(
+                            new BufferedReader(
+                                    new InputStreamReader(
+                                            new ByteArrayInputStream(byteArrayOutputStream.toByteArray())))
+                                    .lines()
+                                    .peek(System.err::println)
+                                    .collect(Collectors.toList()));
+        }
+    }
+
+    final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
+        T task = buildTask();
+        return runCompileTask(infoBuilder.build(), task, (ctx, t) -> operation.apply(ctx, task));
+    }
+
+    /**
+     * Run a compilation task expecting it to fail with a {@link CompilationStatusException}.
+     *
+     * @param task      the compilation task
+     * @param validator a consumer for the output produced by the task.
+     */
+    public final void runFailingCompileTaskAndValidateOutput(
+            Runnable task, Consumer<List<String>> validator) {
+        try {
+            task.run();
+        } catch (CompilationStatusException ex) {
+            validator.accept(outLines());
+            return;
+        }
+        throw new RuntimeException("compilation task should have failed.");
+    }
+
+    public final void assertFilesExist(DirectoryType dir, String... paths) {
+        assertFileExistence(resolved(dir, paths), true);
+    }
+
+    final void assertFilesExist(String... paths) {
+        assertFileExistence(Stream.of(paths).map(Paths::get), true);
+    }
+
+    @SuppressWarnings("unused")
+    public final void assertFilesDoNotExist(DirectoryType dir, String... filePath) {
+        assertFileExistence(resolved(dir, filePath), false);
+    }
+
+    private Stream<Path> resolved(DirectoryType dir, String... filePath) {
+        Path directory = directory(dir);
+        return Stream.of(filePath).map(f -> directory.resolve(toPlatformPath(f)));
+    }
+
+    public final String toPlatform(String path) {
+        return KotlinAbstractTestBuilder.toPlatformPath(path).toString();
+    }
+
+    @SuppressWarnings("unused")
+    private Stream<Path> directoryContents(DirectoryType type) {
+        try {
+            return Files.walk(directory(type)).map(p -> directory(type).relativize(p));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public final void logDirectoryContents(DirectoryType type) {
+        System.out.println(
+                directoryContents(type)
+                        .map(Path::toString)
+                        .collect(Collectors.joining("\n", "directory " + type.name + " contents:\n", "")));
+    }
 }

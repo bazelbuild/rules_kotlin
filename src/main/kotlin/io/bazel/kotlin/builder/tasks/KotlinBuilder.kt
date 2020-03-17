@@ -59,7 +59,8 @@ class KotlinBuilder @Inject internal constructor(
         Platform.JVM -> executeJvmTask(context, argMap)
         Platform.JS -> executeJsTask(context, argMap)
         Platform.UNRECOGNIZED -> throw IllegalStateException(
-            "unrecognized platform: ${context.info}")
+          "unrecognized platform: ${context.info}"
+        )
       }
       success = true
     } catch (ex: CompilationStatusException) {
@@ -76,10 +77,11 @@ class KotlinBuilder @Inject internal constructor(
   private fun buildContext(args: List<String>): Pair<ArgMap, CompilationTaskContext> {
     check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
     val (flagFileName, primaryOutputPath, _) =
-        checkNotNull(
-            FLAGFILE_RE.matchEntire(args[0])) { "invalid flagfile ${args[0]}" }.destructured
+      checkNotNull(
+        FLAGFILE_RE.matchEntire(args[0])
+      ) { "invalid flagfile ${args[0]}" }.destructured
     val argMap =
-        Files.readAllLines(Paths.get(flagFileName), StandardCharsets.UTF_8).let(ArgMaps::from)
+      Files.readAllLines(Paths.get(flagFileName), StandardCharsets.UTF_8).let(ArgMaps::from)
     val info = buildTaskInfo(argMap).also {
       it.primaryOutputPath = primaryOutputPath
     }.build()
@@ -125,70 +127,70 @@ class KotlinBuilder @Inject internal constructor(
     TEST_ONLY("--testonly");
   }
 
-    private enum class KotlinBuilderFlags(override val flag: String) : Flag {
-        MODULE_NAME("--kotlin_module_name"),
-        PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
-        API_VERSION("--kotlin_api_version"),
-        LANGUAGE_VERSION("--kotlin_language_version"),
-        JVM_TARGET("--kotlin_jvm_target"),
-        OUTPUT_SRCJAR("--kotlin_output_srcjar"),
-        GENERATED_CLASSDIR("--kotlin_generated_classdir"),
-        FRIEND_PATHS("--kotlin_friend_paths"),
-        OUTPUT_JDEPS("--kotlin_output_jdeps"),
-        OUTPUT_JS_JAR("--kotlin_output_js_jar"),
-        JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
-        JS_LIBRARIES("--kotlin_js_libraries"),
-        DEBUG("--kotlin_debug_tags"),
-        TASK_ID("--kotlin_task_id");
-    }
+  private enum class KotlinBuilderFlags(override val flag: String) : Flag {
+    MODULE_NAME("--kotlin_module_name"),
+    PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
+    API_VERSION("--kotlin_api_version"),
+    LANGUAGE_VERSION("--kotlin_language_version"),
+    JVM_TARGET("--kotlin_jvm_target"),
+    OUTPUT_SRCJAR("--kotlin_output_srcjar"),
+    GENERATED_CLASSDIR("--kotlin_generated_classdir"),
+    FRIEND_PATHS("--kotlin_friend_paths"),
+    OUTPUT_JDEPS("--kotlin_output_jdeps"),
+    OUTPUT_JS_JAR("--kotlin_output_js_jar"),
+    JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
+    JS_LIBRARIES("--kotlin_js_libraries"),
+    DEBUG("--kotlin_debug_tags"),
+    TASK_ID("--kotlin_task_id");
+  }
 
   private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
-      with(CompilationTaskInfo.newBuilder()) {
-        addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
+    with(CompilationTaskInfo.newBuilder()) {
+      addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
 
-        label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL)
-        argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND).split("_").also {
-          check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
-          platform = checkNotNull(Platform.valueOf(it[1].toUpperCase())) {
-            "unrecognized platform ${it[1]}"
-          }
-          ruleKind = checkNotNull(RuleKind.valueOf(it[2].toUpperCase())) {
-            "unrecognized rule kind ${it[2]}"
-          }
+      label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL)
+      argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND).split("_").also {
+        check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
+        platform = checkNotNull(Platform.valueOf(it[1].toUpperCase())) {
+          "unrecognized platform ${it[1]}"
         }
-        moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
-          check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
+        ruleKind = checkNotNull(RuleKind.valueOf(it[2].toUpperCase())) {
+          "unrecognized rule kind ${it[2]}"
         }
-        passthroughFlags = argMap.optionalSingle(KotlinBuilderFlags.PASSTHROUGH_FLAGS)
-        argMap.optional(KotlinBuilderFlags.FRIEND_PATHS)?.let(::addAllFriendPaths)
-        toolchainInfoBuilder.commonBuilder.apiVersion =
-            argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
-        toolchainInfoBuilder.commonBuilder.languageVersion =
-            argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
-        this
       }
+      moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
+        check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
+      }
+      passthroughFlags = argMap.optionalSingle(KotlinBuilderFlags.PASSTHROUGH_FLAGS)
+      argMap.optional(KotlinBuilderFlags.FRIEND_PATHS)?.let(::addAllFriendPaths)
+      toolchainInfoBuilder.commonBuilder.apiVersion =
+        argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
+      toolchainInfoBuilder.commonBuilder.languageVersion =
+        argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
+      this
+    }
 
   private fun executeJsTask(context: CompilationTaskContext, argMap: ArgMap) =
-      buildJsTask(context.info, argMap).let { jsTask ->
-        context.whenTracing { printProto("js task input", jsTask) }
-        jsTaskExecutor.execute(context, jsTask)
-      }
+    buildJsTask(context.info, argMap).let { jsTask ->
+      context.whenTracing { printProto("js task input", jsTask) }
+      jsTaskExecutor.execute(context, jsTask)
+    }
 
   private fun buildJsTask(info: CompilationTaskInfo, argMap: ArgMap): JsCompilationTask =
-      with(JsCompilationTask.newBuilder()) {
-        this.info = info
-        with(inputsBuilder) {
-          addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_LIBRARIES))
-          addAllKotlinSources(argMap.mandatory(JavaBuilderFlags.SOURCES))
-        }
-        with(outputsBuilder) {
-          js = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT)
-          jar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_JS_JAR)
-          srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
-        }
-        addAllPassThroughFlags(argMap.mandatory(KotlinBuilderFlags.JS_PASSTHROUGH_FLAGS))
-        build()
+    with(JsCompilationTask.newBuilder()) {
+      this.info = info
+      with(inputsBuilder) {
+        addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_LIBRARIES))
+        addAllKotlinSources(argMap.mandatory(JavaBuilderFlags.SOURCES))
       }
+      with(outputsBuilder) {
+        js = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT)
+        jar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_JS_JAR)
+        srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
+      }
+      addAllPassThroughFlags(argMap.mandatory(KotlinBuilderFlags.JS_PASSTHROUGH_FLAGS))
+      build()
+    }
 
   private fun executeJvmTask(context: CompilationTaskContext, argMap: ArgMap) {
     val task = buildJvmTask(context.info, argMap)
@@ -199,47 +201,44 @@ class KotlinBuilder @Inject internal constructor(
   }
 
   private fun buildJvmTask(info: CompilationTaskInfo, argMap: ArgMap): JvmCompilationTask =
-      JvmCompilationTask.newBuilder().let { root ->
-        root.info = info
+    JvmCompilationTask.newBuilder().let { root ->
+      root.info = info
 
-        with(root.outputsBuilder) {
-          jar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT)
-          srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
+      with(root.outputsBuilder) {
+        jar = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT)
+        srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
 
-          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
-        }
-
-        with(root.directoriesBuilder)
-        {
-          classes = argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR)
-          generatedClasses = argMap.mandatorySingle(KotlinBuilderFlags.GENERATED_CLASSDIR)
-          temp = argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR)
-          generatedSources = argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR)
-        }
-
-        with(root.inputsBuilder)
-        {
-          addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH))
-          putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY))
-          putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.INDIRECT_DEPENDENCY))
-
-          addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
-          addAllProcessorpaths(argMap.optional(JavaBuilderFlags.PROCESSOR_PATH) ?: emptyList())
-
-          argMap.optional(JavaBuilderFlags.SOURCES)?.iterator()?.partitionJvmSources(
-              { addKotlinSources(it) },
-              { addJavaSources(it) }
-          )
-          argMap.optional(JavaBuilderFlags.SOURCE_JARS)?.also {
-            addAllSourceJars(it)
-          }
-        }
-
-        with(root.infoBuilder)
-        {
-          toolchainInfoBuilder.jvmBuilder.jvmTarget =
-              argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET)
-        }
-        root.build()
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
       }
+
+      with(root.directoriesBuilder) {
+        classes = argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR)
+        generatedClasses = argMap.mandatorySingle(KotlinBuilderFlags.GENERATED_CLASSDIR)
+        temp = argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR)
+        generatedSources = argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR)
+      }
+
+      with(root.inputsBuilder) {
+        addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH))
+        putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY))
+        putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.INDIRECT_DEPENDENCY))
+
+        addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
+        addAllProcessorpaths(argMap.optional(JavaBuilderFlags.PROCESSOR_PATH) ?: emptyList())
+
+        argMap.optional(JavaBuilderFlags.SOURCES)?.iterator()?.partitionJvmSources(
+          { addKotlinSources(it) },
+          { addJavaSources(it) }
+        )
+        argMap.optional(JavaBuilderFlags.SOURCE_JARS)?.also {
+          addAllSourceJars(it)
+        }
+      }
+
+      with(root.infoBuilder) {
+        toolchainInfoBuilder.jvmBuilder.jvmTarget =
+          argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET)
+      }
+      root.build()
+    }
 }

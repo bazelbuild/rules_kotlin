@@ -24,29 +24,29 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 public class SourceJarCreatorTest {
-  private final String expectedPackage = "iO.some1.package";
+    private final String expectedPackage = "iO.some1.package";
 
-  private final List<String> cases =
-      Arrays.asList(
-          "package iO.some1.package",
-          "package iO.some1.package ",
-          "package iO.some1.package;",
-          " package iO.some1.package; ",
-          " /* a comment*/ package iO.some1.package; ",
-          " /** a comment*/ package iO.some1.package; ",
-          " /* a comment*//*blah*/package iO.some1.package; ",
-          " /* a comment*//*blah*/ package iO.some1.package; ",
-          " /* a comment*/package /* blah */ iO.some1.package /*lala*/; ",
-          "/* a comment*/package/**/iO.some1.package/*b*/;");
+    private final List<String> cases =
+            Arrays.asList(
+                    "package iO.some1.package",
+                    "package iO.some1.package ",
+                    "package iO.some1.package;",
+                    " package iO.some1.package; ",
+                    " /* a comment*/ package iO.some1.package; ",
+                    " /** a comment*/ package iO.some1.package; ",
+                    " /* a comment*//*blah*/package iO.some1.package; ",
+                    " /* a comment*//*blah*/ package iO.some1.package; ",
+                    " /* a comment*/package /* blah */ iO.some1.package /*lala*/; ",
+                    "/* a comment*/package/**/iO.some1.package/*b*/;");
 
-  @Test
-  public void testPackageNameRegex() {
-    cases.forEach(
-        (testCase) -> {
-          String pkg = SourceJarCreator.Companion.extractPackage(testCase);
-          StandardSubjectBuilder subj = assertWithMessage("positive test case: " + testCase);
-          subj.that(pkg).isNotNull();
-          subj.that(pkg).isEqualTo(expectedPackage);
-        });
-  }
+    @Test
+    public void testPackageNameRegex() {
+        cases.forEach(
+                (testCase) -> {
+                    String pkg = SourceJarCreator.Companion.extractPackage(testCase);
+                    StandardSubjectBuilder subj = assertWithMessage("positive test case: " + testCase);
+                    subj.that(pkg).isNotNull();
+                    subj.that(pkg).isEqualTo(expectedPackage);
+                });
+    }
 }

@@ -22,8 +22,8 @@ import io.bazel.kotlin.builder.tasks.BazelWorker;
 import io.bazel.kotlin.builder.tasks.KotlinBuilder;
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.builder.toolchain.KotlinCompilerPluginArgsEncoder;
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 
 import javax.inject.Singleton;
 import java.io.PrintStream;
@@ -31,38 +31,38 @@ import java.io.PrintStream;
 @Singleton
 @dagger.Component(modules = {KotlinBuilderComponent.Module.class})
 public interface KotlinBuilderComponent {
-  KotlinToolchain toolchain();
+    KotlinToolchain toolchain();
 
-  KotlinJvmTaskExecutor jvmTaskExecutor();
+    KotlinJvmTaskExecutor jvmTaskExecutor();
 
-  Kotlin2JsTaskExecutor jsTaskExecutor();
+    Kotlin2JsTaskExecutor jsTaskExecutor();
 
-  BazelWorker worker();
+    BazelWorker worker();
 
-  @Component.Builder
-  interface Builder {
-    @BindsInstance
-    KotlinBuilderComponent.Builder toolchain(KotlinToolchain toolchain);
+    @Component.Builder
+    interface Builder {
+        @BindsInstance
+        KotlinBuilderComponent.Builder toolchain(KotlinToolchain toolchain);
 
-    KotlinBuilderComponent build();
-  }
-
-  @dagger.Module
-  class Module {
-    @Provides
-    public KotlinCompilerPluginArgsEncoder providePluginArgEncoder(KotlinToolchain toolchain) {
-      return new KotlinCompilerPluginArgsEncoder(
-          toolchain.getKapt3Plugin().getJarPath(), toolchain.getKapt3Plugin().getId());
+        KotlinBuilderComponent build();
     }
 
-    @Provides
-    public PrintStream provideDebugPrintStream() {
-      return System.err;
-    }
+    @dagger.Module
+    class Module {
+        @Provides
+        public KotlinCompilerPluginArgsEncoder providePluginArgEncoder(KotlinToolchain toolchain) {
+            return new KotlinCompilerPluginArgsEncoder(
+                    toolchain.getKapt3Plugin().getJarPath(), toolchain.getKapt3Plugin().getId());
+        }
 
-    @Provides
-    public BazelWorker provideWorker(KotlinBuilder builder) {
-      return new BazelWorker(builder, System.err, "KotlinCompile");
+        @Provides
+        public PrintStream provideDebugPrintStream() {
+            return System.err;
+        }
+
+        @Provides
+        public BazelWorker provideWorker(KotlinBuilder builder) {
+            return new BazelWorker(builder, System.err, "KotlinCompile");
+        }
     }
-  }
 }

@@ -24,11 +24,11 @@ val JvmCompilationTask.Inputs.joinedClasspath: String get() = this.classpathList
 val CompilationTaskInfo.bazelRuleKind: String get() = "kt_${platform.name.toLowerCase()}_${ruleKind.name.toLowerCase()}"
 
 fun Iterator<String>.partitionJvmSources(kt: (String) -> Unit, java: (String) -> Unit) {
-    forEach {
-        when {
-            it.endsWith(".kt") -> kt(it)
-            it.endsWith(".java") -> java(it)
-            else -> throw IllegalStateException("invalid source file type $it")
-        }
+  forEach {
+    when {
+      it.endsWith(".kt") -> kt(it)
+      it.endsWith(".java") -> java(it)
+      else -> throw IllegalStateException("invalid source file type $it")
     }
+  }
 }

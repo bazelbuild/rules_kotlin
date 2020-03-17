@@ -15,7 +15,7 @@ fun routes(app: dynamic): Channel<Int> {
             val hitsSoFar = hitCounter.updateAndGet { it + 1 }
             channel.send(hitsSoFar)
         }
-        if(!isAuthenticated("bob")) {
+        if (!isAuthenticated("bob")) {
             res.send(401, "you sir, are not authorized !")
         } else {
             res.type("text/plain")

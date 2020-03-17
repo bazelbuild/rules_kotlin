@@ -16,5 +16,5 @@
 package coffee
 
 internal interface Pump {
-    fun pump()
+  fun pump()
 }
