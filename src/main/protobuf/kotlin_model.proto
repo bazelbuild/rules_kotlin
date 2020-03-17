@@ -131,6 +131,13 @@ message JvmCompilationTask {
 }
 
 message JsCompilationTask {
+
+    // Directories used by the builder.
+    message Directories {
+        // A temp directory that the compiler may use.
+        string temp = 4;
+    }
+
     message Outputs {
         // The primary output
         string js = 1;
@@ -150,4 +157,6 @@ message JsCompilationTask {
 
     // flags that should be passed through straight to the kotlinc-js compiler.
     repeated string pass_through_flags = 5;
+
+    Directories directories = 6;
 }

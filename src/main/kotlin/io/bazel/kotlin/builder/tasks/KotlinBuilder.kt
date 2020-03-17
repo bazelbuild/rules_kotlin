@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Bazel Authors. All rights reserved.
+ * Copyright 2018 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import java.nio.file.FileSystems
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.regex.Pattern
 import javax.inject.Inject
@@ -115,7 +115,7 @@ class KotlinBuilder @Inject internal constructor(
       @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
       when (context.info.platform) {
         Platform.JVM -> executeJvmTask(context, workingDir, argMap)
-        Platform.JS -> executeJsTask(context, argMap)
+        Platform.JS -> executeJsTask(context, workingDir, argMap)
         Platform.UNRECOGNIZED -> throw IllegalStateException(
             "unrecognized platform: ${context.info}")
       }
@@ -170,15 +170,29 @@ class KotlinBuilder @Inject internal constructor(
       this
     }
 
-  private fun executeJsTask(context: CompilationTaskContext, argMap: ArgMap) =
-    buildJsTask(context.info, argMap).let { jsTask ->
+  private fun executeJsTask(
+    context: CompilationTaskContext,
+    workingDir: Path,
+    argMap: ArgMap
+  ) =
+      buildJsTask(context.info, workingDir, argMap).let { jsTask ->
       context.whenTracing { printProto("js task input", jsTask) }
       jsTaskExecutor.execute(context, jsTask)
     }
 
-  private fun buildJsTask(info: CompilationTaskInfo, argMap: ArgMap): JsCompilationTask =
+  private fun buildJsTask(
+    info: CompilationTaskInfo,
+    workingDir: Path,
+    argMap: ArgMap
+  ): JsCompilationTask =
     with(JsCompilationTask.newBuilder()) {
       this.info = info
+
+        with(directoriesBuilder)
+        {
+          temp = workingDir.toString()
+        }
+
       with(inputsBuilder) {
         addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_LIBRARIES))
         addAllKotlinSources(argMap.mandatory(JavaBuilderFlags.SOURCES))
