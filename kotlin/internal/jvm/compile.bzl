@@ -218,8 +218,9 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     dirs = _compiler_directories(ctx)
     srcs = _partitioned_srcs(ctx.files.srcs)
     friend = _compiler_friends(ctx, friends = getattr(ctx.attr, "friends", []))
-    compile_deps = _compiler_deps(toolchains, friend, deps = ctx.attr.deps)
-    plugins = _plugin_mappers.targets_to_kt_plugins(ctx.attr.plugins + ctx.attr.deps)
+    compile_deps = _compiler_deps(toolchains, friend, deps = ctx.attr.deps + ctx.attr.plugins)
+    annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
+    plugins = _plugin_mappers.targets_to_plugins(ctx.attr.plugins + ctx.attr.deps)
     _run_kt_builder_action(
         ctx = ctx,
         rule_kind = rule_kind,
@@ -228,12 +229,13 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         srcs = srcs,
         friend = friend,
         compile_deps = compile_deps,
+        annotation_processors = annotation_processors,
         plugins = plugins,
         outputs = {
             "output": output_jar,
             "kotlin_output_jdeps": ctx.outputs.jdeps,
             "kotlin_output_srcjar": ctx.outputs.srcjar,
-        }
+        },
     )
 
     return struct(
@@ -263,8 +265,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         ),
     )
 
-
-def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, plugins, outputs):
+def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, annotation_processors, plugins, outputs):
     """Creates a KotlinBuilder action invocation."""
     args = _utils.init_args(ctx, rule_kind, friend.module_name)
 
@@ -280,14 +281,27 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(
         "--processors",
-        plugins,
+        annotation_processors,
         map_each = _plugin_mappers.kt_plugin_to_processor,
         omit_if_empty = True,
     )
     args.add_all(
         "--processorpath",
-        plugins,
+        annotation_processors,
         map_each = _plugin_mappers.kt_plugin_to_processorpath,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--pluginpath",
+        plugins,
+        map_each = _plugin_mappers.kt_plugin_to_pluginpath,
+        omit_if_empty = True,
+    )
+    args.add_all(
+        "--plugin_options",
+        plugins,
+        map_each = _plugin_mappers.kt_plugin_to_plugin_options,
         omit_if_empty = True,
     )
 
@@ -319,8 +333,6 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
         },
     )
-
-
 
 def kt_jvm_produce_jar_actions(ctx, rule_kind):
     """Setup The actions to compile a jar and if any resources or resource_jars were provided to merge these in with the

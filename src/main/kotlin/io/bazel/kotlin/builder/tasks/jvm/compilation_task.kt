@@ -18,7 +18,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KotlinCompilerPluginArgsEncoder
+import io.bazel.kotlin.builder.toolchain.KotlinKaptCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
@@ -51,6 +51,19 @@ internal fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
     .flag("-language-version", info.toolchainInfo.common.languageVersion)
     .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
     .flag("-module-name", info.moduleName)
+
+internal fun pluginArgs(context: JvmCompilationTask, args: CompilationArgs): CompilationArgs = args
+    .let {
+        val pluginsPath = context.inputs.pluginpathsList.joinToString(":")
+        it.value("-Xplugin=${pluginsPath}")
+    }
+    .let {
+        var r = it
+        context.inputs.pluginOptionsList.forEach { opt ->
+            r = r.flag("-P", "plugin:$opt")
+        }
+        r
+    }
 
 internal fun JvmCompilationTask.preProcessingSteps(context: CompilationTaskContext): JvmCompilationTask {
   ensureDirectories(
@@ -85,18 +98,18 @@ internal fun JvmCompilationTask.produceSourceJar() {
   }
 }
 
-internal fun JvmCompilationTask.runAnnotationProcessors(
-  context: CompilationTaskContext,
-  pluginArgsEncoder: KotlinCompilerPluginArgsEncoder,
-  compiler: KotlinToolchain.KotlincInvoker
+internal fun JvmCompilationTask.runPlugins(
+        context: CompilationTaskContext,
+        kaptPluginArgsEncoder: KotlinKaptCompilerPluginArgsEncoder,
+        compiler: KotlinToolchain.KotlincInvoker
 ): JvmCompilationTask {
   if (inputs.processorsList.isEmpty()) {
     return this
   } else {
     return context.execute("kapt (${inputs.processorsList.joinToString(", ")})")
     {
-      commonArgs()
-          .values(pluginArgsEncoder.encode(context, this))
+      pluginArgs(this, commonArgs())
+          .values(kaptPluginArgsEncoder.encode(context, this))
           .values(inputs.kotlinSourcesList)
           .values(inputs.javaSourcesList).list().let { args ->
             context.executeCompilerTask(
@@ -138,7 +151,7 @@ internal fun JvmCompilationTask.compileKotlin(
   compiler: KotlinToolchain.KotlincInvoker,
   printOnFail: Boolean = true
 ) =
-    commonArgs()
+    pluginArgs(this, commonArgs())
         .values(inputs.javaSourcesList)
         .values(inputs.kotlinSourcesList)
         .list().let { args ->

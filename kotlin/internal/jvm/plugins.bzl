@@ -20,10 +20,11 @@ KtJvmPluginInfo = provider(
     doc = "This provider contains the plugin info for the JVM aspect",
     fields = {
         "annotation_processors": "depset of structs containing annotation processor definitions",
+        "plugins": "depset of structs containing kotlin compiler plugin definitions",
     },
 )
 
-_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = depset())]
+_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = depset(), plugins = depset())]
 
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
@@ -33,13 +34,26 @@ def _kt_plugin_to_processor(processor):
 def _kt_plugin_to_processorpath(processor):
     return [j.path for j in processor.classpath.to_list()]
 
-def _targets_to_kt_plugins(targets):
+def _targets_to_annotation_processors(targets):
     return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if t[KtJvmPluginInfo]])
 
+def _targets_to_plugins(targets):
+    return depset(transitive = [t[KtJvmPluginInfo].plugins for t in targets if t[KtJvmPluginInfo]])
+
+def _kt_plugin_to_plugin_options(plugin):
+    id = plugin.id
+    return ["%s:%s" % (id, param) for param in plugin.options]
+
+def _kt_plugin_to_pluginpath(plugin):
+    return [j.path for j in plugin.classpath.to_list()]
+
 mappers = struct(
-    targets_to_kt_plugins = _targets_to_kt_plugins,
+    targets_to_annotation_processors = _targets_to_annotation_processors,
+    targets_to_plugins = _targets_to_plugins,
     kt_plugin_to_processor = _kt_plugin_to_processor,
     kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
+    kt_plugin_to_plugin_options = _kt_plugin_to_plugin_options,
+    kt_plugin_to_pluginpath = _kt_plugin_to_pluginpath,
 )
 
 def merge_plugin_infos(attrs):
@@ -47,7 +61,8 @@ def merge_plugin_infos(attrs):
     Returns:
         A KtJvmPluginInfo provider, Each of the entries is serializable."""
     return KtJvmPluginInfo(
-        annotation_processors = _targets_to_kt_plugins(attrs),
+        annotation_processors = _targets_to_annotation_processors(attrs),
+        plugins = _targets_to_plugins(attrs),
     )
 
 def _kt_jvm_plugin_aspect_impl(target, ctx):
@@ -61,6 +76,21 @@ def _kt_jvm_plugin_aspect_impl(target, ctx):
                     processor_class = processor.processor_class,
                     classpath = merged_deps.transitive_runtime_jars,
                     generates_api = processor.generates_api,
+                ),
+            ]),
+            plugins = depset(),
+        )]
+    elif ctx.rule.kind == "kt_plugin":
+        attributes = ctx.rule.attr
+        merged_deps = java_common.merge([j[JavaInfo] for j in attributes.deps])
+        return [KtJvmPluginInfo(
+            annotation_processors = depset(),
+            plugins = depset([
+                struct(
+                    label = _utils.restore_label(ctx.label),
+                    id = attributes.id,
+                    classpath = merged_deps.transitive_runtime_jars,
+                    options = attributes.options,
                 ),
             ]),
         )]

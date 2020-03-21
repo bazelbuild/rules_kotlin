@@ -23,7 +23,7 @@ import io.bazel.kotlin.builder.tasks.KotlinBuilder;
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
-import io.bazel.kotlin.builder.toolchain.KotlinCompilerPluginArgsEncoder;
+import io.bazel.kotlin.builder.toolchain.KotlinKaptCompilerPluginArgsEncoder;
 
 import javax.inject.Singleton;
 import java.io.PrintStream;
@@ -50,8 +50,8 @@ public interface KotlinBuilderComponent {
   @dagger.Module
   class Module {
     @Provides
-    public KotlinCompilerPluginArgsEncoder providePluginArgEncoder(KotlinToolchain toolchain) {
-      return new KotlinCompilerPluginArgsEncoder(
+    public KotlinKaptCompilerPluginArgsEncoder providePluginArgEncoder(KotlinToolchain toolchain) {
+      return new KotlinKaptCompilerPluginArgsEncoder(
           toolchain.getKapt3Plugin().getJarPath(), toolchain.getKapt3Plugin().getId());
     }
 

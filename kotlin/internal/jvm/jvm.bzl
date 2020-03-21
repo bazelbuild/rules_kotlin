@@ -106,6 +106,7 @@ load(
     _kt_jvm_import_impl = "kt_jvm_import_impl",
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
     _kt_jvm_library_impl = "kt_jvm_library_impl",
+    _kt_plugin_impl = "kt_plugin_impl",
 )
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
@@ -184,6 +185,7 @@ _common_attr = utils.add_dicts(
         "plugins": attr.label_list(
             default = [],
             aspects = [_kt_jvm_plugin_aspect],
+            providers = [JavaInfo],
         ),
         "module_name": attr.string(
             doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
@@ -361,4 +363,21 @@ kt_jvm_import = rule(
     },
     implementation = _kt_jvm_import_impl,
     provides = [JavaInfo, _KtJvmInfo],
+)
+
+kt_plugin = rule(
+    doc = """Define a plugin for the Kotlin compiler to run.""",
+    attrs = {
+        "deps": attr.label_list(
+            doc = "The list of libraries to be added to the compiler's plugin classpath",
+        ),
+        "id": attr.string(
+            doc = """The ID of the plugin""",
+        ),
+        "options": attr.string_list(
+            doc = """List of options to be passed to the plugin""",
+            default = [],
+        ),
+    },
+    implementation = _kt_plugin_impl,
 )

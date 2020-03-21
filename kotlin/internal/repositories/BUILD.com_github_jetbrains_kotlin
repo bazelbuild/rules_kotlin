@@ -42,6 +42,11 @@ kt_jvm_import(
     ]
 ]
 
+java_import(
+    name = "allopen-compiler-plugin",
+    jars = ["lib/allopen-compiler-plugin.jar"],
+)
+
 # Kotlin dependencies that are internal to this repo and may be linked.
 [
     java_import(

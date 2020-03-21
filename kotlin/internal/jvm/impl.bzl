@@ -201,3 +201,6 @@ def kt_jvm_junit_test_impl(ctx):
             direct = ctx.files._java_runtime,
         ),
     )
+
+def kt_plugin_impl(ctx):
+    return [java_common.merge([j[JavaInfo] for j in ctx.attr.deps])]
