@@ -24,6 +24,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
     kt_name = name + "_kt"
     # TODO(bazelbuild/rules_kotlin/issues/273): This should be retrieved from a provider.
     base_deps = deps + [ "@io_bazel_rules_kotlin//third_party:android_sdk" ]
+    kotlincopts = kwargs.pop("kotlincopts", [])
 
     native.android_library(
         name = base_name,
@@ -31,12 +32,14 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
         exports = base_deps,
         **kwargs
     )
+
     _kt_jvm_library(
         name = kt_name,
         srcs = srcs,
         deps = base_deps + [base_name],
         plugins = plugins,
         testonly = kwargs.get("testonly", default = 0),
+        kotlincopts = kotlincopts,
         visibility = ["//visibility:private"],
     )
     return [base_name, kt_name]
