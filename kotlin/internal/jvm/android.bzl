@@ -22,8 +22,9 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
     """
     base_name = name + "_base"
     kt_name = name + "_kt"
+
     # TODO(bazelbuild/rules_kotlin/issues/273): This should be retrieved from a provider.
-    base_deps = deps + [ "@io_bazel_rules_kotlin//third_party:android_sdk" ]
+    base_deps = deps + ["@io_bazel_rules_kotlin//third_party:android_sdk"]
 
     native.android_library(
         name = base_name,

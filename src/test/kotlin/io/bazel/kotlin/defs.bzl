@@ -38,7 +38,7 @@ def kt_rules_test(name, **kwargs):
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"] += [dep]
-        args["jvm_flags"] += ["-D%s=$(rootpath %s)" %(dep.replace("/",".").replace(":","."), dep)]
+        args["jvm_flags"] += ["-D%s=$(rootpath %s)" % (dep.replace("/", ".").replace(":", "."), dep)]
 
     args.setdefault("test_class", _get_class_name(kwargs))
     for f in args.get("srcs"):

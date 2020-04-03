@@ -18,31 +18,32 @@ package io.bazel.kotlin.builder.utils.jars
 import java.nio.file.Path
 import java.util.function.Predicate
 
-class SourceJarExtractor(destDir: Path, val fileMatcher: Predicate<String> = Predicate { true }) : JarExtractor(destDir) {
-    val jarFiles = mutableListOf<Path>()
-    val sourcesList = mutableListOf<String>()
+class SourceJarExtractor(destDir: Path, val fileMatcher: Predicate<String> = Predicate { true }) :
+  JarExtractor(destDir) {
+  val jarFiles = mutableListOf<Path>()
+  val sourcesList = mutableListOf<String>()
 
-    override fun preWrite(isDirectory: Boolean, target: Path): Boolean {
-        if (!isDirectory && fileMatcher.test(target.toString())) {
-            sourcesList.add(target.toString())
-        }
-        return true
+  override fun preWrite(isDirectory: Boolean, target: Path): Boolean {
+    if (!isDirectory && fileMatcher.test(target.toString())) {
+      sourcesList.add(target.toString())
     }
+    return true
+  }
 
-    fun execute() {
-        destDir.also {
-            try {
-                it.toFile().mkdirs()
-            } catch (ex: Exception) {
-                throw RuntimeException("could not create unpack directory at $it", ex)
-            }
-        }
-        jarFiles.forEach {
-            try {
-                extract(it)
-            } catch (ex: Throwable) {
-                throw RuntimeException("error extracting source jar $it", ex)
-            }
-        }
+  fun execute() {
+    destDir.also {
+      try {
+        it.toFile().mkdirs()
+      } catch (ex: Exception) {
+        throw RuntimeException("could not create unpack directory at $it", ex)
+      }
     }
+    jarFiles.forEach {
+      try {
+        extract(it)
+      } catch (ex: Throwable) {
+        throw RuntimeException("error extracting source jar $it", ex)
+      }
+    }
+  }
 }

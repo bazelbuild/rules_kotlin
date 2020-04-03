@@ -19,39 +19,37 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.jar.JarFile
 
-
 open class JarExtractor protected constructor(
-    protected var destDir: Path
+  protected var destDir: Path
 ) {
 
-    /**
-     * @param isDirectory is the target a directory.
-     * @param target path the operation will apply to.
-     * @return weather the operation should be applied or not.
-     */
-    internal open fun preWrite(isDirectory: Boolean, target: Path): Boolean = true
+  /**
+   * @param isDirectory is the target a directory.
+   * @param target path the operation will apply to.
+   * @return weather the operation should be applied or not.
+   */
+  internal open fun preWrite(isDirectory: Boolean, target: Path): Boolean = true
 
-    protected fun extract(jarFile: Path) {
-        JarFile(jarFile.toFile()).use { jar ->
-            jar.entries().also { entries ->
-                while (entries.hasMoreElements()) {
-                    (entries.nextElement() as java.util.jar.JarEntry).also { entry ->
-                        destDir.resolve(entry.name).also { target ->
-                            if (preWrite(entry.isDirectory, target)) {
-                                when {
-                                    entry.isDirectory ->
-                                        Files.createDirectories(target)
-                                    else -> jar.getInputStream(entry).use {
-                                        Files.createDirectories(target.parent)
-                                        Files.copy(it, target)
-                                    }
-                                }
-                            }
-                        }
-                    }
+  protected fun extract(jarFile: Path) {
+    JarFile(jarFile.toFile()).use { jar ->
+      jar.entries().also { entries ->
+        while (entries.hasMoreElements()) {
+          (entries.nextElement() as java.util.jar.JarEntry).also { entry ->
+            destDir.resolve(entry.name).also { target ->
+              if (preWrite(entry.isDirectory, target)) {
+                when {
+                  entry.isDirectory ->
+                    Files.createDirectories(target)
+                  else -> jar.getInputStream(entry).use {
+                    Files.createDirectories(target.parent)
+                    Files.copy(it, target)
+                  }
                 }
+              }
             }
+          }
         }
+      }
     }
+  }
 }
-

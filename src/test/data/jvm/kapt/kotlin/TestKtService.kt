@@ -18,6 +18,6 @@ package tests.smoke.kapt.kotlin
 import com.google.auto.service.AutoService
 
 interface TestKtService {
-    @AutoService(TestKtService::class)
-    class Impl(): TestKtService
+  @AutoService(TestKtService::class)
+  class Impl() : TestKtService
 }

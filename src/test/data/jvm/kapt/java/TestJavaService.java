@@ -20,5 +20,6 @@ import com.google.auto.service.AutoService;
 
 public interface TestJavaService {
     @AutoService(TestJavaService.class)
-    class Impl implements TestJavaService {}
+    class Impl implements TestJavaService {
+    }
 }

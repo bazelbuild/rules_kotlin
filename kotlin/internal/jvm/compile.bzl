@@ -233,7 +233,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
             "output": output_jar,
             "kotlin_output_jdeps": ctx.outputs.jdeps,
             "kotlin_output_srcjar": ctx.outputs.srcjar,
-        }
+        },
     )
 
     return struct(
@@ -262,7 +262,6 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
             ),
         ),
     )
-
 
 def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, plugins, outputs):
     """Creates a KotlinBuilder action invocation."""
@@ -319,8 +318,6 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
         },
     )
-
-
 
 def kt_jvm_produce_jar_actions(ctx, rule_kind):
     """Setup The actions to compile a jar and if any resources or resource_jars were provided to merge these in with the
