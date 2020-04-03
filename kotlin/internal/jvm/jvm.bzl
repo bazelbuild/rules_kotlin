@@ -103,11 +103,11 @@ load(
 )
 load(
     "//kotlin/internal/jvm:impl.bzl",
+    _kt_compiler_plugin_impl = "kt_compiler_plugin_impl",
     _kt_jvm_binary_impl = "kt_jvm_binary_impl",
     _kt_jvm_import_impl = "kt_jvm_import_impl",
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
     _kt_jvm_library_impl = "kt_jvm_library_impl",
-    _kt_plugin_impl = "kt_plugin_impl",
 )
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
@@ -380,6 +380,6 @@ kt_compiler_plugin = rule(
             default = [],
         ),
     },
-    implementation = _kt_plugin_impl,
+    implementation = _kt_compiler_plugin_impl,
     provides = [JavaInfo, _KtCompilerPluginInfo],
 )

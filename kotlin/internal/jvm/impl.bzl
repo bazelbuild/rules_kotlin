@@ -204,7 +204,7 @@ def kt_jvm_junit_test_impl(ctx):
         ),
     )
 
-def kt_plugin_impl(ctx):
+def kt_compiler_plugin_impl(ctx):
     merged_deps = java_common.merge([j[JavaInfo] for j in ctx.attr.deps])
     plugin_id = ctx.attr.id
     options = [struct(id = plugin_id, value = option) for option in ctx.attr.options]
