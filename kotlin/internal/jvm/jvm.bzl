@@ -93,6 +93,7 @@ kt_jvm_binary(
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
@@ -365,7 +366,7 @@ kt_jvm_import = rule(
     provides = [JavaInfo, _KtJvmInfo],
 )
 
-kt_plugin = rule(
+kt_compiler_plugin = rule(
     doc = """Define a plugin for the Kotlin compiler to run.""",
     attrs = {
         "deps": attr.label_list(
@@ -380,4 +381,5 @@ kt_plugin = rule(
         ),
     },
     implementation = _kt_plugin_impl,
+    provides = [JavaInfo, _KtCompilerPluginInfo],
 )

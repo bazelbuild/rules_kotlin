@@ -17,6 +17,7 @@ load(
 )
 load(
     "//kotlin/internal:defs.bzl",
+    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
 )
 load(
@@ -192,6 +193,7 @@ def kt_jvm_junit_test_impl(ctx):
         main_class = ctx.attr.main_class,
         jvm_flags = ["-ea", "-Dbazel.test_suite=%s" % test_class] + ctx.attr.jvm_flags,
     )
+
     return _make_providers(
         ctx,
         providers,
@@ -203,4 +205,14 @@ def kt_jvm_junit_test_impl(ctx):
     )
 
 def kt_plugin_impl(ctx):
-    return [java_common.merge([j[JavaInfo] for j in ctx.attr.deps])]
+    merged_deps = java_common.merge([j[JavaInfo] for j in ctx.attr.deps])
+    plugin_id = ctx.attr.id
+    options = [struct(id = plugin_id, value = option) for option in ctx.attr.options]
+
+    return [
+        merged_deps,
+        _KtCompilerPluginInfo(
+            classpath = merged_deps.transitive_runtime_jars.to_list(),
+            options = options,
+        ),
+    ]

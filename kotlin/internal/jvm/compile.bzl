@@ -22,6 +22,11 @@ load(
     _plugin_mappers = "mappers",
 )
 load(
+    "//kotlin/internal:compiler_plugins.bzl",
+    _plugins_to_classpaths = "plugins_to_classpaths",
+    _plugins_to_options = "plugins_to_options",
+)
+load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
@@ -220,7 +225,8 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     friend = _compiler_friends(ctx, friends = getattr(ctx.attr, "friends", []))
     compile_deps = _compiler_deps(toolchains, friend, deps = ctx.attr.deps + ctx.attr.plugins)
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
-    plugins = _plugin_mappers.targets_to_plugins(ctx.attr.plugins + ctx.attr.deps)
+    plugins = ctx.attr.plugins
+
     _run_kt_builder_action(
         ctx = ctx,
         rule_kind = rule_kind,
@@ -294,14 +300,12 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
 
     args.add_all(
         "--pluginpath",
-        plugins,
-        map_each = _plugin_mappers.kt_plugin_to_pluginpath,
+        _plugins_to_classpaths(plugins),
         omit_if_empty = True,
     )
     args.add_all(
         "--plugin_options",
-        plugins,
-        map_each = _plugin_mappers.kt_plugin_to_plugin_options,
+        _plugins_to_options(plugins),
         omit_if_empty = True,
     )
 

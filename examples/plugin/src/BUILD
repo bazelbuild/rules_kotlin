@@ -1,6 +1,6 @@
-load("//kotlin:kotlin.bzl", "kt_jvm_library", "kt_plugin")
+load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
 
-kt_plugin(
+kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = ["annotation=plugin.OpenForTesting"],
