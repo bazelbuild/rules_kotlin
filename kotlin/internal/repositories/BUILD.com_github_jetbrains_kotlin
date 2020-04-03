@@ -42,7 +42,7 @@ kt_jvm_import(
     ]
 ]
 
-java_import(
+kt_jvm_import(
     name = "allopen-compiler-plugin",
     jars = ["lib/allopen-compiler-plugin.jar"],
 )
