@@ -14,7 +14,6 @@
 package(default_visibility = ["//src:__subpackages__"])
 
 load("@rules_java//java:defs.bzl", "java_library")
-load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder",
@@ -37,6 +36,7 @@ java_library(
         "KotlinAbstractTestBuilder.java",
         "KotlinJsTestBuilder.java",
         "KotlinJvmTestBuilder.java",
+        "KotlinBuilderTestComponent.java"
     ],
     data = [
         "//src/main/kotlin/io/bazel/kotlin/compiler",
@@ -51,6 +51,8 @@ java_library(
     ],
     deps = _COMMON_DEPS + [
         "//third_party:autovalue",
+        "//third_party:dagger",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks"
     ],
 )
 
