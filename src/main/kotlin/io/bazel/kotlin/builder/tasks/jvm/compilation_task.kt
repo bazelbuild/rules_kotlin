@@ -37,27 +37,27 @@ import java.nio.file.Paths
  * Return a list with the common arguments.
  */
 internal fun JvmCompilationTask.commonArgs(): CompilationArgs = baseArgs()
-    .absolutePaths(info.friendPathsList) {
-      "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
-    }
-    .flag("-d", directories.classes)
-    .givenNotEmpty(info.passthroughFlags) { it.split(" ") }
+  .absolutePaths(info.friendPathsList) {
+    "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
+  }
+  .flag("-d", directories.classes)
+  .givenNotEmpty(info.passthroughFlags) { it.split(" ") }
 
 internal fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
-    .flag("-cp").absolutePaths(inputs.classpathList) {
-      it.map(Path::toString).joinToString(File.pathSeparator)
-    }
-    .flag("-api-version", info.toolchainInfo.common.apiVersion)
-    .flag("-language-version", info.toolchainInfo.common.languageVersion)
-    .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
-    .flag("-module-name", info.moduleName)
+  .flag("-cp").absolutePaths(inputs.classpathList) {
+    it.map(Path::toString).joinToString(File.pathSeparator)
+  }
+  .flag("-api-version", info.toolchainInfo.common.apiVersion)
+  .flag("-language-version", info.toolchainInfo.common.languageVersion)
+  .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
+  .flag("-module-name", info.moduleName)
 
 internal fun JvmCompilationTask.preProcessingSteps(context: CompilationTaskContext): JvmCompilationTask {
   ensureDirectories(
-      directories.temp,
-      directories.generatedSources,
-      directories.generatedClasses,
-      directories.classes
+    directories.temp,
+    directories.generatedSources,
+    directories.generatedClasses,
+    directories.classes
   )
   return context.execute("expand sources") { expandWithSourceJarSources() }
 }
@@ -66,20 +66,20 @@ internal fun JvmCompilationTask.produceSourceJar() {
   Paths.get(outputs.srcjar).also { sourceJarPath ->
     Files.createFile(sourceJarPath)
     SourceJarCreator(
-        sourceJarPath
+      sourceJarPath
     ).also { creator ->
       // This check asserts that source jars were unpacked if present.
       check(
-          inputs.sourceJarsList.isEmpty() ||
-              Files.exists(Paths.get(directories.temp).resolve("_srcjars"))
+        inputs.sourceJarsList.isEmpty() ||
+        Files.exists(Paths.get(directories.temp).resolve("_srcjars"))
       )
       listOf(
-          // Any (input) source jars should already have been expanded so do not add them here.
-          inputs.javaSourcesList.stream(),
-          inputs.kotlinSourcesList.stream()
+        // Any (input) source jars should already have been expanded so do not add them here.
+        inputs.javaSourcesList.stream(),
+        inputs.kotlinSourcesList.stream()
       ).stream()
-          .flatMap { it.map { p -> Paths.get(p) } }
-          .also { creator.addSources(it) }
+        .flatMap { it.map { p -> Paths.get(p) } }
+        .also { creator.addSources(it) }
       creator.execute()
     }
   }
@@ -93,24 +93,23 @@ internal fun JvmCompilationTask.runAnnotationProcessors(
   if (inputs.processorsList.isEmpty()) {
     return this
   } else {
-    return context.execute("kapt (${inputs.processorsList.joinToString(", ")})")
-    {
+    return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
       commonArgs()
-          .values(pluginArgsEncoder.encode(context, this))
-          .values(inputs.kotlinSourcesList)
-          .values(inputs.javaSourcesList).list().let { args ->
-            context.executeCompilerTask(
-                args,
-                compiler::compile,
-                printOnSuccess = context.whenTracing { false } ?: true)
-          }.let { outputLines ->
-            // if tracing is enabled the output should be formatted in a special way, if we aren't
-            // tracing then any compiler output would make it's way to the console as is.
-            context.whenTracing {
-              printLines("kapt output", outputLines)
-            }
-            return@let expandWithGeneratedSources()
+        .values(pluginArgsEncoder.encode(context, this))
+        .values(inputs.kotlinSourcesList)
+        .values(inputs.javaSourcesList).list().let { args ->
+          context.executeCompilerTask(
+            args,
+            compiler::compile,
+            printOnSuccess = context.whenTracing { false } ?: true)
+        }.let { outputLines ->
+          // if tracing is enabled the output should be formatted in a special way, if we aren't
+          // tracing then any compiler output would make it's way to the console as is.
+          context.whenTracing {
+            printLines("kapt output", outputLines)
           }
+          return@let expandWithGeneratedSources()
+        }
     }
   }
 }
@@ -119,16 +118,16 @@ internal fun JvmCompilationTask.runAnnotationProcessors(
  * Produce the primary output jar.
  */
 internal fun JvmCompilationTask.createOutputJar() =
-    JarCreator(
-        path = Paths.get(outputs.jar),
-        normalize = true,
-        verbose = false
-    ).also {
-      it.addDirectory(Paths.get(directories.classes))
-      it.addDirectory(Paths.get(directories.generatedClasses))
-      it.setJarOwner(info.label, info.bazelRuleKind)
-      it.execute()
-    }
+  JarCreator(
+    path = Paths.get(outputs.jar),
+    normalize = true,
+    verbose = false
+  ).also {
+    it.addDirectory(Paths.get(directories.classes))
+    it.addDirectory(Paths.get(directories.generatedClasses))
+    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.execute()
+  }
 
 /**
  * Compiles Kotlin sources to classes. Does not compile Java sources.
@@ -138,53 +137,53 @@ internal fun JvmCompilationTask.compileKotlin(
   compiler: KotlinToolchain.KotlincInvoker,
   printOnFail: Boolean = true
 ) =
-    commonArgs()
-        .values(inputs.javaSourcesList)
-        .values(inputs.kotlinSourcesList)
-        .list().let { args ->
-          return@let context.executeCompilerTask(args, compiler::compile, printOnFail = printOnFail)
-        }
+  commonArgs()
+    .values(inputs.javaSourcesList)
+    .values(inputs.kotlinSourcesList)
+    .list().let { args ->
+      return@let context.executeCompilerTask(args, compiler::compile, printOnFail = printOnFail)
+    }
 
 /**
  * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the
  * Java and Kotlin sources merged in.
  */
 internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask =
-    if (inputs.sourceJarsList.isEmpty())
-      this
-    else expandWithSources(
-        SourceJarExtractor(
-            destDir = Paths.get(directories.temp).resolve("_srcjars"),
-            fileMatcher = IS_JVM_SOURCE_FILE
-        ).also {
-          it.jarFiles.addAll(inputs.sourceJarsList.map { p -> Paths.get(p) })
-          it.execute()
-        }.sourcesList.iterator()
-    )
+  if (inputs.sourceJarsList.isEmpty())
+    this
+  else expandWithSources(
+    SourceJarExtractor(
+      destDir = Paths.get(directories.temp).resolve("_srcjars"),
+      fileMatcher = IS_JVM_SOURCE_FILE
+    ).also {
+      it.jarFiles.addAll(inputs.sourceJarsList.map { p -> Paths.get(p) })
+      it.execute()
+    }.sourcesList.iterator()
+  )
 
 /**
  * Create a new [JvmCompilationTask] with sources found in the generatedSources directory. This should be run after
  * annotation processors have been run.
  */
 internal fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
-    expandWithSources(
-        File(directories.generatedSources).walkTopDown()
-            .filter { it.isFile }
-            .map { it.path }
-            .iterator()
-    )
+  expandWithSources(
+    File(directories.generatedSources).walkTopDown()
+      .filter { it.isFile }
+      .map { it.path }
+      .iterator()
+  )
 
 private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
-    updateBuilder { builder ->
-      sources.partitionJvmSources(
-          { builder.inputsBuilder.addKotlinSources(it) },
-          { builder.inputsBuilder.addJavaSources(it) })
-    }
+  updateBuilder { builder ->
+    sources.partitionJvmSources(
+      { builder.inputsBuilder.addKotlinSources(it) },
+      { builder.inputsBuilder.addJavaSources(it) })
+  }
 
 private fun JvmCompilationTask.updateBuilder(
   block: (JvmCompilationTask.Builder) -> Unit
 ): JvmCompilationTask =
-    toBuilder().let {
-      block(it)
-      it.build()
-    }
+  toBuilder().let {
+    block(it)
+    it.build()
+  }

@@ -18,10 +18,10 @@ load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 kt_bootstrap_library(
     name = "compiler",
     srcs = glob(["*.kt"]),
-    visibility = ["//src:__subpackages__"],
     neverlink_deps = [
         "@com_github_jetbrains_kotlin//:kotlin-compiler",
         "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
         "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
     ],
+    visibility = ["//src:__subpackages__"],
 )

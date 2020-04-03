@@ -19,7 +19,7 @@ kt_rules_test(
     srcs = ["jvm/JdepsParserTest.java"],
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
-    ]
+    ],
 )
 
 kt_rules_test(
@@ -29,19 +29,22 @@ kt_rules_test(
 
 # TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handles jvm_import data better.
 _MAVEN_CENTRAL_PREFIX = "@kotlin_rules_maven//:v1/https/maven-central.storage.googleapis.com/repos/central/data"
+
 _AUTO_VALUE_PREFIX = "%s/com/google/auto/value" % _MAVEN_CENTRAL_PREFIX
-_AUTO_VALUE_JAR = _AUTO_VALUE_PREFIX+ "/auto-value/1.6.5/auto-value-1.6.5.jar"
-_AUTO_VALUE_ANNOTATIONS_JAR =  _AUTO_VALUE_PREFIX+  "/auto-value-annotations/1.6.5/auto-value-annotations-1.6.5.jar"
+
+_AUTO_VALUE_JAR = _AUTO_VALUE_PREFIX + "/auto-value/1.6.5/auto-value-1.6.5.jar"
+
+_AUTO_VALUE_ANNOTATIONS_JAR = _AUTO_VALUE_PREFIX + "/auto-value-annotations/1.6.5/auto-value-annotations-1.6.5.jar"
 
 kt_rules_test(
     name = "KotlinBuilderJvmKaptTest",
     srcs = ["jvm/KotlinBuilderJvmKaptTest.java"],
     data = [
-       _AUTO_VALUE_JAR,
-       _AUTO_VALUE_ANNOTATIONS_JAR,
+        _AUTO_VALUE_JAR,
+        _AUTO_VALUE_ANNOTATIONS_JAR,
     ],
     jvm_flags = [
-        "-Dauto_value=$(location %s)" %  _AUTO_VALUE_JAR,
+        "-Dauto_value=$(location %s)" % _AUTO_VALUE_JAR,
         "-Dauto_value_annotations=$(location %s)" % _AUTO_VALUE_ANNOTATIONS_JAR,
     ],
 )

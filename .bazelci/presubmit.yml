@@ -14,19 +14,19 @@ tasks:
       - "//:rules_kotlin_release"
   rbe_ubuntu1604:
     test_targets:
-    - "--"
-    - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
-    # KotlinJvmDaggerExampleTest and KotlinJvmKaptAssertionTest are not remote
-    # execution compatible, do not run them for now.
-    - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmFriendsVisibilityTest"
-    - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmBasicAssertionTest"
+      - "--"
+      - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
+      # KotlinJvmDaggerExampleTest and KotlinJvmKaptAssertionTest are not remote
+      # execution compatible, do not run them for now.
+      - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmFriendsVisibilityTest"
+      - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmBasicAssertionTest"
     test_flags:
-    # Override the default worker strategy for remote builds (worker strategy
-    # cannot be used with remote builds)
-    - "--strategy=KotlinCompile=remote"
+      # Override the default worker strategy for remote builds (worker strategy
+      # cannot be used with remote builds)
+      - "--strategy=KotlinCompile=remote"
   macos:
     test_targets:
-    - "//:all_tests"
+      - "//:all_tests"
   example-android:
     name: "Example - Android"
     platform: ubuntu1804

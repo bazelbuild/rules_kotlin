@@ -18,7 +18,7 @@ load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder",
-     "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
+    "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
     "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
     "//src/main/protobuf:kotlin_model_java_proto",
     "//src/main/protobuf:deps_java_proto",
@@ -57,8 +57,8 @@ java_library(
 test_suite(
     name = "builder_tests",
     tests = [
-        "//src/test/kotlin/io/bazel/kotlin/builder/utils",
         "//src/test/kotlin/io/bazel/kotlin/builder/tasks",
+        "//src/test/kotlin/io/bazel/kotlin/builder/utils",
     ],
     visibility = ["//visibility:public"],
 )

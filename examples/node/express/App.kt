@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     // register the routes.
     val hitCountChannel = routes(app)
     scope.launch {
-        hitCountChannel.consumeEach { 
+        hitCountChannel.consumeEach {
             println("Hits so far: $it")
         }
     }

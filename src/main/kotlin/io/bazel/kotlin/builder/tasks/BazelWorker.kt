@@ -17,7 +17,11 @@ package io.bazel.kotlin.builder.tasks
 
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import io.bazel.kotlin.builder.utils.rootCause
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InterruptedIOException
+import java.io.PrintStream
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -28,16 +32,16 @@ import java.nio.file.Paths
  * This is the same thing as a main function, except not static.
  */
 interface CommandLineProgram {
-    /**
-     * Runs blocking program start to finish.
-     *
-     * This function might be called multiple times throughout the life of this object. Output
-     * must be sent to [System.out] and [System.err].
-     *
-     * @param args command line arguments
-     * @return program exit code, i.e. 0 for success, non-zero for failure
-     */
-    fun apply(args: List<String>): Int
+  /**
+   * Runs blocking program start to finish.
+   *
+   * This function might be called multiple times throughout the life of this object. Output
+   * must be sent to [System.out] and [System.err].
+   *
+   * @param args command line arguments
+   * @return program exit code, i.e. 0 for success, non-zero for failure
+   */
+  fun apply(args: List<String>): Int
 }
 
 /**
@@ -50,115 +54,117 @@ interface CommandLineProgram {
  * @param <T> delegate program type
 </T> */
 class BazelWorker(
-    private val delegate: CommandLineProgram,
-    private val output: PrintStream,
-    private val mnemonic: String
+  private val delegate: CommandLineProgram,
+  private val output: PrintStream,
+  private val mnemonic: String
 ) : CommandLineProgram {
-    companion object {
-        private const val INTERUPTED_STATUS = 0
-        private const val ERROR_STATUS = 1
-    }
+  companion object {
+    private const val INTERUPTED_STATUS = 0
+    private const val ERROR_STATUS = 1
+  }
 
-    override fun apply(args: List<String>): Int {
-        return if (args.contains("--persistent_worker"))
-            runAsPersistentWorker(args)
-        else delegate.apply(loadArguments(args, false))
-    }
+  override fun apply(args: List<String>): Int {
+    return if (args.contains("--persistent_worker"))
+      runAsPersistentWorker(args)
+    else delegate.apply(loadArguments(args, false))
+  }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun runAsPersistentWorker(ignored: List<String>): Int {
-        val realStdIn = System.`in`
-        val realStdOut = System.out
-        val realStdErr = System.err
-        try {
-            ByteArrayInputStream(ByteArray(0)).use { emptyIn ->
-                ByteArrayOutputStream().use { buffer ->
-                    PrintStream(buffer).use { ps ->
-                        System.setIn(emptyIn)
-                        System.setOut(ps)
-                        System.setErr(ps)
-                        while (true) {
-                            val request = WorkerProtocol.WorkRequest.parseDelimitedFrom(realStdIn) ?: return 0
-                            val exitCode = try {
-                                delegate.apply(loadArguments(request.argumentsList, true))
-                            } catch (e: RuntimeException) {
-                                val innerExitCode = if (wasInterrupted(e)) INTERUPTED_STATUS
-                                else ERROR_STATUS.also {
-                                    System.err.println(
-                                        "ERROR: Worker threw uncaught exception with args: ${request.argumentsList.joinToString(" ")}"
-                                    )
-                                    e.printStackTrace(System.err)
-                                }
-                                WorkerProtocol.WorkResponse.newBuilder()
-                                        .setOutput(buffer.toString())
-                                        .setExitCode(innerExitCode)
-                                        .build()
-                                        .writeDelimitedTo(realStdOut)
-                                realStdOut.flush()
-                                return innerExitCode
-                            }
-
-                            WorkerProtocol.WorkResponse.newBuilder()
-                                .setOutput(buffer.toString())
-                                .setExitCode(exitCode)
-                                .build()
-                                .writeDelimitedTo(realStdOut)
-                            realStdOut.flush()
-                            buffer.reset()
-                            System.gc() // be a good little worker process and consume less memory when idle
-                        }
-                    }
+  @Suppress("UNUSED_PARAMETER")
+  private fun runAsPersistentWorker(ignored: List<String>): Int {
+    val realStdIn = System.`in`
+    val realStdOut = System.out
+    val realStdErr = System.err
+    try {
+      ByteArrayInputStream(ByteArray(0)).use { emptyIn ->
+        ByteArrayOutputStream().use { buffer ->
+          PrintStream(buffer).use { ps ->
+            System.setIn(emptyIn)
+            System.setOut(ps)
+            System.setErr(ps)
+            while (true) {
+              val request = WorkerProtocol.WorkRequest.parseDelimitedFrom(realStdIn) ?: return 0
+              val exitCode = try {
+                delegate.apply(loadArguments(request.argumentsList, true))
+              } catch (e: RuntimeException) {
+                val innerExitCode = if (wasInterrupted(e)) INTERUPTED_STATUS
+                else ERROR_STATUS.also {
+                  System.err.println(
+                    "ERROR: Worker threw uncaught exception with args: ${request.argumentsList.joinToString(
+                      " "
+                    )}"
+                  )
+                  e.printStackTrace(System.err)
                 }
-            }
-        } catch (e: IOException) {
-            if (wasInterrupted(e)) {
-                return INTERUPTED_STATUS
-            }
-            throw e
-        } catch (e: RuntimeException) {
-            if (wasInterrupted(e)) {
-                return INTERUPTED_STATUS
-            }
-            throw e
-        } finally {
-            System.setIn(realStdIn)
-            System.setOut(realStdOut)
-            System.setErr(realStdErr)
-        }
-        throw RuntimeException("drop through")
-    }
+                WorkerProtocol.WorkResponse.newBuilder()
+                  .setOutput(buffer.toString())
+                  .setExitCode(innerExitCode)
+                  .build()
+                  .writeDelimitedTo(realStdOut)
+                realStdOut.flush()
+                return innerExitCode
+              }
 
-    private fun loadArguments(args: List<String>, isWorker: Boolean): List<String> {
-        if (args.isNotEmpty()) {
-            val lastArg = args[args.size - 1]
-
-            if (lastArg.startsWith("@")) {
-                val pathElement = lastArg.substring(1)
-                val flagFile = Paths.get(pathElement)
-                if (isWorker && lastArg.startsWith("@@") || Files.exists(flagFile)) {
-                    if (!isWorker && !mnemonic.isEmpty()) {
-                        output.printf(
-                            "HINT: %s will compile faster if you run: " + "echo \"build --strategy=%s=worker\" >>~/.bazelrc\n",
-                            mnemonic, mnemonic
-                        )
-                    }
-                    try {
-                        return Files.readAllLines(flagFile, UTF_8)
-                    } catch (e: IOException) {
-                        throw RuntimeException(e)
-                    }
-                }
+              WorkerProtocol.WorkResponse.newBuilder()
+                .setOutput(buffer.toString())
+                .setExitCode(exitCode)
+                .build()
+                .writeDelimitedTo(realStdOut)
+              realStdOut.flush()
+              buffer.reset()
+              System.gc() // be a good little worker process and consume less memory when idle
             }
+          }
         }
-        return args
+      }
+    } catch (e: IOException) {
+      if (wasInterrupted(e)) {
+        return INTERUPTED_STATUS
+      }
+      throw e
+    } catch (e: RuntimeException) {
+      if (wasInterrupted(e)) {
+        return INTERUPTED_STATUS
+      }
+      throw e
+    } finally {
+      System.setIn(realStdIn)
+      System.setOut(realStdOut)
+      System.setErr(realStdErr)
     }
+    throw RuntimeException("drop through")
+  }
 
-    private fun wasInterrupted(e: Throwable): Boolean {
-        val cause = e.rootCause
-        if (cause is InterruptedException || cause is InterruptedIOException) {
-            output.println("Terminating worker due to interrupt signal")
-            return true
+  private fun loadArguments(args: List<String>, isWorker: Boolean): List<String> {
+    if (args.isNotEmpty()) {
+      val lastArg = args[args.size - 1]
+
+      if (lastArg.startsWith("@")) {
+        val pathElement = lastArg.substring(1)
+        val flagFile = Paths.get(pathElement)
+        if (isWorker && lastArg.startsWith("@@") || Files.exists(flagFile)) {
+          if (!isWorker && !mnemonic.isEmpty()) {
+            output.printf(
+              "HINT: %s will compile faster if you run: " + "echo \"build --strategy=%s=worker\" >>~/.bazelrc\n",
+              mnemonic, mnemonic
+            )
+          }
+          try {
+            return Files.readAllLines(flagFile, UTF_8)
+          } catch (e: IOException) {
+            throw RuntimeException(e)
+          }
         }
-        return false
+      }
     }
+    return args
+  }
+
+  private fun wasInterrupted(e: Throwable): Boolean {
+    val cause = e.rootCause
+    if (cause is InterruptedException || cause is InterruptedIOException) {
+      output.println("Terminating worker due to interrupt signal")
+      return true
+    }
+    return false
+  }
 }

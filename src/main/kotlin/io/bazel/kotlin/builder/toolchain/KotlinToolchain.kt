@@ -32,13 +32,13 @@ class KotlinToolchain private constructor(
   val kotlinHome: Path,
   val classLoader: ClassLoader,
   val kotlinStandardLibraries: List<String> = listOf(
-      "kotlin-stdlib.jar",
-      "kotlin-stdlib-jdk7.jar",
-      "kotlin-stdlib-jdk8.jar"
+    "kotlin-stdlib.jar",
+    "kotlin-stdlib-jdk7.jar",
+    "kotlin-stdlib-jdk8.jar"
   ),
   val kapt3Plugin: KotlinToolchain.CompilerPlugin = KotlinToolchain.CompilerPlugin(
-      kotlinHome.resolveVerified("lib", "kotlin-annotation-processing.jar").absolutePath,
-      "org.jetbrains.kotlin.kapt3"
+    kotlinHome.resolveVerified("lib", "kotlin-annotation-processing.jar").absolutePath,
+    "org.jetbrains.kotlin.kapt3"
   )
 ) {
 
@@ -48,17 +48,17 @@ class KotlinToolchain private constructor(
     private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
 
     private fun createClassLoader(javaHome: Path, baseJars: List<File>): ClassLoader =
-        ClassPreloadingUtils.preloadClasses(
-            mutableListOf<File>().also {
-              it += baseJars
-              if (!isJdk9OrNewer) {
-                it += javaHome.resolveVerified("lib", "tools.jar")
-              }
-            },
-            Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
-            ClassLoader.getSystemClassLoader(),
-            null
-        )
+      ClassPreloadingUtils.preloadClasses(
+        mutableListOf<File>().also {
+          it += baseJars
+          if (!isJdk9OrNewer) {
+            it += javaHome.resolveVerified("lib", "tools.jar")
+          }
+        },
+        Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
+        ClassLoader.getSystemClassLoader(),
+        null
+      )
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain {
@@ -66,19 +66,21 @@ class KotlinToolchain private constructor(
         path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
       }
       val kotlinCompilerJar = BazelRunFiles.resolveVerified(
-          "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
+        "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar"
+      )
       return KotlinToolchain(
-          kotlinCompilerJar.toPath().parent.parent,
-          createClassLoader(
-              javaHome,
-              listOf(
-                  kotlinCompilerJar,
-                  BazelRunFiles.resolveVerified(
-                      "io_bazel_rules_kotlin",
-                      "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
-                      "compiler.jar")
-              )
+        kotlinCompilerJar.toPath().parent.parent,
+        createClassLoader(
+          javaHome,
+          listOf(
+            kotlinCompilerJar,
+            BazelRunFiles.resolveVerified(
+              "io_bazel_rules_kotlin",
+              "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
+              "compiler.jar"
+            )
           )
+        )
       )
     }
   }
@@ -112,11 +114,11 @@ class KotlinToolchain private constructor(
     init {
       val compilerClass = toolchain.classLoader.loadClass(clazz)
       val exitCodeClass =
-          toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
+        toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
       compiler = compilerClass.getConstructor().newInstance()
       execMethod =
-          compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
+        compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
       getCodeMethod = exitCodeClass.getMethod("getCode")
     }
 
@@ -140,5 +142,3 @@ class KotlinToolchain private constructor(
     toolchain: KotlinToolchain
   ) : KotlinCliToolInvoker(toolchain, "org.jetbrains.kotlin.cli.js.K2JSCompiler")
 }
-
-

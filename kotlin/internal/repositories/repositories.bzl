@@ -13,11 +13,12 @@
 # limitations under the License.
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
+
 load("//kotlin/internal/repositories:setup.bzl", "kt_configure")
 load(
     "//kotlin/internal/repositories:release_repositories.bzl",
-    _release_kotlin_repositories = "kotlin_repositories",
     "KOTLIN_CURRENT_COMPILER_RELEASE",
+    _release_kotlin_repositories = "kotlin_repositories",
 )
 
 def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):

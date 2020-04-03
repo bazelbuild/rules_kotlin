@@ -15,7 +15,6 @@
  */
 package io.bazel.kotlin.builder.toolchain
 
-
 import io.bazel.kotlin.model.JvmCompilationTask
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
@@ -23,89 +22,89 @@ import java.util.Base64
 
 // TODO(hs) move the kapt specific stuff to the JVM package.
 class KotlinCompilerPluginArgsEncoder(
-    private val jarPath: String,
-    private val pluginId: String
+  private val jarPath: String,
+  private val pluginId: String
 ) {
-    companion object {
-        private fun encodeMap(options: Map<String, String>): String {
-            val os = ByteArrayOutputStream()
-            val oos = ObjectOutputStream(os)
+  companion object {
+    private fun encodeMap(options: Map<String, String>): String {
+      val os = ByteArrayOutputStream()
+      val oos = ObjectOutputStream(os)
 
-            oos.writeInt(options.size)
-            for ((key, value) in options.entries) {
-                oos.writeUTF(key)
-                oos.writeUTF(value)
-            }
+      oos.writeInt(options.size)
+      for ((key, value) in options.entries) {
+        oos.writeUTF(key)
+        oos.writeUTF(value)
+      }
 
-            oos.flush()
-            return Base64.getEncoder().encodeToString(os.toByteArray())
-        }
-
-        private fun encodeMultiMap(options: Map<String, List<String>>): String {
-            val os = ByteArrayOutputStream()
-            val oos = ObjectOutputStream(os)
-
-            oos.writeInt(options.size)
-            for ((key, values) in options.entries) {
-                oos.writeUTF(key)
-
-                oos.writeInt(values.size)
-                for (value in values) {
-                    oos.writeUTF(value)
-                }
-            }
-
-            oos.flush()
-            return Base64.getEncoder().encodeToString(os.toByteArray())
-        }
+      oos.flush()
+      return Base64.getEncoder().encodeToString(os.toByteArray())
     }
 
-    /**
-     * Plugin using the undocumented encoding format for kapt3
-     */
-    inner class PluginArgs internal constructor() {
-        private val tally = mutableMapOf<String, MutableList<String>>()
+    private fun encodeMultiMap(options: Map<String, List<String>>): String {
+      val os = ByteArrayOutputStream()
+      val oos = ObjectOutputStream(os)
 
-        operator fun set(key: String, value: String) {
-            check(tally[key] == null) { "value allready set" }
-            tally[key] = mutableListOf(value)
+      oos.writeInt(options.size)
+      for ((key, values) in options.entries) {
+        oos.writeUTF(key)
+
+        oos.writeInt(values.size)
+        for (value in values) {
+          oos.writeUTF(value)
         }
+      }
 
-        fun bindMulti(key: String, value: String) {
-            tally[key].also { if (it != null) it.add(value) else this[key] = value }
-        }
+      oos.flush()
+      return Base64.getEncoder().encodeToString(os.toByteArray())
+    }
+  }
 
-        // "configuration" is an undocumented kapt3 argument. preparing the arguments this way is the only way to get more than one annotation processor class
-        // passed to kotlinc.
-        fun encode(): List<String> = listOf(
-            "-Xplugin=$jarPath",
-            "-P", "plugin:$pluginId:configuration=${encodeMultiMap(tally)}"
-        )
+  /**
+   * Plugin using the undocumented encoding format for kapt3
+   */
+  inner class PluginArgs internal constructor() {
+    private val tally = mutableMapOf<String, MutableList<String>>()
+
+    operator fun set(key: String, value: String) {
+      check(tally[key] == null) { "value allready set" }
+      tally[key] = mutableListOf(value)
     }
 
-    fun encode(context: CompilationTaskContext, task: JvmCompilationTask): List<String> {
-        val javacArgs = mutableMapOf<String, String>(
-            "-target" to task.info.toolchainInfo.jvm.jvmTarget
-        )
-        val d = task.directories
-        return if (task.inputs.processorsList.isNotEmpty()) {
-            PluginArgs().let { arg ->
-                arg["sources"] = d.generatedSources.toString()
-                arg["classes"] = d.generatedClasses.toString()
-                arg["stubs"] = d.temp.toString()
-                arg["incrementalData"] = d.temp.toString()
-                arg["javacArguments"] = javacArgs.let(Companion::encodeMap)
-                arg["aptMode"] = "stubsAndApt"
-                arg["correctErrorTypes"] = "true"
-                context.whenTracing {
-                    arg["verbose"] = "true"
-                }
-                arg["processors"] = task.inputs.processorsList.joinToString(",")
-                task.inputs.processorpathsList.forEach { arg.bindMulti("apclasspath", it) }
-                arg.encode()
-            }
-        } else {
-            emptyList()
-        }
+    fun bindMulti(key: String, value: String) {
+      tally[key].also { if (it != null) it.add(value) else this[key] = value }
     }
+
+    // "configuration" is an undocumented kapt3 argument. preparing the arguments this way is the only way to get more than one annotation processor class
+    // passed to kotlinc.
+    fun encode(): List<String> = listOf(
+      "-Xplugin=$jarPath",
+      "-P", "plugin:$pluginId:configuration=${encodeMultiMap(tally)}"
+    )
+  }
+
+  fun encode(context: CompilationTaskContext, task: JvmCompilationTask): List<String> {
+    val javacArgs = mutableMapOf<String, String>(
+      "-target" to task.info.toolchainInfo.jvm.jvmTarget
+    )
+    val d = task.directories
+    return if (task.inputs.processorsList.isNotEmpty()) {
+      PluginArgs().let { arg ->
+        arg["sources"] = d.generatedSources.toString()
+        arg["classes"] = d.generatedClasses.toString()
+        arg["stubs"] = d.temp.toString()
+        arg["incrementalData"] = d.temp.toString()
+        arg["javacArguments"] = javacArgs.let(Companion::encodeMap)
+        arg["aptMode"] = "stubsAndApt"
+        arg["correctErrorTypes"] = "true"
+        context.whenTracing {
+          arg["verbose"] = "true"
+        }
+        arg["processors"] = task.inputs.processorsList.joinToString(",")
+        task.inputs.processorpathsList.forEach { arg.bindMulti("apclasspath", it) }
+        arg.encode()
+      }
+    } else {
+      emptyList()
+    }
+  }
 }
