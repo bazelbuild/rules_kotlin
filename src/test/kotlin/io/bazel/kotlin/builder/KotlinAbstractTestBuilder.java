@@ -5,13 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 package io.bazel.kotlin.builder;
 
@@ -141,15 +142,18 @@ abstract class KotlinAbstractTestBuilder<T> {
         return writeFile(DirectoryType.SOURCE_GEN, filename, lines);
     }
 
+    final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
+        T task = buildTask();
+        return runCompileTask(infoBuilder.build(), task, (ctx, t) -> operation.apply(ctx, task));
+    }
+
     private <R> R runCompileTask(
             CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
-        String curDir = System.getProperty("user.dir");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (PrintStream outputStream = new PrintStream(byteArrayOutputStream)) {
-            System.setProperty("user.dir", instanceRoot().toAbsolutePath().toString());
-            return operation.apply(new CompilationTaskContext(info, outputStream), task);
+            return operation.apply(new CompilationTaskContext(info, outputStream,
+                    instanceRoot().toAbsolutePath().toString() + File.separator), task);
         } finally {
-            System.setProperty("user.dir", curDir);
             outLines =
                     Collections.unmodifiableList(
                             new BufferedReader(
@@ -161,9 +165,17 @@ abstract class KotlinAbstractTestBuilder<T> {
         }
     }
 
-    final <R> R runCompileTask(BiFunction<CompilationTaskContext, T, R> operation) {
-        T task = buildTask();
-        return runCompileTask(infoBuilder.build(), task, (ctx, t) -> operation.apply(ctx, task));
+    public final void assertFilesExist(DirectoryType dir, String... paths) {
+        assertFileExistence(resolved(dir, paths), true);
+    }
+
+    final void assertFilesExist(String... paths) {
+        assertFileExistence(Stream.of(paths).map(Paths::get), true);
+    }
+
+    @SuppressWarnings("unused")
+    public final void assertFilesDoNotExist(DirectoryType dir, String... filePath) {
+        assertFileExistence(resolved(dir, filePath), false);
     }
 
     /**
@@ -181,19 +193,6 @@ abstract class KotlinAbstractTestBuilder<T> {
             return;
         }
         throw new RuntimeException("compilation task should have failed.");
-    }
-
-    public final void assertFilesExist(DirectoryType dir, String... paths) {
-        assertFileExistence(resolved(dir, paths), true);
-    }
-
-    final void assertFilesExist(String... paths) {
-        assertFileExistence(Stream.of(paths).map(Paths::get), true);
-    }
-
-    @SuppressWarnings("unused")
-    public final void assertFilesDoNotExist(DirectoryType dir, String... filePath) {
-        assertFileExistence(resolved(dir, filePath), false);
     }
 
     private Stream<Path> resolved(DirectoryType dir, String... filePath) {
