@@ -207,7 +207,11 @@ def kt_jvm_junit_test_impl(ctx):
 def kt_compiler_plugin_impl(ctx):
     merged_deps = java_common.merge([j[JavaInfo] for j in ctx.attr.deps])
     plugin_id = ctx.attr.id
-    options = [struct(id = plugin_id, value = option) for option in ctx.attr.options]
+    options = []
+    for (k, v) in ctx.attr.options.items():
+        if "=" in k:
+            fail("kt_compiler_plugin options keys cannot contain the = symbol")
+        options.append(struct(id = plugin_id, value = "%s=%s" % (k, v)))
 
     return [
         merged_deps,

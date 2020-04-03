@@ -375,9 +375,9 @@ kt_compiler_plugin = rule(
         "id": attr.string(
             doc = """The ID of the plugin""",
         ),
-        "options": attr.string_list(
-            doc = """List of options to be passed to the plugin""",
-            default = [],
+        "options": attr.string_dict(
+            doc = """Dictionary of options to be passed to the plugin""",
+            default = {},
         ),
     },
     implementation = _kt_compiler_plugin_impl,
