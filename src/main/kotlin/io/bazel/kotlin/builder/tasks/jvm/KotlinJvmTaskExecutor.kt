@@ -17,7 +17,7 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KotlinKaptCompilerPluginArgsEncoder
+import io.bazel.kotlin.builder.toolchain.KaptCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
 import javax.inject.Inject
@@ -31,10 +31,10 @@ const val X_FRIENDS_PATH_SEPARATOR = ","
 
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
-        private val compiler: KotlinToolchain.KotlincInvoker,
-        private val pluginArgsEncoderKapt: KotlinKaptCompilerPluginArgsEncoder,
-        private val javaCompiler: JavaCompiler,
-        private val jDepsGenerator: JDepsGenerator
+  private val compiler: KotlinToolchain.KotlincInvoker,
+  private val pluginArgsEncoderKapt: KaptCompilerPluginArgsEncoder,
+  private val javaCompiler: JavaCompiler,
+  private val jDepsGenerator: JDepsGenerator
 ) {
   fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
     val preprocessedTask = task

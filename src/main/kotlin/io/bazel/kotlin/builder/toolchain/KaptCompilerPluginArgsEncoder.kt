@@ -21,7 +21,7 @@ import java.io.ObjectOutputStream
 import java.util.Base64
 
 // TODO(hs) move the kapt specific stuff to the JVM package.
-class KotlinKaptCompilerPluginArgsEncoder(
+class KaptCompilerPluginArgsEncoder(
   private val jarPath: String,
   private val pluginId: String
 ) {

@@ -19,7 +19,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KotlinKaptCompilerPluginArgsEncoder
+import io.bazel.kotlin.builder.toolchain.KaptCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
@@ -93,9 +93,9 @@ internal fun JvmCompilationTask.produceSourceJar() {
 }
 
 internal fun JvmCompilationTask.runPlugins(
-        context: CompilationTaskContext,
-        kaptPluginArgsEncoder: KotlinKaptCompilerPluginArgsEncoder,
-        compiler: KotlinToolchain.KotlincInvoker
+  context: CompilationTaskContext,
+  kaptPluginArgsEncoder: KaptCompilerPluginArgsEncoder,
+  compiler: KotlinToolchain.KotlincInvoker
 ): JvmCompilationTask {
   if (inputs.processorsList.isEmpty()) {
     return this
