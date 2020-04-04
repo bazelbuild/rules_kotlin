@@ -16,11 +16,11 @@ load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
 kt_bootstrap_library(
     name = "utils",
-    visibility = ["//src:__subpackages__",],
     srcs = glob([
         "*.kt",
         "**/*.kt",
     ]),
+    visibility = ["//src:__subpackages__"],
     deps = [
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",

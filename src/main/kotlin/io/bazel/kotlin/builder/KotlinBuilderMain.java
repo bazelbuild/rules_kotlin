@@ -17,16 +17,14 @@ package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 
-import javax.inject.Provider;
-import java.io.PrintStream;
 import java.util.Arrays;
 
 public class KotlinBuilderMain {
-  public static void main(String[] args) {
-    KotlinBuilderComponent component =
-        DaggerKotlinBuilderComponent.builder()
-            .toolchain(KotlinToolchain.createToolchain())
-            .build();
-    System.exit(component.worker().apply(Arrays.asList(args)));
-  }
+    public static void main(String[] args) {
+        KotlinBuilderComponent component =
+                DaggerKotlinBuilderComponent.builder()
+                        .toolchain(KotlinToolchain.createToolchain())
+                        .build();
+        System.exit(component.worker().apply(Arrays.asList(args)));
+    }
 }

@@ -33,53 +33,54 @@ import javax.inject.Singleton
 
 @Singleton
 internal class JDepsGenerator @Inject constructor(
-    toolchain: KotlinToolchain,
-    private val invoker: KotlinToolchain.JDepsInvoker
+  toolchain: KotlinToolchain,
+  private val invoker: KotlinToolchain.JDepsInvoker
 ) {
-    private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(
-        toolchain.kotlinHome.resolveVerified("lib").toPath(), *toolchain.kotlinStandardLibraries.toTypedArray()
-    )
+  private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(
+    toolchain.kotlinHome.resolveVerified("lib").toPath(),
+    *toolchain.kotlinStandardLibraries.toTypedArray()
+  )
 
-    fun generateJDeps(command: JvmCompilationTask) {
-        val jdepsContent =
-            if (command.inputs.classpathList.isEmpty()) {
-                Deps.Dependencies.newBuilder().let {
-                    it.ruleLabel = command.info.label
-                    it.build()
-                }
-            } else {
-                ByteArrayOutputStream().use { out ->
-                    PrintWriter(out).use { writer ->
-                        val joinedClasspath = command.inputs.joinedClasspath
-                        val version = System.getProperty("java.version").majorJavaVersion()
-                        val multiRelease =
-                            if (version < 9) arrayOf() else arrayOf("--multi-release", "base")
-                        val jarPath = command.outputs.jar
-                        val args = multiRelease + arrayOf("-v", "-cp", joinedClasspath, jarPath)
-                        val res = invoker.run(args, writer)
-                        out.toByteArray().inputStream().bufferedReader().readLines().let {
-                            if (res != 0) {
-                                throw CompilationStatusException("could not run jdeps tool", res, it)
-                            } else try {
-                                JdepsParser.parse(
-                                    command.info.label,
-                                    jarPath,
-                                    command.inputs.classpathList,
-                                    it,
-                                    isKotlinImplicit
-                                )
-                            } catch (e: Exception) {
-                                throw CompilationException("error reading or parsing jdeps file", e.rootCause)
-                            }
-                        }
-                    }
-                }
-            }
-        Paths.get(command.outputs.jdeps).also {
-            Files.deleteIfExists(it)
-            FileOutputStream(Files.createFile(it).toFile()).use(jdepsContent::writeTo)
+  fun generateJDeps(command: JvmCompilationTask) {
+    val jdepsContent =
+      if (command.inputs.classpathList.isEmpty()) {
+        Deps.Dependencies.newBuilder().let {
+          it.ruleLabel = command.info.label
+          it.build()
         }
+      } else {
+        ByteArrayOutputStream().use { out ->
+          PrintWriter(out).use { writer ->
+            val joinedClasspath = command.inputs.joinedClasspath
+            val version = System.getProperty("java.version").majorJavaVersion()
+            val multiRelease =
+              if (version < 9) arrayOf() else arrayOf("--multi-release", "base")
+            val jarPath = command.outputs.jar
+            val args = multiRelease + arrayOf("-v", "-cp", joinedClasspath, jarPath)
+            val res = invoker.run(args, writer)
+            out.toByteArray().inputStream().bufferedReader().readLines().let {
+              if (res != 0) {
+                throw CompilationStatusException("could not run jdeps tool", res, it)
+              } else try {
+                JdepsParser.parse(
+                  command.info.label,
+                  jarPath,
+                  command.inputs.classpathList,
+                  it,
+                  isKotlinImplicit
+                )
+              } catch (e: Exception) {
+                throw CompilationException("error reading or parsing jdeps file", e.rootCause)
+              }
+            }
+          }
+        }
+      }
+    Paths.get(command.outputs.jdeps).also {
+      Files.deleteIfExists(it)
+      FileOutputStream(Files.createFile(it).toFile()).use(jdepsContent::writeTo)
     }
+  }
 }
 
 /**
@@ -91,7 +92,7 @@ internal class JDepsGenerator @Inject constructor(
  * minor version as the major one. Otherwise, it uses the first term as the major version.
  */
 private fun String.majorJavaVersion(): Int {
-    val (major, minor) = this.trim().split('.')
-    val parsedMajor = Integer.parseInt(major)
-    return if (parsedMajor == 1) Integer.parseInt(minor) else parsedMajor
+  val (major, minor) = this.trim().split('.')
+  val parsedMajor = Integer.parseInt(major)
+  return if (parsedMajor == 1) Integer.parseInt(minor) else parsedMajor
 }

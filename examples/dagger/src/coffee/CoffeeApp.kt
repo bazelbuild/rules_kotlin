@@ -17,25 +17,25 @@ package coffee
 
 import dagger.Component
 import kotlinx.coroutines.runBlocking
-import javax.inject.Singleton
 import tea.TeaPot
+import javax.inject.Singleton
 
 class CoffeeApp {
-    @Singleton
-    @Component(modules = [(DripCoffeeModule::class)])
-    interface CoffeeShop {
-        fun maker(): CoffeeMaker
-    }
+  @Singleton
+  @Component(modules = [(DripCoffeeModule::class)])
+  interface CoffeeShop {
+    fun maker(): CoffeeMaker
+  }
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            if (TeaPot.isEmpty()) {
-                val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
-                runBlocking {
-                    coffeeShop.maker().brew()
-                }
-            }
+  companion object {
+    @JvmStatic
+    fun main(args: Array<String>) {
+      if (TeaPot.isEmpty()) {
+        val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
+        runBlocking {
+          coffeeShop.maker().brew()
         }
+      }
     }
+  }
 }

@@ -15,8 +15,8 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.joinedClasspath
 import io.bazel.kotlin.model.JvmCompilationTask
@@ -27,35 +27,36 @@ import javax.inject.Singleton
 
 @Singleton
 internal class JavaCompiler @Inject constructor(
-    private val javacInvoker: KotlinToolchain.JavacInvoker
+  private val javacInvoker: KotlinToolchain.JavacInvoker
 ) {
-    companion object {
-        /**
-         * Separator for a directory in the classpath.
-         */
-        private val DIR_SEP = "${File.separatorChar}${File.pathSeparator}"
+  companion object {
+    /**
+     * Separator for a directory in the classpath.
+     */
+    private val DIR_SEP = "${File.separatorChar}${File.pathSeparator}"
+  }
+
+  fun compile(context: CompilationTaskContext, command: JvmCompilationTask) {
+    val i = command.inputs
+    val d = command.directories
+    if (i.javaSourcesList.isNotEmpty()) {
+      val args = mutableListOf(
+        "-cp", "${d.classes}$DIR_SEP${d.temp}$DIR_SEP${i.joinedClasspath}",
+        "-d", d.classes
+      ).also {
+        it.addAll(
+          // Kotlin takes care of annotation processing.
+          "-proc:none",
+          // Disable option linting, it will complain about the source.
+          "-Xlint:-options",
+          "-source", command.info.toolchainInfo.jvm.jvmTarget,
+          "-target", command.info.toolchainInfo.jvm.jvmTarget
+        )
+        it.addAll(i.javaSourcesList)
+      }
+      context.executeCompilerTask(args, { a, pw ->
+        javacInvoker.compile(a, PrintWriter(pw))
+      })
     }
-    fun compile(context: CompilationTaskContext, command: JvmCompilationTask) {
-        val i = command.inputs
-        val d = command.directories
-        if (i.javaSourcesList.isNotEmpty()) {
-            val args = mutableListOf(
-                "-cp", "${d.classes}$DIR_SEP${d.temp}$DIR_SEP${i.joinedClasspath}",
-                "-d", d.classes
-            ).also {
-                it.addAll(
-                    // Kotlin takes care of annotation processing.
-                    "-proc:none",
-                    // Disable option linting, it will complain about the source.
-                    "-Xlint:-options",
-                    "-source", command.info.toolchainInfo.jvm.jvmTarget,
-                    "-target", command.info.toolchainInfo.jvm.jvmTarget
-                )
-                it.addAll(i.javaSourcesList)
-            }
-            context.executeCompilerTask(args, { a, pw ->
-                javacInvoker.compile(a, PrintWriter(pw))
-            })
-        }
-    }
+  }
 }
