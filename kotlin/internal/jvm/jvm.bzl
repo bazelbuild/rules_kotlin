@@ -367,7 +367,38 @@ kt_jvm_import = rule(
 )
 
 kt_compiler_plugin = rule(
-    doc = """Define a plugin for the Kotlin compiler to run.""",
+    doc = """Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
+    of the `kt_jvm_*` rules.
+
+    An example can be found under `//examples/plugin`:
+
+    ```bzl
+    kt_compiler_plugin(
+        name = "open_for_testing_plugin",
+        id = "org.jetbrains.kotlin.allopen",
+        options = {
+            "annotation": "plugin.OpenForTesting",
+        },
+        deps = [
+            "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        ],
+    )
+
+    kt_jvm_library(
+        name = "open_for_testing",
+        srcs = ["OpenForTesting.kt"],
+    )
+
+    kt_jvm_library(
+        name = "user",
+        srcs = ["User.kt"],
+        plugins = [":open_for_testing_plugin"],
+        deps = [
+            ":open_for_testing",
+        ],
+    )
+    ```
+    """,
     attrs = {
         "deps": attr.label_list(
             doc = "The list of libraries to be added to the compiler's plugin classpath",

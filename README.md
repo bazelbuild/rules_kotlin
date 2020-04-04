@@ -163,7 +163,7 @@ kt_register_toolchains() # to use the default toolchain, otherwise see toolchain
 
 ## Examples
 
-Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, etc.
+Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, Kotlin compiler plugins, etc.
 
 # History
 
