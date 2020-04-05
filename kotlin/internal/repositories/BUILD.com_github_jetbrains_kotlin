@@ -47,6 +47,16 @@ kt_jvm_import(
     jars = ["lib/allopen-compiler-plugin.jar"],
 )
 
+kt_jvm_import(
+    name = "noarg-compiler-plugin",
+    jars = ["lib/noarg-compiler-plugin.jar"],
+)
+
+kt_jvm_import(
+    name = "sam-with-receiver-compiler-plugin",
+    jars = ["lib/sam-with-receiver-compiler-plugin.jar"],
+)
+
 # Kotlin dependencies that are internal to this repo and may be linked.
 [
     java_import(
