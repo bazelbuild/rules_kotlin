@@ -6,7 +6,7 @@ import java.lang.Exception
 class UserHasNoargConstructorTest {
   @Test
   fun userShouldHaveNoargConstructor() {
-    if (User::class.constructors.none { it.parameters.isEmpty() }) {
+    if (User::class.java.constructors.none { it.parameters.isEmpty() }) {
       throw Exception("Expected an empty constructor to exist")
     }
   }
