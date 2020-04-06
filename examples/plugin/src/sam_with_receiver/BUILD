@@ -1,0 +1,31 @@
+load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
+load("@rules_java//java:defs.bzl", "java_library")
+
+kt_compiler_plugin(
+    name = "sam_with_receiver_plugin",
+    id = "org.jetbrains.kotlin.samWithReceiver",
+    options = {
+        "annotation": "plugin.sam_with_receiver.SamWithReceiver",
+    },
+    deps = [
+        "@com_github_jetbrains_kotlin//:sam-with-receiver-compiler-plugin",
+    ],
+)
+
+kt_jvm_library(
+    name = "sam_with_receiver",
+    srcs = ["SamWithReceiver.kt"],
+)
+
+java_library(
+    name = "runner",
+    srcs = ["Runner.java"],
+    deps = [":sam_with_receiver"],
+)
+
+kt_jvm_library(
+    name = "runner_test",
+    srcs = ["RunnerTest.kt"],
+    plugins = [":sam_with_receiver_plugin"],
+    deps = [":runner"],
+)

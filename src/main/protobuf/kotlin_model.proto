@@ -122,6 +122,10 @@ message JvmCompilationTask {
         repeated string processors = 7;
         // Annotation processor classpath.
         repeated string processorpaths = 8;
+        // Kotlin compiler plugin options
+        repeated string plugin_options = 9;
+        // Kotlin compiler plugin classpath
+        repeated string pluginpaths = 10;
     }
 
     CompilationTaskInfo info = 1;

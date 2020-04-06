@@ -35,3 +35,10 @@ KtJsInfo = provider(
         "srcjar": "The jar containing the sources of the library",
     },
 )
+
+KtCompilerPluginInfo = provider(
+    fields = {
+        "classpath": "The kotlin compiler plugin classpath",
+        "options": "List of plugin options, represented as structs with an id and a value field, to be passed to the compiler",
+    },
+)
