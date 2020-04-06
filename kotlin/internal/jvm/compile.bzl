@@ -22,6 +22,11 @@ load(
     _plugin_mappers = "mappers",
 )
 load(
+    "//kotlin/internal:compiler_plugins.bzl",
+    _plugins_to_classpaths = "plugins_to_classpaths",
+    _plugins_to_options = "plugins_to_options",
+)
+load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
@@ -218,8 +223,10 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     dirs = _compiler_directories(ctx)
     srcs = _partitioned_srcs(ctx.files.srcs)
     friend = _compiler_friends(ctx, friends = getattr(ctx.attr, "friends", []))
-    compile_deps = _compiler_deps(toolchains, friend, deps = ctx.attr.deps)
-    plugins = _plugin_mappers.targets_to_kt_plugins(ctx.attr.plugins + ctx.attr.deps)
+    compile_deps = _compiler_deps(toolchains, friend, deps = ctx.attr.deps + ctx.attr.plugins)
+    annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
+    plugins = ctx.attr.plugins
+
     _run_kt_builder_action(
         ctx = ctx,
         rule_kind = rule_kind,
@@ -228,6 +235,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         srcs = srcs,
         friend = friend,
         compile_deps = compile_deps,
+        annotation_processors = annotation_processors,
         plugins = plugins,
         outputs = {
             "output": output_jar,
@@ -263,7 +271,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         ),
     )
 
-def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, plugins, outputs):
+def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, annotation_processors, plugins, outputs):
     """Creates a KotlinBuilder action invocation."""
     args = _utils.init_args(ctx, rule_kind, friend.module_name)
 
@@ -279,14 +287,25 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(
         "--processors",
-        plugins,
+        annotation_processors,
         map_each = _plugin_mappers.kt_plugin_to_processor,
         omit_if_empty = True,
     )
     args.add_all(
         "--processorpath",
-        plugins,
+        annotation_processors,
         map_each = _plugin_mappers.kt_plugin_to_processorpath,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--pluginpath",
+        _plugins_to_classpaths(plugins),
+        omit_if_empty = True,
+    )
+    args.add_all(
+        "--plugin_options",
+        _plugins_to_options(plugins),
         omit_if_empty = True,
     )
 

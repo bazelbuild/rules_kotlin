@@ -33,11 +33,14 @@ def _kt_plugin_to_processor(processor):
 def _kt_plugin_to_processorpath(processor):
     return [j.path for j in processor.classpath.to_list()]
 
-def _targets_to_kt_plugins(targets):
+def _targets_to_annotation_processors(targets):
     return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if t[KtJvmPluginInfo]])
 
+def _targets_to_plugins(targets):
+    return depset(transitive = [t[KtJvmPluginInfo].plugins for t in targets if t[KtJvmPluginInfo]])
+
 mappers = struct(
-    targets_to_kt_plugins = _targets_to_kt_plugins,
+    targets_to_annotation_processors = _targets_to_annotation_processors,
     kt_plugin_to_processor = _kt_plugin_to_processor,
     kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
 )
@@ -47,7 +50,7 @@ def merge_plugin_infos(attrs):
     Returns:
         A KtJvmPluginInfo provider, Each of the entries is serializable."""
     return KtJvmPluginInfo(
-        annotation_processors = _targets_to_kt_plugins(attrs),
+        annotation_processors = _targets_to_annotation_processors(attrs),
     )
 
 def _kt_jvm_plugin_aspect_impl(target, ctx):

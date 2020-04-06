@@ -19,7 +19,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KotlinCompilerPluginArgsEncoder
+import io.bazel.kotlin.builder.toolchain.KaptCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
@@ -52,6 +52,19 @@ internal fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
   .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
   .flag("-module-name", info.moduleName)
 
+internal fun pluginArgs(context: JvmCompilationTask, args: CompilationArgs): CompilationArgs = args
+    .let {
+        val pluginsPath = context.inputs.pluginpathsList.joinToString(":")
+        it.value("-Xplugin=${pluginsPath}")
+    }
+    .let {
+        var r = it
+        context.inputs.pluginOptionsList.forEach { opt ->
+            r = r.flag("-P", "plugin:$opt")
+        }
+        r
+    }
+
 internal fun JvmCompilationTask.preProcessingSteps(context: CompilationTaskContext): JvmCompilationTask {
   return context.execute("expand sources") { expandWithSourceJarSources() }
 }
@@ -79,17 +92,17 @@ internal fun JvmCompilationTask.produceSourceJar() {
   }
 }
 
-internal fun JvmCompilationTask.runAnnotationProcessors(
+internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
-  pluginArgsEncoder: KotlinCompilerPluginArgsEncoder,
+  kaptPluginArgsEncoder: KaptCompilerPluginArgsEncoder,
   compiler: KotlinToolchain.KotlincInvoker
 ): JvmCompilationTask {
   if (inputs.processorsList.isEmpty()) {
     return this
   } else {
     return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
-      commonArgs()
-        .values(pluginArgsEncoder.encode(context, this))
+        pluginArgs(this, commonArgs())
+        .values(kaptPluginArgsEncoder.encode(context, this))
         .values(inputs.kotlinSourcesList)
         .values(inputs.javaSourcesList).list().let { args ->
           context.executeCompilerTask(
@@ -131,7 +144,7 @@ internal fun JvmCompilationTask.compileKotlin(
   compiler: KotlinToolchain.KotlincInvoker,
   printOnFail: Boolean = true
 ) =
-  commonArgs()
+  pluginArgs(this, commonArgs())
     .values(inputs.javaSourcesList)
     .values(inputs.kotlinSourcesList)
     .list().let { args ->

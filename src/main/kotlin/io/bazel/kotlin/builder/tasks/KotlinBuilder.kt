@@ -76,6 +76,8 @@ class KotlinBuilder @Inject internal constructor(
       BOOT_CLASSPATH("--bootclasspath"),
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
+      PLUGIN_PATH("--pluginpath"),
+      PLUGIN_OPTION("--plugin_options"),
       EXT_CLASSPATH("--extclasspath"),
       EXT_DIR("--extdir"),
       OUTPUT("--output"),
@@ -249,6 +251,9 @@ class KotlinBuilder @Inject internal constructor(
 
         addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(JavaBuilderFlags.PROCESSOR_PATH) ?: emptyList())
+
+        addAllPluginpaths(argMap.optional(JavaBuilderFlags.PLUGIN_PATH) ?: emptyList())
+        addAllPluginOptions(argMap.optional(JavaBuilderFlags.PLUGIN_OPTION) ?: emptyList())
 
         argMap.optional(JavaBuilderFlags.SOURCES)?.iterator()?.partitionJvmSources(
           { addKotlinSources(it) },
