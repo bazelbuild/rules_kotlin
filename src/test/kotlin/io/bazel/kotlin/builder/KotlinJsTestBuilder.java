@@ -25,53 +25,52 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public final class KotlinJsTestBuilder extends KotlinAbstractTestBuilder<JsCompilationTask> {
-  private static final List<String> PASSTHROUGH_FLAGS =
-      Arrays.asList("-source-map", "-meta-info", "-module-kind", "commonjs", "-target", "v5");
-  private static final JsCompilationTask.Builder taskBuilder = JsCompilationTask.newBuilder();
-  private static final KotlinBuilderComponent component =
-      DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
-  private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
-      EnumSet.of(DirectoryType.SOURCES);
+    private static final List<String> PASSTHROUGH_FLAGS =
+            Arrays.asList("-source-map", "-meta-info", "-module-kind", "commonjs", "-target", "v5");
+    private static final JsCompilationTask.Builder taskBuilder = JsCompilationTask.newBuilder();
+    private static final KotlinBuilderComponent component =
+            DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
+    private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
+            EnumSet.of(DirectoryType.SOURCES);
+    private final TaskBuilder taskBuilderInstance = new TaskBuilder();
 
-  @Override
-  JsCompilationTask buildTask() {
-    return taskBuilder.build();
-  }
-
-  @Override
-  void setupForNext(CompilationTaskInfo.Builder infoBuilder) {
-    taskBuilder.clear().setInfo(infoBuilder);
-    DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
-    taskBuilder.addAllPassThroughFlags(PASSTHROUGH_FLAGS);
-    taskBuilder
-        .getOutputsBuilder()
-        .setJar(instanceRoot().resolve(label() + ".jar").toAbsolutePath().toString())
-        .setSrcjar(instanceRoot().resolve(label() + "-sources.jar").toAbsolutePath().toString())
-        .setJs(instanceRoot().resolve(label() + ".js").toAbsolutePath().toString());
-  }
-
-  public final class TaskBuilder {
-    public void addSource(String filename, String... lines) {
-      taskBuilder.getInputsBuilder().addKotlinSources(writeSourceFile(filename, lines).toString());
+    @Override
+    JsCompilationTask buildTask() {
+        return taskBuilder.build();
     }
-  }
 
-  private final TaskBuilder taskBuilderInstance = new TaskBuilder();
+    @Override
+    void setupForNext(CompilationTaskInfo.Builder infoBuilder) {
+        taskBuilder.clear().setInfo(infoBuilder);
+        DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
+        taskBuilder.addAllPassThroughFlags(PASSTHROUGH_FLAGS);
+        taskBuilder
+                .getOutputsBuilder()
+                .setJar(instanceRoot().resolve(label() + ".jar").toAbsolutePath().toString())
+                .setSrcjar(instanceRoot().resolve(label() + "-sources.jar").toAbsolutePath().toString())
+                .setJs(instanceRoot().resolve(label() + ".js").toAbsolutePath().toString());
+    }
 
-  public void runCompilationTask(Consumer<TaskBuilder> setup) {
-    resetForNext();
-    setup.accept(taskBuilderInstance);
-    runCompileTask(
-        (taskContext, task) -> {
-          component.jsTaskExecutor().execute(taskContext, task);
-          String jsFile = task.getOutputs().getJs();
-          assertFilesExist(
-              jsFile,
-              jsFile + ".map",
-              jsFile.substring(0, jsFile.length() - 3) + ".meta.js",
-              task.getOutputs().getJar(),
-              task.getOutputs().getSrcjar());
-          return null;
-        });
-  }
+    public void runCompilationTask(Consumer<TaskBuilder> setup) {
+        resetForNext();
+        setup.accept(taskBuilderInstance);
+        runCompileTask(
+                (taskContext, task) -> {
+                    component.jsTaskExecutor().execute(taskContext, task);
+                    String jsFile = task.getOutputs().getJs();
+                    assertFilesExist(
+                            jsFile,
+                            jsFile + ".map",
+                            jsFile.substring(0, jsFile.length() - 3) + ".meta.js",
+                            task.getOutputs().getJar(),
+                            task.getOutputs().getSrcjar());
+                    return null;
+                });
+    }
+
+    public final class TaskBuilder {
+        public void addSource(String filename, String... lines) {
+            taskBuilder.getInputsBuilder().addKotlinSources(writeSourceFile(filename, lines).toString());
+        }
+    }
 }

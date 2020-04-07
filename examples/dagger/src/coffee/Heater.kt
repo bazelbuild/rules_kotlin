@@ -16,7 +16,7 @@
 package coffee
 
 internal interface Heater {
-    val isHot: Boolean
-    fun on()
-    fun off()
+  val isHot: Boolean
+  fun on()
+  fun off()
 }

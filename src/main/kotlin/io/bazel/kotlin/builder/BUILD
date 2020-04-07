@@ -22,6 +22,9 @@ java_library(
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
     ],
     deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
+        "//src/main/kotlin/io/bazel/kotlin/builder/utils",
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",
         "//src/main/protobuf:worker_protocol_java_proto",
@@ -29,8 +32,5 @@ java_library(
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
-         "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
-         "//src/main/kotlin/io/bazel/kotlin/builder/toolchain:toolchain",
-         "//src/main/kotlin/io/bazel/kotlin/builder/tasks:tasks",
     ],
 )

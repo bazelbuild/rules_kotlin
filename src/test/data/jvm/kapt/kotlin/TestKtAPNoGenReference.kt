@@ -19,11 +19,11 @@ import com.google.auto.value.AutoValue
 
 @AutoValue
 abstract class TestKtValueNoReferences {
-    abstract fun name(): String
+  abstract fun name(): String
 
-    @AutoValue.Builder
-    abstract class Builder {
-        abstract fun setName(name: String): Builder
-        abstract fun build(): TestKtValueNoReferences
-    }
+  @AutoValue.Builder
+  abstract class Builder {
+    abstract fun setName(name: String): Builder
+    abstract fun build(): TestKtValueNoReferences
+  }
 }

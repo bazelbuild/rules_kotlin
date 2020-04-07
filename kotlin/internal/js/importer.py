@@ -14,9 +14,9 @@
 import argparse
 import os
 import re
-import zipfile
-import tempfile
 import shutil
+import tempfile
+import zipfile
 
 
 def _is_jar(jar):
@@ -42,7 +42,7 @@ def _extract_root_entry(jar, filename_pattern, output_path, touch=False):
         if filename_pattern.match(filename):
             target = filename
             break
-    
+
     if not target:
         if touch:
             f = open(output_path, 'a')
@@ -50,7 +50,7 @@ def _extract_root_entry(jar, filename_pattern, output_path, touch=False):
             return
         else:
             raise FileNotFoundError("No file matching {0} was found in jar".format(filename_pattern))
-    
+
     # Extract the target file to a temporary location.
     temp_dir = tempfile.gettempdir()
     temp_file = os.path.join(temp_dir, os.path.basename(target))
@@ -70,10 +70,11 @@ def _main(p):
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--jar", type=_is_jar, required=True)
-parser.add_argument("--import_pattern", required=True, type=re.compile, help="regular expression to match when searching the jar for the KotlinJS file")
+parser.add_argument("--import_pattern", required=True, type=re.compile,
+                    help="regular expression to match when searching the jar for the KotlinJS file")
 parser.add_argument("--import_out", required=True, help="path where the extracted KotlinJS import should be stored")
 parser.add_argument(
-    "--aux_pattern", nargs="*", type=re.compile, 
+    "--aux_pattern", nargs="*", type=re.compile,
     help="""regular expressions to match when searching the jar for additional files""")
 parser.add_argument(
     "--aux_out", nargs="*",

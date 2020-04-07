@@ -161,9 +161,42 @@ kotlin_repositories() # if you want the default. Otherwise see custom kotlinc di
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
+# Kotlin compiler plugins
+
+The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.
+
+For example, you can add allopen to your project like this:
+```python
+load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
+
+kt_compiler_plugin(
+    name = "open_for_testing_plugin",
+    id = "org.jetbrains.kotlin.allopen",
+    options = {
+        "annotation": "plugin.allopen.OpenForTesting",
+    },
+    deps = [
+        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+    ],
+)
+
+kt_jvm_library(
+    name = "user",
+    srcs = ["User.kt"], # The User class is annotated with OpenForTesting
+    plugins = [
+        ":open_for_testing_plugin",
+    ],
+    deps = [
+        ":open_for_testing", # This contains the annotation (plugin.allopen.OpenForTesting)
+    ],
+)
+```
+
+Full examples of using compiler plugins can be found [here](examples/plugin).
+
 ## Examples
 
-Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, etc.
+Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, Kotlin compiler plugins, etc.
 
 # History
 

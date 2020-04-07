@@ -15,10 +15,6 @@
  */
 package testresources
 
-class AClass() {
+class AClass()
 
-}
-
-class BClass() {
-
-}
+class BClass()

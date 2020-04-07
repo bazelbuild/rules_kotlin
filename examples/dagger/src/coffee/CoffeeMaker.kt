@@ -21,18 +21,18 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CoffeeMaker @Inject internal constructor(
-    // Create a possibly costly heater only when we use it.
-    private val heater: Lazy<Heater>,
-    private val pump: Pump
+  // Create a possibly costly heater only when we use it.
+  private val heater: Lazy<Heater>,
+  private val pump: Pump
 ) {
 
-    suspend fun brew() {
-        // this function is async to verify intellij support for coroutines.
-        withContext(Dispatchers.Default) {
-            heater.get().on()
-            pump.pump()
-            println(" [_]P coffee! [_]P ")
-            heater.get().off()
-        }
+  suspend fun brew() {
+    // this function is async to verify intellij support for coroutines.
+    withContext(Dispatchers.Default) {
+      heater.get().on()
+      pump.pump()
+      println(" [_]P coffee! [_]P ")
+      heater.get().off()
     }
+  }
 }

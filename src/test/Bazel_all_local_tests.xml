@@ -1,4 +1,5 @@
-<configuration name="Bazel test :all_local_tests" type="BlazeCommandRunConfigurationType" factoryName="Bazel Command" nameIsGenerated="true">
+<configuration name="Bazel test :all_local_tests" type="BlazeCommandRunConfigurationType" factoryName="Bazel Command"
+               nameIsGenerated="true">
     <blaze-settings handler-id="BlazeCommandGenericRunConfigurationHandlerProvider" blaze-command="test">
         <blaze-target>//:all_local_tests</blaze-target>
     </blaze-settings>

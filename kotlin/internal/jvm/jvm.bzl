@@ -93,6 +93,7 @@ kt_jvm_binary(
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
@@ -102,6 +103,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:impl.bzl",
+    _kt_compiler_plugin_impl = "kt_compiler_plugin_impl",
     _kt_jvm_binary_impl = "kt_jvm_binary_impl",
     _kt_jvm_import_impl = "kt_jvm_import_impl",
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
@@ -184,6 +186,7 @@ _common_attr = utils.add_dicts(
         "plugins": attr.label_list(
             default = [],
             aspects = [_kt_jvm_plugin_aspect],
+            providers = [JavaInfo],
         ),
         "module_name": attr.string(
             doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
@@ -361,4 +364,53 @@ kt_jvm_import = rule(
     },
     implementation = _kt_jvm_import_impl,
     provides = [JavaInfo, _KtJvmInfo],
+)
+
+kt_compiler_plugin = rule(
+    doc = """Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
+    of the `kt_jvm_*` rules.
+
+    An example can be found under `//examples/plugin`:
+
+    ```bzl
+    kt_compiler_plugin(
+        name = "open_for_testing_plugin",
+        id = "org.jetbrains.kotlin.allopen",
+        options = {
+            "annotation": "plugin.OpenForTesting",
+        },
+        deps = [
+            "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        ],
+    )
+
+    kt_jvm_library(
+        name = "open_for_testing",
+        srcs = ["OpenForTesting.kt"],
+    )
+
+    kt_jvm_library(
+        name = "user",
+        srcs = ["User.kt"],
+        plugins = [":open_for_testing_plugin"],
+        deps = [
+            ":open_for_testing",
+        ],
+    )
+    ```
+    """,
+    attrs = {
+        "deps": attr.label_list(
+            doc = "The list of libraries to be added to the compiler's plugin classpath",
+        ),
+        "id": attr.string(
+            doc = """The ID of the plugin""",
+        ),
+        "options": attr.string_dict(
+            doc = """Dictionary of options to be passed to the plugin""",
+            default = {},
+        ),
+    },
+    implementation = _kt_compiler_plugin_impl,
+    provides = [JavaInfo, _KtCompilerPluginInfo],
 )

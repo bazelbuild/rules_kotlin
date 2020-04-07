@@ -14,7 +14,8 @@
 
 // Copied from bazel core and there is some code in other branches which will use the some of the unused elements. Fix
 // this later on.
-@file:Suppress("unused","MemberVisibilityCanBePrivate")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+
 package io.bazel.kotlin.builder.utils.jars
 
 import java.io.FileNotFoundException
@@ -23,7 +24,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.*
+import java.util.HashSet
 import java.util.jar.Attributes
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -37,230 +38,225 @@ import java.util.zip.CRC32
  * Adjusting the timestamp for .class files is necessary since otherwise javac will recompile java
  * files if both the java file and its .class file are present.
  */
-open class JarHelper internal constructor (
-    // The path to the Jar we want to create
-    protected val jarPath: Path,
-    // The properties to describe how to create the Jar
-    protected val normalize: Boolean = true,
-    protected val verbose: Boolean = false,
-    compression: Boolean = true
+open class JarHelper internal constructor(
+  // The path to the Jar we want to create
+  protected val jarPath: Path,
+  // The properties to describe how to create the Jar
+  protected val normalize: Boolean = true,
+  protected val verbose: Boolean = false,
+  compression: Boolean = true
 ) {
-    private var storageMethod: Int = JarEntry.DEFLATED
-    // The state needed to create the Jar
-    private val names: MutableSet<String> = HashSet()
+  private var storageMethod: Int = JarEntry.DEFLATED
 
-    init {
-        setCompression(compression)
+  // The state needed to create the Jar
+  private val names: MutableSet<String> = HashSet()
+
+  init {
+    setCompression(compression)
+  }
+
+  /**
+   * Enables or disables compression for the Jar file entries.
+   *
+   * @param compression if true enables compressions for the Jar file entries.
+   */
+  private fun setCompression(compression: Boolean) {
+    storageMethod = if (compression) JarEntry.DEFLATED else JarEntry.STORED
+  }
+
+  /**
+   * Returns the normalized timestamp for a jar entry based on its name. This is necessary since
+   * javac will, when loading a class X, prefer a source file to a class file, if both files have
+   * the same timestamp. Therefore, we need to adjust the timestamp for class files to slightly
+   * after the normalized time.
+   *
+   * @param name The name of the file for which we should return the normalized timestamp.
+   * @return the time for a new Jar file entry in milliseconds since the epoch.
+   */
+  private fun normalizedTimestamp(name: String): Long {
+    return if (name.endsWith(".class")) {
+      DEFAULT_TIMESTAMP + MINIMUM_TIMESTAMP_INCREMENT
+    } else {
+      DEFAULT_TIMESTAMP
     }
+  }
 
-    /**
-     * Enables or disables compression for the Jar file entries.
-     *
-     * @param compression if true enables compressions for the Jar file entries.
-     */
-    private fun setCompression(compression: Boolean) {
-        storageMethod = if (compression) JarEntry.DEFLATED else JarEntry.STORED
+  /**
+   * Returns the time for a new Jar file entry in milliseconds since the epoch. Uses JarCreator.DEFAULT_TIMESTAMP]
+   * for normalized entries, [System.currentTimeMillis] otherwise.
+   *
+   * @param filename The name of the file for which we are entering the time
+   * @return the time for a new Jar file entry in milliseconds since the epoch.
+   */
+  private fun newEntryTimeMillis(filename: String): Long {
+    return if (normalize) normalizedTimestamp(filename) else System.currentTimeMillis()
+  }
+
+  /**
+   * Writes an entry with specific contents to the jar. Directory entries must include the trailing
+   * '/'.
+   */
+  @Throws(IOException::class)
+  private fun writeEntry(out: JarOutputStream, name: String, content: ByteArray) {
+    if (names.add(name)) {
+      // Create a new entry
+      val entry = JarEntry(name)
+      entry.time = newEntryTimeMillis(name)
+      val size = content.size
+      entry.size = size.toLong()
+      if (size == 0) {
+        entry.method = JarEntry.STORED
+        entry.crc = 0
+        out.putNextEntry(entry)
+      } else {
+        entry.method = storageMethod
+        if (storageMethod == JarEntry.STORED) {
+          val crc = CRC32()
+          crc.update(content)
+          entry.crc = crc.value
+        }
+        out.putNextEntry(entry)
+        out.write(content)
+      }
+      out.closeEntry()
     }
+  }
 
-    /**
-     * Returns the normalized timestamp for a jar entry based on its name. This is necessary since
-     * javac will, when loading a class X, prefer a source file to a class file, if both files have
-     * the same timestamp. Therefore, we need to adjust the timestamp for class files to slightly
-     * after the normalized time.
-     *
-     * @param name The name of the file for which we should return the normalized timestamp.
-     * @return the time for a new Jar file entry in milliseconds since the epoch.
-     */
-    private fun normalizedTimestamp(name: String): Long {
-        return if (name.endsWith(".class")) {
-            DEFAULT_TIMESTAMP + MINIMUM_TIMESTAMP_INCREMENT
+  /**
+   * Writes a standard Java manifest entry into the JarOutputStream. This includes the directory
+   * entry for the "META-INF" directory
+   *
+   * @param content the Manifest content to write to the manifest entry.
+   * @throws IOException
+   */
+  @Throws(IOException::class)
+  protected fun writeManifestEntry(out: JarOutputStream, content: ByteArray) {
+    val oldStorageMethod = storageMethod
+    // Do not compress small manifest files, the compressed one is frequently
+    // larger than the original. The threshold of 256 bytes is somewhat arbitrary.
+    if (content.size < 256) {
+      storageMethod = JarEntry.STORED
+    }
+    try {
+      writeEntry(out, MANIFEST_DIR, byteArrayOf())
+      writeEntry(out, MANIFEST_NAME, content)
+    } finally {
+      storageMethod = oldStorageMethod
+    }
+  }
+
+  /**
+   * Copies file or directory entries from the file system into the jar. Directory entries will be
+   * detected and their names automatically '/' suffixed.
+   */
+  @Throws(IOException::class)
+  protected fun JarOutputStream.copyEntry(name: String, path: Path) {
+    var normalizedName = name
+    if (!names.contains(normalizedName)) {
+      if (!Files.exists(path)) {
+        throw FileNotFoundException("${path.toAbsolutePath()} (No such file or directory)")
+      }
+      val isDirectory = Files.isDirectory(path)
+      if (isDirectory && !normalizedName.endsWith("/")) {
+        normalizedName = "$normalizedName/" // always normalize directory names before checking set
+      }
+      if (names.add(normalizedName)) {
+        if (verbose) {
+          System.err.println("adding $path")
+        }
+        // Create a new entry
+        val size = if (isDirectory) 0 else Files.size(path)
+        val outEntry = JarEntry(normalizedName)
+        val newtime =
+          if (normalize) normalizedTimestamp(normalizedName) else Files.getLastModifiedTime(path)
+            .toMillis()
+        outEntry.time = newtime
+        outEntry.size = size
+        if (size == 0L) {
+          outEntry.method = JarEntry.STORED
+          outEntry.crc = 0
+          putNextEntry(outEntry)
         } else {
-            DEFAULT_TIMESTAMP
-        }
-    }
-
-    /**
-     * Returns the time for a new Jar file entry in milliseconds since the epoch. Uses JarCreator.DEFAULT_TIMESTAMP]
-     * for normalized entries, [System.currentTimeMillis] otherwise.
-     *
-     * @param filename The name of the file for which we are entering the time
-     * @return the time for a new Jar file entry in milliseconds since the epoch.
-     */
-    private fun newEntryTimeMillis(filename: String): Long {
-        return if (normalize) normalizedTimestamp(filename) else System.currentTimeMillis()
-    }
-
-    /**
-     * Writes an entry with specific contents to the jar. Directory entries must include the trailing
-     * '/'.
-     */
-    @Throws(IOException::class)
-    private fun writeEntry(out: JarOutputStream, name: String, content: ByteArray) {
-        if (names.add(name)) {
-            // Create a new entry
-            val entry = JarEntry(name)
-            entry.time = newEntryTimeMillis(name)
-            val size = content.size
-            entry.size = size.toLong()
-            if (size == 0) {
-                entry.method = JarEntry.STORED
-                entry.crc = 0
-                out.putNextEntry(entry)
-            } else {
-                entry.method = storageMethod
-                if (storageMethod == JarEntry.STORED) {
-                    val crc = CRC32()
-                    crc.update(content)
-                    entry.crc = crc.value
-                }
-                out.putNextEntry(entry)
-                out.write(content)
-            }
-            out.closeEntry()
-        }
-    }
-
-    /**
-     * Writes a standard Java manifest entry into the JarOutputStream. This includes the directory
-     * entry for the "META-INF" directory
-     *
-     * @param content the Manifest content to write to the manifest entry.
-     * @throws IOException
-     */
-    @Throws(IOException::class)
-    protected fun writeManifestEntry(out: JarOutputStream, content: ByteArray) {
-        val oldStorageMethod = storageMethod
-        // Do not compress small manifest files, the compressed one is frequently
-        // larger than the original. The threshold of 256 bytes is somewhat arbitrary.
-        if (content.size < 256) {
-            storageMethod = JarEntry.STORED
-        }
-        try {
-            writeEntry(out, MANIFEST_DIR, byteArrayOf())
-            writeEntry(out, MANIFEST_NAME, content)
-        } finally {
-            storageMethod = oldStorageMethod
-        }
-    }
-
-    /**
-     * Copies file or directory entries from the file system into the jar. Directory entries will be
-     * detected and their names automatically '/' suffixed.
-     */
-    @Throws(IOException::class)
-    protected fun JarOutputStream.copyEntry(name: String, path: Path) {
-        var normalizedName = name
-        if (!names.contains(normalizedName)) {
-            if (!Files.exists(path)) {
-                throw FileNotFoundException("${path.toAbsolutePath()} (No such file or directory)")
-            }
-            val isDirectory = Files.isDirectory(path)
-            if (isDirectory && !normalizedName.endsWith("/")) {
-                normalizedName = "$normalizedName/" // always normalize directory names before checking set
-            }
-            if (names.add(normalizedName)) {
-                if (verbose) {
-                    System.err.println("adding $path")
-                }
-                // Create a new entry
-                val size = if (isDirectory) 0 else Files.size(path)
-                val outEntry = JarEntry(normalizedName)
-                val newtime = if (normalize) normalizedTimestamp(normalizedName) else Files.getLastModifiedTime(path).toMillis()
-                outEntry.time = newtime
-                outEntry.size = size
-                if (size == 0L) {
-                    outEntry.method = JarEntry.STORED
-                    outEntry.crc = 0
-                    putNextEntry(outEntry)
-                } else {
-                    outEntry.method = storageMethod
-                    if (storageMethod == JarEntry.STORED) {
-                        // ZipFile requires us to calculate the CRC-32 for any STORED entry.
-                        // It would be nicer to do this via DigestInputStream, but
-                        // the architecture of ZipOutputStream requires us to know the CRC-32
-                        // before we write the data to the stream.
-                        val bytes = Files.readAllBytes(path)
-                        val crc = CRC32()
-                        crc.update(bytes)
-                        outEntry.crc = crc.value
-                        putNextEntry(outEntry)
-                        write(bytes)
-                    } else {
-                        putNextEntry(outEntry)
-                        Files.copy(path, this)
-                    }
-                }
-                closeEntry()
-            }
-        }
-    }
-
-    /**
-     * Copies a a single entry into the jar. This variant differs from the other [copyEntry] in two ways. Firstly the
-     * jar contents are already loaded in memory and Secondly the [name] and [path] entries don't necessarily have a
-     * correspondence.
-     *
-     * @param path the path used to retrieve the timestamp in case normalize is disabled.
-     * @param data if this is empty array then the entry is a directory.
-     */
-    protected fun JarOutputStream.copyEntry(name: String, path: Path? = null, data: ByteArray = EMPTY_BYTEARRAY) {
-        val outEntry = JarEntry(name)
-        outEntry.time = when {
-            normalize -> normalizedTimestamp(name)
-            else -> Files.getLastModifiedTime(checkNotNull(path)).toMillis()
-        }
-        outEntry.size = data.size.toLong()
-
-        if (data.isEmpty()) {
-            outEntry.method = JarEntry.STORED
-            outEntry.crc = 0
+          outEntry.method = storageMethod
+          if (storageMethod == JarEntry.STORED) {
+            // ZipFile requires us to calculate the CRC-32 for any STORED entry.
+            // It would be nicer to do this via DigestInputStream, but
+            // the architecture of ZipOutputStream requires us to know the CRC-32
+            // before we write the data to the stream.
+            val bytes = Files.readAllBytes(path)
+            val crc = CRC32()
+            crc.update(bytes)
+            outEntry.crc = crc.value
             putNextEntry(outEntry)
-        } else {
-            outEntry.method = storageMethod
-            if (storageMethod == JarEntry.STORED) {
-                val crc = CRC32()
-                crc.update(data)
-                outEntry.crc = crc.value
-                putNextEntry(outEntry)
-                write(data)
-            } else {
-                putNextEntry(outEntry)
-                write(data)
-            }
+            write(bytes)
+          } else {
+            putNextEntry(outEntry)
+            Files.copy(path, this)
+          }
         }
         closeEntry()
+      }
     }
+  }
 
-    companion object {
-        const val MANIFEST_DIR = "META-INF/"
-        const val MANIFEST_NAME = JarFile.MANIFEST_NAME
-        const val SERVICES_DIR = "META-INF/services/"
-        internal val EMPTY_BYTEARRAY = ByteArray(0)
-
-        /**
-         * Note that setting the January 1st 1980 (or even worse, "0", as time) won't work due
-         * to Java 8 doing some interesting time processing: It checks if this date is before January 1st 1980
-         * and if it is it starts setting some extra fields in the zip. Java 7 does not do that - but in the
-         * zip not the milliseconds are saved but values for each of the date fields - but no time zone. And
-         * 1980 is the first year which can be saved.
-         * If you use January 1st 1980 then it is treated as a special flag in Java 8.
-         * Moreover, only even seconds can be stored in the zip file. Java 8 uses the upper half of
-         * some other long to store the remaining millis while Java 7 doesn't do that. So make sure
-         * that your seconds are even.
-         * Moreover, parsing happens via `new Date(millis)` in {@link java.util.zip.ZipUtils}#javaToDosTime() so we
-         * must use default timezone and locale.
-         *
-         * The date is 1980 February 1st CET.
-         */
-        val DEFAULT_TIMESTAMP = GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis()
-
-        // These attributes are used by JavaBuilder, Turbine, and ijar.
-        // They must all be kept in sync.
-        val TARGET_LABEL = Attributes.Name("Target-Label")
-        val INJECTING_RULE_KIND = Attributes.Name("Injecting-Rule-Kind")
-
-        // ZIP timestamps have a resolution of 2 seconds.
-        // see http://www.info-zip.org/FAQ.html#limits
-        const val MINIMUM_TIMESTAMP_INCREMENT = 2000L
+  /**
+   * Copies a a single entry into the jar. This variant differs from the other [copyEntry] in two ways. Firstly the
+   * jar contents are already loaded in memory and Secondly the [name] and [path] entries don't necessarily have a
+   * correspondence.
+   *
+   * @param path the path used to retrieve the timestamp in case normalize is disabled.
+   * @param data if this is empty array then the entry is a directory.
+   */
+  protected fun JarOutputStream.copyEntry(
+    name: String,
+    path: Path? = null,
+    data: ByteArray = EMPTY_BYTEARRAY
+  ) {
+    val outEntry = JarEntry(name)
+    outEntry.time = when {
+      normalize -> normalizedTimestamp(name)
+      else -> Files.getLastModifiedTime(checkNotNull(path)).toMillis()
     }
+    outEntry.size = data.size.toLong()
+
+    if (data.isEmpty()) {
+      outEntry.method = JarEntry.STORED
+      outEntry.crc = 0
+      putNextEntry(outEntry)
+    } else {
+      outEntry.method = storageMethod
+      if (storageMethod == JarEntry.STORED) {
+        val crc = CRC32()
+        crc.update(data)
+        outEntry.crc = crc.value
+        putNextEntry(outEntry)
+        write(data)
+      } else {
+        putNextEntry(outEntry)
+        write(data)
+      }
+    }
+    closeEntry()
+  }
+
+  companion object {
+    const val MANIFEST_DIR = "META-INF/"
+    const val MANIFEST_NAME = JarFile.MANIFEST_NAME
+    const val SERVICES_DIR = "META-INF/services/"
+    internal val EMPTY_BYTEARRAY = ByteArray(0)
+
+    // Normalized timestamp for zip entries
+    // We do not include the system's default timezone and locale and additionally avoid the unix epoch
+    // to ensure Java's zip implementation does not add the System's timezone into the extra field of the zip entry
+    val DEFAULT_TIMESTAMP = GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis()
+
+    // These attributes are used by JavaBuilder, Turbine, and ijar.
+    // They must all be kept in sync.
+    val TARGET_LABEL = Attributes.Name("Target-Label")
+    val INJECTING_RULE_KIND = Attributes.Name("Injecting-Rule-Kind")
+
+    // ZIP timestamps have a resolution of 2 seconds.
+    // see http://www.info-zip.org/FAQ.html#limits
+    const val MINIMUM_TIMESTAMP_INCREMENT = 2000L
+  }
 }
