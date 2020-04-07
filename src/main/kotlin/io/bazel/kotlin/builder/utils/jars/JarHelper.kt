@@ -22,8 +22,8 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.time.LocalDateTime
-import java.time.ZoneId
+import java.util.Calendar
+import java.util.GregorianCalendar
 import java.util.HashSet
 import java.util.jar.Attributes
 import java.util.jar.JarEntry
@@ -245,11 +245,10 @@ open class JarHelper internal constructor(
     const val SERVICES_DIR = "META-INF/services/"
     internal val EMPTY_BYTEARRAY = ByteArray(0)
 
-    /** Normalize timestamps.  */
-    val DEFAULT_TIMESTAMP = LocalDateTime.of(1980, 1, 1, 0, 0, 0)
-      .atZone(ZoneId.systemDefault())
-      .toInstant()
-      .toEpochMilli()
+    // Normalized timestamp for zip entries
+    // We do not include the system's default timezone and locale and additionally avoid the unix epoch
+    // to ensure Java's zip implementation does not add the System's timezone into the extra field of the zip entry
+    val DEFAULT_TIMESTAMP = GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis()
 
     // These attributes are used by JavaBuilder, Turbine, and ijar.
     // They must all be kept in sync.
