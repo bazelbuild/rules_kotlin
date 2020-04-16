@@ -43,6 +43,11 @@ kt_jvm_import(
 ]
 
 kt_jvm_import(
+    name = "kotlinx-serialization-compiler-plugin",
+    jar = "lib/kotlinx-serialization-compiler-plugin.jar",
+)
+
+kt_jvm_import(
     name = "allopen-compiler-plugin",
     jar = "lib/allopen-compiler-plugin.jar",
 )
