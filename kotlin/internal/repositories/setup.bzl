@@ -25,6 +25,7 @@ def kt_configure():
             "org.jetbrains.kotlinx:atomicfu-js:0.13.1",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.2",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0",
             "com.google.code.findbugs:jsr305:3.0.2",
             "junit:junit:4.13-beta-3",
             "com.google.protobuf:protobuf-java:3.6.0",
