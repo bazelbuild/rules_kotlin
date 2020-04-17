@@ -187,6 +187,7 @@ _common_attr = utils.add_dicts(
             default = [],
             aspects = [_kt_jvm_plugin_aspect],
             providers = [JavaInfo],
+            cfg = "host",
         ),
         "module_name": attr.string(
             doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
