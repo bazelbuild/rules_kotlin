@@ -225,6 +225,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     friend = _compiler_friends(ctx, friends = getattr(ctx.attr, "friends", []))
     compile_deps = _compiler_deps(toolchains, friend, deps = ctx.attr.deps + ctx.attr.plugins)
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
+    transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins
 
     _run_kt_builder_action(
@@ -236,6 +237,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         friend = friend,
         compile_deps = compile_deps,
         annotation_processors = annotation_processors,
+        transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         outputs = {
             "output": output_jar,
@@ -271,7 +273,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
         ),
     )
 
-def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, annotation_processors, plugins, outputs):
+def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, annotation_processors, transitive_runtime_jars, plugins, outputs):
     """Creates a KotlinBuilder action invocation."""
     args = _utils.init_args(ctx, rule_kind, friend.module_name)
 
@@ -325,7 +327,9 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
 
     ctx.actions.run(
         mnemonic = "KotlinCompile",
-        inputs = depset(ctx.files.srcs, transitive = [compile_deps.compile_jars]),
+        inputs = depset(
+            ctx.files.srcs,
+            transitive = [compile_deps.compile_jars, transitive_runtime_jars]),
         tools = tools,
         input_manifests = input_manifests,
         outputs = [f for f in outputs.values()],
