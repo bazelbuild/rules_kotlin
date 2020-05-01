@@ -31,6 +31,7 @@ java_library(
         "//third_party:dagger",
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+        "@kotlin_rules_maven//:javax_annotation_javax_annotation_api",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
     ],
 )
