@@ -34,9 +34,9 @@ java_library(
         "Deps.java",
         "DirectoryType.java",
         "KotlinAbstractTestBuilder.java",
+        "KotlinBuilderTestComponent.java",
         "KotlinJsTestBuilder.java",
         "KotlinJvmTestBuilder.java",
-        "KotlinBuilderTestComponent.java"
     ],
     data = [
         "//src/main/kotlin/io/bazel/kotlin/compiler",
@@ -52,7 +52,8 @@ java_library(
     deps = _COMMON_DEPS + [
         "//third_party:autovalue",
         "//third_party:dagger",
-        "//src/main/kotlin/io/bazel/kotlin/builder/tasks"
+        "@kotlin_rules_maven//:javax_annotation_javax_annotation_api",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
     ],
 )
 
