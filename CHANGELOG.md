@@ -2,9 +2,22 @@
 
 |  Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News  | 
 | :----------- | -------- |
+| May 1, 2020  | Released version [1.4.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc1). |
+| Apr 28, 2020 | Fix missing plugin inputs (#318) |
+| Apr 7, 2020  | Fix non-reproducible archives (hermeticity, helps remote builds) (#304) |
+| Apr 6, 2020  | Support for Kotlin compiler plugins via the kt_compiler_plugin (#308) |
+| Apr 3, 2020  | Correctness and hermeticity fixes (#298) |
+| Mar 2, 2020  | Performance and correctness fixes (#291) |
+| Feb 28, 2020 | Performance fixes (#292) |
+| Feb 24, 2020 | Performance fixes and code cleanup (#287, #288) |
+| Feb 24, 2020 | Filter non-kotlin code out of generated sources (#263) |
+| Feb 18, 2020 | Only propagate srcjar if it isn't the default empty jar added by intellij aspect (#276) |
+| Feb 18, 2020 | Requires release binary for regular use, or special instructions for local development use (#279 |
+| Feb 14, 2020 | Allow resources to be in a kotlin directory (#268) |
 | Feb 9, 2020  | Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`) | 
-| Jan 15, 2019  | Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4). | 
-| Jan 15, 2019  | Bug fixes and tweaks (#255, #257). | 
+| Jan 15, 2020 | Add InteliiJ aspect info (Improved intellij support) (#242) |
+| Jan 15, 2019 | Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4). | 
+| Jan 15, 2019 | Bug fixes and tweaks (#255, #257). | 
 | Dec 6, 2019  | Released version [1.3.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc3). | 
 | Dec 6, 2019  | Add support for later java versions as target platforms (#236). | 
 | Dec 5, 2019  | Released version [1.3.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc2). | 
