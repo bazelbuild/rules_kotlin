@@ -7,15 +7,15 @@ Release candidate: ***`legacy-1.4.0-rc1`***<br />
 Main branch: `master`
 
 # News!
+* <b>May 1, 2020.</b> Released version [1.4.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc1). Includes:
+  - Pre-built binary worker
+  - Support for Kotlin compiler plugins via the kt_compiler_plugin (#308)
+  - Improved determinism for remote builds (#304)
+  - Avoids packaging non-kotlin-generated sources (#263)
+  - Fix for proper classpath handling for java_plugins (annotation processors) (#318)
+  - Supports propagating kotlin version in metadata (which IDEs can consume) (#242)
 * <b>Feb 18, 2020.</b> Changes to how the rules are consumed are live (prefer the release tarball or use development instructions, as stated in the readme).
 * <b>Feb 9, 2020.</b> Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`)
-* <b>Jan 15, 2020.</b> Released version [1.3.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc4).
-* <b>Jan 15, 2020.</b> Bug fixes and tweaks (#255, #257).
-* <b>Dec 6, 2019.</b> Released version [1.3.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc3).
-* <b>Dec 6, 2019.</b> Add support for later java versions as target platforms (#236).
-* <b>Dec 5, 2019.</b> Released version [1.3.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc2).
-* <b>Dec 5, 2019.</b> Fix for problem with jdeps generation (#235).
-* <b>Oct 29, 2019.</b> Released version [1.3.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0-rc1). 
 * <b>Oct 5, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
 
 For older news, please see [Changelog](CHANGELOG.md)
