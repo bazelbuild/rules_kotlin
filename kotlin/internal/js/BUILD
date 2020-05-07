@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # TODO(https://github.com/bazelbuild/rules_kotlin/issues/270): Replace with Starlark
 py_binary(
@@ -29,4 +30,10 @@ release_archive(
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
+)
+
+bzl_library(
+    name = "js",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//kotlin:__subpackages__"],
 )

@@ -12,8 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
     srcs = glob(["*.bzl"]) + ["BUILD"],
+)
+
+bzl_library(
+    name = "utils",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//kotlin:__subpackages__"],
 )

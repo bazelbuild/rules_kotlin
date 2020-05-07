@@ -1,0 +1,44 @@
+<a id="#${ruleName}"></a>
+
+#[[##]]# ${ruleName}
+
+${util.ruleSummary($ruleName, $ruleInfo)}
+
+## find common nonzero indent
+#set($chomp=0)
+#foreach ($ln in $ruleInfo.docString.split("\n"))
+    #if ($ln.length() > 0)
+        #foreach ($c in [0..$ln.length()])
+            #if (!$ln.substring(0, $c).trim().isEmpty())
+                #if ($chomp == 0)
+                    #set($chomp = $c - 1)
+                #elseif($c < $chomp)
+                    #set($chomp=$c - 1)
+                #end
+                #break
+            #end
+        #end
+    #end
+#end
+
+## print lines, removing common indent.
+#foreach ($ln in $ruleInfo.docString.split("\n"))
+    #if ($ln.length() >= $chomp && $ln.substring(0, $chomp).trim().isEmpty())
+        ${ln.substring($chomp)}
+    #else
+        ${ln}
+    #end
+#end
+
+
+**ATTRIBUTES**
+
+#if (!$ruleInfo.getAttributeList().isEmpty())
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+    #foreach ($attribute in $ruleInfo.getAttributeList())
+    |
+    <a id="${ruleName}-${attribute.name}"></a>$attribute.name | #if(!$attribute.docString.isEmpty()) ${util.markdownCellFormat($attribute.docString)} #else - #end  | ${util.attributeTypeString($attribute)} | ${util.mandatoryString($attribute)} | $attribute.defaultValue |
+    #end
+#end
