@@ -30,7 +30,7 @@ tasks:
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
-    shell_command:
+    shell_commands:
       - "cd .. && bazel build //:rules_kotlin_release_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release_release.tgz"
     working_directory: examples/android
     test_flags:
@@ -40,7 +40,7 @@ tasks:
   examples-trivial:
     name: "Example - Trivial"
     platform: ubuntu1804
-    shell_command:
+    shell_commands:
       - "cd .. && bazel build //:rules_kotlin_release_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release_release.tgz"
     working_directory: examples/trivial
     test_flags:
@@ -53,7 +53,7 @@ tasks:
   examples-nodejs:
     name: Example - Node
     platform: ubuntu1804
-    shell_command:
+    shell_commands:
       - "cd bazel build //:rules_kotlin_release_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release_release.tgz"
     working_directory: examples/node
     include_json_profile:
@@ -72,7 +72,7 @@ tasks:
   release-script:
     name: Release Script Verification
     platform: ubuntu1804
-    shell_command:
+    shell_commands:
       - "scripts/release.sh"
     test_targets:
       - //:noop_test
