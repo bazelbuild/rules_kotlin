@@ -69,4 +69,9 @@ tasks:
     platform: ubuntu1804
     build_targets:
       - //kotlin:stardoc
+  release-script:
+    name: Release Script Verification
+    platform: ubuntu1804
+    shell_command:
+      - scripts/release.sh
 
