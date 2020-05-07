@@ -13,22 +13,17 @@
 # limitations under the License.
 
 java_import(
-    name = "import_builder",
+    name = "worker",
     jars = ["kotlin_worker.jar"],
-)
-
-java_import(
-    name = "compiler_lib",
-    jars = ["compiler_lib.jar"],
 )
 
 java_binary(
     name = "builder",
     data = [
-        ":compiler_lib",
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],
-    runtime_deps = [":import_builder"],
+    runtime_deps = [":worker"],
 )
