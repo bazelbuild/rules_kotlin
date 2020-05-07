@@ -73,5 +73,5 @@ tasks:
     name: Release Script Verification
     platform: ubuntu1804
     shell_command:
-      - scripts/release.sh
+      - "scripts/release.sh"
 
