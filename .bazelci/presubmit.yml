@@ -74,4 +74,5 @@ tasks:
     platform: ubuntu1804
     shell_command:
       - "scripts/release.sh"
-
+    test_targets:
+      - //:noop_test

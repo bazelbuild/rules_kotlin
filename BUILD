@@ -49,3 +49,12 @@ release_archive(
         "//third_party:pkg",
     ],
 )
+
+# Used to stage the test for release archive above in the release pipeline.
+sh_test(
+  name = "noop_test",
+  srcs = [
+      "scripts/noop.sh"
+  ],
+)
+
