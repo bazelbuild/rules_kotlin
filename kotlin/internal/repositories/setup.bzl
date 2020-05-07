@@ -15,6 +15,7 @@
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("//kotlin/internal/repositories:http_java_proto_file.bzl", "http_java_proto_file")
+load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
@@ -62,3 +63,5 @@ def kt_configure():
         sha256 = "1157c93666f98cfcfcc9f7b073b8dac5bbd50e18f5ab981e93c71e03ed08f304",
         urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/2.0.0/src/main/protobuf/worker_protocol.proto"],
     )
+
+    stardoc_repositories()

@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,25 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Separate starlark collection of purely rules for stardoc generation
+
 load(
-    "//kotlin/internal/repositories:repositories.bzl",
-    _kotlin_repositories = "kotlin_repositories",
+    "//kotlin/internal:toolchains.bzl",
+    _define_kt_toolchain = "define_kt_toolchain",
+    _kt_register_toolchains = "kt_register_toolchains",
 )
 load(
-    "//kotlin:rules.bzl",
-    _define_kt_toolchain = "define_kt_toolchain",
-    _kt_android_library = "kt_android_library",
+    "//kotlin/internal/jvm:jvm.bzl",
     _kt_compiler_plugin = "kt_compiler_plugin",
-    _kt_js_import = "kt_js_import",
-    _kt_js_library = "kt_js_library",
     _kt_jvm_binary = "kt_jvm_binary",
     _kt_jvm_import = "kt_jvm_import",
     _kt_jvm_library = "kt_jvm_library",
     _kt_jvm_test = "kt_jvm_test",
-    _kt_register_toolchains = "kt_register_toolchains",
+)
+load(
+    "//kotlin/internal/jvm:android.bzl",
+    _kt_android_library = "kt_android_library",
+)
+load(
+    "//kotlin/internal/js:js.bzl",
+    _kt_js_import = "kt_js_import_macro",
+    _kt_js_library = "kt_js_library_macro",
 )
 
-kotlin_repositories = _kotlin_repositories
 define_kt_toolchain = _define_kt_toolchain
 kt_js_library = _kt_js_library
 kt_js_import = _kt_js_import

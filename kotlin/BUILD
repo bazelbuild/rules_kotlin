@@ -12,11 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
     srcs = glob(["*.*"]) + ["BUILD"],
     deps = [
         "//kotlin/internal:pkg",
+    ],
+)
+
+bzl_library(
+    name = "kotlin",
+    srcs = ["kotlin.bzl"],
+    visibility = ["//kotlin:__subpackages__"],
+    deps = [
+        "//kotlin/internal",
+    ],
+)
+
+stardoc(
+    name = "stardoc",
+    out = "kotlin.md",
+    input = "rules.bzl",
+    rule_template = "//kotlin:doc-templates/rule.vm",
+    deps = [
+        "kotlin",
     ],
 )

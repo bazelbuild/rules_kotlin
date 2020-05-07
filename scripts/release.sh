@@ -63,4 +63,9 @@ done
 # clean up
 rm -rf $ARCHIVE_DIR
 
-echo "Release is good."
+# generate stardoc
+bazel build //kotlin:stardoc || fail "docs did not generate"
+
+cp -f bazel-bin/kotlin/kotlin.md docs/ || fail "couldn't copy"
+
+echo "Release artifact is good: bazel-bin/rules_kotlin_release.tgz"
