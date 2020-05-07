@@ -43,7 +43,9 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
     return [base_name, kt_name]
 
 def kt_android_library(name, exports = [], visibility = None, **kwargs):
-    """Creates an Android sandwich library. `srcs`, `deps`, `plugins` are routed to `kt_jvm_library` the other android
+    """Creates an Android sandwich library.
+
+    `srcs`, `deps`, `plugins` are routed to `kt_jvm_library` the other android
     related attributes are handled by the native `android_library` rule.
     """
     native.android_library(
