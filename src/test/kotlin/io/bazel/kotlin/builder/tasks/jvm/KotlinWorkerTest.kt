@@ -117,7 +117,7 @@ class KotlinWorkerTest {
 
       assertThat(worker.run(args(one, jarOne, compilationTaskInfo))).isEqualTo(0)
 
-      assertWithMessage(io.execution.toString(StandardCharsets.UTF_8)).that(
+      assertWithMessage(String(io.execution.toByteArray(), StandardCharsets.UTF_8)).that(
         ZipFile(jarOne.toFile())
           .stream()
           .map(ZipEntry::getName)
@@ -127,7 +127,7 @@ class KotlinWorkerTest {
 
       val jarTwo = out("two.jar")
       assertThat(worker.run(args(two, jarTwo, compilationTaskInfo))).isEqualTo(0)
-      assertWithMessage(io.execution.toString(StandardCharsets.UTF_8)).that(
+      assertWithMessage(String(io.execution.toByteArray(), StandardCharsets.UTF_8)).that(
         ZipFile(jarTwo.toFile())
           .stream()
           .map(ZipEntry::getName)
