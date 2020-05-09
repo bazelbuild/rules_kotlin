@@ -16,6 +16,7 @@ package(default_visibility = ["//visibility:public"])
 load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("//kotlin:kotlin.bzl", "kt_jvm_import")
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files(["empty.jar"])
 
@@ -66,6 +67,12 @@ java_import(
     jars = ["@bazel_tools//tools/android:android_jar"],
     neverlink = 1,
     visibility = ["//visibility:public"],
+)
+
+
+bzl_library(
+    name = "java_tools_bzl",
+    srcs = ["@bazel_tools//tools:bzl_srcs"],
 )
 
 release_archive(

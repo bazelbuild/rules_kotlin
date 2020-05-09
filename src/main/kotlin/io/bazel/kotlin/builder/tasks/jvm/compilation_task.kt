@@ -165,7 +165,7 @@ fun JvmCompilationTask.compileKotlin(
   if (inputs.kotlinSourcesList.isEmpty()) {
     return emptyList()
   } else {
-    return pluginArgs(args, this)
+    return pluginArgs(this, args)
     .values(inputs.javaSourcesList)
     .values(inputs.kotlinSourcesList)
         .list().let {
