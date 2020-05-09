@@ -18,11 +18,12 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
-import io.bazel.kotlin.builder.tasks.BazelWorker.Companion.OK
 import io.bazel.kotlin.builder.tasks.InvocationWorker
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.JavaBuilderFlags
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.KotlinBuilderFlags
+import io.bazel.kotlin.builder.tasks.WorkerIO
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
@@ -30,9 +31,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.OutputStream
-import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -70,23 +68,23 @@ class KotlinWorkerTest {
   }
 
   private fun args(src: Path, jar: Path, info: CompilationTaskInfo) = listOf(
-      JavaBuilderFlags.TARGET_LABEL.flag, info.label,
-      KotlinBuilderFlags.MODULE_NAME.flag, info.moduleName,
-      KotlinBuilderFlags.API_VERSION.flag, info.toolchainInfo.common.apiVersion,
-      KotlinBuilderFlags.LANGUAGE_VERSION.flag, info.toolchainInfo.common.languageVersion,
-      JavaBuilderFlags.RULE_KIND.flag, "kt_${info.platform.name}_${info.ruleKind.name}",
-      JavaBuilderFlags.OUTPUT.flag, jar.toString(),
-      KotlinBuilderFlags.OUTPUT_SRCJAR.flag, "$jar.srcjar",
-      KotlinBuilderFlags.OUTPUT_JDEPS.flag, "out.jdeps",
-      JavaBuilderFlags.CLASSDIR.flag, "kt_classes",
-      KotlinBuilderFlags.GENERATED_CLASSDIR.flag, "generated_classes",
-      JavaBuilderFlags.TEMPDIR.flag, "tmp",
-      JavaBuilderFlags.SOURCEGEN_DIR.flag, "generated_sources",
-      JavaBuilderFlags.CLASSPATH.flag, KotlinJvmTestBuilder.KOTLIN_STDLIB.singleCompileJar(),
-      JavaBuilderFlags.SOURCES.flag, src.toString(),
-      KotlinBuilderFlags.PASSTHROUGH_FLAGS.flag, info.passthroughFlags,
-      KotlinBuilderFlags.DEBUG.flag, info.debugList.joinToString(","),
-      KotlinBuilderFlags.JVM_TARGET.flag, info.toolchainInfo.jvm.jvmTarget
+    JavaBuilderFlags.TARGET_LABEL.flag, info.label,
+    KotlinBuilderFlags.MODULE_NAME.flag, info.moduleName,
+    KotlinBuilderFlags.API_VERSION.flag, info.toolchainInfo.common.apiVersion,
+    KotlinBuilderFlags.LANGUAGE_VERSION.flag, info.toolchainInfo.common.languageVersion,
+    JavaBuilderFlags.RULE_KIND.flag, "kt_${info.platform.name}_${info.ruleKind.name}",
+    JavaBuilderFlags.OUTPUT.flag, jar.toString(),
+    KotlinBuilderFlags.OUTPUT_SRCJAR.flag, "$jar.srcjar",
+    KotlinBuilderFlags.OUTPUT_JDEPS.flag, "out.jdeps",
+    JavaBuilderFlags.CLASSDIR.flag, "kt_classes",
+    KotlinBuilderFlags.GENERATED_CLASSDIR.flag, "generated_classes",
+    JavaBuilderFlags.TEMPDIR.flag, "tmp",
+    JavaBuilderFlags.SOURCEGEN_DIR.flag, "generated_sources",
+    JavaBuilderFlags.CLASSPATH.flag, KotlinJvmTestBuilder.KOTLIN_STDLIB.singleCompileJar(),
+    JavaBuilderFlags.SOURCES.flag, src.toString(),
+    KotlinBuilderFlags.PASSTHROUGH_FLAGS.flag, info.passthroughFlags,
+    KotlinBuilderFlags.DEBUG.flag, info.debugList.joinToString(","),
+    KotlinBuilderFlags.JVM_TARGET.flag, info.toolchainInfo.jvm.jvmTarget
   )
 
   @Test
@@ -112,48 +110,31 @@ class KotlinWorkerTest {
       l("  }")
       l("}")
     }
-
-    // output buffer for compiler logs.
-    val outputStream = ByteArrayOutputStream()
-    val stdOut = System.out
-
-    // tee the stdout -- useful for debugging, but also used as
-    // part of the compilation task output.
-    System.setOut(PrintStream(object : OutputStream() {
-      @Throws(IOException::class) override fun write(b: Int) {
-        outputStream.write(b)
-        stdOut.write(b)
-      }
-    }))
-
-    val worker = InvocationWorker(delegate = builder, buffer = outputStream)
-
     val jarOne = out("one.jar")
 
-    assertThat(worker.invoke(args(one, jarOne, compilationTaskInfo))).isEqualTo(OK to "")
+    WorkerIO.open().use { io ->
+      val worker = InvocationWorker(io, builder)
 
-    System.err.println(ZipFile(jarOne.toFile())
-        .stream()
-        .map(ZipEntry::getName)
-        .toList())
+      assertThat(worker.run(args(one, jarOne, compilationTaskInfo))).isEqualTo(0)
 
-    assertThat(
+      assertWithMessage(String(io.execution.toByteArray(), StandardCharsets.UTF_8)).that(
         ZipFile(jarOne.toFile())
-            .stream()
-            .map(ZipEntry::getName)
-            .filter { it.endsWith(".class") }
-            .toList()
-    ).containsExactly("harry/nilsson/One.class")
+          .stream()
+          .map(ZipEntry::getName)
+          .filter { it.endsWith(".class") }
+          .toList()
+      ).containsExactly("harry/nilsson/One.class")
 
-    val jarTwo = out("two.jar")
-    assertThat(worker.invoke(args(two, jarTwo, compilationTaskInfo))).isEqualTo(OK to "")
-    assertThat(
+      val jarTwo = out("two.jar")
+      assertThat(worker.run(args(two, jarTwo, compilationTaskInfo))).isEqualTo(0)
+      assertWithMessage(String(io.execution.toByteArray(), StandardCharsets.UTF_8)).that(
         ZipFile(jarTwo.toFile())
-            .stream()
-            .map(ZipEntry::getName)
-            .filter { it.endsWith(".class") }
-            .toList()
-    ).containsExactly("harry/nilsson/Two.class")
+          .stream()
+          .map(ZipEntry::getName)
+          .filter { it.endsWith(".class") }
+          .toList()
+      ).containsExactly("harry/nilsson/Two.class")
+    }
   }
 
   private fun out(name: String): Path {
@@ -169,8 +150,8 @@ class KotlinWorkerTest {
         ruleKind = RuleKind.LIBRARY
         toolchainInfo = with(toolchainInfoBuilder) {
           common =
-              commonBuilder.setApiVersion("1.3").setCoroutines("enabled").setLanguageVersion("1.3")
-                  .build()
+            commonBuilder.setApiVersion("1.3").setCoroutines("enabled").setLanguageVersion("1.3")
+              .build()
           jvm = jvmBuilder.setJvmTarget("1.8").build()
           build()
         }

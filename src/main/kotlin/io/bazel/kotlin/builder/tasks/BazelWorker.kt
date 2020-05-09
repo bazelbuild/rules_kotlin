@@ -16,23 +16,30 @@
  */
 package io.bazel.kotlin.builder.tasks
 
-import com.google.devtools.build.lib.worker.WorkerProtocol
+import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
+import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
 import io.bazel.kotlin.builder.utils.WorkingDirectoryContext
 import io.bazel.kotlin.builder.utils.wasInterrupted
+import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.Closeable
 import java.io.IOException
+import java.io.InputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.logging.Level.SEVERE
+import java.util.logging.Logger
 
 /**
  * Interface for command line programs.
  *
  * This is the same thing as a main function, except not static.
  */
+@FunctionalInterface
 interface CommandLineProgram {
   /**
    * Runs blocking program start to finish.
@@ -56,107 +63,164 @@ interface CommandLineProgram {
  * @param <T> delegate program type
  */
 class BazelWorker(
-  private val delegate: CommandLineProgram,
+  private val commandLineProgram: CommandLineProgram,
   private val output: PrintStream,
   private val mnemonic: String
 ) {
-  companion object {
-    const val OK = 0
-    const val INTERRUPTED_STATUS = 1
-    const val ERROR_STATUS = 2
-  }
 
   fun apply(args: List<String>): Int {
-    return if (args.contains("--persistent_worker"))
-      runAsPersistentWorker()
-    else WorkingDirectoryContext.newContext().use { ctx ->
-      delegate.apply(ctx.dir, loadArguments(args, false))
+    if (args.contains("--persistent_worker")) {
+      return WorkerIO.open().use { io ->
+        PersistentWorker(io, commandLineProgram).run(args)
+      }
+    } else {
+      output.println(
+        "HINT: $mnemonic will compile faster if you run: echo \"build --strategy=$mnemonic=worker\" >>~/.bazelrc"
+      )
+      return WorkerIO.noop().use { io ->
+        InvocationWorker(io, commandLineProgram).run(args)
+      }
+    }
+  }
+}
+
+private fun maybeExpand(args: List<String>): List<String> {
+  if (args.isNotEmpty()) {
+    val lastArg = args[args.size - 1]
+    if (lastArg.startsWith("@")) {
+      val pathElement = lastArg.substring(1)
+      val flagFile = Paths.get(pathElement)
+      try {
+        return Files.readAllLines(flagFile, UTF_8)
+      } catch (e: IOException) {
+        throw RuntimeException(e)
+      }
+    }
+  }
+  return args
+}
+
+/** Defines the common worker interface. */
+interface Worker {
+  fun run(args: List<String>): Int
+}
+
+class WorkerIO(
+  val input: InputStream,
+  val output: PrintStream,
+  val execution: ByteArrayOutputStream,
+  private val restore: () -> Unit
+) : Closeable {
+  companion object {
+    fun open(): WorkerIO {
+      val stdErr = System.err
+      val stdIn = BufferedInputStream(System.`in`)
+      val stdOut = System.out
+      val inputBuffer = ByteArrayInputStream(ByteArray(0))
+      val execution = ByteArrayOutputStream()
+      val outputBuffer = PrintStream(execution)
+
+      // delegate the system defaults to capture execution information
+      System.setErr(outputBuffer)
+      System.setOut(outputBuffer)
+      System.setIn(inputBuffer)
+
+      return WorkerIO(stdIn, stdOut, execution) {
+        System.setOut(stdOut)
+        System.setIn(stdIn)
+        System.setErr(stdErr)
+      }
+    }
+
+    fun noop(): WorkerIO {
+      val inputBuffer = ByteArrayInputStream(ByteArray(0))
+      val execution = ByteArrayOutputStream()
+      val outputBuffer = PrintStream(execution)
+      return WorkerIO(inputBuffer, outputBuffer, execution) {}
     }
   }
 
-  private fun runAsPersistentWorker(): Int {
-    val realStdIn = System.`in`
-    val realStdOut = System.out
-    val realStdErr = System.err
-    try {
-      ByteArrayInputStream(ByteArray(0)).use { emptyIn ->
-        ByteArrayOutputStream().use { buffer ->
-          PrintStream(buffer).use { ps ->
-            System.setIn(emptyIn)
-            System.setOut(ps)
-            System.setErr(ps)
-            val invocationWorker = InvocationWorker(delegate, buffer)
-            while (true) {
-              val status =
-                  WorkerProtocol.WorkRequest.parseDelimitedFrom(realStdIn)?.let { request ->
-                    invocationWorker.invoke(loadArguments(request.argumentsList, true))
-                  }?.also { (status, log) ->
-                    with(WorkerProtocol.WorkResponse.newBuilder()) {
-                      exitCode = status
-                      output = log
-                      build().writeDelimitedTo(realStdOut)
-                    }
-                  }?.let { (status, _) -> status } ?: OK
+  override fun close() {
+    restore.invoke()
+  }
+}
 
-              if (status != OK) {
-                return status
-              }
-              System.gc()
+/** PersistentWorker follows the Bazel worker protocol and executes a CommandLineProgram. */
+class PersistentWorker(
+  private val io: WorkerIO,
+  private val program: CommandLineProgram
+) : Worker {
+  private val logger = Logger.getLogger(PersistentWorker::class.java.canonicalName)
+
+  enum class Status {
+    OK, INTERRUPTED, ERROR
+  }
+
+  override fun run(args: List<String>): Int {
+    while (true) {
+      val request = WorkRequest.parseDelimitedFrom(io.input) ?: continue
+
+      val (status, exit) = WorkingDirectoryContext.newContext()
+        .runCatching {
+          request.argumentsList
+            ?.let { maybeExpand(it) }
+            .run {
+              Status.OK to program.apply(dir, maybeExpand(request.argumentsList))
             }
+        }
+        .recover { e: Throwable ->
+          io.execution.write((e.message ?: e.toString()).toByteArray(UTF_8))
+          if (!e.wasInterrupted()) {
+            logger.log(SEVERE,
+                       "ERROR: Worker threw uncaught exception",
+                       e)
+            Status.ERROR to 1
+          } else {
+            Status.INTERRUPTED to 1
           }
         }
-      }
-    } finally {
-      System.setIn(realStdIn)
-      System.setOut(realStdOut)
-      System.setErr(realStdErr)
-    }
-    return OK
-  }
+        .getOrThrow()
 
-  private fun loadArguments(args: List<String>, isWorker: Boolean): List<String> {
-    if (args.isNotEmpty()) {
-      val lastArg = args[args.size - 1]
+      val response = WorkResponse.newBuilder().apply {
+        output = String(io.execution.toByteArray(), UTF_8)
+        exitCode = exit
+        requestId = request.requestId
+      }.build()
 
-      if (lastArg.startsWith("@")) {
-        val pathElement = lastArg.substring(1)
-        val flagFile = Paths.get(pathElement)
-        if (isWorker && lastArg.startsWith("@@") || Files.exists(flagFile)) {
-          if (!isWorker && mnemonic.isNotEmpty()) {
-            output.printf(
-                "HINT: %s will compile faster if you run: " + "echo \"build --strategy=%s=worker\" >>~/.bazelrc\n",
-                mnemonic, mnemonic
-            )
-          }
-          try {
-            return Files.readAllLines(flagFile, UTF_8)
-          } catch (e: IOException) {
-            throw RuntimeException(e)
-          }
-        }
+      // return the response
+      response.writeDelimitedTo(io.output)
+      io.output.flush()
+
+      // clear execution logs
+      io.execution.reset()
+
+      if (status == Status.INTERRUPTED) {
+        break
       }
     }
-    return args
+    logger.info("Shutting down worker.")
+    return 0
   }
 }
 
 class InvocationWorker(
-  private val delegate: CommandLineProgram,
-  private val buffer: ByteArrayOutputStream
-) {
-
-  fun invoke(args: List<String>): Pair<Int, String> = WorkingDirectoryContext.newContext()
-      .use { wdCtx ->
-        return try {
-          delegate.apply(wdCtx.dir, args)
-        } catch (e: RuntimeException) {
-          if (e.wasInterrupted()) BazelWorker.INTERRUPTED_STATUS
-          else BazelWorker.ERROR_STATUS.also {
-            System.err.println(
-                "ERROR: Worker threw uncaught exception with args: ${args}"
-            )
-            e.printStackTrace(System.err)
-          }
-        } to buffer.toString()
-      }
+  private val io: WorkerIO,
+  private val program: CommandLineProgram
+) : Worker {
+  private val logger: Logger = Logger.getLogger(InvocationWorker::class.java.canonicalName)
+  override fun run(args: List<String>): Int = WorkingDirectoryContext.newContext()
+    .runCatching { program.apply(dir, maybeExpand(args)) }
+    .recover { e ->
+      logger.log(SEVERE,
+                 "ERROR: Worker threw uncaught exception with args: ${maybeExpand(args)}",
+                 e)
+      return@recover 1 // return non-0 exitcode
+    }
+    .also {
+      // print execution log
+      println(String(io.execution.toByteArray(), UTF_8))
+    }
+    .getOrDefault(0)
 }
+
+
