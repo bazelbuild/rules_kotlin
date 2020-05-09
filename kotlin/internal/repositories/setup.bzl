@@ -42,6 +42,9 @@ def kt_configure():
             "com.google.dagger:dagger-producers:2.26",
             "javax.inject:javax.inject:1",
             "org.pantsbuild:jarjar:1.7.2",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.6",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.6",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.6",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",
