@@ -6,41 +6,40 @@
 
 kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_compiler_plugin-deps">deps</a>, <a href="#kt_compiler_plugin-id">id</a>, <a href="#kt_compiler_plugin-options">options</a>)
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-
-Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
-of the `kt_jvm_*` rules.
-
-An example can be found under `//examples/plugin`:
-
-```bzl
-kt_compiler_plugin(
-    name = "open_for_testing_plugin",
-    id = "org.jetbrains.kotlin.allopen",
-    options = {
-        "annotation": "plugin.OpenForTesting",
-    },
-    deps = [
-        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
-    ],
-)
-
-kt_jvm_library(
-    name = "open_for_testing",
-    srcs = ["OpenForTesting.kt"],
-)
-
-kt_jvm_library(
-    name = "user",
-    srcs = ["User.kt"],
-    plugins = [":open_for_testing_plugin"],
-    deps = [
-        ":open_for_testing",
-    ],
-)
-```
-
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+            Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
+        of the `kt_jvm_*` rules.
+                
+        An example can be found under `//examples/plugin`:
+                
+        ```bzl
+        kt_compiler_plugin(
+            name = "open_for_testing_plugin",
+            id = "org.jetbrains.kotlin.allopen",
+            options = {
+                "annotation": "plugin.OpenForTesting",
+            },
+            deps = [
+                "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+            ],
+        )
+                
+        kt_jvm_library(
+            name = "open_for_testing",
+            srcs = ["OpenForTesting.kt"],
+        )
+                
+        kt_jvm_library(
+            name = "user",
+            srcs = ["User.kt"],
+            plugins = [":open_for_testing_plugin"],
+            deps = [
+                ":open_for_testing",
+            ],
+        )
+        ```
+        
+    
 
 **ATTRIBUTES**
 
@@ -65,14 +64,14 @@ kt_jvm_binary(<a href="#kt_jvm_binary-name">name</a>, <a href="#kt_jvm_binary-da
               <a href="#kt_jvm_binary-resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_binary-resources">resources</a>, <a href="#kt_jvm_binary-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_binary-srcs">srcs</a>)
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper
-shell script uses a classpath that includes, among other things, a jar file for each library on which the binary
-depends.
-
-**Note:** This rule does not have all of the features found in [`java_binary`](https://docs.bazel.build/versions/master/be/java.html#java_binary).
-It is appropriate for building workspace utilities. `java_binary` should be preferred for release artefacts.
-
-
+            Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper
+        shell script uses a classpath that includes, among other things, a jar file for each library on which the binary
+        depends.
+                
+        **Note:** This rule does not have all of the features found in [`java_binary`](https://docs.bazel.build/versions/master/be/java.html#java_binary).
+        It is appropriate for building workspace utilities. `java_binary` should be preferred for release artefacts.
+        
+    
 
 **ATTRIBUTES**
 
@@ -112,38 +111,38 @@ It is appropriate for building workspace utilities. `java_binary` should be pref
 kt_jvm_import(<a href="#kt_jvm_import-name">name</a>, <a href="#kt_jvm_import-exports">exports</a>, <a href="#kt_jvm_import-jar">jar</a>, <a href="#kt_jvm_import-jars">jars</a>, <a href="#kt_jvm_import-neverlink">neverlink</a>, <a href="#kt_jvm_import-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_import-srcjar">srcjar</a>)
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-Import Kotlin jars.
-
-## examples
-
-```bzl
-# Old style usage -- reference file groups, do not used this.
-kt_jvm_import(
-    name = "kodein",
-    jars = [
-        "@com_github_salomonbrys_kodein_kodein//jar:file",
-        "@com_github_salomonbrys_kodein_kodein_core//jar:file"
-    ]
-)
-
-# This style will pull in the transitive runtime dependencies of the targets as well.
-kt_jvm_import(
-    name = "kodein",
-    jars = [
-        "@com_github_salomonbrys_kodein_kodein//jar",
-        "@com_github_salomonbrys_kodein_kodein_core//jar"
-    ]
-)
-
-# Import a single kotlin jar.
-kt_jvm_import(
-    name = "kotlin-stdlib",
-    jars = ["lib/kotlin-stdlib.jar"],
-    srcjar = "lib/kotlin-stdlib-sources.jar"
-)
-```
+            Import Kotlin jars.
+                
+        ## examples
+                
+        ```bzl
+        # Old style usage -- reference file groups, do not used this.
+        kt_jvm_import(
+            name = "kodein",
+            jars = [
+                "@com_github_salomonbrys_kodein_kodein//jar:file",
+                "@com_github_salomonbrys_kodein_kodein_core//jar:file"
+            ]
+        )
+                
+        # This style will pull in the transitive runtime dependencies of the targets as well.
+        kt_jvm_import(
+            name = "kodein",
+            jars = [
+                "@com_github_salomonbrys_kodein_kodein//jar",
+                "@com_github_salomonbrys_kodein_kodein_core//jar"
+            ]
+        )
+                
+        # Import a single kotlin jar.
+        kt_jvm_import(
+            name = "kotlin-stdlib",
+            jars = ["lib/kotlin-stdlib.jar"],
+            srcjar = "lib/kotlin-stdlib-sources.jar"
+        )
+        ```
+                    
     
-
 
 **ATTRIBUTES**
 
@@ -174,8 +173,8 @@ kt_jvm_library(<a href="#kt_jvm_library-name">name</a>, <a href="#kt_jvm_library
                <a href="#kt_jvm_library-resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_library-resources">resources</a>, <a href="#kt_jvm_library-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_library-srcs">srcs</a>)
 
                                                                                                 
-This rule compiles and links Kotlin and Java sources into a .jar file.
-
+    This rule compiles and links Kotlin and Java sources into a .jar file.
+    
 
 **ATTRIBUTES**
 
@@ -216,13 +215,13 @@ kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-data">da
             <a href="#kt_jvm_test-resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_test-resources">resources</a>, <a href="#kt_jvm_test-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_test-srcs">srcs</a>, <a href="#kt_jvm_test-test_class">test_class</a>)
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-Setup a simple kotlin_test.
-
-**Notes:**
-* The kotlin test library is not added implicitly, it is available with the label
-`@com_github_jetbrains_kotlin//:kotlin-test`.
-
-
+            Setup a simple kotlin_test.
+                
+        **Notes:**
+        * The kotlin test library is not added implicitly, it is available with the label
+        `@com_github_jetbrains_kotlin//:kotlin-test`.
+        
+    
 
 **ATTRIBUTES**
 
@@ -290,8 +289,8 @@ kt_android_library(<a href="#kt_android_library-name">name</a>, <a href="#kt_and
 
 Creates an Android sandwich library.
 
-`srcs`, `deps`, `plugins` are routed to `kt_jvm_library` the other android related attributes are handled by the
-native `android_library` rule.
+`srcs`, `deps`, `plugins` are routed to `kt_jvm_library` the other android
+related attributes are handled by the native `android_library` rule.
 
 **PARAMETERS**
 

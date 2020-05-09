@@ -7,7 +7,7 @@ Release candidate: ***`legacy-1.4.0-rc1`***<br />
 Main branch: `master`
 
 # News!
-* <b>May 1, 2020.</b> Released version [1.4.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc1). Includes:
+* <b>May 1, 2020.</b> Released version [1.4.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc3). Includes:
   - Pre-built binary worker
   - Support for Kotlin compiler plugins via the kt_compiler_plugin (#308)
   - Improved determinism for remote builds (#304)
@@ -53,7 +53,7 @@ Javascript is reported to work, but is not as well maintained (at present)
 # Documentation
 
 Generated API documentation is available at
-[https://bazelbuild.github.io/rules_kotlin/](https://bazelbuild.github.io/rules_kotlin/).
+[https://bazelbuild.github.io/rules_kotlin/kotlin](https://bazelbuild.github.io/rules_kotlin/kotlin).
 
 # Quick Guide
 
@@ -84,7 +84,7 @@ kt_register_toolchains() # to use the default toolchain, otherwise see toolchain
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy-1.4.0-rc1"
+rules_kotlin_version = "legacy-1.4.0-rc3"
 rules_kotlin_sha = "<release sha>"
 http_archive(
     name = "io_bazel_rules_kotlin",
