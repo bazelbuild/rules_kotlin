@@ -24,7 +24,7 @@ ${util.ruleSummary($ruleName, $ruleInfo)}
 ## print lines, removing common indent.
 #foreach ($ln in $ruleInfo.docString.split("\n"))
     #if ($ln.length() >= $chomp && $ln.substring(0, $chomp).trim().isEmpty())
-        ${ln.substring($chomp)}
+${ln.substring($chomp)}
     #else
         ${ln}
     #end
