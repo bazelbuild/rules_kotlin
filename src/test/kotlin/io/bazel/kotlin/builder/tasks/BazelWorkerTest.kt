@@ -18,6 +18,7 @@
 package io.bazel.kotlin.builder.tasks
 
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
 import kotlinx.coroutines.CoroutineName
@@ -27,10 +28,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.debug.junit4.CoroutinesTimeout
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.yield
 import org.junit.Rule
 import org.junit.Test
 import java.io.ByteArrayOutputStream
@@ -68,8 +69,6 @@ class BazelWorkerTest {
 
   @Test
   fun persistentWorker() {
-    val workerInput = WorkerChannel("in")
-    val workerOutput = WorkerChannel("out")
     runBlockingTest {
       val program = object : CommandLineProgram {
         override fun apply(workingDir: Path, args: List<String>): Int {
@@ -83,23 +82,27 @@ class BazelWorkerTest {
         }
       }
 
+      val workerInput = WorkerChannel("in")
+      val workerOutput = WorkerChannel("out")
       val execution = ByteArrayOutputStream()
 
-      val done = GlobalScope.async(CoroutineName("worker")) {
+      val worker = GlobalScope.async(CoroutineName("worker")) {
         WorkerIO(workerInput.input,
                  PrintStream(workerOutput.output),
-                 execution) {}.use { io ->
-          PersistentWorker(io, program).run(listOf())
-        }
+                 execution) {}
+          .use { io ->
+            PersistentWorker(io, program).run(listOf())
+          }
       }
 
-      // asserts scope to ensure all asserts are run.
+      // asserts scope to ensure all cases are run.
       // messy, can be cleaned up -- since kotlin channels love to block and can easily starve a
       // dispatcher, it's necessary to read each channel in a different coroutine.
       // The coroutineScope prevents the assertions from happening outside of the expected
       // asynchronicity.
       coroutineScope {
         launch {
+          assertWithMessage("worker is active").that(worker.isActive).isTrue()
           workerInput.send(request(1, "ok"))
         }
         launch {
@@ -110,6 +113,7 @@ class BazelWorkerTest {
 
       coroutineScope {
         launch {
+          assertWithMessage("worker is active").that(worker.isActive).isTrue()
           workerInput.send(request(2, "fail"))
         }
         launch {
@@ -120,6 +124,7 @@ class BazelWorkerTest {
 
       coroutineScope {
         launch {
+          assertWithMessage("worker is active").that(worker.isActive).isTrue()
           workerInput.send(request(3, "error"))
         }
         launch {
@@ -131,6 +136,7 @@ class BazelWorkerTest {
       // an interrupt kills the worker.
       coroutineScope {
         launch {
+          assertWithMessage("worker is active").that(worker.isActive).isTrue()
           workerInput.send(request(4, "interrupt"))
           workerInput.close()
         }
@@ -140,22 +146,20 @@ class BazelWorkerTest {
         }
       }
 
-
-      assertThat(done.await()).isEqualTo(0)
+      assertThat(worker.await()).isEqualTo(0)
     }
   }
 
-  private fun request(id: Int, vararg args: String) = with(WorkRequest.newBuilder()) {
-    setRequestId(id)
+  private fun request(id: Int, vararg args: String) = WorkRequest.newBuilder().apply {
+    requestId = id
     addAllArguments(args.asList())
   }.build()
 
-  private fun response(id: Int, exitCode: Int, output: String = "") =
-    with(WorkResponse.newBuilder()) {
-      setExitCode(exitCode)
-      setOutput(output)
-      setRequestId(id)
-    }.build()
+  private fun response(id: Int, code: Int, out: String = "") = WorkResponse.newBuilder().apply {
+    exitCode = code
+    output = out
+    requestId = id
+  }.build()
 
   /** WorkerChannel encapsulates the communication between the test and the worker. */
   class WorkerChannel(
@@ -181,10 +185,8 @@ class BazelWorkerTest {
   class ChannelInputStream(val channel: Channel<Byte>, val name: String) : InputStream() {
     override fun read(): Int {
       return runBlocking(CoroutineName("$name.read()")) {
-        // since pipes block until the next event, this simulates that without starving
-        // other routines.
-        while (channel.isEmpty) {
-          delay(5L)
+        if (channel.isEmpty) {
+          yield()
         }
         // read blocking -- this better simulates the java InputStream behaviour.
         return@runBlocking channel.receive().toInt()
@@ -193,14 +195,11 @@ class BazelWorkerTest {
 
     override fun read(b: ByteArray, off: Int, len: Int): Int {
       return runBlocking(CoroutineName("$name.read(ByteArray,Int,Int)")) {
-        // since pipes block until the next event, this simulates that without starving
-        // other routines.
-        while (channel.isEmpty) {
-          delay(5L)
+        if (channel.isEmpty) {
+          yield()
         }
-        val end = Math.min(b.size, off + len - 1)
         var read = 0
-        for (i in off..end) {
+        for (i in off..b.size.coerceAtMost(off + len - 1)) {
           val rb = channel.receive()
           b[i] = rb
           read++
@@ -218,10 +217,8 @@ class BazelWorkerTest {
 
     override fun write(ba: ByteArray, off: Int, len: Int) {
       runBlocking(CoroutineName("$name.write(ByteArray, Int, Int)")) {
-        var sent = 0
-        for (i in off..Math.min(ba.size, off + len - 1)) {
+        for (i in off..ba.size.coerceAtMost(off + len - 1)) {
           channel.sendBlocking(ba[i])
-          sent++
         }
       }
     }
