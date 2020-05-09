@@ -40,6 +40,7 @@ def kt_configure():
             "com.google.dagger:dagger:2.26",
             "com.google.dagger:dagger-compiler:2.26",
             "com.google.dagger:dagger-producers:2.26",
+            "javax.annotation:javax.annotation-api:1.3.2",
             "javax.inject:javax.inject:1",
             "org.pantsbuild:jarjar:1.7.2",
         ],

@@ -3,7 +3,7 @@ load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library", "kt_jvm_test
 kt_compiler_plugin(
     name = "serialization_plugin",
     deps = [
-       "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
+        "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
     ],
 )
 
@@ -24,8 +24,8 @@ kt_jvm_test(
     test_class = "plugin.serialization.SerializationTest",
     deps = [
         ":data",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
         "@kotlin_rules_maven//:junit_junit",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
     ],
 )

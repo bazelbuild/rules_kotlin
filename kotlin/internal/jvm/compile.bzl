@@ -329,7 +329,8 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
         mnemonic = "KotlinCompile",
         inputs = depset(
             ctx.files.srcs,
-            transitive = [compile_deps.compile_jars, transitive_runtime_jars]),
+            transitive = [compile_deps.compile_jars, transitive_runtime_jars],
+        ),
         tools = tools,
         input_manifests = input_manifests,
         outputs = [f for f in outputs.values()],
