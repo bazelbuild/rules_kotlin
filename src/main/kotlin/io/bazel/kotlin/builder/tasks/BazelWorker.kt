@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.logging.Level
+import java.util.logging.Level.SEVERE
 import java.util.logging.Logger
 
 /**
@@ -150,7 +150,7 @@ class PersistentWorker(
   private val io: WorkerIO,
   private val program: CommandLineProgram
 ) : Worker {
-  val logger = Logger.getLogger(PersistentWorker::class.java.canonicalName)
+  private val logger = Logger.getLogger(PersistentWorker::class.java.canonicalName)
 
   enum class Status {
     OK, INTERRUPTED, ERROR
@@ -163,9 +163,7 @@ class PersistentWorker(
       val (status, exit) = WorkingDirectoryContext.newContext()
         .runCatching {
           request.argumentsList
-            ?.let {
-              maybeExpand(it)
-            }
+            ?.let { maybeExpand(it) }
             .run {
               Status.OK to program.apply(dir, maybeExpand(request.argumentsList))
             }
@@ -173,7 +171,7 @@ class PersistentWorker(
         .recover { e: Throwable ->
           io.execution.write((e.message ?: e.toString()).toByteArray(UTF_8))
           if (!e.wasInterrupted()) {
-            logger.log(Level.SEVERE,
+            logger.log(SEVERE,
                        "ERROR: Worker threw uncaught exception",
                        e)
             Status.ERROR to 1
@@ -183,10 +181,10 @@ class PersistentWorker(
         }
         .getOrThrow()
 
-      val response = with(WorkResponse.newBuilder()) {
+      val response = WorkResponse.newBuilder().apply {
         output = String(io.execution.toByteArray(), UTF_8)
         exitCode = exit
-        setRequestId(request.requestId)
+        requestId = request.requestId
       }.build()
 
       // return the response
@@ -209,20 +207,18 @@ class InvocationWorker(
   private val io: WorkerIO,
   private val program: CommandLineProgram
 ) : Worker {
-  val logger: Logger = Logger.getLogger(InvocationWorker::class.java.canonicalName)
-  override fun run(args: List<String>): Int {
-    return WorkingDirectoryContext.newContext().runCatching {
-      program.apply(dir, maybeExpand(args))
-    }.recover { e ->
-      logger.log(Level.SEVERE,
+  private val logger: Logger = Logger.getLogger(InvocationWorker::class.java.canonicalName)
+  override fun run(args: List<String>): Int = WorkingDirectoryContext.newContext()
+    .runCatching { program.apply(dir, maybeExpand(args)) }
+    .recover { e ->
+      logger.log(SEVERE,
                  "ERROR: Worker threw uncaught exception with args: ${maybeExpand(args)}",
                  e)
-      1
-    }.also {
+      return@recover 1 // return non-0 exitcode
+    }
+    .also {
+      // print execution log
       println(String(io.execution.toByteArray(), UTF_8))
-    }.getOrDefault(0)
-  }
+    }
+    .getOrDefault(0)
 }
-
-
-
