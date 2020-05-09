@@ -215,11 +215,11 @@ class InvocationWorker(
                  "ERROR: Worker threw uncaught exception with args: ${maybeExpand(args)}",
                  e)
       return@recover 1 // return non-0 exitcode
-    }
+  }
     .also {
       // print execution log
       println(String(io.execution.toByteArray(), UTF_8))
-    }
+}
     .getOrDefault(0)
 }
 
