@@ -338,6 +338,9 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
         execution_requirements = {"supports-workers": "1"},
         arguments = [args],
         progress_message = progress_message,
+        # In order to make kotlin targets being compiled by java 8. Please define --action_env=JAVA_HOME
+        # in the `.bazelrc` file in your repository to pass in JAVA_HOME to default shell
+        use_default_shell_env = True,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
         },

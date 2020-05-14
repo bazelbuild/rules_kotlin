@@ -44,7 +44,6 @@ class KotlinToolchain private constructor(
 
   companion object {
     internal val NO_ARGS = arrayOf<Any>()
-
     private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
 
     private fun createClassLoader(javaHome: Path, baseJars: List<File>): ClassLoader =
