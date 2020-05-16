@@ -68,6 +68,7 @@ def _kotlin_toolchain_impl(ctx):
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         js_stdlibs = ctx.attr.js_stdlibs,
+        experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
     )
     return [
         platform_common.ToolchainInfo(**toolchain),
@@ -157,6 +158,10 @@ _kt_toolchain = rule(
             ],
             providers = [_KtJsInfo],
         ),
+        "experimental_use_abi_jars" : attr.bool(
+            doc="Compile using abi jars",
+            default = False,
+        )
     },
     implementation = _kotlin_toolchain_impl,
     provides = [platform_common.ToolchainInfo],
@@ -170,7 +175,8 @@ def define_kt_toolchain(
         name,
         language_version = None,
         api_version = None,
-        jvm_target = None):
+        jvm_target = None,
+        experimental_use_abi_jars = False):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
     _kt_toolchain(
@@ -187,6 +193,11 @@ def define_kt_toolchain(
                 "@io_bazel_rules_kotlin//kotlin/internal:builder_debug_timings": ["timings"],
                 "//conditions:default": [],
             }),
+        experimental_use_abi_jars = select({
+            "@io_bazel_rules_kotlin//kotlin/internal:experimental_use_abi_jars": True,
+            "@io_bazel_rules_kotlin//kotlin/internal:noexperimental_use_abi_jars": False,
+            "//conditions:default": experimental_use_abi_jars,
+        }),
         visibility = ["//visibility:public"],
     )
     native.toolchain(
@@ -200,6 +211,16 @@ def kt_configure_toolchains():
     """
     Defines the toolchain_type and default toolchain for kotlin compilation.
     """
+
+    native.config_setting(
+        name = "experimental_use_abi_jars",
+        values = {"define": "experimental_use_abi_jars=1"},
+    )
+    native.config_setting(
+        name = "noexperimental_use_abi_jars",
+        values = {"define": "experimental_use_abi_jars=0"},
+    )
+
     native.config_setting(
         name = "builder_debug_timings",
         values = {"define": "kt_timings=1"},

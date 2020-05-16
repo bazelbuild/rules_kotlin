@@ -23,6 +23,7 @@ import io.bazel.kotlin.builder.tasks.BazelWorker;
 import io.bazel.kotlin.builder.tasks.KotlinBuilder;
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
+import io.bazel.kotlin.builder.tasks.jvm.KtAbiPluginArgs;
 import io.bazel.kotlin.builder.toolchain.KaptCompilerPluginArgsEncoder;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 
@@ -65,5 +66,9 @@ public interface KotlinBuilderComponent {
         public BazelWorker provideWorker(KotlinBuilder builder) {
             return new BazelWorker(builder, System.err, "KotlinCompile");
         }
+
+    @Provides public KtAbiPluginArgs provideAbiPlugin(KotlinToolchain toolchain) {
+      return new KtAbiPluginArgs(toolchain.getJvmAbiGen(), toolchain.getSkipCodeGen());
+    }
     }
 }

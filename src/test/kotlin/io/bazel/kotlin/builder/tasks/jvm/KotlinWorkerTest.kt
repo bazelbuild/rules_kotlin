@@ -18,12 +18,12 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.Truth.assertWithMessage
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
 import io.bazel.kotlin.builder.tasks.InvocationWorker
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.JavaBuilderFlags
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.KotlinBuilderFlags
 import io.bazel.kotlin.builder.tasks.WorkerIO
+import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
@@ -31,6 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -67,24 +68,121 @@ class KotlinWorkerTest {
     return srcPath
   }
 
-  private fun args(src: Path, jar: Path, info: CompilationTaskInfo) = listOf(
-    JavaBuilderFlags.TARGET_LABEL.flag, info.label,
-    KotlinBuilderFlags.MODULE_NAME.flag, info.moduleName,
-    KotlinBuilderFlags.API_VERSION.flag, info.toolchainInfo.common.apiVersion,
-    KotlinBuilderFlags.LANGUAGE_VERSION.flag, info.toolchainInfo.common.languageVersion,
-    JavaBuilderFlags.RULE_KIND.flag, "kt_${info.platform.name}_${info.ruleKind.name}",
-    JavaBuilderFlags.OUTPUT.flag, jar.toString(),
-    KotlinBuilderFlags.OUTPUT_SRCJAR.flag, "$jar.srcjar",
-    KotlinBuilderFlags.OUTPUT_JDEPS.flag, "out.jdeps",
-    JavaBuilderFlags.CLASSDIR.flag, "kt_classes",
-    KotlinBuilderFlags.GENERATED_CLASSDIR.flag, "generated_classes",
-    JavaBuilderFlags.TEMPDIR.flag, "tmp",
-    JavaBuilderFlags.SOURCEGEN_DIR.flag, "generated_sources",
-    JavaBuilderFlags.CLASSPATH.flag, KotlinJvmTestBuilder.KOTLIN_STDLIB.singleCompileJar(),
-    JavaBuilderFlags.SOURCES.flag, src.toString(),
-    KotlinBuilderFlags.PASSTHROUGH_FLAGS.flag, info.passthroughFlags,
-    KotlinBuilderFlags.DEBUG.flag, info.debugList.joinToString(","),
-    KotlinBuilderFlags.JVM_TARGET.flag, info.toolchainInfo.jvm.jvmTarget
+  class ArgsBuilder(val args: MutableMap<Flag, MutableList<String>> = mutableMapOf()) {
+    fun flag(flag: Flag, value: String) {
+      args[flag] = (args[flag] ?: mutableListOf()).also {
+        it.add(value)
+      }
+    }
+
+    fun flag(flag: Flag, p: Path) {
+      flag(flag, p.toString())
+    }
+
+    fun cp(flag: Flag, value: String) {
+      args[flag] = mutableListOf(
+        (args[flag] ?: mutableListOf()).also { it.add(value) }.joinToString(File.pathSeparator))
+    }
+
+    fun remove(flag: Flag) {
+      args.remove(flag)
+    }
+
+    fun source(src: Path) {
+      flag(JavaBuilderFlags.SOURCES, src.toString())
+    }
+
+    fun list(): List<String> {
+      return args.flatMap { entry ->
+        entry.value.flatMap { value ->
+          listOf(entry.key.flag, value)
+        }
+      }
+    }
+  }
+
+  private fun args(
+    info: CompilationTaskInfo,
+    init: ArgsBuilder.() -> Unit
+  ) = with(ArgsBuilder()) {
+    flag(JavaBuilderFlags.TARGET_LABEL, info.label)
+    flag(KotlinBuilderFlags.MODULE_NAME, info.moduleName)
+    flag(KotlinBuilderFlags.API_VERSION, info.toolchainInfo.common.apiVersion)
+    flag(KotlinBuilderFlags.LANGUAGE_VERSION, info.toolchainInfo.common.languageVersion)
+    flag(JavaBuilderFlags.RULE_KIND, "kt_${info.platform.name}_${info.ruleKind.name}")
+    flag(JavaBuilderFlags.CLASSDIR, "kt_classes")
+    flag(KotlinBuilderFlags.GENERATED_CLASSDIR, "generated_classes")
+    flag(JavaBuilderFlags.TEMPDIR, "tmp")
+    flag(JavaBuilderFlags.SOURCEGEN_DIR, "generated_sources")
+    cp(JavaBuilderFlags.CLASSPATH, KotlinJvmTestBuilder.KOTLIN_STDLIB.singleCompileJar())
+    flag(KotlinBuilderFlags.PASSTHROUGH_FLAGS, info.passthroughFlags)
+    flag(KotlinBuilderFlags.DEBUG, info.debugList.joinToString(","))
+    flag(KotlinBuilderFlags.JVM_TARGET, info.toolchainInfo.jvm.jvmTarget)
+    init()
+    list()
+  }
+
+  @Test
+  fun `abi generation`() {
+
+    val builder = KotlinJvmTestBuilder.component().kotlinBuilder()
+
+    val one = src("One.kt") {
+      l("package harry.nilsson")
+      l("")
+      l("class One : Zero(), Imaginary {")
+      l("  override val i:Boolean = false")
+      l("  override fun isTheLoneliestNumber():String {")
+      l("     return \"that you'll ever do\"")
+      l("  }")
+      l("}")
+    }
+
+    val zero = src("Zero.kt") {
+      l("package harry.nilsson")
+      l("")
+      l("abstract class Zero {")
+      l("  abstract fun isTheLoneliestNumber():String")
+      l("}")
+    }
+
+    val imaginary = src("Imaginary.kt") {
+      l("package harry.nilsson")
+      l("")
+      l("interface Imaginary {")
+      l("  val i: Boolean get() = true")
+      l("}")
+    }
+
+    WorkerIO.open().use { io ->
+      val worker = InvocationWorker(io, builder)
+
+      val abiJar = out("abi.jar")
+
+      assertThat(
+        worker.run(
+          args(compilationTaskInfo) {
+            flag(KotlinBuilderFlags.ABI_JAR, abiJar)
+            source(one)
+            source(zero)
+            source(imaginary)
+          })).isEqualTo(0)
+
+      assertJarClasses(abiJar).containsExactly(
+        "harry/nilsson/Imaginary\$DefaultImpls.class",
+        "harry/nilsson/Imaginary.class",
+        "harry/nilsson/One.class",
+        "harry/nilsson/Zero.class"
+      )
+    }
+  }
+
+  fun assertJarClasses(jar: Path) = assertThat(
+    ZipFile(jar.toFile())
+      .stream()
+      .map(ZipEntry::getName)
+      .filter { it.endsWith(".class") }
+      .toList()
   )
 
   @Test
@@ -110,14 +208,24 @@ class KotlinWorkerTest {
       l("  }")
       l("}")
     }
-    val jarOne = out("one.jar")
 
     WorkerIO.open().use { io ->
       val worker = InvocationWorker(io, builder)
 
-      assertThat(worker.run(args(one, jarOne, compilationTaskInfo))).isEqualTo(0)
+      val jarOne = out("one.jar")
+      assertThat(worker.run(args(compilationTaskInfo) {
+        source(one)
+        flag(JavaBuilderFlags.OUTPUT, jarOne.toString())
+        flag(KotlinBuilderFlags.OUTPUT_SRCJAR, "$jarOne.srcjar")
+        flag(KotlinBuilderFlags.OUTPUT_JDEPS, "out.jdeps")
+      })).isEqualTo(0)
 
-      assertWithMessage(String(io.execution.toByteArray(), StandardCharsets.UTF_8)).that(
+      System.err.println(ZipFile(jarOne.toFile())
+                           .stream()
+                           .map(ZipEntry::getName)
+                           .toList())
+
+      assertThat(
         ZipFile(jarOne.toFile())
           .stream()
           .map(ZipEntry::getName)
@@ -126,8 +234,14 @@ class KotlinWorkerTest {
       ).containsExactly("harry/nilsson/One.class")
 
       val jarTwo = out("two.jar")
-      assertThat(worker.run(args(two, jarTwo, compilationTaskInfo))).isEqualTo(0)
-      assertWithMessage(String(io.execution.toByteArray(), StandardCharsets.UTF_8)).that(
+      assertThat(worker.run(args(compilationTaskInfo) {
+        source(two)
+        flag(JavaBuilderFlags.OUTPUT, jarTwo.toString())
+        flag(KotlinBuilderFlags.OUTPUT_SRCJAR, "$jarTwo.srcjar")
+        flag(KotlinBuilderFlags.OUTPUT_JDEPS, "out.jdeps")
+      })).isEqualTo(0)
+
+      assertThat(
         ZipFile(jarTwo.toFile())
           .stream()
           .map(ZipEntry::getName)

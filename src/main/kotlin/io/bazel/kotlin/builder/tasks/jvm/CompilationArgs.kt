@@ -17,6 +17,7 @@
 
 package io.bazel.kotlin.builder.tasks.jvm
 
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -24,17 +25,60 @@ import java.nio.file.Path
 /**
  * CompilationArgs collects the arguments for executing the Kotlin compiler.
  */
-internal class CompilationArgs(
+class CompilationArgs(
   val args: MutableList<String> = mutableListOf(),
   private val dfs: FileSystem = FileSystems.getDefault()
 ) {
 
-  fun givenNotEmpty(value: String, map: (String) -> Collection<String>): CompilationArgs {
-    if (value.isNotEmpty()) {
-      return values(map(value))
+  class StringConditional(val value: String, val parent: CompilationArgs) {
+    fun notEmpty(conditionalArgs: CompilationArgs.(it: String) -> Unit): CompilationArgs {
+      if (value.isNotEmpty()) {
+        parent.conditionalArgs(value)
+      }
+      return parent
+    }
+
+    fun empty(conditionalArgs: CompilationArgs.(it: String) -> Unit): CompilationArgs {
+      if (value.isEmpty()) {
+        parent.conditionalArgs(value)
+      }
+      return parent
+    }
+  }
+
+  interface SetFlag {
+    fun flag(name: String, value: String): SetFlag
+  }
+
+  fun plugin(p: KotlinToolchain.CompilerPlugin): CompilationArgs {
+    return plugin(p) {}
+  }
+
+  fun plugin(p: KotlinToolchain.CompilerPlugin, flagArgs: SetFlag.() -> Unit): CompilationArgs {
+    value("-Xplugin=${p.jarPath}")
+    object : SetFlag {
+      override fun flag(name: String, value: String): SetFlag {
+        args.add("-P")
+        args.add("plugin:${p.id}:${name}=${value}")
+        return this
+      }
+    }.flagArgs()
+    return this
+  }
+
+  fun given(test: Boolean, conditionalArgs: CompilationArgs.() -> Unit): CompilationArgs {
+    if (test) {
+      this.conditionalArgs()
     }
     return this
   }
+
+  fun given(value: String): StringConditional {
+    return StringConditional(value, this)
+  }
+
+  operator fun plus(other: CompilationArgs): CompilationArgs = CompilationArgs(
+      (args.asSequence() + other.args.asSequence()).toMutableList())
 
   fun absolutePaths(
     paths: Collection<String>,
@@ -45,6 +89,11 @@ internal class CompilationArgs(
 
   fun value(value: String): CompilationArgs {
     args.add(value)
+    return this
+  }
+
+  fun append(compilationArgs: CompilationArgs): CompilationArgs {
+    args.addAll(compilationArgs.args)
     return this
   }
 

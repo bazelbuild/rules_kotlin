@@ -82,56 +82,58 @@ message CompilationTaskInfo {
 
 // Mested messages not marked with stable could be refactored.
 message JvmCompilationTask {
-    // Directories used by the builder.
-    message Directories {
-        // The directory the compiler should use for class files.
-        string classes = 1;
-        // The directory to use by annotation processors to produce classes.
-        string generated_classes = 2;
-        // The directory used by annotation processors. The generated sources are currently only java.
-        string generated_sources = 3;
-        // A temp directory that the compiler may use. The source_jars are expanding into here.
-        string temp = 4;
-    }
+  // Directories used by the builder.
+  message Directories {
+    // The directory the compiler should use for class files.
+    string classes = 1;
+    // The directory to use by annotation processors to produce classes.
+    string generated_classes = 2;
+    // The directory used by annotation processors. The generated sources are currently only java.
+    string generated_sources = 3;
+    // A temp directory that the compiler may use. The source_jars are expanding into here.
+    string temp = 4;
+  }
 
-    // Outputs produced by the builder.
-    message Outputs {
-        // The path to the primary output jar.
-        string jar = 1;
-        // The path to the jdeps file.
-        string jdeps = 2;
-        string srcjar = 3;
-    }
+  // Outputs produced by the builder.
+  message Outputs {
+    // The path to the primary output jar.
+    string jar = 1;
+    // The path to the jdeps file.
+    string jdeps = 2;
+    string srcjar = 3;
+    // The path to the abijar
+    string abijar = 4;
+  }
 
-    message Inputs {
-        // The full classpath
-        repeated string classpath = 1;
-        // Direct dependencies of the target.
-        map<string, string> direct_dependencies = 2;
-        // Indirect dependencies of the target.
-        map<string, string> indirect_dependencies = 3;
-        // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
-        // source_jars and from annotation processing.
-        repeated string kotlin_sources = 4;
-        // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
-        // source_jars and from annotation processing.
-        repeated string java_sources = 5;
-        // Jars containing additional sources.
-        repeated string source_jars = 6;
-        // Annotation processor FQNames
-        repeated string processors = 7;
-        // Annotation processor classpath.
-        repeated string processorpaths = 8;
+  message Inputs {
+    // The full classpath
+    repeated string classpath = 1;
+    // Direct dependencies of the target.
+    map<string, string> direct_dependencies = 2;
+    // Indirect dependencies of the target.
+    map<string, string> indirect_dependencies = 3;
+    // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
+    // source_jars and from annotation processing.
+    repeated string kotlin_sources = 4;
+    // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
+    // source_jars and from annotation processing.
+    repeated string java_sources = 5;
+    // Jars containing additional sources.
+    repeated string source_jars = 6;
+    // Annotation processor FQNames
+    repeated string processors = 7;
+    // Annotation processor classpath.
+    repeated string processorpaths = 8;
         // Kotlin compiler plugin options
         repeated string plugin_options = 9;
         // Kotlin compiler plugin classpath
         repeated string pluginpaths = 10;
-    }
+  }
 
-    CompilationTaskInfo info = 1;
-    Directories directories = 2;
-    Outputs outputs = 3;
-    Inputs inputs = 4;
+  CompilationTaskInfo info = 1;
+  Directories directories = 2;
+  Outputs outputs = 3;
+  Inputs inputs = 4;
 }
 
 message JsCompilationTask {
@@ -149,7 +151,7 @@ message JsCompilationTask {
         string srcjar = 4;
     }
 
-    message Inputs {
+  message Inputs {
         repeated string libraries = 1;
         // Partitioned from the builder flags, expanding the source_jars.
         repeated string kotlin_sources = 2;

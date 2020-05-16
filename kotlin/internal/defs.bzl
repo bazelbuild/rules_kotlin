@@ -15,6 +15,10 @@
 # The Kotlin Toolchain type.
 TOOLCHAIN_TYPE = "@io_bazel_rules_kotlin//kotlin/internal:kt_toolchain_type"
 
+# Java toolchains
+JAVA_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:toolchain_type"
+JAVA_RUNTIME_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:runtime_toolchain_type"
+
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 

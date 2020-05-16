@@ -29,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,6 +39,8 @@ import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
 
 abstract class KotlinAbstractTestBuilder<T> {
     private static final Path BAZEL_TEST_DIR =
@@ -149,19 +150,15 @@ abstract class KotlinAbstractTestBuilder<T> {
 
     private <R> R runCompileTask(
             CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (PrintStream outputStream = new PrintStream(byteArrayOutputStream)) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (PrintStream outputStream = new PrintStream(out)) {
             return operation.apply(new CompilationTaskContext(info, outputStream,
                     instanceRoot().toAbsolutePath().toString() + File.separator), task);
         } finally {
-            outLines =
-                    Collections.unmodifiableList(
-                            new BufferedReader(
-                                    new InputStreamReader(
-                                            new ByteArrayInputStream(byteArrayOutputStream.toByteArray())))
-                                    .lines()
-                                    .peek(System.err::println)
-                                    .collect(Collectors.toList()));
+            outLines = unmodifiableList(
+                    new BufferedReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())))
+                            .lines()
+                            .collect(toList()));
         }
     }
 

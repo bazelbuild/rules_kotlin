@@ -1,28 +1,32 @@
 /*
- * Copyright 2018 The Bazel Authors. All rights reserved.
+ * Copyright 2020 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 package io.bazel.kotlin.builder.toolchain
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
+import io.bazel.kotlin.builder.utils.verified
+import io.bazel.kotlin.builder.utils.verifiedPath
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
 import java.io.PrintStream
 import java.io.PrintWriter
 import java.lang.reflect.Method
+import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -36,13 +40,28 @@ class KotlinToolchain private constructor(
     "kotlin-stdlib-jdk7.jar",
     "kotlin-stdlib-jdk8.jar"
   ),
-  val kapt3Plugin: KotlinToolchain.CompilerPlugin = KotlinToolchain.CompilerPlugin(
+  val kapt3Plugin: CompilerPlugin = CompilerPlugin(
     kotlinHome.resolveVerified("lib", "kotlin-annotation-processing.jar").absolutePath,
     "org.jetbrains.kotlin.kapt3"
-  )
+  ),
+  val jvmAbiGen: CompilerPlugin,
+  val skipCodeGen: CompilerPlugin
 ) {
 
   companion object {
+    private val DEFAULT_JVM_ABI_PATH = BazelRunFiles.resolveVerified(
+        "external", "com_github_jetbrains_kotlin", "lib", "jvm-abi-gen.jar").toPath()
+
+    private val COMPILER = BazelRunFiles.resolveVerified(
+        "io_bazel_rules_kotlin",
+        "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
+        "compiler.jar").toPath()
+
+    private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerified(
+        "io_bazel_rules_kotlin",
+        "src", "main", "kotlin",
+        "skip-code-gen.jar").toPath()
+
     internal val NO_ARGS = arrayOf<Any>()
 
     private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
@@ -62,25 +81,42 @@ class KotlinToolchain private constructor(
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain {
-      val javaHome = Paths.get(System.getProperty("java.home")).let { path ->
+      return createToolchain(DEFAULT_JVM_ABI_PATH)
+    }
+
+    @JvmStatic
+    fun createToolchain(jvmAbiGenPath: Path): KotlinToolchain {
+      val df = FileSystems.getDefault()
+      val javaHome = df.getPath(System.getProperty("java.home")).let { path ->
         path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
-      }
+      }.verifiedPath()
+
+      val skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified().absoluteFile
+
       val kotlinCompilerJar = BazelRunFiles.resolveVerified(
-        "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar"
-      )
+          "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
+
+      val jvmAbiGenFile = jvmAbiGenPath.verified()
       return KotlinToolchain(
         kotlinCompilerJar.toPath().parent.parent,
         createClassLoader(
           javaHome,
           listOf(
             kotlinCompilerJar,
-            BazelRunFiles.resolveVerified(
-              "io_bazel_rules_kotlin",
-              "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
-              "compiler.jar"
-            )
+                  COMPILER.verified().absoluteFile,
+                  // plugins *must* be preloaded. Not doing so causes class conflicts
+                  // (and a NoClassDef err) in the compiler extension interfaces.
+                  // This may cause issues in accepting user defined compiler plugins.
+                  jvmAbiGenFile.absoluteFile,
+                  skipCodeGenFile
           )
-        )
+          ),
+          jvmAbiGen = CompilerPlugin(
+              jvmAbiGenFile.absolutePath,
+              "org.jetbrains.kotlin.jvm.abi"),
+          skipCodeGen = CompilerPlugin(
+              skipCodeGenFile.absolutePath,
+              "io.bazel.kotlin.plugin.SkipCodeGen")
       )
     }
   }

@@ -34,16 +34,18 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
- * Return a list with the common arguments.
+ * Return a list with the common arguments for compilation with code generation.
  */
-internal fun JvmCompilationTask.commonArgs(): CompilationArgs = baseArgs()
+fun JvmCompilationTask.commonArgs(): CompilationArgs = baseArgs() + codeGenArgs()
+
+fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
   .absolutePaths(info.friendPathsList) {
     "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
   }
   .flag("-d", directories.classes)
-  .givenNotEmpty(info.passthroughFlags) { it.split(" ") }
+    .given(info.passthroughFlags).notEmpty { flags -> values(flags.split(" ")) }
 
-internal fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
+fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
   .flag("-cp").absolutePaths(inputs.classpathList) {
     it.map(Path::toString).joinToString(File.pathSeparator)
   }
@@ -137,19 +139,40 @@ internal fun JvmCompilationTask.createOutputJar() =
   }
 
 /**
+ * Produce the primary output jar.
+ */
+internal fun JvmCompilationTask.createAbiJar() =
+    JarCreator(
+        path = Paths.get(outputs.abijar),
+        normalize = true,
+        verbose = false
+    ).also {
+      it.addDirectory(Paths.get(directories.classes))
+      it.addDirectory(Paths.get(directories.generatedClasses))
+      it.setJarOwner(info.label, info.bazelRuleKind)
+      it.execute()
+    }
+
+/**
  * Compiles Kotlin sources to classes. Does not compile Java sources.
  */
-internal fun JvmCompilationTask.compileKotlin(
+fun JvmCompilationTask.compileKotlin(
   context: CompilationTaskContext,
   compiler: KotlinToolchain.KotlincInvoker,
+  args: CompilationArgs = commonArgs(),
   printOnFail: Boolean = true
-) =
-  pluginArgs(this, commonArgs())
+) : List<String> {
+  if (inputs.kotlinSourcesList.isEmpty()) {
+    return emptyList()
+  } else {
+    return pluginArgs(this, args)
     .values(inputs.javaSourcesList)
     .values(inputs.kotlinSourcesList)
-    .list().let { args ->
-      return@let context.executeCompilerTask(args, compiler::compile, printOnFail = printOnFail)
-    }
+        .list().let {
+          return@let context.executeCompilerTask(it, compiler::compile, printOnFail = printOnFail)
+        }
+  }
+}
 
 /**
  * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the

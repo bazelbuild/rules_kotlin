@@ -25,6 +25,16 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "KotlinBuilderJvmJavaTest",
+    srcs = ["jvm/KotlinBuilderJvmJavaTest.java"],
+)
+
+kt_rules_test(
+    name = "KotlinBuilderJvmAbiTest",
+    srcs = ["jvm/KotlinBuilderJvmAbiTest.java"],
+)
+
+kt_rules_test(
     name = "KotlinWorkerTest",
     srcs = ["jvm/KotlinWorkerTest.kt"],
 )
@@ -47,7 +57,6 @@ kt_jvm_test(
       artifact("org.jetbrains.kotlinx:kotlinx-coroutines-debug", repository_name="kotlin_rules_maven"),
     ]
 )
-
 
 # TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handles jvm_import data better.
 _MAVEN_CENTRAL_PREFIX = "@kotlin_rules_maven//:v1/https/maven-central.storage.googleapis.com/repos/central/data"

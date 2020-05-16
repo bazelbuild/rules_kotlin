@@ -28,6 +28,11 @@ kt_jvm_import(
     neverlink = 1,
 )
 
+kt_jvm_import(
+    name = "jvm-abi-gen",
+    jar = "lib/jvm-abi-gen.jar",
+)
+
 # Kotlin dependencies that are internal to this repo and are meant to be loaded manually into a classloader.
 [
     kt_jvm_import(

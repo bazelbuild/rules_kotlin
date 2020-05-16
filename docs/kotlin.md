@@ -263,7 +263,7 @@ kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-data">da
 ## define_kt_toolchain
 
 <pre>
-define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#define_kt_toolchain-language_version">language_version</a>, <a href="#define_kt_toolchain-api_version">api_version</a>, <a href="#define_kt_toolchain-jvm_target">jvm_target</a>)
+define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#define_kt_toolchain-language_version">language_version</a>, <a href="#define_kt_toolchain-api_version">api_version</a>, <a href="#define_kt_toolchain-jvm_target">jvm_target</a>, <a href="#define_kt_toolchain-experimental_use_abi_jars">experimental_use_abi_jars</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -277,6 +277,7 @@ Define the Kotlin toolchain.
 | language_version |  <p align="center"> - </p>   |  <code>None</code> |
 | api_version |  <p align="center"> - </p>   |  <code>None</code> |
 | jvm_target |  <p align="center"> - </p>   |  <code>None</code> |
+| experimental_use_abi_jars |  <p align="center"> - </p>   |  <code>False</code> |
 
 
 <a name="#kt_android_library"></a>
