@@ -55,6 +55,6 @@ release_archive(
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
-        "//src/main/kotlin/io/bazel/kotlin/compiler:pkg"
-    ]
+        "//src/main/kotlin/io/bazel/kotlin/compiler:pkg",
+    ],
 )

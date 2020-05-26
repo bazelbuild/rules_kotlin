@@ -16,7 +16,13 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
-    srcs = glob(["*.bzl"]) + ["BUILD"],
+    srcs = glob(
+        ["*.bzl"],
+        exclude = ["packager.bzl"],
+    ),
+    src_map = {
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
 )
 
 bzl_library(
