@@ -16,11 +16,11 @@ load("//kotlin/internal/utils:packager.bzl", "release_archive")
 release_archive(
     name = "pkg",
     srcs = [
-        "BUILD",
         "BUILD.com_github_jetbrains_kotlin",
         "download.bzl",
     ],
     src_map = {
         "release_repositories.bzl": "repositories.bzl",
+        "BUILD.release.bazel": "BUILD.bazel",
     },
 )

@@ -13,20 +13,24 @@
 # limitations under the License.
 workspace(name = "io_bazel_rules_kotlin")
 
-
 load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+
 kt_download_local_dev_dependencies()
 
 load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+
 kotlin_repositories()
+
 kt_register_toolchains()
 
 # Creates toolchain configuration for remote execution with BuildKite CI
 # for rbe_ubuntu1604
 load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
+
 rbe_autoconfig(
     name = "buildkite_config",
 )
 
 android_sdk_repository(name = "androidsdk")
+
 android_ndk_repository(name = "androidndk")
