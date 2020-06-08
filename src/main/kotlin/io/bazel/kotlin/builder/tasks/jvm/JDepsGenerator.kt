@@ -56,7 +56,7 @@ internal class JDepsGenerator @Inject constructor(
             val multiRelease =
               if (version < 9) arrayOf() else arrayOf("--multi-release", "base")
             val jarPath = command.outputs.jar
-            val args = multiRelease + arrayOf("-v", "-cp", joinedClasspath, jarPath)
+            val args = multiRelease + arrayOf("-R", "-summary", "-cp", joinedClasspath, jarPath)
             val res = invoker.run(args, writer)
             out.toByteArray().inputStream().bufferedReader().readLines().let {
               if (res != 0) {
