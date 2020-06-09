@@ -33,120 +33,97 @@ import java.util.stream.Stream;
 @SuppressWarnings({"KotlinInternalInJava", "SpellCheckingInspection"})
 @RunWith(JUnit4.class)
 public class JdepsParserTest {
-    private static final List<String> JDK8_FIXTURE =
-            toPlatformPaths(
-                    "alt.jar -> bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar",
-                    "alt.jar -> bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar",
-                    "alt.jar -> bazel-bin/cloud/qa/integrationtests/pkg/extensions/postgres/postgres.jar",
-                    "alt.jar -> bazel-server-cloud/bazel-out/darwin-fastbuild/bin/cloud/qa/integrationtests/pkg/alt/alt.runfiles/__main__/external/org_postgresql_postgresql/jar/postgresql-42.1.1.jar",
-                    "alt.jar -> /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/jre/lib/rt.jar",
-                    "alt.jar -> bazel-bin/cloud/qa/integrationtests/pkg/utils/utils.jar",
-                    "   com.axsy.testing.alt (alt.jar)",
-                    "      -> com.axsy.testing.extensions.postgres               postgres.jar",
-                    "      -> com.axsy.testing.pkg.utils                         utils.jar",
-                    "      -> java.io                                            ",
-                    "      -> java.lang                                          ",
-                    "      -> java.sql                                           ",
-                    "      -> javax.sql                                          ",
-                    "      -> kotlin                                             kotlin-stdlib.jar",
-                    "      -> kotlin.jdk7                                        kotlin-stdlib-jdk7.jar",
-                    "      -> kotlin.jvm.internal                                kotlin-stdlib.jar",
-                    "      -> org.postgresql.ds                                  postgresql-42.1.1.jar",
-                    "   com.axsy.testing.alt.sub (alt.jar)",
-                    "      -> java.lang                                          ",
-                    "      -> kotlin                                             kotlin-stdlib.jar");
+  private static final List<String> JDEPS_OUTPUT_FIXTURE =
+          toPlatformPaths(
+                  "example-tests.jar -> bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-test-host/1.3.1/ktor-server-test-host-1.3.1.jar",
+                  "example-tests.jar -> /Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/rt.jar",
+                  "example-tests.jar -> bazel-out/darwin-fastbuild/bin/root/example/main/example-lib.jar",
+                  "example-lib.jar -> bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.71/kotlin-stdlib-jdk7-1.3.71.jar",
+                  "ktor-server-test-host-1.3.1.jar -> bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-host-common/1.3.1/ktor-server-host-common-1.3.1.jar",
+                  "ktor-server-test-host-1.3.1.jar -> /Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/rt.jar",
+                  "ktor-server-host-common-1.3.1.jar -> /Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/rt.jar",
+                  "rt.jar -> /Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/jce.jar",
+                  "jce.jar -> /Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/rt.jar"
+          );
 
-    private static final List<String> JDK9_FIXTURE =
-            toPlatformPaths(
-                    "alt.jar -> java.base",
-                    "alt.jar -> java.sql",
-                    "alt.jar -> bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar",
-                    "alt.jar -> bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar",
-                    "alt.jar -> bazel-bin/cloud/qa/integrationtests/pkg/extensions/postgres/postgres.jar",
-                    "alt.jar -> bazel-server-cloud/bazel-out/darwin-fastbuild/bin/cloud/qa/integrationtests/pkg/alt/alt.runfiles/__main__/external/org_postgresql_postgresql/jar/postgresql-42.1.1.jar",
-                    "alt.jar -> bazel-bin/cloud/qa/integrationtests/pkg/utils/utils.jar",
-                    "   com.axsy.testing.alt                               -> com.axsy.testing.extensions.postgres               postgres.jar",
-                    "   com.axsy.testing.alt                               -> com.axsy.testing.pkg.utils                         utils.jar",
-                    "   com.axsy.testing.alt                               -> java.io                                            java.base",
-                    "   com.axsy.testing.alt                               -> java.lang                                          java.base",
-                    "   com.axsy.testing.alt                               -> java.sql                                           java.sql",
-                    "   com.axsy.testing.alt                               -> javax.sql                                          java.sql",
-                    "   com.axsy.testing.alt                               -> kotlin                                             kotlin-stdlib.jar",
-                    "   com.axsy.testing.alt                               -> kotlin.jdk7                                        kotlin-stdlib-jdk7.jar",
-                    "   com.axsy.testing.alt                               -> kotlin.jvm.internal                                kotlin-stdlib.jar",
-                    "   com.axsy.testing.alt                               -> org.postgresql.ds                                  postgresql-42.1.1.jar",
-                    "   com.axsy.testing.alt.sub                           -> java.lang                                          java.base",
-                    "   com.axsy.testing.alt.sub                           -> kotlin                                             kotlin-stdlib.jar");
+  private static final List<String> CLASSPATH =
+          toPlatformPaths(
+                  "bazel-out/darwin-fastbuild/bin/root/example/main/example-lib.jar",
+                  "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-host-common/1.3.1/ktor-server-host-common-1.3.1.jar",
+                  "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-test-host/1.3.1/ktor-server-test-host-1.3.1.jar",
+                  "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+                  "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar",
+                  "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.71/kotlin-stdlib-jdk7-1.3.71.jar",
+                  "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.61/kotlin-stdlib-jdk8-1.3.61.jar",
+                  "external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar",
+                  "external/com_github_jetbrains_kotlin/lib/kotlin-reflect.jar",
+                  "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar",
+                  "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar",
+                  "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar",
+                  "external/com_github_jetbrains_kotlin/lib/kotlin-test.jar"
+          );
 
-    private static final List<String> CLASSPATH =
-            toPlatformPaths(
-                    "bazel-bin/cloud/qa/integrationtests/pkg/extensions/postgres/unused.jar",
-                    "bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar",
-                    "bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar",
-                    "bazel-server-cloud/external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar",
-                    "bazel-bin/cloud/qa/integrationtests/pkg/extensions/postgres/postgres.jar",
-                    "bazel-server-cloud/bazel-out/darwin-fastbuild/bin/cloud/qa/integrationtests/pkg/alt/alt.runfiles/__main__/external/org_postgresql_postgresql/jar/postgresql-42.1.1.jar",
-                    "bazel-bin/cloud/qa/integrationtests/pkg/utils/utils.jar");
+  private static final String LABEL = "//cloud/qa/integrationtests/pkg/alt";
+  private static final String CLASS_JAR = toPlatformPath("bazel-bin/something/example-tests.jar");
 
-    private static final String LABEL = "//cloud/qa/integrationtests/pkg/alt";
-    private static final String CLASS_JAR = toPlatformPath("bazel-bin/something/alt.jar");
+  private static final Predicate<String> IS_KOTLIN_IMPLICIT =
+          JdepsParser.Companion.pathSuffixMatchingPredicate(
+                  Paths.get("external", "com_github_jetbrains_kotlin", "lib"),
+                  "kotlin-stdlib.jar",
+                  "kotlin-stdlib-jdk7.jar",
+                  "kotlin-stdlib-jdk8.jar");
 
-    private static final Predicate<String> IS_KOTLIN_IMPLICIT =
-            JdepsParser.Companion.pathSuffixMatchingPredicate(
-                    Paths.get("external", "com_github_jetbrains_kotlin", "lib"),
-                    "kotlin-stdlib.jar",
-                    "kotlin-stdlib-jdk7.jar",
-                    "kotlin-stdlib-jdk8.jar");
+  private static void testWithFixture(List<String> fixture) throws IOException {
+    Deps.Dependencies result =
+            JdepsParser.Companion.parse(LABEL, CLASS_JAR, CLASSPATH, fixture, IS_KOTLIN_IMPLICIT);
 
-    private static void testWithFixture(List<String> fixture) throws IOException {
-        Deps.Dependencies result =
-                JdepsParser.Companion.parse(LABEL, CLASS_JAR, CLASSPATH, fixture, IS_KOTLIN_IMPLICIT);
+    Assert.assertEquals(LABEL, result.getRuleLabel());
 
-        Assert.assertEquals(LABEL, result.getRuleLabel());
+    Truth.assertThat(result
+            .getDependencyList()
+            .stream()
+            .map(Deps.Dependency::getPath)
+            .collect(Collectors.toSet()))
+            .containsExactlyElementsIn(CLASSPATH);
 
-        Truth.assertThat(
-                result
-                        .getDependencyList()
-                        .stream()
-                        .map(Deps.Dependency::getPath)
-                        .collect(Collectors.toSet()))
-                .containsExactlyElementsIn(CLASSPATH);
+    Assert.assertEquals(13, result.getDependencyCount());
 
-        Assert.assertEquals(7, result.getDependencyCount());
-        Assert.assertEquals(1, depKinds(result, Deps.Dependency.Kind.UNUSED).size());
-        Assert.assertEquals(3, depKinds(result, Deps.Dependency.Kind.IMPLICIT).size());
-        Assert.assertEquals(3, depKinds(result, Deps.Dependency.Kind.EXPLICIT).size());
+    List<String> unused = depKinds(result, Deps.Dependency.Kind.UNUSED);
+    Assert.assertEquals(6, unused.size());
 
-        Assert.assertEquals(2, result.getContainedPackageCount());
+    List<String> explicit = depKinds(result, Deps.Dependency.Kind.EXPLICIT);
+    Assert.assertEquals(2, explicit.size());
+    Assert.assertTrue(explicit.contains("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-test-host/1.3.1/ktor-server-test-host-1.3.1.jar"));
+    Assert.assertTrue(explicit.contains("bazel-out/darwin-fastbuild/bin/root/example/main/example-lib.jar"));
 
-        result.writeTo(System.out);
-        System.out.flush();
-    }
+    List<String> implicit = depKinds(result, Deps.Dependency.Kind.IMPLICIT);
+    Assert.assertEquals(5, implicit.size());
+    Assert.assertTrue(implicit.contains("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-host-common/1.3.1/ktor-server-host-common-1.3.1.jar"));
 
-    private static List<String> toPlatformPaths(String... lines) {
-        return Stream.of(lines).map(JdepsParserTest::toPlatformPath).collect(Collectors.toList());
-    }
+    result.writeTo(System.out);
+    System.out.flush();
+  }
 
-    // on windows translate absolute paths to c:\ . Also swap the seperators from "/" to "\".
-    private static String toPlatformPath(String it) {
-        return File.separatorChar != '/' ? it.replace(" /", "c:\\").replace("/", File.separator) : it;
-    }
+  private static List<String> toPlatformPaths(String... lines) {
+    return Stream.of(lines).map(JdepsParserTest::toPlatformPath).collect(Collectors.toList());
+  }
 
-    private static List<Deps.Dependency> depKinds(Deps.Dependencies result, Deps.Dependency.Kind kind) {
-        return result
-                .getDependencyList()
-                .stream()
-                .filter(x -> x.getKind() == kind)
-                .collect(Collectors.toList());
-    }
+  // on windows translate absolute paths to c:\ . Also swap the seperators from "/" to "\".
+  private static String toPlatformPath(String it) {
+    return File.separatorChar != '/' ? it.replace(" /", "c:\\").replace("/", File.separator) : it;
+  }
 
-    @Test
-    public void parseJDK8Format() throws IOException {
-        testWithFixture(JDK8_FIXTURE);
-    }
+  private static List<String> depKinds(Deps.Dependencies result, Deps.Dependency.Kind kind) {
+    return result
+            .getDependencyList()
+            .stream()
+            .filter(x -> x.getKind() == kind)
+            .map(x -> x.getPath())
+            .collect(Collectors.toList());
+  }
 
-    @Test
-    public void parseJDK9Format() throws IOException {
-        testWithFixture(JDK9_FIXTURE);
-    }
+  @Test
+  public void parseJdepsResult() throws IOException {
+    testWithFixture(JDEPS_OUTPUT_FIXTURE);
+  }
 }
