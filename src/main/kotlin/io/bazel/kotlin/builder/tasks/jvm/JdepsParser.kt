@@ -26,12 +26,9 @@ internal class JdepsParser private constructor(
   private val filename: String,
   private val isImplicit: Predicate<String>
 ) {
-  private val packageSuffix: String = " ($filename)"
-
   private val depMap = HashMap<String, Deps.Dependency.Builder>()
-  private val packages = HashSet<String>()
-
-  private var mode = Mode.COLLECT_DEPS
+  private val moduleDeps = HashMap<String, MutableList<String>>()
+  private val arrowRegex = " -> ".toRegex()
 
   private fun consumeJarLine(classJarPath: String, kind: Deps.Dependency.Kind) {
     val path = Paths.get(classJarPath)
@@ -57,51 +54,29 @@ internal class JdepsParser private constructor(
     }
   }
 
-  private enum class Mode {
-    COLLECT_DEPS,
-    DETERMINE_JDK,
-    COLLECT_PACKAGES_JDK8,
-    COLLECT_PACKAGES_JDK9
+  private fun addModuleDependency(module: String, jarFile: String) {
+    val entry = moduleDeps.computeIfAbsent(module) {
+      mutableListOf<String>()
+    }
+    entry.add(jarFile)
   }
 
-  // maybe simplify this by tokenizing on whitespace and arrows.
   private fun processLine(line: String) {
-    val trimmedLine = line.trim { it <= ' ' }
-    when (mode) {
-      Mode.COLLECT_DEPS -> if (!line.startsWith(" ")) {
-        val parts = line.split(" -> ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        if (parts.size == 2) {
-          if (parts[0] != filename) {
-            throw RuntimeException("should only get dependencies for dep: $filename")
-          }
-          consumeJarLine(parts[1], Deps.Dependency.Kind.EXPLICIT)
+    val parts = line.split(arrowRegex).dropLastWhile { it.isEmpty() }.toTypedArray()
+    if (parts.size == 2 && parts[1].endsWith(".jar")) {
+      addModuleDependency(parts[0], parts[1]);
+    }
+  }
+
+  private fun markFromEntry(entry: String, kind: Deps.Dependency.Kind) {
+    moduleDeps[entry]?.forEach { jarPath ->
+      val dependency = depMap[jarPath]
+      if (dependency != null) {
+        if (dependency.kind == Deps.Dependency.Kind.UNUSED) {
+          dependency.kind = kind
+          val jarFile = Paths.get(jarPath).getFileName().toString()
+          markFromEntry(jarFile, Deps.Dependency.Kind.IMPLICIT)
         }
-      } else {
-        mode = Mode.DETERMINE_JDK
-        processLine(line)
-      }
-      Mode.DETERMINE_JDK -> {
-        mode = Mode.COLLECT_PACKAGES_JDK8
-        if (!line.endsWith(packageSuffix)) {
-          mode = Mode.COLLECT_PACKAGES_JDK9
-        }
-        processLine(line)
-      }
-      Mode.COLLECT_PACKAGES_JDK8 -> when {
-        trimmedLine.endsWith(packageSuffix) -> packages.add(
-          trimmedLine.substring(
-            0,
-            trimmedLine.length - packageSuffix.length
-          )
-        )
-        trimmedLine.startsWith("-> ") -> {
-          // ignore package detail lines, in the jdk8 format these start with arrows.
-        }
-        else -> throw RuntimeException("unexpected line while collecting packages: $line")
-      }
-      Mode.COLLECT_PACKAGES_JDK9 -> {
-        val pkg = trimmedLine.split("\\s+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        packages.add(pkg[0])
       }
     }
   }
@@ -128,16 +103,15 @@ internal class JdepsParser private constructor(
     ): Deps.Dependencies {
       val filename = Paths.get(jarFile).fileName.toString()
       val jdepsParser = JdepsParser(filename, isImplicit)
+
       classPath.forEach { x -> jdepsParser.consumeJarLine(x, Deps.Dependency.Kind.UNUSED) }
       lines.forEach { jdepsParser.processLine(it) }
+      jdepsParser.markFromEntry(filename, Deps.Dependency.Kind.EXPLICIT)
 
       val rootBuilder = Deps.Dependencies.newBuilder()
       rootBuilder.success = false
       rootBuilder.ruleLabel = label
-
-      rootBuilder.addAllContainedPackage(jdepsParser.packages)
       jdepsParser.depMap.values.forEach { b -> rootBuilder.addDependency(b.build()) }
-
       rootBuilder.success = true
       return rootBuilder.build()
     }
