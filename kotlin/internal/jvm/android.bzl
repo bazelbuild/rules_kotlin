@@ -30,6 +30,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
         name = base_name,
         visibility = ["//visibility:private"],
         exports = base_deps,
+        deps = deps if kwargs.get('enable_data_binding', default = False) else [],
         **kwargs
     )
     _kt_jvm_library(
