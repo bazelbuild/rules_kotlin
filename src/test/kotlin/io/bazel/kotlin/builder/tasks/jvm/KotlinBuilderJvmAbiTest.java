@@ -54,6 +54,37 @@ public class KotlinBuilderJvmAbiTest {
   }
 
   @Test
+  public void usingApplyWithInlineFunctionDoesntWork() {
+    Deps.Dep d = ctx.runCompileTask(
+        c -> {
+          c.addSource("HasInlineFunction.kt", "package something;" + "inline fun anInlineFunction(crossinline crossInlineLamba: () -> Unit) {\n"
+              + "\n"
+              + "    val foo = Foo()\n"
+              + "    // This works\n"
+              + "    foo.barMethod { crossInlineLamba() }\n"
+              + "\n"
+              + "    // This doesn't\n"
+              + "    foo.apply {\n"
+              + "        barMethod { crossInlineLamba() }\n"
+              + "    }\n"
+              + "}");
+          c.addSource("Foo.kt", "package something;", "", "class Foo {\n"
+              + "    fun barMethod(aLambda: () -> Unit) {}\n"
+              + "}");
+          c.outputAbiJar();
+        });
+    ctx.runCompileTask(
+        c -> {
+          c.addDirectDependencies(d);
+          c.addSource("Dependent.kt",
+              "package dep;",
+              "import something.AClass",
+              "class Dependent{}");
+          c.outputJar().outputSrcJar().outputJdeps();
+        });
+  }
+
+  @Test
   public void testGeneratesAbiJarSource() {
     ctx.runCompileTask(
         c -> {
