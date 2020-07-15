@@ -254,6 +254,8 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
             srcs = srcs,
             friend = friend,
             compile_deps = compile_deps,
+            annotation_processors = annotation_processors,
+            transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = {
                 "abi_jar": kt_compile_jar,
