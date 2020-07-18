@@ -16,7 +16,7 @@ load(
     _kt_jvm_library = "kt_jvm_library",
 )
 
-def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
+def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], enable_data_binding = False, **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
     Kotlin srcs. Returns a sequence of labels that a wrapping macro should export.
     """
@@ -30,6 +30,8 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], **kwargs):
         name = base_name,
         visibility = ["//visibility:private"],
         exports = base_deps,
+        deps = deps if enable_data_binding else [],
+        enable_data_binding = enable_data_binding,
         **kwargs
     )
     _kt_jvm_library(
