@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file", "http_jar")
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 RULES_NODEJS_VERSION = "0.36.1"
@@ -35,6 +34,9 @@ RULES_JVM_EXTERNAL_SHA = "f04b1466a00a2845106801e0c5cec96841f49ea4e7d1df88dc8e4b
 
 RULES_PROTO_GIT_COMMIT = "f6b8d89b90a7956f6782a4a3609b2f0eee3ce965"
 RULES_PROTO_SHA = "4d421d51f9ecfe9bf96ab23b55c6f2b809cbaf0eea24952683e397decfbd0dd0"
+
+IO_BAZEL_STARDOC_VERSION = "0.4.0"
+IO_BAZEL_STARDOC_SHA = "6d07d18c15abb0f6d393adbd6075cd661a2219faab56a9517741f0fc755f6f3c"
 
 def kt_download_local_dev_dependencies():
     """
@@ -113,8 +115,9 @@ def kt_download_local_dev_dependencies():
     )
 
     maybe(
-        git_repository,
+        http_archive,
         name = "io_bazel_stardoc",
-        remote = "https://github.com/bazelbuild/stardoc.git",
-        tag = "0.4.0",
+        sha256 = IO_BAZEL_STARDOC_SHA,
+        strip_prefix = "stardoc-%s" % IO_BAZEL_STARDOC_VERSION,
+        url = "https://github.com/bazelbuild/stardoc/archive/%s.tar.gz" % IO_BAZEL_STARDOC_VERSION,
     )
