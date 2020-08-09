@@ -38,7 +38,7 @@ test --strategy=KotlinCompile=worker
 
 ### Standard Libraries
 
-The Kotlin libraries that are bundled in a kotlin release should be used with the rules, the mandatory standard libraries are added implicetly. After enabling
+The Kotlin libraries that are bundled in a kotlin release should be used with the rules, the mandatory standard libraries are added implicitly. After enabling
 the repository the following Kotlin Libraries are also made available from the workspace `com_github_jetbrains_kotlin`:
 
 * `kotlin-test`,
