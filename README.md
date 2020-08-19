@@ -2,8 +2,8 @@
 
 # Bazel Kotlin Rules
 
-Current release: ***`legacy-1.3.0`***<br />
-Release candidate: ***`legacy-1.4.0-rc1`***<br />
+Current release: [***`legacy-1.3.0`***](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0)<br />
+Release candidate: [***`legacy-1.4.0-rc3`***](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc3)<br />
 Main branch: `master`
 
 # News!
