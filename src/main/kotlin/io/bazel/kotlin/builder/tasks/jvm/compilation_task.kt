@@ -160,7 +160,8 @@ fun JvmCompilationTask.compileKotlin(
   context: CompilationTaskContext,
   compiler: KotlinToolchain.KotlincInvoker,
   args: CompilationArgs = commonArgs(),
-  printOnFail: Boolean = true
+  printOnFail: Boolean = true,
+  diagnosticsFile: String?
 ) : List<String> {
   if (inputs.kotlinSourcesList.isEmpty()) {
     return emptyList()
@@ -169,7 +170,7 @@ fun JvmCompilationTask.compileKotlin(
     .values(inputs.javaSourcesList)
     .values(inputs.kotlinSourcesList)
         .list().let {
-          return@let context.executeCompilerTask(it, compiler::compile, printOnFail = printOnFail)
+          return@let context.executeCompilerTask(it, compiler::compile, printOnFail = printOnFail, diagnosticsFile = diagnosticsFile)
         }
   }
 }

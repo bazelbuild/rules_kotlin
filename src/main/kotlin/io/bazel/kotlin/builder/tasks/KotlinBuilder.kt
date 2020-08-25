@@ -89,6 +89,7 @@ class KotlinBuilder @Inject internal constructor(
       COMPRESS_JAR("--compress_jar"),
       RULE_KIND("--rule_kind"),
       TEST_ONLY("--testonly");
+      //TODO: Add diagnostics for java
     }
 
     enum class KotlinBuilderFlags(override val flag: String) : Flag {
@@ -106,7 +107,8 @@ class KotlinBuilder @Inject internal constructor(
       JS_LIBRARIES("--kotlin_js_libraries"),
       DEBUG("--kotlin_debug_tags"),
       TASK_ID("--kotlin_task_id"),
-      ABI_JAR("--abi_jar");
+      ABI_JAR("--abi_jar"),
+      DIAGNOSTICS_FILE("--diagnosticsfile");
     }
   }
 
@@ -213,7 +215,7 @@ class KotlinBuilder @Inject internal constructor(
     context.whenTracing {
       printProto("jvm task message", task)
     }
-    jvmTaskExecutor.execute(context, task)
+    jvmTaskExecutor.execute(context, task, argMap.optionalSingle(KotlinBuilderFlags.DIAGNOSTICS_FILE))
   }
 
   private fun buildJvmTask(

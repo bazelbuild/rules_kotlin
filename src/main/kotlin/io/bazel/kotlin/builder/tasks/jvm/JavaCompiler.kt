@@ -53,7 +53,7 @@ internal class JavaCompiler @Inject constructor(
         )
         it.addAll(i.javaSourcesList)
       }
-      context.executeCompilerTask(args, { a, pw ->
+      context.executeCompilerTask(args, { a, pw, _ ->
         javacInvoker.compile(a, PrintWriter(pw))
       })
     }

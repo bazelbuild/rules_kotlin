@@ -306,6 +306,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
             "output": output_jar,
             "kotlin_output_jdeps": ctx.outputs.jdeps,
             "kotlin_output_srcjar": ctx.outputs.srcjar,
+            "diagnosticsfile": ctx.outputs.diagnosticsfile,
         },
     )
 

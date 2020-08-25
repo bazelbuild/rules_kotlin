@@ -21,6 +21,7 @@ kt_bootstrap_library(
     visibility = ["//src:__subpackages__"],
     deps = [
         "//src/main/protobuf:kotlin_model_java_proto",
+        "//src/main/protobuf:diagnostics_java_proto",
         "@com_github_jetbrains_kotlin//:kotlin-preloader",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
