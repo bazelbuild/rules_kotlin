@@ -30,6 +30,7 @@ kt_jvm_library(
     deps = [
         "@com_github_jetbrains_kotlin//:kotlin-test",
         "@kotlin_rules_maven//:com_google_guava_guava",
+        "//src/main/protobuf:diagnostics_java_proto",
     ],
 )
 
@@ -68,6 +69,17 @@ kt_rules_e2e_test(
     srcs = ["KotlinJvm13Test.kt"],
 )
 
+kt_rules_e2e_test(
+    name = "KotlinJvmDiagnosticsTest",
+    srcs = ["KotlinJvmDiagnosticsTest.kt"],
+    data = ["//src/test/data/jvm/diagnostics"],
+    deps = [
+        "//src/main/protobuf:diagnostics_java_proto",
+        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
+        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
+    ]
+)
+
 test_suite(
     name = "assertion_tests",
     tests = [
@@ -76,6 +88,7 @@ test_suite(
         "KotlinJvmDaggerExampleTest",
         "KotlinJvmFriendsVisibilityTest",
         "KotlinJvmKaptAssertionTest",
+        "KotlinJvmDiagnosticsTest",
     ],
 )
 

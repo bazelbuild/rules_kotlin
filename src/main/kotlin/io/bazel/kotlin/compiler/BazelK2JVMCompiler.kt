@@ -81,7 +81,7 @@ class BazelK2JVMCompiler(private val delegate: K2JVMCompiler = K2JVMCompiler()) 
         STRONG_WARNING -> Diagnostics.Severity.WARNING
         WARNING -> Diagnostics.Severity.WARNING
         INFO -> Diagnostics.Severity.INFORMATION
-        LOGGING -> Diagnostics.Severity.HINT
+        LOGGING -> Diagnostics.Severity.INFORMATION
         OUTPUT -> Diagnostics.Severity.INFORMATION
       }
     }
