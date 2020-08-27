@@ -19,7 +19,7 @@ class KotlinJvmDiagnosticsTest: KotlinAssertionTestCase("src/test/data/jvm/diagn
       .setRange(
         Diagnostics.Range
           .newBuilder()
-          .setStart(Diagnostics.Position.newBuilder().setLine(2).setCharacter(7))
+          .setStart(Diagnostics.Position.newBuilder().setLine(1).setCharacter(6))
       )
       .build()
 

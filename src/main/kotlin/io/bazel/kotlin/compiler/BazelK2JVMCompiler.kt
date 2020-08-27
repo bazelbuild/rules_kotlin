@@ -92,8 +92,8 @@ class BazelK2JVMCompiler(private val delegate: K2JVMCompiler = K2JVMCompiler()) 
         .setStart(
           Diagnostics.Position
             .newBuilder()
-            .setLine(location.line)
-            .setCharacter(location.column)
+            .setLine(location.line - 1)
+            .setCharacter(location.column - 1)
             .build()
         )
         .build()
