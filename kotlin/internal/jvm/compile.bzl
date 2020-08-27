@@ -398,7 +398,10 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
         input_manifests = input_manifests,
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
-        execution_requirements = {"supports-workers": "1"},
+        execution_requirements = {
+            "supports-workers": "1",
+            "supports-multiplex-workers": "1",
+        },
         arguments = [args],
         progress_message = progress_message,
         env = {
