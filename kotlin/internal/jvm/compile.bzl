@@ -246,6 +246,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
 
     if toolchains.kt.experimental_use_abi_jars:
         kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
+        kt_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-kt-generated-javasrc.jar")
         _run_kt_builder_action(
             ctx = ctx,
             rule_kind = rule_kind,
@@ -257,37 +258,39 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
             plugins = plugins,
             outputs = {
                 "abi_jar": kt_compile_jar,
+                "generated_java_srcjar": kt_generated_java_srcjar
             },
             mnemonic = "KotlinCompileAbi",
         )
-        if not srcs.java:
-            compile_jar = kt_compile_jar
-        else:
-            java_compile_jar = ctx.actions.declare_file(ctx.label.name + "-java.abi.jar")
-            java_info = java_common.compile(
-                ctx,
-                source_files = srcs.java,
-                output = java_compile_jar,
-                deps = compile_deps.deps + [JavaInfo(compile_jar=kt_compile_jar, output_jar=kt_compile_jar)],
-                java_toolchain = toolchains.java,
-                host_javabase = toolchains.java_runtime,
-            )
-            compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
-            _fold_jars_action(
-                ctx,
-                rule_kind = rule_kind,
-                output_jar = compile_jar,
-                action_type = "Abi",
-                input_jars = [
-                    kt_compile_jar,
-                    java_common.run_ijar(
-                        ctx.actions,
-                        target_label = ctx.label,
-                        jar = java_compile_jar,
-                        java_toolchain = toolchains.java,
-                    ),
-                ],
-            )
+
+        java_compile_jar = ctx.actions.declare_file(ctx.label.name + "-java.abi.jar")
+        java_info = java_common.compile(
+            ctx,
+            source_files = srcs.java,
+            source_jars = [kt_generated_java_srcjar],
+            output = java_compile_jar,
+            # Don't run annotation processors, they were run by the Kotlin ABI action.
+            javac_opts = ["-proc:none"],
+            deps = compile_deps.deps + [JavaInfo(compile_jar=kt_compile_jar, output_jar=kt_compile_jar)],
+            java_toolchain = toolchains.java,
+            host_javabase = toolchains.java_runtime,
+        )
+        compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
+        _fold_jars_action(
+            ctx,
+            rule_kind = rule_kind,
+            output_jar = compile_jar,
+            action_type = "Abi",
+            input_jars = [
+                kt_compile_jar,
+                java_common.run_ijar(
+                    ctx.actions,
+                    target_label = ctx.label,
+                    jar = java_compile_jar,
+                    java_toolchain = toolchains.java,
+                ),
+            ],
+        )
 
     _run_kt_builder_action(
         ctx = ctx,

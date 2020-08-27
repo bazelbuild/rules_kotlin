@@ -154,6 +154,21 @@ internal fun JvmCompilationTask.createAbiJar() =
     }
 
 /**
+ * Produce the primary output jar.
+ */
+internal fun JvmCompilationTask.createGeneratedJavaSrcJar() {
+  JarCreator(
+    path = Paths.get(outputs.generatedJavaSrcJar),
+    normalize = true,
+    verbose = false
+  ).also {
+    it.addDirectory(Paths.get(directories.generatedSources))
+    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.execute()
+  }
+}
+
+/**
  * Compiles Kotlin sources to classes. Does not compile Java sources.
  */
 fun JvmCompilationTask.compileKotlin(

@@ -84,7 +84,8 @@ class KaptCompilerPluginArgsEncoder(
 
   fun encode(context: CompilationTaskContext, task: JvmCompilationTask): List<String> {
     val javacArgs = mutableMapOf<String, String>(
-      "-target" to task.info.toolchainInfo.jvm.jvmTarget
+      "-target" to task.info.toolchainInfo.jvm.jvmTarget,
+      "-source" to task.info.toolchainInfo.jvm.jvmTarget
     )
     val d = task.directories
     return if (task.inputs.processorsList.isNotEmpty()) {

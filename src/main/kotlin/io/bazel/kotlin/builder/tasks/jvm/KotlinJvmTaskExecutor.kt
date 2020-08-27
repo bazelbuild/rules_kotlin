@@ -114,6 +114,9 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         if (outputs.jdeps.isNotEmpty()) {
           context.execute("generate jdeps") { jDepsGenerator.generateJDeps(this) }
         }
+        if (outputs.generatedJavaSrcJar.isNotEmpty()) {
+          context.execute("creating generated Java source jar", ::createGeneratedJavaSrcJar)
+        }
       }
     }
   }

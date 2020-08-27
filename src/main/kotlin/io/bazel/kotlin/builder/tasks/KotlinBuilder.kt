@@ -106,7 +106,8 @@ class KotlinBuilder @Inject internal constructor(
       JS_LIBRARIES("--kotlin_js_libraries"),
       DEBUG("--kotlin_debug_tags"),
       TASK_ID("--kotlin_task_id"),
-      ABI_JAR("--abi_jar");
+      ABI_JAR("--abi_jar"),
+      GENERATED_JAVA_SRC_JAR("--generated_java_srcjar");
     }
   }
 
@@ -232,8 +233,10 @@ class KotlinBuilder @Inject internal constructor(
             argMap.hasAll(KotlinBuilderFlags.ABI_JAR)
           }?.let { srcjar = it }
 
-        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
-
+          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
+          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
+            generatedJavaSrcJar = this
+          }
           argMap.optionalSingleIf(KotlinBuilderFlags.ABI_JAR) {
             argMap.hasAll(JavaBuilderFlags.OUTPUT, KotlinBuilderFlags.OUTPUT_SRCJAR)
           }?.let { abijar = it }
