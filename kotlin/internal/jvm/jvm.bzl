@@ -24,7 +24,7 @@ git_repository(
     commit = "<COMMIT_HASH>",
 )
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories(kotlin_release_version = "1.2.21")
+kotlin_repositories(kotlin_release_version = "1.4.0")
 kt_register_toolchains()
 ```
 
