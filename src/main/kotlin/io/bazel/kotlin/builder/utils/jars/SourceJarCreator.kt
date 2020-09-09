@@ -35,7 +35,7 @@ class SourceJarCreator(
     private const val BL = """\p{Blank}*"""
     private const val COM_BL = """$BL(?:/\*[^\n]*\*/$BL)*"""
     private val PKG_PATTERN: Pattern =
-      Pattern.compile("""^${COM_BL}package$COM_BL([a-zA-Z1-9._]+)$COM_BL(?:;?.*)$""")
+      Pattern.compile("""^${COM_BL}package$COM_BL([a-zA-Z0-9._]+)$COM_BL(?:;?.*)$""")
 
     @JvmStatic
     fun extractPackage(line: String): String? =

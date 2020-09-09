@@ -49,4 +49,16 @@ public class SourceJarCreatorTest {
                     subj.that(pkg).isEqualTo(expectedPackage);
                 });
     }
+
+    @Test
+    public void testPackageNameRegexWithZero() {
+        cases.forEach(
+                (testCase) -> {
+                    testCase = testCase.replace("some1", "some0");
+                    String pkg = SourceJarCreator.Companion.extractPackage(testCase);
+                    StandardSubjectBuilder subj = assertWithMessage("positive test case: " + testCase);
+                    subj.that(pkg).isNotNull();
+                    subj.that(pkg).isEqualTo("iO.some0.package");
+                });
+    }
 }
