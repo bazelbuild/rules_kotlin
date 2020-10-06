@@ -39,7 +39,6 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
   fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
     val preprocessedTask = task
       .preProcessingSteps(context)
-      .runPlugins(context, pluginArgsEncoderKapt, compiler)
 
     context.execute("compile classes") {
       preprocessedTask.apply {

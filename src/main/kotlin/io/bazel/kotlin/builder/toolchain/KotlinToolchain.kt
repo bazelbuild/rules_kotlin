@@ -37,8 +37,8 @@ class KotlinToolchain private constructor(
     "kotlin-stdlib-jdk8.jar"
   ),
   val kapt3Plugin: KotlinToolchain.CompilerPlugin = KotlinToolchain.CompilerPlugin(
-    kotlinHome.resolveVerified("lib", "kotlin-annotation-processing.jar").absolutePath,
-    "org.jetbrains.kotlin.kapt3"
+    "",
+    ""
   )
 ) {
 

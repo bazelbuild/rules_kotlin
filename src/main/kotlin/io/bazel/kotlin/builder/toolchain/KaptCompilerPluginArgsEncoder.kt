@@ -76,10 +76,7 @@ class KaptCompilerPluginArgsEncoder(
 
     // "configuration" is an undocumented kapt3 argument. preparing the arguments this way is the only way to get more than one annotation processor class
     // passed to kotlinc.
-    fun encode(): List<String> = listOf(
-      "-Xplugin=$jarPath",
-      "-P", "plugin:$pluginId:configuration=${encodeMultiMap(tally)}"
-    )
+    fun encode(): List<String> = emptyList()
   }
 
   fun encode(context: CompilationTaskContext, task: JvmCompilationTask): List<String> {

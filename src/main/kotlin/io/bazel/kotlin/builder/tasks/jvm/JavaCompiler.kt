@@ -50,8 +50,22 @@ internal class JavaCompiler @Inject constructor(
           // Disable option linting, it will complain about the source.
           "-Xlint:-options",
           "-source", command.info.toolchainInfo.jvm.jvmTarget,
-          "-target", command.info.toolchainInfo.jvm.jvmTarget
+          "-target", command.info.toolchainInfo.jvm.jvmTarget,
+          "-XDcompilePolicy=simple"
         )
+
+        val filteredProcessorsList = command.inputs.processorsList.filter { str -> str.isNotEmpty() && str.isNotBlank() }
+        if (filteredProcessorsList.isNotEmpty()) {
+            var processorpath = command.inputs.processorpathsList.joinToString(":")
+            it.addAll(
+                "-Xplugin:Napt",
+                "-processorpath", processorpath
+            )
+        } else {
+            // Kotlin takes care of annotation processing.
+            it.addAll("-proc:none")
+        }
+
         it.addAll(i.javaSourcesList)
       }
       context.executeCompilerTask(args, { a, pw ->
