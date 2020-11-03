@@ -264,7 +264,7 @@ class KotlinWorkerTest {
         ruleKind = RuleKind.LIBRARY
         toolchainInfo = with(toolchainInfoBuilder) {
           common =
-            commonBuilder.setApiVersion("1.3").setCoroutines("enabled").setLanguageVersion("1.3")
+            commonBuilder.setApiVersion("1.4").setCoroutines("enabled").setLanguageVersion("1.4")
               .build()
           jvm = jvmBuilder.setJvmTarget("1.8").build()
           build()
