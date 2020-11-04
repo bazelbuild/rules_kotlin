@@ -34,11 +34,29 @@ rm TeaPot.kt
     toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
 )
 
+genrule(
+    name = "chai_lib_src",
+    outs = ["chai_lib_src.srcjar"],
+    cmd = """
+cat << EOF > ChaiCup.kt
+package chai
+object ChaiCup {
+    fun isEmpty() = true
+}
+EOF
+$(JAVABASE)/bin/jar -cf $@ ChaiCup.kt
+rm ChaiCup.kt
+""",
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
+)
+
+
 kt_jvm_library(
     name = "coffee_lib",
     srcs = glob(["src/**"]) + [
         # Adding a file ending with .srcjar is how code generation patterns are implemented.
         ":tea_lib_src",
+        ":chai_lib_src",
     ],
     deps = [
         "//third_party:dagger",
