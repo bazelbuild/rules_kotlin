@@ -223,7 +223,7 @@ def _java_info_to_compile_jars(target):
 
 # MAIN ACTIONS #########################################################################################################
 
-def kt_jvm_compile_action(ctx, rule_kind, output_jar):
+def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
     """This macro sets up a compile action for a Kotlin jar.
 
     Args:
@@ -241,8 +241,6 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins
-
-    compile_jar = output_jar
 
     if toolchains.kt.experimental_use_abi_jars:
         kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
@@ -446,4 +444,5 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         ctx,
         rule_kind = rule_kind,
         output_jar = kt_compile_output_jar,
+        compile_jar = output_jar,
     )
