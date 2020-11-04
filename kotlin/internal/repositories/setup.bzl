@@ -23,10 +23,6 @@ def kt_configure():
         name = "kotlin_rules_maven",
         fetch_sources = True,
         artifacts = [
-            "org.jetbrains.kotlinx:atomicfu-js:0.13.1",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.2",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1",
-            "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0",
             "com.google.code.findbugs:jsr305:3.0.2",
             "junit:junit:4.13-beta-3",
             "com.google.protobuf:protobuf-java:3.6.0",
@@ -43,12 +39,16 @@ def kt_configure():
             "javax.annotation:javax.annotation-api:1.3.2",
             "javax.inject:javax.inject:1",
             "org.pantsbuild:jarjar:1.7.2",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.6",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.6",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.6",
+            "org.jetbrains.kotlinx:atomicfu-js:0.14.0",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.9",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.9",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.9",
+            "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",
+            "https://jcenter.bintray.com/",
             "https://repo1.maven.org/maven2",
         ],
     )
@@ -59,13 +59,13 @@ def kt_configure():
     http_java_proto_file(
         name = "deps",
         sha256 = "b861dbce04177df9e4b7204876b2f27e18f40eb6d20b3dffefecdd2baf3cfe92",
-        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/2.0.0/src/main/protobuf/deps.proto"],
+        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/3.4.1/src/main/protobuf/deps.proto"],
     )
 
     http_java_proto_file(
         name = "worker_protocol",
         sha256 = "1157c93666f98cfcfcc9f7b073b8dac5bbd50e18f5ab981e93c71e03ed08f304",
-        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/2.0.0/src/main/protobuf/worker_protocol.proto"],
+        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/3.4.1/src/main/protobuf/worker_protocol.proto"],
     )
 
     stardoc_repositories()

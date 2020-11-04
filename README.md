@@ -123,9 +123,9 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", or "1.3"
-    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.6", "1.8", "9", "10", "11", or "12",
-    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", or "1.3"
+    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", or "1.4"
+    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.6", "1.8", "9", "10", "11", "12", or "13",
+    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", or "1.4"
 )
 ```
 
@@ -137,7 +137,7 @@ register_toolchains("//:kotlin_toolchain")
 
 ## Custom `kotlinc` distribution (and version)
 
-To choose a different `kotlinc` distribution (only 1.3 variants supported), do the following
+To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), do the following
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ```python
