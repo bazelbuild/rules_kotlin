@@ -160,11 +160,15 @@ class KotlinWorkerTest {
       val worker = InvocationWorker(io, builder)
 
       val abiJar = out("abi.jar")
+      val outputJar = out("output.jar")
 
       assertThat(
         worker.run(
           args(compilationTaskInfo) {
             flag(KotlinBuilderFlags.ABI_JAR, abiJar)
+            flag(JavaBuilderFlags.OUTPUT, outputJar)
+            flag(KotlinBuilderFlags.BUILD_KOTLIN, "true")
+            flag(JavaBuilderFlags.BUILD_JAVA, "false")
             source(one)
             source(zero)
             source(imaginary)
@@ -220,6 +224,8 @@ class KotlinWorkerTest {
         flag(JavaBuilderFlags.OUTPUT, jarOne.toString())
         flag(KotlinBuilderFlags.OUTPUT_SRCJAR, "$jarOne.srcjar")
         flag(KotlinBuilderFlags.OUTPUT_JDEPS, "out.jdeps")
+        flag(KotlinBuilderFlags.BUILD_KOTLIN, "true")
+        flag(JavaBuilderFlags.BUILD_JAVA, "false")
       })).isEqualTo(0)
 
       System.err.println(ZipFile(jarOne.toFile())
@@ -241,6 +247,8 @@ class KotlinWorkerTest {
         flag(JavaBuilderFlags.OUTPUT, jarTwo.toString())
         flag(KotlinBuilderFlags.OUTPUT_SRCJAR, "$jarTwo.srcjar")
         flag(KotlinBuilderFlags.OUTPUT_JDEPS, "out.jdeps")
+        flag(KotlinBuilderFlags.BUILD_KOTLIN, "true")
+        flag(JavaBuilderFlags.BUILD_JAVA, "false")
       })).isEqualTo(0)
 
       assertThat(

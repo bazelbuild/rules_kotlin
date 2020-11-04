@@ -63,6 +63,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                 .getDirectoriesBuilder()
                 .setClasses(directory(DirectoryType.CLASSES).toAbsolutePath().toString())
                 .setGeneratedSources(directory(DirectoryType.SOURCE_GEN).toAbsolutePath().toString())
+                .setGeneratedStubClasses(directory(DirectoryType.GENERATED_STUBS).toAbsolutePath().toString())
                 .setTemp(directory(DirectoryType.TEMP).toAbsolutePath().toString())
                 .setGeneratedClasses(
                         directory(DirectoryType.GENERATED_CLASSES).toAbsolutePath().toString());
@@ -134,6 +135,16 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             }
         }
 
+        public TaskBuilder compileJava() {
+            taskBuilder.setCompileJava(true);
+            return this;
+        }
+
+        public TaskBuilder compileKotlin() {
+            taskBuilder.setCompileKotlin(true);
+            return this;
+        }
+
         public void addAnnotationProcessors(AnnotationProcessor... annotationProcessors) {
             Preconditions.checkState(
                     taskBuilder.getInputs().getProcessorsList().isEmpty(), "processors already set");
@@ -175,6 +186,24 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         public TaskBuilder outputAbiJar() {
             taskBuilder.getOutputsBuilder()
                     .setAbijar(instanceRoot().resolve("abi.jar").toAbsolutePath().toString());
+            return this;
+        }
+
+        public TaskBuilder generatedSourceJar() {
+            taskBuilder.getOutputsBuilder()
+                .setGeneratedJavaSrcJar(instanceRoot().resolve("gen-src.jar").toAbsolutePath().toString());
+            return this;
+        }
+
+        public TaskBuilder ktStubsJar() {
+            taskBuilder.getOutputsBuilder()
+                .setGeneratedJavaStubJar(instanceRoot().resolve("kt-stubs.jar").toAbsolutePath().toString());
+            return this;
+        }
+
+        public TaskBuilder incrementalData() {
+            taskBuilder.getOutputsBuilder()
+                .setGeneratedClassJar(instanceRoot().resolve("incremental.jar").toAbsolutePath().toString());
             return this;
         }
     }

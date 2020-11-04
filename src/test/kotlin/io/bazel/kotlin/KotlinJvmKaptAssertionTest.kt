@@ -100,4 +100,19 @@ class KotlinJvmKaptAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/ka
       )
     }
   }
+
+  @Test
+  fun testSrcJarGeneration() {
+    jarTestCase(
+      "ap_kotlin_mixed_multiple_plugins-sources.jar",
+      description = "The rules should generate a source jar"
+    ) {
+      assertContainsEntries(
+        "test/data/jvm/kapt/java/TestAutoValue.java",
+        "test/data/jvm/kapt/java/TestJavaService.java",
+        "test/data/jvm/kapt/kotlin/TestKtService.kt",
+        "test/data/jvm/kapt/kotlin/TestKtValue.kt"
+      )
+    }
+  }
 }

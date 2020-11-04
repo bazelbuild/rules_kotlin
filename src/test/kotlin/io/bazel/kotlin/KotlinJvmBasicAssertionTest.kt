@@ -61,6 +61,18 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
   }
 
   @Test
+  fun testSrcJarGeneration() {
+    jarTestCase(
+      "test_module_name_lib-sources.jar",
+      description = "The rules should generate a source jar"
+    ) {
+      assertContainsEntries(
+        "test/data/jvm/basic/helloworld/Main.kt"
+      )
+    }
+  }
+
+  @Test
   fun testPropogateDeps() {
     assertExecutableRunfileSucceeds(
       "propagation_rt_via_export_consumer",

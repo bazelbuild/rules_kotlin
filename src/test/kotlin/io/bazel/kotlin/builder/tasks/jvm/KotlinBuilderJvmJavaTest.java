@@ -32,6 +32,8 @@ public class KotlinBuilderJvmJavaTest {
   public void testSimpleMixedModeCompile() {
     ctx.runCompileTask(
         c -> {
+          c.compileJava();
+          c.compileKotlin();
           c.addSource(
               "AClass.kt",
               "package something;" + "class AClass{}"
@@ -42,7 +44,7 @@ public class KotlinBuilderJvmJavaTest {
               "",
               "class AnotherClass{}"
           );
-          c.outputJar().outputSrcJar();
+          c.outputJar();
         });
     ctx.assertFilesExist(
         DirectoryType.CLASSES, "something/AClass.class", "something/AnotherClass.class");
@@ -55,7 +57,7 @@ public class KotlinBuilderJvmJavaTest {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
           // declaring outputJdeps also asserts existence after compile.
-          c.outputJar().outputSrcJar().outputJdeps();
+          c.outputJar();
         });
   }
 
@@ -63,6 +65,8 @@ public class KotlinBuilderJvmJavaTest {
   public void testMixedBiReferences() {
     ctx.runCompileTask(
         ctx -> {
+          ctx.compileJava();
+          ctx.compileKotlin();
           ctx.addSource(
               "AClass.java",
               "package a;",
@@ -81,8 +85,7 @@ public class KotlinBuilderJvmJavaTest {
               "class BClass() {",
               "  val a = AClass()",
               "}");
-          ctx.outputSrcJar()
-              .outputJar();
+          ctx.outputJar();
         });
     ctx.assertFilesExist(DirectoryType.CLASSES, "a/AClass.class", "b/BClass.class");
   }
@@ -91,9 +94,9 @@ public class KotlinBuilderJvmJavaTest {
   public void testCompileSingleJavaFile() {
     ctx.runCompileTask(
         (ctx) -> {
+          ctx.compileJava();
           ctx.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
-          ctx.outputSrcJar()
-              .outputJar();
+          ctx.outputJar();
         });
   }
 
@@ -103,6 +106,7 @@ public class KotlinBuilderJvmJavaTest {
         () ->
             ctx.runCompileTask(
                 c -> {
+                  c.compileJava();
                   c.addSource("AClass.kt", "package something;" + "class AClass{}");
                   c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{");
                   c.outputJar().outputSrcJar();

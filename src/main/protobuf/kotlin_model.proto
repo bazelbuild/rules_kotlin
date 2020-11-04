@@ -92,6 +92,9 @@ message JvmCompilationTask {
     string generated_sources = 3;
     // A temp directory that the compiler may use. The source_jars are expanding into here.
     string temp = 4;
+    // The directory used by annotation processors containing generated stub classes.
+    string generated_stub_classes = 5;
+    string abi_classes = 6;
   }
 
   // Outputs produced by the builder.
@@ -103,6 +106,12 @@ message JvmCompilationTask {
     string srcjar = 3;
     // The path to the abijar
     string abijar = 4;
+    // The path to the jar containing Java source generated from Kotlin annotation processors.
+    string generated_java_src_jar = 5;
+    // The path to the jar containing stub classes generated from Kotlin annotation processors.
+    string generated_java_stub_jar = 6;
+    // The path to the jar containing classes generated from Kotlin annotation processors.
+    string generated_class_jar = 7;
   }
 
   message Inputs {
@@ -144,6 +153,8 @@ message JvmCompilationTask {
   Directories directories = 2;
   Outputs outputs = 3;
   Inputs inputs = 4;
+  bool compile_java = 5;
+  bool compile_kotlin = 6;
 }
 
 message JsCompilationTask {

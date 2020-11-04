@@ -37,9 +37,10 @@ public class KotlinBuilderJvmBasicTest {
 
     private static final Consumer<KotlinJvmTestBuilder.TaskBuilder> SETUP_NORMALIZATION_TEST_SOURCES =
             ctx -> {
+                ctx.compileKotlin();
                 ctx.addSource("AClass.kt", "package something;\n" + "class AClass{}");
                 ctx.addSource("BClass.kt", "package something;\n" + "class BClass{}");
-                ctx.outputJar().outputSrcJar();
+                ctx.outputJar();
             };
 
     private static String hashDep(String path) {
@@ -57,6 +58,8 @@ public class KotlinBuilderJvmBasicTest {
     public void testSimpleMixedModeCompile() {
         ctx.runCompileTask(
                 c -> {
+          c.compileKotlin();
+          c.compileJava();
           c.addSource(
               "AClass.kt",
               "package something;" + "class AClass{}"
@@ -67,8 +70,8 @@ public class KotlinBuilderJvmBasicTest {
               "",
               "class AnotherClass{}"
           );
-                    c.outputJar().outputSrcJar();
-                });
+          c.outputJar();
+        });
         ctx.assertFilesExist(
                 DirectoryType.CLASSES, "something/AClass.class", "something/AnotherClass.class");
     }
@@ -80,7 +83,7 @@ public class KotlinBuilderJvmBasicTest {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
           // declaring outputJdeps also asserts existance after compile.
-          c.outputJar().outputSrcJar().outputJdeps();
+          c.outputJar().outputJdeps();
         });
   }
 
@@ -90,8 +93,9 @@ public class KotlinBuilderJvmBasicTest {
                 () ->
                         ctx.runCompileTask(
                                 c -> {
+                                    c.compileKotlin();
                                     c.addSource("AClass.kt", "package something;" + "class AClass{");
-                                    c.outputJar().outputSrcJar();
+                                    c.outputJar();
                                 }),
                 lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass")));
     }
@@ -104,16 +108,5 @@ public class KotlinBuilderJvmBasicTest {
         assertThat(previous.label()).isEqualTo(recompiled.label());
         assertThat(hashDep(previous.singleCompileJar()))
                 .isEqualTo(hashDep(recompiled.singleCompileJar()));
-        assertThat(previous.sourceJar()).isNotEmpty();
-        assertThat(hashDep(previous.sourceJar())).isEqualTo(hashDep(recompiled.sourceJar()));
-    }
-
-    @Test
-    public void testSourceJarIsNormalized() {
-        Deps.Dep previous = ctx.runCompileTask(SETUP_NORMALIZATION_TEST_SOURCES);
-        Deps.Dep recompiled =
-                ctx.runCompileTask(ctx -> ctx.setLabel(previous.label()), SETUP_NORMALIZATION_TEST_SOURCES);
-        assertThat(previous.sourceJar()).isNotEmpty();
-        assertThat(hashDep(previous.sourceJar())).isEqualTo(hashDep(recompiled.sourceJar()));
     }
 }

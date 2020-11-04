@@ -58,25 +58,29 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         sequenceOf(
           runCatching {
             context.execute("kotlinc") {
-              compileKotlin(
-                context,
-                compiler,
-                args = baseArgs()
-                  .given(outputs.jar).notEmpty {
-                    append(codeGenArgs())
-                  }
-                  .given(outputs.abijar).notEmpty {
-                    plugin(plugins.jvmAbiGen) {
-                      flag("outputDir", directories.classes)
+              if (compileKotlin) {
+                compileKotlin(
+                  context,
+                  compiler,
+                  args = baseArgs()
+                    .given(outputs.jar).notEmpty {
+                      append(codeGenArgs())
                     }
-                    given(outputs.jar).empty {
-                      plugin(plugins.skipCodeGen)
-                    }
-                  },
-                printOnFail = false)
+                    .given(outputs.abijar).notEmpty {
+                      plugin(plugins.jvmAbiGen) {
+                        flag("outputDir", directories.classes)
+                      }
+                      given(outputs.jar).empty {
+                        plugin(plugins.skipCodeGen)
+                      }
+                    },
+                  printOnFail = false)
+              } else {
+                emptyList()
+              }
             }
             context.execute("javac") {
-              if (outputs.jar.isNotEmpty()) {
+              if (compileJava) {
                 javaCompiler.compile(context, this)
               } else {
                 emptyList()
@@ -103,13 +107,21 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
 
         if (outputs.jar.isNotEmpty()) {
           context.execute("create jar", ::createOutputJar)
-          context.execute("produce src jar", ::produceSourceJar)
         }
         if (outputs.abijar.isNotEmpty()) {
           context.execute("create abi jar", ::createAbiJar)
         }
         if (outputs.jdeps.isNotEmpty()) {
           context.execute("generate jdeps") { jDepsGenerator.generateJDeps(this) }
+        }
+        if (outputs.generatedJavaSrcJar.isNotEmpty()) {
+          context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)
+        }
+        if (outputs.generatedJavaStubJar.isNotEmpty()) {
+          context.execute("creating KAPT generated Kotlin stubs jar", ::createGeneratedStubJar)
+        }
+        if (outputs.generatedClassJar.isNotEmpty()) {
+          context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
         }
       }
     }

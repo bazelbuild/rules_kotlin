@@ -80,14 +80,15 @@ public class KotlinBuilderJvmKaptTest {
                                     + "        abstract fun build(): TestKtValue\n"
                                     + "    }\n"
                                     + "}");
-                    c.outputJar().outputSrcJar();
+                    c.generatedSourceJar();
+                    c.ktStubsJar();
+                    c.incrementalData();
                 }
         );
 
         ctx.assertFilesExist(
-                DirectoryType.CLASSES,
-                "autovalue/TestKtValue.class",
-                "autovalue/AutoValue_TestKtValue.class");
+                DirectoryType.INCREMENTAL_DATA,
+                "autovalue/TestKtValue.class");
         ctx.assertFilesExist(DirectoryType.SOURCE_GEN, "autovalue/AutoValue_TestKtValue.java");
     }
 
@@ -138,15 +139,11 @@ public class KotlinBuilderJvmKaptTest {
                                     + "    }\n"
                                     + "\n"
                                     + "}");
-                    ctx.outputJar().outputSrcJar();
+                    ctx.outputJar();
                 });
         ctx.assertFilesExist(
                 DirectoryType.SOURCE_GEN,
                 "autovalue/a/AutoValue_TestKtValue.java",
                 "autovalue/b/AutoValue_TestAutoValue.java");
-        ctx.assertFilesExist(
-                DirectoryType.CLASSES,
-                "autovalue/a/AutoValue_TestKtValue.class",
-                "autovalue/b/AutoValue_TestAutoValue.class");
     }
 }

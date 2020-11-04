@@ -92,7 +92,8 @@ class KotlinBuilder @Inject internal constructor(
       POST_PROCESSOR("--post_processor"),
       COMPRESS_JAR("--compress_jar"),
       RULE_KIND("--rule_kind"),
-      TEST_ONLY("--testonly");
+      TEST_ONLY("--testonly"),
+      BUILD_JAVA("--build_java");
     }
 
     enum class KotlinBuilderFlags(override val flag: String) : Flag {
@@ -110,7 +111,11 @@ class KotlinBuilder @Inject internal constructor(
       JS_LIBRARIES("--kotlin_js_libraries"),
       DEBUG("--kotlin_debug_tags"),
       TASK_ID("--kotlin_task_id"),
-      ABI_JAR("--abi_jar");
+      ABI_JAR("--abi_jar"),
+      GENERATED_JAVA_SRC_JAR("--generated_java_srcjar"),
+      GENERATED_JAVA_STUB_JAR("--kapt_generated_stub_jar"),
+      GENERATED_CLASS_JAR("--kapt_generated_class_jar"),
+      BUILD_KOTLIN("--build_kotlin");
     }
   }
 
@@ -229,33 +234,37 @@ class KotlinBuilder @Inject internal constructor(
     JvmCompilationTask.newBuilder().let { root ->
       root.info = info
 
+      root.compileJava = argMap.mandatorySingle(JavaBuilderFlags.BUILD_JAVA).toBoolean()
+      root.compileKotlin = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean()
+
       with(root.outputsBuilder) {
-          argMap.optionalSingleIf(JavaBuilderFlags.OUTPUT) {
-            argMap.hasAll(KotlinBuilderFlags.ABI_JAR)
-          }?.let { jar = it }
-          argMap.optionalSingleIf(KotlinBuilderFlags.OUTPUT_SRCJAR) {
-            argMap.hasAll(KotlinBuilderFlags.ABI_JAR)
-          }?.let { srcjar = it }
+          argMap.optionalSingle(JavaBuilderFlags.OUTPUT)?.let { jar = it }
+          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
 
-        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
-
-          argMap.optionalSingleIf(KotlinBuilderFlags.ABI_JAR) {
-            argMap.hasAll(JavaBuilderFlags.OUTPUT, KotlinBuilderFlags.OUTPUT_SRCJAR)
-          }?.let { abijar = it }
+          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
+          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
+            generatedJavaSrcJar = this
+          }
+          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR)?.apply {
+            generatedJavaStubJar = this
+          }
+          argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR)?.let { abijar = it }
+          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
+            generatedClassJar = it
+          }
       }
 
-        with(root.directoriesBuilder)
+      with(root.directoriesBuilder)
         {
+          val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
           classes =
-            workingDir.resolveNewDirectories(argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR))
-              .toString()
-          generatedClasses = workingDir.resolveNewDirectories(
-            argMap.mandatorySingle(KotlinBuilderFlags.GENERATED_CLASSDIR)).toString()
-          temp = workingDir.resolveNewDirectories(argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR))
-            .toString()
-          generatedSources = workingDir.resolveNewDirectories(
-            argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR)).toString()
-        }
+            workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
+          if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) abiClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "abi_classes")).toString()
+          generatedClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes")).toString()
+          temp = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp")).toString()
+          generatedSources = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources")).toString()
+          generatedStubClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
+      }
 
       with(root.inputsBuilder) {
         addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH))
@@ -301,4 +310,6 @@ class KotlinBuilder @Inject internal constructor(
       }
       root.build()
     }
+
+  private fun getOutputDirPath(moduleName: String, dirName: String) = "_kotlinc/${moduleName}_jvm/$dirName"
 }

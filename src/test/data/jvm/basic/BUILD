@@ -123,6 +123,7 @@ filegroup(
         ":test_module_name_bin",
         ":test_module_name_bin.jar",
         ":test_module_name_lib",
+        ":test_module_name_lib-sources.jar",
     ],
     visibility = ["//visibility:public"],
 )

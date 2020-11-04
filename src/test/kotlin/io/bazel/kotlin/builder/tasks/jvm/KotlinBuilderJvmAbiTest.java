@@ -31,7 +31,7 @@ public class KotlinBuilderJvmAbiTest {
       ctx -> {
         ctx.addSource("AClass.kt", "package something;\n" + "class AClass{}");
         ctx.addSource("BClass.kt", "package something;\n" + "class BClass{}");
-        ctx.outputJar().outputSrcJar();
+        ctx.outputJar();
       };
 
   @Test
@@ -49,7 +49,7 @@ public class KotlinBuilderJvmAbiTest {
               "package dep;",
               "import something.AClass",
               "class Dependent{}");
-          c.outputJar().outputSrcJar().outputJdeps();
+          c.outputJar().outputJdeps();
         });
   }
 
@@ -61,7 +61,6 @@ public class KotlinBuilderJvmAbiTest {
           c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
           // declaring outputJdeps also asserts existance after compile.
           c.outputJar();
-          c.outputSrcJar();
           c.outputJdeps();
           c.outputAbiJar();
         });
