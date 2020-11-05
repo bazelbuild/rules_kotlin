@@ -31,6 +31,9 @@ message KotlinToolchainInfo {
         // mandatory
         // oneof "enable", "warn" or "error"
         string coroutines = 3;
+        // optional
+        // extra kotlinc options to be passed into compiler
+        repeated string extra_copts = 4;
     }
 
     // Properties specific to the JVM.
@@ -39,6 +42,9 @@ message KotlinToolchainInfo {
         // mandatory
         // oneof "1.6", or "1.8"
         string jvm_target = 1;
+        // optional
+        // extra javac options passed to Java compiler + KAPT
+        repeated string jvm_opts = 2;
     }
 
     Common common = 1;

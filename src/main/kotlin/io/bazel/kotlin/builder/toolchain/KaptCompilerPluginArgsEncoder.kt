@@ -86,6 +86,9 @@ class KaptCompilerPluginArgsEncoder(
     val javacArgs = mutableMapOf<String, String>(
       "-target" to task.info.toolchainInfo.jvm.jvmTarget
     )
+    for (opt in task.info.toolchainInfo.jvm.jvmOptsList) {
+      javacArgs[opt] = ""
+    }    
     val d = task.directories
     return if (task.inputs.processorsList.isNotEmpty()) {
       PluginArgs().let { arg ->

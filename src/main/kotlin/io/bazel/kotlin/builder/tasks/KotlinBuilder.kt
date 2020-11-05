@@ -97,6 +97,7 @@ class KotlinBuilder @Inject internal constructor(
       API_VERSION("--kotlin_api_version"),
       LANGUAGE_VERSION("--kotlin_language_version"),
       JVM_TARGET("--kotlin_jvm_target"),
+      JVM_OPTS("--kotlin_jvm_opts"),
       OUTPUT_SRCJAR("--kotlin_output_srcjar"),
       GENERATED_CLASSDIR("--kotlin_generated_classdir"),
       FRIEND_PATHS("--kotlin_friend_paths"),
@@ -105,6 +106,7 @@ class KotlinBuilder @Inject internal constructor(
       JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
       JS_LIBRARIES("--kotlin_js_libraries"),
       DEBUG("--kotlin_debug_tags"),
+      EXTRA_COPTS("--extra_copts"),
       TASK_ID("--kotlin_task_id"),
       ABI_JAR("--abi_jar");
     }
@@ -170,6 +172,8 @@ class KotlinBuilder @Inject internal constructor(
         argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
       toolchainInfoBuilder.commonBuilder.languageVersion =
         argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
+      toolchainInfoBuilder.commonBuilder.addAllExtraCopts(
+        argMap.optional(KotlinBuilderFlags.EXTRA_COPTS) ?: emptyList<String>())
       this
     }
 
@@ -275,6 +279,8 @@ class KotlinBuilder @Inject internal constructor(
       with(root.infoBuilder) {
         toolchainInfoBuilder.jvmBuilder.jvmTarget =
           argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET)
+        toolchainInfoBuilder.jvmBuilder.addAllJvmOpts(
+          argMap.optional(KotlinBuilderFlags.JVM_OPTS) ?: emptyList())
       }
       root.build()
     }

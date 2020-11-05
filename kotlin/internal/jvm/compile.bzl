@@ -264,10 +264,14 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
             compile_jar = kt_compile_jar
         else:
             java_compile_jar = ctx.actions.declare_file(ctx.label.name + "-java.abi.jar")
+            toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
+            javac_opts = toolchain.jvm_opts + ["-nowarn", "-XepDisableAllChecks"]
+
             java_info = java_common.compile(
                 ctx,
                 source_files = srcs.java,
                 output = java_compile_jar,
+                javac_opts = javac_opts,
                 deps = compile_deps.deps + [JavaInfo(compile_jar=kt_compile_jar, output_jar=kt_compile_jar)],
                 java_toolchain = toolchains.java,
                 host_javabase = toolchains.java_runtime,

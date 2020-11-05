@@ -62,8 +62,10 @@ def _kotlin_toolchain_impl(ctx):
     toolchain = dict(
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
+        extra_copts = ctx.attr.extra_copts,
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
+        jvm_opts = ctx.attr.jvm_opts,
         kotlinbuilder = ctx.attr.kotlinbuilder,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
@@ -110,6 +112,10 @@ _kt_toolchain = rule(
                 "1.4",
             ],
         ),
+        "extra_copts": attr.string_list(
+            doc = "The extra options for kotlinc compiler.",
+            allow_empty = True
+        ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
             print timing information. `trace` will cause the builder to print tracing messages. These tags can be
@@ -151,6 +157,10 @@ _kt_toolchain = rule(
                 "13",
             ],
         ),
+        "jvm_opts": attr.string_list(
+            doc = "The extra options for javac compiler.",
+            allow_empty = True
+        ),
         "js_target": attr.string(
             default = "v5",
             values = ["v5"],
@@ -179,6 +189,8 @@ def define_kt_toolchain(
         language_version = None,
         api_version = None,
         jvm_target = None,
+        jvm_opts = None,
+        extra_copts = None,
         experimental_use_abi_jars = False):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
@@ -187,6 +199,7 @@ def define_kt_toolchain(
         language_version = language_version,
         api_version = api_version,
         jvm_target = jvm_target,
+        extra_copts = extra_copts,
         debug =
             select({
                 "@io_bazel_rules_kotlin//kotlin/internal:builder_debug_trace": ["trace"],

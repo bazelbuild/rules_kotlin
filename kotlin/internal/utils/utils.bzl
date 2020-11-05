@@ -32,9 +32,11 @@ def _init_builder_args(ctx, rule_kind, module_name):
     args.add("--kotlin_module_name", module_name)
 
     args.add("--kotlin_jvm_target", toolchain.jvm_target)
+    args.add_all("--kotlin_jvm_opts", toolchain.jvm_opts)
     args.add("--kotlin_api_version", toolchain.api_version)
     args.add("--kotlin_language_version", toolchain.language_version)
     args.add("--kotlin_passthrough_flags", "-Xuse-experimental=kotlin.Experimental")
+    args.add_all("--extra_copts", toolchain.extra_copts)
 
     debug = toolchain.debug
     for tag in ctx.attr.tags:

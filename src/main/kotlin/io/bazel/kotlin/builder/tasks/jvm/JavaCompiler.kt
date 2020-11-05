@@ -51,6 +51,7 @@ internal class JavaCompiler @Inject constructor(
           "-source", command.info.toolchainInfo.jvm.jvmTarget,
           "-target", command.info.toolchainInfo.jvm.jvmTarget
         )
+        it.addAll(command.info.toolchainInfo.jvm.jvmOptsList)
         it.addAll(i.javaSourcesList)
       }
       context.executeCompilerTask(args, { a, pw ->
