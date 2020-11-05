@@ -46,14 +46,10 @@ kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_com
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-        |
-    <a id="kt_compiler_plugin-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-        |
-    <a id="kt_compiler_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | optional | "" |
-        |
-    <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="kt_compiler_plugin-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="kt_compiler_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | optional | "" |
+| <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
     
 
 <a id="#kt_jvm_binary"></a>
@@ -78,30 +74,18 @@ kt_jvm_binary(<a href="#kt_jvm_binary-name">name</a>, <a href="#kt_jvm_binary-da
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-        |
-    <a id="kt_jvm_binary-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-        |
-    <a id="kt_jvm_binary-data"></a>data |  The list of files needed by this rule at runtime. See general comments about <code>data</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_binary-deps"></a>deps |  A list of dependencies of this rule.See general comments about <code>deps</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_binary-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet         support make variable substitution.   | List of strings | optional | [] |
-        |
-    <a id="kt_jvm_binary-main_class"></a>main_class |  Name of class with main() method to use as entry point.   | String | required |  |
-        |
-    <a id="kt_jvm_binary-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
-        |
-    <a id="kt_jvm_binary-plugins"></a>plugins |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_binary-resource_jars"></a>resource_jars |  Set of archives containing Java resources. If specified, the contents of these jars are merged into         the output jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_binary-resource_strip_prefix"></a>resource_strip_prefix |  The path prefix to strip from Java resources, files residing under common prefix such as         <code>src/main/resources</code> or <code>src/test/resources</code> or <code>kotlin</code> will have stripping applied by convention.   | String | optional | "" |
-        |
-    <a id="kt_jvm_binary-resources"></a>resources |  A list of files that should be include in a Java jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_binary-runtime_deps"></a>runtime_deps |  Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will         appear on the runtime classpath, but unlike them, not on the compile-time classpath.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_binary-srcs"></a>srcs |  The list of source files that are processed to create the target, this can contain both Java and Kotlin         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_binary-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="kt_jvm_binary-data"></a>data |  The list of files needed by this rule at runtime. See general comments about <code>data</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_binary-deps"></a>deps |  A list of dependencies of this rule.See general comments about <code>deps</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_binary-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet         support make variable substitution.   | List of strings | optional | [] |
+| <a id="kt_jvm_binary-main_class"></a>main_class |  Name of class with main() method to use as entry point.   | String | required |  |
+| <a id="kt_jvm_binary-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
+| <a id="kt_jvm_binary-plugins"></a>plugins |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_binary-resource_jars"></a>resource_jars |  Set of archives containing Java resources. If specified, the contents of these jars are merged into         the output jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_binary-resource_strip_prefix"></a>resource_strip_prefix |  The path prefix to strip from Java resources, files residing under common prefix such as         <code>src/main/resources</code> or <code>src/test/resources</code> or <code>kotlin</code> will have stripping applied by convention.   | String | optional | "" |
+| <a id="kt_jvm_binary-resources"></a>resources |  A list of files that should be include in a Java jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_binary-runtime_deps"></a>runtime_deps |  Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will         appear on the runtime classpath, but unlike them, not on the compile-time classpath.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_binary-srcs"></a>srcs |  The list of source files that are processed to create the target, this can contain both Java and Kotlin         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
     
 
 <a id="#kt_jvm_import"></a>
@@ -149,20 +133,13 @@ kt_jvm_import(<a href="#kt_jvm_import-name">name</a>, <a href="#kt_jvm_import-ex
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-        |
-    <a id="kt_jvm_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-        |
-    <a id="kt_jvm_import-exports"></a>exports |  Exported libraries.<br><br>            Deps listed here will be made available to other rules, as if the parents explicitly depended on             these deps. This is not true for regular (non-exported) deps.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_import-jar"></a>jar |  The jar listed here is equivalent to an export attribute.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
-        |
-    <a id="kt_jvm_import-jars"></a>jars |  The jars listed here are equavalent to an export attribute. The label should be either to a single             class jar, or one or more filegroup labels.  The filegroups, when resolved, must contain  only one jar             containing classes, and (optionally) one peer file containing sources, named <code>&lt;jarname&gt;-sources.jar</code>.<br><br>            DEPRECATED - please use <code>jar</code> and <code>srcjar</code> attributes.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_import-neverlink"></a>neverlink |  If true only use this library for compilation and not at runtime.   | Boolean | optional | False |
-        |
-    <a id="kt_jvm_import-runtime_deps"></a>runtime_deps |  Additional runtime deps.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_import-srcjar"></a>srcjar |  The sources for the class jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | @io_bazel_rules_kotlin//third_party:empty.jar |
+| <a id="kt_jvm_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="kt_jvm_import-exports"></a>exports |  Exported libraries.<br><br>            Deps listed here will be made available to other rules, as if the parents explicitly depended on             these deps. This is not true for regular (non-exported) deps.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_import-jar"></a>jar |  The jar listed here is equivalent to an export attribute.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="kt_jvm_import-jars"></a>jars |  The jars listed here are equavalent to an export attribute. The label should be either to a single             class jar, or one or more filegroup labels.  The filegroups, when resolved, must contain  only one jar             containing classes, and (optionally) one peer file containing sources, named <code>&lt;jarname&gt;-sources.jar</code>.<br><br>            DEPRECATED - please use <code>jar</code> and <code>srcjar</code> attributes.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_import-neverlink"></a>neverlink |  If true only use this library for compilation and not at runtime.   | Boolean | optional | False |
+| <a id="kt_jvm_import-runtime_deps"></a>runtime_deps |  Additional runtime deps.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_import-srcjar"></a>srcjar |  The sources for the class jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | @io_bazel_rules_kotlin//third_party:empty.jar |
     
 
 <a id="#kt_jvm_library"></a>
@@ -181,30 +158,18 @@ kt_jvm_library(<a href="#kt_jvm_library-name">name</a>, <a href="#kt_jvm_library
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-        |
-    <a id="kt_jvm_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-        |
-    <a id="kt_jvm_library-data"></a>data |  The list of files needed by this rule at runtime. See general comments about <code>data</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_library-deps"></a>deps |  A list of dependencies of this rule.See general comments about <code>deps</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_library-exports"></a>exports |  Exported libraries.<br><br>        Deps listed here will be made available to other rules, as if the parents explicitly depended on         these deps. This is not true for regular (non-exported) deps.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_library-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
-        |
-    <a id="kt_jvm_library-neverlink"></a>neverlink |  If true only use this library for compilation and not at runtime.   | Boolean | optional | False |
-        |
-    <a id="kt_jvm_library-plugins"></a>plugins |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_library-resource_jars"></a>resource_jars |  Set of archives containing Java resources. If specified, the contents of these jars are merged into         the output jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_library-resource_strip_prefix"></a>resource_strip_prefix |  The path prefix to strip from Java resources, files residing under common prefix such as         <code>src/main/resources</code> or <code>src/test/resources</code> or <code>kotlin</code> will have stripping applied by convention.   | String | optional | "" |
-        |
-    <a id="kt_jvm_library-resources"></a>resources |  A list of files that should be include in a Java jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_library-runtime_deps"></a>runtime_deps |  Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will         appear on the runtime classpath, but unlike them, not on the compile-time classpath.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_library-srcs"></a>srcs |  The list of source files that are processed to create the target, this can contain both Java and Kotlin         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="kt_jvm_library-data"></a>data |  The list of files needed by this rule at runtime. See general comments about <code>data</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_library-deps"></a>deps |  A list of dependencies of this rule.See general comments about <code>deps</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_library-exports"></a>exports |  Exported libraries.<br><br>        Deps listed here will be made available to other rules, as if the parents explicitly depended on         these deps. This is not true for regular (non-exported) deps.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_library-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
+| <a id="kt_jvm_library-neverlink"></a>neverlink |  If true only use this library for compilation and not at runtime.   | Boolean | optional | False |
+| <a id="kt_jvm_library-plugins"></a>plugins |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_library-resource_jars"></a>resource_jars |  Set of archives containing Java resources. If specified, the contents of these jars are merged into         the output jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_library-resource_strip_prefix"></a>resource_strip_prefix |  The path prefix to strip from Java resources, files residing under common prefix such as         <code>src/main/resources</code> or <code>src/test/resources</code> or <code>kotlin</code> will have stripping applied by convention.   | String | optional | "" |
+| <a id="kt_jvm_library-resources"></a>resources |  A list of files that should be include in a Java jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_library-runtime_deps"></a>runtime_deps |  Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will         appear on the runtime classpath, but unlike them, not on the compile-time classpath.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_library-srcs"></a>srcs |  The list of source files that are processed to create the target, this can contain both Java and Kotlin         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
     
 
 <a id="#kt_jvm_test"></a>
@@ -228,34 +193,20 @@ kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-data">da
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-        |
-    <a id="kt_jvm_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-        |
-    <a id="kt_jvm_test-data"></a>data |  The list of files needed by this rule at runtime. See general comments about <code>data</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_test-deps"></a>deps |  A list of dependencies of this rule.See general comments about <code>deps</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_test-friends"></a>friends |  A single Kotlin dep which allows the test code access to internal members. Currently uses the output             jar of the module -- i.e., exported deps won't be included.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_test-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet         support make variable substitution.   | List of strings | optional | [] |
-        |
-    <a id="kt_jvm_test-main_class"></a>main_class |  -   | String | optional | "com.google.testing.junit.runner.BazelTestRunner" |
-        |
-    <a id="kt_jvm_test-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
-        |
-    <a id="kt_jvm_test-plugins"></a>plugins |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_test-resource_jars"></a>resource_jars |  Set of archives containing Java resources. If specified, the contents of these jars are merged into         the output jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_test-resource_strip_prefix"></a>resource_strip_prefix |  The path prefix to strip from Java resources, files residing under common prefix such as         <code>src/main/resources</code> or <code>src/test/resources</code> or <code>kotlin</code> will have stripping applied by convention.   | String | optional | "" |
-        |
-    <a id="kt_jvm_test-resources"></a>resources |  A list of files that should be include in a Java jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_test-runtime_deps"></a>runtime_deps |  Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will         appear on the runtime classpath, but unlike them, not on the compile-time classpath.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_test-srcs"></a>srcs |  The list of source files that are processed to create the target, this can contain both Java and Kotlin         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-        |
-    <a id="kt_jvm_test-test_class"></a>test_class |  The Java class to be loaded by the test runner.   | String | optional | "" |
+| <a id="kt_jvm_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="kt_jvm_test-data"></a>data |  The list of files needed by this rule at runtime. See general comments about <code>data</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_test-deps"></a>deps |  A list of dependencies of this rule.See general comments about <code>deps</code> at         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_test-friends"></a>friends |  A single Kotlin dep which allows the test code access to internal members. Currently uses the output             jar of the module -- i.e., exported deps won't be included.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_test-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet         support make variable substitution.   | List of strings | optional | [] |
+| <a id="kt_jvm_test-main_class"></a>main_class |  -   | String | optional | "com.google.testing.junit.runner.BazelTestRunner" |
+| <a id="kt_jvm_test-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
+| <a id="kt_jvm_test-plugins"></a>plugins |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_test-resource_jars"></a>resource_jars |  Set of archives containing Java resources. If specified, the contents of these jars are merged into         the output jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_test-resource_strip_prefix"></a>resource_strip_prefix |  The path prefix to strip from Java resources, files residing under common prefix such as         <code>src/main/resources</code> or <code>src/test/resources</code> or <code>kotlin</code> will have stripping applied by convention.   | String | optional | "" |
+| <a id="kt_jvm_test-resources"></a>resources |  A list of files that should be include in a Java jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_test-runtime_deps"></a>runtime_deps |  Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will         appear on the runtime classpath, but unlike them, not on the compile-time classpath.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_test-srcs"></a>srcs |  The list of source files that are processed to create the target, this can contain both Java and Kotlin         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="kt_jvm_test-test_class"></a>test_class |  The Java class to be loaded by the test runner.   | String | optional | "" |
     
 
 <a name="#define_kt_toolchain"></a>
