@@ -178,6 +178,10 @@ _kt_toolchain = rule(
             doc="Use Bazel JavaBuilder for Java source",
             default = False,
         ),
+        "experimental_use_java_builder" : attr.bool(
+            doc="Use Bazel JavaBuilder for Java source",
+            default = False,
+        ),
         "javac_options": attr.label(
             doc = "Compiler options for javac",
             providers = [JavacOptions],
