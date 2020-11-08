@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+load(
+    "//kotlin/internal:opts.bzl",
+    "JavacOptions",
+    "KotlincOptions",
+)
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
@@ -69,6 +73,8 @@ def _kotlin_toolchain_impl(ctx):
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         js_stdlibs = ctx.attr.js_stdlibs,
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
+        javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
+        kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
     )
     return [
         platform_common.ToolchainInfo(**toolchain),
@@ -161,10 +167,20 @@ _kt_toolchain = rule(
             ],
             providers = [_KtJsInfo],
         ),
-        "experimental_use_abi_jars" : attr.bool(
-            doc="Compile using abi jars",
+        "experimental_use_abi_jars": attr.bool(
+            doc = "Compile using abi jars",
             default = False,
-        )
+        ),
+        "javac_options": attr.label(
+            doc = "Compiler options for javac",
+            providers = [JavacOptions],
+            default = Label("//kotlin/internal:default_javac_options"),
+        ),
+        "kotlinc_options": attr.label(
+            doc = "Compiler options for kotlinc",
+            providers = [KotlincOptions],
+            default = Label("//kotlin/internal:default_kotlinc_options"),
+        ),
     },
     implementation = _kotlin_toolchain_impl,
     provides = [platform_common.ToolchainInfo],
@@ -179,7 +195,9 @@ def define_kt_toolchain(
         language_version = None,
         api_version = None,
         jvm_target = None,
-        experimental_use_abi_jars = False):
+        experimental_use_abi_jars = False,
+        javac_options = None,
+        kotlinc_options = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
     _kt_toolchain(
@@ -201,6 +219,8 @@ def define_kt_toolchain(
             "@io_bazel_rules_kotlin//kotlin/internal:noexperimental_use_abi_jars": False,
             "//conditions:default": experimental_use_abi_jars,
         }),
+        javac_options = javac_options,
+        kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
     )
     native.toolchain(

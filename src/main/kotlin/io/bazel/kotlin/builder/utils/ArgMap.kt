@@ -39,7 +39,7 @@ class ArgMap(private val map: Map<String, List<String>>) {
       when (it.size) {
         0 -> throw IllegalArgumentException("$key did not have a value")
         1 -> it[0]
-        else -> throw IllegalArgumentException("$key should have a single value")
+        else -> throw IllegalArgumentException("$key should have a single value: $it")
       }
     }
 
