@@ -350,7 +350,7 @@ def _javac_options_provider_to_flags(opts):
     flags = []
     if not opts.warn:
         flags.append("-nowarn")
-    if not opts.x_ep_disable_all_checks:
+    if opts.x_ep_disable_all_checks:
         flags.append("-XepDisableAllChecks")
     if opts.x_lint:
         flags.extend(["-Xlint:%s" % check for check in opts.x_lint])
