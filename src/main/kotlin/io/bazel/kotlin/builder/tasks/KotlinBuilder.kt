@@ -164,7 +164,7 @@ class KotlinBuilder @Inject internal constructor(
       moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
         check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
       }
-      passthroughFlags = argMap.optionalSingle(KotlinBuilderFlags.PASSTHROUGH_FLAGS)
+      addAllPassthroughFlags(argMap.optional(KotlinBuilderFlags.PASSTHROUGH_FLAGS) ?: emptyList())
 
       argMap.optional(KotlinBuilderFlags.FRIEND_PATHS)?.let(::addAllFriendPaths)
       toolchainInfoBuilder.commonBuilder.apiVersion =
@@ -272,10 +272,7 @@ class KotlinBuilder @Inject internal constructor(
           addAllSourceJars(it)
         }
 
-        argMap.optionalSingle(JavaBuilderFlags.JAVAC_OPTS)?.also {
-          // keep deliminator in sync with kotlin/internal/jvm/compile.bzl#347
-          addAllJavacFlags(it.split(":"))
-        }
+        addAllJavacFlags(argMap.optional(JavaBuilderFlags.JAVAC_OPTS) ?: emptyList())
       }
 
       with(root.infoBuilder) {

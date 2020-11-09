@@ -342,7 +342,7 @@ def _kotlinc_options_provider_to_flags(opts):
         flags.append("-nowarn")
     if opts.x_use_experimental:
         flags.append("-Xuse-experimental=kotlin.Experimental")
-    return ":".join(flags)
+    return flags
 
 def _javac_options_provider_to_flags(opts):
     if not opts:
@@ -356,7 +356,7 @@ def _javac_options_provider_to_flags(opts):
         flags.extend(["-Xlint:%s" % check for check in opts.x_lint])
     if opts.xd_suppress_notes:
         flags.append("-XDsuppressNotes")
-    return ":".join(flags)
+    return flags
 
 def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, annotation_processors, transitive_runtime_jars, plugins, outputs, mnemonic = "KotlinCompile"):
     """Creates a KotlinBuilder action invocation."""
@@ -365,8 +365,8 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
     for f, path in dirs.items() + outputs.items():
         args.add("--" + f, path)
 
-    args.add("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(toolchains.kt.kotlinc_options))
-    args.add("--javacopts", _javac_options_provider_to_flags(toolchains.kt.javac_options))
+    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(toolchains.kt.kotlinc_options))
+    args.add_all("--javacopts", _javac_options_provider_to_flags(toolchains.kt.javac_options))
 
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)

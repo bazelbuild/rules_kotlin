@@ -43,8 +43,7 @@ fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
     "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
   }
   .flag("-d", directories.classes)
-  // keep deliminator in sync with kotlin/internal/jvm/compile.bzl#337
-  .given(info.passthroughFlags).notEmpty { flags -> values(flags.split(":")) }
+  .values(info.passthroughFlagsList)
 
 fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
   .flag("-cp").absolutePaths(inputs.classpathList) {
