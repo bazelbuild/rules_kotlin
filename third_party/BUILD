@@ -69,7 +69,6 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
-
 bzl_library(
     name = "java_tools_bzl",
     srcs = ["@bazel_tools//tools:bzl_srcs"],

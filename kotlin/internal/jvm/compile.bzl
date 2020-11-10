@@ -32,11 +32,10 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
-
 load(
     "@bazel_tools//tools/jdk:toolchain_utils.bzl",
     "find_java_runtime_toolchain",
-    "find_java_toolchain"
+    "find_java_toolchain",
 )
 
 # INTERNAL ACTIONS #####################################################################################################
@@ -268,8 +267,9 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
                 ctx,
                 source_files = srcs.java,
                 output = java_compile_jar,
-                deps = compile_deps.deps + [JavaInfo(compile_jar=kt_compile_jar, output_jar=kt_compile_jar)],
+                deps = compile_deps.deps + [JavaInfo(compile_jar = kt_compile_jar, output_jar = kt_compile_jar)],
                 java_toolchain = toolchains.java,
+                javac_opts = toolchains.kt.javac_opts,
                 host_javabase = toolchains.java_runtime,
             )
             compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
@@ -334,12 +334,39 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
         ),
     )
 
+def _kotlinc_options_provider_to_flags(opts):
+    if not opts:
+        return ""
+    flags = []
+    if not opts.warn:
+        flags.append("-nowarn")
+    if opts.x_use_experimental:
+        flags.append("-Xuse-experimental=kotlin.Experimental")
+    return flags
+
+def _javac_options_provider_to_flags(opts):
+    if not opts:
+        return ""
+    flags = []
+    if not opts.warn:
+        flags.append("-nowarn")
+    if opts.x_ep_disable_all_checks:
+        flags.append("-XepDisableAllChecks")
+    if opts.x_lint:
+        flags.extend(["-Xlint:%s" % check for check in opts.x_lint])
+    if opts.xd_suppress_notes:
+        flags.append("-XDsuppressNotes")
+    return flags
+
 def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, annotation_processors, transitive_runtime_jars, plugins, outputs, mnemonic = "KotlinCompile"):
     """Creates a KotlinBuilder action invocation."""
     args = _utils.init_args(ctx, rule_kind, friend.module_name)
 
     for f, path in dirs.items() + outputs.items():
         args.add("--" + f, path)
+
+    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(toolchains.kt.kotlinc_options))
+    args.add_all("--javacopts", _javac_options_provider_to_flags(toolchains.kt.javac_options))
 
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
@@ -378,7 +405,7 @@ def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compi
         len(srcs.kt),
         len(srcs.java),
         len(srcs.src_jars),
-        ctx.var.get("TARGET_CPU", "UNKNOWN CPU")
+        ctx.var.get("TARGET_CPU", "UNKNOWN CPU"),
     )
 
     tools, input_manifests = ctx.resolve_tools(

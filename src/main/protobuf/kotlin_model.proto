@@ -67,7 +67,7 @@ message CompilationTaskInfo {
     // The name of the module being compiled.
     string module_name = 4;
     // Flags to be passed straight through to the compiler.
-    string passthrough_flags = 5;
+    repeated string passthrough_flags = 5;
     // Toolchain info for this build.
     KotlinToolchainInfo toolchain_info = 6;
     // Paths to Jars that the kotlin compiler will allow package private access to.
@@ -106,28 +106,30 @@ message JvmCompilationTask {
   }
 
   message Inputs {
-    // The full classpath
+      // The full classpath
     repeated string classpath = 1;
-    // Direct dependencies of the target.
+      // Direct dependencies of the target.
     map<string, string> direct_dependencies = 2;
-    // Indirect dependencies of the target.
+      // Indirect dependencies of the target.
     map<string, string> indirect_dependencies = 3;
-    // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
-    // source_jars and from annotation processing.
-    repeated string kotlin_sources = 4;
-    // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
-    // source_jars and from annotation processing.
-    repeated string java_sources = 5;
-    // Jars containing additional sources.
-    repeated string source_jars = 6;
-    // Annotation processor FQNames
-    repeated string processors = 7;
-    // Annotation processor classpath.
-    repeated string processorpaths = 8;
-        // Kotlin compiler plugin options
-        repeated string plugin_options = 9;
-        // Kotlin compiler plugin classpath
-        repeated string pluginpaths = 10;
+      // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
+      // source_jars and from annotation processing.
+      repeated string kotlin_sources = 4;
+      // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
+      // source_jars and from annotation processing.
+      repeated string java_sources = 5;
+      // Jars containing additional sources.
+      repeated string source_jars = 6;
+      // Annotation processor FQNames
+      repeated string processors = 7;
+      // Annotation processor classpath.
+      repeated string processorpaths = 8;
+      // Kotlin compiler plugin options
+      repeated string plugin_options = 9;
+      // Kotlin compiler plugin classpath
+      repeated string pluginpaths = 10;
+      // Java opts to be passed to java compiler
+      repeated string javac_flags = 11;
   }
 
   CompilationTaskInfo info = 1;

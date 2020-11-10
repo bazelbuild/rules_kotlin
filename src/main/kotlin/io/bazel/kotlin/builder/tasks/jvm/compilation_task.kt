@@ -43,7 +43,7 @@ fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
     "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
   }
   .flag("-d", directories.classes)
-    .given(info.passthroughFlags).notEmpty { flags -> values(flags.split(" ")) }
+  .values(info.passthroughFlagsList)
 
 fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
   .flag("-cp").absolutePaths(inputs.classpathList) {
@@ -57,9 +57,9 @@ fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
 internal fun pluginArgs(context: JvmCompilationTask, args: CompilationArgs): CompilationArgs = args
     .let {
         var r = it
-        val pluginsPath = context.inputs.pluginpathsList.forEach { pluginPath ->
-            r = r.value("-Xplugin=${pluginPath}")
-        }
+      context.inputs.pluginpathsList.forEach { pluginPath ->
+        r = r.value("-Xplugin=${pluginPath}")
+      }
         r
     }
     .let {
