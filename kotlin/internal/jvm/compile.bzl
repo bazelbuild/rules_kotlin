@@ -342,6 +342,12 @@ def _kotlinc_options_provider_to_flags(opts):
         flags.append("-nowarn")
     if opts.x_use_experimental:
         flags.append("-Xuse-experimental=kotlin.Experimental")
+    if opts.x_use_ir:
+        flags.append("-Xuse-ir")
+    if opts.x_allow_jvm_ir_dependencies:
+        flags.append("-Xallow-jvm-ir-dependencies")
+    if opts.x_skip_prerelease_check:
+        flags.append("-Xskip-prerelease-check")
     return flags
 
 def _javac_options_provider_to_flags(opts):
