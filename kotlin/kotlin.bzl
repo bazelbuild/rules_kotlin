@@ -19,6 +19,8 @@ load(
 load(
     "//kotlin:rules.bzl",
     _define_kt_toolchain = "define_kt_toolchain",
+    _kt_kotlinc_options = "kt_kotlinc_options",
+    _kt_javac_options = "kt_javac_options",
     _kt_android_library = "kt_android_library",
     _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_js_import = "kt_js_import",
@@ -32,6 +34,8 @@ load(
 
 kotlin_repositories = _kotlin_repositories
 define_kt_toolchain = _define_kt_toolchain
+kt_kotlinc_options = _kt_kotlinc_options
+kt_javac_options = _kt_javac_options
 kt_js_library = _kt_js_library
 kt_js_import = _kt_js_import
 kt_register_toolchains = _kt_register_toolchains
