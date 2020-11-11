@@ -39,7 +39,7 @@ KotlincOptions = provider(
 def _kotlinc_options_impl(ctx):
     return struct(
         providers = [
-            KotlincOptions(**{n: getattr(ctx, n, None) for n in _KOPTS}),
+            KotlincOptions(**{n: getattr(ctx.attr, n, None) for n in _KOPTS}),
         ],
     )
 
@@ -94,7 +94,7 @@ JavacOptions = provider(
 def _javac_options_impl(ctx):
     return struct(
         providers = [
-            JavacOptions(**{n: getattr(ctx, n, None) for n in _JOPTS}),
+            JavacOptions(**{n: getattr(ctx.attr, n, None) for n in _JOPTS}),
         ],
     )
 

@@ -269,7 +269,7 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
                 output = java_compile_jar,
                 deps = compile_deps.deps + [JavaInfo(compile_jar = kt_compile_jar, output_jar = kt_compile_jar)],
                 java_toolchain = toolchains.java,
-                javac_opts = toolchains.kt.javac_opts,
+                javac_opts = _javac_options_provider_to_flags(toolchains.kt.javac_options),
                 host_javabase = toolchains.java_runtime,
             )
             compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
