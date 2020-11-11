@@ -18,11 +18,15 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 kt_kotlinc_options(
     name = "default_kotlinc_options",
+    # Used internally as the rule default. This should be 
+    # considered an implementation detail and not used externally
     visibility = ["//visibility:public"],
 )
 
 kt_javac_options(
     name = "default_javac_options",
+    # Used internally as the rule default. This should be 
+    # considered an implementation detail and not used externally
     visibility = ["//visibility:public"],
 )
 
