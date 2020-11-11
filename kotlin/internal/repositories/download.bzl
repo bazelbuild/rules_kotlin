@@ -17,8 +17,8 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 RULES_NODEJS_VERSION = "0.36.1"
 RULES_NODEJS_SHA = "3356c6b767403392bab018ce91625f6d15ff8f11c6d772dc84bc9cada01c669a"
 
-BAZEL_TOOLCHAINS_VERSION = "be10bee3010494721f08a0fccd7f57411a1e773e"
-BAZEL_TOOLCHAINS_SHA = "5962fe677a43226c409316fcb321d668fc4b7fa97cb1f9ef45e7dc2676097b26"
+BAZEL_TOOLCHAINS_VERSION = "3.1.0"
+BAZEL_TOOLCHAINS_SHA = "726b5423e1c7a3866a3a6d68e7123b4a955e9fcbe912a51e0f737e6dab1d0af2"
 
 SKYLIB_VERSION = "0.8.0"
 SKYLIB_SHA = "2ea8a5ed2b448baf4a6855d3ce049c4c452a6470b1efd1504fdb7c1c134d220a"
@@ -87,8 +87,8 @@ def kt_download_local_dev_dependencies():
         sha256 = BAZEL_TOOLCHAINS_SHA,
         strip_prefix = "bazel-toolchains-%s" % BAZEL_TOOLCHAINS_VERSION,
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/%s.tar.gz" % BAZEL_TOOLCHAINS_VERSION,
-            "https://github.com/bazelbuild/bazel-toolchains/archive/%s.tar.gz" % BAZEL_TOOLCHAINS_VERSION,
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/{0}/bazel-toolchains-{0}.tar.gz".format(BAZEL_TOOLCHAINS_VERSION),
+            "https://github.com/bazelbuild/bazel-toolchains/releases/download/{0}/bazel-toolchains-{0}.tar.gz".format(BAZEL_TOOLCHAINS_VERSION),
         ],
     )
 
