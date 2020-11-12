@@ -20,6 +20,11 @@ load(
     _kt_register_toolchains = "kt_register_toolchains",
 )
 load(
+    "//kotlin/internal:opts.bzl",
+    _kt_kotlinc_options = "kt_kotlinc_options",
+    _kt_javac_options = "kt_javac_options",
+)
+load(
     "//kotlin/internal/jvm:jvm.bzl",
     _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_jvm_binary = "kt_jvm_binary",
@@ -38,6 +43,8 @@ load(
 )
 
 define_kt_toolchain = _define_kt_toolchain
+kt_kotlinc_options = _kt_kotlinc_options
+kt_javac_options = _kt_javac_options
 kt_js_library = _kt_js_library
 kt_js_import = _kt_js_import
 kt_register_toolchains = _kt_register_toolchains
