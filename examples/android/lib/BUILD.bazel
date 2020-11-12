@@ -1,4 +1,11 @@
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_android_library")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_android_library")
+
+kt_compiler_plugin(
+    name = "serialization_plugin",
+    deps = [
+        "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
+    ],
+)
 
 kt_android_library(
     name = "lib",
@@ -7,6 +14,10 @@ kt_android_library(
     manifest = "src/main/AndroidManifest.xml",
     visibility = ["//visibility:public"],
     deps = [
+        "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
         "@maven//:androidx_appcompat_appcompat",
+    ],
+    plugins = [
+        ":serialization_plugin",
     ],
 )

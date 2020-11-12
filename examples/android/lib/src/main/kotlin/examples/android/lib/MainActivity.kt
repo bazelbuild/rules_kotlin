@@ -18,5 +18,7 @@ class MainActivity : Activity() {
         .setTitle("Blah")
         .setMessage("Blah blah blah?")
         .show()
+    // Ensure Serialization plugin has run and generated code correctly.
+    Data.serializer()
   }
 }
