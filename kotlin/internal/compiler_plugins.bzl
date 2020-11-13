@@ -3,6 +3,10 @@ load(
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
 )
 
+def targets_to_compiler_plugins_transitive(targets):
+    kt_compiler_plugin_providers = [providers[_KtCompilerPluginInfo] for providers in targets if _KtCompilerPluginInfo in providers]
+    return depset(transitive = [depset(t.classpath) for t in kt_compiler_plugin_providers])
+
 def plugins_to_classpaths(providers_list):
     flattened_files = []
     for providers in providers_list:

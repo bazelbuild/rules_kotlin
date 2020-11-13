@@ -27,6 +27,7 @@ load(
     "//kotlin/internal:compiler_plugins.bzl",
     _plugins_to_classpaths = "plugins_to_classpaths",
     _plugins_to_options = "plugins_to_options",
+    _targets_to_compiler_plugins_transitive = "targets_to_compiler_plugins_transitive",
 )
 load(
     "//kotlin/internal/utils:utils.bzl",
@@ -238,7 +239,10 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
     friend = _compiler_friends(ctx, friends = getattr(ctx.attr, "friends", []))
     compile_deps = _compiler_deps(toolchains, friend, deps = ctx.attr.deps)
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
-    transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
+    transitive_runtime_jars =  depset(transitive = [
+        _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps),
+        _targets_to_compiler_plugins_transitive(ctx.attr.plugins),
+    ])
     plugins = ctx.attr.plugins
 
     if toolchains.kt.experimental_use_abi_jars:
