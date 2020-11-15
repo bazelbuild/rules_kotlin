@@ -27,6 +27,27 @@ _KOPTS = {
         ),
         type = attr.bool,
     ),
+    "x_use_ir": struct(
+        args = dict(
+            default = False,
+            doc = "Enable or disable the experimental IR backend.",
+        ),
+        type = attr.bool,
+    ),
+    "x_allow_jvm_ir_dependencies": struct(
+        args = dict(
+            default = False,
+            doc = "Suppress errors thrown when using dependencies not compiled by the IR backend.",
+        ),
+        type = attr.bool,
+    ),
+    "x_skip_prerelease_check": struct(
+        args = dict(
+            default = False,
+            doc = "Suppress errors thrown when using pre-release classes.",
+        ),
+        type = attr.bool,
+    ),
 }
 
 KotlincOptions = provider(
