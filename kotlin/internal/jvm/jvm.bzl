@@ -271,8 +271,8 @@ kt_jvm_library = rule(
     attrs = _lib_common_attr,
     outputs = _common_outputs,
     toolchains = _common_toolchains,
-    fragments = ["java"],      # Required fragments of the target configuration
-    host_fragments = ["java"], # Required fragments of the host configuration
+    fragments = ["java"],  # Required fragments of the target configuration
+    host_fragments = ["java"],  # Required fragments of the host configuration
     implementation = _kt_jvm_library_impl,
     provides = [JavaInfo, _KtJvmInfo],
 )
@@ -294,8 +294,8 @@ kt_jvm_binary = rule(
     executable = True,
     outputs = _common_outputs,
     toolchains = _common_toolchains,
-    fragments = ["java"],      # Required fragments of the target configuration
-    host_fragments = ["java"], # Required fragments of the host configuration
+    fragments = ["java"],  # Required fragments of the target configuration
+    host_fragments = ["java"],  # Required fragments of the host configuration
     implementation = _kt_jvm_binary_impl,
 )
 

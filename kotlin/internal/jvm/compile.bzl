@@ -43,7 +43,6 @@ load(
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
-
 def _partitioned_srcs(srcs):
     """Creates a struct of srcs sorted by extension. Fails if there are no sources."""
     kt_srcs = []
@@ -109,7 +108,7 @@ def _compiler_friends(ctx, friends):
     else:
         fail("only one friend is possible")
 
-def _jvm_deps(toolchains, friend, deps, runtime_deps=[]):
+def _jvm_deps(toolchains, friend, deps, runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
     dep_infos = [_java_info(d) for d in friend.targets + deps] + [toolchains.kt.jvm_stdlibs]
     return struct(
@@ -176,8 +175,6 @@ def _adjust_resources_path(path, resource_strip_prefix):
         return _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix)
     else:
         return _adjust_resources_path_by_default_prefixes(path)
-
-
 
 def _merge_kt_jvm_info(module_name, providers):
     language_versions = {p.language_version: True for p in providers if p.language_verison}
@@ -300,8 +297,15 @@ def _run_kt_builder_action(
         ctx,
         rule_kind,
         toolchains,
-        dirs, srcs, friend,
-        compile_deps, annotation_processors, transitive_runtime_jars, plugins, outputs, mnemonic = "KotlinCompile"):
+        dirs,
+        srcs,
+        friend,
+        compile_deps,
+        annotation_processors,
+        transitive_runtime_jars,
+        plugins,
+        outputs,
+        mnemonic = "KotlinCompile"):
     """Creates a KotlinBuilder action invocation."""
     args = _utils.init_args(ctx, rule_kind, friend.module_name)
 
@@ -424,7 +428,6 @@ def _run_kt_builder_action(
         },
     )
 
-
 # MAIN ACTIONS #########################################################################################################
 
 def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
@@ -443,9 +446,12 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
     dirs = _compiler_directories(ctx)
     srcs = _partitioned_srcs(ctx.files.srcs)
     friend = _compiler_friends(ctx, friends = getattr(ctx.attr, "friends", []))
-    compile_deps = _jvm_deps(toolchains, friend,
-                             deps = ctx.attr.deps,
-                             runtime_deps=ctx.attr.runtime_deps)
+    compile_deps = _jvm_deps(
+        toolchains,
+        friend,
+        deps = ctx.attr.deps + ctx.attr.plugins,
+        runtime_deps = ctx.attr.runtime_deps,
+    )
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
@@ -557,7 +563,7 @@ def export_only_providers(ctx, actions, attr, outputs):
     Returns:
         kt_compiler_result
     """
-    toolchains  = _compiler_toolchains(ctx)
+    toolchains = _compiler_toolchains(ctx)
 
     # satisfy the outputs requirement. should never execute during normal compilation.
     actions.symlink(

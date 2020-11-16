@@ -13,8 +13,8 @@
 # limitations under the License.
 load(
     "//kotlin/internal/jvm:compile.bzl",
-    _kt_jvm_produce_jar_actions = "kt_jvm_produce_jar_actions",
     "export_only_providers",
+    _kt_jvm_produce_jar_actions = "kt_jvm_produce_jar_actions",
 )
 load(
     "//kotlin/internal:defs.bzl",

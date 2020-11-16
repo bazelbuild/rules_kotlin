@@ -10,8 +10,8 @@ kt_android_library(
     deps = [
         "//library",
         "//scopes",
-        "//third_party:dagger",
         "//third_party:anvil",
+        "//third_party:dagger",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:androidx_core_core",
         "@maven//:com_google_android_material_material",

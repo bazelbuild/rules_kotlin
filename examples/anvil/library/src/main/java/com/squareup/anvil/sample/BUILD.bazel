@@ -9,8 +9,8 @@ kt_jvm_library(
     visibility = ["//library:__subpackages__"],
     deps = [
         "//scopes",
-        "//third_party:dagger",
         "//third_party:anvil",
+        "//third_party:dagger",
         "@maven//:javax_inject_javax_inject",
     ],
 )
