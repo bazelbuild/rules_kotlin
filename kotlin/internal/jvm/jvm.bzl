@@ -482,14 +482,15 @@ kt_compiler_plugin = rule(
         ),
         "compile_phase": attr.bool(
             doc = "Runs the compiler plugin during kotlin compilation. Known examples: allopen, sam_with_reciever",
-            default = False,
+            default = True,
         ),
         "stubs_phase": attr.bool(
-            doc = "Runs the compiler plugin before compile.",
-            default = False,
+            doc = "Runs the compiler plugin in kapt stub generation.",
+            default = True,
         ),
         "target_embedded_compiler": attr.bool(
-            doc = "Plugin was compiled agains the embeddable kotlin compiler. Requires different classpath",
+            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
+            dependencies, and will fail when running against a non-embeddable compiler.""",
             default = False,
         ),
         "_jetbrains_deshade_rules": attr.label(

@@ -45,8 +45,8 @@ KtCompilerPluginInfo = provider(
     fields = {
         "plugin_jars": "List of plugin jars.",
         "classpath": "The kotlin compiler plugin classpath.",
-        "stubs": "Run this plugin during kapt",
-        "compile": "Run this plugin during compilation",
+        "stubs": "Run this plugin during kapt stub generation.",
+        "compile": "Run this plugin during koltinc compilation.",
         "options": "List of plugin options, represented as structs with an id and a value field, to be passed to the compiler",
     },
 )
