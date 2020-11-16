@@ -79,6 +79,13 @@ _KOPTS = {
         ),
         type = attr.string,
     ),
+    "x_no_optimized_callable_references": struct(
+        args = dict(
+            default = False,
+            doc = "Do not use optimized callable reference superclasses. Available from 1.4.",
+        ),
+        type = attr.bool,
+    ),
 }
 
 KotlincOptions = provider(
