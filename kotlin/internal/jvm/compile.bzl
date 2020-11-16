@@ -630,7 +630,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
     # Build Kotlin
     if srcs.kt or srcs.src_jars:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
-        if toolchains.kt.experimental_use_abi_jars:
+        if toolchains.kt.experimental_use_abi_jars and not "kt_abi_plugin_incompatible" in ctx.attr.tags:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
             outputs = {
                 "output": kt_runtime_jar,

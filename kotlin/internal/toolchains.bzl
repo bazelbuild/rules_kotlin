@@ -171,11 +171,8 @@ _kt_toolchain = rule(
             providers = [_KtJsInfo],
         ),
         "experimental_use_abi_jars": attr.bool(
-            doc = "Compile using abi jars, requires experimental_use_java_builder",
-            default = False,
-        ),
-        "experimental_use_java_builder" : attr.bool(
-            doc="Use Bazel JavaBuilder for Java source",
+            doc = """Compile using abi jars, requires experimental_use_java_builder. Can be disabled
+            for an individual target using the tag `kt_abi_plugin_incompatible`""",
             default = False,
         ),
         "experimental_use_java_builder" : attr.bool(
