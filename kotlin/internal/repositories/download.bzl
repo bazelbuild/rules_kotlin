@@ -38,6 +38,9 @@ RULES_PROTO_SHA = "4d421d51f9ecfe9bf96ab23b55c6f2b809cbaf0eea24952683e397decfbd0
 IO_BAZEL_STARDOC_VERSION = "0.4.0"
 IO_BAZEL_STARDOC_SHA = "6d07d18c15abb0f6d393adbd6075cd661a2219faab56a9517741f0fc755f6f3c"
 
+ANDROID_VERSION = "0.1.1"
+ANDROID_SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806"
+
 def kt_download_local_dev_dependencies():
     """
     Downloads all necessary http_* artifacts for rules_kotlin dev configuration.
@@ -120,4 +123,12 @@ def kt_download_local_dev_dependencies():
         sha256 = IO_BAZEL_STARDOC_SHA,
         strip_prefix = "stardoc-%s" % IO_BAZEL_STARDOC_VERSION,
         url = "https://github.com/bazelbuild/stardoc/archive/%s.tar.gz" % IO_BAZEL_STARDOC_VERSION,
+    )
+
+    maybe(
+        http_archive,
+        name = "build_bazel_rules_android",
+        urls = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % ANDROID_VERSION],
+        sha256 = ANDROID_SHA,
+        strip_prefix = "rules_android-%s" % ANDROID_VERSION,
     )

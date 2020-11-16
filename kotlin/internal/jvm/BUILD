@@ -18,7 +18,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
-    srcs = glob(["*.bzl"]),
+    srcs = glob(["*.bzl"]) + ["jetbrains-deshade.jarjar"],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },

@@ -54,10 +54,14 @@ mkdir $ARCHIVE_DIR
 tar -C $ARCHIVE_DIR -xzvf bazel-bin/rules_kotlin_release.tgz
 
 # iterate through the examples and build them
-for ex in $(ls -d examples); do
-  pushd "$ex" || fail "can't switch to $ex"
-  bazel build --override_repository=io_bazel_rules_kotlin=$ARCHIVE_DIR //...:all || fail "$ex failed to build"
-  popd || fail "can't return to examples"
+for ex in examples/*/; do
+  if [[ -f "$ex/WORKSPACE" ]]; then
+    echo "(cd $ex; bazel build --override_repository=io_bazel_rules_kotlin=$ARCHIVE_DIR //...:all)"
+    (
+      cd "$ex"
+      bazel build --override_repository=io_bazel_rules_kotlin=$ARCHIVE_DIR //...:all
+    ) || fail "$ex failed to build"
+  fi
 done
 
 # clean up
