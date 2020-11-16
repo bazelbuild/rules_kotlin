@@ -3,11 +3,18 @@
 # Bazel Kotlin Rules
 
 Current release: ***`legacy-1.3.0`***<br />
-Release candidate: ***`legacy-1.4.0-rc1`***<br />
+Release candidate: ***`legacy-1.4.0-rc4`***<br />
 Main branch: `master`
 
 # News!
-* <b>May 1, 2020.</b> Released version [1.4.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc3). Includes:
+* <b>Nov 16, 2020.</b> Released version [1.4.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc4). Includes:
+  - Deterministic worker behavior
+  - Other minor stability fixes
+* <b>May 9, 2020.</b> Released version [1.4.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc3). Includes:
+  - Fix to the binary release package itself.
+* <b>May 7, 2020.</b> Released version [1.4.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc2). Includes:
+  - Fixes to release image production, which was broken in rc1.
+* <b>May 1, 2020.</b> Released version [1.4.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc1). Includes:
   - Pre-built binary worker
   - Support for Kotlin compiler plugins via the kt_compiler_plugin (#308)
   - Improved determinism for remote builds (#304)

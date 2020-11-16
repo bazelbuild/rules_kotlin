@@ -17,7 +17,10 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
-    srcs = glob(["*.*"]) + ["BUILD"],
+    srcs = glob(["*.bzl"]),
+    src_map = {
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
     deps = [
         "//kotlin/internal:pkg",
     ],
@@ -37,9 +40,6 @@ stardoc(
     out = "kotlin.md",
     input = "rules.bzl",
     rule_template = "//kotlin:doc-templates/rule.vm",
-    deps = [
-        "kotlin",
-    ],
     symbol_names = [
         "define_kt_toolchain",
         "kt_js_library",
@@ -51,5 +51,8 @@ stardoc(
         "kt_jvm_test",
         "kt_android_library",
         "kt_compiler_plugin",
-    ]
+    ],
+    deps = [
+        "kotlin",
+    ],
 )
