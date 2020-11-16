@@ -15,12 +15,9 @@ kt_compiler_plugin(
 # kt_jvm_import instead.
 kt_jvm_library(
     name = "kotlin_serialization",
-    srcs = ["empty.kt"],
+    srcs = [],
     exported_compiler_plugins = [":serialization_plugin"],
     exports = [
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
-    ],
-    deps = [
         "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
     ],
 )
