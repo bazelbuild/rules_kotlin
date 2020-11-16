@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 def _generate_jvm_service_impl(ctx):
     """
     Creates service files for use in a jar META-INF/services directory.
@@ -44,23 +43,24 @@ def _generate_jvm_service_impl(ctx):
         inputs = zipper_inputs,
         outputs = [jar],
         arguments = [zipper_args],
-        progress_message = "JVM service info jar for %s" % ctx.label
+        progress_message = "JVM service info jar for %s" % ctx.label,
     )
     return struct(
-        providers=[
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-            source_jar = jar,
-            runtime_deps = [],
-            exports = [],
-            neverlink = False,
-        ),
-        DefaultInfo(
-            files = depset([jar]),
-            runfiles = ctx.runfiles(files = [jar]),
-        )
-    ])
+        providers = [
+            JavaInfo(
+                output_jar = jar,
+                compile_jar = jar,
+                source_jar = jar,
+                runtime_deps = [],
+                exports = [],
+                neverlink = False,
+            ),
+            DefaultInfo(
+                files = depset([jar]),
+                runfiles = ctx.runfiles(files = [jar]),
+            ),
+        ],
+    )
 
 def _write_service_file(ctx, srv, impls):
     f = ctx.actions.declare_file(ctx.label.name + "/" + srv)
@@ -71,18 +71,19 @@ generate_jvm_service = rule(
     doc = """Rule to generate META-INF/services files in a jar.""",
     implementation = _generate_jvm_service_impl,
     attrs =
-            {"services":attr.string_dict(
-        doc = "a dictionary of <fully qualified class>:<service name>",
-        mandatory=True,
-    ),
-     "_zipper": attr.label(
-            executable = True,
-            cfg = "host",
-            default = Label("@bazel_tools//tools/zip:zipper"),
-            allow_files = True,
-        ),
-    },
+        {
+            "services": attr.string_dict(
+                doc = "a dictionary of <fully qualified class>:<service name>",
+                mandatory = True,
+            ),
+            "_zipper": attr.label(
+                executable = True,
+                cfg = "host",
+                default = Label("@bazel_tools//tools/zip:zipper"),
+                allow_files = True,
+            ),
+        },
     outputs = {
-        "jar" : "%{name}.jar",
-    }
+        "jar": "%{name}.jar",
+    },
 )

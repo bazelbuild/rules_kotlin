@@ -30,5 +30,5 @@ bzl_library(
     visibility = ["//kotlin:__subpackages__"],
     deps = [
         "//third_party:bzl",
-    ]
+    ],
 )

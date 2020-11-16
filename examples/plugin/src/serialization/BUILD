@@ -3,8 +3,8 @@ load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library", "kt_jvm_test
 kt_compiler_plugin(
     name = "serialization_plugin",
     compile_phase = True,
-    stubs_phase = True,
     id = "org.jetbrains.kotlin.serialization",
+    stubs_phase = True,
     deps = [
         "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
     ],

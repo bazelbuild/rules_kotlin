@@ -34,15 +34,15 @@ jar_jar(
     name = "skip-code-gen",
     input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
     rules = "shade.jarjar",
-    visibility=["//visibility:public"],
+    visibility = ["//visibility:public"],
 )
 
 java_binary(
     name = "builder",
     data = [
+        "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
-        "//src/main/kotlin:skip-code-gen",
     ],
     jvm_flags = [
         "-XX:+IgnoreUnrecognizedVMOptions",
@@ -58,7 +58,7 @@ java_binary(
 release_archive(
     name = "pkg",
     srcs = [
-         ":skip-code-gen.jar",
+        ":skip-code-gen.jar",
     ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
