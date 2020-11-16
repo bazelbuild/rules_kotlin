@@ -113,13 +113,14 @@ class CompilationTaskContext(
      */
     fun executeCompilerTask(
         args: List<String>,
-        compile: (Array<String>, PrintStream) -> Int,
+        compile: (Array<String>, PrintStream, String?) -> Int,
         printOnFail: Boolean = true,
-        printOnSuccess: Boolean = true
+        printOnSuccess: Boolean = true,
+        diagnosticsFile: String? = null
     ): List<String> {
       val outputStream = ByteArrayOutputStream()
       val ps = PrintStream(outputStream)
-      val result = compile(args.toTypedArray(), ps)
+      val result = compile(args.toTypedArray(), ps, diagnosticsFile)
       val output = ByteArrayInputStream(outputStream.toByteArray())
           .bufferedReader()
           .readLines()

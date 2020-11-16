@@ -16,6 +16,7 @@
 package io.bazel.kotlin
 
 import com.google.common.hash.Hashing
+import io.bazel.kotlin.model.diagnostics.Diagnostics
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -64,6 +65,33 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
     runTestCase(name, description) { JarFile(currentFile).op() }
   }
 
+  protected fun diagnosticsTestCase(name: String, description: String? = null, expectedDiagnostics: List<Diagnostics.Diagnostic>) {
+    val diagnosticsPath = testRunfileRoot.resolve(name)
+    currentFile = diagnosticsPath.toFile()
+    check(currentFile.exists()) {
+      "testFile $name did not exist in test case root ${testRunfileRoot.toAbsolutePath()}"
+    }
+    runTestCase(name, description) {
+      val diagnostics: List<Diagnostics.Diagnostic> = Diagnostics
+        .TargetDiagnostics
+        .parseFrom(Files.readAllBytes(diagnosticsPath))
+        .diagnosticsList
+        .flatMap { diagnosticsList -> diagnosticsList.diagnosticsList }
+
+      expectedDiagnostics.forEach { diagnostic ->
+        val condition = diagnostics.any { foundDiagnostic ->
+          diagnostic.range.start.line == foundDiagnostic.range.start.line &&
+            diagnostic.range.start.character == foundDiagnostic.range.start.character &&
+            diagnostic.severity == foundDiagnostic.severity
+        }
+
+        check(condition){
+          "testFile $name did not out output diagnostic $diagnostic"
+        }
+    }
+  }
+}
+
   protected fun JarFile.assertContainsEntries(vararg entries: String) {
     entries.forEach {
       if (this.getJarEntry(it) == null) {
@@ -72,9 +100,9 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
     }
   }
 
-  /**
-   * Validated the entry is compressed and has the DOS epoch for it's timestamp.
-   */
+/**
+ * Validated the entry is compressed and has the DOS epoch for it's timestamp.
+ */
   protected fun JarFile.assertEntryCompressedAndNormalizedTimestampYear(entry: String) {
     checkNotNull(this.getJarEntry(entry)).also {
       check(!it.isDirectory)
@@ -88,9 +116,9 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
     }
   }
 
-  /**
-   * Assert the manifest in the jar is stamped.
-   */
+/**
+ * Assert the manifest in the jar is stamped.
+ */
   protected fun JarFile.assertManifestStamped() {
     assertNotNull(
       manifest.mainAttributes.getValue("Target-Label"), "missing manifest entry Target-Label"

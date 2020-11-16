@@ -51,6 +51,10 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
   }
 
   fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
+      execute(context, task, null)
+  }
+
+  fun execute(context: CompilationTaskContext, task: JvmCompilationTask, diagnosticsFile: String?) {
     val preprocessedTask = task
       .preProcessingSteps(context)
       .runPlugins(context, pluginArgsEncoderKapt, compiler)
@@ -73,7 +77,8 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                             plugin(abiPlugins.skipCodeGen)
                           }
                         },
-                    printOnFail = false
+                    printOnFail = false,
+                    diagnosticsFile =  diagnosticsFile
                 )
               }
             },

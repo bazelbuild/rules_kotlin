@@ -24,6 +24,11 @@ kt_bootstrap_library(
         "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
         "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
     ],
+    deps = [
+      "//src/main/protobuf:diagnostics_java_proto",
+      "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
+      "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
+    ],
     visibility = ["//src:__subpackages__"],
 )
 

@@ -236,6 +236,7 @@ _common_outputs = dict(
     # The params file, declared here so that validate it can be validated for testing.
     #    jar_2_params = "%{name}.jar-2.params",
     srcjar = "%{name}-sources.jar",
+    diagnosticsfile = "%{name}.diagnosticsproto",
 )
 
 _common_toolchains = [
