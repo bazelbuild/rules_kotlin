@@ -107,11 +107,11 @@ message JvmCompilationTask {
 
   message Inputs {
       // The full classpath
-    repeated string classpath = 1;
+      repeated string classpath = 1;
       // Direct dependencies of the target.
-    map<string, string> direct_dependencies = 2;
+      map<string, string> direct_dependencies = 2;
       // Indirect dependencies of the target.
-    map<string, string> indirect_dependencies = 3;
+      map<string, string> indirect_dependencies = 3;
       // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
       // source_jars and from annotation processing.
       repeated string kotlin_sources = 4;
@@ -124,12 +124,20 @@ message JvmCompilationTask {
       repeated string processors = 7;
       // Annotation processor classpath.
       repeated string processorpaths = 8;
-      // Kotlin compiler plugin options
-      repeated string plugin_options = 9;
-      // Kotlin compiler plugin classpath
-      repeated string pluginpaths = 10;
+      // Kotlin stubs phase compiler plugin options
+      repeated string stubs_plugin_options = 9;
+      // Kotlin stubs phase compiler plugin options
+      repeated string stubs_plugins = 10;
+      // Kotlin stubs phase compiler plugin options
+      repeated string stubs_plugin_classpath = 11;
+      // Kotlin compiler phase compiler plugin options
+      repeated string compiler_plugin_options = 12;
+      // Kotlin compiler phase compiler plugin options
+      repeated string compiler_plugins = 13;
+      // Kotlin compiler phase compiler plugin options
+      repeated string compiler_plugin_classpath = 14;
       // Java opts to be passed to java compiler
-      repeated string javac_flags = 11;
+      repeated string javac_flags = 15;
   }
 
   CompilationTaskInfo info = 1;

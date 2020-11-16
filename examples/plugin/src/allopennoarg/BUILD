@@ -3,6 +3,8 @@ load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library", "kt_jvm_test
 kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
+        compile_phase = True,
+        stubs_phase = True,
     options = {
         "annotation": "plugin.allopennoarg.OpenForTesting",
     },
@@ -14,6 +16,8 @@ kt_compiler_plugin(
 kt_compiler_plugin(
     name = "no_arg_plugin",
     id = "org.jetbrains.kotlin.noarg",
+        compile_phase = True,
+        stubs_phase = True,
     options = {
         "annotation": "plugin.allopennoarg.NoArgConstructor",
     },

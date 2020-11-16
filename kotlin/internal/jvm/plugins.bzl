@@ -35,13 +35,13 @@ def _kt_plugin_to_processorpath(processor):
     return [j.path for j in processor.classpath.to_list()]
 
 def _targets_to_annotation_processors(targets):
-    return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if t[KtJvmPluginInfo]])
+    return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if KtJvmPluginInfo in t])
 
 def _targets_to_transitive_runtime_jars(targets):
-    return depset(transitive = [t[KtJvmPluginInfo].transitive_runtime_jars for t in targets if t[KtJvmPluginInfo]])
+    return depset(transitive = [t[KtJvmPluginInfo].transitive_runtime_jars for t in targets if KtJvmPluginInfo in t])
 
 def _targets_to_plugins(targets):
-    return depset(transitive = [t[KtJvmPluginInfo].plugins for t in targets if t[KtJvmPluginInfo]])
+    return depset(transitive = [t[KtJvmPluginInfo].plugins for t in targets if KtJvmPluginInfo in t])
 
 mappers = struct(
     targets_to_annotation_processors = _targets_to_annotation_processors,

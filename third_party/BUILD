@@ -18,7 +18,10 @@ load("//kotlin:kotlin.bzl", "kt_jvm_import")
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-exports_files(["empty.jar"])
+exports_files([
+    "empty.jar",
+    "empty.jdeps",
+])
 
 java_plugin(
     name = "autovalue_plugin",
@@ -54,13 +57,6 @@ java_library(
     ],
 )
 
-java_binary(
-    name = "jarjar_runner",
-    main_class = "org.pantsbuild.jarjar.Main",
-    visibility = ["//visibility:public"],
-    runtime_deps = ["@kotlin_rules_maven//:org_pantsbuild_jarjar"],
-)
-
 # TODO(bazelbuild/rules_kotlin/issues/273): Remove android_sdk import.
 java_import(
     name = "android_sdk",
@@ -70,13 +66,20 @@ java_import(
 )
 
 bzl_library(
-    name = "java_tools_bzl",
-    srcs = ["@bazel_tools//tools:bzl_srcs"],
+    name = "bzl",
+    srcs = [
+        "jarjar.bzl",
+        "@bazel_tools//tools:bzl_srcs",
+    ],
 )
 
 release_archive(
     name = "pkg",
-    srcs = ["empty.jar"],
+    srcs = [
+        "empty.jar",
+        "empty.jdeps",
+        "jarjar.bzl",
+    ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },

@@ -105,6 +105,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:impl.bzl",
+    _kt_compiler_deps_aspect_impl = "kt_compiler_deps_aspect_impl",
     _kt_compiler_plugin_impl = "kt_compiler_plugin_impl",
     _kt_jvm_binary_impl = "kt_jvm_binary_impl",
     _kt_jvm_import_impl = "kt_jvm_import_impl",
@@ -216,9 +217,30 @@ _lib_common_attr = utils.add_dicts(_common_attr, {
         default = [],
         providers = [JavaInfo],
     ),
+    "exported_compiler_plugins": attr.label_list(
+        doc = """Exported compiler plugins.
+
+        Compiler plugins listed here will be treated as if they were added in the plugins attribute
+        of any targets that directly depend on this target. Unlike java_plugins' exported_plugins,
+        this is not transitive""",
+        default = [],
+        providers = [_KtCompilerPluginInfo],
+    ),
     "neverlink": attr.bool(
         doc = """If true only use this library for compilation and not at runtime.""",
         default = False,
+    ),
+    "_empty_jar": attr.label(
+        doc = """Empty jar for exporting JavaInfos.""",
+        allow_single_file = True,
+        cfg = "target",
+        default = "@io_bazel_rules_kotlin//third_party:empty.jar",
+    ),
+    "_empty_jdeps": attr.label(
+        doc = """Empty jdeps for exporting JavaInfos.""",
+        allow_single_file = True,
+        cfg = "target",
+        default = "@io_bazel_rules_kotlin//third_party:empty.jdeps",
     ),
 })
 
@@ -369,13 +391,28 @@ kt_jvm_import = rule(
             mandatory = False,
             providers = [JavaInfo],
         ),
+        "deps": attr.label_list(
+            doc = """Compile and runtime dependencies""",
+            default = [],
+            mandatory = False,
+            providers = [JavaInfo],
+        ),
         "exports": attr.label_list(
             doc = """Exported libraries.
 
             Deps listed here will be made available to other rules, as if the parents explicitly depended on
             these deps. This is not true for regular (non-exported) deps.""",
             default = [],
-            providers = [JavaInfo],
+            providers = [JavaInfo, _KtJvmInfo],
+        ),
+        "exported_compiler_plugins": attr.label_list(
+            doc = """Exported compiler plugins.
+
+            Compiler plugins listed here will be treated as if they were added in the plugins
+            attribute of any targets that directly depend on this target. Unlike java_plugins'
+            exported_plugins, this is not transitive""",
+            default = [],
+            providers = [_KtCompilerPluginInfo],
         ),
         "neverlink": attr.bool(
             doc = """If true only use this library for compilation and not at runtime.""",
@@ -384,6 +421,10 @@ kt_jvm_import = rule(
     },
     implementation = _kt_jvm_import_impl,
     provides = [JavaInfo, _KtJvmInfo],
+)
+
+_kt_compiler_deps_aspect = aspect(
+    implementation = _kt_compiler_deps_aspect_impl,
 )
 
 kt_compiler_plugin = rule(
@@ -422,13 +463,43 @@ kt_compiler_plugin = rule(
     attrs = {
         "deps": attr.label_list(
             doc = "The list of libraries to be added to the compiler's plugin classpath",
+            providers = [JavaInfo],
+            cfg = "host",
+            aspects = [_kt_compiler_deps_aspect],
         ),
         "id": attr.string(
-            doc = """The ID of the plugin""",
+            doc = "The ID of the plugin",
+            mandatory = True,
         ),
         "options": attr.string_dict(
-            doc = """Dictionary of options to be passed to the plugin""",
+            doc = """Dictionary of options to be passed to the plugin.
+            Supports the following template values:
+               `{generatedClasses}`: directory for generated class output
+               `{temp}`: temporary directory, discarded between invocations
+               `{generatedSources}`:  directory for generated source output
+            """,
             default = {},
+        ),
+        "compile_phase": attr.bool(
+            doc = "Runs the compiler plugin during kotlin compilation. Known examples: allopen, sam_with_reciever",
+            default = False,
+        ),
+        "stubs_phase": attr.bool(
+            doc = "Runs the compiler plugin before compile.",
+            default = False,
+        ),
+        "target_embedded_compiler": attr.bool(
+            doc = "Plugin was compiled agains the embeddable kotlin compiler. Requires different classpath",
+            default = False,
+        ),
+        "_jetbrains_deshade_rules": attr.label(
+            default = "@io_bazel_rules_kotlin//kotlin/internal/jvm:jetbrains-deshade.jarjar",
+            allow_single_file = True,
+        ),
+        "_jarjar": attr.label(
+            executable = True,
+            cfg = "host",
+            default = Label("@bazel_tools//third_party/jarjar:jarjar_bin"),
         ),
     },
     implementation = _kt_compiler_plugin_impl,

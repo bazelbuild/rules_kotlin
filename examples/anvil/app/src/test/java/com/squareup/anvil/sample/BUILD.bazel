@@ -1,0 +1,12 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library", "kt_jvm_test")
+
+kt_jvm_test(
+    name = "LoggedInComponentTest",
+    srcs = ["LoggedInComponentTest.kt"],
+    deps = [
+        "//app/src/main/java/com/squareup/anvil/sample",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+        "@maven//:org_jetbrains_kotlin_kotlin_test",
+    ],
+)

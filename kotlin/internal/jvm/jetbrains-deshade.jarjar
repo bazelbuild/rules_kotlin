@@ -1,0 +1,2 @@
+rule org.jetbrains.kotlin.com.intellij.** com.intellij.@1
+rule org.jetbrains.kotlin.kotlinx.** kotlinx.@1

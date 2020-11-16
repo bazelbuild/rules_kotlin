@@ -1,0 +1,122 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+RULES_JVM_EXTERNAL_TAG = "2.8"
+
+RULES_JVM_EXTERNAL_SHA = "79c9850690d7614ecdb72d68394f994fef7534b292c4867ce5e7dec0aa7bdfad"
+
+http_archive(
+    name = "rules_jvm_external",
+    sha256 = RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
+)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    artifacts = [
+        "com.google.dagger:dagger:2.28",
+        "com.google.dagger:dagger-compiler:2.28",
+        "com.google.dagger:dagger-producers:2.28",
+        "com.squareup.anvil:compiler:2.0.1",
+        "com.squareup.anvil:annotations:2.0.1",
+        "androidx.activity:activity:1.0.0",
+        "androidx.annotation:annotation:1.1.0",
+        "androidx.appcompat:appcompat-resources:1.1.0",
+        "androidx.appcompat:appcompat:1.1.0",
+        "androidx.arch.core:core-common:2.1.0",
+        "androidx.arch.core:core-runtime:2.0.0",
+        "androidx.cardview:cardview:1.0.0",
+        "androidx.collection:collection:1.1.0",
+        "androidx.coordinatorlayout:coordinatorlayout:1.1.0",
+        "androidx.core:core-ktx:1.3.0",
+        "androidx.core:core:1.3.0",
+        "androidx.cursoradapter:cursoradapter:1.0.0",
+        "androidx.customview:customview:1.0.0",
+        "androidx.drawerlayout:drawerlayout:1.0.0",
+        "androidx.fragment:fragment:1.0.0",
+        "androidx.fragment:fragment:1.1.0",
+        "androidx.interpolator:interpolator:1.0.0",
+        "androidx.lifecycle:lifecycle-common:2.1.0",
+        "androidx.lifecycle:lifecycle-livedata-core:2.0.0",
+        "androidx.lifecycle:lifecycle-livedata:2.0.0",
+        "androidx.lifecycle:lifecycle-runtime:2.1.0",
+        "androidx.lifecycle:lifecycle-viewmodel:2.1.0",
+        "androidx.loader:loader:1.0.0",
+        "androidx.recyclerview:recyclerview:1.1.0",
+        "androidx.savedstate:savedstate:1.0.0",
+        "androidx.transition:transition:1.2.0",
+        "androidx.vectordrawable:vectordrawable-animated:1.1.0",
+        "androidx.vectordrawable:vectordrawable:1.1.0",
+        "androidx.versionedparcelable:versionedparcelable:1.1.0",
+        "androidx.viewpager2:viewpager2:1.0.0",
+        "androidx.viewpager:viewpager:1.0.0",
+        "com.google.android.material:material:1.1.0",
+        "javax.inject:javax.inject:1",
+        "junit:junit:4.13",
+        "org.jetbrains.kotlin:kotlin-test:1.3.50",
+        "com.google.truth:truth:1.0.1",
+        "org.jetbrains:annotations:13.0",
+        "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.72",
+    ],
+    excluded_artifacts = [
+        "org.jetbrains.kotlin:kotlin-stdlib",
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+    ],
+    repositories = [
+        "https://jcenter.bintray.com/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "build_bazel_rules_android",
+    sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
+    strip_prefix = "rules_android-0.1.1",
+    urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
+)
+
+load(
+    "@build_bazel_rules_android//android:rules.bzl",
+    "android_ndk_repository",
+    "android_sdk_repository",
+)
+
+android_sdk_repository(name = "androidsdk")
+
+android_ndk_repository(name = "androidndk")  # Required. Name *must* be "androidndk".
+
+# Directly load the kotlin rules from the parent repo.
+local_repository(
+    name = "io_bazel_rules_kotlin",
+    path = "../..",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+
+kt_download_local_dev_dependencies()
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+
+kotlin_repositories()
+
+kt_register_toolchains()
+
+# Skylib, for build_test, so don't bother initializing the unit test infrastructure.
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
+    urls = [
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "rules_pkg",
+    sha256 = "4ba8f4ab0ff85f2484287ab06c0d871dcb31cc54d439457d28fd4ae14b18450a",
+    url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.2.4/rules_pkg-0.2.4.tar.gz",
+)

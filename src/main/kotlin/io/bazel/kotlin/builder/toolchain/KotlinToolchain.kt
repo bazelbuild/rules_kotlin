@@ -45,7 +45,12 @@ class KotlinToolchain private constructor(
     "org.jetbrains.kotlin.kapt3"
   ),
   val jvmAbiGen: CompilerPlugin,
-  val skipCodeGen: CompilerPlugin
+  val skipCodeGen: CompilerPlugin,
+  val extensionsCompiler: CompilerPlugin = CompilerPlugin(
+    kotlinHome.resolveVerified(
+      "lib", "android-extensions-compiler.jar").absolutePath,
+    "org.jetbrains.kotlin.android"
+  )
 ) {
 
   companion object {

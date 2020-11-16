@@ -18,7 +18,6 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KaptCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
 import javax.inject.Inject
@@ -33,10 +32,9 @@ const val X_FRIENDS_PATH_SEPARATOR = ","
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
   private val compiler: KotlinToolchain.KotlincInvoker,
-  private val pluginArgsEncoderKapt: KaptCompilerPluginArgsEncoder,
   private val javaCompiler: JavaCompiler,
   private val jDepsGenerator: JDepsGenerator,
-  private val abiPlugins: KtAbiPluginArgs
+  private val plugins: InternalCompilerPlugins
 ) {
 
   private fun combine(one: Throwable?, two: Throwable?): Throwable? {
@@ -53,39 +51,38 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
   fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
     val preprocessedTask = task
       .preProcessingSteps(context)
-      .runPlugins(context, pluginArgsEncoderKapt, compiler)
+      .runPlugins(context, plugins, compiler)
 
     context.execute("compile classes") {
       preprocessedTask.apply {
         sequenceOf(
-            runCatching {
-              context.execute("kotlinc") {
-                compileKotlin(context,
-                    compiler,
-                    args = baseArgs()
-                        .given(outputs.jar).notEmpty {
-                          append(codeGenArgs())
-                        }.given(outputs.abijar).notEmpty {
-                          plugin(abiPlugins.jvmAbiGen) {
-                            flag("outputDir", directories.classes)
-                          }
-                          given(outputs.jar).empty {
-                            plugin(abiPlugins.skipCodeGen)
-                          }
-                        },
-                    printOnFail = false
-                )
-              }
-            },
-            runCatching {
-              context.execute("javac") {
-                if (outputs.jar.isNotEmpty()) {
-                  javaCompiler.compile(context, this)
-                } else {
-                  emptyList()
-                }
+          runCatching {
+            context.execute("kotlinc") {
+              compileKotlin(
+                context,
+                compiler,
+                args = baseArgs()
+                  .given(outputs.jar).notEmpty {
+                    append(codeGenArgs())
+                  }
+                  .given(outputs.abijar).notEmpty {
+                    plugin(plugins.jvmAbiGen) {
+                      flag("outputDir", directories.classes)
+                    }
+                    given(outputs.jar).empty {
+                      plugin(plugins.skipCodeGen)
+                    }
+                  },
+                printOnFail = false)
+            }
+            context.execute("javac") {
+              if (outputs.jar.isNotEmpty()) {
+                javaCompiler.compile(context, this)
+              } else {
+                emptyList()
               }
             }
+          }
         ).map {
           (it.getOrNull() ?: emptyList()) to it.exceptionOrNull()
         }.map {

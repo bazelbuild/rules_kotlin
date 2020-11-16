@@ -4,6 +4,8 @@ load("@rules_java//java:defs.bzl", "java_library")
 kt_compiler_plugin(
     name = "sam_with_receiver_plugin",
     id = "org.jetbrains.kotlin.samWithReceiver",
+        compile_phase = True,
+        stubs_phase = True,
     options = {
         "annotation": "plugin.sam_with_receiver.SamWithReceiver",
     },
