@@ -15,10 +15,11 @@
 _KOPTS = {
     "warn": struct(
         args = dict(
-            default = True,
-            doc = "Enable or disable compiler warnings.",
+            default = "report",
+            doc = "Control warning behaviour.",
+            values = ["off", "report", "error"],
         ),
-        type = attr.bool,
+        type = attr.string,
     ),
     "x_use_experimental": struct(
         args = dict(
@@ -77,10 +78,11 @@ kt_kotlinc_options = rule(
 _JOPTS = {
     "warn": struct(
         args = dict(
-            default = True,
-            doc = "Enable or disable compiler warnings.",
+            default = "report",
+            doc = "Control warning behaviour.",
+            values = ["off", "report", "error"],
         ),
-        type = attr.bool,
+        type = attr.string,
     ),
     "x_ep_disable_all_checks": struct(
         args = dict(

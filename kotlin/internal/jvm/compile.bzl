@@ -338,8 +338,10 @@ def _kotlinc_options_provider_to_flags(opts):
     if not opts:
         return ""
     flags = []
-    if not opts.warn:
+    if opts.warn == "off":
         flags.append("-nowarn")
+    elif opts.warn == "error":
+        flags.append("-Werror")
     if opts.x_use_experimental:
         flags.append("-Xuse-experimental=kotlin.Experimental")
     if opts.x_use_ir:
@@ -354,8 +356,10 @@ def _javac_options_provider_to_flags(opts):
     if not opts:
         return ""
     flags = []
-    if not opts.warn:
+    if opts.warn == "off":
         flags.append("-nowarn")
+    elif opts.warn == "error":
+        flags.append("-Werror")
     if opts.x_ep_disable_all_checks:
         flags.append("-XepDisableAllChecks")
     if opts.x_lint:
