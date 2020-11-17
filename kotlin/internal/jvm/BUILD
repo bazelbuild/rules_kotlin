@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+exports_files(["jetbrains-deshade.jarjar"])
 
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
-    srcs = glob(["*.bzl"]),
+    srcs = glob(["*.bzl"]) + ["jetbrains-deshade.jarjar"],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
@@ -28,6 +29,6 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//kotlin:__subpackages__"],
     deps = [
-        "//third_party:java_tools_bzl",
+        "//third_party:bzl",
     ],
 )

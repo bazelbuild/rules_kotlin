@@ -1,0 +1,44 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
+
+java_plugin(
+    name = "dagger_component_plugin",
+    generates_api = True,
+    processor_class = "dagger.internal.codegen.ComponentProcessor",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@maven//:com_google_dagger_dagger_compiler",
+    ],
+)
+
+java_library(
+    name = "dagger",
+    exported_plugins = [":dagger_component_plugin"],
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_dagger_dagger",
+        "@maven//:javax_inject_javax_inject",
+    ],
+)
+
+kt_jvm_library(
+    name = "anvil",
+    exported_compiler_plugins = [":anvil_plugin"],
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_squareup_anvil_annotations",
+    ],
+)
+
+kt_compiler_plugin(
+    name = "anvil_plugin",
+    compile_phase = True,
+    id = "com.squareup.anvil.compiler",
+    options = {
+        "src-gen-dir": "{generatedClasses}",
+    },
+    stubs_phase = True,
+    target_embedded_compiler = True,
+    deps = [
+        "@maven//:com_squareup_anvil_compiler",
+    ],
+)

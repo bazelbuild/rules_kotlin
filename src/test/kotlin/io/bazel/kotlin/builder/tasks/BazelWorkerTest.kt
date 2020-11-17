@@ -22,6 +22,7 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -40,6 +41,7 @@ import java.io.OutputStream
 import java.io.PrintStream
 import java.nio.file.Path
 
+@ExperimentalCoroutinesApi
 class BazelWorkerTest {
 
   val passingProgram: CommandLineProgram = object : CommandLineProgram {

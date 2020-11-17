@@ -2,10 +2,12 @@ load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
 
 kt_compiler_plugin(
     name = "open_for_testing_plugin",
+    compile_phase = True,
     id = "org.jetbrains.kotlin.allopen",
     options = {
         "annotation": "plugin.allopen.OpenForTesting",
     },
+    stubs_phase = True,
     deps = [
         "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
     ],

@@ -1,0 +1,11 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "library",
+    visibility = [
+        "//visibility:public",
+    ],
+    exports = [
+        "//library/src/main/java/com/squareup/anvil/sample:god",
+    ],
+)

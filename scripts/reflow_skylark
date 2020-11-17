@@ -17,5 +17,6 @@
 
 buildifier $(find . -type f \
     -iname "*.bzl" -or \
-    -name "BUILD*"
+    -name "*.bazel" -or \
+    -name "WORKSPACE"
 )

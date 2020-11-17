@@ -25,9 +25,9 @@ java_import(
 java_binary(
     name = "builder",
     data = [
+        ":skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
-        ":skip-code-gen",
     ],
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],

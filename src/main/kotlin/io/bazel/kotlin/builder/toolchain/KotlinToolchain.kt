@@ -50,17 +50,18 @@ class KotlinToolchain private constructor(
 
   companion object {
     private val DEFAULT_JVM_ABI_PATH = BazelRunFiles.resolveVerified(
-        "external", "com_github_jetbrains_kotlin", "lib", "jvm-abi-gen.jar").toPath()
+      "external", "com_github_jetbrains_kotlin", "lib", "jvm-abi-gen.jar"
+    ).toPath()
 
     private val COMPILER = BazelRunFiles.resolveVerified(
-        "io_bazel_rules_kotlin",
-        "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
-        "compiler.jar").toPath()
+      "io_bazel_rules_kotlin",
+      "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
+      "compiler.jar").toPath()
 
     private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerified(
-        "io_bazel_rules_kotlin",
-        "src", "main", "kotlin",
-        "skip-code-gen.jar").toPath()
+      "io_bazel_rules_kotlin",
+      "src", "main", "kotlin",
+      "skip-code-gen.jar").toPath()
 
     internal val NO_ARGS = arrayOf<Any>()
 
@@ -94,7 +95,7 @@ class KotlinToolchain private constructor(
       val skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified().absoluteFile
 
       val kotlinCompilerJar = BazelRunFiles.resolveVerified(
-          "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
+        "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
 
       val jvmAbiGenFile = jvmAbiGenPath.verified()
       return KotlinToolchain(
@@ -103,20 +104,20 @@ class KotlinToolchain private constructor(
           javaHome,
           listOf(
             kotlinCompilerJar,
-                  COMPILER.verified().absoluteFile,
-                  // plugins *must* be preloaded. Not doing so causes class conflicts
-                  // (and a NoClassDef err) in the compiler extension interfaces.
-                  // This may cause issues in accepting user defined compiler plugins.
-                  jvmAbiGenFile.absoluteFile,
-                  skipCodeGenFile
+            COMPILER.verified().absoluteFile,
+            // plugins *must* be preloaded. Not doing so causes class conflicts
+            // (and a NoClassDef err) in the compiler extension interfaces.
+            // This may cause issues in accepting user defined compiler plugins.
+            jvmAbiGenFile.absoluteFile,
+            skipCodeGenFile
           )
-          ),
-          jvmAbiGen = CompilerPlugin(
-              jvmAbiGenFile.absolutePath,
-              "org.jetbrains.kotlin.jvm.abi"),
-          skipCodeGen = CompilerPlugin(
-              skipCodeGenFile.absolutePath,
-              "io.bazel.kotlin.plugin.SkipCodeGen")
+        ),
+        jvmAbiGen = CompilerPlugin(
+          jvmAbiGenFile.absolutePath,
+          "org.jetbrains.kotlin.jvm.abi"),
+        skipCodeGen = CompilerPlugin(
+          skipCodeGenFile.absolutePath,
+          "io.bazel.kotlin.plugin.SkipCodeGen")
       )
     }
   }

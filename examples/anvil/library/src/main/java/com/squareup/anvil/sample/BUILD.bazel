@@ -1,0 +1,16 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "god",
+    srcs = glob([
+        "*.kt",
+        "**/*.kt",
+    ]),
+    visibility = ["//library:__subpackages__"],
+    deps = [
+        "//scopes",
+        "//third_party:anvil",
+        "//third_party:dagger",
+        "@maven//:javax_inject_javax_inject",
+    ],
+)

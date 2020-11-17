@@ -2,10 +2,12 @@ load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library", "kt_jvm_test
 
 kt_compiler_plugin(
     name = "no_arg_plugin",
+    compile_phase = True,
     id = "org.jetbrains.kotlin.noarg",
     options = {
         "annotation": "plugin.noarg.NoArgConstructor",
     },
+    stubs_phase = True,
     deps = [
         "@com_github_jetbrains_kotlin//:noarg-compiler-plugin",
     ],

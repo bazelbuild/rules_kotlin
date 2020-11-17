@@ -25,6 +25,7 @@ KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 KtJvmInfo = provider(
     fields = {
         "module_name": "the module name",
+        "exported_compiler_plugins": "compiler plugins to be invoked by targets depending on this.",
         "srcs": "the source files. [intelij-aspect]",
         "outputs": "output jars produced by this rule. [intelij-aspect]",
         "language_version": "version of kotlin used. [intellij-aspect]",
@@ -42,7 +43,10 @@ KtJsInfo = provider(
 
 KtCompilerPluginInfo = provider(
     fields = {
-        "classpath": "The kotlin compiler plugin classpath",
+        "plugin_jars": "List of plugin jars.",
+        "classpath": "The kotlin compiler plugin classpath.",
+        "stubs": "Run this plugin during kapt stub generation.",
+        "compile": "Run this plugin during koltinc compilation.",
         "options": "List of plugin options, represented as structs with an id and a value field, to be passed to the compiler",
     },
 )

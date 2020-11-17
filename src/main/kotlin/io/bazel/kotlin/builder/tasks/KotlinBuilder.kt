@@ -76,8 +76,12 @@ class KotlinBuilder @Inject internal constructor(
       BOOT_CLASSPATH("--bootclasspath"),
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
-      PLUGIN_PATH("--pluginpath"),
-      PLUGIN_OPTION("--plugin_options"),
+      STUBS_PLUGIN_PATH("--stubs_plugin"),
+      STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
+      STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
+      COMPILER_PLUGIN_PATH("--compiler_plugin"),
+      COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
+      COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
       EXT_CLASSPATH("--extclasspath"),
       EXT_DIR("--extdir"),
       OUTPUT("--output"),
@@ -212,7 +216,7 @@ class KotlinBuilder @Inject internal constructor(
   private fun executeJvmTask(context: CompilationTaskContext, workingDir: Path, argMap: ArgMap) {
     val task = buildJvmTask(context.info, workingDir, argMap)
     context.whenTracing {
-      printProto("jvm task message", task)
+      printProto("jvm task message:", task)
     }
     jvmTaskExecutor.execute(context, task)
   }
@@ -243,15 +247,15 @@ class KotlinBuilder @Inject internal constructor(
         with(root.directoriesBuilder)
         {
           classes =
-              workingDir.resolveNewDirectories(argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR))
-                  .toString()
-          generatedClasses = workingDir.resolveNewDirectories(
-              argMap.mandatorySingle(KotlinBuilderFlags.GENERATED_CLASSDIR)).toString()
-          temp = workingDir.resolveNewDirectories(argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR))
+            workingDir.resolveNewDirectories(argMap.mandatorySingle(JavaBuilderFlags.CLASSDIR))
               .toString()
+          generatedClasses = workingDir.resolveNewDirectories(
+            argMap.mandatorySingle(KotlinBuilderFlags.GENERATED_CLASSDIR)).toString()
+          temp = workingDir.resolveNewDirectories(argMap.mandatorySingle(JavaBuilderFlags.TEMPDIR))
+            .toString()
           generatedSources = workingDir.resolveNewDirectories(
-              argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR)).toString()
-      }
+            argMap.mandatorySingle(JavaBuilderFlags.SOURCEGEN_DIR)).toString()
+        }
 
       with(root.inputsBuilder) {
         addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH))
@@ -261,18 +265,34 @@ class KotlinBuilder @Inject internal constructor(
         addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(JavaBuilderFlags.PROCESSOR_PATH) ?: emptyList())
 
-        addAllPluginpaths(argMap.optional(JavaBuilderFlags.PLUGIN_PATH) ?: emptyList())
-        addAllPluginOptions(argMap.optional(JavaBuilderFlags.PLUGIN_OPTION) ?: emptyList())
-
-        argMap.optional(JavaBuilderFlags.SOURCES)?.iterator()?.partitionJvmSources(
-          { addKotlinSources(it) },
-          { addJavaSources(it) }
+        addAllStubsPlugins(argMap.optional(JavaBuilderFlags.STUBS_PLUGIN_PATH) ?: emptyList())
+        addAllStubsPluginOptions(
+          argMap.optional(JavaBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList()
         )
-        argMap.optional(JavaBuilderFlags.SOURCE_JARS)?.also {
-          addAllSourceJars(it)
-        }
+        addAllStubsPluginClasspath(
+          argMap.optional(JavaBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList()
+        )
 
-        addAllJavacFlags(argMap.optional(JavaBuilderFlags.JAVAC_OPTS) ?: emptyList())
+        addAllCompilerPlugins(
+          argMap.optional(JavaBuilderFlags.COMPILER_PLUGIN_PATH) ?: emptyList()
+        )
+        addAllCompilerPluginOptions(
+          argMap.optional(JavaBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList()
+        )
+        addAllCompilerPluginClasspath(
+          argMap.optional(JavaBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList()
+        )
+
+        argMap.optional(JavaBuilderFlags.SOURCES)
+          ?.iterator()
+          ?.partitionJvmSources(
+            { addKotlinSources(it) },
+            { addJavaSources(it) }
+          )
+        argMap.optional(JavaBuilderFlags.SOURCE_JARS)
+          ?.also {
+            addAllSourceJars(it)
+          }
       }
 
       with(root.infoBuilder) {

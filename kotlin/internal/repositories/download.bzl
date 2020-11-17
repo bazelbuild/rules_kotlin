@@ -17,8 +17,8 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 RULES_NODEJS_VERSION = "0.36.1"
 RULES_NODEJS_SHA = "3356c6b767403392bab018ce91625f6d15ff8f11c6d772dc84bc9cada01c669a"
 
-BAZEL_TOOLCHAINS_VERSION = "3.1.0"
-BAZEL_TOOLCHAINS_SHA = "726b5423e1c7a3866a3a6d68e7123b4a955e9fcbe912a51e0f737e6dab1d0af2"
+BAZEL_TOOLCHAINS_VERSION = "3.7.0"
+BAZEL_TOOLCHAINS_SHA = "8e0633dfb59f704594f19ae996a35650747adc621ada5e8b9fb588f808c89cb0"
 
 SKYLIB_VERSION = "0.8.0"
 SKYLIB_SHA = "2ea8a5ed2b448baf4a6855d3ce049c4c452a6470b1efd1504fdb7c1c134d220a"
@@ -37,6 +37,9 @@ RULES_PROTO_SHA = "4d421d51f9ecfe9bf96ab23b55c6f2b809cbaf0eea24952683e397decfbd0
 
 IO_BAZEL_STARDOC_VERSION = "0.4.0"
 IO_BAZEL_STARDOC_SHA = "6d07d18c15abb0f6d393adbd6075cd661a2219faab56a9517741f0fc755f6f3c"
+
+ANDROID_VERSION = "0.1.1"
+ANDROID_SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806"
 
 def kt_download_local_dev_dependencies():
     """
@@ -120,4 +123,12 @@ def kt_download_local_dev_dependencies():
         sha256 = IO_BAZEL_STARDOC_SHA,
         strip_prefix = "stardoc-%s" % IO_BAZEL_STARDOC_VERSION,
         url = "https://github.com/bazelbuild/stardoc/archive/%s.tar.gz" % IO_BAZEL_STARDOC_VERSION,
+    )
+
+    maybe(
+        http_archive,
+        name = "build_bazel_rules_android",
+        urls = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % ANDROID_VERSION],
+        sha256 = ANDROID_SHA,
+        strip_prefix = "rules_android-%s" % ANDROID_VERSION,
     )

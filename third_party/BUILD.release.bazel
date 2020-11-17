@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-exports_files(["empty.jar"])
+exports_files([
+    "empty.jar",
+    "empty.jdeps",
+])
 
 java_import(
     name = "android_sdk",
     jars = ["@bazel_tools//tools/android:android_jar"],
-    neverlink = 1,
+    neverlink = True,
     visibility = ["//visibility:public"],
 )

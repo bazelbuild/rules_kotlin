@@ -15,6 +15,7 @@ load(
     "//kotlin/internal:defs.bzl",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
     _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
+    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
@@ -38,97 +39,9 @@ load(
     "find_java_toolchain",
 )
 
-# INTERNAL ACTIONS #####################################################################################################
-def _fold_jars_action(ctx, rule_kind, output_jar, input_jars, action_type = ""):
-    """Set up an action to Fold the input jars into a normalized output jar."""
-    args = ctx.actions.args()
-    args.add_all([
-        "--normalize",
-        "--compression",
-    ])
-    args.add_all([
-        "--deploy_manifest_lines",
-        "Target-Label: %s" % str(ctx.label),
-        "Injecting-Rule-Kind: %s" % rule_kind,
-    ])
-    args.add("--output", output_jar)
-    args.add_all(input_jars, before_each = "--sources")
-    ctx.actions.run(
-        mnemonic = "KotlinFoldJars" + action_type,
-        inputs = input_jars,
-        outputs = [output_jar],
-        executable = ctx.executable._singlejar,
-        arguments = [args],
-        progress_message = "Merging Kotlin output jar %s%s from %d inputs" % (
-            ctx.label,
-            "" if not action_type else " (%s)" % action_type,
-            len(input_jars),
-        ),
-    )
-
-_CONVENTIONAL_RESOURCE_PATHS = [
-    "src/main/resources",
-    "src/test/resources",
-    "kotlin",
-]
-
-def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
-    if not path.startswith(resource_strip_prefix):
-        fail("Resource file %s is not under the specified prefix to strip" % path)
-
-    clean_path = path[len(resource_strip_prefix):]
-    return resource_strip_prefix, clean_path
-
-def _adjust_resources_path_by_default_prefixes(path):
-    for cp in _CONVENTIONAL_RESOURCE_PATHS:
-        dir_1, dir_2, rel_path = path.partition(cp)
-        if rel_path:
-            return dir_1 + dir_2, rel_path
-    return "", path
-
-def _adjust_resources_path(path, resource_strip_prefix):
-    if resource_strip_prefix:
-        return _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix)
-    else:
-        return _adjust_resources_path_by_default_prefixes(path)
-
-def _resourcejar_args_action(ctx):
-    res_cmd = []
-    for f in ctx.files.resources:
-        c_dir, res_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
-        target_path = res_path
-        if target_path[0] == "/":
-            target_path = target_path[1:]
-        line = "{target_path}={c_dir}{res_path}\n".format(
-            res_path = res_path,
-            target_path = target_path,
-            c_dir = c_dir,
-        )
-        res_cmd.extend([line])
-    zipper_args_file = ctx.actions.declare_file("%s_resources_zipper_args" % ctx.label.name)
-    ctx.actions.write(zipper_args_file, "".join(res_cmd))
-    return zipper_args_file
-
-def _build_resourcejar_action(ctx):
-    """sets up an action to build a resource jar for the target being compiled.
-    Returns:
-        The file resource jar file.
-    """
-    resources_jar_output = ctx.actions.declare_file(ctx.label.name + "-resources.jar")
-    zipper_args = _resourcejar_args_action(ctx)
-    ctx.actions.run_shell(
-        mnemonic = "KotlinZipResourceJar",
-        inputs = ctx.files.resources + [zipper_args],
-        tools = [ctx.executable._zipper],
-        outputs = [resources_jar_output],
-        command = "{zipper} c {resources_jar_output} @{path}".format(
-            path = zipper_args.path,
-            resources_jar_output = resources_jar_output.path,
-            zipper = ctx.executable._zipper.path,
-        ),
-        progress_message = "Creating intermediate resource jar %s" % ctx.label,
-    )
-    return resources_jar_output
+# UTILITY ##############################################################################################################
+def _java_info(target):
+    return target[JavaInfo] if JavaInfo in target else None
 
 def _partitioned_srcs(srcs):
     """Creates a struct of srcs sorted by extension. Fails if there are no sources."""
@@ -143,9 +56,6 @@ def _partitioned_srcs(srcs):
             java_srcs.append(f)
         elif f.path.endswith(".srcjar"):
             src_jars.append(f)
-
-    if not kt_srcs and not java_srcs and not src_jars:
-        fail("no sources provided")
 
     return struct(
         kt = kt_srcs,
@@ -192,15 +102,15 @@ def _compiler_friends(ctx, friends):
         else:
             return struct(
                 targets = friends,
-                paths = friends[0][JavaInfo].compile_jars,
+                paths = _java_info(friends[0]).compile_jars,
                 module_name = friends[0][_KtJvmInfo].module_name,
             )
     else:
         fail("only one friend is possible")
 
-def _compiler_deps(toolchains, friend, deps):
-    """Encapsulates compiler dependency metadata."""
-    dep_infos = [d[JavaInfo] for d in friend.targets + deps] + [toolchains.kt.jvm_stdlibs]
+def _jvm_deps(toolchains, friend, deps, runtime_deps = []):
+    """Encapsulates jvm dependency metadata."""
+    dep_infos = [_java_info(d) for d in friend.targets + deps] + [toolchains.kt.jvm_stdlibs]
     return struct(
         deps = dep_infos,
         compile_jars = depset(
@@ -212,13 +122,311 @@ def _compiler_deps(toolchains, friend, deps):
                 for d in dep_infos
             ],
         ),
+        runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 
 def _java_info_to_compile_jars(target):
-    i = target[JavaInfo]
+    i = _java_info(target)
     if i == None:
         return None
     return i.compile_jars
+
+def _exported_plugins(deps):
+    """Encapsulates compiler dependency metadata."""
+    plugins = []
+    for dep in deps:
+        if _KtJvmInfo in dep and dep[_KtJvmInfo] != None:
+            plugins.extend(dep[_KtJvmInfo].exported_compiler_plugins.to_list())
+    return plugins
+
+def _collect_plugins_for_export(local, exports):
+    """Collects into a depset. """
+    return depset(
+        local,
+        transitive = [
+            e[_KtJvmInfo].exported_compiler_plugins
+            for e in exports
+            if _KtJvmInfo in e and e[_KtJvmInfo]
+        ],
+    )
+
+_CONVENTIONAL_RESOURCE_PATHS = [
+    "src/main/resources",
+    "src/test/resources",
+    "kotlin",
+]
+
+def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
+    if not path.startswith(resource_strip_prefix):
+        fail("Resource file %s is not under the specified prefix to strip" % path)
+
+    clean_path = path[len(resource_strip_prefix):]
+    return resource_strip_prefix, clean_path
+
+def _adjust_resources_path_by_default_prefixes(path):
+    for cp in _CONVENTIONAL_RESOURCE_PATHS:
+        dir_1, dir_2, rel_path = path.partition(cp)
+        if rel_path:
+            return dir_1 + dir_2, rel_path
+    return "", path
+
+def _adjust_resources_path(path, resource_strip_prefix):
+    if resource_strip_prefix:
+        return _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix)
+    else:
+        return _adjust_resources_path_by_default_prefixes(path)
+
+def _merge_kt_jvm_info(module_name, providers):
+    language_versions = {p.language_version: True for p in providers if p.language_verison}
+    if len(language_versions) != 1:
+        fail("Conflicting kt language versions: %s" % language_versions)
+    return _KtJvmInfo(
+        language_versions.keys()[0],
+        modules_jar = [p.module_jars for p in providers],
+        exported_compiler_plugins = depset(transitive = [
+            p.exported_compiler_plugins
+            for p in providers
+        ]),
+    )
+
+def _kotlinc_options_provider_to_flags(opts):
+    if not opts:
+        return ""
+    flags = []
+    if opts.warn == "off":
+        flags.append("-nowarn")
+    elif opts.warn == "error":
+        flags.append("-Werror")
+    if opts.x_use_experimental:
+        flags.append("-Xuse-experimental=kotlin.Experimental")
+    if opts.x_use_ir:
+        flags.append("-Xuse-ir")
+    if opts.x_allow_jvm_ir_dependencies:
+        flags.append("-Xallow-jvm-ir-dependencies")
+    if opts.x_skip_prerelease_check:
+        flags.append("-Xskip-prerelease-check")
+    return flags
+
+def _javac_options_provider_to_flags(opts):
+    if not opts:
+        return ""
+    flags = []
+    if opts.warn == "off":
+        flags.append("-nowarn")
+    elif opts.warn == "error":
+        flags.append("-Werror")
+    if opts.x_ep_disable_all_checks:
+        flags.append("-XepDisableAllChecks")
+    if opts.x_lint:
+        flags.extend(["-Xlint:%s" % check for check in opts.x_lint])
+    if opts.xd_suppress_notes:
+        flags.append("-XDsuppressNotes")
+    return flags
+
+def _format_compile_plugin_options(options):
+    """Format options into id:value for cmd line."""
+    return ["%s:%s" % (o.id, o.value) for o in options]
+
+# INTERNAL ACTIONS #####################################################################################################
+def _fold_jars_action(ctx, rule_kind, output_jar, input_jars, action_type = ""):
+    """Set up an action to Fold the input jars into a normalized output jar."""
+    args = ctx.actions.args()
+    args.add_all([
+        "--normalize",
+        "--compression",
+    ])
+    args.add_all([
+        "--deploy_manifest_lines",
+        "Target-Label: %s" % str(ctx.label),
+        "Injecting-Rule-Kind: %s" % rule_kind,
+    ])
+    args.add("--output", output_jar)
+    args.add_all(input_jars, before_each = "--sources")
+    ctx.actions.run(
+        mnemonic = "KotlinFoldJars" + action_type,
+        inputs = input_jars,
+        outputs = [output_jar],
+        executable = ctx.executable._singlejar,
+        arguments = [args],
+        progress_message = "Merging Kotlin output jar %s%s from %d inputs" % (
+            ctx.label,
+            "" if not action_type else " (%s)" % action_type,
+            len(input_jars),
+        ),
+    )
+
+def _resourcejar_args_action(ctx):
+    res_cmd = []
+    for f in ctx.files.resources:
+        c_dir, res_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
+        target_path = res_path
+        if target_path[0] == "/":
+            target_path = target_path[1:]
+        line = "{target_path}={c_dir}{res_path}\n".format(
+            res_path = res_path,
+            target_path = target_path,
+            c_dir = c_dir,
+        )
+        res_cmd.extend([line])
+    zipper_args_file = ctx.actions.declare_file("%s_resources_zipper_args" % ctx.label.name)
+    ctx.actions.write(zipper_args_file, "".join(res_cmd))
+    return zipper_args_file
+
+def _build_resourcejar_action(ctx):
+    """sets up an action to build a resource jar for the target being compiled.
+    Returns:
+        The file resource jar file.
+    """
+    resources_jar_output = ctx.actions.declare_file(ctx.label.name + "-resources.jar")
+    zipper_args = _resourcejar_args_action(ctx)
+    ctx.actions.run_shell(
+        mnemonic = "KotlinZipResourceJar",
+        inputs = ctx.files.resources + [zipper_args],
+        tools = [ctx.executable._zipper],
+        outputs = [resources_jar_output],
+        command = "{zipper} c {resources_jar_output} @{path}".format(
+            path = zipper_args.path,
+            resources_jar_output = resources_jar_output.path,
+            zipper = ctx.executable._zipper.path,
+        ),
+        progress_message = "Creating intermediate resource jar %s" % ctx.label,
+    )
+    return resources_jar_output
+
+def _run_kt_builder_action(
+        ctx,
+        rule_kind,
+        toolchains,
+        dirs,
+        srcs,
+        friend,
+        compile_deps,
+        annotation_processors,
+        transitive_runtime_jars,
+        plugins,
+        outputs,
+        mnemonic = "KotlinCompile"):
+    """Creates a KotlinBuilder action invocation."""
+    args = _utils.init_args(ctx, rule_kind, friend.module_name)
+
+    for f, path in dirs.items() + outputs.items():
+        args.add("--" + f, path)
+
+    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(toolchains.kt.kotlinc_options))
+    args.add_all("--javacopts", _javac_options_provider_to_flags(toolchains.kt.javac_options))
+
+    args.add_all("--classpath", compile_deps.compile_jars)
+    args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
+    args.add_all("--source_jars", srcs.src_jars, omit_if_empty = True)
+
+    args.add_joined("--kotlin_friend_paths", friend.paths, join_with = "\n")
+
+    # Collect and prepare plugin descriptor for the worker.
+    args.add_all(
+        "--processors",
+        annotation_processors,
+        map_each = _plugin_mappers.kt_plugin_to_processor,
+        omit_if_empty = True,
+    )
+    args.add_all(
+        "--processorpath",
+        annotation_processors,
+        map_each = _plugin_mappers.kt_plugin_to_processorpath,
+        omit_if_empty = True,
+    )
+
+    compiler_plugins = [
+        p[_KtCompilerPluginInfo]
+        for p in plugins
+        if _KtCompilerPluginInfo in p and p[_KtCompilerPluginInfo]
+    ]
+
+    stubs_compiler_plugins = [
+        kcp
+        for kcp in compiler_plugins
+        if kcp.stubs
+    ]
+
+    compiler_compiler_plugins = [
+        ccp
+        for ccp in compiler_plugins
+        if ccp.compile
+    ]
+
+    if compiler_plugins and not (stubs_compiler_plugins or compiler_compiler_plugins):
+        fail("plugins but no phase plugins: %s" % compiler_plugins)
+
+    args.add_all(
+        "--stubs_plugin",
+        [j for p in stubs_compiler_plugins for j in p.plugin_jars],
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--stubs_plugin_classpath",
+        depset(transitive = [p.classpath for p in stubs_compiler_plugins]),
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--stubs_plugin_options",
+        [p.options for p in stubs_compiler_plugins],
+        map_each = _format_compile_plugin_options,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin",
+        [j for p in compiler_compiler_plugins for j in p.plugin_jars],
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin_classpath",
+        depset(transitive = [p.classpath for p in compiler_compiler_plugins]),
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin_options",
+        [p.options for p in compiler_compiler_plugins],
+        map_each = _format_compile_plugin_options,
+        omit_if_empty = True,
+    )
+
+    progress_message = "%s %s { kt: %d, java: %d, srcjars: %d } for %s" % (
+        mnemonic,
+        ctx.label,
+        len(srcs.kt),
+        len(srcs.java),
+        len(srcs.src_jars),
+        ctx.var.get("TARGET_CPU", "UNKNOWN CPU"),
+    )
+
+    tools, input_manifests = ctx.resolve_tools(
+        tools = [
+            toolchains.kt.kotlinbuilder,
+            toolchains.kt.kotlin_home,
+        ],
+    )
+
+    ctx.actions.run(
+        mnemonic = "KotlinCompile",
+        inputs = depset(
+            srcs.all_srcs + srcs.src_jars,
+            transitive = [compile_deps.compile_jars, transitive_runtime_jars] + [p.classpath for p in compiler_plugins],
+        ),
+        tools = tools,
+        input_manifests = input_manifests,
+        outputs = [f for f in outputs.values()],
+        executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
+        execution_requirements = {"supports-workers": "1"},
+        arguments = [args],
+        progress_message = progress_message,
+        env = {
+            "LC_CTYPE": "en_US.UTF-8",  # For Java source files
+        },
+    )
 
 # MAIN ACTIONS #########################################################################################################
 
@@ -226,8 +434,10 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
     """This macro sets up a compile action for a Kotlin jar.
 
     Args:
+        ctx: Invoking rule ctx, used for attr, actions, and label.
         rule_kind: The rule kind --e.g., `kt_jvm_library`.
         output_jar: The jar file that this macro will use as the output.
+        compile_jar: Output jar for compilation.
     Returns:
         A struct containing the providers JavaInfo (`java`) and `kt` (KtJvmInfo). This struct is not intended to be
         used as a legacy provider -- rather the caller should transform the result.
@@ -236,10 +446,15 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
     dirs = _compiler_directories(ctx)
     srcs = _partitioned_srcs(ctx.files.srcs)
     friend = _compiler_friends(ctx, friends = getattr(ctx.attr, "friends", []))
-    compile_deps = _compiler_deps(toolchains, friend, deps = ctx.attr.deps)
+    compile_deps = _jvm_deps(
+        toolchains,
+        friend,
+        deps = ctx.attr.deps + ctx.attr.plugins,
+        runtime_deps = ctx.attr.runtime_deps,
+    )
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
-    plugins = ctx.attr.plugins
+    plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
 
     if toolchains.kt.experimental_use_abi_jars:
         kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
@@ -306,7 +521,6 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
             "kotlin_output_srcjar": ctx.outputs.srcjar,
         },
     )
-
     return struct(
         java = JavaInfo(
             output_jar = ctx.outputs.jar,
@@ -314,14 +528,18 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
             source_jar = ctx.outputs.srcjar,
             #  jdeps = ctx.outputs.jdeps,
             deps = compile_deps.deps,
-            runtime_deps = [d[JavaInfo] for d in ctx.attr.runtime_deps],
-            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
+            runtime_deps = [_java_info(d) for d in ctx.attr.runtime_deps],
+            exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
             neverlink = getattr(ctx.attr, "neverlink", False),
         ),
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
-            module_name = friend.module_name,
+            module_name = _utils.derive_module_name(ctx),
             language_version = toolchains.kt.api_version,
+            exported_compiler_plugins = _collect_plugins_for_export(
+                getattr(ctx.attr, "exported_compiler_plugins", []),
+                getattr(ctx.attr, "exports", []),
+            ),
             # intellij aspect needs this.
             outputs = struct(
                 jdeps = ctx.outputs.jdeps,
@@ -334,113 +552,53 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar, compile_jar):
         ),
     )
 
-def _kotlinc_options_provider_to_flags(opts):
-    if not opts:
-        return ""
-    flags = []
-    if opts.warn == "off":
-        flags.append("-nowarn")
-    elif opts.warn == "error":
-        flags.append("-Werror")
-    if opts.x_use_experimental:
-        flags.append("-Xuse-experimental=kotlin.Experimental")
-    if opts.x_use_ir:
-        flags.append("-Xuse-ir")
-    if opts.x_allow_jvm_ir_dependencies:
-        flags.append("-Xallow-jvm-ir-dependencies")
-    if opts.x_skip_prerelease_check:
-        flags.append("-Xskip-prerelease-check")
-    return flags
+def export_only_providers(ctx, actions, attr, outputs):
+    """_export_only_providers creates a series of forwarding providers without compilation overhead.
 
-def _javac_options_provider_to_flags(opts):
-    if not opts:
-        return ""
-    flags = []
-    if opts.warn == "off":
-        flags.append("-nowarn")
-    elif opts.warn == "error":
-        flags.append("-Werror")
-    if opts.x_ep_disable_all_checks:
-        flags.append("-XepDisableAllChecks")
-    if opts.x_lint:
-        flags.extend(["-Xlint:%s" % check for check in opts.x_lint])
-    if opts.xd_suppress_notes:
-        flags.append("-XDsuppressNotes")
-    return flags
+    Args:
+        ctx: kt_compiler_ctx
+        actions: invoking rule actions,
+        attr: kt_compiler_attributes,
+        outputs: kt_compiler_outputs
+    Returns:
+        kt_compiler_result
+    """
+    toolchains = _compiler_toolchains(ctx)
 
-def _run_kt_builder_action(ctx, rule_kind, toolchains, dirs, srcs, friend, compile_deps, annotation_processors, transitive_runtime_jars, plugins, outputs, mnemonic = "KotlinCompile"):
-    """Creates a KotlinBuilder action invocation."""
-    args = _utils.init_args(ctx, rule_kind, friend.module_name)
-
-    for f, path in dirs.items() + outputs.items():
-        args.add("--" + f, path)
-
-    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(toolchains.kt.kotlinc_options))
-    args.add_all("--javacopts", _javac_options_provider_to_flags(toolchains.kt.javac_options))
-
-    args.add_all("--classpath", compile_deps.compile_jars)
-    args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
-    args.add_all("--source_jars", srcs.src_jars, omit_if_empty = True)
-
-    args.add_joined("--kotlin_friend_paths", friend.paths, join_with = "\n")
-
-    # Collect and prepare plugin descriptor for the worker.
-    args.add_all(
-        "--processors",
-        annotation_processors,
-        map_each = _plugin_mappers.kt_plugin_to_processor,
-        omit_if_empty = True,
-    )
-    args.add_all(
-        "--processorpath",
-        annotation_processors,
-        map_each = _plugin_mappers.kt_plugin_to_processorpath,
-        omit_if_empty = True,
+    # satisfy the outputs requirement. should never execute during normal compilation.
+    actions.symlink(
+        output = outputs.jar,
+        target_file = toolchains.kt.empty_jar,
     )
 
-    args.add_all(
-        "--pluginpath",
-        _plugins_to_classpaths(plugins),
-        omit_if_empty = True,
-    )
-    args.add_all(
-        "--plugin_options",
-        _plugins_to_options(plugins),
-        omit_if_empty = True,
+    actions.symlink(
+        output = outputs.srcjar,
+        target_file = toolchains.kt.empty_jar,
     )
 
-    progress_message = "%s %s { kt: %d, java: %d, srcjars: %d } for %s" % (
-        mnemonic,
-        ctx.label,
-        len(srcs.kt),
-        len(srcs.java),
-        len(srcs.src_jars),
-        ctx.var.get("TARGET_CPU", "UNKNOWN CPU"),
+    actions.symlink(
+        output = outputs.jdeps,
+        target_file = toolchains.kt.empty_jdeps,
     )
 
-    tools, input_manifests = ctx.resolve_tools(
-        tools = [
-            toolchains.kt.kotlinbuilder,
-            toolchains.kt.kotlin_home,
-        ],
+    java = JavaInfo(
+        output_jar = toolchains.kt.empty_jar,
+        compile_jar = toolchains.kt.empty_jar,
+        deps = [_java_info(d) for d in attr.deps + attr.plugins],
+        exports = [_java_info(d) for d in getattr(attr, "exports", [])],
+        neverlink = getattr(attr, "neverlink", False),
     )
 
-    ctx.actions.run(
-        mnemonic = "KotlinCompile",
-        inputs = depset(
-            ctx.files.srcs,
-            transitive = [compile_deps.compile_jars, transitive_runtime_jars],
+    return struct(
+        java = java,
+        kt = _KtJvmInfo(
+            module_name = _utils.derive_module_name(ctx),
+            language_version = toolchains.kt.api_version,
+            exported_compiler_plugins = _collect_plugins_for_export(
+                getattr(attr, "exported_compiler_plugins", []),
+                getattr(attr, "exports", []),
+            ),
         ),
-        tools = tools,
-        input_manifests = input_manifests,
-        outputs = [f for f in outputs.values()],
-        executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
-        execution_requirements = {"supports-workers": "1"},
-        arguments = [args],
-        progress_message = progress_message,
-        env = {
-            "LC_CTYPE": "en_US.UTF-8",  # For Java source files
-        },
     )
 
 def kt_jvm_produce_jar_actions(ctx, rule_kind):

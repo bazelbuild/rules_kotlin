@@ -18,9 +18,12 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.util.Base64
 
 /**
  * CompilationArgs collects the arguments for executing the Kotlin compiler.
@@ -30,7 +33,10 @@ class CompilationArgs(
   private val dfs: FileSystem = FileSystems.getDefault()
 ) {
 
-  class StringConditional(val value: String, val parent: CompilationArgs) {
+  class StringConditional(
+    val value: String,
+    val parent: CompilationArgs
+  ) {
     fun notEmpty(conditionalArgs: CompilationArgs.(it: String) -> Unit): CompilationArgs {
       if (value.isNotEmpty()) {
         parent.conditionalArgs(value)
@@ -47,26 +53,38 @@ class CompilationArgs(
   }
 
   interface SetFlag {
-    fun flag(name: String, value: String): SetFlag
+    fun flag(
+      name: String,
+      value: String
+    ): SetFlag
   }
 
   fun plugin(p: KotlinToolchain.CompilerPlugin): CompilationArgs {
     return plugin(p) {}
   }
 
-  fun plugin(p: KotlinToolchain.CompilerPlugin, flagArgs: SetFlag.() -> Unit): CompilationArgs {
+  fun plugin(
+    p: KotlinToolchain.CompilerPlugin,
+    flagArgs: SetFlag.() -> Unit
+  ): CompilationArgs {
     value("-Xplugin=${p.jarPath}")
     object : SetFlag {
-      override fun flag(name: String, value: String): SetFlag {
+      override fun flag(
+        name: String,
+        value: String
+      ): SetFlag {
         args.add("-P")
-        args.add("plugin:${p.id}:${name}=${value}")
+        args.add("plugin:${p.id}:$name=$value")
         return this
       }
     }.flagArgs()
     return this
   }
 
-  fun given(test: Boolean, conditionalArgs: CompilationArgs.() -> Unit): CompilationArgs {
+  fun given(
+    test: Boolean,
+    conditionalArgs: CompilationArgs.() -> Unit
+  ): CompilationArgs {
     if (test) {
       this.conditionalArgs()
     }
@@ -78,13 +96,37 @@ class CompilationArgs(
   }
 
   operator fun plus(other: CompilationArgs): CompilationArgs = CompilationArgs(
-      (args.asSequence() + other.args.asSequence()).toMutableList())
+    (args.asSequence() + other.args.asSequence()).toMutableList()
+  )
 
   fun absolutePaths(
     paths: Collection<String>,
     toArgs: (Sequence<Path>) -> String
   ): CompilationArgs {
-    return value(toArgs(paths.asSequence().map { dfs.getPath(it) }.map(Path::toAbsolutePath)))
+    if (paths.isEmpty()) {
+      return this
+    }
+    return value(
+      toArgs(
+        paths.asSequence()
+          .map { dfs.getPath(it) }
+          .map(Path::toAbsolutePath)
+      )
+    )
+  }
+
+  fun paths(
+    paths: Collection<String>,
+    toArgs: (Sequence<Path>) -> String
+  ): CompilationArgs {
+    if (paths.isEmpty()) {
+      return this
+    }
+    return value(
+      toArgs(
+        paths.asSequence()
+          .map { dfs.getPath(it) })
+    )
   }
 
   fun value(value: String): CompilationArgs {
@@ -102,7 +144,19 @@ class CompilationArgs(
     return this
   }
 
-  fun flag(flag: String, value: String): CompilationArgs {
+  fun flag(
+    key: String,
+    value: () -> String
+  ): CompilationArgs {
+    args.add(key)
+    args.add(value())
+    return this
+  }
+
+  fun flag(
+    flag: String,
+    value: String
+  ): CompilationArgs {
     args.add(flag)
     args.add(value)
     return this
@@ -113,5 +167,33 @@ class CompilationArgs(
     return this
   }
 
+  fun xFlag(flag: String, value: String): CompilationArgs {
+    args.add("-X$flag=$value")
+    return this
+  }
+
   fun list(): List<String> = args.toList()
+
+  fun base64Encode(
+    flag: String,
+    vararg values: Pair<String, List<String>>,
+    transform: (String) -> String = { it }
+  ): CompilationArgs {
+    val os = ByteArrayOutputStream()
+    val oos = ObjectOutputStream(os)
+
+    oos.writeInt(values.size)
+    for ((k, vs) in values) {
+      oos.writeUTF(k)
+
+      oos.writeInt(vs.size)
+      for (v in vs) {
+        oos.writeUTF(v)
+      }
+    }
+
+    oos.flush()
+    flag(flag, transform(Base64.getEncoder().encodeToString(os.toByteArray())))
+    return this
+  }
 }

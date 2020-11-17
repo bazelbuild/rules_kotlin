@@ -50,7 +50,6 @@ rm ChaiCup.kt
     toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
 )
 
-
 kt_jvm_library(
     name = "coffee_lib",
     srcs = glob(["src/**"]) + [

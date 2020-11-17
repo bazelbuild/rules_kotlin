@@ -19,7 +19,6 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KaptCompilerPluginArgsEncoder
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
@@ -28,10 +27,18 @@ import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.model.JvmCompilationTask
+import io.bazel.kotlin.model.JvmCompilationTask.Directories
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.ObjectOutputStream
 import java.nio.file.Files
+import java.nio.file.Files.isDirectory
+import java.nio.file.Files.walk
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.Base64
+import java.util.stream.Collectors.toList
+import java.util.stream.Stream
 
 /**
  * Return a list with the common arguments for compilation with code generation.
@@ -46,29 +53,39 @@ fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
   .values(info.passthroughFlagsList)
 
 fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
-  .flag("-cp").absolutePaths(inputs.classpathList) {
-    it.map(Path::toString).joinToString(File.pathSeparator)
+  .flag("-cp")
+  .paths(
+    inputs.classpathList + directories.generatedClasses
+  ) {
+    it.map(Path::toString)
+      .joinToString(File.pathSeparator)
   }
   .flag("-api-version", info.toolchainInfo.common.apiVersion)
   .flag("-language-version", info.toolchainInfo.common.languageVersion)
   .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
   .flag("-module-name", info.moduleName)
 
-internal fun pluginArgs(context: JvmCompilationTask, args: CompilationArgs): CompilationArgs = args
-    .let {
-        var r = it
-      context.inputs.pluginpathsList.forEach { pluginPath ->
-        r = r.value("-Xplugin=${pluginPath}")
+internal fun JvmCompilationTask.plugins(
+  options: List<String>,
+  classpath: List<String>
+): CompilationArgs =
+  CompilationArgs().apply {
+    classpath.forEach {
+      xFlag("plugin", it)
+    }
+
+    val dirTokens = mapOf(
+      "{generatedClasses}" to directories.generatedClasses,
+      "{stubs}" to directories.stubs,
+      "{generatedSources}" to directories.generatedSources
+    )
+    options.forEach { opt ->
+      val formatted = dirTokens.entries.fold(opt) { formatting, (token, value) ->
+        formatting.replace(token, value)
       }
-        r
+      flag("-P", "plugin:$formatted")
     }
-    .let {
-        var r = it
-        context.inputs.pluginOptionsList.forEach { opt ->
-            r = r.flag("-P", "plugin:$opt")
-        }
-        r
-    }
+  }
 
 internal fun JvmCompilationTask.preProcessingSteps(context: CompilationTaskContext): JvmCompilationTask {
   return context.execute("expand sources") { expandWithSourceJarSources() }
@@ -97,17 +114,68 @@ internal fun JvmCompilationTask.produceSourceJar() {
   }
 }
 
+internal fun encodeMap(options: Map<String, String>): String {
+  val os = ByteArrayOutputStream()
+  val oos = ObjectOutputStream(os)
+
+  oos.writeInt(options.size)
+  for ((key, value) in options.entries) {
+    oos.writeUTF(key)
+    oos.writeUTF(value)
+  }
+
+  oos.flush()
+  return Base64.getEncoder()
+    .encodeToString(os.toByteArray())
+}
+
+internal fun JvmCompilationTask.kaptArgs(
+  context: CompilationTaskContext,
+  plugins: InternalCompilerPlugins,
+  aptMode: String
+): CompilationArgs {
+  val javacArgs = mapOf<String, String>(
+    "-target" to info.toolchainInfo.jvm.jvmTarget
+  )
+  return CompilationArgs()
+    .xFlag("plugin", plugins.kapt.jarPath)
+    .base64Encode(
+      "-P",
+      "sources" to listOf(directories.generatedSources),
+      "classes" to listOf(directories.generatedClasses),
+      "stubs" to listOf(directories.stubs),
+      "incrementalData" to listOf(directories.incrementalData),
+      "javacArguments" to listOf(javacArgs.let(::encodeMap)),
+      "correctErrorTypes" to listOf("false"),
+      "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
+      "processors" to listOf(inputs.processorsList.joinToString(",")),
+      "apclasspath" to inputs.processorpathsList,
+      "aptMode" to listOf(aptMode)
+    ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
+}
+
 internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
-  kaptPluginArgsEncoder: KaptCompilerPluginArgsEncoder,
+  plugins: InternalCompilerPlugins,
   compiler: KotlinToolchain.KotlincInvoker
 ): JvmCompilationTask {
-  if (inputs.processorsList.isEmpty()) {
+  if ((inputs.processorsList.isEmpty() && inputs.stubsPluginsList.isEmpty()) || inputs.kotlinSourcesList.isEmpty()) {
     return this
   } else {
     return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
-        pluginArgs(this, commonArgs())
-        .values(kaptPluginArgsEncoder.encode(context, this))
+      (
+        baseArgs()
+          .plus(
+            plugins(
+              options = inputs.stubsPluginOptionsList,
+              classpath = inputs.stubsPluginClasspathList
+            )
+          )
+          .plus(
+            kaptArgs(context, plugins, "stubsAndApt")
+          )
+      )
+        .flag("-d", directories.generatedClasses)
         .values(inputs.kotlinSourcesList)
         .values(inputs.javaSourcesList).list().let { args ->
           context.executeCompilerTask(
@@ -162,18 +230,43 @@ internal fun JvmCompilationTask.createAbiJar() =
 fun JvmCompilationTask.compileKotlin(
   context: CompilationTaskContext,
   compiler: KotlinToolchain.KotlincInvoker,
-  args: CompilationArgs = commonArgs(),
+  args: CompilationArgs = baseArgs(),
   printOnFail: Boolean = true
-) : List<String> {
+): List<String> {
   if (inputs.kotlinSourcesList.isEmpty()) {
     return emptyList()
   } else {
-    return pluginArgs(this, args)
-    .values(inputs.javaSourcesList)
-    .values(inputs.kotlinSourcesList)
-        .list().let {
-          return@let context.executeCompilerTask(it, compiler::compile, printOnFail = printOnFail)
+    return (args + plugins(
+      options = inputs.compilerPluginOptionsList,
+      classpath = inputs.compilerPluginClasspathList
+    ))
+      .values(inputs.javaSourcesList)
+      .values(inputs.kotlinSourcesList)
+      .flag("-d", directories.classes)
+      .list()
+      .let {
+        context.whenTracing {
+          context.printLines("compileKotlin arguments:\n", it)
         }
+        return@let context.executeCompilerTask(it, compiler::compile, printOnFail = printOnFail)
+          .also {
+            context.whenTracing {
+              printLines(
+                "kotlinc Files Created:",
+                Stream.of(
+                  directories.classes,
+                  directories.generatedClasses,
+                  directories.generatedSources,
+                  directories.temp
+                )
+                  .map { Paths.get(it) }
+                  .flatMap { walk(it) }
+                  .filter { !isDirectory(it) }
+                  .map { it.toString() }
+                  .collect(toList()))
+            }
+          }
+      }
   }
 }
 
@@ -194,15 +287,31 @@ internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask
     }.sourcesList.iterator()
   )
 
+private val Directories.stubs
+  get() = Files.createDirectories(
+    Paths.get(temp)
+      .resolve("stubs")
+  )
+    .toString()
+private val Directories.incrementalData
+  get() = Files.createDirectories(
+    Paths.get(temp)
+      .resolve("incrementalData")
+  )
+    .toString()
+
 /**
  * Create a new [JvmCompilationTask] with sources found in the generatedSources directory. This should be run after
  * annotation processors have been run.
  */
 internal fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
   expandWithSources(
-    File(directories.generatedSources).walkTopDown()
-      .filter { it.isFile }
-      .map { it.path }
+    Stream.of(directories.generatedSources)
+      .map { s -> Paths.get(s) }
+      .flatMap { p -> walk(p) }
+      .filter { !isDirectory(it) }
+      .map { it.toString() }
+      .distinct()
       .iterator()
   )
 

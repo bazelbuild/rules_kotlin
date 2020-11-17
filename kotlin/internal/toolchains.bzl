@@ -75,6 +75,8 @@ def _kotlin_toolchain_impl(ctx):
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
+        empty_jar = ctx.file._empty_jar,
+        empty_jdeps = ctx.file._empty_jdeps,
     )
     return [
         platform_common.ToolchainInfo(**toolchain),
@@ -176,10 +178,22 @@ _kt_toolchain = rule(
             providers = [JavacOptions],
             default = Label("//kotlin/internal:default_javac_options"),
         ),
+        "_empty_jar": attr.label(
+            doc = """Empty jar for exporting JavaInfos.""",
+            allow_single_file = True,
+            cfg = "target",
+            default = "@io_bazel_rules_kotlin//third_party:empty.jar",
+        ),
         "kotlinc_options": attr.label(
             doc = "Compiler options for kotlinc",
             providers = [KotlincOptions],
             default = Label("//kotlin/internal:default_kotlinc_options"),
+        ),
+        "_empty_jdeps": attr.label(
+            doc = """Empty jdeps for exporting JavaInfos.""",
+            allow_single_file = True,
+            cfg = "target",
+            default = "@io_bazel_rules_kotlin//third_party:empty.jdeps",
         ),
     },
     implementation = _kotlin_toolchain_impl,

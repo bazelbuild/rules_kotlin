@@ -22,9 +22,8 @@ import dagger.Provides;
 import io.bazel.kotlin.builder.tasks.BazelWorker;
 import io.bazel.kotlin.builder.tasks.KotlinBuilder;
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
+import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
-import io.bazel.kotlin.builder.tasks.jvm.KtAbiPluginArgs;
-import io.bazel.kotlin.builder.toolchain.KaptCompilerPluginArgsEncoder;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 
 import javax.inject.Singleton;
@@ -42,7 +41,7 @@ public interface KotlinBuilderComponent {
     BazelWorker worker();
 
     @Component.Builder
-  public interface Builder {
+    public interface Builder {
         @BindsInstance
         KotlinBuilderComponent.Builder toolchain(KotlinToolchain toolchain);
 
@@ -50,12 +49,7 @@ public interface KotlinBuilderComponent {
     }
 
     @dagger.Module
-  public class Module {
-        @Provides
-        public KaptCompilerPluginArgsEncoder providePluginArgEncoder(KotlinToolchain toolchain) {
-            return new KaptCompilerPluginArgsEncoder(
-                    toolchain.getKapt3Plugin().getJarPath(), toolchain.getKapt3Plugin().getId());
-        }
+    class Module {
 
         @Provides
         public PrintStream provideDebugPrintStream() {
@@ -67,8 +61,10 @@ public interface KotlinBuilderComponent {
             return new BazelWorker(builder, System.err, "KotlinCompile");
         }
 
-    @Provides public KtAbiPluginArgs provideAbiPlugin(KotlinToolchain toolchain) {
-      return new KtAbiPluginArgs(toolchain.getJvmAbiGen(), toolchain.getSkipCodeGen());
-    }
+        @Provides
+        public InternalCompilerPlugins provideAbiPlugin(KotlinToolchain toolchain) {
+            return new InternalCompilerPlugins(
+                    toolchain.getJvmAbiGen(), toolchain.getSkipCodeGen(), toolchain.getKapt3Plugin());
+        }
     }
 }
