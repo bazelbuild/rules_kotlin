@@ -20,6 +20,6 @@ exports_files([
 java_import(
     name = "android_sdk",
     jars = ["@bazel_tools//tools/android:android_jar"],
-    neverlink = 1,
+    neverlink = True,
     visibility = ["//visibility:public"],
 )

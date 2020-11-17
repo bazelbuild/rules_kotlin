@@ -2,7 +2,7 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_
 
 java_plugin(
     name = "dagger_component_plugin",
-    generates_api = 1,
+    generates_api = True,
     processor_class = "dagger.internal.codegen.ComponentProcessor",
     visibility = ["//visibility:private"],
     deps = [
