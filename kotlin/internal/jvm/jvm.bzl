@@ -500,7 +500,7 @@ kt_compiler_plugin = rule(
         "_jarjar": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@bazel_tools//third_party/jarjar:jarjar_bin"),
+            default = Label("@io_bazel_rules_kotlin//third_party:jarjar_runner"),
         ),
     },
     implementation = _kt_compiler_plugin_impl,
