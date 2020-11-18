@@ -1,6 +1,6 @@
 ---
 validate_config: 1
-bazel: 1.1.0
+bazel: 3.7.0
 tasks:
   ubuntu1604:
     build_targets:

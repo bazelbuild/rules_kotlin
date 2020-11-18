@@ -12,7 +12,9 @@ public enum DirectoryType {
     CLASSES("compiled classes", Paths.get("classes")),
     GENERATED_CLASSES("generated classes", Paths.get("generated_classes")),
     TEMP("temp directory", Paths.get("temp")),
-    SOURCE_GEN("generated sources directory", Paths.get("generated_sources"));
+    SOURCE_GEN("generated sources directory", Paths.get("generated_sources")),
+    GENERATED_STUBS("generated kotlin stubs directory", Paths.get("stubs")),
+    INCREMENTAL_DATA("generated kotlin stubs class directory", Paths.get("temp","incrementalData"));
 
     final String name;
     final Path relativePath;

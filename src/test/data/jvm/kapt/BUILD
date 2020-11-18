@@ -150,6 +150,7 @@ filegroup(
         ":ap_kotlin_mixed_no_plugin",
         ":ap_kotlin_resources",
         ":ap_kotlin_resources_mixed",
+        ":ap_kotlin_mixed_multiple_plugins-sources.jar",
     ],
     visibility = ["//visibility:public"],
 )
