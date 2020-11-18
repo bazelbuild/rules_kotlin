@@ -86,6 +86,7 @@ release_archive(
         "empty.jar",
         "empty.jdeps",
         "jarjar.bzl",
+        "@kotlin_rules_maven//:org_pantsbuild_jarjar",
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
