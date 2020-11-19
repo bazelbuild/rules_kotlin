@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_js_library")
-load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
 
 # routes and auth have acme prepended to the rule name as these are the names of the resulting jars. The name of the
 # jar is the name of the module, and thus the name of the require statements.
