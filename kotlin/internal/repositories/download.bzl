@@ -14,8 +14,8 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file", "http_jar")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-RULES_NODEJS_VERSION = "0.36.1"
-RULES_NODEJS_SHA = "3356c6b767403392bab018ce91625f6d15ff8f11c6d772dc84bc9cada01c669a"
+RULES_NODEJS_VERSION = "1.7.0"
+RULES_NODEJS_SHA = "84abf7ac4234a70924628baa9a73a5a5cbad944c4358cf9abdb4aab29c9a5b77"
 
 BAZEL_TOOLCHAINS_VERSION = "3.7.0"
 BAZEL_TOOLCHAINS_SHA = "8e0633dfb59f704594f19ae996a35650747adc621ada5e8b9fb588f808c89cb0"
