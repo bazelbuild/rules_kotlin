@@ -17,6 +17,13 @@ exports_files([
     "empty.jdeps",
 ])
 
+java_binary(
+    name = "jarjar_runner",
+    main_class = "org.pantsbuild.jarjar.Main",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":jarjar-1.7.2.jar"],
+)
+
 java_import(
     name = "android_sdk",
     jars = ["@bazel_tools//tools/android:android_jar"],

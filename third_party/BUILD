@@ -57,6 +57,13 @@ java_library(
     ],
 )
 
+java_binary(
+    name = "jarjar_runner",
+    main_class = "org.pantsbuild.jarjar.Main",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@kotlin_rules_maven//:org_pantsbuild_jarjar"],
+)
+
 # TODO(bazelbuild/rules_kotlin/issues/273): Remove android_sdk import.
 java_import(
     name = "android_sdk",
@@ -79,6 +86,7 @@ release_archive(
         "empty.jar",
         "empty.jdeps",
         "jarjar.bzl",
+        "@kotlin_rules_maven//:org_pantsbuild_jarjar",
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
