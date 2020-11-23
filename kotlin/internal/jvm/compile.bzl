@@ -483,7 +483,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     compile_deps = _jvm_deps(
         toolchains,
         friend,
-        deps = ctx.attr.deps + ctx.attr.plugins,
+        deps = ctx.attr.deps,
         runtime_deps = ctx.attr.runtime_deps,
     )
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
