@@ -112,7 +112,8 @@ internal fun JvmCompilationTask.kaptArgs(
   aptMode: String
 ): CompilationArgs {
   val javacArgs = mapOf<String, String>(
-    "-target" to info.toolchainInfo.jvm.jvmTarget
+    "-target" to info.toolchainInfo.jvm.jvmTarget,
+    "-source" to info.toolchainInfo.jvm.jvmTarget
   )
   return CompilationArgs()
     .xFlag("plugin", plugins.kapt.jarPath)
