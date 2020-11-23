@@ -448,7 +448,7 @@ def _run_kt_builder_action(
     )
 
     ctx.actions.run(
-        mnemonic = "KotlinCompile",
+        mnemonic = mnemonic,
         inputs = depset(
             srcs.all_srcs + srcs.src_jars,
             transitive = [compile_deps.compile_jars, transitive_runtime_jars] + [p.classpath for p in compiler_plugins],
