@@ -24,7 +24,7 @@ load(
     _http_file = "http_file",
 )
 
-BAZEL_JAVA_LAUNCHER_VERSION = "0.28.1"
+BAZEL_JAVA_LAUNCHER_VERSION = "3.7.0"
 
 KOTLIN_CURRENT_COMPILER_RELEASE = {
     "urls": [
@@ -53,5 +53,5 @@ def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
                  BAZEL_JAVA_LAUNCHER_VERSION +
                  "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
                  "java_stub_template.txt")],
-        sha256 = "e6531a6539ec1e38fec5e20523ff4bfc883e1cc0209eb658fe82eb918eb49657",
+        sha256 = "a618e746e743f3119a9939e60645a02de40149aae9d63201c3cd05706010f6eb",
     )
