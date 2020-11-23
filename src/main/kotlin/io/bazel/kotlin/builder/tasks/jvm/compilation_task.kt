@@ -196,7 +196,7 @@ internal fun JvmCompilationTask.createAbiJar() =
         normalize = true,
         verbose = false
     ).also {
-      it.addDirectory(Paths.get(directories.classes))
+      it.addDirectory(Paths.get(directories.abiClasses))
       it.addDirectory(Paths.get(directories.generatedClasses))
       it.setJarOwner(info.label, info.bazelRuleKind)
       it.execute()
