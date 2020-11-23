@@ -20,5 +20,7 @@ class MainActivity : Activity() {
         .show()
     // Ensure Serialization plugin has run and generated code correctly.
     Data.serializer()
+
+    AutoValue_TestKtValue.Builder().setName("Auto Value Test").build()
   }
 }
