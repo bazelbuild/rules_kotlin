@@ -1,0 +1,9 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "define_kt_toolchain")
+
+define_kt_toolchain(
+    name = "experimental_toolchain",
+    api_version = "1.4",
+    experimental_use_abi_jars = True,
+    experimental_use_java_builder = True,
+    language_version = "1.4",
+)
