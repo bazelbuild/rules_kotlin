@@ -351,7 +351,7 @@ def _run_kt_builder_action(
 
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
-    args.add_all("--source_jars", srcs.src_jars, omit_if_empty = True)
+    args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
 
     args.add_joined("--kotlin_friend_paths", friend.paths, join_with = "\n")
 
@@ -450,7 +450,7 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars,
+            srcs.all_srcs + srcs.src_jars + generated_src_jars,
             transitive = [compile_deps.compile_jars, transitive_runtime_jars] + [p.classpath for p in compiler_plugins],
         ),
         tools = tools,
