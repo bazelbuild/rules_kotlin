@@ -66,7 +66,7 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_reg
 
 kotlin_repositories()
 
-kt_register_toolchains()
+register_toolchains("//bzl:experimental_toolchain")
 
 http_archive(
     name = "rules_pkg",

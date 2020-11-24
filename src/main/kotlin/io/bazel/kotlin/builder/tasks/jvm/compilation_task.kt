@@ -112,7 +112,8 @@ internal fun JvmCompilationTask.kaptArgs(
   aptMode: String
 ): CompilationArgs {
   val javacArgs = mapOf<String, String>(
-    "-target" to info.toolchainInfo.jvm.jvmTarget
+    "-target" to info.toolchainInfo.jvm.jvmTarget,
+    "-source" to info.toolchainInfo.jvm.jvmTarget
   )
   return CompilationArgs()
     .xFlag("plugin", plugins.kapt.jarPath)
@@ -195,7 +196,7 @@ internal fun JvmCompilationTask.createAbiJar() =
         normalize = true,
         verbose = false
     ).also {
-      it.addDirectory(Paths.get(directories.classes))
+      it.addDirectory(Paths.get(directories.abiClasses))
       it.addDirectory(Paths.get(directories.generatedClasses))
       it.setJarOwner(info.label, info.bazelRuleKind)
       it.execute()

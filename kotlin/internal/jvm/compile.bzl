@@ -448,7 +448,7 @@ def _run_kt_builder_action(
     )
 
     ctx.actions.run(
-        mnemonic = "KotlinCompile",
+        mnemonic = mnemonic,
         inputs = depset(
             srcs.all_srcs + srcs.src_jars,
             transitive = [compile_deps.compile_jars, transitive_runtime_jars] + [p.classpath for p in compiler_plugins],
@@ -490,10 +490,10 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
 
-    output_jars = []
     generated_src_jars = []
     if toolchains.kt.experimental_use_java_builder:
-        _run_kt_java_builder_actions(
+        compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
+        output_jars = _run_kt_java_builder_actions(
             ctx = ctx,
             rule_kind = rule_kind,
             toolchains = toolchains,
@@ -504,6 +504,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             annotation_processors = annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
+            compile_jar = compile_jar
         )
 
     else:
@@ -524,7 +525,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             },
         )
         compile_jar = kt_java_output_jar
-        output_jars.append(kt_java_output_jar)
+        output_jars = [kt_java_output_jar]
 
     # If this rule has any resources declared setup a zipper action to turn them into a jar.
     if len(ctx.files.resources) > 0:
@@ -593,8 +594,9 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
 
 """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 """
-def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src_jars, friend, compile_deps, annotation_processors, transitive_runtime_jars, plugins):
+def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src_jars, friend, compile_deps, annotation_processors, transitive_runtime_jars, plugins, compile_jar):
     compile_jars = []
+    output_jars = []
     kt_stubs_for_java = []
 
     # Run KAPT
@@ -717,6 +719,8 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         action_type = "Abi",
         input_jars = compile_jars,
     )
+
+    return output_jars
 
 def export_only_providers(ctx, actions, attr, outputs):
     """_export_only_providers creates a series of forwarding providers without compilation overhead.

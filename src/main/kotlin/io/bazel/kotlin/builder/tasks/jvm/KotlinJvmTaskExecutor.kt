@@ -68,7 +68,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                     }
                     .given(outputs.abijar).notEmpty {
                       plugin(plugins.jvmAbiGen) {
-                        flag("outputDir", directories.classes)
+                        flag("outputDir", directories.abiClasses)
                       }
                       given(outputs.jar).empty {
                         plugin(plugins.skipCodeGen)
