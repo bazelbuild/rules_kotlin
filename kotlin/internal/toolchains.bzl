@@ -73,7 +73,6 @@ def _kotlin_toolchain_impl(ctx):
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         js_stdlibs = ctx.attr.js_stdlibs,
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
-        experimental_use_java_builder = ctx.attr.experimental_use_java_builder,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -171,12 +170,8 @@ _kt_toolchain = rule(
             providers = [_KtJsInfo],
         ),
         "experimental_use_abi_jars": attr.bool(
-            doc = """Compile using abi jars, requires experimental_use_java_builder. Can be disabled
-            for an individual target using the tag `kt_abi_plugin_incompatible`""",
-            default = False,
-        ),
-        "experimental_use_java_builder" : attr.bool(
-            doc="Use Bazel JavaBuilder for Java source",
+            doc = """Compile using abi jars. Can be disabled for an individual target using the tag
+            `kt_abi_plugin_incompatible`""",
             default = False,
         ),
         "javac_options": attr.label(
@@ -216,7 +211,6 @@ def define_kt_toolchain(
         api_version = None,
         jvm_target = None,
         experimental_use_abi_jars = False,
-        experimental_use_java_builder = False,
         javac_options = None,
         kotlinc_options = None):
     """Define the Kotlin toolchain."""
@@ -239,11 +233,6 @@ def define_kt_toolchain(
             "@io_bazel_rules_kotlin//kotlin/internal:experimental_use_abi_jars": True,
             "@io_bazel_rules_kotlin//kotlin/internal:noexperimental_use_abi_jars": False,
             "//conditions:default": experimental_use_abi_jars,
-        }),
-        experimental_use_java_builder = select({
-            "@io_bazel_rules_kotlin//kotlin/internal:experimental_use_java_builder": True,
-            "@io_bazel_rules_kotlin//kotlin/internal:noexperimental_use_java_builder": False,
-            "//conditions:default": experimental_use_java_builder,
         }),
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
@@ -268,15 +257,6 @@ def kt_configure_toolchains():
     native.config_setting(
         name = "noexperimental_use_abi_jars",
         values = {"define": "experimental_use_abi_jars=0"},
-    )
-
-    native.config_setting(
-        name = "experimental_use_java_builder",
-        values = {"define": "experimental_use_java_builder=1"},
-    )
-    native.config_setting(
-        name = "noexperimental_use_java_builder",
-        values = {"define": "experimental_use_java_builder=0"},
     )
 
     native.config_setting(
