@@ -491,7 +491,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
 
     generated_src_jars = []
-    if toolchains.kt.experimental_use_java_builder:
+    if toolchains.kt.experimental_use_abi_jars:
         compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
         output_jars = _run_kt_java_builder_actions(
             ctx = ctx,
@@ -632,7 +632,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
     # Build Kotlin
     if srcs.kt or srcs.src_jars:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
-        if toolchains.kt.experimental_use_abi_jars and not "kt_abi_plugin_incompatible" in ctx.attr.tags:
+        if not "kt_abi_plugin_incompatible" in ctx.attr.tags:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
             outputs = {
                 "output": kt_runtime_jar,
@@ -707,8 +707,6 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
             for jars in java_info.outputs.jars
         ]
         java_infos.append(java_info)
-
-    compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
 
     # Merge ABI jars into final compile jar.
     _fold_jars_action(
