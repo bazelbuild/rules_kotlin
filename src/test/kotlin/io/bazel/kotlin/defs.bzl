@@ -32,6 +32,7 @@ def kt_rules_test(name, **kwargs):
     for dep in [
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "//src/main/kotlin:skip-code-gen",
+        "//src/main/kotlin:jdeps-gen",
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:jvm-abi-gen",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",

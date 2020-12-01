@@ -1,0 +1,47 @@
+# Copyright 2020 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
+load("//kotlin/internal/utils:generate_jvm_service.bzl", "generate_jvm_service")
+
+# The compiler binary, this is co-located in the kotlin compiler classloader.
+kt_bootstrap_library(
+    name = "jdeps-gen-lib",
+    srcs = glob(["*.kt"]),
+    visibility = ["//src:__subpackages__"],
+    deps = [
+        "//src/main/protobuf:deps_java_proto",
+        "@com_github_jetbrains_kotlin//:kotlin-compiler",
+        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+# services to integrate with the plugin.
+generate_jvm_service(
+    name = "jdeps-gen-services",
+    services = {
+        "io.bazel.kotlin.plugin.jdeps.JdepsGenComponentRegistrar": "org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar",
+        "io.bazel.kotlin.plugin.jdeps.JdepsGenCommandLineProcessor": "org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor",
+    },
+)
+
+# The plugin binary.
+java_binary(
+    name = "jdeps-gen",
+    visibility = ["//src:__subpackages__"],
+    runtime_deps = [
+        ":jdeps-gen-lib",
+        ":jdeps-gen-services",
+    ],
+)

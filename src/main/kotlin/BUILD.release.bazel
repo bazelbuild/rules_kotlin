@@ -27,10 +27,16 @@ java_import(
     jars = ["skip-code-gen.jar"],
 )
 
+java_import(
+    name = "jdeps-gen",
+    jars = ["jdeps-gen.jar"],
+)
+
 java_binary(
     name = "builder",
     data = [
         ":skip-code-gen",
+        ":jdeps-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],

@@ -63,6 +63,10 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                   context,
                   compiler,
                   args = baseArgs()
+                    .plugin(plugins.jdeps) {
+                      flag("output", outputs.jdeps)
+                      flag("target_label", info.label)
+                    }
                     .given(outputs.jar).notEmpty {
                       append(codeGenArgs())
                     }
@@ -73,6 +77,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                       given(outputs.jar).empty {
                         plugin(plugins.skipCodeGen)
                       }
+
                     },
                   printOnFail = false)
               } else {

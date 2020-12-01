@@ -64,7 +64,7 @@ public interface KotlinBuilderComponent {
         @Provides
         public InternalCompilerPlugins provideAbiPlugin(KotlinToolchain toolchain) {
             return new InternalCompilerPlugins(
-                    toolchain.getJvmAbiGen(), toolchain.getSkipCodeGen(), toolchain.getKapt3Plugin());
+                    toolchain.getJvmAbiGen(), toolchain.getSkipCodeGen(), toolchain.getKapt3Plugin(), toolchain.getJdepsGen());
         }
     }
 }
