@@ -113,11 +113,8 @@ def _jvm_deps(toolchains, friend, deps, runtime_deps = []):
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 
-def _java_info_to_compile_jars(target):
-    i = _java_info(target)
-    if i == None:
-        return None
-    return i.compile_jars
+def _java_infos_to_compile_jars(java_infos):
+    return [compile_jar.path for java_info in java_infos for compile_jar in java_info.compile_jars.to_list()]
 
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
@@ -281,45 +278,41 @@ def _build_resourcejar_action(ctx):
     )
     return resources_jar_output
 
-def _jdeps_action(ctx, rule_kind, toolchains, compile_deps, output_jar, jdeps):
-    """Creates a KotlinBuilder action invocation."""
+def _run_merge_jdeps_action(ctx, rule_kind, toolchains, jdeps, outputs):
+    """Creates a Jdeps merger action invocation."""
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
     args.use_param_file("--flagfile=%s", use_always = True)
 
     args.add("--target_label", ctx.label)
-    args.add("--rule_kind", rule_kind)
 
-    args.add("--jdeps", jdeps)
-    args.add_all("--classpath", compile_deps.compile_jars)
-    args.add("--build_java", False)
-    args.add("--build_kotlin", False)
+    for f, path in outputs.items():
+        args.add("--" + f, path)
 
-    mnemonic = "Jdeps"
-    progress_message = "%s %s" % (
+    args.add_all("--inputs", jdeps, omit_if_empty = True)
+
+    mnemonic = "JdepsMerge"
+    progress_message = "%s %s { jdeps: %d }" % (
         mnemonic,
         ctx.label,
+        len(jdeps),
     )
 
     tools, input_manifests = ctx.resolve_tools(
         tools = [
-            toolchains.kt.kotlinbuilder,
-            toolchains.kt.kotlin_home,
+            toolchains.kt.jdeps_merger,
         ],
     )
 
     ctx.actions.run(
         mnemonic = mnemonic,
-        inputs = depset([output_jar],
-            transitive = [compile_deps.compile_jars],
-        ),
+        inputs = depset(jdeps),
         tools = tools,
         input_manifests = input_manifests,
-        outputs = [jdeps],
-        executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
+        outputs = [f for f in outputs.values()],
+        executable = toolchains.kt.jdeps_merger.files_to_run.executable,
         execution_requirements = {
             "supports-workers": "1",
-            "worker-key-mnemonic": "KotlinCompile"
         },
         arguments = [args],
         progress_message = progress_message,
@@ -348,7 +341,9 @@ def _run_kt_builder_action(
 
     args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(toolchains.kt.kotlinc_options))
     args.add_all("--javacopts", _javac_options_provider_to_flags(toolchains.kt.javac_options))
-
+    # TODO: Implement Strict Kotlin deps: (https://github.com/bazelbuild/rules_kotlin/issues/419)
+    # This flag is currently unused by the builder but required for the unused_deps tool
+    args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
@@ -522,6 +517,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             plugins = plugins,
             outputs = {
                 "output": kt_java_output_jar,
+                "kotlin_output_jdeps": ctx.outputs.jdeps,
             },
         )
         compile_jar = kt_java_output_jar
@@ -543,15 +539,6 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         input_jars = output_jars,
     )
 
-    jdeps = _jdeps_action(
-        ctx = ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
-        compile_deps = compile_deps,
-        output_jar = output_jar,
-        jdeps = ctx.outputs.jdeps,
-    )
-
     source_jar = java_common.pack_sources(
         ctx.actions,
         output_jar = output_jar,
@@ -566,7 +553,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             output_jar = output_jar,
             compile_jar = compile_jar,
             source_jar = source_jar,
-            #  jdeps = ctx.outputs.jdeps,
+            jdeps = ctx.outputs.jdeps,
             deps = compile_deps.deps,
             runtime_deps = [_java_info(d) for d in ctx.attr.runtime_deps],
             exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
@@ -632,16 +619,19 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
     # Build Kotlin
     if srcs.kt or srcs.src_jars:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
+        kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
             outputs = {
                 "output": kt_runtime_jar,
                 "abi_jar": kt_compile_jar,
+                "kotlin_output_jdeps": kt_jdeps,
             }
         else:
             kt_compile_jar = kt_runtime_jar
             outputs = {
                 "output": kt_runtime_jar,
+                "kotlin_output_jdeps": kt_jdeps,
             }
 
         _run_kt_builder_action(
@@ -669,6 +659,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         kt_java_info = JavaInfo(
            output_jar = kt_runtime_jar,
            compile_jar = kt_compile_jar,
+           jdeps = kt_jdeps,
            deps = compile_deps.deps,
            runtime_deps = [d[JavaInfo] for d in ctx.attr.runtime_deps],
            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
@@ -716,6 +707,21 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         output_jar = compile_jar,
         action_type = "Abi",
         input_jars = compile_jars,
+    )
+
+    jdeps = []
+    for java_info in java_infos:
+        if java_info.outputs.jdeps:
+            jdeps.append(java_info.outputs.jdeps);
+
+    _run_merge_jdeps_action(
+        ctx = ctx,
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        jdeps = jdeps,
+        outputs = {
+            "output": ctx.outputs.jdeps,
+        },
     )
 
     return output_jars

@@ -45,6 +45,11 @@ kt_rules_test(
     srcs = ["jvm/KotlinBuilderJvmBasicTest.java"],
 )
 
+kt_rules_test(
+    name = "JdepsMergerTest",
+    srcs = ["jvm/JdepsMergerTest.kt"],
+)
+
 kt_jvm_test(
     name = "BazelWorkerTest",
     srcs = ["BazelWorkerTest.kt"],
