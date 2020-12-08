@@ -114,7 +114,7 @@ def _jvm_deps(toolchains, friend, deps, runtime_deps = []):
     )
 
 def _java_infos_to_compile_jars(java_infos):
-    return [compile_jar.path for java_info in java_infos for compile_jar in java_info.compile_jars.to_list()]
+    return depset(transitive = [j.compile_jars for j in java_infos])
 
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
