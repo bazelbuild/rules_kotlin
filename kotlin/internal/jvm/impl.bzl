@@ -34,7 +34,7 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
             providers.java,
             providers.kt,
             DefaultInfo(
-                files = depset([ctx.outputs.jar]),
+                files = depset([ctx.outputs.jar, ctx.outputs.jdeps]),
                 runfiles = ctx.runfiles(
                     # explicitly include data files, otherwise they appear to be missing
                     files = ctx.files.data,
