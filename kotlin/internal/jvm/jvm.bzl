@@ -211,13 +211,15 @@ _common_attr = utils.add_dicts(
             mandatory = False,
         ),
         "kotlinc_opts": attr.label(
-            doc = """Kotlinc options to be used when compiling this target""",
+            doc = """Kotlinc options to be used when compiling this target. These opts if provided 
+            will be used instead of the ones provided to the toolchain.""",
             default = None,
             providers = [_KotlincOptions],
             mandatory = False,
         ),
         "javac_opts": attr.label(
-            doc = """Javac options to be used when compiling this target""",
+            doc = """Javac options to be used when compiling this target. These opts if provided will 
+            be used instead of the ones provided to the toolchain.""",
             default = None,
             providers = [_JavacOptions],
             mandatory = False,
