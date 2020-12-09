@@ -195,6 +195,8 @@ kt_register_toolchains() # to use the default toolchain, otherwise see toolchain
 
 The `kt_kotlinc_options` and `kt_javac_options` rules allows passing compiler flags to kotlinc and javac.
 
+Note: Not all compiler flags are supported in all language versions. When this happens, the rules will fail.
+
 For example you can define global compiler flags by doing: 
 ```python
 load("//kotlin:kotlin.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
