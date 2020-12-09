@@ -187,10 +187,6 @@ kotlin_repositories() # if you want the default. Otherwise see custom kotlinc di
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
-
-
-
-
 # Kotlin and Java compiler flags
 
 The `kt_kotlinc_options` and `kt_javac_options` rules allows passing compiler flags to kotlinc and javac.
