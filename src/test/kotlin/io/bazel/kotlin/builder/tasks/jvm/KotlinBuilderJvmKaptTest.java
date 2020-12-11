@@ -89,7 +89,7 @@ public class KotlinBuilderJvmKaptTest {
         ctx.assertFilesExist(
                 DirectoryType.INCREMENTAL_DATA,
                 "autovalue/TestKtValue.class");
-        ctx.assertFilesExist(DirectoryType.SOURCE_GEN, "autovalue/AutoValue_TestKtValue.java");
+        ctx.assertFilesExist(DirectoryType.JAVA_SOURCE_GEN, "autovalue/AutoValue_TestKtValue.java");
     }
 
     @Test
@@ -142,7 +142,7 @@ public class KotlinBuilderJvmKaptTest {
                     ctx.outputJar();
                 });
         ctx.assertFilesExist(
-                DirectoryType.SOURCE_GEN,
+                DirectoryType.JAVA_SOURCE_GEN,
                 "autovalue/a/AutoValue_TestKtValue.java",
                 "autovalue/b/AutoValue_TestAutoValue.java");
     }

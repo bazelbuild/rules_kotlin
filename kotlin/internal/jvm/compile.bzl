@@ -605,7 +605,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
             compile_deps = compile_deps,
             annotation_processors = annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
-            plugins = [],
+            plugins = plugins,
             outputs = {
                 "generated_java_srcjar": kapt_generated_src_jar,
                 "kapt_generated_stub_jar": kapt_generated_stub_jar,

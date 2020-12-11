@@ -48,6 +48,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     DirectoryType.SOURCES,
                     DirectoryType.CLASSES,
                     DirectoryType.SOURCE_GEN,
+                    DirectoryType.JAVA_SOURCE_GEN,
                     DirectoryType.GENERATED_CLASSES,
                     DirectoryType.TEMP);
 
@@ -63,6 +64,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                 .getDirectoriesBuilder()
                 .setClasses(directory(DirectoryType.CLASSES).toAbsolutePath().toString())
                 .setGeneratedSources(directory(DirectoryType.SOURCE_GEN).toAbsolutePath().toString())
+                .setGeneratedJavaSources(directory(DirectoryType.JAVA_SOURCE_GEN).toAbsolutePath().toString())
                 .setGeneratedStubClasses(directory(DirectoryType.GENERATED_STUBS).toAbsolutePath().toString())
                 .setTemp(directory(DirectoryType.TEMP).toAbsolutePath().toString())
                 .setGeneratedClasses(
