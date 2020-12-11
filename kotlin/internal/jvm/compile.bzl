@@ -190,6 +190,10 @@ def _kotlinc_options_provider_to_flags(opts):
         flags.append("-Xallow-jvm-ir-dependencies")
     if opts.x_skip_prerelease_check:
         flags.append("-Xskip-prerelease-check")
+    if opts.include_stdlibs == "stdlib":
+        flags.append("-no-reflect")
+    elif opts.include_stdlibs == "none":
+        flags.append("-no-stdlib")
     return flags
 
 def _javac_options_provider_to_flags(opts):
