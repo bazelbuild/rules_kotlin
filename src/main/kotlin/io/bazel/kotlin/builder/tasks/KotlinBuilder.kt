@@ -263,6 +263,7 @@ class KotlinBuilder @Inject internal constructor(
           generatedClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes")).toString()
           temp = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp")).toString()
           generatedSources = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources")).toString()
+          generatedJavaSources = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_java_sources")).toString()
           generatedStubClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
       }
 

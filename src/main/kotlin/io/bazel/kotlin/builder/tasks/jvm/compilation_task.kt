@@ -119,7 +119,7 @@ internal fun JvmCompilationTask.kaptArgs(
     .xFlag("plugin", plugins.kapt.jarPath)
     .base64Encode(
       "-P",
-      "sources" to listOf(directories.generatedSources),
+      "sources" to listOf(directories.generatedJavaSources),
       "classes" to listOf(directories.generatedClasses),
       "stubs" to listOf(directories.stubs),
       "incrementalData" to listOf(directories.incrementalData),
@@ -211,7 +211,7 @@ internal fun JvmCompilationTask.createGeneratedJavaSrcJar() {
     normalize = true,
     verbose = false
   ).also {
-    it.addDirectory(Paths.get(directories.generatedSources))
+    it.addDirectory(Paths.get(directories.generatedJavaSources))
     it.setJarOwner(info.label, info.bazelRuleKind)
     it.execute()
   }
@@ -280,6 +280,7 @@ fun JvmCompilationTask.compileKotlin(
                   directories.classes,
                   directories.generatedClasses,
                   directories.generatedSources,
+                  directories.generatedJavaSources,
                   directories.temp
                 )
                   .map { Paths.get(it) }
@@ -329,7 +330,7 @@ private val Directories.incrementalData
  */
 internal fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
   expandWithSources(
-    Stream.of(directories.generatedSources)
+    Stream.of(directories.generatedSources, directories.generatedJavaSources)
       .map { s -> Paths.get(s) }
       .flatMap { p -> walk(p) }
       .filter { !isDirectory(it) }
