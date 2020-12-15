@@ -63,13 +63,6 @@ _KOPTS = {
         ),
         type = attr.bool,
     ),
-    "x_opt_in": struct(
-        args = dict(
-            default = [],
-            doc = "opt in to experimental features",
-        ),
-        type = attr.string_list,
-    ),
 }
 
 KotlincOptions = provider(
