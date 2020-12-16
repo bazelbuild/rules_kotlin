@@ -15,6 +15,7 @@ load("@rules_java//java:defs.bzl", "java_binary")
 load("//kotlin:kotlin.bzl", "kt_jvm_library")
 load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("//src/main/kotlin:deps.bzl", "ASM_DEPS")
 
 java_binary(
     name = "builder_raw",
@@ -62,10 +63,7 @@ java_binary(
     visibility = ["//visibility:public"],
     runtime_deps = [
         ":builder_jar_jar",
-        "@kotlin_rules_maven//:org_ow2_asm_asm",
-        "@kotlin_rules_maven//:org_ow2_asm_asm_commons",
-        "@kotlin_rules_maven//:org_ow2_asm_asm_tree",
-    ],
+    ] + ASM_DEPS,
 )
 
 java_binary(

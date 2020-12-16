@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
+load("//src/main/kotlin:deps.bzl", "JACOCO_DEPS")
 
 kt_bootstrap_library(
     name = "tasks",
@@ -30,7 +31,6 @@ kt_bootstrap_library(
         "@com_github_jetbrains_kotlin//:kotlin-preloader",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
-        "@kotlin_rules_maven//:org_jacoco_org_jacoco_core",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
-    ],
+    ] + JACOCO_DEPS,
 )
