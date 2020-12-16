@@ -69,7 +69,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
     extra_runfiles = []
     substitutions = {
         "%classpath%": classpath,
-        "%javabin%": "JAVABIN=${RUNPATH}" + ctx.executable._java.short_path,
+        "%javabin%": javabin,
         "%jvm_flags%": jvm_flags,
         "%workspace_prefix%": workspace_prefix,
     }
