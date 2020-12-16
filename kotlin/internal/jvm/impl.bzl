@@ -81,7 +81,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
         # produced by java_binary.
         metadata_entries = [rjar.short_path.replace("../", "external/") for rjar in rjars]
         ctx.file_action(metadata, content="\n".join(metadata_entries))
-        substitutions += {
+        substitutions = utils.add_dicts(substitutions, {
             "%java_start_class%": "com.google.testing.coverage.JacocoCoverageRunner",
             # %set_jacoco_main_class% and %set_jacoco_java_runfiles_root% are not
             # taken into account, so we cram everything with %set_jacoco_metadata%.
@@ -93,15 +93,15 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
             "%set_jacoco_main_class%": "",
             "%set_jacoco_java_runfiles_root%": "",
             "%set_java_coverage_new_implementation%": "",
-        }
+        })
     else:
-        substitutions += {
+        substitutions = utils.add_dicts(substitutions, {
             "%java_start_class%": main_class,
             "%set_jacoco_metadata%": "",
             "%set_jacoco_main_class%": "",
             "%set_jacoco_java_runfiles_root%": "",
             "%set_java_coverage_new_implementation%": "",
-        }
+        })
 
     ctx.actions.expand_template(
         template = template,
