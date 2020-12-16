@@ -45,6 +45,11 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
                 ),
             ),
         ] + list(additional_providers),
+        instrumented_files = struct(
+            source_attributes = ["srcs"],
+            dependency_attributes = ["deps", "runtime_deps"],
+            extensions = ["kt", "java"],
+        ),
     )
 
 def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper_preamble = ""):
@@ -59,23 +64,52 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
     javabin = "JAVABIN=" + str(ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path)
+    workspace_prefix = ctx.workspace_name + "/"
 
-    ctx.actions.expand_template(
-        template = template,
-        output = ctx.outputs.executable,
-        substitutions = {
-            "%classpath%": classpath,
+    extra_runfiles = []
+    substitutions = {
+        "%classpath%": classpath,
+        "%javabin%": "JAVABIN=${RUNPATH}" + ctx.executable._java.short_path,
+        "%jvm_flags%": jvm_flags,
+        "%workspace_prefix%": workspace_prefix,
+    }
+
+    if ctx.configuration.coverage_enabled:
+        metadata = ctx.new_file("coverage_runtime_classpath/%s/runtime-classpath.txt" % ctx.attr.name)
+        extra_runfiles.append(metadata)
+        # We replace '../' to get a runtime-classpath.txt as close as possible to the one
+        # produced by java_binary.
+        metadata_entries = [rjar.short_path.replace("../", "external/") for rjar in rjars]
+        ctx.file_action(metadata, content="\n".join(metadata_entries))
+        substitutions += {
+            "%java_start_class%": "com.google.testing.coverage.JacocoCoverageRunner",
+            # %set_jacoco_main_class% and %set_jacoco_java_runfiles_root% are not
+            # taken into account, so we cram everything with %set_jacoco_metadata%.
+            "%set_jacoco_metadata%": "\n".join([
+                "export JACOCO_METADATA_JAR=${JAVA_RUNFILES}/" + workspace_prefix + metadata.short_path,
+                "export JACOCO_MAIN_CLASS=" + main_class,
+                "export JACOCO_JAVA_RUNFILES_ROOT=${JAVA_RUNFILES}/" + workspace_prefix,
+            ]),
+            "%set_jacoco_main_class%": "",
+            "%set_jacoco_java_runfiles_root%": "",
+            "%set_java_coverage_new_implementation%": "",
+        }
+    else:
+        substitutions += {
             "%java_start_class%": main_class,
-            "%javabin%": javabin,
-            "%jvm_flags%": jvm_flags,
             "%set_jacoco_metadata%": "",
             "%set_jacoco_main_class%": "",
             "%set_jacoco_java_runfiles_root%": "",
             "%set_java_coverage_new_implementation%": "",
-            "%workspace_prefix%": ctx.workspace_name + "/",
-        },
+        }
+
+    ctx.actions.expand_template(
+        template = template,
+        output = ctx.outputs.executable,
+        substitutions = substitutions,
         is_executable = True,
     )
+    return extra_runfiles
 
 def _is_source_jar_stub(jar):
     """Workaround for intellij plugin expecting a source jar"""

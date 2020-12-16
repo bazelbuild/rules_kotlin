@@ -471,6 +471,10 @@ def _run_kt_builder_action(
         omit_if_empty = True,
     )
 
+    # Post-process class files with the Jacoco offline instrumenter, if needed.
+    if ctx.coverage_instrumented():
+        args.add("--post_processor", "jacoco")
+
     args.add("--build_java", build_java)
     args.add("--build_kotlin", build_kotlin)
 
@@ -511,12 +515,14 @@ def _run_kt_builder_action(
 
 # MAIN ACTIONS #########################################################################################################
 
-def kt_jvm_produce_jar_actions(ctx, rule_kind):
+def kt_jvm_produce_jar_actions(ctx, rule_kind, transitive_files=depset(order="default"), extra_runfiles=[]):
     """This macro sets up a compile action for a Kotlin jar.
 
     Args:
         ctx: Invoking rule ctx, used for attr, actions, and label.
         rule_kind: The rule kind --e.g., `kt_jvm_library`.
+        transitive_files: Transitive files to inject into the output set.
+        extra_runfiles: Extra runfiles to append to the output set.
     Returns:
         A struct containing the providers JavaInfo (`java`) and `kt` (KtJvmInfo). This struct is not intended to be
         used as a legacy provider -- rather the caller should transform the result.
@@ -614,6 +620,19 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         source_jars = srcs.src_jars + generated_src_jars,
         java_toolchain = toolchains.java,
         host_javabase = toolchains.java_runtime,
+    )
+
+    outs = [output_jar]
+    if hasattr(ctx.outputs, "executable"):
+        outs.append(ctx.outputs.executable)
+
+    default_info = DefaultInfo(
+        files = depset(outs),
+        runfiles = ctx.runfiles(
+            files = extra_runfiles + [output_jar],
+            transitive_files = transitive_files,
+            collect_default = True,
+        ),
     )
 
     return struct(
@@ -847,3 +866,4 @@ def export_only_providers(ctx, actions, attr, outputs):
             ),
         ),
     )
+

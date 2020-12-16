@@ -60,7 +60,12 @@ java_binary(
     ],
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],
-    runtime_deps = [":builder_jar_jar"],
+    runtime_deps = [
+        ":builder_jar_jar",
+        "@kotlin_rules_maven//:org_ow2_asm_asm",
+        "@kotlin_rules_maven//:org_ow2_asm_asm_commons",
+        "@kotlin_rules_maven//:org_ow2_asm_asm_tree",
+    ],
 )
 
 java_binary(

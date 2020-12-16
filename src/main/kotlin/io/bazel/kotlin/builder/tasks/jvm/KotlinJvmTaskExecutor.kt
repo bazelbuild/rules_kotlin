@@ -34,7 +34,8 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
   private val compiler: KotlinToolchain.KotlincInvoker,
   private val javaCompiler: JavaCompiler,
   private val jDepsGenerator: JDepsGenerator,
-  private val plugins: InternalCompilerPlugins
+  private val plugins: InternalCompilerPlugins,
+  private val jacocoProcessor: JacocoProcessor
 ) {
 
   private fun combine(one: Throwable?, two: Throwable?): Throwable? {
@@ -114,6 +115,11 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
           }
         }
 
+        if (this.info.postProcessor == "jacoco") {
+          context.execute("instrument class files") {
+            jacocoProcessor.instrument(this)
+          }
+        }
         if (outputs.jar.isNotEmpty()) {
           context.execute("create jar", ::createOutputJar)
         }
