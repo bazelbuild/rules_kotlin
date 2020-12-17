@@ -69,6 +69,7 @@ def _kotlin_toolchain_impl(ctx):
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
+        jdeps_merger = ctx.attr.jdeps_merger,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         js_stdlibs = ctx.attr.js_stdlibs,
@@ -94,6 +95,13 @@ _kt_toolchain = rule(
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",
             default = Label("//src/main/kotlin:builder"),
+            executable = True,
+            allow_files = True,
+            cfg = "host",
+        ),
+        "jdeps_merger": attr.label(
+            doc = "the jdeps merger executable",
+            default = Label("//src/main/kotlin:jdeps_merger"),
             executable = True,
             allow_files = True,
             cfg = "host",

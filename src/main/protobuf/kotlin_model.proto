@@ -95,6 +95,7 @@ message JvmCompilationTask {
     // The directory used by annotation processors containing generated stub classes.
     string generated_stub_classes = 5;
     string abi_classes = 6;
+    string generated_java_sources = 7;
   }
 
   // Outputs produced by the builder.

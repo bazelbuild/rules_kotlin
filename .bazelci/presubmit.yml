@@ -37,6 +37,16 @@ tasks:
       - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
     test_targets:
       - //...
+  example-anvil:
+    name: "Example - Anvil"
+    platform: ubuntu1804
+    shell_commands:
+      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
+    working_directory: examples/anvil
+    #test_flags:
+    #  - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
+    test_targets:
+      - //...
   examples-trivial:
     name: "Example - Trivial"
     platform: ubuntu1804

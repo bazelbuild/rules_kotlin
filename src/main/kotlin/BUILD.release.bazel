@@ -18,6 +18,11 @@ java_import(
 )
 
 java_import(
+    name = "jdeps_merger_worker",
+    jars = ["jdeps_merger_worker.jar"],
+)
+
+java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],
 )
@@ -32,4 +37,11 @@ java_binary(
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],
     runtime_deps = [":worker"],
+)
+
+java_binary(
+    name = "jdeps_merger",
+    main_class = "io.bazel.kotlin.builder.JdepsMergerMain",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":jdeps_merger_worker"],
 )

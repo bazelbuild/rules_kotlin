@@ -55,6 +55,19 @@ java_binary(
     runtime_deps = [":builder_jar_jar"],
 )
 
+java_binary(
+    name = "jdeps_merger",
+    jvm_flags = [
+        "-XX:+IgnoreUnrecognizedVMOptions",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
+    ],
+    main_class = "io.bazel.kotlin.builder.JdepsMergerMain",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":builder_jar_jar"],
+)
+
 release_archive(
     name = "pkg",
     srcs = [
@@ -63,6 +76,7 @@ release_archive(
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
         ":builder_deploy.jar": "kotlin_worker.jar",
+        ":jdeps_merger_deploy.jar": "jdeps_merger_worker.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [

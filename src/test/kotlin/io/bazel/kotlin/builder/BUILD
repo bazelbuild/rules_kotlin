@@ -33,6 +33,7 @@ java_library(
     srcs = [
         "Deps.java",
         "DirectoryType.java",
+        "JdepsMergerTestComponent.java",
         "KotlinAbstractTestBuilder.java",
         "KotlinBuilderTestComponent.java",
         "KotlinJsTestBuilder.java",

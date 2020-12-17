@@ -21,6 +21,14 @@ _KOPTS = {
         ),
         type = attr.string,
     ),
+    "include_stdlibs": struct(
+        args = dict(
+            default = "all",
+            doc = "Don't automatically include the Kotlin standard libraries into the classpath (stdlib and reflect).",
+            values = ["all", "stdlib", "none"],
+        ),
+        type = attr.string,
+    ),
     "x_use_experimental": struct(
         args = dict(
             default = True,
