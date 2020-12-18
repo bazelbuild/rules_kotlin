@@ -57,6 +57,14 @@ _KOPTS = {
         ),
         type = attr.bool,
     ),
+    "x_jvm_default": struct(
+        args = dict(
+            default = "off",
+            doc = "Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.",
+            values = ["off", "enable", "compatibility"],
+        ),
+        type = attr.string,
+    ),
 }
 
 KotlincOptions = provider(
