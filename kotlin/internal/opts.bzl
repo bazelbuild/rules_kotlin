@@ -70,6 +70,7 @@ _KOPTS = {
             doc = "Enable kotlin.Result as a return type",
         ),
         type = attr.bool,
+    ),
     "x_jvm_default": struct(
         args = dict(
             default = "off",
