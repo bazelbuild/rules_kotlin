@@ -3,10 +3,15 @@
 # Bazel Kotlin Rules
 
 Current release: ***`legacy-1.3.0`***<br />
-Release candidate: ***`legacy-1.4.0-rc4`***<br />
+Release candidate: ***`1.5.0-alpha-1`***<br />
 Main branch: `master`
 
 # News!
+* <b>Dec 3, 2020.</b> Released version [1.5.0-alpha-1](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-1). Includes:
+  - Kotlin 1.4 support
+  - Lots of different fixes, especially to kotlinc plugins, `exported_compiler_plugins`, etc.
+  - Supports the new IR backend
+  - Improvements to the kotlin ABI support
 * <b>Nov 16, 2020.</b> Released version [1.4.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc4). Includes:
   - Deterministic worker behavior
   - Other minor stability fixes
