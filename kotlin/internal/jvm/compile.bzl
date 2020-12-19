@@ -25,6 +25,11 @@ load(
     _plugin_mappers = "mappers",
 )
 load(
+    "//kotlin/internal:opts.bzl",
+    _KotlincOptions = "KotlincOptions",
+    _JavacOptions = "JavacOptions",
+)
+load(
     "//kotlin/internal:compiler_plugins.bzl",
     _plugins_to_classpaths = "plugins_to_classpaths",
     _plugins_to_options = "plugins_to_options",
@@ -347,8 +352,13 @@ def _run_kt_builder_action(
     for f, path in outputs.items():
         args.add("--" + f, path)
 
-    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(toolchains.kt.kotlinc_options))
-    args.add_all("--javacopts", _javac_options_provider_to_flags(toolchains.kt.javac_options))
+    # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
+    kotlinc_options = ctx.attr.kotlinc_opts[_KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
+    javac_options = ctx.attr.javac_opts[_JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    
+    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(kotlinc_options))
+    args.add_all("--javacopts", _javac_options_provider_to_flags(javac_options))
+    
     # TODO: Implement Strict Kotlin deps: (https://github.com/bazelbuild/rules_kotlin/issues/419)
     # This flag is currently unused by the builder but required for the unused_deps tool
     args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))

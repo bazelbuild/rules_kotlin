@@ -192,6 +192,62 @@ kotlin_repositories() # if you want the default. Otherwise see custom kotlinc di
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
+# Kotlin and Java compiler flags
+
+The `kt_kotlinc_options` and `kt_javac_options` rules allows passing compiler flags to kotlinc and javac.
+
+Note: Not all compiler flags are supported in all language versions. When this happens, the rules will fail.
+
+For example you can define global compiler flags by doing: 
+```python
+load("//kotlin:kotlin.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
+
+kt_kotlinc_options(
+    name = "kt_kotlinc_options",
+    warn = "report",
+)
+
+kt_javac_options(
+    name = "kt_javac_options",
+    warn = "report",
+    x_ep_disable_all_checks = False,
+)
+
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    kotlinc_options = "//:kt_kotlinc_options",
+    javac_options = "//:kt_javac_options",
+)
+```
+
+You can optionally override compiler flags at the target level by providing an alternative set of `kt_kotlinc_options` or `kt_javac_options` in your target definitions.
+
+Compiler flags that are passed to the rule definitions will be taken over the toolchain definition.
+
+Example:
+```python
+load("//kotlin:kotlin.bzl", "kt_kotlinc_options", "kt_javac_options", "kt_jvm_library")
+
+kt_kotlinc_options(
+    name = "kt_kotlinc_options_for_package_name",
+    warn = "error",
+)
+
+kt_javac_options(
+    name = "kt_javac_options_for_package_name",
+    warn = "error",
+    x_ep_disable_all_checks = True,
+)
+
+kt_jvm_library(
+    name = "package_name",
+    srcs = glob(["*.kt"]),
+    kotlinc_options = "//:kt_kotlinc_options_for_package_name",
+    javac_options = "//:kt_javac_options_for_package_name",
+    deps = ["//path/to/dependency"],
+)
+```
+
 # Kotlin compiler plugins
 
 The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.

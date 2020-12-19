@@ -104,6 +104,11 @@ load(
     _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect",
 )
 load(
+    "//kotlin/internal:opts.bzl",
+    _KotlincOptions = "KotlincOptions",
+    _JavacOptions = "JavacOptions",
+)
+load(
     "//kotlin/internal/jvm:impl.bzl",
     _kt_compiler_deps_aspect_impl = "kt_compiler_deps_aspect_impl",
     _kt_compiler_plugin_impl = "kt_compiler_plugin_impl",
@@ -203,6 +208,20 @@ _common_attr = utils.add_dicts(
             doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
         `//some/package/path:label_name` is translated to
         `some_package_path-label_name`.""",
+            mandatory = False,
+        ),
+        "kotlinc_opts": attr.label(
+            doc = """Kotlinc options to be used when compiling this target. These opts if provided 
+            will be used instead of the ones provided to the toolchain.""",
+            default = None,
+            providers = [_KotlincOptions],
+            mandatory = False,
+        ),
+        "javac_opts": attr.label(
+            doc = """Javac options to be used when compiling this target. These opts if provided will 
+            be used instead of the ones provided to the toolchain.""",
+            default = None,
+            providers = [_JavacOptions],
             mandatory = False,
         ),
     },
