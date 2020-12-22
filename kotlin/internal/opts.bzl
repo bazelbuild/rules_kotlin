@@ -57,6 +57,20 @@ _KOPTS = {
         ),
         type = attr.bool,
     ),
+     "x_inline_classes": struct(
+        args = dict(
+            default = False,
+            doc = "Enable experimental inline classes",
+        ),
+        type = attr.bool,
+    ),
+    "x_allow_result_return_type": struct(
+        args = dict(
+            default = False,
+            doc = "Enable kotlin.Result as a return type",
+        ),
+        type = attr.bool,
+    ),
     "x_jvm_default": struct(
         args = dict(
             default = "off",
