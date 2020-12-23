@@ -1,11 +1,11 @@
 package examples.android.lib2;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import androidx.appcompat.app.AlertDialog;
 
 public class MainActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
@@ -19,7 +19,7 @@ public class MainActivity extends Activity {
 
     new AlertDialog.Builder(this)
         .setTitle("Blah")
-        .setMessage("Blah blah blah?")
+        .setMessage(R.string.little_bat)
         .show();
   }
 }

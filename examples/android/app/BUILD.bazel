@@ -8,6 +8,9 @@ android_binary(
     incremental_dexing = 0,
     manifest = "src/main/AndroidManifest.xml",
     multidex = "native",
+    manifest_values = {
+        "lib_name": "lib",
+    },
     deps = [
         "//lib",
     ],
@@ -20,6 +23,9 @@ android_binary(
     incremental_dexing = 0,
     manifest = "src/main/AndroidManifest.xml",
     multidex = "native",
+    manifest_values = {
+		"lib_name": "lib2",
+	},
     deps = [
         "//lib2",
     ],
@@ -32,6 +38,9 @@ android_binary(
     incremental_dexing = 1,
     manifest = "src/main/AndroidManifest.xml",
     multidex = "native",
+    manifest_values = {
+		"lib_name": "lib",
+	},
     deps = [
         "//lib",
     ],

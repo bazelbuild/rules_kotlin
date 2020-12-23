@@ -1,11 +1,11 @@
 package examples.android.lib
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
-import androidx.appcompat.app.AlertDialog
 
 class MainActivity : Activity() {
   override fun onCreate(savedInstanceState: Bundle?) {

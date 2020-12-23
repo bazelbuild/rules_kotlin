@@ -7,6 +7,7 @@ android_library(
     custom_package = "examples.android.lib2",
     manifest = "src/main/AndroidManifest.xml",
     visibility = ["//visibility:public"],
+    resource_files = glob(["res/**"]),
     deps = [
         ":util",
         "@maven//:androidx_appcompat_appcompat",
