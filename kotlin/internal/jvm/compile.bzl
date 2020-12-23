@@ -203,7 +203,7 @@ def _kotlinc_options_provider_to_flags(opts):
         flags.append("-no-reflect")
     elif opts.include_stdlibs == "none":
         flags.append("-no-stdlib")
-    if opts.x_jvm_default == "enabled":
+    if opts.x_jvm_default == "enable":
         flags.append("-Xjvm-default=enable")
     elif opts.x_jvm_default == "compatibility":
         flags.append("-Xjvm-default=compatibility")
