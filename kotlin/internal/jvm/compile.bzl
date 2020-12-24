@@ -167,7 +167,7 @@ def _adjust_resources_path(path, resource_strip_prefix):
         return _adjust_resources_path_by_default_prefixes(path)
 
 def _merge_kt_jvm_info(module_name, providers):
-    language_versions = {p.language_version: True for p in providers if p.language_verison}
+    language_versions = {p.language_version: True for p in providers if p.language_version}
     if len(language_versions) != 1:
         fail("Conflicting kt language versions: %s" % language_versions)
     return _KtJvmInfo(
@@ -179,9 +179,13 @@ def _merge_kt_jvm_info(module_name, providers):
         ]),
     )
 
-def _kotlinc_options_provider_to_flags(opts):
+def _kotlinc_options_provider_to_flags(opts, language_version):
     if not opts:
         return ""
+    
+    # Validate the compiler opts before they are mapped over to flags
+    _validate_kotlinc_options(opts, language_version)
+
     flags = []
     if opts.warn == "off":
         flags.append("-nowarn")
@@ -207,11 +211,19 @@ def _kotlinc_options_provider_to_flags(opts):
         flags.append("-Xjvm-default=enable")
     elif opts.x_jvm_default == "compatibility":
         flags.append("-Xjvm-default=compatibility")
+    if opts.x_no_optimized_callable_references:
+        flags.append("-Xno-optimized-callable-references")
     return flags
+
+def _validate_kotlinc_options(opts, language_version):
+    if opts.x_allow_jvm_ir_dependencies and language_version < "1.4":
+        fail("The x_allow_jvm_ir_dependencies flag is only avaliable in Kotlin version 1.4 or greater")
+    pass
 
 def _javac_options_provider_to_flags(opts):
     if not opts:
         return ""
+
     flags = []
     if opts.warn == "off":
         flags.append("-nowarn")
@@ -359,8 +371,7 @@ def _run_kt_builder_action(
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
     kotlinc_options = ctx.attr.kotlinc_opts[_KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[_JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
-    
-    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(kotlinc_options))
+    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(kotlinc_options, toolchains.kt.language_version))
     args.add_all("--javacopts", _javac_options_provider_to_flags(javac_options))
     
     # TODO: Implement Strict Kotlin deps: (https://github.com/bazelbuild/rules_kotlin/issues/419)
