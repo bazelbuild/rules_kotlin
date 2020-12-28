@@ -15,6 +15,7 @@
 """
 
 load("//kotlin/internal/repositories:setup.bzl", "kt_configure")
+load("//kotlin/internal/repositories:tools.bzl", "absolute_target")
 load(
     "//kotlin/internal/repositories:release_repositories.bzl",
     "KOTLIN_CURRENT_COMPILER_RELEASE",

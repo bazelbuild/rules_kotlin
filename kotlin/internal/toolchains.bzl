@@ -22,6 +22,10 @@ load(
     _KtJsInfo = "KtJsInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
+load(
+    "//kotlin/internal/repositories:tools.bzl",
+    "absolute_target",
+)
 
 """Kotlin Toolchains
 
@@ -79,6 +83,7 @@ def _kotlin_toolchain_impl(ctx):
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
     )
+
     return [
         platform_common.ToolchainInfo(**toolchain),
     ]
@@ -191,7 +196,7 @@ _kt_toolchain = rule(
             doc = """Empty jar for exporting JavaInfos.""",
             allow_single_file = True,
             cfg = "target",
-            default = "@io_bazel_rules_kotlin//third_party:empty.jar",
+            default = Label("//third_party:empty.jar"),
         ),
         "kotlinc_options": attr.label(
             doc = "Compiler options for kotlinc",
@@ -202,7 +207,7 @@ _kt_toolchain = rule(
             doc = """Empty jdeps for exporting JavaInfos.""",
             allow_single_file = True,
             cfg = "target",
-            default = "@io_bazel_rules_kotlin//third_party:empty.jdeps",
+            default = Label("//third_party:empty.jdeps"),
         ),
     },
     implementation = _kotlin_toolchain_impl,
@@ -223,6 +228,7 @@ def define_kt_toolchain(
         kotlinc_options = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
+
     _kt_toolchain(
         name = impl_name,
         language_version = language_version,
@@ -230,16 +236,16 @@ def define_kt_toolchain(
         jvm_target = jvm_target,
         debug =
             select({
-                "@io_bazel_rules_kotlin//kotlin/internal:builder_debug_trace": ["trace"],
+                absolute_target("//kotlin/internal:builder_debug_trace"): ["trace"],
                 "//conditions:default": [],
             }) +
             select({
-                "@io_bazel_rules_kotlin//kotlin/internal:builder_debug_timings": ["timings"],
+                absolute_target("//kotlin/internal:builder_debug_timings"): ["timings"],
                 "//conditions:default": [],
             }),
         experimental_use_abi_jars = select({
-            "@io_bazel_rules_kotlin//kotlin/internal:experimental_use_abi_jars": True,
-            "@io_bazel_rules_kotlin//kotlin/internal:noexperimental_use_abi_jars": False,
+            absolute_target("//kotlin/internal:experimental_use_abi_jars"): True,
+            absolute_target("//kotlin/internal:noexperimental_use_abi_jars"): False,
             "//conditions:default": experimental_use_abi_jars,
         }),
         javac_options = javac_options,
@@ -257,7 +263,6 @@ def kt_configure_toolchains():
     """
     Defines the toolchain_type and default toolchain for kotlin compilation.
     """
-
     native.config_setting(
         name = "experimental_use_abi_jars",
         values = {"define": "experimental_use_abi_jars=1"},

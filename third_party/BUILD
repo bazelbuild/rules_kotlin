@@ -86,13 +86,9 @@ release_archive(
         "empty.jar",
         "empty.jdeps",
         "jarjar.bzl",
-        "@kotlin_rules_maven//:org_pantsbuild_jarjar",
-        "@kotlin_rules_maven//:org_ow2_asm_asm_tree",
-        "@kotlin_rules_maven//:org_ow2_asm_asm",
-        "@kotlin_rules_maven//:org_ow2_asm_asm_commons",
-        "@kotlin_rules_maven//:org_ow2_asm_asm_analysis",
     ],
     src_map = {
+        "jarjar_runner_deploy.jar": "jarjar.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
 )

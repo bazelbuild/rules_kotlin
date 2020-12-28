@@ -21,20 +21,8 @@ java_binary(
     name = "jarjar_runner",
     main_class = "org.pantsbuild.jarjar.Main",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        ":jarjar",
-        ":asm",
-        ":asm-analysis",
-        ":asm-commons",
-        ":asm-tree",
-    ],
+    runtime_deps = [":jarjar.jar"],
 )
-
-java_import(name = "jarjar", jars = ["jarjar-1.7.2.jar"])
-java_import(name = "asm", jars = ["asm-7.0.jar"])
-java_import(name = "asm-analysis", jars = ["asm-analysis-7.0.jar"])
-java_import(name = "asm-commons", jars = ["asm-commons-7.0.jar"])
-java_import(name = "asm-tree", jars = ["asm-tree-7.0.jar"])
 
 java_import(
     name = "android_sdk",

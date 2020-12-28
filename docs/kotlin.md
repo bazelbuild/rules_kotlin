@@ -49,7 +49,7 @@ kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_com
         |
     <a id="kt_compiler_plugin-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
         |
-    <a id="kt_compiler_plugin-compile_phase"></a>compile_phase |  Runs the compiler plugin during kotlin compilation. Known examples: allopen, sam_with_reciever   | Boolean | optional | False |
+    <a id="kt_compiler_plugin-compile_phase"></a>compile_phase |  Runs the compiler plugin during kotlin compilation. Known examples: allopen, sam_with_reciever   | Boolean | optional | True |
         |
     <a id="kt_compiler_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
         |
@@ -57,9 +57,9 @@ kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_com
         |
     <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin.             Supports the following template values:                <code>{generatedClasses}</code>: directory for generated class output                <code>{temp}</code>: temporary directory, discarded between invocations                <code>{generatedSources}</code>:  directory for generated source output   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
         |
-    <a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin before compile.   | Boolean | optional | False |
+    <a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin in kapt stub generation.   | Boolean | optional | True |
         |
-    <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled agains the embeddable kotlin compiler. Requires different classpath   | Boolean | optional | False |
+    <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc             dependencies, and will fail when running against a non-embeddable compiler.   | Boolean | optional | False |
     
 
 <a id="#kt_jvm_binary"></a>
@@ -173,7 +173,7 @@ kt_jvm_import(<a href="#kt_jvm_import-name">name</a>, <a href="#kt_jvm_import-de
         |
     <a id="kt_jvm_import-runtime_deps"></a>runtime_deps |  Additional runtime deps.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
         |
-    <a id="kt_jvm_import-srcjar"></a>srcjar |  The sources for the class jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | @io_bazel_rules_kotlin//third_party:empty.jar |
+    <a id="kt_jvm_import-srcjar"></a>srcjar |  The sources for the class jar.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | //third_party:empty.jar |
     
 
 <a id="#kt_jvm_library"></a>
@@ -276,7 +276,7 @@ kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-data">da
 ## define_kt_toolchain
 
 <pre>
-define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#define_kt_toolchain-language_version">language_version</a>, <a href="#define_kt_toolchain-api_version">api_version</a>, <a href="#define_kt_toolchain-jvm_target">jvm_target</a>, <a href="#define_kt_toolchain-experimental_use_abi_jars">experimental_use_abi_jars</a>
+define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#define_kt_toolchain-language_version">language_version</a>, <a href="#define_kt_toolchain-api_version">api_version</a>, <a href="#define_kt_toolchain-jvm_target">jvm_target</a>, <a href="#define_kt_toolchain-experimental_use_abi_jars">experimental_use_abi_jars</a>,
                     <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>)
 </pre>
 
