@@ -67,7 +67,8 @@ def _add_dicts(*dictionaries):
     return result
 
 # TODO(issue/432): Remove when the toolchain dependencies are passed via flag.
-_BUILDER_REPOSITORY_LABEL=Label("//kotlin/internal/utils:utils.bzl")
+_BUILDER_REPOSITORY_LABEL = Label("//kotlin/internal/utils:utils.bzl")
+
 def _builder_workspace_name(ctx):
     lbl = _BUILDER_REPOSITORY_LABEL.workspace_root
     if lbl == "":

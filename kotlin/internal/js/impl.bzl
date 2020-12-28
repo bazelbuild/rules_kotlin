@@ -90,6 +90,9 @@ def kt_js_library_impl(ctx):
         arguments = [args],
         progress_message = "Compiling Kotlin to JS %s { kt: %d }" % (ctx.label, len(ctx.files.srcs)),
         input_manifests = input_manifests,
+        env = {
+            "REPOSITORY_NAME": _utils.builder_workspace_name(ctx),
+        },
     )
 
     return [

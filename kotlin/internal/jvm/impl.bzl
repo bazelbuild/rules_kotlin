@@ -220,7 +220,8 @@ def kt_jvm_junit_test_impl(ctx):
         runtime_jars,
         main_class = ctx.attr.main_class,
         jvm_flags = [
-            "-ea", "-Dbazel.test_suite=%s" % test_class,
+            "-ea",
+            "-Dbazel.test_suite=%s" % test_class,
         ] + ctx.attr.jvm_flags,
     )
 
@@ -233,7 +234,7 @@ def kt_jvm_junit_test_impl(ctx):
             direct = ctx.files._java_runtime,
         ),
         # adds common test variables, including TEST_WORKSPACE.
-        testing.TestEnvironment({})
+        testing.TestEnvironment({}),
     )
 
 _KtCompilerPluginInfoDeps = provider(
