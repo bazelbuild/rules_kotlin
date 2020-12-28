@@ -23,7 +23,6 @@ import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
 import io.bazel.kotlin.builder.utils.jars.JarCreator
-import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.model.JvmCompilationTask
@@ -341,7 +340,7 @@ internal fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask
 
 private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
   updateBuilder { builder ->
-    sources.partitionJvmSources(
+    sources.filterOutNonCompilableSources().partitionJvmSources(
       { builder.inputsBuilder.addKotlinSources(it) },
       { builder.inputsBuilder.addJavaSources(it) })
   }
@@ -353,3 +352,14 @@ private fun JvmCompilationTask.updateBuilder(
     block(it)
     it.build()
   }
+
+/**
+ * Only keep java and kotlin files for the iterator. Filter our all other non-compilable files.
+ */
+private fun Iterator<String>.filterOutNonCompilableSources(): Iterator<String> {
+   val result = mutableListOf<String>()
+   this.forEach {
+     if (it.endsWith(".kt") or it.endsWith(".java")) result.add(it)
+   }
+  return result.iterator()
+}
