@@ -45,6 +45,7 @@ load(
 )
 
 # UTILITY ##############################################################################################################
+
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
@@ -490,6 +491,7 @@ def _run_kt_builder_action(
         progress_message = progress_message,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
+            "REPOSITORY_NAME": _utils.builder_workspace_name(ctx),
         },
     )
 
