@@ -47,6 +47,8 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             EnumSet.of(
                     DirectoryType.SOURCES,
                     DirectoryType.CLASSES,
+                    DirectoryType.JAVA_CLASSES,
+                    DirectoryType.ABI_CLASSES,
                     DirectoryType.SOURCE_GEN,
                     DirectoryType.JAVA_SOURCE_GEN,
                     DirectoryType.GENERATED_CLASSES,
@@ -63,6 +65,8 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         taskBuilder
                 .getDirectoriesBuilder()
                 .setClasses(directory(DirectoryType.CLASSES).toAbsolutePath().toString())
+                .setJavaClasses(directory(DirectoryType.JAVA_CLASSES).toAbsolutePath().toString())
+                .setAbiClasses(directory(DirectoryType.ABI_CLASSES).toAbsolutePath().toString())
                 .setGeneratedSources(directory(DirectoryType.SOURCE_GEN).toAbsolutePath().toString())
                 .setGeneratedJavaSources(directory(DirectoryType.JAVA_SOURCE_GEN).toAbsolutePath().toString())
                 .setGeneratedStubClasses(directory(DirectoryType.GENERATED_STUBS).toAbsolutePath().toString())
@@ -113,6 +117,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                                     outputs.getAbijar().isEmpty() ? outputs.getJar() : outputs.getAbijar()
                             ))
                             .jdeps(outputs.getJdeps())
+                            .javaJdeps(outputs.getJavaJdeps())
                             .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
                             .sourceJar(taskBuilder.getOutputs().getSrcjar())
                             .build();
@@ -183,6 +188,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         public TaskBuilder outputJdeps() {
             taskBuilder.getOutputsBuilder()
                     .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
+            return this;
+        }
+
+        public TaskBuilder outputJavaJdeps() {
+            taskBuilder.getOutputsBuilder()
+                    .setJavaJdeps(instanceRoot().resolve("java_jdeps_file.jdeps").toAbsolutePath().toString());
             return this;
         }
 

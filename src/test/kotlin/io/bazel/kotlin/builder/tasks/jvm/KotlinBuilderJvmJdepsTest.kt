@@ -48,6 +48,34 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `java dependencies`() {
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt", "package something;" + "class AClass{}")
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{ public AClass ref = null;}");
+      c.outputJar()
+      c.compileJava()
+      c.outputJavaJdeps()
+      c.addDirectDependencies(dependentTarget)
+    })
+    val jdeps = javaDepsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `property dependency`() {
       val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
         c.addSource("AClass.kt", "package something;" + "class AClass{}")
@@ -62,7 +90,6 @@ class KotlinBuilderJvmJdepsTest {
         c.compileKotlin()
         c.addDirectDependencies(dependentTarget)
         c.outputJdeps()
-        c.compileKotlin()
       })
       val jdeps = depsProto(dependingTarget)
 
@@ -75,8 +102,11 @@ class KotlinBuilderJvmJdepsTest {
       assertIncomplete(jdeps).isEmpty()
   }
 
-  private fun depsProto(mergedJdeps: io.bazel.kotlin.builder.Deps.Dep) =
-    Deps.Dependencies.parseFrom(BufferedInputStream(Files.newInputStream(Paths.get(mergedJdeps.jdeps()!!))))
+  private fun depsProto(jdeps: io.bazel.kotlin.builder.Deps.Dep) =
+    Deps.Dependencies.parseFrom(BufferedInputStream(Files.newInputStream(Paths.get(jdeps.jdeps()!!))))
+
+  private fun javaDepsProto(jdeps: io.bazel.kotlin.builder.Deps.Dep) =
+    Deps.Dependencies.parseFrom(BufferedInputStream(Files.newInputStream(Paths.get(jdeps.javaJdeps()!!))))
 
   private fun assertExplicit(jdeps: Deps.Dependencies) = assertThat(
     jdeps.dependencyList.filter { it.kind == Deps.Dependency.Kind.EXPLICIT }.map { it.path }

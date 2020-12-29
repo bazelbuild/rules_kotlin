@@ -116,8 +116,8 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         if (outputs.abijar.isNotEmpty()) {
           context.execute("create abi jar", ::createAbiJar)
         }
-        if (outputs.jdeps.isNotEmpty()) {
-          context.execute("generate jdeps") { jDepsGenerator.generateJDeps(this) }
+        if (outputs.javaJdeps.isNotEmpty()) {
+          context.execute("generate jdeps for Java compilation") { jDepsGenerator.generateJDeps(this) }
         }
         if (outputs.generatedJavaSrcJar.isNotEmpty()) {
           context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)

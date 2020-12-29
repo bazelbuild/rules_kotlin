@@ -73,9 +73,10 @@ public class KotlinBuilderJvmBasicTest {
           );
           c.outputJar();
           c.outputJdeps();
+          c.outputJavaJdeps();
         });
-        ctx.assertFilesExist(
-                DirectoryType.CLASSES, "something/AClass.class", "something/AnotherClass.class");
+        ctx.assertFilesExist(DirectoryType.CLASSES, "something/AClass.class");
+        ctx.assertFilesExist(DirectoryType.JAVA_CLASSES, "something/AnotherClass.class");
     }
 
     @Test
@@ -85,7 +86,7 @@ public class KotlinBuilderJvmBasicTest {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
           // declaring outputJdeps also asserts existance after compile.
-          c.outputJar().outputJdeps();
+          c.outputJar().outputJdeps().outputJavaJdeps().compileKotlin().compileJava();
         });
   }
 

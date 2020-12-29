@@ -35,7 +35,7 @@ internal class JdepsParser private constructor(
 
     // ignore absolute files, -- jdk jar paths etc.
     // only process jar files
-    if (!(path.isAbsolute || !classJarPath.endsWith(".jar"))) {
+    if (classJarPath.endsWith(".jar")) {
       val entry = depMap.computeIfAbsent(classJarPath) {
         val depBuilder = Deps.Dependency.newBuilder()
         depBuilder.path = classJarPath

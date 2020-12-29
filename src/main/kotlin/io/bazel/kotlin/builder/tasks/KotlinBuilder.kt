@@ -242,6 +242,7 @@ class KotlinBuilder @Inject internal constructor(
           argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
 
           argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
+          argMap.optionalSingle(JavaBuilderFlags.OUTPUT_DEPS_PROTO)?.apply { javaJdeps = this }
           argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
             generatedJavaSrcJar = this
           }
@@ -259,6 +260,8 @@ class KotlinBuilder @Inject internal constructor(
           val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
           classes =
             workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
+          javaClasses =
+            workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "java_classes")).toString()
           if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) abiClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "abi_classes")).toString()
           generatedClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes")).toString()
           temp = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp")).toString()
