@@ -4,6 +4,7 @@ import com.google.devtools.build.lib.view.proto.Deps
 import com.intellij.mock.MockProject
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -29,58 +30,8 @@ class JdepsGenComponentRegistrar : ComponentRegistrar {
 
     // Capture all types referenced by the compiler for this module and look up the jar from which
     // they were loaded from
-    AnalysisHandlerExtension.registerExtension(
-      project, JdepsAnalysisHandlerExtension()
-    )
-
-    // Build and write out deps.proto
-    val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
-    val jdepsOutput = configuration.getNotNull(JdepsGenConfigurationKeys.OUTPUT_JDEPS)
-
-    val rootBuilder = Deps.Dependencies.newBuilder()
-    rootBuilder.success = true
-    rootBuilder.ruleLabel = targetLabel
-
-    // TODO: For every jar from which a type was referenced add it here.
-    val dependency = Deps.Dependency.newBuilder()
-    dependency.kind = Deps.Dependency.Kind.EXPLICIT
-    dependency.path = "/path/to/dependency.jar"
-    rootBuilder.addDependency(dependency)
-
-    BufferedOutputStream(File(jdepsOutput).outputStream()).use {
-      it.write(rootBuilder.build().toByteArray())
-    }
-  }
-
-  internal class JdepsAnalysisHandlerExtension : AnalysisHandlerExtension {
-
-    override fun analysisCompleted(project: Project, module: ModuleDescriptor, bindingTrace: BindingTrace, files: Collection<KtFile>): AnalysisResult? {
-      // TODO: Capture all referenced non-local types, e.g: supertypes, generics, return types etc
-      files.forEach {file ->
-        file.declarations.forEach { ktDeclaration ->
-          when (ktDeclaration) {
-            is KtClassOrObject -> {
-
-            }
-            is KtFunction -> {
-            }
-            is KtProperty -> {
-              val variable = bindingTrace.bindingContext.get(BindingContext.VARIABLE, ktDeclaration);
-              val type = variable?.type
-              val declarationDescriptor = type?.constructor?.declarationDescriptor
-              when(declarationDescriptor) {
-                is ClassDescriptor -> {
-                  println("ClassId.isLocal: ${declarationDescriptor.classId?.isLocal}")
-                  println("Declaration Descriptor ${declarationDescriptor.fqNameSafe}")
-                }
-                else -> null
-              }
-            }
-            else -> error("Unsupported declaration $ktDeclaration")          }
-        }
-      }
-
-      return super.analysisCompleted(project, module, bindingTrace, files)
-    }
+    val extension = JdepsGenExtension(project, configuration)
+    AnalysisHandlerExtension.registerExtension(project, extension)
+    ClassBuilderInterceptorExtension.registerExtension(project, extension)
   }
 }
