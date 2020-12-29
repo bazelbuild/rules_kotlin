@@ -135,7 +135,7 @@ kt_js_import = rule(
             mandatory = False,
         ),
         "_importer": attr.label(
-            default = "//kotlin/internal/js:importer",
+            default = Label("//kotlin/internal/js:importer"),
             allow_files = True,
             executable = True,
             cfg = "host",

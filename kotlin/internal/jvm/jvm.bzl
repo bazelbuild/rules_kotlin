@@ -253,13 +253,13 @@ _lib_common_attr = utils.add_dicts(_common_attr, {
         doc = """Empty jar for exporting JavaInfos.""",
         allow_single_file = True,
         cfg = "target",
-        default = "//third_party:empty.jar",
+        default = Label("//third_party:empty.jar"),
     ),
     "_empty_jdeps": attr.label(
         doc = """Empty jdeps for exporting JavaInfos.""",
         allow_single_file = True,
         cfg = "target",
-        default = "//third_party:empty.jdeps",
+        default = Label("//third_party:empty.jdeps"),
     ),
 })
 
@@ -513,7 +513,7 @@ kt_compiler_plugin = rule(
             default = False,
         ),
         "_jetbrains_deshade_rules": attr.label(
-            default = "//kotlin/internal/jvm:jetbrains-deshade.jarjar",
+            default = Label("//kotlin/internal/jvm:jetbrains-deshade.jarjar"),
             allow_single_file = True,
         ),
         "_jarjar": attr.label(

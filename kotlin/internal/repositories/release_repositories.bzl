@@ -99,7 +99,7 @@ _kotlin_compiler_repository = repository_rule(
         ),
         "_template": attr.label(
             doc = "repository build file template",
-            default = "//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
+            default = Label("//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin"),
         ),
     },
 )
