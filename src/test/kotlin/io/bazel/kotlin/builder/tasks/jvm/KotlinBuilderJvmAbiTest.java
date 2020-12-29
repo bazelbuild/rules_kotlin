@@ -36,6 +36,8 @@ public class KotlinBuilderJvmAbiTest {
           c.outputAbiJar();
           c.compileJava();
           c.compileKotlin();
+          c.outputJdeps();
+          c.outputJavaJdeps();
         });
     ctx.runCompileTask(
         c -> {
