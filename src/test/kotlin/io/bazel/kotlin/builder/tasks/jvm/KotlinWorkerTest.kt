@@ -169,6 +169,7 @@ class KotlinWorkerTest {
             flag(JavaBuilderFlags.OUTPUT, outputJar)
             flag(KotlinBuilderFlags.BUILD_KOTLIN, "true")
             flag(JavaBuilderFlags.BUILD_JAVA, "false")
+            flag(KotlinBuilderFlags.OUTPUT_JDEPS, "out.jdeps")
             source(one)
             source(zero)
             source(imaginary)

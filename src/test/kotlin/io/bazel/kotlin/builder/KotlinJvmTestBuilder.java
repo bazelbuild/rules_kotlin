@@ -112,6 +112,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                             .compileJars(ImmutableList.of(
                                     outputs.getAbijar().isEmpty() ? outputs.getJar() : outputs.getAbijar()
                             ))
+                            .jdeps(outputs.getJdeps())
                             .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
                             .sourceJar(taskBuilder.getOutputs().getSrcjar())
                             .build();

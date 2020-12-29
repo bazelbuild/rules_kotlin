@@ -41,6 +41,7 @@ public class KotlinBuilderJvmBasicTest {
                 ctx.addSource("AClass.kt", "package something;\n" + "class AClass{}");
                 ctx.addSource("BClass.kt", "package something;\n" + "class BClass{}");
                 ctx.outputJar();
+                ctx.outputJdeps();
             };
 
     private static String hashDep(String path) {
@@ -71,6 +72,7 @@ public class KotlinBuilderJvmBasicTest {
               "class AnotherClass{}"
           );
           c.outputJar();
+          c.outputJdeps();
         });
         ctx.assertFilesExist(
                 DirectoryType.CLASSES, "something/AClass.class", "something/AnotherClass.class");
@@ -96,6 +98,7 @@ public class KotlinBuilderJvmBasicTest {
                                     c.compileKotlin();
                                     c.addSource("AClass.kt", "package something;" + "class AClass{");
                                     c.outputJar();
+                                    c.outputJdeps();
                                 }),
                 lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass")));
     }
