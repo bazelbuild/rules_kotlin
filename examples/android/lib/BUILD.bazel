@@ -31,7 +31,7 @@ kt_android_library(
     visibility = ["//visibility:public"],
     deps = [
         "@maven//:androidx_appcompat_appcompat",
+        "@maven//:com_google_auto_value_auto_value_annotations",
         "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
-        "@maven//:com_google_auto_value_auto_value_annotations"
     ],
 )

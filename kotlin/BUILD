@@ -51,6 +51,8 @@ stardoc(
         "kt_jvm_test",
         "kt_android_library",
         "kt_compiler_plugin",
+        "kt_kotlinc_options",
+        "kt_javac_options",
     ],
     deps = [
         "kotlin",

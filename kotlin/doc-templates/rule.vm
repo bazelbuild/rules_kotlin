@@ -37,8 +37,7 @@ ${ln.substring($chomp)}
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-    #foreach ($attribute in $ruleInfo.getAttributeList())
-    |
-    <a id="${ruleName}-${attribute.name}"></a>$attribute.name | #if(!$attribute.docString.isEmpty()) ${util.markdownCellFormat($attribute.docString)} #else - #end  | ${util.attributeTypeString($attribute)} | ${util.mandatoryString($attribute)} | $attribute.defaultValue |
-    #end
+#foreach ($attribute in $ruleInfo.getAttributeList())
+|<a id="${ruleName}-${attribute.name}"></a>$attribute.name | #if(!$attribute.docString.isEmpty()) ${util.markdownCellFormat($attribute.docString)} #else - #end  | ${util.attributeTypeString($attribute)} | ${util.mandatoryString($attribute)} | $attribute.defaultValue |
+#end
 #end
