@@ -82,7 +82,12 @@ class JdepsGenExtension(
       return when (val sourceElement: SourceElement = classDescriptor.source
       ) {
         is JavaSourceElement ->
-          (sourceElement.javaElement as BinaryJavaClass).virtualFile.canonicalPath
+          if (sourceElement.javaElement is BinaryJavaClass) {
+            (sourceElement.javaElement as BinaryJavaClass).virtualFile.canonicalPath
+          } else {
+            // Ignore Java source local to this module.
+            null
+          }
         is KotlinJvmBinarySourceElement ->
           (sourceElement.binaryClass as VirtualFileKotlinClass).file.canonicalPath
         else -> null
