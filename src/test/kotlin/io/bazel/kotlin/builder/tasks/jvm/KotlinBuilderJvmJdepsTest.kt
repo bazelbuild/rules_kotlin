@@ -27,7 +27,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.function.Consumer
 
-
 @RunWith(JUnit4::class)
 class KotlinBuilderJvmJdepsTest {
     val ctx = KotlinJvmTestBuilder()
@@ -36,7 +35,12 @@ class KotlinBuilderJvmJdepsTest {
     fun `no dependencies`() {
 
       val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("AClass.kt", "package something;" + "class AClass{}")
+        c.addSource("AClass.kt",
+          """
+            package something
+            
+            class AClass{}
+          """)
         c.outputJar()
         c.outputJdeps()
         c.compileKotlin()
@@ -51,14 +55,26 @@ class KotlinBuilderJvmJdepsTest {
   fun `java dependencies`() {
 
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AClass.kt", "package something;" + "class AClass{}")
+      c.addSource("AClass.kt",
+        """
+          package something
+          
+          class AClass{}
+        """)
       c.outputJar()
       c.outputJdeps()
       c.compileKotlin()
     })
 
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{ public AClass ref = null;}");
+      c.addSource("AnotherClass.java",
+        """
+          package something;
+          
+          class AnotherClass {
+            public AClass ref = null;
+          }
+        """)
       c.outputJar()
       c.compileJava()
       c.outputJavaJdeps()
@@ -77,14 +93,22 @@ class KotlinBuilderJvmJdepsTest {
   @Test
   fun `unused dependency listed`() {
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AClass.kt", "package something;" + "class AClass{}")
+      c.addSource("AClass.kt",
+        """
+          package something
+          
+          class AClass{}
+        """)
       c.outputJar()
       c.outputJdeps()
       c.compileKotlin()
     })
 
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("HasNoReferenceToDep.kt", "package something;")
+      c.addSource("HasNoReferenceToDep.kt",
+        """
+          package something
+        """)
       c.outputJar()
       c.compileKotlin()
       c.addDirectDependencies(dependentTarget)
@@ -103,14 +127,24 @@ class KotlinBuilderJvmJdepsTest {
   @Test
   fun `unused transitive dependency not listed`() {
     val transitiveDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("TransitiveClass.kt", "package something;" + "class TransitiveClass{}")
+      c.addSource("TransitiveClass.kt",
+        """
+          package something
+          
+          class TransitiveClass{}
+        """)
       c.outputJar()
       c.outputJdeps()
       c.compileKotlin()
     })
 
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AClass.kt", "package something;" + "class AClass{}")
+      c.addSource("AClass.kt",
+        """
+          package something
+          
+          class AClass{}
+        """)
       c.outputJar()
       c.compileKotlin()
       c.addDirectDependencies(transitiveDep)
@@ -118,7 +152,10 @@ class KotlinBuilderJvmJdepsTest {
     })
 
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("HasNoReferenceToDep.kt", "package something;")
+      c.addSource("HasNoReferenceToDep.kt",
+        """
+          package something
+        """)
       c.outputJar()
       c.compileKotlin()
       c.addDirectDependencies(dependentTarget)
@@ -137,14 +174,24 @@ class KotlinBuilderJvmJdepsTest {
   @Test
   fun `property dependency`() {
       val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("AClass.kt", "package something;" + "class AClass{}")
+        c.addSource("AClass.kt",
+          """
+            package something
+
+            class AClass{}
+            """)
         c.outputJar()
         c.outputJdeps()
         c.compileKotlin()
       })
 
       val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("HasPropertyDependency.kt", "package something;" + "val property2 =  AClass()")
+        c.addSource("HasPropertyDependency.kt",
+          """
+            package something
+            
+            val property2 =  AClass()
+          """)
         c.outputJar()
         c.compileKotlin()
         c.addDirectDependencies(dependentTarget)
@@ -158,6 +205,44 @@ class KotlinBuilderJvmJdepsTest {
       assertImplicit(jdeps).isEmpty()
       assertUnused(jdeps).isEmpty()
       assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `inlined constant dependency recorded`() {
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("ContainsConstant.kt",
+        """
+          package dependency
+            
+          object ConstHolder {
+            const val CONSTANT_VAL = 42
+          }
+        """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasPropertyDependency.kt",
+        """
+            package something
+            import dependency.ConstHolder
+            val property2 = ConstHolder.CONSTANT_VAL
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
   }
 
   private fun depsProto(jdeps: io.bazel.kotlin.builder.Deps.Dep) =

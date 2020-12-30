@@ -68,8 +68,8 @@ class JdepsGenExtension(
      * @param className the class name of the class
      * @return whether class is provided by jvm runtime or not
      */
-    fun isJvmClass(className: String): Boolean {
-      return className.startsWith("java") || className.startsWith("kotlin")
+    fun isJvmClass(className: ClassId): Boolean {
+      return className.asString().startsWith("java") || className.asString().startsWith("kotlin")
     }
 
     /**
@@ -95,8 +95,8 @@ class JdepsGenExtension(
     }
   }
 
-  private val moduleClasses: HashSet<String> = HashSet() // classes defined in current module
-  private val moduleDepClasses: HashSet<String> = HashSet() // external  classes used directly by module
+  private val moduleClasses: HashSet<ClassId> = HashSet() // classes defined in current module
+  private val moduleDepClasses: HashSet<ClassId> = HashSet() // external  classes used directly by module
   private val classesCanonicalPaths: HashSet<String> = HashSet()
   private var moduleDescriptor: ModuleDescriptor? = null
 
@@ -109,6 +109,17 @@ class JdepsGenExtension(
     // Hold module descriptor until end of class generation, seems safe to do so. Otherwise, we need
     // to extract list of used classes differently (i.e not relaying on ClassBuilderInterceptor).
     moduleDescriptor = module
+
+    // Capture import dependencies
+    files.forEach {file ->
+      file.importDirectives.forEach {import ->
+        import.importPath?.fqName
+        import.importPath?.let {
+          moduleDepClasses.add(ClassId.topLevel(it.fqName))
+        }
+      }
+    }
+
     return super.analysisCompleted(project, module, bindingTrace, files)
   }
 
@@ -124,9 +135,7 @@ class JdepsGenExtension(
     assert(moduleDescriptor != null)
 
     moduleDepClasses.filter(::isExternalModuleClass).forEach {
-      val fqName = FqName(it.replace("/", "."))
-      val classId = ClassId.topLevel(fqName)
-      moduleDescriptor?.findClassAcrossModuleDependencies(classId)?.let(::handleExternalModuleClass)
+      moduleDescriptor?.findClassAcrossModuleDependencies(it)?.let(::handleExternalModuleClass)
     }
     moduleDescriptor = null
 
@@ -135,7 +144,7 @@ class JdepsGenExtension(
 
   private fun handleExternalModuleClass(classDescriptor: ClassDescriptor) {
     // Ignore internal or JVM classes
-    val className: String = classDescriptor.fqNameSafe.asString()
+    val className = ClassId.topLevel(classDescriptor.fqNameSafe)
     if (isExternalModuleClass(className)) {
       // Ignore already visited classes
       val path: String = getClassCanonicalPath(classDescriptor) ?: return
@@ -186,11 +195,11 @@ class JdepsGenExtension(
     }
   }
 
-  private fun isExternalModuleClass(className: String): Boolean {
+  private fun isExternalModuleClass(className: ClassId): Boolean {
     return !isModuleClass(className) && !isJvmClass(className)
   }
 
-  private fun isModuleClass(className: String): Boolean {
+  private fun isModuleClass(className: ClassId): Boolean {
     return moduleClasses.contains(className)
   }
 
@@ -237,7 +246,7 @@ class JdepsGenExtension(
       superName: String,
       interfaces: Array<out String>
     ) {
-      moduleClasses.add(name)
+      moduleClasses.add(ClassId.fromString(name))
       super.defineClass(origin, version, access, name, signature, superName, interfaces)
     }
   }
@@ -247,17 +256,17 @@ class JdepsGenExtension(
    */
   private inner class UsageTrackerRemapper : Remapper() {
     override fun map(typeName: String?): String {
-      typeName?.let { moduleDepClasses.add(it) }
+      typeName?.let { moduleDepClasses.add(ClassId.fromString(it)) }
       return super.map(typeName)
     }
 
     override fun mapFieldName(owner: String?, name: String?, desc: String?): String {
-      owner?.let { moduleDepClasses.add(it) }
+      owner?.let { moduleDepClasses.add(ClassId.fromString(it)) }
       return super.mapFieldName(owner, name, desc)
     }
 
     override fun mapMethodName(owner: String?, name: String?, desc: String?): String {
-      owner?.let { moduleDepClasses.add(it) }
+      owner?.let { moduleDepClasses.add(ClassId.fromString(it)) }
       return super.mapMethodName(owner, name, desc)
     }
   }
