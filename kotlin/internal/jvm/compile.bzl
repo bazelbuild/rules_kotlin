@@ -26,8 +26,8 @@ load(
 )
 load(
     "//kotlin/internal:opts.bzl",
-    _KotlincOptions = "KotlincOptions",
     _JavacOptions = "JavacOptions",
+    _KotlincOptions = "KotlincOptions",
 )
 load(
     "//kotlin/internal:compiler_plugins.bzl",
@@ -45,6 +45,7 @@ load(
 )
 
 # UTILITY ##############################################################################################################
+
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
@@ -182,7 +183,7 @@ def _merge_kt_jvm_info(module_name, providers):
 def _kotlinc_options_provider_to_flags(opts, language_version):
     if not opts:
         return ""
-    
+
     # Validate the compiler opts before they are mapped over to flags
     _validate_kotlinc_options(opts, language_version)
 
@@ -373,7 +374,7 @@ def _run_kt_builder_action(
     javac_options = ctx.attr.javac_opts[_JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
     args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(kotlinc_options, toolchains.kt.language_version))
     args.add_all("--javacopts", _javac_options_provider_to_flags(javac_options))
-    
+
     # TODO: Implement Strict Kotlin deps: (https://github.com/bazelbuild/rules_kotlin/issues/419)
     # This flag is currently unused by the builder but required for the unused_deps tool
     args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
@@ -490,6 +491,7 @@ def _run_kt_builder_action(
         progress_message = progress_message,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
+            "REPOSITORY_NAME": _utils.builder_workspace_name(ctx),
         },
     )
 
@@ -532,7 +534,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             annotation_processors = annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
-            compile_jar = compile_jar
+            compile_jar = compile_jar,
         )
 
     else:
@@ -579,7 +581,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         sources = ctx.files.srcs,
         source_jars = srcs.src_jars + generated_src_jars,
         java_toolchain = toolchains.java,
-        host_javabase = toolchains.java_runtime)
+        host_javabase = toolchains.java_runtime,
+    )
 
     return struct(
         java = JavaInfo(
@@ -614,6 +617,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
 
 """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 """
+
 def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src_jars, friend, compile_deps, annotation_processors, transitive_runtime_jars, plugins, compile_jar):
     compile_jars = []
     output_jars = []
@@ -646,9 +650,10 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         )
         generated_src_jars.append(kapt_generated_src_jar)
         output_jars.append(kapt_generated_class_jar)
-        kt_stubs_for_java.append(JavaInfo(compile_jar=kapt_generated_stub_jar, output_jar=kapt_generated_stub_jar, neverlink = True))
+        kt_stubs_for_java.append(JavaInfo(compile_jar = kapt_generated_stub_jar, output_jar = kapt_generated_stub_jar, neverlink = True))
 
     java_infos = []
+
     # Build Kotlin
     if srcs.kt or srcs.src_jars:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
@@ -687,16 +692,16 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         compile_jars.append(kt_compile_jar)
         output_jars.append(kt_runtime_jar)
         if not annotation_processors:
-            kt_stubs_for_java.append(JavaInfo(compile_jar=kt_compile_jar, output_jar=kt_runtime_jar, neverlink = True))
+            kt_stubs_for_java.append(JavaInfo(compile_jar = kt_compile_jar, output_jar = kt_runtime_jar, neverlink = True))
 
         kt_java_info = JavaInfo(
-           output_jar = kt_runtime_jar,
-           compile_jar = kt_compile_jar,
-           jdeps = kt_jdeps,
-           deps = compile_deps.deps,
-           runtime_deps = [d[JavaInfo] for d in ctx.attr.runtime_deps],
-           exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
-           neverlink = getattr(ctx.attr, "neverlink", False),
+            output_jar = kt_runtime_jar,
+            compile_jar = kt_compile_jar,
+            jdeps = kt_jdeps,
+            deps = compile_deps.deps,
+            runtime_deps = [d[JavaInfo] for d in ctx.attr.runtime_deps],
+            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
+            neverlink = getattr(ctx.attr, "neverlink", False),
         )
         java_infos.append(kt_java_info)
 
@@ -720,7 +725,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
             java_toolchain = toolchains.java,
             javac_opts = javac_opts,
             host_javabase = toolchains.java_runtime,
-            neverlink = getattr(ctx.attr, "neverlink", False)
+            neverlink = getattr(ctx.attr, "neverlink", False),
         )
         compile_jars = compile_jars + [
             jars.ijar
@@ -745,7 +750,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
     jdeps = []
     for java_info in java_infos:
         if java_info.outputs.jdeps:
-            jdeps.append(java_info.outputs.jdeps);
+            jdeps.append(java_info.outputs.jdeps)
 
     _run_merge_jdeps_action(
         ctx = ctx,

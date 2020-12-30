@@ -105,8 +105,8 @@ load(
 )
 load(
     "//kotlin/internal:opts.bzl",
-    _KotlincOptions = "KotlincOptions",
     _JavacOptions = "JavacOptions",
+    _KotlincOptions = "KotlincOptions",
 )
 load(
     "//kotlin/internal/jvm:impl.bzl",
@@ -253,13 +253,13 @@ _lib_common_attr = utils.add_dicts(_common_attr, {
         doc = """Empty jar for exporting JavaInfos.""",
         allow_single_file = True,
         cfg = "target",
-        default = "@io_bazel_rules_kotlin//third_party:empty.jar",
+        default = Label("//third_party:empty.jar"),
     ),
     "_empty_jdeps": attr.label(
         doc = """Empty jdeps for exporting JavaInfos.""",
         allow_single_file = True,
         cfg = "target",
-        default = "@io_bazel_rules_kotlin//third_party:empty.jdeps",
+        default = Label("//third_party:empty.jdeps"),
     ),
 })
 
@@ -402,7 +402,7 @@ kt_jvm_import = rule(
             cfg = "target",
             # TODO(https://github.com/bazelbuild/intellij/issues/1616): Remove when the Intellij Aspect has the
             #  correct null checks.
-            default = "@io_bazel_rules_kotlin//third_party:empty.jar",
+            default = "//third_party:empty.jar",
         ),
         "runtime_deps": attr.label_list(
             doc = """Additional runtime deps.""",
@@ -513,13 +513,13 @@ kt_compiler_plugin = rule(
             default = False,
         ),
         "_jetbrains_deshade_rules": attr.label(
-            default = "@io_bazel_rules_kotlin//kotlin/internal/jvm:jetbrains-deshade.jarjar",
+            default = Label("//kotlin/internal/jvm:jetbrains-deshade.jarjar"),
             allow_single_file = True,
         ),
         "_jarjar": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_kotlin//third_party:jarjar_runner"),
+            default = Label("//third_party:jarjar_runner"),
         ),
     },
     implementation = _kt_compiler_plugin_impl,

@@ -23,6 +23,7 @@ load(
     _http_archive = "http_archive",
     _http_file = "http_file",
 )
+load(":tools.bzl", "absolute_target")
 
 BAZEL_JAVA_LAUNCHER_VERSION = "3.7.0"
 
@@ -33,18 +34,22 @@ KOTLIN_CURRENT_COMPILER_RELEASE = {
     "sha256": "590391d13b3c65ba52cba470f56efd5b14e2b1f5b9459f63aa12eb38ef52f161",
 }
 
-def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
+KOTLIN_RULES = absolute_target("//kotlin:kotlin.bzl")
+
+def kotlin_repositories(
+        compiler_repostory_name = _KT_COMPILER_REPO,
+        compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
         compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
     """
-    _http_archive(
+
+    _kotlin_compiler_repository(
         name = _KT_COMPILER_REPO,
         urls = compiler_release["urls"],
         sha256 = compiler_release["sha256"],
-        build_file = "@io_bazel_rules_kotlin//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin",
-        strip_prefix = "kotlinc",
+        kotlin_rules = KOTLIN_RULES,
     )
 
     _http_file(
@@ -55,3 +60,46 @@ def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
                  "java_stub_template.txt")],
         sha256 = "a618e746e743f3119a9939e60645a02de40149aae9d63201c3cd05706010f6eb",
     )
+
+def _kotlin_compiler_impl(repository_ctx):
+    """Creates the kotlinc repository."""
+    attr = repository_ctx.attr
+
+    repository_ctx.download_and_extract(
+        attr.urls,
+        sha256 = attr.sha256,
+        stripPrefix = "kotlinc",
+    )
+    repository_ctx.file(
+        "WORKSPACE",
+        content = """workspace(name = "%s")""" % attr.name,
+    )
+    repository_ctx.template(
+        "BUILD.bazel",
+        attr._template,
+        substitutions = {
+            "{{.KotlinRules}}": attr.kotlin_rules,
+        },
+        executable = False,
+    )
+
+_kotlin_compiler_repository = repository_rule(
+    implementation = _kotlin_compiler_impl,
+    attrs = {
+        "urls": attr.string_list(
+            doc = "A list of urls for the kotlin compiler",
+            mandatory = True,
+        ),
+        "kotlin_rules": attr.string(
+            doc = "target of the kotlin rules.",
+            mandatory = True,
+        ),
+        "sha256": attr.string(
+            doc = "sha256 of the compiler archive",
+        ),
+        "_template": attr.label(
+            doc = "repository build file template",
+            default = Label("//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin"),
+        ),
+    },
+)

@@ -16,11 +16,11 @@
 # Builds and tests a release archive against the example directories.
 
 TMPDIR="$1"
-
-if test "$TMPDIR="; then
+shift
+if [[ -z $TMPDIR   ]]; then
   TMPDIR="/tmp"
 fi
-
+BUILD_ARGS="$@"
 HOME="$PWD"
 
 function fail() {
@@ -56,10 +56,9 @@ tar -C $ARCHIVE_DIR -xzvf bazel-bin/rules_kotlin_release.tgz
 # iterate through the examples and build them
 for ex in examples/*/; do
   if [[ -f "$ex/WORKSPACE" ]]; then
-    echo "(cd $ex; bazel build --override_repository=io_bazel_rules_kotlin=$ARCHIVE_DIR //...:all)"
     (
       cd "$ex"
-      bazel build --override_repository=io_bazel_rules_kotlin=$ARCHIVE_DIR //...:all
+      bazel build ${BUILD_ARGS} --override_repository=io_bazel_rules_kotlin=$ARCHIVE_DIR //...:all
     ) || fail "$ex failed to build"
   fi
 done

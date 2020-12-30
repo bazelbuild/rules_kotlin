@@ -55,5 +55,6 @@ bzl_library(
         "//kotlin/internal/js",
         "//kotlin/internal/jvm",
         "//kotlin/internal/utils",
+        "//kotlin/internal/repositories",
     ],
 )

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-workspace(name = "io_bazel_rules_kotlin")
+workspace(name = "dev_io_bazel_rules_kotlin")
 
 load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
@@ -21,7 +21,7 @@ load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 
 kotlin_repositories()
 
-kt_register_toolchains()
+register_toolchains("@dev_io_bazel_rules_kotlin//kotlin/internal:default_toolchain")
 
 # Creates toolchain configuration for remote execution with BuildKite CI
 # for rbe_ubuntu1604

@@ -50,7 +50,7 @@ jar_jar = rule(
         "jarjar_runner": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_kotlin//third_party:jarjar_runner"),
+            default = Label("//third_party:jarjar_runner"),
         ),
     },
     outputs = {

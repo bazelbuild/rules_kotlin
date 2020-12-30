@@ -66,9 +66,19 @@ def _add_dicts(*dictionaries):
         result.update(d)
     return result
 
+# TODO(issue/432): Remove when the toolchain dependencies are passed via flag.
+_BUILDER_REPOSITORY_LABEL = Label("//kotlin/internal/utils:utils.bzl")
+
+def _builder_workspace_name(ctx):
+    lbl = _BUILDER_REPOSITORY_LABEL.workspace_root
+    if lbl == "":
+        lbl = ctx.workspace_name
+    return lbl.replace("external/", "")
+
 utils = struct(
     add_dicts = _add_dicts,
     init_args = _init_builder_args,
     restore_label = _restore_label,
     derive_module_name = _derive_module_name,
+    builder_workspace_name = _builder_workspace_name,
 )

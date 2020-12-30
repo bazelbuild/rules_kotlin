@@ -16,6 +16,8 @@ load(
     _kt_jvm_library = "kt_jvm_library",
 )
 
+_ANDROID_SDK_JAR = "%s" % Label("//third_party:android_sdk")
+
 def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], kotlinc_opts = None, javac_opts = None, enable_data_binding = False, **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
     Kotlin srcs. Returns a sequence of labels that a wrapping macro should export.
@@ -24,7 +26,7 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], kotlinc_opts 
     kt_name = name + "_kt"
 
     # TODO(bazelbuild/rules_kotlin/issues/273): This should be retrieved from a provider.
-    base_deps = deps + ["@io_bazel_rules_kotlin//third_party:android_sdk"]
+    base_deps = deps + [_ANDROID_SDK_JAR]
 
     native.android_library(
         name = base_name,

@@ -27,7 +27,7 @@ load(
 )
 load("//third_party:jarjar.bzl", "jarjar_action")
 
-def _make_providers(ctx, providers, transitive_files = depset(order = "default")):
+def _make_providers(ctx, providers, transitive_files = depset(order = "default"), *additional_providers):
     return struct(
         kt = providers.kt,
         providers = [
@@ -44,7 +44,7 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
                     collect_default = True,
                 ),
             ),
-        ],
+        ] + list(additional_providers),
     )
 
 def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper_preamble = ""):
@@ -219,7 +219,10 @@ def kt_jvm_junit_test_impl(ctx):
         ctx,
         runtime_jars,
         main_class = ctx.attr.main_class,
-        jvm_flags = ["-ea", "-Dbazel.test_suite=%s" % test_class] + ctx.attr.jvm_flags,
+        jvm_flags = [
+            "-ea",
+            "-Dbazel.test_suite=%s" % test_class,
+        ] + ctx.attr.jvm_flags,
     )
 
     return _make_providers(
@@ -230,6 +233,8 @@ def kt_jvm_junit_test_impl(ctx):
             transitive = [runtime_jars],
             direct = ctx.files._java_runtime,
         ),
+        # adds common test variables, including TEST_WORKSPACE.
+        testing.TestEnvironment({}),
     )
 
 _KtCompilerPluginInfoDeps = provider(

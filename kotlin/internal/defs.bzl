@@ -13,7 +13,7 @@
 # limitations under the License.#
 
 # The Kotlin Toolchain type.
-TOOLCHAIN_TYPE = "@io_bazel_rules_kotlin//kotlin/internal:kt_toolchain_type"
+TOOLCHAIN_TYPE = "%s" % Label("//kotlin/internal:kt_toolchain_type")
 
 # Java toolchains
 JAVA_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:toolchain_type"

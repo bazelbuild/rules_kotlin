@@ -49,17 +49,24 @@ class KotlinToolchain private constructor(
 ) {
 
   companion object {
+    // TODO(issue/432): Remove this gross hack and pass the file locations on the command line.
+    private var RULES_REPOSITORY_NAME =
+      System.getenv("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
+      ?: System.getenv("REPOSITORY_NAME")?.takeIf { it.isNotBlank() }
+   //   ?: System.getProperty("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
+      ?: error("Unable to determine rules_kotlin repository name.\nenv:${System.getenv()}\nproperties:${System.getProperties()}")
+
     private val DEFAULT_JVM_ABI_PATH = BazelRunFiles.resolveVerified(
       "external", "com_github_jetbrains_kotlin", "lib", "jvm-abi-gen.jar"
     ).toPath()
 
     private val COMPILER = BazelRunFiles.resolveVerified(
-      "io_bazel_rules_kotlin",
+      RULES_REPOSITORY_NAME,
       "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
       "compiler.jar").toPath()
 
     private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerified(
-      "io_bazel_rules_kotlin",
+      RULES_REPOSITORY_NAME,
       "src", "main", "kotlin",
       "skip-code-gen.jar").toPath()
 
