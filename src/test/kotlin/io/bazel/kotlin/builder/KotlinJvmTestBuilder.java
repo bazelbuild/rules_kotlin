@@ -169,8 +169,10 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public void addDirectDependencies(Dep... dependencies) {
-            Dep.classpathOf(dependencies)
-                    .forEach((dependency) -> taskBuilder.getInputsBuilder().addClasspath(dependency));
+            Dep.classpathOf(dependencies).forEach(dependency -> {
+                taskBuilder.getInputsBuilder().addClasspath(dependency);
+                taskBuilder.getInputsBuilder().addDirectDependencies(dependency);
+            });
         }
 
         public TaskBuilder outputSrcJar() {

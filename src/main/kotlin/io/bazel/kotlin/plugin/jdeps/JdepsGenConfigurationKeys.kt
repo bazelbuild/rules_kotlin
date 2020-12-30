@@ -14,4 +14,10 @@ object JdepsGenConfigurationKeys {
    */
   val TARGET_LABEL: CompilerConfigurationKey<String> =
     CompilerConfigurationKey.create(JdepsGenCommandLineProcessor.TARGET_LABEL_OPTION.description)
+
+  /**
+   * List of direct dependencies of the target.
+   */
+  val DIRECT_DEPENDENCIES: CompilerConfigurationKey<List<String>> =
+    CompilerConfigurationKey.create(JdepsGenCommandLineProcessor.DIRECT_DEPENDENCIES_OPTION.description)
 }

@@ -69,9 +69,68 @@ class KotlinBuilderJvmJdepsTest {
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
     assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
-
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `unused dependency listed`() {
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt", "package something;" + "class AClass{}")
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasNoReferenceToDep.kt", "package something;")
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).isEmpty()
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `unused transitive dependency not listed`() {
+    val transitiveDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("TransitiveClass.kt", "package something;" + "class TransitiveClass{}")
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt", "package something;" + "class AClass{}")
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(transitiveDep)
+      c.outputJdeps()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasNoReferenceToDep.kt", "package something;")
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).isEmpty()
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).containsExactly(dependentTarget.singleCompileJar())
     assertIncomplete(jdeps).isEmpty()
   }
 
@@ -96,7 +155,6 @@ class KotlinBuilderJvmJdepsTest {
       assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
       assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
-
       assertImplicit(jdeps).isEmpty()
       assertUnused(jdeps).isEmpty()
       assertIncomplete(jdeps).isEmpty()

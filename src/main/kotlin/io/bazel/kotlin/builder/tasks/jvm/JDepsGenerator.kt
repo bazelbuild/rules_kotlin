@@ -65,7 +65,7 @@ internal class JDepsGenerator @Inject constructor(
                 JdepsParser.parse(
                   command.info.label,
                   javaClassDir,
-                  command.inputs.classpathList,
+                  command.inputs.directDependenciesList,
                   it,
                   isKotlinImplicit
                 )

@@ -155,10 +155,19 @@ class JdepsGenExtension(
     // Build and write out deps.proto
     val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
     val jdepsOutput = configuration.getNotNull(JdepsGenConfigurationKeys.OUTPUT_JDEPS)
+    val directDeps = configuration.getList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES)
 
     val rootBuilder = Deps.Dependencies.newBuilder()
     rootBuilder.success = true
     rootBuilder.ruleLabel = targetLabel
+
+    val unusedDeps = directDeps.subtract(result.keys)
+    unusedDeps.forEach { jarPath ->
+      val dependency = Deps.Dependency.newBuilder()
+      dependency.kind = Deps.Dependency.Kind.UNUSED
+      dependency.path = jarPath
+      rootBuilder.addDependency(dependency)
+    }
 
     result.forEach { (jarPath, classes) ->
       val dependency = Deps.Dependency.newBuilder()

@@ -123,9 +123,7 @@ message JvmCompilationTask {
       // The full classpath
       repeated string classpath = 1;
       // Direct dependencies of the target.
-      map<string, string> direct_dependencies = 2;
-      // Indirect dependencies of the target.
-      map<string, string> indirect_dependencies = 3;
+      repeated string direct_dependencies = 2;
       // Partitioned from the builder flags and could have been augmented with sources discovered by expanding the
       // source_jars and from annotation processing.
       repeated string kotlin_sources = 4;

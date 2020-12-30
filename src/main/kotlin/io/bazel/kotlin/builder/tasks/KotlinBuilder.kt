@@ -272,8 +272,7 @@ class KotlinBuilder @Inject internal constructor(
 
       with(root.inputsBuilder) {
         addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH))
-        putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.DIRECT_DEPENDENCY))
-        putAllIndirectDependencies(argMap.labelDepMap(JavaBuilderFlags.INDIRECT_DEPENDENCY))
+        addAllDirectDependencies(argMap.mandatory(JavaBuilderFlags.DIRECT_DEPENDENCIES))
 
         addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(JavaBuilderFlags.PROCESSOR_PATH) ?: emptyList())
