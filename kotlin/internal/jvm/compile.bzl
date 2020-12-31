@@ -539,6 +539,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
 
     else:
         kt_java_output_jar = ctx.actions.declare_file(ctx.label.name + "-kt-java.jar")
+        kt_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-gensrc.jar")
         _run_kt_builder_action(
             ctx = ctx,
             rule_kind = rule_kind,
@@ -553,6 +554,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             outputs = {
                 "output": kt_java_output_jar,
                 "kotlin_output_jdeps": ctx.outputs.jdeps,
+                "generated_java_srcjar": kt_generated_java_srcjar,
             },
         )
         compile_jar = kt_java_output_jar
@@ -625,7 +627,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
 
     # Run KAPT
     if srcs.kt and annotation_processors:
-        kapt_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-src.jar")
+        kapt_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-gensrc.jar")
         kapt_generated_stub_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-stub.jar")
         kapt_generated_class_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-class.jar")
         _run_kt_builder_action(

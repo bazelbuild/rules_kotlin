@@ -107,7 +107,7 @@ message JvmCompilationTask {
     string srcjar = 3;
     // The path to the abijar
     string abijar = 4;
-    // The path to the jar containing Java source generated from Kotlin annotation processors.
+    // The path to the jar containing source generated from KAPT annotation processors.
     string generated_java_src_jar = 5;
     // The path to the jar containing stub classes generated from Kotlin annotation processors.
     string generated_java_stub_jar = 6;
