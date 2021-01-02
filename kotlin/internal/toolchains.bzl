@@ -81,6 +81,7 @@ def _kotlin_toolchain_impl(ctx):
         js_stdlibs = ctx.attr.js_stdlibs,
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
+        experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -199,6 +200,15 @@ _kt_toolchain = rule(
                 "error",
             ],
         ),
+        "experimental_report_unused_deps": attr.string(
+            doc = "Report unused dependencies",
+            default = "off",
+            values = [
+                "off",
+                "warn",
+                "error",
+            ],
+        ),
         "javac_options": attr.label(
             doc = "Compiler options for javac",
             providers = [JavacOptions],
@@ -237,6 +247,7 @@ def define_kt_toolchain(
         jvm_target = None,
         experimental_use_abi_jars = False,
         experimental_strict_kotlin_deps = None,
+        experimental_report_unused_deps = None,
         javac_options = None,
         kotlinc_options = None):
     """Define the Kotlin toolchain."""
@@ -262,6 +273,7 @@ def define_kt_toolchain(
             "//conditions:default": experimental_use_abi_jars,
         }),
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
+        experimental_report_unused_deps = experimental_report_unused_deps,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
