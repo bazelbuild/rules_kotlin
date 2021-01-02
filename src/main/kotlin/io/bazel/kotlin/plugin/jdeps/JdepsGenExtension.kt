@@ -113,7 +113,6 @@ class JdepsGenExtension(
     // Capture import dependencies
     files.forEach {file ->
       file.importDirectives.forEach {import ->
-        import.importPath?.fqName
         import.importPath?.let {
           moduleDepClasses.add(ClassId.topLevel(it.fqName))
         }

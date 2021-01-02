@@ -556,7 +556,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             plugins = plugins,
             outputs = {
                 "output": kt_java_output_jar,
-                "kotlin_output_jdeps": ctx.outputs.jdeps,
+                "kotlin_output_jdeps": kt_jdeps,
                 "output_deps_proto": java_jdeps,
                 "generated_java_srcjar": kt_generated_java_srcjar,
             },
