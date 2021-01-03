@@ -27,13 +27,6 @@ import org.junit.runners.JUnit4;
 public class KotlinBuilderJvmAbiTest {
   private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
 
-  private static final Consumer<KotlinJvmTestBuilder.TaskBuilder> SETUP_NORMALIZATION_TEST_SOURCES =
-      ctx -> {
-        ctx.addSource("AClass.kt", "package something;\n" + "class AClass{}");
-        ctx.addSource("BClass.kt", "package something;\n" + "class BClass{}");
-        ctx.outputJar();
-      };
-
   @Test
   public void testGeneratesAbiOnly() {
     Deps.Dep d = ctx.runCompileTask(
@@ -41,6 +34,8 @@ public class KotlinBuilderJvmAbiTest {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
           c.outputAbiJar();
+          c.compileJava();
+          c.compileKotlin();
         });
     ctx.runCompileTask(
         c -> {
@@ -49,7 +44,7 @@ public class KotlinBuilderJvmAbiTest {
               "package dep;",
               "import something.AClass",
               "class Dependent{}");
-          c.outputJar().outputJdeps();
+          c.outputJar().outputJdeps().outputJavaJdeps().compileKotlin().compileJava();
         });
   }
 
@@ -59,10 +54,12 @@ public class KotlinBuilderJvmAbiTest {
         c -> {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
-          // declaring outputJdeps also asserts existance after compile.
           c.outputJar();
           c.outputJdeps();
+          c.outputJavaJdeps();
           c.outputAbiJar();
+          c.compileKotlin();
+          c.compileJava();
         });
   }
 }

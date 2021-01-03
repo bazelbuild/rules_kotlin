@@ -19,11 +19,9 @@ import com.google.devtools.build.lib.view.proto.Deps
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.HashMap
-import java.util.HashSet
 import java.util.function.Predicate
 
 internal class JdepsParser private constructor(
-  private val filename: String,
   private val isImplicit: Predicate<String>
 ) {
   private val depMap = HashMap<String, Deps.Dependency.Builder>()
@@ -31,11 +29,9 @@ internal class JdepsParser private constructor(
   private val arrowRegex = " -> ".toRegex()
 
   private fun consumeJarLine(classJarPath: String, kind: Deps.Dependency.Kind) {
-    val path = Paths.get(classJarPath)
-
     // ignore absolute files, -- jdk jar paths etc.
     // only process jar files
-    if (!(path.isAbsolute || !classJarPath.endsWith(".jar"))) {
+    if (classJarPath.endsWith(".jar")) {
       val entry = depMap.computeIfAbsent(classJarPath) {
         val depBuilder = Deps.Dependency.newBuilder()
         depBuilder.path = classJarPath
@@ -102,7 +98,7 @@ internal class JdepsParser private constructor(
       isImplicit: Predicate<String>
     ): Deps.Dependencies {
       val filename = Paths.get(jarFile).fileName.toString()
-      val jdepsParser = JdepsParser(filename, isImplicit)
+      val jdepsParser = JdepsParser(isImplicit)
 
       classPath.forEach { x -> jdepsParser.consumeJarLine(x, Deps.Dependency.Kind.UNUSED) }
       lines.forEach { jdepsParser.processLine(it) }

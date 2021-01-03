@@ -63,6 +63,13 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                   context,
                   compiler,
                   args = baseArgs()
+                    .plugin(plugins.jdeps) {
+                      flag("output", outputs.jdeps)
+                      flag("target_label", info.label)
+                      inputs.directDependenciesList.forEach {
+                        flag("direct_dependencies", it)
+                      }
+                    }
                     .given(outputs.jar).notEmpty {
                       append(codeGenArgs())
                     }
@@ -73,6 +80,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                       given(outputs.jar).empty {
                         plugin(plugins.skipCodeGen)
                       }
+
                     },
                   printOnFail = false)
               } else {
@@ -111,8 +119,8 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         if (outputs.abijar.isNotEmpty()) {
           context.execute("create abi jar", ::createAbiJar)
         }
-        if (outputs.jdeps.isNotEmpty()) {
-          context.execute("generate jdeps") { jDepsGenerator.generateJDeps(this) }
+        if (outputs.javaJdeps.isNotEmpty()) {
+          context.execute("generate jdeps for Java compilation") { jDepsGenerator.generateJDeps(this) }
         }
         if (outputs.generatedJavaSrcJar.isNotEmpty()) {
           context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)

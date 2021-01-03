@@ -97,6 +97,9 @@ public final class Deps {
         @Nullable
         public abstract String jdeps();
 
+        @Nullable
+        public abstract String javaJdeps();
+
         public final String singleCompileJar() {
             Preconditions.checkState(compileJars().size() == 1);
             return compileJars().get(0);
@@ -122,6 +125,8 @@ public final class Deps {
             public abstract Builder sourceJar(String sourceJar);
 
             public abstract Builder jdeps(String jdeps);
+
+            public abstract Builder javaJdeps(String javaJdeps);
 
             public Dep build() {
                 if (!moduleName().isPresent()) {

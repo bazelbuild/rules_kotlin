@@ -55,8 +55,8 @@ internal class JDepsGenerator @Inject constructor(
             val version = System.getProperty("java.version").majorJavaVersion()
             val multiRelease =
               if (version < 9) arrayOf() else arrayOf("--multi-release", "base")
-            val jarPath = command.outputs.jar
-            val args = multiRelease + arrayOf("-R", "-summary", "-cp", joinedClasspath, jarPath)
+            val javaClassDir = command.directories.javaClasses
+            val args = multiRelease + arrayOf("-R", "-summary", "-cp", joinedClasspath, javaClassDir)
             val res = invoker.run(args, writer)
             out.toByteArray().inputStream().bufferedReader().readLines().let {
               if (res != 0) {
@@ -64,8 +64,8 @@ internal class JDepsGenerator @Inject constructor(
               } else try {
                 JdepsParser.parse(
                   command.info.label,
-                  jarPath,
-                  command.inputs.classpathList,
+                  javaClassDir,
+                  command.inputs.directDependenciesList,
                   it,
                   isKotlinImplicit
                 )
@@ -76,7 +76,7 @@ internal class JDepsGenerator @Inject constructor(
           }
         }
       }
-    Paths.get(command.outputs.jdeps).also {
+    Paths.get(command.outputs.javaJdeps).also {
       Files.deleteIfExists(it)
       FileOutputStream(Files.createFile(it).toFile()).use(jdepsContent::writeTo)
     }

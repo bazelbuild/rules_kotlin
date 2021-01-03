@@ -115,6 +115,7 @@ class KotlinWorkerTest {
     flag(JavaBuilderFlags.TEMPDIR, "tmp")
     flag(JavaBuilderFlags.SOURCEGEN_DIR, "generated_sources")
     cp(JavaBuilderFlags.CLASSPATH, KotlinJvmTestBuilder.KOTLIN_STDLIB.singleCompileJar())
+    cp(JavaBuilderFlags.DIRECT_DEPENDENCIES, "")
     info.passthroughFlagsList.forEach { pf ->
       flag(KotlinBuilderFlags.PASSTHROUGH_FLAGS, pf)
     }
@@ -169,6 +170,7 @@ class KotlinWorkerTest {
             flag(JavaBuilderFlags.OUTPUT, outputJar)
             flag(KotlinBuilderFlags.BUILD_KOTLIN, "true")
             flag(JavaBuilderFlags.BUILD_JAVA, "false")
+            flag(KotlinBuilderFlags.OUTPUT_JDEPS, "out.jdeps")
             source(one)
             source(zero)
             source(imaginary)

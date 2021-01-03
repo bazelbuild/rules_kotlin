@@ -2,7 +2,7 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "define_kt_toolchain")
 load("@io_bazel_rules_kotlin//kotlin/internal:opts.bzl", "kt_javac_options", "kt_kotlinc_options")
 
 kt_kotlinc_options(
-    name = "default_kotlinc_options",
+    name = "default_kotlinc_options"
 )
 
 kt_javac_options(

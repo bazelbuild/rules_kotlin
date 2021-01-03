@@ -540,6 +540,9 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     else:
         kt_java_output_jar = ctx.actions.declare_file(ctx.label.name + "-kt-java.jar")
         kt_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-gensrc.jar")
+
+        kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
+        java_jdeps = ctx.actions.declare_file(ctx.label.name + "-java.jdeps")
         _run_kt_builder_action(
             ctx = ctx,
             rule_kind = rule_kind,
@@ -553,8 +556,18 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             plugins = plugins,
             outputs = {
                 "output": kt_java_output_jar,
-                "kotlin_output_jdeps": ctx.outputs.jdeps,
+                "kotlin_output_jdeps": kt_jdeps,
+                "output_deps_proto": java_jdeps,
                 "generated_java_srcjar": kt_generated_java_srcjar,
+            },
+        )
+        _run_merge_jdeps_action(
+            ctx = ctx,
+            rule_kind = rule_kind,
+            toolchains = toolchains,
+            jdeps = [kt_jdeps, java_jdeps],
+            outputs = {
+                "output": ctx.outputs.jdeps,
             },
         )
         compile_jar = kt_java_output_jar

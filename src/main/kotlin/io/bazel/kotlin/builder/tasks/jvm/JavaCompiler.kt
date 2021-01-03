@@ -41,7 +41,7 @@ internal class JavaCompiler @Inject constructor(
     if (i.javaSourcesList.isNotEmpty()) {
       val args = mutableListOf(
         "-cp", "${d.classes}$DIR_SEP${d.temp}$DIR_SEP${i.joinedClasspath}",
-        "-d", d.classes
+        "-d", d.javaClasses
       ).also {
         it.addAll(
           // Kotlin takes care of annotation processing.

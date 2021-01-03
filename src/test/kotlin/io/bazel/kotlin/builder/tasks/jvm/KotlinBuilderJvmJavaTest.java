@@ -45,9 +45,13 @@ public class KotlinBuilderJvmJavaTest {
               "class AnotherClass{}"
           );
           c.outputJar();
+          c.outputJdeps();
+          c.outputJavaJdeps();
+          c.compileJava();
+          c.compileKotlin();
         });
-    ctx.assertFilesExist(
-        DirectoryType.CLASSES, "something/AClass.class", "something/AnotherClass.class");
+    ctx.assertFilesExist(DirectoryType.CLASSES, "something/AClass.class");
+    ctx.assertFilesExist(DirectoryType.JAVA_CLASSES, "something/AnotherClass.class");
   }
 
   @Test
@@ -86,8 +90,13 @@ public class KotlinBuilderJvmJavaTest {
               "  val a = AClass()",
               "}");
           ctx.outputJar();
+          ctx.outputJdeps();
+          ctx.outputJavaJdeps();
+          ctx.compileJava();
+          ctx.compileKotlin();
         });
-    ctx.assertFilesExist(DirectoryType.CLASSES, "a/AClass.class", "b/BClass.class");
+    ctx.assertFilesExist(DirectoryType.JAVA_CLASSES, "a/AClass.class");
+    ctx.assertFilesExist(DirectoryType.CLASSES, "b/BClass.class");
   }
 
   @Test

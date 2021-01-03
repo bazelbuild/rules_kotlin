@@ -37,10 +37,18 @@ jar_jar(
     visibility = ["//visibility:public"],
 )
 
+jar_jar(
+    name = "jdeps-gen",
+    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
+    rules = "shade.jarjar",
+    visibility = ["//visibility:public"],
+)
+
 java_binary(
     name = "builder",
     data = [
         "//src/main/kotlin:skip-code-gen",
+        "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
@@ -72,6 +80,7 @@ release_archive(
     name = "pkg",
     srcs = [
         ":skip-code-gen.jar",
+        ":jdeps-gen.jar",
     ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {

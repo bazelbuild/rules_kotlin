@@ -181,6 +181,7 @@ internal fun JvmCompilationTask.createOutputJar() =
     verbose = false
   ).also {
     it.addDirectory(Paths.get(directories.classes))
+    it.addDirectory(Paths.get(directories.javaClasses))
     it.addDirectory(Paths.get(directories.generatedClasses))
     it.setJarOwner(info.label, info.bazelRuleKind)
     it.execute()
