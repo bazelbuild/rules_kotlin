@@ -13,6 +13,7 @@ define_kt_toolchain(
     name = "experimental_toolchain",
     api_version = "1.4",
     experimental_use_abi_jars = True,
+    experimental_strict_kotlin_deps = "warn",
     javac_options = ":default_javac_options",
     kotlinc_options = ":default_kotlinc_options",
     language_version = "1.4",

@@ -115,7 +115,8 @@ class KotlinBuilder @Inject internal constructor(
       GENERATED_JAVA_SRC_JAR("--generated_java_srcjar"),
       GENERATED_JAVA_STUB_JAR("--kapt_generated_stub_jar"),
       GENERATED_CLASS_JAR("--kapt_generated_class_jar"),
-      BUILD_KOTLIN("--build_kotlin");
+      BUILD_KOTLIN("--build_kotlin"),
+      STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
     }
   }
 
@@ -180,6 +181,7 @@ class KotlinBuilder @Inject internal constructor(
         argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
       toolchainInfoBuilder.commonBuilder.languageVersion =
         argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
+      strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
       this
     }
 

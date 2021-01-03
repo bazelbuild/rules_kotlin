@@ -114,6 +114,7 @@ class KotlinWorkerTest {
     flag(KotlinBuilderFlags.GENERATED_CLASSDIR, "generated_classes")
     flag(JavaBuilderFlags.TEMPDIR, "tmp")
     flag(JavaBuilderFlags.SOURCEGEN_DIR, "generated_sources")
+    flag(KotlinBuilderFlags.STRICT_KOTLIN_DEPS, "off")
     cp(JavaBuilderFlags.CLASSPATH, KotlinJvmTestBuilder.KOTLIN_STDLIB.singleCompileJar())
     cp(JavaBuilderFlags.DIRECT_DEPENDENCIES, "")
     info.passthroughFlagsList.forEach { pf ->

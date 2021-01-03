@@ -68,6 +68,7 @@ def kt_js_library_impl(ctx):
     args.add("--kotlin_js_dir", out_dir.path)
     args.add("--kotlin_output_js_jar", ctx.outputs.jar)
     args.add("--kotlin_output_srcjar", ctx.outputs.srcjar)
+    args.add("--strict_kotlin_deps", "off")
 
     args.add_all("--kotlin_js_libraries", libraries, omit_if_empty = False)
     args.add_all("--sources", ctx.files.srcs)

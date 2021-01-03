@@ -378,6 +378,7 @@ def _run_kt_builder_action(
     # TODO: Implement Strict Kotlin deps: (https://github.com/bazelbuild/rules_kotlin/issues/419)
     # This flag is currently unused by the builder but required for the unused_deps tool
     args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
+    args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)

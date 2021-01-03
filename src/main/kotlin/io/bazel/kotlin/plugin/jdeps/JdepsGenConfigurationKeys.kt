@@ -16,6 +16,12 @@ object JdepsGenConfigurationKeys {
     CompilerConfigurationKey.create(JdepsGenCommandLineProcessor.TARGET_LABEL_OPTION.description)
 
   /**
+   * Label of the Bazel target being analyzed.
+   */
+  val STRICT_KOTLIN_DEPS: CompilerConfigurationKey<String> =
+    CompilerConfigurationKey.create(JdepsGenCommandLineProcessor.STRICT_KOTLIN_DEPS_OPTION.description)
+
+  /**
    * List of direct dependencies of the target.
    */
   val DIRECT_DEPENDENCIES: CompilerConfigurationKey<List<String>> =
