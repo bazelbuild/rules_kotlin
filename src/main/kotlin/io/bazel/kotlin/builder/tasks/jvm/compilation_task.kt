@@ -18,6 +18,7 @@
 // Provides extensions for the JvmCompilationTask protocol buffer.
 package io.bazel.kotlin.builder.tasks.jvm
 
+import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
@@ -27,6 +28,7 @@ import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask.Directories
+import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.ObjectOutputStream
@@ -51,18 +53,38 @@ fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
   .flag("-d", directories.classes)
   .values(info.passthroughFlagsList)
 
-fun JvmCompilationTask.baseArgs(): CompilationArgs = CompilationArgs()
-  .flag("-cp")
-  .paths(
-    inputs.classpathList + directories.generatedClasses
-  ) {
-    it.map(Path::toString)
-      .joinToString(File.pathSeparator)
-  }
-  .flag("-api-version", info.toolchainInfo.common.apiVersion)
-  .flag("-language-version", info.toolchainInfo.common.languageVersion)
-  .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
-  .flag("-module-name", info.moduleName)
+fun JvmCompilationTask.baseArgs(): CompilationArgs {
+  val classpath = when (info.reducedClasspathMode) {
+    "KOTLINBUILDER_REDUCED" -> {
+      val transitiveDepsForCompile = mutableSetOf<String>()
+      inputs.depsArtifactsList.forEach { jdepsPath ->
+        BufferedInputStream(Paths.get(jdepsPath).toFile().inputStream()).use {
+          val deps = Deps.Dependencies.parseFrom(it)
+          deps.dependencyList.forEach { dep ->
+            if (dep.kind == Deps.Dependency.Kind.EXPLICIT) {
+              transitiveDepsForCompile.add(dep.path)
+            }
+          }
+        }
+      }
+      inputs.directDependenciesList + transitiveDepsForCompile
+    }
+    else -> inputs.classpathList
+  } as List<String>
+
+  return CompilationArgs()
+    .flag("-cp")
+    .paths(
+      classpath + directories.generatedClasses
+    ) {
+      it.map(Path::toString)
+        .joinToString(File.pathSeparator)
+    }
+    .flag("-api-version", info.toolchainInfo.common.apiVersion)
+    .flag("-language-version", info.toolchainInfo.common.languageVersion)
+    .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
+    .flag("-module-name", info.moduleName)
+}
 
 internal fun JvmCompilationTask.plugins(
   options: List<String>,

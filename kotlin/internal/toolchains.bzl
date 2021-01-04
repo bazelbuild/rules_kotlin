@@ -82,6 +82,7 @@ def _kotlin_toolchain_impl(ctx):
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
+        experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -209,6 +210,14 @@ _kt_toolchain = rule(
                 "error",
             ],
         ),
+        "experimental_reduce_classpath_mode": attr.string(
+            doc = "Removes unneeded dependencies from the classpath",
+            default = "NONE",
+            values = [
+                "NONE",
+                "KOTLINBUILDER_REDUCED",
+            ],
+        ),
         "javac_options": attr.label(
             doc = "Compiler options for javac",
             providers = [JavacOptions],
@@ -248,6 +257,7 @@ def define_kt_toolchain(
         experimental_use_abi_jars = False,
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
+        experimental_reduce_classpath_mode = None,
         javac_options = None,
         kotlinc_options = None):
     """Define the Kotlin toolchain."""
@@ -274,6 +284,7 @@ def define_kt_toolchain(
         }),
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
+        experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
