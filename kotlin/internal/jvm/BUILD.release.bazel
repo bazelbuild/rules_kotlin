@@ -11,8 +11,4 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
-
-kt_configure_toolchains()
-
 exports_files(["jetbrains-deshade.jarjar"])

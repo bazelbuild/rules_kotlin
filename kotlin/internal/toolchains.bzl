@@ -268,7 +268,7 @@ def kt_configure_toolchains():
     Must be called in kotlin/internal/BUILD.bazel
     """
     if native.package_name() != "kotlin/internal":
-        fail("kt_configure_toolchains must be called in kotlin/internal to define well known targets.")
+        fail("kt_configure_toolchains must be called in kotlin/internal not %s" % native.package_name())
 
     kt_kotlinc_options(
         name = "default_kotlinc_options",
