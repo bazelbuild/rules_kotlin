@@ -11,24 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal:opts.bzl", "kt_javac_options", "kt_kotlinc_options")
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
-kt_kotlinc_options(
-    name = "default_kotlinc_options",
-    # Used internally as the rule default. This should be
-    # considered an implementation detail and not used externally
-    visibility = ["//visibility:public"],
-)
-
-kt_javac_options(
-    name = "default_javac_options",
-    # Used internally as the rule default. This should be
-    # considered an implementation detail and not used externally
-    visibility = ["//visibility:public"],
-)
 
 # Configures the toolchains
 kt_configure_toolchains()
