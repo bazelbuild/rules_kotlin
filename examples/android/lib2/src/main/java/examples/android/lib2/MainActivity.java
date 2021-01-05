@@ -7,6 +7,9 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 
+import static examples.android.lib2.FooKt.getMsg;
+
+
 public class MainActivity extends Activity {
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -19,7 +22,7 @@ public class MainActivity extends Activity {
 
     new AlertDialog.Builder(this)
         .setTitle("Blah")
-        .setMessage(R.string.little_bat)
+        .setMessage(getMsg())
         .show();
   }
 }

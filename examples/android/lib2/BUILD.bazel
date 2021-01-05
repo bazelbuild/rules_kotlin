@@ -1,9 +1,11 @@
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
-load("@build_bazel_rules_android//android:rules.bzl", "android_library")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library", "kt_android_library")
 
-android_library(
+kt_android_library(
     name = "lib2",
-    srcs = glob(["src/main/java/**/*.java"]),
+    srcs = glob([
+            "src/main/java/**/*.java",
+            "src/main/java/examples/android/lib2/foo.kt"
+        ]),
     custom_package = "examples.android.lib2",
     manifest = "src/main/AndroidManifest.xml",
     visibility = ["//visibility:public"],
@@ -16,5 +18,5 @@ android_library(
 
 kt_jvm_library(
     name = "util",
-    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    srcs = glob(["src/main/kotlin/examples/android/lib2/Utils.kt"]),
 )

@@ -18,18 +18,34 @@ java_plugin(
     deps = ["@maven//:com_google_auto_value_auto_value"],
 )
 
+java_library(
+    name = "java_auto_value",
+    srcs = [
+        "src/main/kotlin/examples/android/lib/AutoValueProvider.java",
+        "src/main/kotlin/examples/android/lib/TestJavaValue.java",
+
+    ],
+    deps = [
+        "@maven//:com_google_auto_value_auto_value_annotations"
+    ],
+    plugins = [
+		":autovalue",
+    ]
+)
+
 kt_android_library(
     name = "lib",
     srcs = glob(["src/main/kotlin/**/*.kt"]),
     custom_package = "examples.android.lib",
     manifest = "src/main/AndroidManifest.xml",
     plugins = [
-        ":serialization_plugin",
         ":autovalue",
+        ":serialization_plugin",
     ],
     tags = ["trace"],
     visibility = ["//visibility:public"],
     deps = [
+        ":java_auto_value",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
         "@maven//:com_google_auto_value_auto_value_annotations"
