@@ -15,6 +15,8 @@ load(
     "//kotlin/internal:opts.bzl",
     "JavacOptions",
     "KotlincOptions",
+    "kt_javac_options",
+    "kt_kotlinc_options",
 )
 load(
     "//kotlin/internal:defs.bzl",
@@ -262,7 +264,22 @@ def define_kt_toolchain(
 def kt_configure_toolchains():
     """
     Defines the toolchain_type and default toolchain for kotlin compilation.
+
+    Must be called in kotlin/internal/BUILD.bazel
     """
+    if native.package_name() != "kotlin/internal":
+        fail("kt_configure_toolchains must be called in kotlin/internal not %s" % native.package_name())
+
+    kt_kotlinc_options(
+        name = "default_kotlinc_options",
+        visibility = ["//visibility:public"],
+    )
+
+    kt_javac_options(
+        name = "default_javac_options",
+        visibility = ["//visibility:public"],
+    )
+
     native.config_setting(
         name = "experimental_use_abi_jars",
         values = {"define": "experimental_use_abi_jars=1"},

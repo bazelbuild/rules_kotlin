@@ -3,10 +3,15 @@
 # Bazel Kotlin Rules
 
 Current release: ***`legacy-1.3.0`***<br />
-Release candidate: ***`1.5.0-alpha-1`***<br />
+Release candidate: ***`1.5.0-alpha-2`***<br />
 Main branch: `master`
 
 # News!
+* <b>Dec 30, 2020.</b> Released version [1.5.0-alpha-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-2). Includes:
+  - Expanded kotlinc options
+  - New optimized compilation path (using JavaBuilder) `--define=experimental_use_abi_jars=1`.
+    - *Caveat*: compilation may fail due to https://youtrack.jetbrains.com/issue/KT-40133, https://youtrack.jetbrains.com/issue/KT-40340, https://youtrack.jetbrains.com/issue/KT-41381
+    - *Workaround*: add `tags=['kt_abi_plugin_incompatible']`
 * <b>Dec 3, 2020.</b> Released version [1.5.0-alpha-1](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-1). Includes:
   - Kotlin 1.4 support
   - Lots of different fixes, especially to kotlinc plugins, `exported_compiler_plugins`, etc.

@@ -12,15 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin/internal:opts.bzl", "kt_javac_options", "kt_kotlinc_options")
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
 
 kt_configure_toolchains()
-
-kt_kotlinc_options(
-    name = "default_kotlinc_options",
-)
-
-kt_javac_options(
-    name = "default_javac_options",
-)
