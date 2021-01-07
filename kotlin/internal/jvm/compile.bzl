@@ -180,6 +180,13 @@ def _merge_kt_jvm_info(module_name, providers):
         ]),
     )
 
+# Rules only - not overriden by toolchain
+def _kotlinc_opt_in_markers_to_flags(opts):
+    flags = []
+    if opts.opt_in:
+        flags.extend(["-Xopt-in=%s" % check for check in opts.opt_in])
+    return flags
+
 def _kotlinc_options_provider_to_flags(opts, language_version):
     if not opts:
         return ""
@@ -372,7 +379,9 @@ def _run_kt_builder_action(
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
     kotlinc_options = ctx.attr.kotlinc_opts[_KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[_JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
-    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(kotlinc_options, toolchains.kt.language_version))
+    # Add opt-in markers which have no toolchain defaults
+    kotlinc_flags = _kotlinc_options_provider_to_flags(kotlinc_options, toolchains.kt.language_version) + _kotlinc_opt_in_markers_to_flags(kotlinc_options)
+    args.add_all("--kotlin_passthrough_flags", kotlinc_flags)
     args.add_all("--javacopts", _javac_options_provider_to_flags(javac_options))
 
     # TODO: Implement Strict Kotlin deps: (https://github.com/bazelbuild/rules_kotlin/issues/419)
