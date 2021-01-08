@@ -231,11 +231,6 @@ class KotlinWorkerTest {
         flag(JavaBuilderFlags.BUILD_JAVA, "false")
       })).isEqualTo(0)
 
-      System.err.println(ZipFile(jarOne.toFile())
-                           .stream()
-                           .map(ZipEntry::getName)
-                           .toList())
-
       assertThat(
         ZipFile(jarOne.toFile())
           .stream()

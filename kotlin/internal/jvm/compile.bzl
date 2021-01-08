@@ -49,6 +49,15 @@ load(
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
+def _deps_artifacts(toolchains, targets):
+    """Collect Jdeps artifacts if required."""
+    if not toolchains.kt.experimental_report_unused_deps == "off":
+        deps_artifacts = [t[JavaInfo].outputs.jdeps for t in targets if JavaInfo in t and t[JavaInfo].outputs.jdeps]
+    else:
+        deps_artifacts = []
+
+    return depset(deps_artifacts)
+
 def _partitioned_srcs(srcs):
     """Creates a struct of srcs sorted by extension. Fails if there are no sources."""
     kt_srcs = []
@@ -320,6 +329,7 @@ def _run_merge_jdeps_action(ctx, rule_kind, toolchains, jdeps, outputs):
         args.add("--" + f, path)
 
     args.add_all("--inputs", jdeps, omit_if_empty = True)
+    args.add("--report_unused_deps", toolchains.kt.experimental_report_unused_deps)
 
     mnemonic = "JdepsMerge"
     progress_message = "%s %s { jdeps: %d }" % (
@@ -356,6 +366,7 @@ def _run_kt_builder_action(
         generated_src_jars,
         friend,
         compile_deps,
+        deps_artifacts,
         annotation_processors,
         transitive_runtime_jars,
         plugins,
@@ -382,6 +393,7 @@ def _run_kt_builder_action(
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
+    args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
 
     args.add_joined("--kotlin_friend_paths", friend.paths, join_with = "\n")
 
@@ -481,7 +493,7 @@ def _run_kt_builder_action(
         mnemonic = mnemonic,
         inputs = depset(
             srcs.all_srcs + srcs.src_jars + generated_src_jars,
-            transitive = [compile_deps.compile_jars, transitive_runtime_jars] + [p.classpath for p in compiler_plugins],
+            transitive = [compile_deps.compile_jars, transitive_runtime_jars, deps_artifacts] + [p.classpath for p in compiler_plugins],
         ),
         tools = tools,
         input_manifests = input_manifests,
@@ -520,6 +532,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
+    deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + friend.targets)
 
     generated_src_jars = []
     if toolchains.kt.experimental_use_abi_jars:
@@ -532,6 +545,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             generated_src_jars = [],
             friend = friend,
             compile_deps = compile_deps,
+            deps_artifacts = deps_artifacts,
             annotation_processors = annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
@@ -552,6 +566,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             generated_src_jars = [],
             friend = friend,
             compile_deps = compile_deps,
+            deps_artifacts = deps_artifacts,
             annotation_processors = annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
@@ -634,7 +649,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
 """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 """
 
-def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src_jars, friend, compile_deps, annotation_processors, transitive_runtime_jars, plugins, compile_jar):
+def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src_jars, friend, compile_deps, deps_artifacts, annotation_processors, transitive_runtime_jars, plugins, compile_jar):
     compile_jars = []
     output_jars = []
     kt_stubs_for_java = []
@@ -652,6 +667,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
             generated_src_jars = [],
             friend = friend,
             compile_deps = compile_deps,
+            deps_artifacts = deps_artifacts,
             annotation_processors = annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
@@ -696,6 +712,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
             generated_src_jars = generated_src_jars,
             friend = friend,
             compile_deps = compile_deps,
+            deps_artifacts = deps_artifacts,
             annotation_processors = [],
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,

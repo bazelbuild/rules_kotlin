@@ -5,14 +5,15 @@ import io.bazel.kotlin.builder.tasks.CommandLineProgram
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
-import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
-import java.io.File
+import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.INJECTING_RULE_KIND
+import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.TARGET_LABEL
+import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.jar.JarFile
 
 /**
  * Persistent worker capable command line program for merging multiple Jdeps files into a single
@@ -31,12 +32,30 @@ class JdepsMerger: CommandLineProgram {
       INPUTS("--inputs"),
       OUTPUT("--output"),
       TARGET_LABEL("--target_label"),
+      REPORT_UNUSED_DEPS("--report_unused_deps"),
+    }
+
+    private fun readJarOwnerFromManifest(jarPath: Path): JarOwner {
+      try {
+        JarFile(jarPath.toFile()).use { jarFile ->
+          val manifest = jarFile.manifest ?: return JarOwner(jarPath)
+          val attributes = manifest.mainAttributes
+          val label = attributes[TARGET_LABEL] as String?
+            ?: return JarOwner(jarPath)
+          val injectingRuleKind = attributes[INJECTING_RULE_KIND] as String?
+          return JarOwner(jarPath, label, injectingRuleKind)
+        }
+      } catch (e: IOException) {
+        // This jar file pretty much has to exist.
+        throw UncheckedIOException(e)
+      }
     }
 
     fun merge(
       label: String,
       inputs: List<String>,
-      output: String) {
+      output: String,
+      reportUnusedDeps: String): Int {
 
       val rootBuilder = Deps.Dependencies.newBuilder()
       rootBuilder.success = false
@@ -64,8 +83,32 @@ class JdepsMerger: CommandLineProgram {
       BufferedOutputStream(File(output).outputStream()).use {
         it.write(rootBuilder.build().toByteArray())
       }
+
+      if (reportUnusedDeps != "off") {
+        val unusedLabels = dependencyMap.values
+          .filter { it.kind == Deps.Dependency.Kind.UNUSED }
+          .mapNotNull { readJarOwnerFromManifest(Paths.get(it.path)).label }
+          .filter {it != label}
+
+        if (unusedLabels.isNotEmpty()) {
+          val open = "\u001b[35m\u001b[1m"
+          val close = "\u001b[0m"
+          val command =
+            """
+            |$open ** Please remove the following dependencies:$close ${unusedLabels.joinToString(" ")} from $label 
+            |$open ** You can use the following buildozer command:$close buildozer 'remove deps ${unusedLabels.joinToString(" ")}' $label
+          """.trimMargin()
+
+          println(command)
+          return if(reportUnusedDeps == "error") 1 else 0
+        }
+      }
+
+      return 0
     }
   }
+
+  private data class JarOwner(val jar: Path, val label: String? = null, val aspect: String? = null)
 
   private fun getArgs(args: List<String>): ArgMap {
     check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
@@ -77,12 +120,12 @@ class JdepsMerger: CommandLineProgram {
   }
 
   override fun apply(workingDir: Path, args: List<String>): Int {
-    var status = 0
     val argMap = getArgs(args)
     val inputs = argMap.mandatory(JdepsMergerFlags.INPUTS)
     val output = argMap.mandatorySingle(JdepsMergerFlags.OUTPUT)
     val label = argMap.mandatorySingle(JdepsMergerFlags.TARGET_LABEL)
-    merge(label, inputs, output)
-    return status
+    val reportUnusedDeps = argMap.mandatorySingle(JdepsMergerFlags.REPORT_UNUSED_DEPS)
+
+    return merge(label, inputs, output, reportUnusedDeps)
   }
 }
