@@ -69,6 +69,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                       inputs.directDependenciesList.forEach {
                         flag("direct_dependencies", it)
                       }
+                      flag("strict_kotlin_deps", info.strictKotlinDeps)
                     }
                     .given(outputs.jar).notEmpty {
                       append(codeGenArgs())

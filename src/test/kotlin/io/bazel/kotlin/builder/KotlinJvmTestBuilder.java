@@ -183,6 +183,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             });
         }
 
+        public void addTransitiveDependencies(Dep... dependencies) {
+            Dep.classpathOf(dependencies).forEach(dependency -> {
+                taskBuilder.getInputsBuilder().addClasspath(dependency);
+            });
+        }
+
         public TaskBuilder outputSrcJar() {
             taskBuilder.getOutputsBuilder()
                     .setSrcjar(instanceRoot().resolve("jar_file-sources.jar").toAbsolutePath().toString());
@@ -198,6 +204,11 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         public TaskBuilder outputJdeps() {
             taskBuilder.getOutputsBuilder()
                     .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
+            return this;
+        }
+
+        public TaskBuilder kotlinStrictDeps(String level) {
+            taskBuilder.getInfoBuilder().setStrictKotlinDeps(level);
             return this;
         }
 

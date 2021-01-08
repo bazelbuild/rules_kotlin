@@ -80,6 +80,7 @@ def _kotlin_toolchain_impl(ctx):
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         js_stdlibs = ctx.attr.js_stdlibs,
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
+        experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -189,6 +190,15 @@ _kt_toolchain = rule(
             `kt_abi_plugin_incompatible`""",
             default = False,
         ),
+        "experimental_strict_kotlin_deps": attr.string(
+            doc = "Report strict deps violations",
+            default = "off",
+            values = [
+                "off",
+                "warn",
+                "error",
+            ],
+        ),
         "javac_options": attr.label(
             doc = "Compiler options for javac",
             providers = [JavacOptions],
@@ -226,6 +236,7 @@ def define_kt_toolchain(
         api_version = None,
         jvm_target = None,
         experimental_use_abi_jars = False,
+        experimental_strict_kotlin_deps = None,
         javac_options = None,
         kotlinc_options = None):
     """Define the Kotlin toolchain."""
@@ -250,6 +261,7 @@ def define_kt_toolchain(
             absolute_target("//kotlin/internal:noexperimental_use_abi_jars"): False,
             "//conditions:default": experimental_use_abi_jars,
         }),
+        experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],

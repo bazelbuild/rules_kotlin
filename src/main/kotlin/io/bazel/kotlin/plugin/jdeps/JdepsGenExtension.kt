@@ -4,14 +4,13 @@ import com.google.devtools.build.lib.view.proto.Deps
 import com.intellij.mock.MockProject
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import io.bazel.kotlin.builder.utils.jars.JarOwner
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.ClassBuilderFactory
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.inline.RemappingClassBuilder
-import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
@@ -22,11 +21,9 @@ import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaClass
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.load.kotlin.VirtualFileKotlinClass
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getAllSuperclassesWithoutAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
@@ -35,6 +32,7 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
 import org.jetbrains.org.objectweb.asm.commons.Remapper
 import java.io.BufferedOutputStream
 import java.io.File
+import java.nio.file.Paths
 
 /**
  * Kotlin compiler extension that tracks classes (and corresponding classpath jars) needed to
@@ -192,6 +190,36 @@ class JdepsGenExtension(
     BufferedOutputStream(File(jdepsOutput).outputStream()).use {
       it.write(rootBuilder.build().toByteArray())
     }
+
+    when (configuration.getNotNull(JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS)) {
+      "warn" -> checkStrictDeps(result, directDeps, targetLabel)
+      "error" -> {
+        if(checkStrictDeps(result, directDeps, targetLabel)) error("Strict Deps Violations - please fix")
+      }
+    }
+  }
+
+  /**
+   * Prints strict deps warnings and returns true if violations were found.
+   */
+  private fun checkStrictDeps(result: HashMap<String, ArrayList<String>>, directDeps: List<String>, targetLabel: String): Boolean {
+    val missingStrictDeps = result.keys
+      .filter { !directDeps.contains(it) }
+      .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)).label }
+
+    if (missingStrictDeps.isNotEmpty()) {
+      val open = "\u001b[35m\u001b[1m"
+      val close = "\u001b[0m"
+      val command =
+        """
+              |$open ** Please add the following dependencies:$close ${missingStrictDeps.joinToString(" ")} to $targetLabel 
+              |$open ** You can use the following buildozer command:$close buildozer 'add deps ${missingStrictDeps.joinToString(" ")}' $targetLabel
+            """.trimMargin()
+
+      println(command)
+      return true
+    }
+    return false
   }
 
   private fun isExternalModuleClass(className: ClassId): Boolean {

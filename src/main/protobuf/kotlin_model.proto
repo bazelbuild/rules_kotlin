@@ -78,6 +78,8 @@ message CompilationTaskInfo {
     // trace: enables trace logging.
     // timings: causes timing information to be printed at the of an action.
     repeated string debug = 9;
+    // Enable strict dependency checking for Kotlin
+    string strict_kotlin_deps = 10;
 }
 
 // Mested messages not marked with stable could be refactored.
