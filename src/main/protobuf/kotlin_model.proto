@@ -80,6 +80,8 @@ message CompilationTaskInfo {
     repeated string debug = 9;
     // Enable strict dependency checking for Kotlin
     string strict_kotlin_deps = 10;
+    // Optimize classpath by removing dependencies not required for compilation
+    string reduced_classpath_mode = 11;
 }
 
 // Mested messages not marked with stable could be refactored.
@@ -152,6 +154,8 @@ message JvmCompilationTask {
       repeated string compiler_plugin_classpath = 14;
       // Java opts to be passed to java compiler
       repeated string javac_flags = 15;
+      // JDeps dependency artifacts
+      repeated string deps_artifacts = 16;
   }
 
   CompilationTaskInfo info = 1;

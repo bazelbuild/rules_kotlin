@@ -117,6 +117,7 @@ class KotlinBuilder @Inject internal constructor(
       GENERATED_CLASS_JAR("--kapt_generated_class_jar"),
       BUILD_KOTLIN("--build_kotlin"),
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
+      REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
     }
   }
 
@@ -274,6 +275,9 @@ class KotlinBuilder @Inject internal constructor(
 
       with(root.inputsBuilder) {
         addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH))
+        addAllDepsArtifacts(
+          argMap.optional(JavaBuilderFlags.DEPS_ARTIFACTS) ?: emptyList()
+        )
         addAllDirectDependencies(argMap.mandatory(JavaBuilderFlags.DIRECT_DEPENDENCIES))
 
         addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
