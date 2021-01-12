@@ -84,6 +84,7 @@ def _kotlin_toolchain_impl(ctx):
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
+        kapt_javac_arguments = ctx.attr.kapt_javac_arguments if ctx.attr.kapt_javac_arguments else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
@@ -223,6 +224,10 @@ _kt_toolchain = rule(
             providers = [JavacOptions],
             default = Label("//kotlin/internal:default_javac_options"),
         ),
+        "kapt_javac_arguments": attr.string_dict(
+            doc = """javac arguments to be supplied to KAPT""",
+            mandatory = False,
+        ),
         "_empty_jar": attr.label(
             doc = """Empty jar for exporting JavaInfos.""",
             allow_single_file = True,
@@ -259,6 +264,7 @@ def define_kt_toolchain(
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
         javac_options = None,
+        kapt_javac_arguments = None,
         kotlinc_options = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
@@ -286,6 +292,7 @@ def define_kt_toolchain(
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
         javac_options = javac_options,
+        kapt_javac_arguments = kapt_javac_arguments,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
     )
