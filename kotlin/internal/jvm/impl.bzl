@@ -75,12 +75,12 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
     }
 
     if ctx.configuration.coverage_enabled:
-        metadata = ctx.new_file("coverage_runtime_classpath/%s/runtime-classpath.txt" % ctx.attr.name)
+        metadata = ctx.actions.declare_file("coverage_runtime_classpath/%s/runtime-classpath.txt" % ctx.attr.name)
         extra_runfiles.append(metadata)
         # We replace '../' to get a runtime-classpath.txt as close as possible to the one
         # produced by java_binary.
-        metadata_entries = [rjar.short_path.replace("../", "external/") for rjar in rjars]
-        ctx.file_action(metadata, content="\n".join(metadata_entries))
+        metadata_entries = [rjar.short_path.replace("../", "external/") for rjar in rjars.to_list()]
+        ctx.actions.write(metadata, content="\n".join(metadata_entries))
         substitutions = _utils.add_dicts(substitutions, {
             "%java_start_class%": "com.google.testing.coverage.JacocoCoverageRunner",
             # %set_jacoco_main_class% and %set_jacoco_java_runfiles_root% are not
