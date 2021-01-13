@@ -97,6 +97,49 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `java constant`() {
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Constants.java",
+        """
+          package something;
+          
+          public interface Constants {
+              int HELLO_CONSTANT = 100;
+          }
+        """)
+      c.outputJar()
+      c.outputJavaJdeps()
+      c.compileJava()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.kt",
+        """
+          package something.other
+          
+          import something.Constants
+          
+          class AnotherClass {
+            val ref = Constants.HELLO_CONSTANT
+          }
+        """)
+      c.outputJar()
+      c.compileKotlin()
+      c.outputJdeps()
+      c.addDirectDependencies(dependentTarget)
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `unused dependency listed`() {
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AClass.kt",
@@ -235,6 +278,42 @@ class KotlinBuilderJvmJdepsTest {
             package something
             import dependency.ConstHolder
             val property2 = ConstHolder.CONSTANT_VAL
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `references function`() {
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("ContainsFunction.kt",
+        """
+          package dependency
+            
+          fun someFunction() = 42
+        """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasFunctionDependency.kt",
+        """
+            package something
+            import dependency.someFunction
+            val property2 = someFunction()
           """)
       c.outputJar()
       c.compileKotlin()
