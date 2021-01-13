@@ -11,19 +11,32 @@ import org.jetbrains.kotlin.codegen.ClassBuilderFactory
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.inline.RemappingClassBuilder
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.container.StorageComponentContainer
+import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
+import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
+import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
 import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaClass
+import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaField
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.load.kotlin.VirtualFileKotlinClass
+import org.jetbrains.kotlin.load.kotlin.getContainingKotlinJvmBinaryClass
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
+import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getAllSuperclassesWithoutAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
@@ -55,7 +68,7 @@ import java.nio.file.Paths
 class JdepsGenExtension(
   val project: MockProject,
   val configuration: CompilerConfiguration) :
-  ClassBuilderInterceptorExtension, AnalysisHandlerExtension {
+  ClassBuilderInterceptorExtension, AnalysisHandlerExtension, StorageComponentContainerContributor {
 
   companion object {
 
@@ -71,17 +84,24 @@ class JdepsGenExtension(
     }
 
     /**
-     * Returns the path of the jar archive file corresponding to the provided class descriptor.
+     * Returns the path of the jar archive file corresponding to the provided descriptor.
      *
-     * @classDescriptor the class descriptor, typically obtained from compilation analyze phase
+     * @descriptor the descriptor, typically obtained from compilation analyze phase
      * @return the path corresponding to the JAR where this class was loaded from, or null.
      */
-    fun getClassCanonicalPath(classDescriptor: ClassDescriptor): String? {
-      return when (val sourceElement: SourceElement = classDescriptor.source
+    fun getClassCanonicalPath(descriptor: DeclarationDescriptorWithSource): String? {
+      return when (val sourceElement: SourceElement = descriptor.source
       ) {
         is JavaSourceElement ->
           if (sourceElement.javaElement is BinaryJavaClass) {
             (sourceElement.javaElement as BinaryJavaClass).virtualFile.canonicalPath
+          } else if (sourceElement.javaElement is BinaryJavaField) {
+            val containingClass = (sourceElement.javaElement as BinaryJavaField).containingClass
+            if (containingClass is BinaryJavaClass) {
+              containingClass.virtualFile.canonicalPath
+            } else {
+              null
+            }
           } else {
             // Ignore Java source local to this module.
             null
@@ -98,6 +118,33 @@ class JdepsGenExtension(
   private val classesCanonicalPaths: HashSet<String> = HashSet()
   private var moduleDescriptor: ModuleDescriptor? = null
 
+  override fun registerModuleComponents(
+    container: StorageComponentContainer,
+    platform: TargetPlatform,
+    moduleDescriptor: ModuleDescriptor
+  ) {
+    container.useInstance(ClasspathCollectingCallChecker(classesCanonicalPaths))
+  }
+
+  class ClasspathCollectingCallChecker(private val classesCanonicalPaths: HashSet<String>) : CallChecker {
+    override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
+
+      when (resolvedCall.resultingDescriptor) {
+        is FunctionDescriptor -> {
+          val virtualFileClass = resolvedCall.resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
+          classesCanonicalPaths.add(virtualFileClass.file.path)
+        }
+        is FakeCallableDescriptorForObject -> {
+          getClassCanonicalPath(resolvedCall.resultingDescriptor)?.let { classesCanonicalPaths.add(it) }
+        }
+        is JavaPropertyDescriptor -> {
+          getClassCanonicalPath(resolvedCall.resultingDescriptor)?.let { classesCanonicalPaths.add(it) }
+        }
+        else -> return
+      }
+    }
+  }
+
   override fun analysisCompleted(
     project: Project,
     module: ModuleDescriptor,
@@ -107,15 +154,6 @@ class JdepsGenExtension(
     // Hold module descriptor until end of class generation, seems safe to do so. Otherwise, we need
     // to extract list of used classes differently (i.e not relaying on ClassBuilderInterceptor).
     moduleDescriptor = module
-
-    // Capture import dependencies
-    files.forEach {file ->
-      file.importDirectives.forEach {import ->
-        import.importPath?.let {
-          moduleDepClasses.add(ClassId.topLevel(it.fqName))
-        }
-      }
-    }
 
     return super.analysisCompleted(project, module, bindingTrace, files)
   }
