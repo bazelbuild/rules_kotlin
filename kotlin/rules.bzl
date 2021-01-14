@@ -35,6 +35,7 @@ load(
 load(
     "//kotlin/internal/jvm:android.bzl",
     _kt_android_library = "kt_android_library",
+    _kt_android_local_test = "kt_android_local_test",
 )
 load(
     "//kotlin/internal/js:js.bzl",
@@ -53,4 +54,5 @@ kt_jvm_import = _kt_jvm_import
 kt_jvm_library = _kt_jvm_library
 kt_jvm_test = _kt_jvm_test
 kt_android_library = _kt_android_library
+kt_android_local_test = _kt_android_local_test
 kt_compiler_plugin = _kt_compiler_plugin

@@ -90,6 +90,9 @@ def _compiler_toolchains(ctx):
 def _compiler_friends(ctx, friends):
     """Creates a struct of friends meta data"""
 
+    if len(friends) > 0 and ctx.attr.testonly == False:
+        fail("only testonly targets can have friends associated with them")
+
     # TODO extract and move this into common. Need to make it generic first.
     if len(friends) == 0:
         return struct(
