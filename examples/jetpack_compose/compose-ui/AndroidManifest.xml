@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cm.ben.android.bazel.compose.example.ui">
 
-    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="29" />
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="29" />
 
     <application
         android:label="Bazel Jetpack Compose Example"
