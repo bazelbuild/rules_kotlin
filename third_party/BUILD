@@ -17,6 +17,7 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("//kotlin:kotlin.bzl", "kt_jvm_import")
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//src/main/kotlin:deps.bzl", "ASM_DEPS")
 
 exports_files([
     "empty.jar",
@@ -86,7 +87,8 @@ release_archive(
         "empty.jar",
         "empty.jdeps",
         "jarjar.bzl",
-    ],
+        "@kotlin_rules_maven//:org_pantsbuild_jarjar",
+    ] + ASM_DEPS,
     src_map = {
         "jarjar_runner_deploy.jar": "jarjar.jar",
         "BUILD.release.bazel": "BUILD.bazel",

@@ -98,6 +98,7 @@ class KotlinBuilder @Inject internal constructor(
 
     enum class KotlinBuilderFlags(override val flag: String) : Flag {
       MODULE_NAME("--kotlin_module_name"),
+      POST_PROCESSOR("--post_processor"),
       PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
       API_VERSION("--kotlin_api_version"),
       LANGUAGE_VERSION("--kotlin_language_version"),
@@ -176,6 +177,8 @@ class KotlinBuilder @Inject internal constructor(
         check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
       }
       addAllPassthroughFlags(argMap.optional(KotlinBuilderFlags.PASSTHROUGH_FLAGS) ?: emptyList())
+
+      argMap.optionalSingle(KotlinBuilderFlags.POST_PROCESSOR)?.let(::setPostProcessor)
 
       argMap.optional(KotlinBuilderFlags.FRIEND_PATHS)?.let(::addAllFriendPaths)
       toolchainInfoBuilder.commonBuilder.apiVersion =

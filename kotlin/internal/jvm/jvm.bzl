@@ -152,6 +152,14 @@ _implicit_deps = {
     "_java_runtime": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
     ),
+    "_jacocorunner": attr.label(
+        default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
+    ),
+    "_lcov_merger": attr.label(
+        default = Label("@bazel_tools//tools/test:lcov_merger"),
+        executable = True,
+        cfg = "target",
+    ),
 }
 
 _common_attr = utils.add_dicts(
