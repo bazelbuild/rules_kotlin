@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
@@ -157,6 +158,9 @@ class JdepsGenExtension(
           descriptor.valueParameters.forEach { valueParameter ->
             getClassCanonicalPath(valueParameter.type.constructor.declarationDescriptor as DeclarationDescriptorWithSource)?.let { classesCanonicalPaths.add(it) }
           }
+        }
+        is PropertyDescriptor -> {
+          getClassCanonicalPath(descriptor.type.constructor.declarationDescriptor as DeclarationDescriptorWithSource)?.let { classesCanonicalPaths.add(it) }
         }
       }
     }

@@ -304,6 +304,49 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `kotlin property definition`() {
+      val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+        c.addSource("JavaClass.java",
+          """
+            package something;
+   
+            public class JavaClass {
+              public interface InnerJavaClass {
+  
+              }          
+            }
+          """)
+        c.outputJar()
+        c.outputJavaJdeps()
+        c.compileJava()
+      })
+
+      val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+        c.addSource("HasPropertyDefinition.kt",
+          """
+            package something
+            
+            interface HasPropertyDefinition {
+
+                val callFactory: JavaClass.InnerJavaClass
+            }
+          """)
+        c.outputJar()
+        c.compileKotlin()
+        c.addDirectDependencies(dependentTarget)
+        c.outputJdeps()
+      })
+      val jdeps = depsProto(dependingTarget)
+
+      assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+      assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+      assertImplicit(jdeps).isEmpty()
+      assertUnused(jdeps).isEmpty()
+      assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `kotlin generic type reference`() {
       val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
         c.addSource("AClass.kt",
