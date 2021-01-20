@@ -32,11 +32,6 @@ import java.util.function.Consumer
 class KotlinBuilderJvmJdepsTest {
     val ctx = KotlinJvmTestBuilder()
 
-    @After
-    fun tearDown() {
-      ctx.tearDown()
-    }
-
     @Test
     fun `no dependencies`() {
 

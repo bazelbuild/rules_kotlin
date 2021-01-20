@@ -18,11 +18,13 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.common.truth.Truth.assertThat
+import io.bazel.kotlin.builder.DaggerKotlinBuilderTestComponent
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
 import io.bazel.kotlin.builder.tasks.InvocationWorker
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.JavaBuilderFlags
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.KotlinBuilderFlags
 import io.bazel.kotlin.builder.tasks.WorkerIO
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain.Companion.createToolchain
 import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.Platform
@@ -129,7 +131,9 @@ class KotlinWorkerTest {
   @Test
   fun `abi generation`() {
 
-    val builder = KotlinJvmTestBuilder.component().kotlinBuilder()
+    val builder = DaggerKotlinBuilderTestComponent.builder()
+      .toolchain(createToolchain())
+      .build().kotlinBuilder()
 
     val one = src("One.kt") {
       l("package harry.nilsson")
@@ -197,7 +201,9 @@ class KotlinWorkerTest {
   @Test
   fun `output directories are different for invocations`() {
 
-    val builder = KotlinJvmTestBuilder.component().kotlinBuilder()
+    val builder = DaggerKotlinBuilderTestComponent.builder()
+      .toolchain(createToolchain())
+      .build().kotlinBuilder()
 
     val one = src("One.kt") {
       l("package harry.nilsson")

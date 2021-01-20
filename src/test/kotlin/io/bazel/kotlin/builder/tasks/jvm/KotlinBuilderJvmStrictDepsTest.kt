@@ -28,11 +28,6 @@ import java.util.function.Consumer
 class KotlinBuilderJvmStrictDepsTest {
   val ctx = KotlinJvmTestBuilder()
 
-  @After
-  fun tearDown() {
-    ctx.tearDown()
-  }
-
   @Test
   fun `strict dependency violation error`() {
     val transitiveDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
