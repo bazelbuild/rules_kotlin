@@ -14,9 +14,11 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
@@ -30,6 +32,7 @@ import org.jetbrains.kotlin.load.kotlin.VirtualFileKotlinClass
 import org.jetbrains.kotlin.load.kotlin.getContainingKotlinJvmBinaryClass
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.platform.TargetPlatform
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -37,6 +40,8 @@ import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
+import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
+import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getAllSuperclassesWithoutAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
@@ -123,10 +128,13 @@ class JdepsGenExtension(
     platform: TargetPlatform,
     moduleDescriptor: ModuleDescriptor
   ) {
-    container.useInstance(ClasspathCollectingCallChecker(classesCanonicalPaths))
+    container.useInstance(ClasspathCollectingChecker(classesCanonicalPaths))
   }
 
-  class ClasspathCollectingCallChecker(private val classesCanonicalPaths: HashSet<String>) : CallChecker {
+  class ClasspathCollectingChecker(
+    private val classesCanonicalPaths: HashSet<String>
+  ) : CallChecker, DeclarationChecker {
+
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
 
       when (resolvedCall.resultingDescriptor) {
@@ -141,6 +149,19 @@ class JdepsGenExtension(
           getClassCanonicalPath(resolvedCall.resultingDescriptor)?.let { classesCanonicalPaths.add(it) }
         }
         else -> return
+      }
+    }
+
+    override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) {
+      when (descriptor) {
+        is FunctionDescriptor -> {
+          descriptor.valueParameters.forEach { valueParameter ->
+            getClassCanonicalPath(valueParameter.type.constructor.declarationDescriptor as DeclarationDescriptorWithSource)?.let { classesCanonicalPaths.add(it) }
+          }
+        }
+        is PropertyDescriptor -> {
+          getClassCanonicalPath(descriptor.type.constructor.declarationDescriptor as DeclarationDescriptorWithSource)?.let { classesCanonicalPaths.add(it) }
+        }
       }
     }
   }

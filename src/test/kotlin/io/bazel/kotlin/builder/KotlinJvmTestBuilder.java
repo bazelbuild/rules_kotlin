@@ -55,7 +55,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     DirectoryType.TEMP);
 
     private TaskBuilder taskBuilderInstance = new TaskBuilder();
-    private KotlinBuilderTestComponent component;
+    private static KotlinBuilderTestComponent component;
 
     @Override
     void setupForNext(CompilationTaskInfo.Builder taskInfo) {
@@ -83,16 +83,16 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     @SafeVarargs
     public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
-        if (component == null) {
-            component = component();
-        }
-        return executeTask(component.jvmTaskExecutor()::execute, setup);
+        return executeTask(component().jvmTaskExecutor()::execute, setup);
     }
 
-    public static KotlinBuilderTestComponent component() {
-        return DaggerKotlinBuilderTestComponent.builder()
+    private static KotlinBuilderTestComponent component() {
+        if (component == null) {
+            component = DaggerKotlinBuilderTestComponent.builder()
                 .toolchain(KotlinToolchain.createToolchain())
                 .build();
+        }
+        return component;
     }
 
     private Dep executeTask(
