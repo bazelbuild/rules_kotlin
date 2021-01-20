@@ -20,6 +20,7 @@ load(
     "//kotlin:rules.bzl",
     _define_kt_toolchain = "define_kt_toolchain",
     _kt_android_library = "kt_android_library",
+    _kt_android_local_test = "kt_android_local_test",
     _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_javac_options = "kt_javac_options",
     _kt_js_import = "kt_js_import",
@@ -44,4 +45,5 @@ kt_jvm_import = _kt_jvm_import
 kt_jvm_library = _kt_jvm_library
 kt_jvm_test = _kt_jvm_test
 kt_android_library = _kt_android_library
+kt_android_local_test = _kt_android_local_test
 kt_compiler_plugin = _kt_compiler_plugin

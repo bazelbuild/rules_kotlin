@@ -18,7 +18,7 @@ load(
 
 _ANDROID_SDK_JAR = "%s" % Label("//third_party:android_sdk")
 
-def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], kotlinc_opts = None, javac_opts = None, enable_data_binding = False, **kwargs):
+def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], friends = [], kotlinc_opts = None, javac_opts = None, enable_data_binding = False, **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
     Kotlin srcs. Returns a sequence of labels that a wrapping macro should export.
     """
@@ -41,7 +41,8 @@ def _kt_android_artifact(name, srcs = [], deps = [], plugins = [], kotlinc_opts 
         srcs = srcs,
         deps = base_deps + [base_name],
         plugins = plugins,
-        testonly = kwargs.get("testonly", default = 0),
+        friends = friends,
+        testonly = kwargs.get("testonly", default = False),
         visibility = ["//visibility:private"],
         kotlinc_opts = kotlinc_opts,
         javac_opts = javac_opts,
@@ -60,4 +61,25 @@ def kt_android_library(name, exports = [], visibility = None, **kwargs):
         visibility = visibility,
         tags = kwargs.get("tags", default = None),
         testonly = kwargs.get("testonly", default = 0),
+    )
+
+def kt_android_local_test(name, timeout = None, jvm_flags = None, manifest = None, test_class = None, visibility = None, **kwargs):
+    """Creates a testable Android sandwich library.
+
+    `srcs`, `deps`, `plugins`, `friends` are routed to `kt_jvm_library` the other android
+    related attributes are handled by the native `android_library` rule while the test attributes
+    are picked out and handled by the `android_local_test` rule.
+    """
+
+    native.android_local_test(
+        name = name,
+        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, **kwargs),
+        timeout = timeout,
+        jvm_flags = jvm_flags,
+        test_class = test_class,
+        visibility = visibility,
+        custom_package = kwargs.get("custom_package", default = None),
+        manifest = manifest,
+        tags = kwargs.get("tags", default = None),
+        testonly = kwargs.get("testonly", default = True),
     )
