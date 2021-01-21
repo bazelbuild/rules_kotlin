@@ -29,6 +29,9 @@ KtJvmInfo = provider(
         "srcs": "the source files. [intelij-aspect]",
         "outputs": "output jars produced by this rule. [intelij-aspect]",
         "language_version": "version of kotlin used. [intellij-aspect]",
+        "transitive_compile_time_jars": "Returns the transitive set of Jars required to build the target. [intellij-aspect]",
+        "transitive_source_jars": "Returns the Jars containing source files of the current target and all of its transitive dependencies. [intellij-aspect]",
+        "annotation_processing": "Generated annotation processing jars. [intellij-aspect]",
     },
 )
 
