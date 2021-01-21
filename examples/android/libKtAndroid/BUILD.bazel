@@ -19,8 +19,8 @@ java_plugin(
 )
 
 kt_android_library(
-    name = "lib",
-    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    name = "my_kt",
+    srcs = glob(["src/main/java/**/*.kt"]),
     custom_package = "examples.android.lib",
     manifest = "src/main/AndroidManifest.xml",
     plugins = [
@@ -29,6 +29,7 @@ kt_android_library(
     ],
     tags = ["trace"],
     visibility = ["//visibility:public"],
+    resource_files = glob(["res/**"]),
     deps = [
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:com_google_auto_value_auto_value_annotations",
