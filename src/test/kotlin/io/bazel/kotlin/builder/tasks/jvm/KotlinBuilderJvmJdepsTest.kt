@@ -30,26 +30,49 @@ import java.util.function.Consumer
 
 @RunWith(JUnit4::class)
 class KotlinBuilderJvmJdepsTest {
-    val ctx = KotlinJvmTestBuilder()
+  val ctx = KotlinJvmTestBuilder()
 
-    @Test
-    fun `no dependencies`() {
+  @Test
+  fun `no kotlin source produces empty jdeps`() {
 
-      val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("AClass.kt",
-          """
+    val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.java",
+        """
+          package something;
+          
+          class AnotherClass {
+          }
+        """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+      c.compileJava()
+      c.outputJavaJdeps()
+    })
+    val jdeps = depsProto(deps)
+
+    assertThat(jdeps.dependencyCount).isEqualTo(0)
+    assertThat(jdeps.ruleLabel).isEqualTo(deps.label())
+  }
+
+  @Test
+  fun `no dependencies`() {
+
+    val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt",
+        """
             package something
             
             class AClass{}
           """)
-        c.outputJar()
-        c.outputJdeps()
-        c.compileKotlin()
-      })
-      val jdeps = depsProto(deps)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+    val jdeps = depsProto(deps)
 
-      assertThat(jdeps.dependencyCount).isEqualTo(0)
-      assertThat(jdeps.ruleLabel).isEqualTo(deps.label())
+    assertThat(jdeps.dependencyCount).isEqualTo(0)
+    assertThat(jdeps.ruleLabel).isEqualTo(deps.label())
   }
 
   @Test
@@ -264,45 +287,45 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `kotlin property reference`() {
-      val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("AClass.kt",
-          """
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt",
+        """
             package something
 
             class AClass{}
             """)
-        c.outputJar()
-        c.outputJdeps()
-        c.compileKotlin()
-      })
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
 
-      val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("HasPropertyDependency.kt",
-          """
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasPropertyDependency.kt",
+        """
             package something
             
             val property2 =  AClass()
           """)
-        c.outputJar()
-        c.compileKotlin()
-        c.addDirectDependencies(dependentTarget)
-        c.outputJdeps()
-      })
-      val jdeps = depsProto(dependingTarget)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
 
-      assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-      assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
-      assertImplicit(jdeps).isEmpty()
-      assertUnused(jdeps).isEmpty()
-      assertIncomplete(jdeps).isEmpty()
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
   }
 
   @Test
   fun `kotlin property definition`() {
-      val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("JavaClass.java",
-          """
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("JavaClass.java",
+        """
             package something;
    
             public class JavaClass {
@@ -311,14 +334,14 @@ class KotlinBuilderJvmJdepsTest {
               }          
             }
           """)
-        c.outputJar()
-        c.outputJavaJdeps()
-        c.compileJava()
-      })
+      c.outputJar()
+      c.outputJavaJdeps()
+      c.compileJava()
+    })
 
-      val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("HasPropertyDefinition.kt",
-          """
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasPropertyDefinition.kt",
+        """
             package something
             
             interface HasPropertyDefinition {
@@ -326,55 +349,55 @@ class KotlinBuilderJvmJdepsTest {
                 val callFactory: JavaClass.InnerJavaClass
             }
           """)
-        c.outputJar()
-        c.compileKotlin()
-        c.addDirectDependencies(dependentTarget)
-        c.outputJdeps()
-      })
-      val jdeps = depsProto(dependingTarget)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
 
-      assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-      assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
-      assertImplicit(jdeps).isEmpty()
-      assertUnused(jdeps).isEmpty()
-      assertIncomplete(jdeps).isEmpty()
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
   }
 
   @Test
   fun `kotlin generic type reference`() {
-      val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("AClass.kt",
-          """
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt",
+        """
             package something
 
             class AClass{}
             """)
-        c.outputJar()
-        c.outputJdeps()
-        c.compileKotlin()
-      })
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
 
-      val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        c.addSource("HasGenericTypeDependency.kt",
-          """
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasGenericTypeDependency.kt",
+        """
             package something
             
             val property2 =  listOf<AClass>()
           """)
-        c.outputJar()
-        c.compileKotlin()
-        c.addDirectDependencies(dependentTarget)
-        c.outputJdeps()
-      })
-      val jdeps = depsProto(dependingTarget)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
 
-      assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-      assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
-      assertImplicit(jdeps).isEmpty()
-      assertUnused(jdeps).isEmpty()
-      assertIncomplete(jdeps).isEmpty()
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
   }
 
   @Test
