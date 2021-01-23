@@ -2,6 +2,7 @@
 # we don't break trying to build separate workspaces using wildcards like //...
 # examples/dagger doesn't have its own workspace, so don't do all of examples.
 examples/android
+examples/jetpack_compose
 examples/node
 examples/trivial
 examples/anvil
