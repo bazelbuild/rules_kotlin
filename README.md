@@ -45,8 +45,8 @@ and `kt_js`, and `kt_android` typically applied to the rules (the exception bein
 `kt_android_local_test`, which doesn't exist. Use an `android_local_test` that takes a 
 `kt_android_library` as a dependency).
 
-Limited "friend" support is available, in the form of tests being friends of their library for the
-system under test, allowing `internal` access to types and functions.
+Support for kotlin's -Xfriend-paths via the `associates=` attribute in the jvm allow access to
+`internal` members.
 
 Also, `kt_jvm_*` rules support the following standard `java_*` rules attributes:
   * `data`

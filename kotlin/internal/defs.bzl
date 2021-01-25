@@ -25,6 +25,7 @@ KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 KtJvmInfo = provider(
     fields = {
         "module_name": "the module name",
+        "module_jars": "Jars comprising the module (logical compilation unit), a.k.a. associates",
         "exported_compiler_plugins": "compiler plugins to be invoked by targets depending on this.",
         "srcs": "the source files. [intelij-aspect]",
         "outputs": "output jars produced by this rule. [intelij-aspect]",

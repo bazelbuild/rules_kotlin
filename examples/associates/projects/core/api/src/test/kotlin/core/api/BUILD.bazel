@@ -1,0 +1,10 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_test")
+
+kt_jvm_test(
+    name = "CoreApiTest",
+    srcs = ["CoreApiTest.kt"],
+    friends = ["//projects/core/api"],  # Deprecated - here to ensure it still works.
+    deps = [
+        "@maven//:junit_junit",
+    ],
+)

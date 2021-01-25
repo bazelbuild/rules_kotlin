@@ -18,7 +18,7 @@ tasks:
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
       # KotlinJvmDaggerExampleTest and KotlinJvmKaptAssertionTest are not remote
       # execution compatible, do not run them for now.
-      - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmFriendsVisibilityTest"
+      - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmAssociatesBasicVisibilityTest"
       - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmBasicAssertionTest"
     test_flags:
       # Override the default worker strategy for remote builds (worker strategy
@@ -33,6 +33,16 @@ tasks:
     shell_commands:
       - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/android
+    test_flags:
+      - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
+    test_targets:
+      - //...
+  example-associates:
+    name: "Example - Associates"
+    platform: ubuntu1804
+    shell_commands:
+      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
+    working_directory: examples/associates
     test_flags:
       - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
     test_targets:
