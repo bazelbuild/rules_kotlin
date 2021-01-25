@@ -19,6 +19,8 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
+import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.Companion.emptyJdeps
+import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.Companion.writeJdeps
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
@@ -279,6 +281,7 @@ fun JvmCompilationTask.compileKotlin(
   printOnFail: Boolean = true
 ): List<String> {
   if (inputs.kotlinSourcesList.isEmpty()) {
+    writeJdeps(outputs.jdeps, emptyJdeps(info.label))
     return emptyList()
   } else {
     return (args + plugins(
