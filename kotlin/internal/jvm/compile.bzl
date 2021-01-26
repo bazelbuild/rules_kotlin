@@ -539,9 +539,10 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + friend.targets)
 
     generated_src_jars = []
+    annotation_processing = None
     if toolchains.kt.experimental_use_abi_jars:
         compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
-        output_jars = _run_kt_java_builder_actions(
+        outputs_struct = _run_kt_java_builder_actions(
             ctx = ctx,
             rule_kind = rule_kind,
             toolchains = toolchains,
@@ -555,6 +556,9 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             plugins = plugins,
             compile_jar = compile_jar,
         )
+        output_jars = outputs_struct.output_jars
+        generated_src_jars = outputs_struct.generated_src_jars
+        annotation_processing = outputs_struct.annotation_processing
 
     else:
         kt_java_output_jar = ctx.actions.declare_file(ctx.label.name + "-kt-java.jar")
@@ -592,6 +596,12 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         )
         compile_jar = kt_java_output_jar
         output_jars = [kt_java_output_jar]
+        generated_src_jars = [kt_generated_java_srcjar]
+        annotation_processors = _create_annotation_processing(
+            annotation_processors = annotation_processors,
+            ap_class_jar = kt_java_output_jar,
+            ap_source_jar = kt_generated_java_srcjar
+        )
 
     # If this rule has any resources declared setup a zipper action to turn them into a jar.
     if len(ctx.files.resources) > 0:
@@ -619,17 +629,18 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         host_javabase = toolchains.java_runtime,
     )
 
+    java_info = JavaInfo(
+        output_jar = output_jar,
+        compile_jar = compile_jar,
+        source_jar = source_jar,
+        jdeps = ctx.outputs.jdeps,
+        deps = compile_deps.deps,
+        runtime_deps = [_java_info(d) for d in ctx.attr.runtime_deps],
+        exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
+        neverlink = getattr(ctx.attr, "neverlink", False),
+    )
     return struct(
-        java = JavaInfo(
-            output_jar = output_jar,
-            compile_jar = compile_jar,
-            source_jar = source_jar,
-            jdeps = ctx.outputs.jdeps,
-            deps = compile_deps.deps,
-            runtime_deps = [_java_info(d) for d in ctx.attr.runtime_deps],
-            exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
-            neverlink = getattr(ctx.attr, "neverlink", False),
-        ),
+        java = java_info,
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
             module_name = _utils.derive_module_name(ctx),
@@ -647,13 +658,19 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
                     source_jars = [source_jar],
                 )],
             ),
+            transitive_compile_time_jars = java_info.transitive_compile_time_jars,
+            transitive_source_jars = java_info.transitive_source_jars,
+            annotation_processing = annotation_processing,
         ),
     )
 
-"""Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
-"""
 
 def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src_jars, friend, compile_deps, deps_artifacts, annotation_processors, transitive_runtime_jars, plugins, compile_jar):
+    """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
+
+    Returns:
+        A struct containing the a list of output_jars and a struct annotation_processing jars
+    """
     compile_jars = []
     output_jars = []
     kt_stubs_for_java = []
@@ -686,7 +703,13 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         )
         generated_src_jars.append(kapt_generated_src_jar)
         output_jars.append(kapt_generated_class_jar)
-        kt_stubs_for_java.append(JavaInfo(compile_jar = kapt_generated_stub_jar, output_jar = kapt_generated_stub_jar, neverlink = True))
+        kt_stubs_for_java.append(
+            JavaInfo(
+                compile_jar = kapt_generated_stub_jar,
+                output_jar = kapt_generated_stub_jar,
+                neverlink = True
+            )
+        )
 
     java_infos = []
 
@@ -800,7 +823,35 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         },
     )
 
-    return output_jars
+    annotation_processing = None
+    if annotation_processors:
+        annotation_processing = _create_annotation_processing(
+            annotation_processors = annotation_processors,
+            ap_class_jar = [jars.class_jar for jars in java_info.outputs.jars][0],
+            ap_source_jar = kapt_generated_src_jar
+       )
+
+    return struct(
+       output_jars = output_jars,
+       generated_src_jars = generated_src_jars,
+       annotation_processing = annotation_processing,
+   )
+
+def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source_jar):
+    """Creates the annotation_processing field for Kt to match what JavaInfo
+
+    The Bazel Plugin IDE logic is based on this assumption in order to locate the Annotation
+    Processor generated source code.
+
+    See https://docs.bazel.build/versions/master/skylark/lib/JavaInfo.html#annotation_processing
+    """
+    if annotation_processors:
+        return struct(
+            enabled = True,
+            class_jar = ap_class_jar,
+            source_jar = ap_source_jar,
+        )
+    return None
 
 def export_only_providers(ctx, actions, attr, outputs):
     """_export_only_providers creates a series of forwarding providers without compilation overhead.
