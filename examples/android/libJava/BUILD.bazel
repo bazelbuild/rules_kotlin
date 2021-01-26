@@ -1,0 +1,22 @@
+load("@rules_java//java:defs.bzl", "java_plugin")
+
+java_plugin(
+    name = "autovalue",
+    generates_api = 1,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = ["@maven//:com_google_auto_value_auto_value"],
+)
+
+java_library(
+    name = "my_java",
+    srcs = [
+        "src/main/java/examples/java/lib/JavaAutoValueProvider.java",
+        "src/main/java/examples/java/lib/TestJavaValue.java",
+    ],
+    plugins = [
+        ":autovalue",
+    ],
+    deps = [
+        "@maven//:com_google_auto_value_auto_value_annotations",
+    ],
+)

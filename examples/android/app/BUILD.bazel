@@ -8,32 +8,41 @@ android_binary(
     incremental_dexing = 0,
     manifest = "src/main/AndroidManifest.xml",
     multidex = "native",
+    manifest_values = {
+        "lib_name": "lib",
+    },
     deps = [
-        "//lib",
+        "//libKtAndroid:my_kt",
     ],
 )
 
 # An app that consumes jvm-kt libs
 android_binary(
     name = "app2",
-    custom_package = "examples.android.app",
+    custom_package = "examples.android.app2",
     incremental_dexing = 0,
     manifest = "src/main/AndroidManifest.xml",
     multidex = "native",
+    manifest_values = {
+		"lib_name": "lib2",
+	},
     deps = [
-        "//lib2",
+        "//libAndroid:my_android",
     ],
 )
 
 # An app that consumes android-kt deps, and does incremental dexing.
 android_binary(
     name = "app3",
-    custom_package = "examples.android.app",
+    custom_package = "examples.android.app3",
     incremental_dexing = 1,
     manifest = "src/main/AndroidManifest.xml",
     multidex = "native",
+    manifest_values = {
+		"lib_name": "lib",
+	},
     deps = [
-        "//lib",
+        "//libKtAndroid:my_kt",
     ],
 )
 
