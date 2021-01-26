@@ -214,6 +214,7 @@ def kt_jvm_junit_test_impl(ctx):
                     elements = file.short_path.split(splitter, 1)
                     if len(elements) == 2:
                         test_class = elements[1].split(".")[0].replace("/", ".")
+                        break
 
     _write_launcher_action(
         ctx,
