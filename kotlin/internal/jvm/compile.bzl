@@ -453,11 +453,12 @@ def _run_kt_builder_action(
     )
 
     # Add KAPT javac arguments. This is only defined on the toolchain for now, but could be added to rules if need be
-    args.add_all(
-        "--javac_arguments",
-        ["%s:%s" % (k, v) for k, v in toolchains.kt.kapt_javac_arguments.items()],
-        omit_if_empty = True,
-    )
+    if toolchains.kt.kapt_javac_arguments:
+        args.add_all(
+            "--javac_arguments",
+            ["%s:%s" % (k, v) for k, v in toolchains.kt.kapt_javac_arguments.items()],
+            omit_if_empty = True,
+        )
 
     args.add_all(
         "--compiler_plugin",
