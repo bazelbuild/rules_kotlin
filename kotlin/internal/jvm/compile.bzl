@@ -596,7 +596,12 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         )
         compile_jar = kt_java_output_jar
         output_jars = [kt_java_output_jar]
-        generated_src_jars = kt_generated_java_srcjar
+        generated_src_jars = [kt_generated_java_srcjar]
+        annotation_processors = _create_annotation_processing(
+            annotation_processors = annotation_processors,
+            ap_class_jar = kt_java_output_jar,
+            ap_source_jar = kt_generated_java_srcjar
+        )
 
     # If this rule has any resources declared setup a zipper action to turn them into a jar.
     if len(ctx.files.resources) > 0:
@@ -669,7 +674,6 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
     compile_jars = []
     output_jars = []
     kt_stubs_for_java = []
-    annotation_processing = None
 
     # Run KAPT
     if srcs.kt and annotation_processors:
@@ -794,14 +798,6 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         ]
         java_infos.append(java_info)
 
-        if annotation_processors:
-            class_jar = [jars.class_jar for jars in java_info.outputs.jars][0]
-            annotation_processing = struct(
-                enabled = not annotation_processors == None,
-                class_jar = class_jar,
-                source_jar = kapt_generated_src_jar,
-            )
-
     # Merge ABI jars into final compile jar.
     _fold_jars_action(
         ctx,
@@ -827,11 +823,35 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
         },
     )
 
+    annotation_processing = None
+    if annotation_processors:
+        annotation_processing = _create_annotation_processing(
+            annotation_processors = annotation_processors,
+            ap_class_jar = [jars.class_jar for jars in java_info.outputs.jars][0],
+            ap_source_jar = kapt_generated_src_jar
+       )
+
     return struct(
        output_jars = output_jars,
        generated_src_jars = generated_src_jars,
        annotation_processing = annotation_processing,
    )
+
+def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source_jar):
+    """Creates the annotation_processing field for Kt to match what JavaInfo
+
+    The Bazel Plugin IDE logic is based on this assumption in order to locate the Annotation
+    Processor generated source code.
+
+    See https://docs.bazel.build/versions/master/skylark/lib/JavaInfo.html#annotation_processing
+    """
+    if annotation_processors:
+        return struct(
+            enabled = True,
+            class_jar = ap_class_jar,
+            source_jar = ap_source_jar,
+        )
+    return None
 
 def export_only_providers(ctx, actions, attr, outputs):
     """_export_only_providers creates a series of forwarding providers without compilation overhead.
