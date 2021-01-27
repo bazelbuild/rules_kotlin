@@ -18,7 +18,6 @@ class JdepsGenComponentRegistrar : ComponentRegistrar {
     // they were loaded from
     val extension = JdepsGenExtension(project, configuration)
     AnalysisHandlerExtension.registerExtension(project, extension)
-    ClassBuilderInterceptorExtension.registerExtension(project, extension)
     StorageComponentContainerContributor.registerExtension(project, extension)
   }
 }

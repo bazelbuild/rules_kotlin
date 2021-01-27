@@ -19,7 +19,6 @@ package io.bazel.kotlin.builder.tasks.jvm;
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
-import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -198,7 +197,7 @@ class KotlinBuilderJvmJdepsTest {
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -365,6 +364,41 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `kotlin method reference`() {
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt",
+        """
+            package something
+
+            fun String.aFunction() {}
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasFunctionDependency.kt",
+        """
+            package something.other
+            
+            import something.aFunction
+            
+            val functionRef = String::aFunction
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+  }
+
+  @Test
   fun `kotlin generic type reference`() {
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AClass.kt",
@@ -481,7 +515,7 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
-  fun `references function`() {
+  fun `call function in dependency`() {
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("ContainsFunction.kt",
         """
@@ -514,6 +548,225 @@ class KotlinBuilderJvmJdepsTest {
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `indirect super class reference should be an implicit dependency`() {
+    val implicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Base.kt",
+        """
+            package something
+
+            open class Base(p: Int)
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val explicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Derived.kt",
+        """
+            package something
+
+            class Derived(p: Int) : Base(p)
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+      c.addDirectDependencies(implicitSuperClassDep)
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("ReferencesClassWithSuperClass.kt",
+        """
+            package something
+
+            val classRef = Derived(42)
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(explicitSuperClassDep)
+      c.addTransitiveDependencies(implicitSuperClassDep)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(explicitSuperClassDep.singleCompileJar())
+    assertImplicit(jdeps).containsExactly(implicitSuperClassDep.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `generic type as constructor parameter`() {
+    val implicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Base.kt",
+        """
+            package something.base
+
+            open class Base(p: Int)
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val explicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Derived.kt",
+        """
+            package something.derived
+            
+            import something.base.Base
+
+            class Derived(p: Int) : Base(p)
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+      c.addDirectDependencies(implicitSuperClassDep)
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.java",
+        """
+          package something.reference;
+          
+          class AnotherClass<T> {
+          }
+        """)
+      c.addSource("ReferencesGenericTypeWithSuperClass.kt",
+        """
+            package something.reference
+            
+            import something.derived.Derived
+
+            internal class HasConstructorDependency constructor(genericRef: AnotherClass<Derived>) {}
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(explicitSuperClassDep)
+      c.addTransitiveDependencies(implicitSuperClassDep)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(explicitSuperClassDep.singleCompileJar())
+    assertImplicit(jdeps).contains(implicitSuperClassDep.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `generic type as lazy property`() {
+    val implicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Base.kt",
+        """
+            package something.base
+
+            open class Base(p: Int)
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val explicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Derived.kt",
+        """
+            package something.derived
+            
+            import something.base.Base
+
+            class Derived(p: Int) : Base(p)
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+      c.addDirectDependencies(implicitSuperClassDep)
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.java",
+        """
+          package something.reference;
+          
+          class AnotherClass<T> {
+          }
+        """)
+      c.addSource("ReferencesGenericTypeWithSuperClass.kt",
+        """
+            package something.reference
+            
+            import something.derived.Derived
+
+            private val lazyProperty by lazy { AnotherClass<Derived>() }
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.compileJava()
+      c.addDirectDependencies(explicitSuperClassDep)
+      c.addTransitiveDependencies(implicitSuperClassDep)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(explicitSuperClassDep.singleCompileJar())
+    assertImplicit(jdeps).contains(implicitSuperClassDep.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `return type of function should be an explicit dependency`() {
+    val depWithReturnType = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("SomeType.kt",
+        """
+            package something
+
+            class SomeType {}
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+
+    val depWithFunction = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Derived.kt",
+        """
+            package something
+
+            fun returnSomeType() = SomeType()
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+      c.addDirectDependencies(depWithReturnType)
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("ReferencesClassWithSuperClass.kt",
+        """
+            package something
+
+            val someType = returnSomeType()
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(depWithFunction, depWithReturnType)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(depWithFunction.singleCompileJar(), depWithReturnType.singleCompileJar())
   }
 
   private fun depsProto(jdeps: io.bazel.kotlin.builder.Deps.Dep) =
