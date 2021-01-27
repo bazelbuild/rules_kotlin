@@ -169,20 +169,6 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-# TODO: Figure this out and delete if really unused.
-def _merge_kt_jvm_info(module_name, providers):
-    language_versions = {p.language_version: True for p in providers if p.language_version}
-    if len(language_versions) != 1:
-        fail("Conflicting kt language versions: %s" % language_versions)
-    return _KtJvmInfo(
-        language_versions.keys()[0],
-        module_jars = [p.module_jars for p in providers],
-        exported_compiler_plugins = depset(transitive = [
-            p.exported_compiler_plugins
-            for p in providers
-        ]),
-    )
-
 def _kotlinc_options_provider_to_flags(opts, language_version):
     if not opts:
         return ""
