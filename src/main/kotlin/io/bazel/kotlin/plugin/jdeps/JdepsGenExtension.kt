@@ -6,22 +6,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import io.bazel.kotlin.builder.utils.jars.JarOwner
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.codegen.ClassBuilder
-import org.jetbrains.kotlin.codegen.ClassBuilderFactory
-import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
-import org.jetbrains.kotlin.codegen.inline.RemappingClassBuilder
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
-import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
@@ -30,11 +23,9 @@ import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaField
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.load.kotlin.VirtualFileKotlinClass
 import org.jetbrains.kotlin.load.kotlin.getContainingKotlinJvmBinaryClass
-import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
@@ -42,12 +33,8 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.descriptorUtil.getAllSuperclassesWithoutAny
-import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
-import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
-import org.jetbrains.org.objectweb.asm.commons.Remapper
+import org.jetbrains.kotlin.types.KotlinType
 import java.io.BufferedOutputStream
 import java.io.File
 import java.nio.file.Paths
@@ -73,20 +60,9 @@ import java.nio.file.Paths
 class JdepsGenExtension(
   val project: MockProject,
   val configuration: CompilerConfiguration) :
-  ClassBuilderInterceptorExtension, AnalysisHandlerExtension, StorageComponentContainerContributor {
+  AnalysisHandlerExtension, StorageComponentContainerContributor {
 
   companion object {
-
-    /**
-     * Returns whether class is coming from JVM runtime env. There is no need to track these
-     * classes.
-     *
-     * @param className the class name of the class
-     * @return whether class is provided by jvm runtime or not
-     */
-    fun isJvmClass(className: ClassId): Boolean {
-      return className.asString().startsWith("java") || className.asString().startsWith("kotlin")
-    }
 
     /**
      * Returns the path of the jar archive file corresponding to the provided descriptor.
@@ -95,8 +71,7 @@ class JdepsGenExtension(
      * @return the path corresponding to the JAR where this class was loaded from, or null.
      */
     fun getClassCanonicalPath(descriptor: DeclarationDescriptorWithSource): String? {
-      return when (val sourceElement: SourceElement = descriptor.source
-      ) {
+      return when (val sourceElement: SourceElement = descriptor.source) {
         is JavaSourceElement ->
           if (sourceElement.javaElement is BinaryJavaClass) {
             (sourceElement.javaElement as BinaryJavaClass).virtualFile.canonicalPath
@@ -118,49 +93,86 @@ class JdepsGenExtension(
     }
   }
 
-  private val moduleClasses: HashSet<ClassId> = HashSet() // classes defined in current module
-  private val moduleDepClasses: HashSet<ClassId> = HashSet() // external  classes used directly by module
-  private val classesCanonicalPaths: HashSet<String> = HashSet()
-  private var moduleDescriptor: ModuleDescriptor? = null
+  private val explicitClassesCanonicalPaths = mutableSetOf<String>()
+  private val implicitClassesCanonicalPaths = mutableSetOf<String>()
 
   override fun registerModuleComponents(
     container: StorageComponentContainer,
     platform: TargetPlatform,
     moduleDescriptor: ModuleDescriptor
   ) {
-    container.useInstance(ClasspathCollectingChecker(classesCanonicalPaths))
+    container.useInstance(ClasspathCollectingChecker(explicitClassesCanonicalPaths, implicitClassesCanonicalPaths))
   }
 
   class ClasspathCollectingChecker(
-    private val classesCanonicalPaths: HashSet<String>
+    private val explicitClassesCanonicalPaths: MutableSet<String>,
+    private val implicitClassesCanonicalPaths: MutableSet<String>
   ) : CallChecker, DeclarationChecker {
 
-    override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
-
-      when (resolvedCall.resultingDescriptor) {
+    override fun check(
+      resolvedCall: ResolvedCall<*>,
+      reportOn: PsiElement,
+      context: CallCheckerContext
+    ) {
+      when (val resultingDescriptor = resolvedCall.resultingDescriptor) {
         is FunctionDescriptor -> {
-          val virtualFileClass = resolvedCall.resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
-          classesCanonicalPaths.add(virtualFileClass.file.path)
+          val virtualFileClass = resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
+            ?: return
+          explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
         }
         is FakeCallableDescriptorForObject -> {
-          getClassCanonicalPath(resolvedCall.resultingDescriptor)?.let { classesCanonicalPaths.add(it) }
+          getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is JavaPropertyDescriptor -> {
-          getClassCanonicalPath(resolvedCall.resultingDescriptor)?.let { classesCanonicalPaths.add(it) }
+          getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
         else -> return
       }
     }
 
-    override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) {
+    override fun check(
+      declaration: KtDeclaration,
+      descriptor: DeclarationDescriptor,
+      context: DeclarationCheckerContext
+    ) {
       when (descriptor) {
         is FunctionDescriptor -> {
+          descriptor.returnType?.let { collectTypeReferences(it) }
           descriptor.valueParameters.forEach { valueParameter ->
-            getClassCanonicalPath(valueParameter.type.constructor.declarationDescriptor as DeclarationDescriptorWithSource)?.let { classesCanonicalPaths.add(it) }
+            collectTypeReferences(valueParameter.type)
+          }
+          descriptor.annotations.forEach { annotation ->
+            collectTypeReferences(annotation.type)
           }
         }
         is PropertyDescriptor -> {
-          getClassCanonicalPath(descriptor.type.constructor.declarationDescriptor as DeclarationDescriptorWithSource)?.let { classesCanonicalPaths.add(it) }
+          collectTypeReferences(descriptor.type)
+        }
+      }
+    }
+
+    /**
+     * Records direct and indirect references for a given type. Direct references are explicitly
+     * used in the code, e.g: a type declaration or a generic type declaration. Indirect references
+     * are other types required for compilation such as supertypes and interfaces of those explicit
+     * types.
+     */
+    private fun collectTypeReferences(kotlinType: KotlinType) {
+      val constructor = kotlinType.constructor
+      getClassCanonicalPath(constructor.declarationDescriptor as DeclarationDescriptorWithSource)?.let { explicitClassesCanonicalPaths.add(it) }
+
+      constructor.supertypes.forEach {
+        val classCanonicalPath = getClassCanonicalPath(it.constructor.declarationDescriptor as DeclarationDescriptorWithSource)
+        classCanonicalPath?.let { implicitClassesCanonicalPaths.add(classCanonicalPath) }
+      }
+
+      kotlinType.arguments
+        .map { it.type.constructor }
+        .forEach { typeArgument ->
+          getClassCanonicalPath(typeArgument.declarationDescriptor as DeclarationDescriptorWithSource)?.let { explicitClassesCanonicalPaths.add(it) }
+          typeArgument.supertypes.forEach {
+            val classCanonicalPath = getClassCanonicalPath(it.constructor.declarationDescriptor as DeclarationDescriptorWithSource)
+            classCanonicalPath?.let { implicitClassesCanonicalPaths.add(classCanonicalPath) }
         }
       }
     }
@@ -172,66 +184,45 @@ class JdepsGenExtension(
     bindingTrace: BindingTrace,
     files: Collection<KtFile>
   ): AnalysisResult? {
-    // Hold module descriptor until end of class generation, seems safe to do so. Otherwise, we need
-    // to extract list of used classes differently (i.e not relaying on ClassBuilderInterceptor).
-    moduleDescriptor = module
+    val directDeps = configuration.getList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES)
+    val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
+    val explicitDeps = createDepsMap(explicitClassesCanonicalPaths)
+
+    doWriteJdeps(directDeps, targetLabel, explicitDeps)
+
+    doStrictDeps(configuration, targetLabel, directDeps, explicitDeps)
 
     return super.analysisCompleted(project, module, bindingTrace, files)
   }
 
-  override fun interceptClassBuilderFactory(
-    interceptedFactory: ClassBuilderFactory,
-    bindingContext: BindingContext,
-    diagnostics: DiagnosticSink
-  ): ClassBuilderFactory {
-    return UsageTrackerClassBuilderFactory(interceptedFactory, bindingContext)
-  }
-
-  private fun onClassBuilderComplete() {
-    assert(moduleDescriptor != null)
-
-    moduleDepClasses.filter(::isExternalModuleClass).forEach {
-      moduleDescriptor?.findClassAcrossModuleDependencies(it)?.let(::handleExternalModuleClass)
-    }
-    moduleDescriptor = null
-
-    writeOutput()
-  }
-
-  private fun handleExternalModuleClass(classDescriptor: ClassDescriptor) {
-    // Ignore internal or JVM classes
-    val className = ClassId.topLevel(classDescriptor.fqNameSafe)
-    if (isExternalModuleClass(className)) {
-      // Ignore already visited classes
-      val path: String = getClassCanonicalPath(classDescriptor) ?: return
-      if (classesCanonicalPaths.contains(path)) return
-
-      classesCanonicalPaths.add(path)
-
-      // Iterate through parent classes and interfaces
-      classDescriptor.getAllSuperclassesWithoutAny().forEach(::handleExternalModuleClass)
-      classDescriptor.getSuperInterfaces().forEach(::handleExternalModuleClass)
-    }
-  }
-
-  private fun writeOutput() {
-    // Build mapping jar -> [used classes]
-    val result: HashMap<String, ArrayList<String>> = HashMap()
-    classesCanonicalPaths.forEach {
+  /**
+   * Returns a map of jars to classes loaded from those jars.
+   */
+  private fun createDepsMap(classes: Set<String>): Map<String, List<String>> {
+    val jarsToClasses = mutableMapOf<String, MutableList<String>>()
+    classes.forEach {
       val parts = it.split("!/")
-      result.computeIfAbsent(parts[0]) { ArrayList() }.add(parts[1])
+      jarsToClasses.computeIfAbsent(parts[0]) { ArrayList() }.add(parts[1])
     }
+    return jarsToClasses
+  }
+
+  private fun doWriteJdeps(
+    directDeps: MutableList<String>,
+    targetLabel: String,
+    explicitDeps: Map<String, List<String>>
+  ) {
+
+    val implicitDeps = createDepsMap(implicitClassesCanonicalPaths)
 
     // Build and write out deps.proto
-    val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
     val jdepsOutput = configuration.getNotNull(JdepsGenConfigurationKeys.OUTPUT_JDEPS)
-    val directDeps = configuration.getList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES)
 
     val rootBuilder = Deps.Dependencies.newBuilder()
     rootBuilder.success = true
     rootBuilder.ruleLabel = targetLabel
 
-    val unusedDeps = directDeps.subtract(result.keys)
+    val unusedDeps = directDeps.subtract(explicitDeps.keys)
     unusedDeps.forEach { jarPath ->
       val dependency = Deps.Dependency.newBuilder()
       dependency.kind = Deps.Dependency.Kind.UNUSED
@@ -239,21 +230,34 @@ class JdepsGenExtension(
       rootBuilder.addDependency(dependency)
     }
 
-    result.forEach { (jarPath, classes) ->
+    explicitDeps.forEach { (jarPath, classes) ->
       val dependency = Deps.Dependency.newBuilder()
       dependency.kind = Deps.Dependency.Kind.EXPLICIT
       dependency.path = jarPath
       rootBuilder.addDependency(dependency)
     }
 
+    implicitDeps.keys.subtract(explicitDeps.keys).forEach {
+      val dependency = Deps.Dependency.newBuilder()
+      dependency.kind = Deps.Dependency.Kind.IMPLICIT
+      dependency.path = it
+      rootBuilder.addDependency(dependency)
+    }
+
     BufferedOutputStream(File(jdepsOutput).outputStream()).use {
       it.write(rootBuilder.build().toByteArray())
     }
+  }
 
-    when (configuration.getNotNull(JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS)) {
-      "warn" -> checkStrictDeps(result, directDeps, targetLabel)
+  private fun doStrictDeps(
+    compilerConfiguration: CompilerConfiguration,
+    targetLabel: String,
+    directDeps: MutableList<String>,
+    explicitDeps: Map<String, List<String>>) {
+    when (compilerConfiguration.getNotNull(JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS)) {
+      "warn" -> checkStrictDeps(explicitDeps, directDeps, targetLabel)
       "error" -> {
-        if(checkStrictDeps(result, directDeps, targetLabel)) error("Strict Deps Violations - please fix")
+        if (checkStrictDeps(explicitDeps, directDeps, targetLabel)) error("Strict Deps Violations - please fix")
       }
     }
   }
@@ -261,7 +265,11 @@ class JdepsGenExtension(
   /**
    * Prints strict deps warnings and returns true if violations were found.
    */
-  private fun checkStrictDeps(result: HashMap<String, ArrayList<String>>, directDeps: List<String>, targetLabel: String): Boolean {
+  private fun checkStrictDeps(
+    result: Map<String, List<String>>,
+    directDeps: List<String>,
+    targetLabel: String
+  ): Boolean {
     val missingStrictDeps = result.keys
       .filter { !directDeps.contains(it) }
       .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)).label }
@@ -279,82 +287,6 @@ class JdepsGenExtension(
       return true
     }
     return false
-  }
-
-  private fun isExternalModuleClass(className: ClassId): Boolean {
-    return !isModuleClass(className) && !isJvmClass(className)
-  }
-
-  private fun isModuleClass(className: ClassId): Boolean {
-    return moduleClasses.contains(className)
-  }
-
-  /*
-     * Class builder factory, wrapping usage of UsageTrackerRemappingClassBuilder
-     */
-  private inner class UsageTrackerClassBuilderFactory(
-    private val delegateFactory: ClassBuilderFactory, val bindingContext: BindingContext
-  ) : ClassBuilderFactory {
-
-    override fun newClassBuilder(origin: JvmDeclarationOrigin): ClassBuilder {
-      return UsageTrackerRemappingClassBuilder(delegateFactory.newClassBuilder(origin))
-    }
-
-    override fun getClassBuilderMode() = delegateFactory.classBuilderMode
-
-    override fun asText(builder: ClassBuilder?): String? {
-      return delegateFactory.asText((builder as UsageTrackerRemappingClassBuilder).builder)
-    }
-
-    override fun asBytes(builder: ClassBuilder?): ByteArray? {
-      return delegateFactory.asBytes((builder as UsageTrackerRemappingClassBuilder).builder)
-    }
-
-    override fun close() {
-      onClassBuilderComplete()
-
-      delegateFactory.close()
-    }
-  }
-
-  /**
-   * Class builder relying on remapper capability to track all external classes used by the class
-   * whose bytecode is being currently generated.
-   */
-  private inner class UsageTrackerRemappingClassBuilder(internal val builder: ClassBuilder) :
-    RemappingClassBuilder(builder, UsageTrackerRemapper()) {
-    override fun defineClass(
-      origin: PsiElement?,
-      version: Int,
-      access: Int,
-      name: String,
-      signature: String?,
-      superName: String,
-      interfaces: Array<out String>
-    ) {
-      moduleClasses.add(ClassId.fromString(name))
-      super.defineClass(origin, version, access, name, signature, superName, interfaces)
-    }
-  }
-
-  /**
-   * Remapper used to track all external classes usage.
-   */
-  private inner class UsageTrackerRemapper : Remapper() {
-    override fun map(typeName: String?): String {
-      typeName?.let { moduleDepClasses.add(ClassId.fromString(it)) }
-      return super.map(typeName)
-    }
-
-    override fun mapFieldName(owner: String?, name: String?, desc: String?): String {
-      owner?.let { moduleDepClasses.add(ClassId.fromString(it)) }
-      return super.mapFieldName(owner, name, desc)
-    }
-
-    override fun mapMethodName(owner: String?, name: String?, desc: String?): String {
-      owner?.let { moduleDepClasses.add(ClassId.fromString(it)) }
-      return super.mapMethodName(owner, name, desc)
-    }
   }
 }
 
