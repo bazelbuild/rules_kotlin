@@ -63,16 +63,21 @@ def _get_associates(ctx):
             module_name = list(module_names)[0],
         )
 
-def _get_jars(associates):
-    # Uses depset() expansion because there is no flatten/flatmap list function.
-    jars = [
-        a[JavaInfo].compile_jars
-        for a in depset(transitive = associates.jars).to_list()
-        if a[JavaInfo].compile_jars
+def _flatten_jars(nested_jars_depset):
+    """Returns a list of strings containing the compile_jars for depset of targets.
+
+    This ends up unwinding the nesting of depsets, since compile_jars contains depsets inside
+    the nested_jars targets, which themselves are depsets.  This function is intended to be called
+    lazily form within Args.add_all(map_each) as it collapses depsets.
+    """
+    compile_jars_depsets = [
+        target[JavaInfo].compile_jars
+        for target in nested_jars_depset.to_list()
+        if target[JavaInfo].compile_jars
     ]
-    return depset(transitive = jars).to_list()
+    return [file.path for file in depset(transitive = compile_jars_depsets).to_list()]
 
 associate_utils = struct(
     get_associates = _get_associates,
-    get_jars = _get_jars,
+    flatten_jars = _flatten_jars,
 )
