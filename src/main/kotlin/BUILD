@@ -57,7 +57,7 @@ java_binary(
         "--add-opens=java.base/java.nio=ALL-UNNAMED",
         "--add-opens=java.base/java.lang=ALL-UNNAMED",
         "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
-        "-Xmx16g",
+        "-Xmx4g",
     ],
     main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
     visibility = ["//visibility:public"],
