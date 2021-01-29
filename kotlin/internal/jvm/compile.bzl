@@ -35,8 +35,16 @@ load(
     _plugins_to_options = "plugins_to_options",
 )
 load(
+    "//kotlin/internal/jvm:associates.bzl",
+    _associate_utils = "associate_utils",
+)
+load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
+)
+load(
+    "//kotlin/internal/utils:sets.bzl",
+    _sets = "sets",
 )
 load(
     "@bazel_tools//tools/jdk:toolchain_utils.bzl",
@@ -87,36 +95,18 @@ def _compiler_toolchains(ctx):
         java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
     )
 
-def _compiler_friends(ctx, friends):
-    """Creates a struct of friends meta data"""
-
-    if len(friends) > 0 and ctx.attr.testonly == False:
-        fail("only testonly targets can have friends associated with them")
-
-    # TODO extract and move this into common. Need to make it generic first.
-    if len(friends) == 0:
-        return struct(
-            targets = [],
-            module_name = _utils.derive_module_name(ctx),
-            paths = [],
-        )
-    elif len(friends) == 1:
-        if friends[0][_KtJvmInfo] == None:
-            fail("only kotlin dependencies can be friends")
-        elif ctx.attr.module_name:
-            fail("if friends has been set then module_name cannot be provided")
-        else:
-            return struct(
-                targets = friends,
-                paths = _java_info(friends[0]).compile_jars,
-                module_name = friends[0][_KtJvmInfo].module_name,
-            )
-    else:
-        fail("only one friend is possible")
-
-def _jvm_deps(toolchains, friend, deps, runtime_deps = []):
+def _jvm_deps(toolchains, associated_targets, deps, runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
-    dep_infos = [_java_info(d) for d in friend.targets + deps] + [toolchains.kt.jvm_stdlibs]
+    diff = _sets.intersection(
+        _sets.copy_of([x.label for x in associated_targets]),
+        _sets.copy_of([x.label for x in deps]),
+    )
+    if diff:
+        fail(
+            "\n------\nTargets should only be put in associates= or deps=, not both:\n%s" %
+            ",\n ".join(["    %s" % x for x in list(diff)]),
+        )
+    dep_infos = [_java_info(d) for d in associated_targets + deps] + [toolchains.kt.jvm_stdlibs]
     return struct(
         deps = dep_infos,
         compile_jars = depset(
@@ -179,13 +169,14 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
+# TODO: Figure this out and delete if really unused.
 def _merge_kt_jvm_info(module_name, providers):
     language_versions = {p.language_version: True for p in providers if p.language_version}
     if len(language_versions) != 1:
         fail("Conflicting kt language versions: %s" % language_versions)
     return _KtJvmInfo(
         language_versions.keys()[0],
-        modules_jar = [p.module_jars for p in providers],
+        module_jars = [p.module_jars for p in providers],
         exported_compiler_plugins = depset(transitive = [
             p.exported_compiler_plugins
             for p in providers
@@ -367,7 +358,7 @@ def _run_kt_builder_action(
         toolchains,
         srcs,
         generated_src_jars,
-        friend,
+        associates,
         compile_deps,
         deps_artifacts,
         annotation_processors,
@@ -378,7 +369,7 @@ def _run_kt_builder_action(
         build_kotlin = True,
         mnemonic = "KotlinCompile"):
     """Creates a KotlinBuilder action invocation."""
-    args = _utils.init_args(ctx, rule_kind, friend.module_name)
+    args = _utils.init_args(ctx, rule_kind, associates.module_name)
 
     for f, path in outputs.items():
         args.add("--" + f, path)
@@ -398,8 +389,7 @@ def _run_kt_builder_action(
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
-
-    args.add_joined("--kotlin_friend_paths", friend.paths, join_with = "\n")
+    args.add_all("--kotlin_friend_paths", associates.jars, map_each = _associate_utils.flatten_jars)
 
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(
@@ -526,17 +516,17 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     """
     toolchains = _compiler_toolchains(ctx)
     srcs = _partitioned_srcs(ctx.files.srcs)
-    friend = _compiler_friends(ctx, friends = getattr(ctx.attr, "friends", []))
+    associates = _associate_utils.get_associates(ctx)
     compile_deps = _jvm_deps(
         toolchains,
-        friend,
+        associates.targets,
         deps = ctx.attr.deps,
         runtime_deps = ctx.attr.runtime_deps,
     )
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
-    deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + friend.targets)
+    deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + associates.targets)
 
     generated_src_jars = []
     annotation_processing = None
@@ -548,7 +538,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             toolchains = toolchains,
             srcs = srcs,
             generated_src_jars = [],
-            friend = friend,
+            associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = annotation_processors,
@@ -572,7 +562,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             toolchains = toolchains,
             srcs = srcs,
             generated_src_jars = [],
-            friend = friend,
+            associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = annotation_processors,
@@ -643,7 +633,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         java = java_info,
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
-            module_name = _utils.derive_module_name(ctx),
+            module_name = associates.module_name,
+            module_jars = associates.jars,
             language_version = toolchains.kt.api_version,
             exported_compiler_plugins = _collect_plugins_for_export(
                 getattr(ctx.attr, "exported_compiler_plugins", []),
@@ -665,7 +656,19 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     )
 
 
-def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src_jars, friend, compile_deps, deps_artifacts, annotation_processors, transitive_runtime_jars, plugins, compile_jar):
+def _run_kt_java_builder_actions(
+        ctx,
+        rule_kind,
+        toolchains,
+        srcs,
+        generated_src_jars,
+        associates,
+        compile_deps,
+        deps_artifacts,
+        annotation_processors,
+        transitive_runtime_jars,
+        plugins,
+        compile_jar):
     """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 
     Returns:
@@ -686,7 +689,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
             toolchains = toolchains,
             srcs = srcs,
             generated_src_jars = [],
-            friend = friend,
+            associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = annotation_processors,
@@ -737,7 +740,7 @@ def _run_kt_java_builder_actions(ctx, rule_kind, toolchains, srcs, generated_src
             toolchains = toolchains,
             srcs = srcs,
             generated_src_jars = generated_src_jars,
-            friend = friend,
+            associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = [],
@@ -894,6 +897,7 @@ def export_only_providers(ctx, actions, attr, outputs):
         java = java,
         kt = _KtJvmInfo(
             module_name = _utils.derive_module_name(ctx),
+            module_jars = [],
             language_version = toolchains.kt.api_version,
             exported_compiler_plugins = _collect_plugins_for_export(
                 getattr(attr, "exported_compiler_plugins", []),

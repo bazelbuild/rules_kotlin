@@ -198,9 +198,17 @@ _common_attr = utils.add_dicts(
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
             allow_files = True,
         ),
+        "associates": attr.label_list(
+            doc = """Kotlin deps who should be considered part of the same module/compilation-unit
+            for the purposes of "internal" access. Such deps must all share the same module space
+            and so a target cannot associate to two deps from two different modules.""",
+            default = [],
+            providers = [JavaInfo, _KtJvmInfo],
+        ),
         "friends": attr.label_list(
-            doc = """A single Kotlin dep which allows Kotlin code in other modules access to internal members. Currently uses the output
-            jar of the module -- i.e., exported deps won't be included.""",
+            doc = """A single Kotlin dep which allows Kotlin code in other modules access to
+            internal members. Currently uses the output jar of the module -- i.e., exported
+            deps won't be included. [DEPRECATED, use "associates" instead]""",
             default = [],
             providers = [JavaInfo, _KtJvmInfo],
         ),

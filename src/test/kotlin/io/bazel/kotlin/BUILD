@@ -58,9 +58,9 @@ kt_rules_e2e_test(
 )
 
 kt_rules_e2e_test(
-    name = "KotlinJvmFriendsVisibilityTest",
-    srcs = ["KotlinJvmFriendsVisibilityTest.kt"],
-    friends = ["//src/test/data/jvm/basic:test_friends_library"],
+    name = "KotlinJvmAssociatesBasicVisibilityTest",
+    srcs = ["KotlinJvmAssociatesBasicVisibilityTest.kt"],
+    associates = ["//src/test/data/jvm/basic:test_associates_library"],
 )
 
 kt_rules_e2e_test(
@@ -72,9 +72,9 @@ test_suite(
     name = "assertion_tests",
     tests = [
         "KotlinJvm13Test",
+        "KotlinJvmAssociatesBasicVisibilityTest",
         "KotlinJvmBasicAssertionTest",
         "KotlinJvmDaggerExampleTest",
-        "KotlinJvmFriendsVisibilityTest",
         "KotlinJvmKaptAssertionTest",
     ],
 )

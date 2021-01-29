@@ -104,7 +104,7 @@ java_binary(
 )
 
 kt_jvm_library(
-    name = "test_friends_library",
+    name = "test_associates_library",
     srcs = ["test_friends/Service.kt"],
     visibility = ["//src/test/kotlin:__subpackages__"],
 )

@@ -123,6 +123,7 @@ def kt_jvm_import_impl(ctx):
     artifact = _unify_jars(ctx)
     kt_info = _KtJvmInfo(
         module_name = _utils.derive_module_name(ctx),
+        module_jars = [],
         exported_compiler_plugins = depset(getattr(ctx.attr, "exported_compiler_plugins", [])),
         outputs = struct(
             jars = [artifact],
@@ -159,7 +160,6 @@ def kt_jvm_library_impl(ctx):
             "\nTo export libraries use exports.",
             attr = "deps",
         )
-
     return _make_providers(
         ctx,
         _kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs else export_only_providers(

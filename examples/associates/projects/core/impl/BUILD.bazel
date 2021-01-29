@@ -1,0 +1,13 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "impl",
+    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    associates = ["//projects/core/api"],
+    visibility = [
+        "//projects/core:__subpackages__",
+    ],
+    deps = [
+        # All my deps are associates.
+    ],
+)
