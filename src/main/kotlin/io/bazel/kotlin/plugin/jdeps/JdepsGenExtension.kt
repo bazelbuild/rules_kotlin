@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.PropertyImportedFromObject
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -125,6 +126,9 @@ class JdepsGenExtension(
         }
         is JavaPropertyDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
+        }
+        is PropertyImportedFromObject -> {
+          collectTypeReferences((resolvedCall.resultingDescriptor as PropertyImportedFromObject).containingObject.defaultType)
         }
         else -> return
       }
