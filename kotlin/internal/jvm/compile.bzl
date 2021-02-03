@@ -666,7 +666,7 @@ def _run_kt_java_builder_actions(
 
     # Run KAPT
     if srcs.kt and annotation_processors:
-        kapt_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-gensrc.jar")
+        ap_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-gensrc.jar")
         kapt_generated_stub_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-stub.jar")
         kapt_generated_class_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-class.jar")
         _run_kt_builder_action(
@@ -682,7 +682,7 @@ def _run_kt_java_builder_actions(
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = {
-                "generated_java_srcjar": kapt_generated_src_jar,
+                "generated_java_srcjar": ap_generated_src_jar,
                 "kapt_generated_stub_jar": kapt_generated_stub_jar,
                 "kapt_generated_class_jar": kapt_generated_class_jar,
             },
@@ -690,7 +690,7 @@ def _run_kt_java_builder_actions(
             build_kotlin = False,
             mnemonic = "KotlinKapt",
         )
-        generated_src_jars.append(kapt_generated_src_jar)
+        generated_src_jars.append(ap_generated_src_jar)
         output_jars.append(kapt_generated_class_jar)
         kt_stubs_for_java.append(
             JavaInfo(
@@ -764,7 +764,6 @@ def _run_kt_java_builder_actions(
         # annotation processors in `deps` also.
         if len(srcs.kt) > 0:
             javac_opts += ["-proc:none"]
-
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
@@ -777,6 +776,7 @@ def _run_kt_java_builder_actions(
             host_javabase = toolchains.java_runtime,
             neverlink = getattr(ctx.attr, "neverlink", False),
         )
+        ap_generated_src_jar = java_info.annotation_processing.source_jar
         compile_jars = compile_jars + [
             jars.ijar
             for jars in java_info.outputs.jars
@@ -817,7 +817,7 @@ def _run_kt_java_builder_actions(
         annotation_processing = _create_annotation_processing(
             annotation_processors = annotation_processors,
             ap_class_jar = [jars.class_jar for jars in java_info.outputs.jars][0],
-            ap_source_jar = kapt_generated_src_jar
+            ap_source_jar = ap_generated_src_jar
        )
 
     return struct(
