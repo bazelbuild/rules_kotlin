@@ -158,7 +158,7 @@ class PersistentWorker(
 
   override fun run(args: List<String>): Int {
     while (true) {
-      val request = WorkRequest.parseDelimitedFrom(io.input) ?: continue
+      val request = WorkRequest.parseDelimitedFrom(io.input) ?: break
 
       val (status, exit) = WorkingDirectoryContext.newContext()
         .runCatching {
