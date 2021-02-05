@@ -63,13 +63,15 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                   context,
                   compiler,
                   args = baseArgs()
-                    .plugin(plugins.jdeps) {
-                      flag("output", outputs.jdeps)
-                      flag("target_label", info.label)
-                      inputs.directDependenciesList.forEach {
-                        flag("direct_dependencies", it)
+                    .given(outputs.jdeps).notEmpty {
+                      plugin(plugins.jdeps) {
+                        flag("output", outputs.jdeps)
+                        flag("target_label", info.label)
+                        inputs.directDependenciesList.forEach {
+                          flag("direct_dependencies", it)
+                        }
+                        flag("strict_kotlin_deps", info.strictKotlinDeps)
                       }
-                      flag("strict_kotlin_deps", info.strictKotlinDeps)
                     }
                     .given(outputs.jar).notEmpty {
                       append(codeGenArgs())
