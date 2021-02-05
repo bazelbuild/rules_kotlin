@@ -9,12 +9,15 @@ import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
@@ -36,6 +39,8 @@ import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.TypeConstructor
+import org.jetbrains.kotlin.types.typeUtil.supertypes
 import java.io.BufferedOutputStream
 import java.io.File
 import java.nio.file.Paths
@@ -92,6 +97,10 @@ class JdepsGenExtension(
         else -> null
       }
     }
+
+    fun getClassCanonicalPath(typeConstructor: TypeConstructor): String? {
+      return (typeConstructor.declarationDescriptor as? DeclarationDescriptorWithSource)?.let { getClassCanonicalPath(it) }
+    }
   }
 
   private val explicitClassesCanonicalPaths = mutableSetOf<String>()
@@ -117,9 +126,13 @@ class JdepsGenExtension(
     ) {
       when (val resultingDescriptor = resolvedCall.resultingDescriptor) {
         is FunctionDescriptor -> {
+          resultingDescriptor.returnType?.let { addImplicitDep(it) }
           val virtualFileClass = resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
             ?: return
           explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
+        }
+        is ParameterDescriptor -> {
+          getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is FakeCallableDescriptorForObject -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
@@ -140,6 +153,11 @@ class JdepsGenExtension(
       context: DeclarationCheckerContext
     ) {
       when (descriptor) {
+        is ClassDescriptor -> {
+          descriptor.typeConstructor.supertypes.forEach {
+            collectTypeReferences(it)
+          }
+        }
         is FunctionDescriptor -> {
           descriptor.returnType?.let { collectTypeReferences(it) }
           descriptor.valueParameters.forEach { valueParameter ->
@@ -152,7 +170,18 @@ class JdepsGenExtension(
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
         }
+        is LocalVariableDescriptor -> {
+          collectTypeReferences(descriptor.type)
+        }
       }
+    }
+
+    private fun addImplicitDep(it: KotlinType) {
+      getClassCanonicalPath(it.constructor)?.let { implicitClassesCanonicalPaths.add(it) }
+    }
+
+    private fun addExplicitDep(it: KotlinType) {
+      getClassCanonicalPath(it.constructor)?.let { explicitClassesCanonicalPaths.add(it) }
     }
 
     /**
@@ -161,23 +190,18 @@ class JdepsGenExtension(
      * are other types required for compilation such as supertypes and interfaces of those explicit
      * types.
      */
-    private fun collectTypeReferences(kotlinType: KotlinType) {
-      val constructor = kotlinType.constructor
-      getClassCanonicalPath(constructor.declarationDescriptor as DeclarationDescriptorWithSource)?.let { explicitClassesCanonicalPaths.add(it) }
+    private fun collectTypeReferences(kotlinType: KotlinType, collectSuperTypes: Boolean = true) {
+      addExplicitDep(kotlinType)
 
-      constructor.supertypes.forEach {
-        val classCanonicalPath = getClassCanonicalPath(it.constructor.declarationDescriptor as DeclarationDescriptorWithSource)
-        classCanonicalPath?.let { implicitClassesCanonicalPaths.add(classCanonicalPath) }
+      if (collectSuperTypes) {
+        kotlinType.constructor.supertypes.forEach {
+          addImplicitDep(it)
+        }
       }
 
-      kotlinType.arguments
-        .map { it.type.constructor }
-        .forEach { typeArgument ->
-          getClassCanonicalPath(typeArgument.declarationDescriptor as DeclarationDescriptorWithSource)?.let { explicitClassesCanonicalPaths.add(it) }
-          typeArgument.supertypes.forEach {
-            val classCanonicalPath = getClassCanonicalPath(it.constructor.declarationDescriptor as DeclarationDescriptorWithSource)
-            classCanonicalPath?.let { implicitClassesCanonicalPaths.add(classCanonicalPath) }
-        }
+      kotlinType.arguments.map { it.type }.forEach { typeArgument ->
+        addExplicitDep(typeArgument)
+        typeArgument.supertypes().forEach { addImplicitDep(it) }
       }
     }
   }
