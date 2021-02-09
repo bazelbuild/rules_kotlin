@@ -89,7 +89,7 @@ _KOPTS = {
     "java_parameters": struct(
         args = dict(
             default = False,
-            doc = "Generate metadata for Java 1.8 reflection on method parameters.",
+            doc = "Generate metadata for Java 1.8+ reflection on method parameters.",
         ),
         type = attr.bool,
     ),
