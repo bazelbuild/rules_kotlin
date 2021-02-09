@@ -203,6 +203,8 @@ def _kotlinc_options_provider_to_flags(opts, language_version):
         flags.append("-Xjvm-default=compatibility")
     if opts.x_no_optimized_callable_references:
         flags.append("-Xno-optimized-callable-references")
+    if opts.java_parameters:
+        flags.append("-java-parameters")
     return flags
 
 def _validate_kotlinc_options(opts, language_version):
