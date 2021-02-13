@@ -609,7 +609,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
 
     java_info = JavaInfo(
         output_jar = output_jar,
-        compile_jar = compile_jar,
+        compile_jar = output_jar,
         source_jar = source_jar,
         jdeps = ctx.outputs.jdeps,
         deps = compile_deps.deps,
@@ -633,7 +633,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
                 jdeps = ctx.outputs.jdeps,
                 jars = [struct(
                     class_jar = output_jar,
-                    ijar = compile_jar,
+                    ijar = output_jar,
                     source_jars = [source_jar],
                 )],
             ),
