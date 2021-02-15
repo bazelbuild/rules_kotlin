@@ -58,13 +58,15 @@ case "$$(uname -s)" in
         ;;
 esac
 NAME=%s
-CP="$$(join_by $$SEP $(locations :%s))"
+CP="%s"
 ARGS="%s"
 
-$(JAVA) -Xmx256M -Xms32M -noverify \
-  -cp $(location @com_github_jetbrains_kotlin//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
-  -cp $(location @com_github_jetbrains_kotlin//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
-  -cp $${CP} -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)
+CMD="$(JAVA) -Xmx256M -Xms32M -noverify \
+      -cp $(location @com_github_jetbrains_kotlin//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
+      -cp $(location @com_github_jetbrains_kotlin//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+      $$CP -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)"
+
+$$CMD
 
 case "$(location @bazel_tools//tools/jdk:singlejar)" in
     *.jar)
@@ -82,7 +84,7 @@ $$SJ \
     --output $(OUTS)
 
 rm $(@D)/$${NAME}_temp.jar
-""" % (name, dep_label, " ".join(_BOOTSTRAP_LIB_ARGS))
+""" % (name, "-cp $$(join_by $$SEP $(locations :%s)) " % dep_label if deps + neverlink_deps else "", " ".join(_BOOTSTRAP_LIB_ARGS))
     native.genrule(
         name = jar_label,
         tools = [
