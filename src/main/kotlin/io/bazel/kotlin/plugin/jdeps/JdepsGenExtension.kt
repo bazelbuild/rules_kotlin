@@ -19,6 +19,8 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
+import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
+import org.jetbrains.kotlin.load.java.descriptors.JavaMethodDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
 import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaClass
@@ -125,8 +127,14 @@ class JdepsGenExtension(
       context: CallCheckerContext
     ) {
       when (val resultingDescriptor = resolvedCall.resultingDescriptor) {
+        is JavaMethodDescriptor -> {
+          getClassCanonicalPath((resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor)?.let { explicitClassesCanonicalPaths.add(it) }
+        }
         is FunctionDescriptor -> {
           resultingDescriptor.returnType?.let { addImplicitDep(it) }
+          resultingDescriptor.valueParameters.forEach { valueParameter ->
+            addImplicitDep(valueParameter.type)
+          }
           val virtualFileClass = resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
             ?: return
           explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
@@ -142,6 +150,10 @@ class JdepsGenExtension(
         }
         is PropertyImportedFromObject -> {
           collectTypeReferences((resolvedCall.resultingDescriptor as PropertyImportedFromObject).containingObject.defaultType)
+        }
+        is PropertyDescriptor -> {
+          val virtualFileClass = (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
+          explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
         }
         else -> return
       }
@@ -194,7 +206,7 @@ class JdepsGenExtension(
       addExplicitDep(kotlinType)
 
       if (collectSuperTypes) {
-        kotlinType.constructor.supertypes.forEach {
+        kotlinType.supertypes().forEach {
           addImplicitDep(it)
         }
       }
