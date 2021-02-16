@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 
@@ -40,7 +41,7 @@ class PersistentWorker(
   private val captureIO: () -> IO
 ) : Worker {
 
-  constructor() : this(Dispatchers.Main, IO.Companion::capture)
+  constructor() : this(Dispatchers.IO, IO.Companion::capture)
 
   /**
    * ThreadAwareDispatchers provides an ability to separate thread blocking operations from coroutines..
@@ -87,7 +88,11 @@ class PersistentWorker(
             }.let { result ->
               this@run.info { "task result ${result.status}" }
               WorkerProtocol.WorkResponse.newBuilder().apply {
-                output = result.log.out.toString()
+                output =
+                  listOf(
+                    result.log.out.toString(),
+                    io.captured.toByteArray().toString(UTF_8)
+                  ).filter { it.isNotBlank() }.joinToString("\n")
                 exitCode = result.status.exit
                 requestId = request.requestId
               }.build()
@@ -95,6 +100,9 @@ class PersistentWorker(
           }
           .collect { response ->
             blockable {
+              info {
+                response.toString()
+              }
               response.writeDelimitedTo(io.output)
               io.output.flush()
             }

@@ -15,19 +15,26 @@
  *
  */
 
-package io.bazel.kotlin.builder.tasks
+package io.bazel.kotlin.builder.cmd
 
-import io.bazel.worker.Status
-import io.bazel.worker.Work
-import io.bazel.worker.WorkerContext
-import javax.inject.Inject
+import io.bazel.kotlin.builder.DaggerKotlinBuilderComponent
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain.Companion.createToolchain
+import io.bazel.worker.Worker
+import kotlin.system.exitProcess
 
-class CompileKotlin @Inject constructor(private val builder: KotlinBuilder) : Work {
-  override fun invoke(ctx: WorkerContext.TaskContext, args: Iterable<String>): Status {
-    return if (builder.build(ctx, args.toList()) != 0) {
-      Status.ERROR
-    } else {
-      Status.SUCCESS
-    }
+object Build {
+  @JvmStatic
+  fun main(args: Array<String>) {
+    Worker
+      .from(args.toList()) {
+        start(
+          DaggerKotlinBuilderComponent
+            .builder()
+            .toolchain(createToolchain())
+            .build()
+            .compileKotlin()
+        )
+      }
+      .run(::exitProcess)
   }
 }

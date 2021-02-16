@@ -18,38 +18,35 @@ package io.bazel.kotlin.builder;
 
 import dagger.Component;
 import dagger.Provides;
-import io.bazel.kotlin.builder.tasks.BazelWorker;
+import io.bazel.kotlin.builder.tasks.MergeJdeps;
 import io.bazel.kotlin.builder.tasks.jvm.JdepsMerger;
-import java.io.PrintStream;
+
 import javax.inject.Singleton;
+import java.io.PrintStream;
 
 @Singleton
 @dagger.Component(modules = {JdepsMergerComponent.Module.class})
 public interface JdepsMergerComponent {
 
-  BazelWorker worker();
+    MergeJdeps work();
 
-  @Component.Builder
-  interface Builder {
-    JdepsMergerComponent build();
-  }
-
-  @dagger.Module
-  abstract class Module {
-
-    @Provides
-    public static PrintStream provideDebugPrintStream() {
-      return System.err;
+    @Component.Builder
+    interface Builder {
+        JdepsMergerComponent build();
     }
 
-    @Provides
-    public static JdepsMerger provideJdepsMerger() {
-      return new JdepsMerger();
-    }
+    @dagger.Module
+    abstract class Module {
 
-    @Provides
-    public static BazelWorker provideWorker(JdepsMerger jdepsMerger) {
-      return new BazelWorker(jdepsMerger, System.err, "JdepsMerger");
+        @Provides
+        public static PrintStream provideDebugPrintStream() {
+            return System.err;
+        }
+
+        @Provides
+        public static JdepsMerger provideJdepsMerger() {
+            return new JdepsMerger();
+        }
+
     }
-  }
 }

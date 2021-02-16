@@ -15,17 +15,19 @@
  *
  */
 
-package io.bazel.kotlin.builder.cmd
+package io.bazel.kotlin.builder.tasks
 
-import io.bazel.kotlin.builder.DaggerKotlinBuilderComponent
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain.Companion.createToolchain
-import io.bazel.worker.Worker
-import kotlin.system.exitProcess
+import io.bazel.kotlin.builder.tasks.jvm.JdepsMerger
+import io.bazel.worker.Status
+import io.bazel.worker.Work
+import io.bazel.worker.WorkerContext
+import javax.inject.Inject
 
-fun main(args: Array<String>) {
-  Worker
-    .from(args.toList()) {
-      start(DaggerKotlinBuilderComponent.builder().toolchain(createToolchain()).build().work())
+class MergeJdeps @Inject constructor(private val merger: JdepsMerger) : Work {
+  override fun invoke(ctx: WorkerContext.TaskContext, args: Iterable<String>): Status {
+    if (merger.execute(ctx, args.toList()) != 0) {
+      return Status.ERROR
     }
-    .run(::exitProcess)
+    return Status.SUCCESS
+  }
 }

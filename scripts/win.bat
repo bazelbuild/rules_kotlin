@@ -10,7 +10,7 @@ robocopy %REAL_SRC% %TARGET_DIR% /mir /xo /xd bazel-* /NFL /NDL
  bazel ^
     --output_base "c:\tmp\bazel" ^
     --output_user_root "c:\tmp\bazel_rules_kotlin" ^
-    build //src/main/kotlin:builder
+    build //src/main/kotlin:build
 
  bazel ^
     --output_base "c:\tmp\bazel" ^

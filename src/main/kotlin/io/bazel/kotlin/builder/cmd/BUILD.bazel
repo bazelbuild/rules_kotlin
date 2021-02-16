@@ -1,7 +1,8 @@
-load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
+load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
+load("@rules_java//java:defs.bzl", "java_binary")
 
 kt_bootstrap_library(
-    name = "build",
+    name = "build_lib",
     srcs = ["build.kt"],
     visibility = ["//src:__subpackages__"],
     deps = [
@@ -10,4 +11,39 @@ kt_bootstrap_library(
         "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
         "//src/main/kotlin/io/bazel/worker",
     ],
+)
+
+kt_bootstrap_binary(
+    name = "build",
+    data = [
+        "//src/main/kotlin:jdeps-gen",
+        "//src/main/kotlin:skip-code-gen",
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
+    ],
+    main_class = "io.bazel.kotlin.builder.cmd.Build",
+    runtime_library = ":build_lib",
+    shade_rules = "//src/main/kotlin:shade.jarjar",
+    visibility = ["//src:__subpackages__"],
+)
+
+kt_bootstrap_library(
+    name = "merge_jdeps_lib",
+    srcs = ["merge_jdeps.kt"],
+    visibility = ["//src:__subpackages__"],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
+        "//src/main/kotlin/io/bazel/worker",
+    ],
+)
+
+kt_bootstrap_binary(
+    name = "merge_jdeps",
+    data = [],
+    main_class = "io.bazel.kotlin.builder.cmd.MergeJdeps",
+    runtime_library = ":merge_jdeps_lib",
+    shade_rules = "//src/main/kotlin:shade.jarjar",
+    visibility = ["//src:__subpackages__"],
 )

@@ -17,6 +17,7 @@
 
 package io.bazel.worker
 
+import java.io.PrintStream
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.logging.Level
 
@@ -34,6 +35,7 @@ data class ContextLog(val out: CharSequence, val profiles: List<String> = emptyL
     fun debug(msg: () -> String)
     fun info(msg: () -> String)
     fun error(t: Throwable, msg: () -> String)
+    fun error(msg: () -> String)
   }
 
   /** Summarize all logs at invocation of contents. */
@@ -44,5 +46,8 @@ data class ContextLog(val out: CharSequence, val profiles: List<String> = emptyL
   /** ScopeLogging runtime messages to a namespace. */
   internal interface ScopeLogging : Summarize, Logging {
     fun narrowTo(name: String): ScopeLogging
+
+    /** asPrintStream allows direct writing for backwards compatiblity. */
+    fun asPrintStream(): PrintStream
   }
 }

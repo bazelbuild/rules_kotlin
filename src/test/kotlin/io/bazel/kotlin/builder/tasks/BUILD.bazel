@@ -35,11 +35,6 @@ kt_rules_test(
 )
 
 kt_rules_test(
-    name = "KotlinWorkerTest",
-    srcs = ["jvm/KotlinWorkerTest.kt"],
-)
-
-kt_rules_test(
     name = "KotlinBuilderJvmBasicTest",
     size = "large",
     srcs = ["jvm/KotlinBuilderJvmBasicTest.java"],
@@ -62,28 +57,6 @@ kt_rules_test(
     srcs = ["jvm/JdepsMergerTest.kt"],
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/utils/jars",
-    ],
-)
-
-kt_jvm_test(
-    name = "BazelWorkerTest",
-    srcs = ["BazelWorkerTest.kt"],
-    test_class = "io.bazel.kotlin.builder.tasks.BazelWorkerTest",
-    deps = [
-        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
-        "//src/test/kotlin/io/bazel/kotlin/builder:test_lib",
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
-            repository_name = "kotlin_rules_maven",
-        ),
     ],
 )
 

@@ -30,23 +30,21 @@ import io.bazel.kotlin.model.JsCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
-import java.io.PrintStream
+import io.bazel.worker.WorkerContext
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.regex.Pattern
 import javax.inject.Inject
-import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder @Inject internal constructor(
-  private val outputProvider: Provider<PrintStream>,
   private val jvmTaskExecutor: KotlinJvmTaskExecutor,
   private val jsTaskExecutor: Kotlin2JsTaskExecutor
-) : CommandLineProgram {
+) {
   companion object {
     @JvmStatic
     private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
@@ -121,31 +119,35 @@ class KotlinBuilder @Inject internal constructor(
     }
   }
 
-  override fun apply(workingDir: Path, args: List<String>): Int {
-    val (argMap, context) = buildContext(args)
+  fun build(taskContext: WorkerContext.TaskContext, args: List<String>): Int {
+    val (argMap, compileContext) = buildContext(taskContext, args)
     var success = false
     var status = 0
     try {
       @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
-      when (context.info.platform) {
-        Platform.JVM -> executeJvmTask(context, workingDir, argMap)
-        Platform.JS -> executeJsTask(context, workingDir, argMap)
+      when (compileContext.info.platform) {
+        Platform.JVM -> executeJvmTask(compileContext, taskContext.directory, argMap)
+        Platform.JS -> executeJsTask(compileContext, taskContext.directory, argMap)
         Platform.UNRECOGNIZED -> throw IllegalStateException(
-            "unrecognized platform: ${context.info}")
+          "unrecognized platform: ${compileContext.info}"
+        )
       }
       success = true
     } catch (ex: CompilationStatusException) {
-      System.err.println("Compilation failure: ${ex.message}")
+      taskContext.error(ex) { "Compilation failure: ${ex.message}" }
       status = ex.status
     } catch (throwable: Throwable) {
-      context.reportUnhandledException(throwable)
+      taskContext.error(throwable) { "Uncaught exception" }
     } finally {
-      context.finalize(success)
+      compileContext.finalize(success)
     }
     return status
   }
 
-  private fun buildContext(args: List<String>): Pair<ArgMap, CompilationTaskContext> {
+  private fun buildContext(
+    ctx: WorkerContext.TaskContext,
+    args: List<String>
+  ): Pair<ArgMap, CompilationTaskContext> {
     check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
     val lines = FLAGFILE_RE.matchEntire(args[0])?.groups?.get(1)?.let {
       Files.readAllLines(FileSystems.getDefault().getPath(it.value), StandardCharsets.UTF_8)
@@ -154,7 +156,7 @@ class KotlinBuilder @Inject internal constructor(
     val argMap = ArgMaps.from(lines)
     val info = buildTaskInfo(argMap).build()
     val context =
-        CompilationTaskContext(info, outputProvider.get())
+      CompilationTaskContext(info, ctx.asPrintStream())
     return Pair(argMap, context)
   }
 
@@ -191,7 +193,7 @@ class KotlinBuilder @Inject internal constructor(
     workingDir: Path,
     argMap: ArgMap
   ) =
-      buildJsTask(context.info, workingDir, argMap).let { jsTask ->
+    buildJsTask(context.info, workingDir, argMap).let { jsTask ->
       context.whenTracing { printProto("js task input", jsTask) }
       jsTaskExecutor.execute(context, jsTask)
     }
@@ -204,9 +206,9 @@ class KotlinBuilder @Inject internal constructor(
     with(JsCompilationTask.newBuilder()) {
       this.info = info
 
-        with(directoriesBuilder) {
-          temp = workingDir.toString()
-        }
+      with(directoriesBuilder) {
+        temp = workingDir.toString()
+      }
 
       with(inputsBuilder) {
         addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_LIBRARIES))
@@ -241,36 +243,43 @@ class KotlinBuilder @Inject internal constructor(
       root.compileKotlin = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean()
 
       with(root.outputsBuilder) {
-          argMap.optionalSingle(JavaBuilderFlags.OUTPUT)?.let { jar = it }
-          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
+        argMap.optionalSingle(JavaBuilderFlags.OUTPUT)?.let { jar = it }
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
 
-          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
-          argMap.optionalSingle(JavaBuilderFlags.OUTPUT_DEPS_PROTO)?.apply { javaJdeps = this }
-          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
-            generatedJavaSrcJar = this
-          }
-          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR)?.apply {
-            generatedJavaStubJar = this
-          }
-          argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR)?.let { abijar = it }
-          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
-            generatedClassJar = it
-          }
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
+        argMap.optionalSingle(JavaBuilderFlags.OUTPUT_DEPS_PROTO)?.apply { javaJdeps = this }
+        argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
+          generatedJavaSrcJar = this
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR)?.apply {
+          generatedJavaStubJar = this
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR)?.let { abijar = it }
+        argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
+          generatedClassJar = it
+        }
       }
 
-      with(root.directoriesBuilder)
-        {
-          val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
-          classes =
-            workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
-          javaClasses =
-            workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "java_classes")).toString()
-          if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) abiClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "abi_classes")).toString()
-          generatedClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes")).toString()
-          temp = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp")).toString()
-          generatedSources = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources")).toString()
-          generatedJavaSources = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_java_sources")).toString()
-          generatedStubClasses = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
+      with(root.directoriesBuilder) {
+        val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
+        classes =
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
+        javaClasses =
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "java_classes")).toString()
+        if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) abiClasses =
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "abi_classes")).toString()
+        generatedClasses =
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes"))
+            .toString()
+        temp = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp")).toString()
+        generatedSources =
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources"))
+            .toString()
+        generatedJavaSources =
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_java_sources"))
+            .toString()
+        generatedStubClasses =
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
       }
 
       with(root.inputsBuilder) {
@@ -320,5 +329,6 @@ class KotlinBuilder @Inject internal constructor(
       root.build()
     }
 
-  private fun getOutputDirPath(moduleName: String, dirName: String) = "_kotlinc/${moduleName}_jvm/$dirName"
+  private fun getOutputDirPath(moduleName: String, dirName: String) =
+    "_kotlinc/${moduleName}_jvm/$dirName"
 }

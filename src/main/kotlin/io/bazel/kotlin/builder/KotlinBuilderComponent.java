@@ -19,13 +19,12 @@ package io.bazel.kotlin.builder;
 import dagger.BindsInstance;
 import dagger.Component;
 import dagger.Provides;
-import io.bazel.kotlin.builder.tasks.BazelWorker;
 import io.bazel.kotlin.builder.tasks.CompileKotlin;
-import io.bazel.kotlin.builder.tasks.KotlinBuilder;
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
+import io.bazel.worker.WorkerContext;
 
 import javax.inject.Singleton;
 import java.io.PrintStream;
@@ -39,9 +38,7 @@ public interface KotlinBuilderComponent {
 
     Kotlin2JsTaskExecutor jsTaskExecutor();
 
-    BazelWorker worker();
-
-    CompileKotlin work();
+    CompileKotlin compileKotlin();
 
     @Component.Builder
     interface Builder {
@@ -55,13 +52,8 @@ public interface KotlinBuilderComponent {
     class Module {
 
         @Provides
-        public PrintStream provideDebugPrintStream() {
+        public PrintStream provideDebugPrintStream(WorkerContext ctx) {
             return System.err;
-        }
-
-        @Provides
-        public BazelWorker provideWorker(KotlinBuilder builder) {
-            return new BazelWorker(builder, System.err, "KotlinCompile");
         }
 
         @Provides

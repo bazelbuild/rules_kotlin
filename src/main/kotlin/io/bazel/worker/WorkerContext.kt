@@ -24,6 +24,7 @@ import io.bazel.worker.Status.ERROR
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.InterruptedIOException
+import java.io.PrintStream
 import java.nio.file.Path
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -89,6 +90,10 @@ class WorkerContext private constructor(
       logger.logp(Level.SEVERE, sourceName, name, t, msg)
     }
 
+    override fun error(msg: () -> String) {
+      logger.logp(Level.SEVERE, sourceName, name, msg)
+    }
+
     override fun debug(msg: () -> String) {
       logger.logp(Level.FINE, sourceName, name, msg)
     }
@@ -98,6 +103,8 @@ class WorkerContext private constructor(
     }
 
     override fun contents() = handler.flush().run { ContextLog(out.toByteArray(), profiles) }
+
+    override fun asPrintStream(): PrintStream = PrintStream(out, true)
   }
 
   class TaskContext internal constructor(
