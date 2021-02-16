@@ -31,7 +31,7 @@ class IO(
   private val restore: () -> Unit = {}
 ) : Closeable {
   companion object {
-    fun capture():IO {
+    fun capture(): IO {
       val stdErr = System.err
       val stdIn = BufferedInputStream(System.`in`)
       val stdOut = System.out

@@ -131,7 +131,7 @@ class WorkerContext private constructor(
     }
 
     private val Throwable.causes
-      get() : Sequence<Throwable> {
+      get(): Sequence<Throwable> {
         return cause?.let { c -> sequenceOf(c) + c.causes } ?: emptySequence()
       }
   }

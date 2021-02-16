@@ -17,28 +17,17 @@
 
 package io.bazel.worker
 
-import io.bazel.worker.WorkerContext.TaskContext
-
 /** Worker executes a unit of Work */
 interface Worker {
   companion object {
-    fun from(args:Iterable<String>, then:Worker.(Iterable<String>) -> Int):Int {
+    fun from(args: Iterable<String>, then: Worker.(Iterable<String>) -> Int): Int {
       val worker = when {
         "--persistent_worker" in args -> PersistentWorker()
-        else -> InvocationWorker()
+        else -> InvocationWorker(args)
       }
       return worker.then(args.filter { it != "--persistent_worker" })
     }
   }
 
-  fun start(arguments: Iterable<String>, execute: Work): Int
-
-  fun start(
-    arguments: Iterable<String> = emptyList(),
-    execute: (ctx: TaskContext, args: Iterable<String>) -> Status
-  ) = start(
-    arguments,
-    object : Work {
-      override fun invoke(ctx: TaskContext, args: Iterable<String>) = execute(ctx, args)
-    })
+  fun start(execute: Work): Int
 }

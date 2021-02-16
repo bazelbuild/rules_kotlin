@@ -31,7 +31,8 @@ class WorkingDirectoryContext(val dir: Path) : Closeable {
       }
 
     fun newContext(): WorkingDirectoryContext = WorkingDirectoryContext(
-      Files.createTempDirectory("working"))
+      Files.createTempDirectory("working")
+    )
   }
 
   override fun close() {

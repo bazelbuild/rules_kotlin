@@ -17,13 +17,27 @@
 
 package io.bazel.worker
 
-/** InvocationWorker executes a single unit of work. */
-class InvocationWorker(private val arguments: Iterable<String>) : Worker {
-  override fun start(execute: Work): Int =
-    WorkerContext.run {
-      doTask("invocation") { ctx -> execute(ctx, arguments) }.run {
-        println(log.out.toString())
-        status.exit
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
+
+class InvocationWorkerTest {
+  @Test
+  fun start() {
+    val arguments = listOf("--mammal", "bunny")
+    assertThat(
+      InvocationWorker(arguments).start { _, actualArgs ->
+        when (actualArgs) {
+          arguments -> Status.SUCCESS
+          else -> error("want $arguments, got $actualArgs")
+        }
       }
-    }
+    ).isEqualTo(0)
+  }
+
+  @Test
+  fun error() {
+    assertThat(
+      InvocationWorker(emptyList()).start { _, _ -> throw RuntimeException("error") }
+    ).isEqualTo(1)
+  }
 }

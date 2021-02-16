@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Bazel Authors. All rights reserved.
+ * Copyright 2021 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,18 @@
  *
  */
 
-package io.bazel.worker
+package io.bazel.kotlin.builder.tasks
 
-/** InvocationWorker executes a single unit of work. */
-class InvocationWorker(private val arguments: Iterable<String>) : Worker {
-  override fun start(execute: Work): Int =
-    WorkerContext.run {
-      doTask("invocation") { ctx -> execute(ctx, arguments) }.run {
-        println(log.out.toString())
-        status.exit
-      }
+import io.bazel.worker.Status
+import io.bazel.worker.Work
+import io.bazel.worker.WorkerContext
+import javax.inject.Inject
+
+class CompileKotlin @Inject constructor(private val builder: KotlinBuilder) : Work {
+  override fun invoke(ctx: WorkerContext.TaskContext, args: Iterable<String>): Status {
+    if (builder.apply(ctx.directory, args.toList()) != 0) {
+      return Status.ERROR
     }
+    return Status.SUCCESS
+  }
 }

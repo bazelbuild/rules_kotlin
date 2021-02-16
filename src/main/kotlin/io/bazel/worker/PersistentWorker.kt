@@ -72,7 +72,7 @@ class PersistentWorker(
   }
 
   @ExperimentalCoroutinesApi
-  override fun start(arguments:Iterable<String>, execute: Work) = WorkerContext.run {
+  override fun start(execute: Work) = WorkerContext.run {
     captureIO().use { io ->
       BlockableDispatcher.runIn(coroutineContext) {
         blockable {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Bazel Authors. All rights reserved.
+ * Copyright 2021 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,17 @@
  *
  */
 
-package io.bazel.worker
+package io.bazel.kotlin.builder.cmd
 
-/** InvocationWorker executes a single unit of work. */
-class InvocationWorker(private val arguments: Iterable<String>) : Worker {
-  override fun start(execute: Work): Int =
-    WorkerContext.run {
-      doTask("invocation") { ctx -> execute(ctx, arguments) }.run {
-        println(log.out.toString())
-        status.exit
-      }
+import io.bazel.kotlin.builder.DaggerKotlinBuilderComponent
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain.Companion.createToolchain
+import io.bazel.worker.Worker
+import kotlin.system.exitProcess
+
+fun main(args: Array<String>) {
+  Worker
+    .from(args.toList()) {
+      start(DaggerKotlinBuilderComponent.builder().toolchain(createToolchain()).build().work())
     }
+    .run(::exitProcess)
 }

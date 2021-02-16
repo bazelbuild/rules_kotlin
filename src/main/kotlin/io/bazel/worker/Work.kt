@@ -20,6 +20,6 @@ package io.bazel.worker
 import io.bazel.worker.WorkerContext.TaskContext
 
 /** Task for Worker execution. */
-interface Work {
+fun interface Work {
   operator fun invoke(ctx: TaskContext, args: Iterable<String>): Status
 }
