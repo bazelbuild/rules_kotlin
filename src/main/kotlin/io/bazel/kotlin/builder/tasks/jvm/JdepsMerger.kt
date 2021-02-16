@@ -1,13 +1,17 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
-import io.bazel.kotlin.builder.tasks.CommandLineProgram
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.INJECTING_RULE_KIND
 import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.TARGET_LABEL
-import java.io.*
+import io.bazel.worker.WorkerContext
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.IOException
+import java.io.UncheckedIOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -19,7 +23,7 @@ import java.util.jar.JarFile
  * Persistent worker capable command line program for merging multiple Jdeps files into a single
  * file.
  */
-class JdepsMerger: CommandLineProgram {
+class JdepsMerger {
   companion object {
 
     @JvmStatic
@@ -41,7 +45,7 @@ class JdepsMerger: CommandLineProgram {
           val manifest = jarFile.manifest ?: return JarOwner(jarPath)
           val attributes = manifest.mainAttributes
           val label = attributes[TARGET_LABEL] as String?
-            ?: return JarOwner(jarPath)
+                      ?: return JarOwner(jarPath)
           val injectingRuleKind = attributes[INJECTING_RULE_KIND] as String?
           return JarOwner(jarPath, label, injectingRuleKind)
         }
@@ -52,17 +56,19 @@ class JdepsMerger: CommandLineProgram {
     }
 
     fun merge(
+      ctx: WorkerContext.TaskContext,
       label: String,
       inputs: List<String>,
       output: String,
-      reportUnusedDeps: String): Int {
+      reportUnusedDeps: String
+    ): Int {
 
       val rootBuilder = Deps.Dependencies.newBuilder()
       rootBuilder.success = false
       rootBuilder.ruleLabel = label
 
       val dependencyMap = sortedMapOf<String, Deps.Dependency>()
-      inputs.forEach {input ->
+      inputs.forEach { input ->
         BufferedInputStream(Paths.get(input).toFile().inputStream()).use {
           val deps: Deps.Dependencies = Deps.Dependencies.parseFrom(it)
           deps.getDependencyList().forEach {
@@ -88,22 +94,22 @@ class JdepsMerger: CommandLineProgram {
         val unusedLabels = dependencyMap.values
           .filter { it.kind == Deps.Dependency.Kind.UNUSED }
           .mapNotNull { readJarOwnerFromManifest(Paths.get(it.path)).label }
-          .filter {it != label}
+          .filter { it != label }
 
         if (unusedLabels.isNotEmpty()) {
-          val open = "\u001b[35m\u001b[1m"
-          val close = "\u001b[0m"
-          val command =
-            """
+          ctx.info {
+            val open = "\u001b[35m\u001b[1m"
+            val close = "\u001b[0m"
+            return@info """
             |$open ** Please remove the following dependencies:$close ${unusedLabels.joinToString(" ")} from $label 
-            |$open ** You can use the following buildozer command:$close buildozer 'remove deps ${unusedLabels.joinToString(" ")}' $label
+            |$open ** You can use the following buildozer command:$close buildozer 'remove deps ${
+              unusedLabels.joinToString(" ")
+            }' $label
           """.trimMargin()
-
-          println(command)
-          return if(reportUnusedDeps == "error") 1 else 0
+          }
+          return if (reportUnusedDeps == "error") 1 else 0
         }
       }
-
       return 0
     }
   }
@@ -119,13 +125,13 @@ class JdepsMerger: CommandLineProgram {
     return ArgMaps.from(lines)
   }
 
-  override fun apply(workingDir: Path, args: List<String>): Int {
+  fun execute(ctx: WorkerContext.TaskContext, args: List<String>): Int {
     val argMap = getArgs(args)
     val inputs = argMap.mandatory(JdepsMergerFlags.INPUTS)
     val output = argMap.mandatorySingle(JdepsMergerFlags.OUTPUT)
     val label = argMap.mandatorySingle(JdepsMergerFlags.TARGET_LABEL)
     val reportUnusedDeps = argMap.mandatorySingle(JdepsMergerFlags.REPORT_UNUSED_DEPS)
 
-    return merge(label, inputs, output, reportUnusedDeps)
+    return merge(ctx, label, inputs, output, reportUnusedDeps)
   }
 }
