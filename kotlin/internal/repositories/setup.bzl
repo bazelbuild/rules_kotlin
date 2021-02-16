@@ -16,6 +16,7 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("//kotlin/internal/repositories:http_java_proto_file.bzl", "http_java_proto_file")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
@@ -69,3 +70,5 @@ def kt_configure():
     )
 
     stardoc_repositories()
+
+    bazel_skylib_workspace()
