@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@rules_java//java:defs.bzl", "java_import", "java_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library")
+load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
 
 _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
@@ -118,4 +119,42 @@ rm $(@D)/$${NAME}_temp.jar
         neverlink = 1,
         deps = [_resolve_dep_label(d) for d in deps] + neverlink_deps,
         visibility = ["//visibility:private"],
+    )
+
+def kt_bootstrap_binary(
+        name,
+        main_class,
+        runtime_library,
+        shade_rules,
+        data = [],
+        visibility = ["//visibility:public"]):
+    raw = name + "_raw"
+    jar_jared = name + "_jarjar"
+
+    java_binary(
+        name = raw,
+        create_executable = False,
+        runtime_deps = [runtime_library],
+    )
+
+    # Shaded to ensure that libraries it uses are not leaked to
+    # the code it's running against (e.g. dagger)
+    jar_jar(
+        name = jar_jared,
+        input_jar = ":" + raw + "_deploy.jar",
+        rules = shade_rules,
+    )
+
+    java_binary(
+        name = name,
+        data = data,
+        jvm_flags = [
+            "-XX:+IgnoreUnrecognizedVMOptions",
+            "--add-opens=java.base/java.nio=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
+        ],
+        main_class = main_class,
+        visibility = visibility,
+        runtime_deps = [":" + jar_jared],
     )

@@ -23,7 +23,7 @@ import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
 import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 
 class PersistentWorkerTest {
 
@@ -38,7 +38,11 @@ class PersistentWorkerTest {
     )
 
     val expectedResponses = mapOf(
-      1 to WorkResponse.newBuilder().setRequestId(1).setOutput("sidhe disciplined").setExitCode(1),
+      1 to WorkResponse
+        .newBuilder()
+        .setRequestId(1)
+        .setOutput("sidhe disciplined\n\nSqueek!")
+        .setExitCode(1),
       2 to WorkResponse.newBuilder().setRequestId(2).setOutput("sidhe commended").setExitCode(0)
     )
 
@@ -56,6 +60,7 @@ class PersistentWorkerTest {
           when (args.toList()) {
             listOf("--mammal", "bunny") -> {
               ctx.info { "sidhe disciplined" }
+              captured.write("Squeek!".toByteArray(UTF_8))
               return@start Status.ERROR
             }
             listOf("--mammal", "squirrel") -> {
@@ -70,12 +75,13 @@ class PersistentWorkerTest {
       closeStdIn()
       return@inProcess generateSequence { readStdOut() }
     }.associateBy { wr -> wr.requestId }
-    assertThat(String(captured.toByteArray(), StandardCharsets.UTF_8)).isEmpty()
+    assertThat(String(captured.toByteArray(), UTF_8)).contains("Squeek!")
 
     assertThat(actualResponses.keys).isEqualTo(expectedResponses.keys)
 
     expectedResponses.forEach { (resId, res) ->
       assertThat(actualResponses[resId]?.output).contains(res.output)
+      assertThat(actualResponses[resId]?.exitCode).isEqualTo(res.exitCode)
     }
   }
 
