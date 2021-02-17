@@ -324,6 +324,53 @@ class KotlinBuilderJvmJdepsTest {
     assertIncomplete(jdeps).isEmpty()
   }
 
+  @Test
+  fun `java annotation with field target on companion object property is an explict dep`() {
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("LayoutRes.java",
+        """
+          package androidx.annotation;
+          import static java.lang.annotation.ElementType.FIELD;
+          import java.lang.annotation.Target;
+          @Target({FIELD})
+          public @interface LayoutRes {
+          }
+        """)
+      c.outputJar()
+      c.compileJava()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.kt",
+        """
+          package something
+
+          import androidx.annotation.LayoutRes
+
+          class AnotherClass {
+              companion object {
+                
+                @JvmField @LayoutRes
+                val property = 42
+            }
+          }
+        """)
+      c.outputJar()
+      c.compileKotlin()
+      c.outputJdeps()
+      c.addDirectDependencies(dependentTarget)
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
 
   @Test
   fun `unused dependency listed`() {
