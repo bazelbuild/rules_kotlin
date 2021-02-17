@@ -163,6 +163,7 @@ class JdepsGenExtension(
               explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
             }
           }
+          addImplicitDep(resultingDescriptor.type)
         }
         else -> return
       }
