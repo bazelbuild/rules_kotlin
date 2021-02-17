@@ -143,7 +143,7 @@ class JdepsGenExtension(
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is FakeCallableDescriptorForObject -> {
-          getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
+          collectTypeReferences(resultingDescriptor.type)
         }
         is JavaPropertyDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }

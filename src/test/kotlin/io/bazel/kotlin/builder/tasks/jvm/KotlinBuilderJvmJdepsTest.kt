@@ -883,6 +883,56 @@ class KotlinBuilderJvmJdepsTest {
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
   }
+  @Test
+  fun `property reference should collect indirect super class as implicit dependency`() {
+    val implicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Base.kt",
+        """
+            package something
+
+            open class Base(p: Int)
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val explicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Derived.kt",
+        """
+            package something
+
+            object Derived : Base(41) {
+              @JvmField
+              val SOME_CONST = 42
+            }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(implicitSuperClassDep)
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("ReferencesClassWithSuperClass.kt",
+        """
+            package something
+
+            val classRef = Derived.SOME_CONST
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(explicitSuperClassDep)
+      c.addTransitiveDependencies(implicitSuperClassDep)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(explicitSuperClassDep.singleCompileJar())
+    assertImplicit(jdeps).containsExactly(implicitSuperClassDep.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
 
   @Test
   fun `class declaration all super class references should be an implicit dependency`() {
