@@ -562,6 +562,46 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `java enum reference`() {
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("InnerJavaEnum.java",
+        """
+            package something;
+
+            public enum InnerJavaEnum {
+                A_VALUE;
+            }
+          """)
+      c.outputJar()
+      c.compileJava()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasPropertyDefinition.kt",
+        """
+            package something
+            
+            class Foo {
+
+                val result = InnerJavaEnum.A_VALUE.name
+            }
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `kotlin method reference`() {
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AClass.kt",

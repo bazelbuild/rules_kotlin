@@ -156,8 +156,13 @@ class JdepsGenExtension(
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is PropertyDescriptor -> {
-          val virtualFileClass = (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
-          explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
+          when (resultingDescriptor.containingDeclaration) {
+            is ClassDescriptor -> collectTypeReferences((resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType)
+            else -> {
+              val virtualFileClass = (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
+              explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
+            }
+          }
         }
         else -> return
       }
