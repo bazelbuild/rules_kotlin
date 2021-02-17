@@ -181,6 +181,9 @@ class JdepsGenExtension(
         }
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
+          descriptor.annotations.forEach { annotation ->
+            collectTypeReferences(annotation.type)
+          }
         }
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)

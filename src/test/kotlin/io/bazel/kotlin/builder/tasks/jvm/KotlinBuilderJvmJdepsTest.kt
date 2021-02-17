@@ -280,6 +280,50 @@ class KotlinBuilderJvmJdepsTest {
     assertIncomplete(jdeps).isEmpty()
   }
 
+  @Test
+  fun `java annotation on property is an explict dep`() {
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("JavaAnnotation.java",
+        """
+          package something;
+          
+          import java.lang.annotation.Retention;
+          import java.lang.annotation.RetentionPolicy;
+          
+          @Retention(RetentionPolicy.RUNTIME)          
+          public @interface JavaAnnotation {
+          }
+        """)
+      c.outputJar()
+      c.compileJava()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.kt",
+        """
+          package something
+
+          class AnotherClass {
+            @JavaAnnotation
+            val property = 42
+          }
+        """)
+      c.outputJar()
+      c.compileKotlin()
+      c.outputJdeps()
+      c.addDirectDependencies(dependentTarget)
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
 
   @Test
   fun `unused dependency listed`() {
