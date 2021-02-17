@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.FunctionImportedFromObject
 import org.jetbrains.kotlin.resolve.PropertyImportedFromObject
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
@@ -127,6 +128,12 @@ class JdepsGenExtension(
       context: CallCheckerContext
     ) {
       when (val resultingDescriptor = resolvedCall.resultingDescriptor) {
+        is FunctionImportedFromObject -> {
+          collectTypeReferences((resolvedCall.resultingDescriptor as FunctionImportedFromObject).containingObject.defaultType)
+        }
+        is PropertyImportedFromObject -> {
+          collectTypeReferences((resolvedCall.resultingDescriptor as PropertyImportedFromObject).containingObject.defaultType)
+        }
         is JavaMethodDescriptor -> {
           getClassCanonicalPath((resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
@@ -147,9 +154,6 @@ class JdepsGenExtension(
         }
         is JavaPropertyDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
-        }
-        is PropertyImportedFromObject -> {
-          collectTypeReferences((resolvedCall.resultingDescriptor as PropertyImportedFromObject).containingObject.defaultType)
         }
         is PropertyDescriptor -> {
           val virtualFileClass = (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
