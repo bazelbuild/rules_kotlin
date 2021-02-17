@@ -129,12 +129,16 @@ def kt_jvm_import_impl(ctx):
             jars = [artifact],
         ),
     )
+
     return struct(
         kt = kt_info,
         providers = [
             DefaultInfo(
                 files = depset(direct = [artifact.class_jar]),
-                runfiles = ctx.runfiles(files = [artifact.class_jar, artifact.source_jar]),
+                runfiles = ctx.runfiles(
+                    # Append class jar with the optional sources jar
+                    files = [artifact.class_jar] + [artifact.source_jar] if artifact.source_jar else []
+                ),
             ),
             JavaInfo(
                 output_jar = artifact.class_jar,
