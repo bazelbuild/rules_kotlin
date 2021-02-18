@@ -17,7 +17,7 @@
 
 package io.bazel.worker
 
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,7 +45,7 @@ class WorkerEnvironmentTest {
       return@inProcess generateSequence { readStdOut() }.toSet()
     }
 
-    Truth.assertThat(got).containsExactlyElementsIn(
+    assertThat(got).containsExactlyElementsIn(
       (1..5).map { id ->
         WorkerProtocol.WorkResponse.newBuilder().setRequestId(id).build()
       }
@@ -72,7 +72,7 @@ class WorkerEnvironmentTest {
       return@inProcess readStdOut()
     }
 
-    Truth.assertThat(got)
+    assertThat(got)
       .isEqualTo(WorkerProtocol.WorkResponse.newBuilder().setRequestId(1).build())
   }
 }

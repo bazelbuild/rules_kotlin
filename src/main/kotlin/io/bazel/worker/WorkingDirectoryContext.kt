@@ -20,22 +20,25 @@ package io.bazel.worker
 import java.io.Closeable
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.logging.Level
+import java.util.logging.Logger
 
 /** WorkingDirectoryContext provides a consistent base directory that is removed on close. */
 class WorkingDirectoryContext(val dir: Path) : Closeable {
-  companion object {
 
+  companion object {
+    val logger: Logger = Logger.getLogger(WorkingDirectoryContext::class.java.canonicalName)
     inline fun <T> use(forWork: WorkingDirectoryContext.() -> T) =
       WorkingDirectoryContext(Files.createTempDirectory("pwd")).use { wd ->
         wd.forWork()
       }
-
-    fun newContext(): WorkingDirectoryContext = WorkingDirectoryContext(
-      Files.createTempDirectory("working")
-    )
   }
 
   override fun close() {
-    Files.walk(dir).sorted(Comparator.reverseOrder()).forEach(Files::delete)
+    kotlin.runCatching {
+      Files.walk(dir).sorted(Comparator.reverseOrder()).forEach(Files::delete)
+    }.onFailure {
+      logger.log(Level.SEVERE, "Directory cleanup failed.", it)
+    }
   }
 }

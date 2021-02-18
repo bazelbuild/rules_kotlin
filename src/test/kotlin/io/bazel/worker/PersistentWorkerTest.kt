@@ -25,9 +25,9 @@ import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
 
+@ExperimentalCoroutinesApi
 class PersistentWorkerTest {
 
-  @ExperimentalCoroutinesApi
   @Test
   fun multiplexOk() {
     val requests = listOf(
@@ -85,7 +85,6 @@ class PersistentWorkerTest {
     }
   }
 
-  @ExperimentalCoroutinesApi
   @Test
   fun error() {
     val captured = ByteArrayOutputStream()

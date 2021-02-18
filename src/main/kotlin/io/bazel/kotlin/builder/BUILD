@@ -28,7 +28,7 @@ java_library(
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",
         "//src/main/protobuf:worker_protocol_java_proto",
-                "//src/main/kotlin/io/bazel/worker",
+        "//src/main/kotlin/io/bazel/worker",
         "//third_party:dagger",
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",

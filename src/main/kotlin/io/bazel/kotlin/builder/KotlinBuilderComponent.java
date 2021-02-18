@@ -24,10 +24,8 @@ import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
-import io.bazel.worker.WorkerContext;
 
 import javax.inject.Singleton;
-import java.io.PrintStream;
 
 @Singleton
 @dagger.Component(modules = {KotlinBuilderComponent.Module.class})
@@ -38,7 +36,7 @@ public interface KotlinBuilderComponent {
 
     Kotlin2JsTaskExecutor jsTaskExecutor();
 
-    CompileKotlin compileKotlin();
+    CompileKotlin work();
 
     @Component.Builder
     interface Builder {
@@ -50,14 +48,8 @@ public interface KotlinBuilderComponent {
 
     @dagger.Module
     class Module {
-
         @Provides
-        public PrintStream provideDebugPrintStream(WorkerContext ctx) {
-            return System.err;
-        }
-
-        @Provides
-        public InternalCompilerPlugins provideAbiPlugin(KotlinToolchain toolchain) {
+        public InternalCompilerPlugins provideInternalPlugins(KotlinToolchain toolchain) {
             return new InternalCompilerPlugins(
                     toolchain.getJvmAbiGen(), toolchain.getSkipCodeGen(), toolchain.getKapt3Plugin(), toolchain.getJdepsGen());
         }

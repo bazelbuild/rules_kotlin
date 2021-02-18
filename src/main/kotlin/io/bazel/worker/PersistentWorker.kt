@@ -33,6 +33,10 @@ import kotlin.coroutines.CoroutineContext
 
 /**
  * PersistentWorker satisfies Bazel persistent worker protocol for executing work.
+ *
+ * Supports multiplex (https://docs.bazel.build/versions/master/multiplex-worker.html) provided
+ * the work is thread/coroutine safe.
+ *
  * @param coroutineContext for non-threaded operations.
  * @param captureIO to avoid writing stdout and stderr while executing.
  */

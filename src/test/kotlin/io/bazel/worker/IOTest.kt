@@ -17,7 +17,7 @@
 
 package io.bazel.worker
 
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -55,11 +55,11 @@ class IOTest {
 
   @Test
   fun capture() {
-    Truth.assertThat(captured.written()).isEmpty()
+    assertThat(captured.written()).isEmpty()
     IO.capture().use { io ->
       println("foo foo is on the loose")
-      Truth.assertThat(io.captured.written()).isEqualTo("foo foo is on the loose\n")
+      assertThat(io.captured.written()).isEqualTo("foo foo is on the loose\n")
     }
-    Truth.assertThat(captured.written()).isEmpty()
+    assertThat(captured.written()).isEmpty()
   }
 }
