@@ -74,7 +74,17 @@ def kt_android_library(name, exports = [], visibility = None, **kwargs):
         testonly = kwargs.get("testonly", default = 0),
     )
 
-def kt_android_local_test(name, timeout = None, jvm_flags = None, manifest = None, test_class = None, visibility = None, **kwargs):
+def kt_android_local_test(
+        name,
+        jvm_flags = None,
+        manifest = None,
+        test_class = None,
+        size = None,
+        timeout = None,
+        flaky = False,
+        shard_count = None,
+        visibility = None,
+        **kwargs):
     """Creates a testable Android sandwich library.
 
     `srcs`, `deps`, `plugins`, `friends` are routed to `kt_jvm_library` the other android
@@ -85,10 +95,13 @@ def kt_android_local_test(name, timeout = None, jvm_flags = None, manifest = Non
     native.android_local_test(
         name = name,
         deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, **kwargs),
-        timeout = timeout,
         jvm_flags = jvm_flags,
         test_class = test_class,
         visibility = visibility,
+        size = size,
+        timeout = timeout,
+        flaky = flaky,
+        shard_count = shard_count,
         custom_package = kwargs.get("custom_package", default = None),
         manifest = manifest,
         tags = kwargs.get("tags", default = None),
