@@ -93,6 +93,13 @@ _KOPTS = {
         ),
         type = attr.bool,
     ),
+    "x_multi_platform": struct(
+        args = dict(
+            default = False,
+            doc = "Enable experimental language support for multi-platform projects",
+        ),
+        type = attr.bool,
+    ),
 }
 
 KotlincOptions = provider(
