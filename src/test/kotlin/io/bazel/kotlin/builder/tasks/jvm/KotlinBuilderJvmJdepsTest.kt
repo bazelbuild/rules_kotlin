@@ -281,6 +281,48 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `cyclic generic type references`() {
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AbstractObjectAssert.java",
+        """
+          package pkg.assertion;
+          
+          public class AbstractObjectAssert<SELF extends AbstractObjectAssert<SELF, ACTUAL>, ACTUAL> {
+          }
+        """)
+      c.outputJar()
+      c.outputJavaJdeps()
+      c.compileJava()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("FooAssert.kt",
+        """
+          package something.other
+          
+          import pkg.assertion.AbstractObjectAssert
+          
+          class FooAssert : AbstractObjectAssert<FooAssert, String>()
+
+          fun fooAssert(): AbstractObjectAssert<*, String> = AbstractObjectAssert<FooAssert, String>()
+        """)
+      c.outputJar()
+      c.compileKotlin()
+      c.outputJdeps()
+      c.addDirectDependencies(dependentTarget)
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `java annotation on property is an explict dep`() {
 
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
