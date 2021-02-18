@@ -32,7 +32,7 @@ object Build {
             .builder()
             .toolchain(createToolchain())
             .build()
-            .compileKotlin()
+            .work()
         )
       }
       .run(::exitProcess)
