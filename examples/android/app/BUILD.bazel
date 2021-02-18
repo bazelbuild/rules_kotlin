@@ -7,10 +7,10 @@ android_binary(
     custom_package = "examples.android.app",
     incremental_dexing = 0,
     manifest = "src/main/AndroidManifest.xml",
-    multidex = "native",
     manifest_values = {
         "lib_name": "lib",
     },
+    multidex = "native",
     deps = [
         "//libKtAndroid:my_kt",
     ],
@@ -22,10 +22,10 @@ android_binary(
     custom_package = "examples.android.app2",
     incremental_dexing = 0,
     manifest = "src/main/AndroidManifest.xml",
-    multidex = "native",
     manifest_values = {
-		"lib_name": "lib2",
-	},
+        "lib_name": "lib2",
+    },
+    multidex = "native",
     deps = [
         "//libAndroid:my_android",
     ],
@@ -37,10 +37,10 @@ android_binary(
     custom_package = "examples.android.app3",
     incremental_dexing = 1,
     manifest = "src/main/AndroidManifest.xml",
-    multidex = "native",
     manifest_values = {
-		"lib_name": "lib",
-	},
+        "lib_name": "lib",
+    },
+    multidex = "native",
     deps = [
         "//libKtAndroid:my_kt",
     ],

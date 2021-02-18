@@ -27,9 +27,9 @@ kt_android_library(
         ":serialization_plugin",
         ":autovalue",
     ],
+    resource_files = glob(["res/**"]),
     tags = ["trace"],
     visibility = ["//visibility:public"],
-    resource_files = glob(["res/**"]),
     deps = [
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:com_google_auto_value_auto_value_annotations",

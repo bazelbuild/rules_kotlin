@@ -1,0 +1,122 @@
+load("//kotlin:kotlin.bzl", "kt_jvm_library", "kt_jvm_test")
+load("@rules_jvm_external//:defs.bzl", "artifact")
+
+kt_jvm_test(
+    name = "IOTest",
+    srcs = [
+        "IOTest.kt",
+    ],
+    test_class = "io.bazel.worker.IOTest",
+    deps = [
+        "//src/main/kotlin/io/bazel/worker",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+    ],
+)
+
+kt_jvm_test(
+    name = "WorkerContextTest",
+    srcs = [
+        "WorkerContextTest.kt",
+    ],
+    test_class = "io.bazel.worker.WorkerContextTest",
+    deps = [
+        "//src/main/kotlin/io/bazel/worker",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+    ],
+)
+
+kt_jvm_test(
+    name = "InvocationWorkerTest",
+    srcs = [
+        "InvocationWorkerTest.kt",
+    ],
+    test_class = "io.bazel.worker.InvocationWorkerTest",
+    deps = [
+        "//src/main/kotlin/io/bazel/worker",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+            repository_name = "kotlin_rules_maven",
+        ),
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
+            repository_name = "kotlin_rules_maven",
+        ),
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
+            repository_name = "kotlin_rules_maven",
+        ),
+    ],
+)
+
+kt_jvm_library(
+    name = "WorkerEnvironment",
+    srcs = ["WorkerEnvironment.kt"],
+    deps = [
+        "//src/main/protobuf:worker_protocol_java_proto",
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+            repository_name = "kotlin_rules_maven",
+        ),
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
+            repository_name = "kotlin_rules_maven",
+        ),
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
+            repository_name = "kotlin_rules_maven",
+        ),
+    ],
+)
+
+kt_jvm_test(
+    name = "WorkerEnvironmentTest",
+    srcs = [
+        "WorkerEnvironmentTest.kt",
+    ],
+    test_class = "io.bazel.worker.WorkerEnvironmentTest",
+    deps = [
+        ":WorkerEnvironment",
+        "//src/main/kotlin/io/bazel/worker",
+        "//src/main/protobuf:worker_protocol_java_proto",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+            repository_name = "kotlin_rules_maven",
+        ),
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
+            repository_name = "kotlin_rules_maven",
+        ),
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
+            repository_name = "kotlin_rules_maven",
+        ),
+    ],
+)
+
+kt_jvm_test(
+    name = "PersistentWorkerTest",
+    srcs = [
+        "PersistentWorkerTest.kt",
+    ],
+    test_class = "io.bazel.worker.PersistentWorkerTest",
+    deps = [
+        ":WorkerEnvironment",
+        "//src/main/kotlin/io/bazel/worker",
+        "//src/main/protobuf:worker_protocol_java_proto",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+            repository_name = "kotlin_rules_maven",
+        ),
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
+            repository_name = "kotlin_rules_maven",
+        ),
+        artifact(
+            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
+            repository_name = "kotlin_rules_maven",
+        ),
+    ],
+)

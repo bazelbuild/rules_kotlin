@@ -1,0 +1,25 @@
+# General purpose Bazel worker implemented Kotlin. Best suited for jvm based tools.
+load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+
+java_binary(
+    name = "worker_proto_bundle_bin",
+    runtime_deps = ["//src/main/protobuf:worker_protocol_java_proto"],
+)
+
+java_import(
+    name = "worker_proto",
+    jars = [":worker_proto_bundle_bin_deploy.jar"],
+)
+
+kt_bootstrap_library(
+    name = "worker",
+    srcs = glob(["*.kt"]),
+    visibility = [
+        "//:__subpackages__",
+    ],
+    deps = [
+        ":worker_proto",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+    ],
+)

@@ -29,7 +29,7 @@ class CompilationTaskContext(
   val info: CompilationTaskInfo,
   private val out: PrintStream,
   private val executionRoot: String = FileSystems.getDefault().getPath("").toAbsolutePath()
-      .toString() + File.separator
+                                        .toString() + File.separator
 ) {
   private val start = System.currentTimeMillis()
   private var timings: MutableList<String>?
@@ -102,37 +102,37 @@ class CompilationTaskContext(
     } else toPrint
   }
 
-    /**
-     * Execute a compilation task.
-     *
-     * @throws CompilationStatusException if the compiler returns a status of anything but zero.
-     * @param args the compiler command line switches
-     * @param printOnFail if this is true the output will be printed if the task fails else the caller is responsible
-     *  for logging it by catching the [CompilationStatusException] exception.
-     * @param compile the compilation method.
-     */
-    fun executeCompilerTask(
-        args: List<String>,
-        compile: (Array<String>, PrintStream) -> Int,
-        printOnFail: Boolean = true,
-        printOnSuccess: Boolean = true
-    ): List<String> {
-      val outputStream = ByteArrayOutputStream()
-      val ps = PrintStream(outputStream)
-      val result = compile(args.toTypedArray(), ps)
-      val output = ByteArrayInputStream(outputStream.toByteArray())
-          .bufferedReader()
-          .readLines()
-      if (result != 0) {
-        if (printOnFail) {
-          printCompilerOutput(output)
-        }
-        throw CompilationStatusException("compile phase failed", result, output)
-      } else if (printOnSuccess) {
+  /**
+   * Execute a compilation task.
+   *
+   * @throws CompilationStatusException if the compiler returns a status of anything but zero.
+   * @param args the compiler command line switches
+   * @param printOnFail if this is true the output will be printed if the task fails else the caller is responsible
+   *  for logging it by catching the [CompilationStatusException] exception.
+   * @param compile the compilation method.
+   */
+  fun executeCompilerTask(
+    args: List<String>,
+    compile: (Array<String>, PrintStream) -> Int,
+    printOnFail: Boolean = true,
+    printOnSuccess: Boolean = true
+  ): List<String> {
+    val outputStream = ByteArrayOutputStream()
+    val ps = PrintStream(outputStream)
+    val result = compile(args.toTypedArray(), ps)
+    val output = ByteArrayInputStream(outputStream.toByteArray())
+      .bufferedReader()
+      .readLines()
+    if (result != 0) {
+      if (printOnFail) {
         printCompilerOutput(output)
       }
-      return output
+      throw CompilationStatusException("compile phase failed", result, output)
+    } else if (printOnSuccess) {
+      printCompilerOutput(output)
     }
+    return output
+  }
 
   /**
    * Runs a task and records the timings.
@@ -176,7 +176,8 @@ class CompilationTaskContext(
     if (successful) {
       timings?.also {
         printLines(
-            "Task timings for ${info.label} (total: ${System.currentTimeMillis() - start} ms)", it)
+          "Task timings for ${info.label} (total: ${System.currentTimeMillis() - start} ms)", it
+        )
       }
     }
   }

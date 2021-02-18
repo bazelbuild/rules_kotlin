@@ -16,19 +16,11 @@ load("//kotlin:kotlin.bzl", "kt_jvm_library")
 load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
-java_binary(
-    name = "builder_raw",
-    create_executable = False,
-    runtime_deps = ["//src/main/kotlin/io/bazel/kotlin/builder"],
+exports_files(
+    ["shade.jarjar"],
+    visibility = ["//src:__subpackages__"]
 )
 
-# The builder artifact. Shaded to ensure that libraries it uses are not leaked to
-# the code it's running against (e.g. dagger)
-jar_jar(
-    name = "builder_jar_jar",
-    input_jar = ":builder_raw_deploy.jar",
-    rules = "shade.jarjar",
-)
 
 jar_jar(
     name = "skip-code-gen",
@@ -44,36 +36,16 @@ jar_jar(
     visibility = ["//visibility:public"],
 )
 
-java_binary(
-    name = "builder",
-    data = [
-        "//src/main/kotlin:skip-code-gen",
-        "//src/main/kotlin:jdeps-gen",
-        "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
-    ],
-    jvm_flags = [
-        "-XX:+IgnoreUnrecognizedVMOptions",
-        "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang=ALL-UNNAMED",
-        "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
-    ],
-    main_class = "io.bazel.kotlin.builder.KotlinBuilderMain",
+alias(
+    name = "build",
+    actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build",
     visibility = ["//visibility:public"],
-    runtime_deps = [":builder_jar_jar"],
 )
 
-java_binary(
+alias(
     name = "jdeps_merger",
-    jvm_flags = [
-        "-XX:+IgnoreUnrecognizedVMOptions",
-        "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang=ALL-UNNAMED",
-        "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
-    ],
-    main_class = "io.bazel.kotlin.builder.JdepsMergerMain",
+    actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps",
     visibility = ["//visibility:public"],
-    runtime_deps = [":builder_jar_jar"],
 )
 
 release_archive(
@@ -84,8 +56,8 @@ release_archive(
     ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
-        ":builder_deploy.jar": "kotlin_worker.jar",
-        ":jdeps_merger_deploy.jar": "jdeps_merger_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [

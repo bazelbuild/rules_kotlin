@@ -104,7 +104,7 @@ _kt_toolchain = rule(
         ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",
-            default = Label("//src/main/kotlin:builder"),
+            default = Label("//src/main/kotlin:build"),
             executable = True,
             allow_files = True,
             cfg = "host",

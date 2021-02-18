@@ -335,6 +335,7 @@ def _run_merge_jdeps_action(ctx, rule_kind, toolchains, jdeps, outputs):
         executable = toolchains.kt.jdeps_merger.files_to_run.executable,
         execution_requirements = {
             "supports-workers": "1",
+            "supports-multiplex-workers": "1",
         },
         arguments = [args],
         progress_message = progress_message,
@@ -481,7 +482,10 @@ def _run_kt_builder_action(
         input_manifests = input_manifests,
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
-        execution_requirements = {"supports-workers": "1"},
+        execution_requirements = {
+            "supports-workers": "1",
+            "supports-multiplex-workers": "1",
+        },
         arguments = [args],
         progress_message = progress_message,
         env = {
@@ -578,7 +582,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         annotation_processors = _create_annotation_processing(
             annotation_processors = annotation_processors,
             ap_class_jar = kt_java_output_jar,
-            ap_source_jar = kt_generated_java_srcjar
+            ap_source_jar = kt_generated_java_srcjar,
         )
 
     # If this rule has any resources declared setup a zipper action to turn them into a jar.
@@ -643,7 +647,6 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         ),
     )
 
-
 def _run_kt_java_builder_actions(
         ctx,
         rule_kind,
@@ -698,8 +701,8 @@ def _run_kt_java_builder_actions(
             JavaInfo(
                 compile_jar = kapt_generated_stub_jar,
                 output_jar = kapt_generated_stub_jar,
-                neverlink = True
-            )
+                neverlink = True,
+            ),
         )
 
     java_infos = []
@@ -819,14 +822,14 @@ def _run_kt_java_builder_actions(
         annotation_processing = _create_annotation_processing(
             annotation_processors = annotation_processors,
             ap_class_jar = [jars.class_jar for jars in java_info.outputs.jars][0],
-            ap_source_jar = ap_generated_src_jar
-       )
+            ap_source_jar = ap_generated_src_jar,
+        )
 
     return struct(
-       output_jars = output_jars,
-       generated_src_jars = generated_src_jars,
-       annotation_processing = annotation_processing,
-   )
+        output_jars = output_jars,
+        generated_src_jars = generated_src_jars,
+        annotation_processing = annotation_processing,
+    )
 
 def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source_jar):
     """Creates the annotation_processing field for Kt to match what JavaInfo

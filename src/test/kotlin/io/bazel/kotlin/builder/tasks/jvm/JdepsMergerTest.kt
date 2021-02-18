@@ -4,11 +4,13 @@ import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.view.proto.Deps
 import com.google.devtools.build.lib.view.proto.Deps.Dependency
 import io.bazel.kotlin.builder.DaggerJdepsMergerTestComponent
-import io.bazel.kotlin.builder.tasks.InvocationWorker
-import io.bazel.kotlin.builder.tasks.WorkerIO
+import io.bazel.kotlin.builder.tasks.MergeJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JdepsMerger.Companion.JdepsMergerFlags
 import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.builder.utils.jars.JarCreator
+import io.bazel.worker.Status
+import io.bazel.worker.Status.SUCCESS
+import io.bazel.worker.WorkerContext
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -21,7 +23,10 @@ class JdepsMergerTest {
 
   private val wrkDir = Files.createTempDirectory("JdepsMergerEnvironmentTest")
 
-  private fun jdeps(path: String, buildDeps: (Deps.Dependencies.Builder.() -> Deps.Dependencies.Builder)): Path {
+  private fun jdeps(
+    path: String,
+    buildDeps: (Deps.Dependencies.Builder.() -> Deps.Dependencies.Builder)
+  ): Path {
     val jdepsPath = Files.createDirectories(wrkDir.resolve("jdeps")).resolve(path)
 
     BufferedOutputStream(Files.newOutputStream(jdepsPath)).use {
@@ -36,7 +41,7 @@ class JdepsMergerTest {
   }
 
   fun ktJvmLibrary(label: String): String {
-    val path = Files.createDirectories(wrkDir.resolve("out")).resolve("lib${label}.jar")
+    val path = Files.createDirectories(wrkDir.resolve("out")).resolve("lib$label.jar")
     JarCreator(
       path = path,
       normalize = true,
@@ -53,37 +58,50 @@ class JdepsMergerTest {
     val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
     val kotlinJdeps = jdeps("kt.jdeps") {
-      addDependency(with(Dependency.newBuilder()) {
-        kind = Dependency.Kind.EXPLICIT
-        path = "/path/to/kt_dep.jar"
-        build()
-      })
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = "/path/to/kt_dep.jar"
+          build()
+        }
+      )
     }
 
     val javaJdeps = jdeps("java.jdeps") {
-      addDependency(with(Dependency.newBuilder()) {
-        kind = Dependency.Kind.EXPLICIT
-        path = "/path/to/java_dep.jar"
-        build()
-      })
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = "/path/to/java_dep.jar"
+          build()
+        }
+      )
     }
 
     val mergedJdeps = out("merged.jdeps")
 
-    WorkerIO.open().use { io ->
-      val worker = InvocationWorker(io, merger)
-      assertThat(worker.run(args {
-        flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
-        input(kotlinJdeps)
-        input(javaJdeps)
-        flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
-        flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
-      })).isEqualTo(0)
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            input(kotlinJdeps)
+            input(javaJdeps)
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
+          }
+        )
+      }
     }
+
+    assertThat(result.status).isEqualTo(SUCCESS)
 
     val depsProto = depsProto(mergedJdeps)
     assertThat(depsProto.ruleLabel).isEqualTo("//foo/bar:baz")
-    assertThat(depsProto.dependencyList.map { it.path }).containsExactly("/path/to/kt_dep.jar", "/path/to/java_dep.jar")
+    assertThat(depsProto.dependencyList.map { it.path }).containsExactly(
+      "/path/to/kt_dep.jar",
+      "/path/to/java_dep.jar"
+    )
   }
 
   @Test
@@ -91,33 +109,43 @@ class JdepsMergerTest {
     val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
     val kotlinJdeps = jdeps("kt.jdeps") {
-      addDependency(with(Dependency.newBuilder()) {
-        kind = Dependency.Kind.UNUSED
-        path = "/path/to/shared_dep.jar"
-        build()
-      })
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = "/path/to/shared_dep.jar"
+          build()
+        }
+      )
     }
 
     val javaJdeps = jdeps("java.jdeps") {
-      addDependency(with(Dependency.newBuilder()) {
-        kind = Dependency.Kind.EXPLICIT
-        path = "/path/to/shared_dep.jar"
-        build()
-      })
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = "/path/to/shared_dep.jar"
+          build()
+        }
+      )
     }
 
     val mergedJdeps = out("merged.jdeps")
 
-    WorkerIO.open().use { io ->
-      val worker = InvocationWorker(io, merger)
-      assertThat(worker.run(args {
-        flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
-        input(kotlinJdeps)
-        input(javaJdeps)
-        flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
-        flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
-      })).isEqualTo(0)
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            input(kotlinJdeps)
+            input(javaJdeps)
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
+          }
+        )
+      }
     }
+
+    assertThat(result.status).isEqualTo(SUCCESS)
 
     val depsProto = depsProto(mergedJdeps)
     assertThat(depsProto.dependencyList.map { it.path }).containsExactly("/path/to/shared_dep.jar")
@@ -130,42 +158,50 @@ class JdepsMergerTest {
 
     val unusedKotlinDep = ktJvmLibrary("kotlin_dep")
     val kotlinJdeps = jdeps("kt.jdeps") {
-      addDependency(with(Dependency.newBuilder()) {
-        kind = Dependency.Kind.UNUSED
-        path = unusedKotlinDep
-        build()
-      })
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = unusedKotlinDep
+          build()
+        }
+      )
     }
 
     val javaJdeps = jdeps("java.jdeps") {
-      addDependency(with(Dependency.newBuilder()) {
-        kind = Dependency.Kind.EXPLICIT
-        path = ktJvmLibrary("java_dep")
-        build()
-      })
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = ktJvmLibrary("java_dep")
+          build()
+        }
+      )
     }
 
     val mergedJdeps = out("merged.jdeps")
 
-    val out = ByteArrayOutputStream()
-    val printStream = PrintStream(out)
-    System.setOut(printStream)
-    WorkerIO(ByteArrayInputStream(ByteArray(10)), printStream, ByteArrayOutputStream(), {}).use { io ->
-      val worker = InvocationWorker(io, merger)
-      assertThat(worker.run(args {
-        input(kotlinJdeps)
-        input(javaJdeps)
-        flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
-        flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
-        flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "warn")
-      })).isEqualTo(0)
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            input(kotlinJdeps)
+            input(javaJdeps)
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "warn")
+          }
+        )
+      }
     }
-    assertThat(out.toString()).contains("'remove deps kotlin_dep' //foo/bar:baz")
+    assertThat(result.status).isEqualTo(SUCCESS)
+    assertThat(result.log.out.toString()).contains("'remove deps kotlin_dep' //foo/bar:baz")
 
     val depsProto = depsProto(mergedJdeps)
-    assertThat(depsProto.dependencyList
-      .filter { it.kind == Dependency.Kind.UNUSED }
-      .map { it.path }).containsExactly(unusedKotlinDep)
+    assertThat(
+      depsProto.dependencyList
+        .filter { it.kind == Dependency.Kind.UNUSED }
+        .map { it.path }
+    ).containsExactly(unusedKotlinDep)
   }
 
   @Test
@@ -174,42 +210,51 @@ class JdepsMergerTest {
 
     val unusedKotlinDep = ktJvmLibrary("kotlin_dep")
     val kotlinJdeps = jdeps("kt.jdeps") {
-      addDependency(with(Dependency.newBuilder()) {
-        kind = Dependency.Kind.UNUSED
-        path = unusedKotlinDep
-        build()
-      })
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = unusedKotlinDep
+          build()
+        }
+      )
     }
 
     val javaJdeps = jdeps("java.jdeps") {
-      addDependency(with(Dependency.newBuilder()) {
-        kind = Dependency.Kind.EXPLICIT
-        path = ktJvmLibrary("java_dep")
-        build()
-      })
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = ktJvmLibrary("java_dep")
+          build()
+        }
+      )
     }
 
     val mergedJdeps = out("merged.jdeps")
 
-    val out = ByteArrayOutputStream()
-    val printStream = PrintStream(out)
-    System.setOut(printStream)
-    WorkerIO(ByteArrayInputStream(ByteArray(10)), printStream, ByteArrayOutputStream(), {}).use { io ->
-      val worker = InvocationWorker(io, merger)
-      assertThat(worker.run(args {
-        input(kotlinJdeps)
-        input(javaJdeps)
-        flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
-        flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
-        flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "error")
-      })).isEqualTo(1)
+    val worker = MergeJdeps(merger)
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        worker.invoke(
+          taskCtx,
+          args {
+            input(kotlinJdeps)
+            input(javaJdeps)
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "error")
+          }
+        )
+      }
     }
-    assertThat(out.toString()).contains("'remove deps kotlin_dep' //foo/bar:baz")
+    assertThat(result.status).isEqualTo(Status.ERROR)
+    assertThat(result.log.out.toString()).contains("'remove deps kotlin_dep' //foo/bar:baz")
 
     val depsProto = depsProto(mergedJdeps)
-    assertThat(depsProto.dependencyList
-      .filter { it.kind == Dependency.Kind.UNUSED }
-      .map { it.path }).containsExactly(unusedKotlinDep)
+    assertThat(
+      depsProto.dependencyList
+        .filter { it.kind == Dependency.Kind.UNUSED }
+        .map { it.path }
+    ).containsExactly(unusedKotlinDep)
   }
 
   private fun depsProto(mergedJdeps: Path) =
@@ -243,5 +288,4 @@ class JdepsMergerTest {
       }
     }
   }
-
 }

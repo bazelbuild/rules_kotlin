@@ -16,6 +16,7 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("//kotlin/internal/repositories:http_java_proto_file.bzl", "http_java_proto_file")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
@@ -40,10 +41,10 @@ def kt_configure():
             "javax.inject:javax.inject:1",
             "org.pantsbuild:jarjar:1.7.2",
             "org.jetbrains.kotlinx:atomicfu-js:0.14.0",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.9",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.9",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.9",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.4.2",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.2",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.4.2",
             "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
         ],
         repositories = [
@@ -69,3 +70,5 @@ def kt_configure():
     )
 
     stardoc_repositories()
+
+    bazel_skylib_workspace()

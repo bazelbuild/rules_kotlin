@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@rules_java//java:defs.bzl", "java_import", "java_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library")
+load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
 
 _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
@@ -58,13 +59,15 @@ case "$$(uname -s)" in
         ;;
 esac
 NAME=%s
-CP="$$(join_by $$SEP $(locations :%s))"
+CP="%s"
 ARGS="%s"
 
-$(JAVA) -Xmx256M -Xms32M -noverify \
-  -cp $(location @com_github_jetbrains_kotlin//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
-  -cp $(location @com_github_jetbrains_kotlin//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
-  -cp $${CP} -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)
+CMD="$(JAVA) -Xmx256M -Xms32M -noverify \
+      -cp $(location @com_github_jetbrains_kotlin//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
+      -cp $(location @com_github_jetbrains_kotlin//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+      $$CP -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)"
+
+$$CMD
 
 case "$(location @bazel_tools//tools/jdk:singlejar)" in
     *.jar)
@@ -82,7 +85,7 @@ $$SJ \
     --output $(OUTS)
 
 rm $(@D)/$${NAME}_temp.jar
-""" % (name, dep_label, " ".join(_BOOTSTRAP_LIB_ARGS))
+""" % (name, "-cp $$(join_by $$SEP $(locations :%s)) " % dep_label if deps + neverlink_deps else "", " ".join(_BOOTSTRAP_LIB_ARGS))
     native.genrule(
         name = jar_label,
         tools = [
@@ -116,4 +119,42 @@ rm $(@D)/$${NAME}_temp.jar
         neverlink = 1,
         deps = [_resolve_dep_label(d) for d in deps] + neverlink_deps,
         visibility = ["//visibility:private"],
+    )
+
+def kt_bootstrap_binary(
+        name,
+        main_class,
+        runtime_library,
+        shade_rules,
+        data = [],
+        visibility = ["//visibility:public"]):
+    raw = name + "_raw"
+    jar_jared = name + "_jarjar"
+
+    java_binary(
+        name = raw,
+        create_executable = False,
+        runtime_deps = [runtime_library],
+    )
+
+    # Shaded to ensure that libraries it uses are not leaked to
+    # the code it's running against (e.g. dagger)
+    jar_jar(
+        name = jar_jared,
+        input_jar = ":" + raw + "_deploy.jar",
+        rules = shade_rules,
+    )
+
+    java_binary(
+        name = name,
+        data = data,
+        jvm_flags = [
+            "-XX:+IgnoreUnrecognizedVMOptions",
+            "--add-opens=java.base/java.nio=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
+        ],
+        main_class = main_class,
+        visibility = visibility,
+        runtime_deps = [":" + jar_jared],
     )
