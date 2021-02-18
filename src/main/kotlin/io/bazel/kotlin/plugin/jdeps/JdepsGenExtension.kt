@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
-import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaMethodDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
@@ -230,11 +229,14 @@ class JdepsGenExtension(
       collectTypeArguments(kotlinType)
     }
 
-    fun collectTypeArguments(kotlinType: KotlinType) {
+    fun collectTypeArguments(kotlinType: KotlinType, visitedKotlinTypes: MutableSet<KotlinType> = mutableSetOf()) {
+      visitedKotlinTypes.add(kotlinType)
       kotlinType.arguments.map { it.type }.forEach { typeArgument ->
         addExplicitDep(typeArgument)
         typeArgument.supertypes().forEach { addImplicitDep(it) }
-        collectTypeArguments(typeArgument)
+        if (!visitedKotlinTypes.contains(typeArgument)) {
+          collectTypeArguments(typeArgument, visitedKotlinTypes)
+        }
       }
     }
   }
