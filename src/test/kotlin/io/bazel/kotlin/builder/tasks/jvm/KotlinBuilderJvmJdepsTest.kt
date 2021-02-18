@@ -1458,6 +1458,53 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `function call parameter type nested type parameters should be an explicit dependency`() {
+
+    val foo = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Foo.kt",
+        """
+            package something
+
+            class Foo { }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val bar = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Bar.kt",
+        """
+            package something
+
+            class Bar<T> {
+              val booleanValue = true
+            }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("FunctionWithTypeParams.kt",
+        """
+            package something
+
+            fun foo(param: Set<Bar<Foo>>) {
+
+            }
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(foo, bar)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertExplicit(jdeps).contains(bar.singleCompileJar())
+    assertExplicit(jdeps).contains(foo.singleCompileJar())
+  }
+
+  @Test
   fun `assignment from function call`() {
     val depWithReturnTypesSuperType = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("SomeSuperType.kt",

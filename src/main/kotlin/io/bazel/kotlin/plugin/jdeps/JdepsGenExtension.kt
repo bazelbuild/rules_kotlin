@@ -227,9 +227,14 @@ class JdepsGenExtension(
         }
       }
 
+      collectTypeArguments(kotlinType)
+    }
+
+    fun collectTypeArguments(kotlinType: KotlinType) {
       kotlinType.arguments.map { it.type }.forEach { typeArgument ->
         addExplicitDep(typeArgument)
         typeArgument.supertypes().forEach { addImplicitDep(it) }
+        collectTypeArguments(typeArgument)
       }
     }
   }
