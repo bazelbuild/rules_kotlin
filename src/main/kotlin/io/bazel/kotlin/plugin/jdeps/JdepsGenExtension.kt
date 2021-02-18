@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.FunctionImportedFromObject
 import org.jetbrains.kotlin.resolve.PropertyImportedFromObject
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
@@ -127,6 +128,12 @@ class JdepsGenExtension(
       context: CallCheckerContext
     ) {
       when (val resultingDescriptor = resolvedCall.resultingDescriptor) {
+        is FunctionImportedFromObject -> {
+          collectTypeReferences((resolvedCall.resultingDescriptor as FunctionImportedFromObject).containingObject.defaultType)
+        }
+        is PropertyImportedFromObject -> {
+          collectTypeReferences((resolvedCall.resultingDescriptor as PropertyImportedFromObject).containingObject.defaultType)
+        }
         is JavaMethodDescriptor -> {
           getClassCanonicalPath((resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
@@ -143,17 +150,20 @@ class JdepsGenExtension(
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is FakeCallableDescriptorForObject -> {
-          getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
+          collectTypeReferences(resultingDescriptor.type)
         }
         is JavaPropertyDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
-        is PropertyImportedFromObject -> {
-          collectTypeReferences((resolvedCall.resultingDescriptor as PropertyImportedFromObject).containingObject.defaultType)
-        }
         is PropertyDescriptor -> {
-          val virtualFileClass = (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
-          explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
+          when (resultingDescriptor.containingDeclaration) {
+            is ClassDescriptor -> collectTypeReferences((resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType)
+            else -> {
+              val virtualFileClass = (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
+              explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
+            }
+          }
+          addImplicitDep(resultingDescriptor.type)
         }
         else -> return
       }
@@ -181,6 +191,12 @@ class JdepsGenExtension(
         }
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
+          descriptor.annotations.forEach { annotation ->
+            collectTypeReferences(annotation.type)
+          }
+          descriptor.backingField?.annotations?.forEach { annotation ->
+            collectTypeReferences(annotation.type)
+          }
         }
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)
@@ -211,9 +227,14 @@ class JdepsGenExtension(
         }
       }
 
+      collectTypeArguments(kotlinType)
+    }
+
+    fun collectTypeArguments(kotlinType: KotlinType) {
       kotlinType.arguments.map { it.type }.forEach { typeArgument ->
         addExplicitDep(typeArgument)
         typeArgument.supertypes().forEach { addImplicitDep(it) }
+        collectTypeArguments(typeArgument)
       }
     }
   }

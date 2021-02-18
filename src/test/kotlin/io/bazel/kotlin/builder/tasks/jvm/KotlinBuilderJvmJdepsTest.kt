@@ -280,6 +280,97 @@ class KotlinBuilderJvmJdepsTest {
     assertIncomplete(jdeps).isEmpty()
   }
 
+  @Test
+  fun `java annotation on property is an explict dep`() {
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("JavaAnnotation.java",
+        """
+          package something;
+          
+          import java.lang.annotation.Retention;
+          import java.lang.annotation.RetentionPolicy;
+          
+          @Retention(RetentionPolicy.RUNTIME)          
+          public @interface JavaAnnotation {
+          }
+        """)
+      c.outputJar()
+      c.compileJava()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.kt",
+        """
+          package something
+
+          class AnotherClass {
+            @JavaAnnotation
+            val property = 42
+          }
+        """)
+      c.outputJar()
+      c.compileKotlin()
+      c.outputJdeps()
+      c.addDirectDependencies(dependentTarget)
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `java annotation with field target on companion object property is an explict dep`() {
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("LayoutRes.java",
+        """
+          package androidx.annotation;
+          import static java.lang.annotation.ElementType.FIELD;
+          import java.lang.annotation.Target;
+          @Target({FIELD})
+          public @interface LayoutRes {
+          }
+        """)
+      c.outputJar()
+      c.compileJava()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AnotherClass.kt",
+        """
+          package something
+
+          import androidx.annotation.LayoutRes
+
+          class AnotherClass {
+              companion object {
+                
+                @JvmField @LayoutRes
+                val property = 42
+            }
+          }
+        """)
+      c.outputJar()
+      c.compileKotlin()
+      c.outputJdeps()
+      c.addDirectDependencies(dependentTarget)
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
 
   @Test
   fun `unused dependency listed`() {
@@ -399,6 +490,61 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `kotlin indirect property reference on object`() {
+    val transitivePropertyTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Bar.kt",
+        """
+            package something
+
+            class Bar {
+              fun helloWorld() {}
+            }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Foo.kt",
+        """
+            package something
+
+            class Foo {
+              val bar = Bar()
+            }
+            """)
+      c.outputJar()
+      c.addDirectDependencies(transitivePropertyTarget)
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasPropertyDependency.kt",
+        """
+            package something
+            
+            fun something(foo: Foo) {
+              val foo =  Foo()
+              foo.bar.helloWorld()
+            }
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.addTransitiveDependencies(transitivePropertyTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).contains(transitivePropertyTarget.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `kotlin extension property reference`() {
     val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AClass.kt",
@@ -418,6 +564,46 @@ class KotlinBuilderJvmJdepsTest {
             package something
             
             val property2 = "Hello".doubleLength
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `kotlin extension property reference 2`() {
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt",
+        """
+            package something
+            
+            object Extensions {
+              @JvmStatic
+              fun String.doubleLength() = length * 2
+            }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasPropertyDependency.kt",
+        """
+            package something
+            
+            import something.Extensions.doubleLength
+            
+            val property2 = "Hello".doubleLength()
           """)
       c.outputJar()
       c.compileKotlin()
@@ -460,6 +646,46 @@ class KotlinBuilderJvmJdepsTest {
             interface HasPropertyDefinition {
 
                 val callFactory: JavaClass.InnerJavaClass
+            }
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `java enum reference`() {
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("InnerJavaEnum.java",
+        """
+            package something;
+
+            public enum InnerJavaEnum {
+                A_VALUE;
+            }
+          """)
+      c.outputJar()
+      c.compileJava()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasPropertyDefinition.kt",
+        """
+            package something
+            
+            class Foo {
+
+                val result = InnerJavaEnum.A_VALUE.name
             }
           """)
       c.outputJar()
@@ -839,6 +1065,56 @@ class KotlinBuilderJvmJdepsTest {
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
   }
+  @Test
+  fun `property reference should collect indirect super class as implicit dependency`() {
+    val implicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Base.kt",
+        """
+            package something
+
+            open class Base(p: Int)
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val explicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Derived.kt",
+        """
+            package something
+
+            object Derived : Base(41) {
+              @JvmField
+              val SOME_CONST = 42
+            }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(implicitSuperClassDep)
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("ReferencesClassWithSuperClass.kt",
+        """
+            package something
+
+            val classRef = Derived.SOME_CONST
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(explicitSuperClassDep)
+      c.addTransitiveDependencies(implicitSuperClassDep)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(explicitSuperClassDep.singleCompileJar())
+    assertImplicit(jdeps).containsExactly(implicitSuperClassDep.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
 
   @Test
   fun `class declaration all super class references should be an implicit dependency`() {
@@ -1179,6 +1455,53 @@ class KotlinBuilderJvmJdepsTest {
     assertExplicit(jdeps).contains(depWithFunction.singleCompileJar())
     assertExplicit(jdeps).doesNotContain(depWithTypeParameter.singleCompileJar())
     assertImplicit(jdeps).doesNotContain(depWithTypeParameter.singleCompileJar())
+  }
+
+  @Test
+  fun `function call parameter type nested type parameters should be an explicit dependency`() {
+
+    val foo = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Foo.kt",
+        """
+            package something
+
+            class Foo { }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val bar = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("Bar.kt",
+        """
+            package something
+
+            class Bar<T> {
+              val booleanValue = true
+            }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("FunctionWithTypeParams.kt",
+        """
+            package something
+
+            fun foo(param: Set<Bar<Foo>>) {
+
+            }
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(foo, bar)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertExplicit(jdeps).contains(bar.singleCompileJar())
+    assertExplicit(jdeps).contains(foo.singleCompileJar())
   }
 
   @Test
