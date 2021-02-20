@@ -155,7 +155,7 @@ internal fun JvmCompilationTask.kaptArgs(
     ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
 }
 
-internal fun JvmCompilationTask.runPlugins(
+internal fun JvmCompilationTask.runPluginsUsingKapt(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
   compiler: KotlinToolchain.KotlincInvoker
