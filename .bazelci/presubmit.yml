@@ -79,6 +79,16 @@ tasks:
     build_targets:
       - //coroutines-helloworld/...
       - //express/...
+  example-jetpack-compose:
+    name: "Example - Jetpack Compose"
+    platform: ubuntu1804
+    shell_commands:
+      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
+    working_directory: examples/jetpack_compose
+    test_flags:
+      - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
+    test_targets:
+      - //...
   stardoc:
     name: Stardoc api documentation
     platform: ubuntu1804
