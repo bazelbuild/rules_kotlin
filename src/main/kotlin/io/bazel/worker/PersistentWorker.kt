@@ -25,6 +25,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import java.nio.charset.StandardCharsets.UTF_8
@@ -83,6 +84,7 @@ class PersistentWorker(
         blockable {
           generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
         }.asFlow()
+          .flowOn(coroutineContext)
           .map { request ->
             info { "received req: ${request.requestId}" }
             doTask("request ${request.requestId}") { ctx ->

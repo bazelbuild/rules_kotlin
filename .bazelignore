@@ -7,3 +7,4 @@ examples/jetpack_compose
 examples/node
 examples/trivial
 examples/anvil
+examples/multiplex
