@@ -80,18 +80,19 @@ class PersistentWorker(
   override fun start(execute: Work) = WorkerContext.run {
     captureIO().use { io ->
       BlockableDispatcher.runIn(coroutineContext) {
+        val workExecutor = Executors.newCachedThreadPool()
         blockable {
           generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
-        }.asFlow()
-          .map { request ->
-            info { "received req: ${request.requestId}" }
+        }.forEach { request ->
+          info { "received req: ${request.requestId}" }
+          workExecutor.execute {
             doTask("request ${request.requestId}") { ctx ->
               request.argumentsList.run {
                 execute(ctx, toList())
               }
             }.let { result ->
               this@run.info { "task result ${result.status}" }
-              WorkerProtocol.WorkResponse.newBuilder().apply {
+              val response = WorkerProtocol.WorkResponse.newBuilder().apply {
                 output =
                   listOf(
                     result.log.out.toString(),
@@ -100,17 +101,16 @@ class PersistentWorker(
                 exitCode = result.status.exit
                 requestId = request.requestId
               }.build()
-            }
-          }
-          .collect { response ->
-            blockable {
               info {
                 response.toString()
               }
-              response.writeDelimitedTo(io.output)
-              io.output.flush()
+              synchronized(this@PersistentWorker) {
+                response.writeDelimitedTo(io.output)
+                io.output.flush()
+              }
             }
           }
+        }
       }
       io.output.close()
       info { "stopped worker" }
