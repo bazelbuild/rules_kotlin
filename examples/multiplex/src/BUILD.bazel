@@ -1,0 +1,26 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "big",
+    srcs = ["Big.kt"],
+)
+
+kt_jvm_library(
+    name = "small",
+    srcs = ["Small.kt"],
+)
+
+kt_jvm_library(
+    name = "small2",
+    srcs = ["Small2.kt"],
+)
+
+kt_jvm_library(
+    name = "small3",
+    srcs = ["Small3.kt"],
+)
+
+kt_jvm_library(
+    name = "small4",
+    srcs = ["Small4.kt"],
+)
