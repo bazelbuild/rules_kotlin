@@ -2,8 +2,12 @@ workspace(name = "multiplex")
 
 local_repository(
     name = "io_bazel_rules_kotlin",
-    path = "../../bazel-bin/rules_kotlin_release.tgz",
+    path = "../..",
 )
+
+load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+
+kt_download_local_dev_dependencies()
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
 

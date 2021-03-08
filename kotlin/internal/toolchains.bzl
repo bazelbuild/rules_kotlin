@@ -79,6 +79,10 @@ def _kotlin_toolchain_impl(ctx):
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         js_stdlibs = ctx.attr.js_stdlibs,
+        execution_requirements = {
+            "supports-workers": "1",
+            "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
+        },
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
@@ -187,6 +191,10 @@ _kt_toolchain = rule(
             ],
             providers = [_KtJsInfo],
         ),
+        "experimental_multiplex_workers": attr.bool(
+            doc = """Run workers in multiplex mode.""",
+            default = False,
+        ),
         "experimental_use_abi_jars": attr.bool(
             doc = """Compile using abi jars. Can be disabled for an individual target using the tag
             `kt_abi_plugin_incompatible`""",
@@ -258,6 +266,7 @@ def define_kt_toolchain(
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
+        experimental_multiplex_workers = None,
         javac_options = None,
         kotlinc_options = None):
     """Define the Kotlin toolchain."""
@@ -282,6 +291,7 @@ def define_kt_toolchain(
             absolute_target("//kotlin/internal:noexperimental_use_abi_jars"): False,
             "//conditions:default": experimental_use_abi_jars,
         }),
+        experimental_multiplex_workers = experimental_multiplex_workers,
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
@@ -327,6 +337,11 @@ def kt_configure_toolchains():
     native.config_setting(
         name = "builder_debug_timings",
         values = {"define": "kt_timings=1"},
+    )
+
+    native.config_setting(
+        name = "experimental_multiplex_workers",
+        values = {"define": "kt_multiplex=1"},
     )
 
     native.config_setting(
