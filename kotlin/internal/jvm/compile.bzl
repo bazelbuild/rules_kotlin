@@ -204,7 +204,7 @@ def _kotlinc_options_provider_to_flags(opts, language_version):
     if opts.x_no_optimized_callable_references:
         flags.append("-Xno-optimized-callable-references")
     if opts.x_multi_platform:
-            flags.append("-Xmulti-platform")
+        flags.append("-Xmulti-platform")
     if opts.java_parameters:
         flags.append("-java-parameters")
     return flags
@@ -335,10 +335,7 @@ def _run_merge_jdeps_action(ctx, rule_kind, toolchains, jdeps, outputs):
         input_manifests = input_manifests,
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.jdeps_merger.files_to_run.executable,
-        execution_requirements = {
-            "supports-workers": "1",
-            "supports-multiplex-workers": "1",
-        },
+        execution_requirements = toolchains.kt.execution_requirements,
         arguments = [args],
         progress_message = progress_message,
     )
@@ -484,10 +481,7 @@ def _run_kt_builder_action(
         input_manifests = input_manifests,
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
-        execution_requirements = {
-            "supports-workers": "1",
-            "supports-multiplex-workers": "1",
-        },
+        execution_requirements = toolchains.kt.execution_requirements,
         arguments = [args],
         progress_message = progress_message,
         env = {
