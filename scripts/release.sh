@@ -56,7 +56,7 @@ shasum -a 256 bazel-bin/rules_kotlin_release.tgz > bazel-bin/rules_kotlin_releas
 
 # iterate through the examples and build them
 for ex in examples/*/; do
-  if [[ -f "$ex/WORKSPACE" ]]; then
+  if [[ -f "$ex/WORKSPACE" ]] && ! [[ -f "$ex/ignore.me" ]]; then
     (
       cd "$ex"
       bazel build ${BUILD_ARGS} --override_repository=io_bazel_rules_kotlin=$ARCHIVE_DIR //...:all
