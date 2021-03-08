@@ -19,13 +19,15 @@ package io.bazel.worker
 
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import java.nio.charset.StandardCharsets.UTF_8
@@ -58,15 +60,16 @@ class PersistentWorker(
    */
   private class BlockableDispatcher(
     private val unblockedContext: CoroutineContext,
-    private val blockingContext: ExecutorCoroutineDispatcher
-  ) {
+    private val blockingContext: ExecutorCoroutineDispatcher,
+    scope: CoroutineScope
+  ) : CoroutineScope by scope {
     companion object {
       fun <T> runIn(
         owningContext: CoroutineContext,
         exec: suspend BlockableDispatcher.() -> T
       ) =
         Executors.newCachedThreadPool().asCoroutineDispatcher().use { dispatcher ->
-          runBlocking(owningContext) { BlockableDispatcher(owningContext, dispatcher).exec() }
+          runBlocking(owningContext) { BlockableDispatcher(owningContext, dispatcher, this).exec() }
         }
     }
 
@@ -84,25 +87,30 @@ class PersistentWorker(
         blockable {
           generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
         }.asFlow()
-          .flowOn(coroutineContext)
           .map { request ->
             info { "received req: ${request.requestId}" }
-            doTask("request ${request.requestId}") { ctx ->
-              request.argumentsList.run {
-                execute(ctx, toList())
+            async {
+              doTask("request ${request.requestId}") { ctx ->
+                request.argumentsList.run {
+                  execute(ctx, toList())
+                }
+              }.let { result ->
+                info { "task result ${result.status}" }
+                WorkerProtocol.WorkResponse.newBuilder().apply {
+                  output =
+                    listOf(
+                      result.log.out.toString(),
+                      io.captured.toByteArray().toString(UTF_8)
+                    ).filter { it.isNotBlank() }.joinToString("\n")
+                  exitCode = result.status.exit
+                  requestId = request.requestId
+                }.build()
               }
-            }.let { result ->
-              this@run.info { "task result ${result.status}" }
-              WorkerProtocol.WorkResponse.newBuilder().apply {
-                output =
-                  listOf(
-                    result.log.out.toString(),
-                    io.captured.toByteArray().toString(UTF_8)
-                  ).filter { it.isNotBlank() }.joinToString("\n")
-                exitCode = result.status.exit
-                requestId = request.requestId
-              }.build()
             }
+          }
+          .buffer()
+          .map { deferred ->
+            deferred.await()
           }
           .collect { response ->
             blockable {
