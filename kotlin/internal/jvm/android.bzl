@@ -78,6 +78,7 @@ def kt_android_local_test(
         name,
         jvm_flags = None,
         manifest = None,
+        manifest_values = None,
         test_class = None,
         size = None,
         timeout = None,
@@ -104,6 +105,7 @@ def kt_android_local_test(
         shard_count = shard_count,
         custom_package = kwargs.get("custom_package", default = None),
         manifest = manifest,
+        manifest_values = manifest_values,
         tags = kwargs.get("tags", default = None),
         testonly = kwargs.get("testonly", default = True),
     )
