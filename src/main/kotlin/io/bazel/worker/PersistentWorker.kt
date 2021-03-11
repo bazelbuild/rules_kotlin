@@ -32,6 +32,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.PrintStream
@@ -59,31 +64,38 @@ class PersistentWorker(
 
   @ExperimentalCoroutinesApi
   override fun start(execute: Work) = WorkerContext.run {
+    //Use channel to serialize writing output
+    val writeChannel = Channel<WorkerProtocol.WorkResponse>(UNLIMITED)
     captureIO().use { io ->
       runBlocking {
-        generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
-          .asFlow()
-          .suspendingParallelMap(scope) { request ->
-            val result = doTask("request ${request.requestId}") { ctx ->
-              request.argumentsList.run {
-                execute(ctx, toList())
+        launch {
+          generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
+            .asFlow()
+            .suspendingParallelMap(scope) { request ->
+              val result = doTask("request ${request.requestId}") { ctx ->
+                request.argumentsList.run {
+                  execute(ctx, toList())
+                }
               }
+              info { "task result ${result.status}" }
+              val response = WorkerProtocol.WorkResponse.newBuilder().apply {
+                output = listOf(
+                  result.log.out.toString(),
+                  io.captured.toByteArray().toString(UTF_8)
+                ).filter { it.isNotBlank() }.joinToString("\n")
+                exitCode = result.status.exit
+                requestId = request.requestId
+              }.build()
+              info {
+                response.toString()
+              }
+              writeChannel.send(response)
             }
-            info { "task result ${result.status}" }
-            val response = WorkerProtocol.WorkResponse.newBuilder().apply {
-              output = listOf(
-                result.log.out.toString(),
-                io.captured.toByteArray().toString(UTF_8)
-              ).filter { it.isNotBlank() }.joinToString("\n")
-              exitCode = result.status.exit
-              requestId = request.requestId
-            }.build()
-            info {
-              response.toString()
-            }
-            writeOutput(response, io.output)
-          }
-          .collect()
+            .onCompletion { writeChannel.close() }
+            .collect()
+        }
+        writeChannel.consumeAsFlow()
+          .collect { response -> writeOutput(response, io.output) }
       }
 
       io.output.close()
