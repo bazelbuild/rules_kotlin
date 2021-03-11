@@ -29,7 +29,12 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.io.PrintStream
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
@@ -50,81 +55,59 @@ class PersistentWorker(
 
   constructor() : this(Dispatchers.IO, IO.Companion::capture)
 
-  /**
-   * ThreadAwareDispatchers provides an ability to separate thread blocking operations from coroutines..
-   *
-   * Coroutines interleave actions over a pool of threads. When an action blocks it stands a chance
-   * of producing a deadlock. We sidestep this by providing a separate dispatcher to contain
-   * blocking operations, like reading from a stream. Inelegant, and a bit of a sledgehammer, but
-   * safe for the moment.
-   */
-  private class BlockableDispatcher(
-    private val unblockedContext: CoroutineContext,
-    private val blockingContext: ExecutorCoroutineDispatcher,
-    scope: CoroutineScope
-  ) : CoroutineScope by scope {
-    companion object {
-      fun <T> runIn(
-        owningContext: CoroutineContext,
-        exec: suspend BlockableDispatcher.() -> T
-      ) =
-        Executors.newCachedThreadPool().asCoroutineDispatcher().use { dispatcher ->
-          runBlocking(owningContext) { BlockableDispatcher(owningContext, dispatcher, this).exec() }
-        }
-    }
-
-    fun <T> blockable(action: () -> T): T {
-      return runBlocking(blockingContext) {
-        return@runBlocking action()
-      }
-    }
-  }
+  val scope = CoroutineScope(Job() + Dispatchers.IO)
 
   @ExperimentalCoroutinesApi
   override fun start(execute: Work) = WorkerContext.run {
     captureIO().use { io ->
-      BlockableDispatcher.runIn(coroutineContext) {
-        blockable {
-          generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
-        }.asFlow()
-          .map { request ->
-            info { "received req: ${request.requestId}" }
-            async {
-              doTask("request ${request.requestId}") { ctx ->
-                request.argumentsList.run {
-                  execute(ctx, toList())
-                }
-              }.let { result ->
-                info { "task result ${result.status}" }
-                WorkerProtocol.WorkResponse.newBuilder().apply {
-                  output =
-                    listOf(
-                      result.log.out.toString(),
-                      io.captured.toByteArray().toString(UTF_8)
-                    ).filter { it.isNotBlank() }.joinToString("\n")
-                  exitCode = result.status.exit
-                  requestId = request.requestId
-                }.build()
+      runBlocking {
+        generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
+          .asFlow()
+          .suspendingParallelMap(scope) { request ->
+            val result = doTask("request ${request.requestId}") { ctx ->
+              request.argumentsList.run {
+                execute(ctx, toList())
               }
             }
-          }
-          .buffer()
-          .map { deferred ->
-            deferred.await()
-          }
-          .collect { response ->
-            blockable {
-              info {
-                response.toString()
-              }
-              response.writeDelimitedTo(io.output)
-              io.output.flush()
+            info { "task result ${result.status}" }
+            val response = WorkerProtocol.WorkResponse.newBuilder().apply {
+              output = listOf(
+                result.log.out.toString(),
+                io.captured.toByteArray().toString(UTF_8)
+              ).filter { it.isNotBlank() }.joinToString("\n")
+              exitCode = result.status.exit
+              requestId = request.requestId
+            }.build()
+            info {
+              response.toString()
             }
+            writeOutput(response, io.output)
           }
+          .collect()
       }
+
       io.output.close()
       info { "stopped worker" }
     }
     return@run 0
   }
+
+  private suspend fun writeOutput(response: WorkerProtocol.WorkResponse, output: PrintStream) =
+    withContext(Dispatchers.IO) {
+      response.writeDelimitedTo(output)
+      output.flush()
+    }
+
+  /**
+   * suspendingParallelMap
+   * @param scope - CoroutineScope
+   * @param f - suspending function
+   */
+  fun <A, B> Flow<A>.suspendingParallelMap(scope: CoroutineScope, f: suspend (A) -> B): Flow<B> {
+    return flowOn(Dispatchers.IO)
+      .map { scope.async { f(it) } }
+      .buffer() //default concurrency limit of 64
+      .map { it.await() }
+  }
+
 }
