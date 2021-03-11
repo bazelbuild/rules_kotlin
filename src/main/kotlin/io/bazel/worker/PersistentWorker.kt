@@ -60,7 +60,6 @@ class PersistentWorker(
 
   constructor() : this(Dispatchers.IO, IO.Companion::capture)
 
-  val scope = CoroutineScope(Job() + Dispatchers.IO)
 
   @ExperimentalCoroutinesApi
   override fun start(execute: Work) = WorkerContext.run {
@@ -68,32 +67,16 @@ class PersistentWorker(
     val writeChannel = Channel<WorkerProtocol.WorkResponse>(UNLIMITED)
     captureIO().use { io ->
       runBlocking {
-        launch {
-          generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
-            .asFlow()
-            .suspendingParallelMap(scope) { request ->
-              val result = doTask("request ${request.requestId}") { ctx ->
-                request.argumentsList.run {
-                  execute(ctx, toList())
+        //Parent coroutine to track all of children and close channel on completion
+        launch(Dispatchers.Default) {
+            generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
+              .forEach { request ->
+                launch {
+                  compileWork(request, io, writeChannel, execute)
                 }
               }
-              info { "task result ${result.status}" }
-              val response = WorkerProtocol.WorkResponse.newBuilder().apply {
-                output = listOf(
-                  result.log.out.toString(),
-                  io.captured.toByteArray().toString(UTF_8)
-                ).filter { it.isNotBlank() }.joinToString("\n")
-                exitCode = result.status.exit
-                requestId = request.requestId
-              }.build()
-              info {
-                response.toString()
-              }
-              writeChannel.send(response)
-            }
-            .onCompletion { writeChannel.close() }
-            .collect()
-        }
+        }.invokeOnCompletion { writeChannel.close() }
+
         writeChannel.consumeAsFlow()
           .collect { response -> writeOutput(response, io.output) }
       }
@@ -104,22 +87,36 @@ class PersistentWorker(
     return@run 0
   }
 
+  private suspend fun WorkerContext.compileWork(
+    request: WorkRequest,
+    io: IO,
+    chan: Channel<WorkerProtocol.WorkResponse>,
+    execute: Work
+  ) = withContext(Dispatchers.Default) {
+      val result = doTask("request ${request.requestId}") { ctx ->
+        request.argumentsList.run {
+          execute(ctx, toList())
+        }
+      }
+      info { "task result ${result.status}" }
+      val response = WorkerProtocol.WorkResponse.newBuilder().apply {
+        output = listOf(
+          result.log.out.toString(),
+          io.captured.toByteArray().toString(UTF_8)
+        ).filter { it.isNotBlank() }.joinToString("\n")
+        exitCode = result.status.exit
+        requestId = request.requestId
+      }.build()
+      info {
+        response.toString()
+      }
+      chan.send(response)
+  }
+
   private suspend fun writeOutput(response: WorkerProtocol.WorkResponse, output: PrintStream) =
     withContext(Dispatchers.IO) {
       response.writeDelimitedTo(output)
       output.flush()
     }
-
-  /**
-   * suspendingParallelMap
-   * @param scope - CoroutineScope
-   * @param f - suspending function
-   */
-  fun <A, B> Flow<A>.suspendingParallelMap(scope: CoroutineScope, f: suspend (A) -> B): Flow<B> {
-    return flowOn(Dispatchers.IO)
-      .map { scope.async { f(it) } }
-      .buffer() //default concurrency limit of 64
-      .map { it.await() }
-  }
 
 }
