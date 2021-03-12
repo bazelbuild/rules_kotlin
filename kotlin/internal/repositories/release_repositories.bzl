@@ -23,6 +23,7 @@ load(
     _http_archive = "http_archive",
     _http_file = "http_file",
 )
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":tools.bzl", "absolute_target")
 
 BAZEL_JAVA_LAUNCHER_VERSION = "3.7.0"
@@ -59,6 +60,14 @@ def kotlin_repositories(
                  "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
                  "java_stub_template.txt")],
         sha256 = "a618e746e743f3119a9939e60645a02de40149aae9d63201c3cd05706010f6eb",
+    )
+
+    maybe(
+        _http_file,
+        name = "com_github_pinterest_ktlint",
+        sha256 = "4739662e9ac9a9894a1eb47844cbb5610971f15af332eac94d108d4f55ebc19e",
+        urls = ["https://github.com/pinterest/ktlint/releases/download/0.40.0/ktlint"],
+        executable = True,
     )
 
 def _kotlin_compiler_impl(repository_ctx):

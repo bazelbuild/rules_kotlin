@@ -31,6 +31,9 @@ load(
     _kt_jvm_test = "kt_jvm_test",
     _kt_kotlinc_options = "kt_kotlinc_options",
     _kt_register_toolchains = "kt_register_toolchains",
+    _ktlint_config = "ktlint_config",
+    _ktlint_fix = "ktlint_fix",
+    _ktlint_test = "ktlint_test",
 )
 
 kotlin_repositories = _kotlin_repositories
@@ -47,3 +50,6 @@ kt_jvm_test = _kt_jvm_test
 kt_android_library = _kt_android_library
 kt_android_local_test = _kt_android_local_test
 kt_compiler_plugin = _kt_compiler_plugin
+ktlint_config = _ktlint_config
+ktlint_fix = _ktlint_fix
+ktlint_test = _ktlint_test

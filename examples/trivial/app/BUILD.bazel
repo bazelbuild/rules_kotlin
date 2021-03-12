@@ -1,4 +1,4 @@
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library", "ktlint_fix", "ktlint_test")
 
 kt_jvm_library(
     name = "app_lib",
@@ -6,6 +6,16 @@ kt_jvm_library(
     deps = [
         "//:java_deps",
     ],
+)
+
+ktlint_test(
+    name = "lint_test",
+    srcs = glob(["**/*.kt"]),
+)
+
+ktlint_fix(
+    name = "lint_fix",
+    srcs = glob(["**/*.kt"]),
 )
 
 java_binary(
