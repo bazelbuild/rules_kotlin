@@ -42,6 +42,9 @@ load(
     _kt_js_import = "kt_js_import_macro",
     _kt_js_library = "kt_js_library_macro",
 )
+load("//kotlin/internal/lint:ktlint_config.bzl", _ktlint_config = "ktlint_config")
+load("//kotlin/internal/lint:ktlint_fix.bzl", _ktlint_fix = "ktlint_fix")
+load("//kotlin/internal/lint:ktlint_test.bzl", _ktlint_test = "ktlint_test")
 
 define_kt_toolchain = _define_kt_toolchain
 kt_kotlinc_options = _kt_kotlinc_options
@@ -56,3 +59,6 @@ kt_jvm_test = _kt_jvm_test
 kt_android_library = _kt_android_library
 kt_android_local_test = _kt_android_local_test
 kt_compiler_plugin = _kt_compiler_plugin
+ktlint_config = _ktlint_config
+ktlint_fix = _ktlint_fix
+ktlint_test = _ktlint_test
