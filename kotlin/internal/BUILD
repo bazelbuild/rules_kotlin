@@ -39,6 +39,7 @@ bzl_library(
     deps = [
         "//kotlin/internal/js",
         "//kotlin/internal/jvm",
+        "//kotlin/internal/lint",
         "//kotlin/internal/utils",
         "//kotlin/internal/repositories",
     ],

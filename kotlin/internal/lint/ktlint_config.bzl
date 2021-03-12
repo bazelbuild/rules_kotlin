@@ -20,4 +20,8 @@ ktlint_config = rule(
             allow_single_file = True,
         ),
     },
+    doc = """Used to configure ktlint.
+
+    `ktlint` can be configured to use a `.editorconfig`, as documented at
+    https://github.com/pinterest/ktlint/#editorconfig"""
 )
