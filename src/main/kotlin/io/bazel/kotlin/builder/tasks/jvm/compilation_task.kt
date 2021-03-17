@@ -263,7 +263,7 @@ internal fun JvmCompilationTask.createGeneratedClassJar() {
   JarCreator(
     path = Paths.get(outputs.generatedClassJar),
     normalize = true,
-    verbose = true
+    verbose = false
   ).also {
     it.addDirectory(Paths.get(directories.generatedClasses))
     it.setJarOwner(info.label, info.bazelRuleKind)
