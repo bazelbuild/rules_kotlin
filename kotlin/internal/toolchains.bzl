@@ -91,6 +91,7 @@ def _kotlin_toolchain_impl(ctx):
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
+        jacocorunner = ctx.attr.jacocorunner
     )
 
     return [
@@ -248,6 +249,9 @@ _kt_toolchain = rule(
             cfg = "target",
             default = Label("//third_party:empty.jdeps"),
         ),
+        "jacocorunner": attr.label(
+            default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
+        ),
     },
     implementation = _kotlin_toolchain_impl,
     provides = [platform_common.ToolchainInfo],
@@ -268,7 +272,8 @@ def define_kt_toolchain(
         experimental_reduce_classpath_mode = None,
         experimental_multiplex_workers = None,
         javac_options = None,
-        kotlinc_options = None):
+        kotlinc_options = None,
+        jacocorunner = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
 
@@ -298,6 +303,7 @@ def define_kt_toolchain(
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
+        jacocorunner = jacocorunner,
     )
     native.toolchain(
         name = name,
