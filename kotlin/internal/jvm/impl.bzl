@@ -26,6 +26,7 @@ load(
     _utils = "utils",
 )
 load("//third_party:jarjar.bzl", "jarjar_action")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _make_providers(ctx, providers, transitive_files = depset(order = "default"), *additional_providers):
     return struct(
@@ -58,7 +59,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
     classpath = ":".join(["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()])
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
-    javabin = "JAVABIN=" + str(ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path)
+    java_bin_path = ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path
 
     ctx.actions.expand_template(
         template = template,
@@ -66,13 +67,15 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
         substitutions = {
             "%classpath%": classpath,
             "%java_start_class%": main_class,
-            "%javabin%": javabin,
+            "%javabin%": "JAVABIN=" + java_bin_path,
             "%jvm_flags%": jvm_flags,
             "%set_jacoco_metadata%": "",
             "%set_jacoco_main_class%": "",
             "%set_jacoco_java_runfiles_root%": "",
             "%set_java_coverage_new_implementation%": "",
             "%workspace_prefix%": ctx.workspace_name + "/",
+            "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
+            "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1"
         },
         is_executable = True,
     )
