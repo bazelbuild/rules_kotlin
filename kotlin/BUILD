@@ -32,6 +32,7 @@ bzl_library(
     visibility = ["//kotlin:__subpackages__"],
     deps = [
         "//kotlin/internal",
+        "@bazel_skylib//lib:paths.bzl",
     ],
 )
 
