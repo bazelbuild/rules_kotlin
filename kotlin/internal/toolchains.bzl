@@ -91,7 +91,7 @@ def _kotlin_toolchain_impl(ctx):
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
-        jacocorunner = ctx.attr.jacocorunner
+        jacocorunner = ctx.attr.jacocorunner,
     )
 
     return [

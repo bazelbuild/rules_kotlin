@@ -481,7 +481,7 @@ def _run_kt_builder_action(
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
         execution_requirements = _utils.add_dicts(
             toolchains.kt.execution_requirements,
-            { "worker-key-mnemonic": "KotlinCompile" }
+            {"worker-key-mnemonic": "KotlinCompile"},
         ),
         arguments = [args],
         progress_message = progress_message,
@@ -907,5 +907,5 @@ def export_only_providers(ctx, actions, attr, outputs):
             source_attributes = ["srcs"],
             dependency_attributes = ["deps", "exports", "associates", "friends"],
             extensions = ["kt", "java"],
-        )
+        ),
     )

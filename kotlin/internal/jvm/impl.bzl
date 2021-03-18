@@ -90,7 +90,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
                 "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=YES""",
                 "%workspace_prefix%": ctx.workspace_name + "/",
                 "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
-                "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1"
+                "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1",
             },
             is_executable = True,
         )
@@ -115,7 +115,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
                 "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=NO""",
                 "%workspace_prefix%": ctx.workspace_name + "/",
                 "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
-                "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1"
+                "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1",
             },
             is_executable = True,
         )
@@ -135,7 +135,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
             "%set_java_coverage_new_implementation%": "",
             "%workspace_prefix%": ctx.workspace_name + "/",
             "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
-            "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1"
+            "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1",
         },
         is_executable = True,
     )

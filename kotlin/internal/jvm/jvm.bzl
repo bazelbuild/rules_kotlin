@@ -23,8 +23,10 @@ git_repository(
     remote = "https://github.com/bazelbuild/rules_kotlin.git",
     commit = "<COMMIT_HASH>",
 )
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories(kotlin_release_version = "1.4.0")
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_register_toolchains")
 kt_register_toolchains()
 ```
 
@@ -360,7 +362,6 @@ kt_jvm_test = rule(
     implementation = _kt_jvm_junit_test_impl,
     fragments = ["java"],  # Required fragments of the target configuration
     host_fragments = ["java"],  # Required fragments of the host configuration
-
 )
 
 kt_jvm_import = rule(
