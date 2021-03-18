@@ -617,8 +617,17 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
         neverlink = getattr(ctx.attr, "neverlink", False),
     )
+
+    instrumented_files = coverage_common.instrumented_files_info(
+        ctx,
+        source_attributes = ["srcs"],
+        dependency_attributes = ["deps", "exports", "associates", "friends"],
+        extensions = ["kt", "java"],
+    )
+
     return struct(
         java = java_info,
+        instrumented_files = instrumented_files,
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
             module_name = associates.module_name,
@@ -891,4 +900,10 @@ def export_only_providers(ctx, actions, attr, outputs):
                 getattr(attr, "exports", []),
             ),
         ),
+        instrumented_files = coverage_common.instrumented_files_info(
+            ctx,
+            source_attributes = ["srcs"],
+            dependency_attributes = ["deps", "exports", "associates", "friends"],
+            extensions = ["kt", "java"],
+        )
     )

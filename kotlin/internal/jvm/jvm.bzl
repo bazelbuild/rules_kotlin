@@ -349,6 +349,9 @@ kt_jvm_test = rule(
             default = "",
         ),
         "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
+        "_lcov_merger": attr.label(
+            default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),
+        ),
     }),
     executable = True,
     outputs = _common_outputs,

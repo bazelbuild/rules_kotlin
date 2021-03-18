@@ -20,6 +20,7 @@ load(
     "//kotlin/internal:defs.bzl",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
     "//kotlin/internal/utils:utils.bzl",
@@ -34,6 +35,7 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
         providers = [
             providers.java,
             providers.kt,
+            providers.instrumented_files,
             DefaultInfo(
                 files = depset([ctx.outputs.jar, ctx.outputs.jdeps]),
                 runfiles = ctx.runfiles(
@@ -56,10 +58,68 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
         jvm_flags: The flags that should be passed to the jvm.
         args: Args that should be passed to the Binary.
     """
-    classpath = ":".join(["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()])
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
     java_bin_path = ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path
+
+    if ctx.configuration.coverage_enabled:
+        jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
+        classpath = ctx.configuration.host_path_separator.join(
+            ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list() + jacocorunner.files.to_list()],
+        )
+        jacoco_metadata_file = ctx.actions.declare_file(
+            "%s.jacoco_metadata.txt" % ctx.attr.name,
+            sibling = ctx.outputs.executable,
+        )
+        ctx.actions.write(jacoco_metadata_file, "\n".join([
+            jar.short_path.replace("../", "external/")
+            for jar in rjars.to_list()
+        ]))
+        ctx.actions.expand_template(
+            template = template,
+            output = ctx.outputs.executable,
+            substitutions = {
+                "%classpath%": classpath,
+                "%runfiles_manifest_only%": "",
+                "%java_start_class%": "com.google.testing.coverage.JacocoCoverageRunner",
+                "%javabin%": "JAVABIN=" + java_bin_path,
+                "%jvm_flags%": jvm_flags,
+                "%set_jacoco_metadata%": "export JACOCO_METADATA_JAR=\"$JAVA_RUNFILES/{}/{}\"".format(ctx.workspace_name, jacoco_metadata_file.short_path),
+                "%set_jacoco_main_class%": """export JACOCO_MAIN_CLASS={}""".format(main_class),
+                "%set_jacoco_java_runfiles_root%": """export JACOCO_JAVA_RUNFILES_ROOT=$JAVA_RUNFILES/{}/""".format(ctx.workspace_name),
+                "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=YES""",
+                "%workspace_prefix%": ctx.workspace_name + "/",
+                "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
+                "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1"
+            },
+            is_executable = True,
+        )
+        return [jacoco_metadata_file]
+
+    else:
+        classpath = ctx.configuration.host_path_separator.join(
+            ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
+        )
+        ctx.actions.expand_template(
+            template = template,
+            output = ctx.outputs.executable,
+            substitutions = {
+                "%classpath%": classpath,
+                "%runfiles_manifest_only%": "",
+                "%java_start_class%": main_class,
+                "%javabin%": "JAVABIN=" + java_bin_path,
+                "%jvm_flags%": jvm_flags,
+                "%set_jacoco_metadata%": "",
+                "%set_jacoco_main_class%": "",
+                "%set_jacoco_java_runfiles_root%": "",
+                "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=NO""",
+                "%workspace_prefix%": ctx.workspace_name + "/",
+                "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
+                "%needs_runfiles%": "0" if paths.is_absolute(java_bin_path) else "1"
+            },
+            is_executable = True,
+        )
+        return []
 
     ctx.actions.expand_template(
         template = template,
@@ -211,6 +271,11 @@ def kt_jvm_junit_test_impl(ctx):
     providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_test")
     runtime_jars = depset(ctx.files._bazel_test_runner, transitive = [providers.java.transitive_runtime_jars])
 
+    coverage_runfiles = []
+    if ctx.configuration.coverage_enabled:
+        jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
+        coverage_runfiles = jacocorunner.files.to_list()
+
     test_class = ctx.attr.test_class
 
     # If no test_class, do a best-effort attempt to infer one.
@@ -223,7 +288,7 @@ def kt_jvm_junit_test_impl(ctx):
                         test_class = elements[1].split(".")[0].replace("/", ".")
                         break
 
-    _write_launcher_action(
+    coverage_metadata = _write_launcher_action(
         ctx,
         runtime_jars,
         main_class = ctx.attr.main_class,
@@ -238,7 +303,7 @@ def kt_jvm_junit_test_impl(ctx):
         providers,
         depset(
             order = "default",
-            transitive = [runtime_jars],
+            transitive = [runtime_jars, depset(coverage_runfiles), depset(coverage_metadata)],
             direct = ctx.files._java_runtime,
         ),
         # adds common test variables, including TEST_WORKSPACE.
