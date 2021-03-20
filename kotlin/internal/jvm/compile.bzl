@@ -601,7 +601,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         ctx.actions,
         output_jar = output_jar,
         output_source_jar = ctx.outputs.srcjar,
-        sources = ctx.files.srcs,
+        sources = srcs.kt + srcs.java,
         source_jars = srcs.src_jars + generated_src_jars,
         java_toolchain = toolchains.java,
         host_javabase = toolchains.java_runtime,
