@@ -116,6 +116,7 @@ class KotlinBuilder @Inject internal constructor(
       BUILD_KOTLIN("--build_kotlin"),
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
+      INSTRUMENT_COVERAGE("--instrument_coverage")
     }
   }
 
@@ -241,6 +242,7 @@ class KotlinBuilder @Inject internal constructor(
 
       root.compileJava = argMap.mandatorySingle(JavaBuilderFlags.BUILD_JAVA).toBoolean()
       root.compileKotlin = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean()
+      root.instrumentCoverage = argMap.mandatorySingle(KotlinBuilderFlags.INSTRUMENT_COVERAGE).toBoolean()
 
       with(root.outputsBuilder) {
         argMap.optionalSingle(JavaBuilderFlags.OUTPUT)?.let { jar = it }
@@ -280,6 +282,8 @@ class KotlinBuilder @Inject internal constructor(
             .toString()
         generatedStubClasses =
           workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
+        coverageMetadataClasses =
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "coverage-metadata")).toString()
       }
 
       with(root.inputsBuilder) {

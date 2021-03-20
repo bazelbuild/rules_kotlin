@@ -378,6 +378,7 @@ def _run_kt_builder_action(
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
     args.add_all("--kotlin_friend_paths", associates.jars, map_each = _associate_utils.flatten_jars)
+    args.add("--instrument_coverage", ctx.coverage_instrumented())
 
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(
