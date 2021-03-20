@@ -117,7 +117,11 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
 
         if (outputs.jar.isNotEmpty()) {
-          context.execute("create jar", ::createOutputJar)
+          if (instrumentCoverage) {
+            context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
+          } else {
+            context.execute("create jar", ::createOutputJar)
+          }
         }
         if (outputs.abijar.isNotEmpty()) {
           context.execute("create abi jar", ::createAbiJar)

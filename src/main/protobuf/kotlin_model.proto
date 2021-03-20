@@ -102,6 +102,8 @@ message JvmCompilationTask {
     string generated_java_sources = 7;
     // The destination directory the Java compiler should use for class files.
     string java_classes = 8;
+    // The destination directory for code coverage metadata.
+    string coverage_metadata_classes = 9;
   }
 
   // Outputs produced by the builder.
@@ -164,6 +166,7 @@ message JvmCompilationTask {
   Inputs inputs = 4;
   bool compile_java = 5;
   bool compile_kotlin = 6;
+  bool instrument_coverage = 7;
 }
 
 message JsCompilationTask {
