@@ -53,6 +53,12 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "KotlinBuilderJvmCoverageTest",
+    size = "large",
+    srcs = ["jvm/KotlinBuilderJvmCoverageTest.kt"],
+)
+
+kt_rules_test(
     name = "JdepsMergerTest",
     srcs = ["jvm/JdepsMergerTest.kt"],
     deps = [

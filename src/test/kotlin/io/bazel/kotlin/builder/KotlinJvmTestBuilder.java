@@ -52,7 +52,8 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     DirectoryType.SOURCE_GEN,
                     DirectoryType.JAVA_SOURCE_GEN,
                     DirectoryType.GENERATED_CLASSES,
-                    DirectoryType.TEMP);
+                    DirectoryType.TEMP,
+                    DirectoryType.COVERAGE_METADATA);
 
     private TaskBuilder taskBuilderInstance = new TaskBuilder();
     private static KotlinBuilderTestComponent component;
@@ -72,8 +73,8 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                 .setGeneratedJavaSources(directory(DirectoryType.JAVA_SOURCE_GEN).toAbsolutePath().toString())
                 .setGeneratedStubClasses(directory(DirectoryType.GENERATED_STUBS).toAbsolutePath().toString())
                 .setTemp(directory(DirectoryType.TEMP).toAbsolutePath().toString())
-                .setGeneratedClasses(
-                        directory(DirectoryType.GENERATED_CLASSES).toAbsolutePath().toString());
+                .setGeneratedClasses(directory(DirectoryType.GENERATED_CLASSES).toAbsolutePath().toString())
+                .setCoverageMetadataClasses(directory(DirectoryType.COVERAGE_METADATA).toAbsolutePath().toString());
     }
 
     @Override
@@ -158,6 +159,11 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
         public TaskBuilder compileKotlin() {
             taskBuilder.setCompileKotlin(true);
+            return this;
+        }
+
+        public TaskBuilder coverage() {
+            taskBuilder.setInstrumentCoverage(true);
             return this;
         }
 
