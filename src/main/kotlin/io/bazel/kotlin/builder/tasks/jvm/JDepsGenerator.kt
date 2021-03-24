@@ -100,9 +100,12 @@ internal class JDepsGenerator @Inject constructor(
  * from reporting the version in the `1.x.y_z` format (e.g. `1.8.0_202`) in favor of `x.y.z` (e.g.
  * `11.0.1`). As a result, this function checks for a major version of "1" and if it's so, use the
  * minor version as the major one. Otherwise, it uses the first term as the major version.
+ *
+ * Also note that the java.version does not include trailing zero elements.
  */
 private fun String.majorJavaVersion(): Int {
-  val (major, minor) = this.trim().split('.')
+  val elements = this.trim().split('.')
+  val major = elements[0]
   val parsedMajor = Integer.parseInt(major)
-  return if (parsedMajor == 1) Integer.parseInt(minor) else parsedMajor
+  return if (parsedMajor == 1) Integer.parseInt(elements[1]) else parsedMajor
 }
