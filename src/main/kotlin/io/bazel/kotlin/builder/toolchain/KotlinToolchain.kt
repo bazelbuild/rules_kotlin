@@ -77,7 +77,6 @@ class KotlinToolchain private constructor(
       "jdeps-gen.jar").toPath()
 
     internal val NO_ARGS = arrayOf<Any>()
-
     private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
 
     private fun createClassLoader(javaHome: Path, baseJars: List<File>): ClassLoader =
