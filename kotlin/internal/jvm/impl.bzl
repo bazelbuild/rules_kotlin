@@ -281,7 +281,8 @@ def kt_jvm_junit_test_impl(ctx):
     # If no test_class, do a best-effort attempt to infer one.
     if not bool(ctx.attr.test_class):
         for file in ctx.files.srcs:
-            if file.basename.split(".")[0] == ctx.attr.name:
+            package_relative_path = file.path.replace(ctx.label.package + "/", "")
+            if package_relative_path.split(".")[0] == ctx.attr.name:
                 for splitter in _SPLIT_STRINGS:
                     elements = file.short_path.split(splitter, 1)
                     if len(elements) == 2:
