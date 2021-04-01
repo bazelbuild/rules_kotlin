@@ -367,9 +367,6 @@ def _run_kt_builder_action(
     javac_options = ctx.attr.javac_opts[_JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
     args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(kotlinc_options, toolchains.kt.language_version))
     args.add_all("--javacopts", _javac_options_provider_to_flags(javac_options))
-
-    # TODO: Implement Strict Kotlin deps: (https://github.com/bazelbuild/rules_kotlin/issues/419)
-    # This flag is currently unused by the builder but required for the unused_deps tool
     args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
@@ -482,7 +479,10 @@ def _run_kt_builder_action(
         input_manifests = input_manifests,
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
-        execution_requirements = toolchains.kt.execution_requirements,
+        execution_requirements = _utils.add_dicts(
+            toolchains.kt.execution_requirements,
+            { "worker-key-mnemonic": "KotlinCompile" }
+        ),
         arguments = [args],
         progress_message = progress_message,
         env = {
