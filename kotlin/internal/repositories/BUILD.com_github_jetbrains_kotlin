@@ -67,6 +67,16 @@ kt_jvm_import(
     jar = "lib/sam-with-receiver-compiler-plugin.jar",
 )
 
+kt_jvm_import(
+  name = "parcelize-compiler-plugin",
+  jar = "lib/parcelize-compiler.jar",
+)
+
+kt_jvm_import(
+  name = "parcelize-runtime",
+  jar = "lib/parcelize-runtime.jar",
+)
+
 # Kotlin dependencies that are internal to this repo and may be linked.
 [
     java_import(
