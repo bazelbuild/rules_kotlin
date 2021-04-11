@@ -51,7 +51,17 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
   fun execute(context: CompilationTaskContext, task: JvmCompilationTask) {
     val preprocessedTask = task
       .preProcessingSteps(context)
-      .runPlugins(context, plugins, compiler)
+      .let {
+        // Avoid passing in the kapt cli args unless we absolutely need to
+        // The jars will be conditionally packed up at the end of the execution if any of these outputs are provided
+        if (task.outputs.generatedJavaSrcJar.isNotEmpty()
+            || task.outputs.generatedJavaStubJar.isNotEmpty()
+            || task.outputs.generatedClassJar.isNotEmpty()) {
+          it.runPluginsUsingKapt(context, plugins, compiler)
+        } else {
+          it
+        }
+      }
 
     context.execute("compile classes") {
       preprocessedTask.apply {

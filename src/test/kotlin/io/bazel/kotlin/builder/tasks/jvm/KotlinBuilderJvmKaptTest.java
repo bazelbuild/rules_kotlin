@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.google.common.truth.Truth.assertThat;
 import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_ANNOTATIONS;
 import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_STDLIB;
 
@@ -93,6 +94,38 @@ public class KotlinBuilderJvmKaptTest {
     }
 
     @Test
+    public void testKaptKtDoesNotRunWhenOutputsAreNotRequested() {
+        ctx.runFailingCompileTaskAndValidateOutput(() -> {
+            ctx.runCompileTask(
+                    ADD_AUTO_VALUE_PLUGIN,
+                    c -> {
+                        c.addSource(
+                                "TestKtValue.kt",
+                                "package autovalue\n"
+                                        + "\n"
+                                        + "import com.google.auto.value.AutoValue\n"
+                                        + "\n"
+                                        + "@AutoValue\n"
+                                        + "abstract class TestKtValue {\n"
+                                        + "    abstract fun name(): String\n"
+                                        + "    fun builder(): Builder = AutoValue_TestKtValue.Builder()\n"
+                                        + "\n"
+                                        + "    @AutoValue.Builder\n"
+                                        + "    abstract class Builder {\n"
+                                        + "        abstract fun setName(name: String): Builder\n"
+                                        + "        abstract fun build(): TestKtValue\n"
+                                        + "    }\n"
+                                        + "}");
+                        c.compileKotlin();
+                    }
+            );
+        }, c -> {
+            assertThat(c.get(0)).startsWith(ctx.toPlatform("sources/TestKtValue.kt"));
+            assertThat(c.get(0)).endsWith("error: unresolved reference: AutoValue_TestKtValue");
+        });
+    }
+
+    @Test
     public void testMixedKaptBiReferences() {
         ctx.runCompileTask(
                 ADD_AUTO_VALUE_PLUGIN,
@@ -140,6 +173,9 @@ public class KotlinBuilderJvmKaptTest {
                                     + "\n"
                                     + "}");
                     ctx.outputJar();
+                    ctx.generatedSourceJar();
+                    ctx.ktStubsJar();
+                    ctx.incrementalData();
                 });
         ctx.assertFilesExist(
                 DirectoryType.JAVA_SOURCE_GEN,
