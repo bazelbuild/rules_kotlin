@@ -786,6 +786,7 @@ def _run_kt_java_builder_actions(
             javac_opts = javac_opts,
             host_javabase = toolchains.java_runtime,
             neverlink = getattr(ctx.attr, "neverlink", False),
+            strict_deps = toolchains.kt.experimental_strict_kotlin_deps,
         )
         ap_generated_src_jar = java_info.annotation_processing.source_jar
         compile_jars = compile_jars + [
