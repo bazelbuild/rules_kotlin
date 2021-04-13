@@ -35,7 +35,8 @@ internal class JavaCompiler @Inject constructor(
      */
     private val DIR_SEP = "${File.separatorChar}${File.pathSeparator}"
   }
-    fun compile(context: CompilationTaskContext, command: JvmCompilationTask) : List<String> {
+
+  fun compile(context: CompilationTaskContext, command: JvmCompilationTask): List<String> {
     val i = command.inputs
     val d = command.directories
     if (i.javaSourcesList.isNotEmpty()) {
@@ -58,6 +59,6 @@ internal class JavaCompiler @Inject constructor(
         javacInvoker.compile(a, PrintWriter(pw))
       })
     }
-      return emptyList()
+    return emptyList()
   }
 }
