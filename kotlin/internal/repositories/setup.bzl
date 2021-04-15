@@ -40,7 +40,7 @@ def kt_configure():
             "javax.annotation:javax.annotation-api:1.3.2",
             "javax.inject:javax.inject:1",
             "org.pantsbuild:jarjar:1.7.2",
-            "org.jetbrains.kotlinx:atomicfu-js:0.14.0",
+            "org.jetbrains.kotlinx:atomicfu-js:0.15.2",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.4.2",
             "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.2",
