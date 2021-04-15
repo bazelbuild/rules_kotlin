@@ -31,8 +31,10 @@ load(
     _ktlint_fix = "ktlint_fix",
     _ktlint_test = "ktlint_test",
 )
+load("//kotlin:setup.bzl", _kotlin_setup = "kotlin_setup")
 
 define_kt_toolchain = _define_kt_toolchain
+kotlin_setup = _kotlin_setup
 kt_kotlinc_options = _kt_kotlinc_options
 kt_javac_options = _kt_javac_options
 kt_js_library = _kt_js_library

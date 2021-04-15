@@ -68,6 +68,10 @@ load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 
+load("@io_bazel_rules_kotlin//kotlin:setup.bzl", "kotlin_setup")
+
+kotlin_setup()
+
 register_toolchains("//bzl:experimental_toolchain")
 
 http_archive(

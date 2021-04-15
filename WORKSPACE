@@ -21,6 +21,10 @@ load("//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 
+load("//kotlin:setup.bzl", "kotlin_setup")
+
+kotlin_setup()
+
 register_toolchains("@dev_io_bazel_rules_kotlin//kotlin/internal:default_toolchain")
 
 # Creates toolchain configuration for remote execution with BuildKite CI

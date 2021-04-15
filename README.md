@@ -94,6 +94,9 @@ http_archive(
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
 
+load("@io_bazel_rules_kotlin//kotlin:setup.bzl", "kotlin_setup")
+kotlin_setup()
+
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
@@ -113,6 +116,9 @@ http_archive(
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+
+load("@io_bazel_rules_kotlin//kotlin:setup.bzl", "kotlin_setup")
+kotlin_setup()
 
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
@@ -177,6 +183,52 @@ KOTLINC_RELEASE = {
 kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 ```
 
+## Automatic Linting
+
+`rules_kotlin` provides a facility for automatically generating lint tests. This functionality is opt-in, and can be enabled like so:
+
+Early in the project's `WORKSPACE`:
+```python
+http_archive(
+    name = "apple_rules_lint",
+    sha256 = "8feab4b08a958b10cb2abb7f516652cd770b582b36af6477884b3bba1f2f0726",
+    strip_prefix = "apple_rules_lint-0.1.1",
+    url = "https://github.com/apple/apple_rules_lint/archive/0.1.1.zip",
+)
+
+load("@apple_rules_lint//lint:setup.bzl", "lint_setup")
+
+lint_setup({
+  # This is a mapping of a "well known name" (kt-ktlint) to the 
+  # configuration used by the linter (`//:ktlint-config`)
+  "kt-ktlint": "//:ktlint-config",
+})
+```
+
+Now, in the `BUILD.bazel` file that you've chosen to use to house the linter configuration (in this example, the top-level `BUILD.bazel`, but it could be anywhere):
+```python
+load("@io_bazel_rules_kotlin//kotlin:rules.bzl", "ktlint_config")
+
+# The kt-ktlint rules need their configuration to be a `ktlint_config`
+ktlint_config(
+    name = "ktlint-config",
+    # editorconfig = ".editorconfig",
+    visibility = [
+        "//visibility:public",
+    ]
+)
+```
+
+`ktlint` can be configured using an [.editorconfig](https://github.com/pinterest/ktlint#editorconfig) file.
+
+Once enabled, lint tests will be generated for rules that accept Kotlin sources _if there are Kotlin sources added_. They are tagged with `lint` and `kt-lint`. You can run them using:
+
+`bazel test --test_tag_filters=lint //...`
+
+The lint tests are simply regular bazel tests, so they'll also run when you execute a regular `bazel test //...`.
+
+To disable linting for a specific target, add the `no-lint` or `no-kt-ktlint` tag.
+
 ## Third party dependencies 
 _(e.g. Maven artifacts)_
 
@@ -196,8 +248,14 @@ local_repository(
 
 load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 kt_download_local_dev_dependencies()
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+kotlin_repositories()
+
+load("@io_bazel_rules_kotlin//kotlin:setup.bzl", "kotlin_setup")
+kotlin_setup()
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 

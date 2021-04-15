@@ -5,6 +5,19 @@ RULES_JVM_EXTERNAL_TAG = "2.8"
 RULES_JVM_EXTERNAL_SHA = "79c9850690d7614ecdb72d68394f994fef7534b292c4867ce5e7dec0aa7bdfad"
 
 http_archive(
+    name = "apple_rules_lint",
+    sha256 = "8feab4b08a958b10cb2abb7f516652cd770b582b36af6477884b3bba1f2f0726",
+    strip_prefix = "apple_rules_lint-0.1.1",
+    url = "https://github.com/apple/apple_rules_lint/archive/0.1.1.zip",
+)
+
+load("@apple_rules_lint//lint:setup.bzl", "lint_setup")
+
+lint_setup({
+  "kt-ktlint": "//:ktlint-config",
+})
+
+http_archive(
     name = "rules_jvm_external",
     sha256 = RULES_JVM_EXTERNAL_SHA,
     strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
