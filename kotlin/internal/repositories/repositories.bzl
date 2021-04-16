@@ -29,4 +29,4 @@ def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
         compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
     """
     kt_configure()
-    _release_kotlin_repositories(compiler_release)
+    _release_kotlin_repositories(compiler_release = compiler_release)
