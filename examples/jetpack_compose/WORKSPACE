@@ -1,20 +1,3 @@
-local_repository(
-    name = "release_archive",
-    path = "../../src/main/starlark/release_archive",
-)
-
-load("@release_archive//:repository.bzl", "archive_repository")
-
-archive_repository(
-    name = "io_bazel_rules_kotlin",
-)
-
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-
-kotlin_repositories()
-
-register_toolchains("//:kotlin_toolchain")
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 _KOTLIN_COMPILER_VERSION = "1.5.32"
@@ -42,10 +25,11 @@ maven_install(
         "androidx.core:core-ktx:1.3.2",
         "androidx.appcompat:appcompat:1.2.0",
         "com.google.android.material:material:1.2.1",
-        "androidx.compose.material:material:1.0.0-alpha09",
-        "androidx.compose.ui:ui:1.0.0-alpha09",
-        "androidx.compose.ui:ui-tooling:1.0.0-alpha09",
-        "androidx.compose.compiler:compiler:1.0.0-alpha09",
+        "androidx.activity:activity-compose:1.3.0-alpha06",
+        "androidx.compose.material:material:1.0.0-beta04",
+        "androidx.compose.ui:ui:1.0.0-beta04",
+        "androidx.compose.ui:ui-tooling:1.0.0-beta04",
+        "androidx.compose.compiler:compiler:1.0.0-beta04",
     ],
     repositories = [
         "https://maven.google.com",
@@ -143,4 +127,6 @@ load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
 android_sdk_repository(
     name = "androidsdk",
     api_level = 29,
+    build_tools_version = "30.0.1",
 )
+
