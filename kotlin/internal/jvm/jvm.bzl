@@ -243,19 +243,21 @@ _common_attr = utils.add_dicts(
 
 _lib_common_attr = utils.add_dicts(_common_attr, {
     "exports": attr.label_list(
-        doc = """Exported libraries.
+        doc = """\
+Exported libraries.
 
-        Deps listed here will be made available to other rules, as if the parents explicitly depended on
-        these deps. This is not true for regular (non-exported) deps.""",
+Deps listed here will be made available to other rules, as if the parents explicitly depended on
+these deps. This is not true for regular (non-exported) deps.""",
         default = [],
         providers = [JavaInfo],
     ),
     "exported_compiler_plugins": attr.label_list(
-        doc = """Exported compiler plugins.
+        doc = """\
+Exported compiler plugins.
 
-        Compiler plugins listed here will be treated as if they were added in the plugins attribute
-        of any targets that directly depend on this target. Unlike java_plugins' exported_plugins,
-        this is not transitive""",
+Compiler plugins listed here will be treated as if they were added in the plugins attribute
+of any targets that directly depend on this target. Unlike `java_plugin`s exported_plugins,
+this is not transitive""",
         default = [],
         providers = [_KtCompilerPluginInfo],
     ),
@@ -311,13 +313,14 @@ kt_jvm_library = rule(
 )
 
 kt_jvm_binary = rule(
-    doc = """Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper
-    shell script uses a classpath that includes, among other things, a jar file for each library on which the binary
-    depends.
+    doc = """\
+Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper
+shell script uses a classpath that includes, among other things, a jar file for each library on which the binary
+depends.
 
-    **Note:** This rule does not have all of the features found in [`java_binary`](https://docs.bazel.build/versions/master/be/java.html#java_binary).
-    It is appropriate for building workspace utilities. `java_binary` should be preferred for release artefacts.
-    """,
+**Note:** This rule does not have all of the features found in [`java_binary`](https://docs.bazel.build/versions/master/be/java.html#java_binary).
+It is appropriate for building workspace utilities. `java_binary` should be preferred for release artefacts.
+""",
     attrs = dict(_runnable_common_attr.items() + {
         "main_class": attr.string(
             doc = """Name of class with main() method to use as entry point.""",
@@ -333,12 +336,13 @@ kt_jvm_binary = rule(
 )
 
 kt_jvm_test = rule(
-    doc = """Setup a simple kotlin_test.
+    doc = """\
+Setup a simple kotlin_test.
 
-    **Notes:**
-    * The kotlin test library is not added implicitly, it is available with the label
-    `@com_github_jetbrains_kotlin//:kotlin-test`.
-    """,
+**Notes:**
+* The kotlin test library is not added implicitly, it is available with the label
+`@com_github_jetbrains_kotlin//:kotlin-test`.
+""",
     attrs = utils.add_dicts(_runnable_common_attr, {
         "_bazel_test_runner": attr.label(
             default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
@@ -364,44 +368,46 @@ kt_jvm_test = rule(
 )
 
 kt_jvm_import = rule(
-    doc = """Import Kotlin jars.
+    doc = """\
+Import Kotlin jars.
 
-     ## examples
+## examples
 
-     ```bzl
-     # Old style usage -- reference file groups, do not used this.
-     kt_jvm_import(
-         name = "kodein",
-         jars = [
-             "@com_github_salomonbrys_kodein_kodein//jar:file",
-             "@com_github_salomonbrys_kodein_kodein_core//jar:file"
-         ]
-     )
+```bzl
+# Old style usage -- reference file groups, do not used this.
+kt_jvm_import(
+    name = "kodein",
+    jars = [
+        "@com_github_salomonbrys_kodein_kodein//jar:file",
+        "@com_github_salomonbrys_kodein_kodein_core//jar:file"
+    ]
+)
 
-     # This style will pull in the transitive runtime dependencies of the targets as well.
-     kt_jvm_import(
-         name = "kodein",
-         jars = [
-             "@com_github_salomonbrys_kodein_kodein//jar",
-             "@com_github_salomonbrys_kodein_kodein_core//jar"
-         ]
-     )
+# This style will pull in the transitive runtime dependencies of the targets as well.
+kt_jvm_import(
+    name = "kodein",
+    jars = [
+        "@com_github_salomonbrys_kodein_kodein//jar",
+        "@com_github_salomonbrys_kodein_kodein_core//jar"
+    ]
+)
 
-     # Import a single kotlin jar.
-     kt_jvm_import(
-         name = "kotlin-stdlib",
-         jars = ["lib/kotlin-stdlib.jar"],
-         srcjar = "lib/kotlin-stdlib-sources.jar"
-     )
-     ```
-    """,
+# Import a single kotlin jar.
+kt_jvm_import(
+    name = "kotlin-stdlib",
+    jars = ["lib/kotlin-stdlib.jar"],
+    srcjar = "lib/kotlin-stdlib-sources.jar"
+)
+```
+""",
     attrs = {
         "jars": attr.label_list(
-            doc = """The jars listed here are equavalent to an export attribute. The label should be either to a single
-            class jar, or one or more filegroup labels.  The filegroups, when resolved, must contain  only one jar
-            containing classes, and (optionally) one peer file containing sources, named `<jarname>-sources.jar`.
+            doc = """\
+The jars listed here are equavalent to an export attribute. The label should be either to a single
+class jar, or one or more filegroup labels.  The filegroups, when resolved, must contain  only one jar
+containing classes, and (optionally) one peer file containing sources, named `<jarname>-sources.jar`.
 
-            DEPRECATED - please use `jar` and `srcjar` attributes.""",
+DEPRECATED - please use `jar` and `srcjar` attributes.""",
             allow_files = True,
             cfg = "target",
         ),
@@ -431,19 +437,21 @@ kt_jvm_import = rule(
             providers = [JavaInfo],
         ),
         "exports": attr.label_list(
-            doc = """Exported libraries.
+            doc = """\
+Exported libraries.
 
-            Deps listed here will be made available to other rules, as if the parents explicitly depended on
-            these deps. This is not true for regular (non-exported) deps.""",
+Deps listed here will be made available to other rules, as if the parents explicitly depended on
+these deps. This is not true for regular (non-exported) deps.""",
             default = [],
             providers = [JavaInfo, _KtJvmInfo],
         ),
         "exported_compiler_plugins": attr.label_list(
-            doc = """Exported compiler plugins.
+            doc = """\
+Exported compiler plugins.
 
-            Compiler plugins listed here will be treated as if they were added in the plugins
-            attribute of any targets that directly depend on this target. Unlike java_plugins'
-            exported_plugins, this is not transitive""",
+Compiler plugins listed here will be treated as if they were added in the plugins
+attribute of any targets that directly depend on this target. Unlike java_plugins'
+exported_plugins, this is not transitive""",
             default = [],
             providers = [_KtCompilerPluginInfo],
         ),
@@ -461,38 +469,39 @@ _kt_compiler_deps_aspect = aspect(
 )
 
 kt_compiler_plugin = rule(
-    doc = """Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
-    of the `kt_jvm_*` rules.
+    doc = """\
+Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
+of the `kt_jvm_*` rules.
 
-    An example can be found under `//examples/plugin`:
+An example can be found under `//examples/plugin`:
 
-    ```bzl
-    kt_compiler_plugin(
-        name = "open_for_testing_plugin",
-        id = "org.jetbrains.kotlin.allopen",
-        options = {
-            "annotation": "plugin.OpenForTesting",
-        },
-        deps = [
-            "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
-        ],
-    )
+```bzl
+kt_compiler_plugin(
+    name = "open_for_testing_plugin",
+    id = "org.jetbrains.kotlin.allopen",
+    options = {
+        "annotation": "plugin.OpenForTesting",
+    },
+    deps = [
+        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+    ],
+)
 
-    kt_jvm_library(
-        name = "open_for_testing",
-        srcs = ["OpenForTesting.kt"],
-    )
+kt_jvm_library(
+    name = "open_for_testing",
+    srcs = ["OpenForTesting.kt"],
+)
 
-    kt_jvm_library(
-        name = "user",
-        srcs = ["User.kt"],
-        plugins = [":open_for_testing_plugin"],
-        deps = [
-            ":open_for_testing",
-        ],
-    )
-    ```
-    """,
+kt_jvm_library(
+    name = "user",
+    srcs = ["User.kt"],
+    plugins = [":open_for_testing_plugin"],
+    deps = [
+        ":open_for_testing",
+    ],
+)
+```
+""",
     attrs = {
         "deps": attr.label_list(
             doc = "The list of libraries to be added to the compiler's plugin classpath",
@@ -505,16 +514,18 @@ kt_compiler_plugin = rule(
             mandatory = True,
         ),
         "options": attr.string_dict(
-            doc = """Dictionary of options to be passed to the plugin.
-            Supports the following template values:
-               `{generatedClasses}`: directory for generated class output
-               `{temp}`: temporary directory, discarded between invocations
-               `{generatedSources}`:  directory for generated source output
-            """,
+            doc = """\
+Dictionary of options to be passed to the plugin.
+Supports the following template values:
+
+- `{generatedClasses}`: directory for generated class output
+- `{temp}`: temporary directory, discarded between invocations
+- `{generatedSources}`:  directory for generated source output
+""",
             default = {},
         ),
         "compile_phase": attr.bool(
-            doc = "Runs the compiler plugin during kotlin compilation. Known examples: allopen, sam_with_reciever",
+            doc = "Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`",
             default = True,
         ),
         "stubs_phase": attr.bool(
