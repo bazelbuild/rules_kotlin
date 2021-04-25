@@ -1,3 +1,5 @@
+load("@rules_android//android:rules.bzl", "android_library", "android_local_test")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,8 +40,7 @@ def _kt_android_artifact(
 
     # TODO(bazelbuild/rules_kotlin/issues/273): This should be retrieved from a provider.
     base_deps = deps + [_ANDROID_SDK_JAR]
-
-    native.android_library(
+    android_library(
         name = base_name,
         visibility = ["//visibility:private"],
         exports = base_deps,
@@ -69,7 +70,7 @@ def kt_android_library(name, exports = [], visibility = None, **kwargs):
     `srcs`, `deps`, `plugins` are routed to `kt_jvm_library` the other android
     related attributes are handled by the native `android_library` rule.
     """
-    native.android_library(
+    android_library(
         name = name,
         exports = exports + _kt_android_artifact(name, **kwargs),
         visibility = visibility,
@@ -95,8 +96,7 @@ def kt_android_local_test(
     related attributes are handled by the native `android_library` rule while the test attributes
     are picked out and handled by the `android_local_test` rule.
     """
-
-    native.android_local_test(
+    android_local_test(
         name = name,
         deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, **kwargs),
         jvm_flags = jvm_flags,
