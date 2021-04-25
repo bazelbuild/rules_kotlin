@@ -1,6 +1,8 @@
 ---
 validate_config: 1
 bazel: 4.1.0
+buildifier:
+  version: latest
 tasks:
   ubuntu1604:
     build_targets:
