@@ -17,11 +17,11 @@
 load("//kotlin/internal/repositories:setup.bzl", "kt_configure")
 load(
     "//kotlin/internal/repositories:release_repositories.bzl",
-    "KOTLIN_CURRENT_COMPILER_RELEASE",
     _release_kotlin_repositories = "kotlin_repositories",
 )
+load(":versions.bzl", "versions")
 
-def kotlin_repositories(compiler_release = KOTLIN_CURRENT_COMPILER_RELEASE):
+def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
