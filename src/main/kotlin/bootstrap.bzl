@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
 

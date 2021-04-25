@@ -1,3 +1,6 @@
+load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
+load("//kotlin:kotlin.bzl", "kt_jvm_test")
+
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//src:__subpackages__"])
-
-load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
-load("//kotlin:kotlin.bzl", "kt_jvm_test")
 
 kt_rules_test(
     name = "SourceJarCreatorTest",

@@ -1,3 +1,6 @@
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+load("//kotlin:kotlin.bzl", "kt_jvm_binary", "kt_jvm_library")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:private"])
-
-load("@rules_java//java:defs.bzl", "java_binary", "java_library")
-load("//kotlin:kotlin.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test")
 
 kt_jvm_binary(
     name = "test_module_name_bin",

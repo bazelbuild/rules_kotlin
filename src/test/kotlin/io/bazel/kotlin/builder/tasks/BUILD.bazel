@@ -13,8 +13,6 @@
 # limitations under the License.
 
 load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
-load("//kotlin:kotlin.bzl", "kt_jvm_test")
-load("@rules_jvm_external//:defs.bzl", "artifact")
 
 kt_rules_test(
     name = "JdepsParserTest",

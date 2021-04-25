@@ -1,5 +1,4 @@
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
-load("@rules_java//java:defs.bzl", "java_binary")
 
 kt_bootstrap_library(
     name = "build_lib",

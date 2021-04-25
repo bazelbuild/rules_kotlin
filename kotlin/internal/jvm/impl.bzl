@@ -152,7 +152,7 @@ def _unify_jars(ctx):
         jars = []
         source_jars = []
         if (ctx.file.srcjar and not ("%s" % ctx.file.srcjar.path).endswith("third_party/empty.jar")):
-            source_jars += [ctx.file.srcjar]
+            source_jars.append(ctx.file.srcjar)
 
         # There must be a single jar jar and it can either be a filegroup or a JavaInfo.
         for jar in ctx.attr.jars:

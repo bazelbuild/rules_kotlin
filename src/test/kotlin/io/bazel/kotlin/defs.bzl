@@ -40,8 +40,8 @@ def kt_rules_test(name, **kwargs):
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
     ] + args["data"]:
         if dep not in args["data"]:
-            args["data"] += [dep]
-        args["jvm_flags"] += ["-D%s=$(rootpath %s)" % (dep.replace("/", ".").replace(":", "."), dep)]
+            args["data"].append(dep)
+        args["jvm_flags"].append("-D%s=$(rootpath %s)" % (dep.replace("/", ".").replace(":", "."), dep))
 
     args.setdefault("test_class", _get_class_name(kwargs))
     for f in args.get("srcs"):
