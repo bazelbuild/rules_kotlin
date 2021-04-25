@@ -31,6 +31,12 @@ rbe_autoconfig(
     name = "buildkite_config",
 )
 
+load(
+    "@rules_android//android:rules.bzl",
+    "android_ndk_repository",
+    "android_sdk_repository",
+)
+
 android_sdk_repository(name = "androidsdk")
 
 android_ndk_repository(name = "androidndk")
