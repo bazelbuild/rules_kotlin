@@ -23,5 +23,5 @@ ktlint_config = rule(
     doc = """Used to configure ktlint.
 
     `ktlint` can be configured to use a `.editorconfig`, as documented at
-    https://github.com/pinterest/ktlint/#editorconfig"""
+    https://github.com/pinterest/ktlint/#editorconfig""",
 )

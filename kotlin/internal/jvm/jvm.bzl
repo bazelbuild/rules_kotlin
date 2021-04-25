@@ -364,7 +364,6 @@ Setup a simple kotlin_test.
     implementation = _kt_jvm_junit_test_impl,
     fragments = ["java"],  # Required fragments of the target configuration
     host_fragments = ["java"],  # Required fragments of the host configuration
-
 )
 
 kt_jvm_import = rule(

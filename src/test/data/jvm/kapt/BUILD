@@ -146,11 +146,11 @@ filegroup(
         ":ap_kotlin_mixed",
         ":ap_kotlin_mixed_inherit_plugin_via_exported_deps",
         ":ap_kotlin_mixed_multiple_plugins",
+        ":ap_kotlin_mixed_multiple_plugins-sources.jar",
         ":ap_kotlin_mixed_multiple_plugins_one_without_processor_class",
         ":ap_kotlin_mixed_no_plugin",
         ":ap_kotlin_resources",
         ":ap_kotlin_resources_mixed",
-        ":ap_kotlin_mixed_multiple_plugins-sources.jar",
     ],
     visibility = ["//visibility:public"],
 )
