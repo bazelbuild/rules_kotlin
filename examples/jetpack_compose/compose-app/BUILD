@@ -1,4 +1,5 @@
 load("@build_bazel_rules_android//android:rules.bzl", "android_binary")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
 # An app that consumes android-kt deps
 android_binary(
@@ -10,5 +11,12 @@ android_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//compose-ui:lib",
+    ],
+)
+
+build_test(
+    name = "force_build_apks_test",
+    targets = [
+        ":compose_example_app",
     ],
 )
