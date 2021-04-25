@@ -600,12 +600,10 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
 
     source_jar = java_common.pack_sources(
         ctx.actions,
-        output_jar = output_jar,
         output_source_jar = ctx.outputs.srcjar,
         sources = srcs.kt + srcs.java,
         source_jars = srcs.src_jars + generated_src_jars,
         java_toolchain = toolchains.java,
-        host_javabase = toolchains.java_runtime,
     )
 
     java_info = JavaInfo(
@@ -784,7 +782,6 @@ def _run_kt_java_builder_actions(
             java_toolchain = toolchains.java,
             plugins = _plugin_mappers.targets_to_annotation_processors_java_info(ctx.attr.plugins),
             javac_opts = javac_opts,
-            host_javabase = toolchains.java_runtime,
             neverlink = getattr(ctx.attr, "neverlink", False),
             strict_deps = toolchains.kt.experimental_strict_kotlin_deps,
         )
