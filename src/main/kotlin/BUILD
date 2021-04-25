@@ -18,9 +18,8 @@ load("//kotlin/internal/utils:packager.bzl", "release_archive")
 
 exports_files(
     ["shade.jarjar"],
-    visibility = ["//src:__subpackages__"]
+    visibility = ["//src:__subpackages__"],
 )
-
 
 jar_jar(
     name = "skip-code-gen",
@@ -51,8 +50,8 @@ alias(
 release_archive(
     name = "pkg",
     srcs = [
-        ":skip-code-gen.jar",
         ":jdeps-gen.jar",
+        ":skip-code-gen.jar",
     ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
