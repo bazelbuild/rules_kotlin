@@ -31,7 +31,6 @@ maven_install(
         "androidx.compose.compiler:compiler:1.0.0-alpha09",
     ],
     repositories = [
-        "https://jcenter.bintray.com/",
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
