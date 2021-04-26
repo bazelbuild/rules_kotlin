@@ -174,7 +174,7 @@ def _javac_options_impl(ctx):
 
 kt_javac_options = rule(
     implementation = _javac_options_impl,
-    doc = "Define java compiler options for kt_jvm_* rules with java sources.",
+    doc = "Define java compiler options for `kt_jvm_*` rules with java sources.",
     provides = [JavacOptions],
     attrs = {n: o.type(**o.args) for n, o in _JOPTS.items()},
 )
