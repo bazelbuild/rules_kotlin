@@ -70,6 +70,14 @@ def kotlin_repositories(
         executable = True,
     )
 
+    maybe(
+        _http_archive,
+        name = "apple_rules_lint",
+        sha256 = "8feab4b08a958b10cb2abb7f516652cd770b582b36af6477884b3bba1f2f0726",
+        strip_prefix = "apple_rules_lint-0.1.1",
+        url = "https://github.com/apple/apple_rules_lint/archive/0.1.1.zip",
+    )
+
 def _kotlin_compiler_impl(repository_ctx):
     """Creates the kotlinc repository."""
     attr = repository_ctx.attr

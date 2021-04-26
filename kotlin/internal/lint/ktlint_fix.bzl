@@ -94,7 +94,7 @@ SRCS=${{SRCS[@]/#/$BUILD_DIR}}
 
     content = ctx.expand_location(content, [ctx.attr._ktlint_tool])
 
-    executable = ctx.actions.declare_file("%s-lint-fix" % ctx.label.name)
+    executable = ctx.actions.declare_file("%s.run" % ctx.label.name)
     ctx.actions.write(
         output = executable,
         content = content,

@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "//kotlin/internal/repositories:repositories.bzl",
-    _kotlin_repositories = "kotlin_repositories",
-)
-load(
     "//kotlin:rules.bzl",
     _define_kt_toolchain = "define_kt_toolchain",
     _kt_android_library = "kt_android_library",
@@ -35,9 +31,10 @@ load(
     _ktlint_fix = "ktlint_fix",
     _ktlint_test = "ktlint_test",
 )
+load("//kotlin:setup.bzl", _kotlin_setup = "kotlin_setup")
 
-kotlin_repositories = _kotlin_repositories
 define_kt_toolchain = _define_kt_toolchain
+kotlin_setup = _kotlin_setup
 kt_kotlinc_options = _kt_kotlinc_options
 kt_javac_options = _kt_javac_options
 kt_js_library = _kt_js_library
@@ -53,3 +50,6 @@ kt_compiler_plugin = _kt_compiler_plugin
 ktlint_config = _ktlint_config
 ktlint_fix = _ktlint_fix
 ktlint_test = _ktlint_test
+
+def kotlin_repositories():
+    fail("Please use `load(\"@io_bazel_rules_kotlin//kotlin:repositories.bzl\", \"kotlin_repositories\")")

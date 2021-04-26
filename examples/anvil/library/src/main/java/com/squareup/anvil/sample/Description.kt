@@ -17,13 +17,13 @@ object Description {
     }
 
     return "$name, $child of ${
-      ComponentHolder.component<DescriptionComponent>()
-        .fatherProvider()
-        .father(god)
+    ComponentHolder.component<DescriptionComponent>()
+      .fatherProvider()
+      .father(god)
     } and ${
-      ComponentHolder.component<DescriptionComponent>()
-        .motherProvider()
-        .mother(god)
+    ComponentHolder.component<DescriptionComponent>()
+      .motherProvider()
+      .mother(god)
     }"
   }
 }

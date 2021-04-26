@@ -14,6 +14,8 @@
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//kotlin/internal/repositories:setup.bzl", "kt_configure")
 load("//kotlin/internal/repositories:tools.bzl", "absolute_target")
 load(
