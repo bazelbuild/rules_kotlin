@@ -13,26 +13,18 @@
 # limitations under the License.
 load(
     "//kotlin/internal:defs.bzl",
-    _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
-    _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
     "//kotlin/internal/jvm:plugins.bzl",
-    _merge_plugin_infos = "merge_plugin_infos",
     _plugin_mappers = "mappers",
 )
 load(
     "//kotlin/internal:opts.bzl",
     _JavacOptions = "JavacOptions",
     _KotlincOptions = "KotlincOptions",
-)
-load(
-    "//kotlin/internal:compiler_plugins.bzl",
-    _plugins_to_classpaths = "plugins_to_classpaths",
-    _plugins_to_options = "plugins_to_options",
 )
 load(
     "//kotlin/internal/jvm:associates.bzl",
@@ -481,7 +473,7 @@ def _run_kt_builder_action(
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
         execution_requirements = _utils.add_dicts(
             toolchains.kt.execution_requirements,
-            { "worker-key-mnemonic": "KotlinCompile" }
+            {"worker-key-mnemonic": "KotlinCompile"},
         ),
         arguments = [args],
         progress_message = progress_message,
@@ -772,7 +764,7 @@ def _run_kt_java_builder_actions(
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
         # annotation processors in `deps` also.
         if len(srcs.kt) > 0:
-            javac_opts += ["-proc:none"]
+            javac_opts.append("-proc:none")
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
@@ -904,5 +896,5 @@ def export_only_providers(ctx, actions, attr, outputs):
             source_attributes = ["srcs"],
             dependency_attributes = ["deps", "exports", "associates", "friends"],
             extensions = ["kt", "java"],
-        )
+        ),
     )

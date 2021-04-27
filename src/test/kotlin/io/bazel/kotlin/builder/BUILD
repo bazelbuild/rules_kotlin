@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//src:__subpackages__"])
-
-load("@rules_java//java:defs.bzl", "java_library")
 
 _COMMON_DEPS = [
     "//src/main/kotlin/io/bazel/kotlin/builder",

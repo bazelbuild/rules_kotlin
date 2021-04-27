@@ -1,5 +1,4 @@
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
-load("@rules_java//java:defs.bzl", "java_binary")
 
 kt_bootstrap_library(
     name = "build_lib",
@@ -19,8 +18,8 @@ kt_bootstrap_binary(
         "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
         "@com_github_jetbrains_kotlin//:lib/jvm-abi-gen.jar",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     runtime_library = ":build_lib",

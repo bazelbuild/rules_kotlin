@@ -18,8 +18,8 @@ release_archive(
     name = "pkg",
     srcs = [
         "BUILD.com_github_jetbrains_kotlin",
-        "download.bzl",
         "tools.bzl",
+        "versions.bzl",
     ],
     src_map = {
         "release_repositories.bzl": "repositories.bzl",

@@ -17,7 +17,7 @@ load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
-load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+load("//kotlin:kotlin.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 
@@ -29,6 +29,12 @@ load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
 
 rbe_autoconfig(
     name = "buildkite_config",
+)
+
+load(
+    "@rules_android//android:rules.bzl",
+    "android_ndk_repository",
+    "android_sdk_repository",
 )
 
 android_sdk_repository(name = "androidsdk")

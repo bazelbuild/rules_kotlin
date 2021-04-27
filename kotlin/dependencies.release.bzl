@@ -1,6 +1,3 @@
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,22 +11,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-exports_files(["jetbrains-deshade.jarjar"])
 
-release_archive(
-    name = "pkg",
-    srcs = glob(["*.bzl"]) + ["jetbrains-deshade.jarjar"],
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
-)
-
-bzl_library(
-    name = "jvm",
-    srcs = glob(["*.bzl"]),
-    visibility = ["//kotlin:__subpackages__"],
-    deps = [
-        "//third_party:bzl",
-        "@rules_android//android",
-    ],
-)
+def kt_download_local_dev_dependencies():
+    # stub out dependencies.
+    pass

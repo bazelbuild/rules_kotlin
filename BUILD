@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
-load("//kotlin/internal/utils:utils.bzl", "utils")
 
 exports_files([
     "scripts/noop.sh",

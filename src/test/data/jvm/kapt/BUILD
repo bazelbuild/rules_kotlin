@@ -1,3 +1,6 @@
+load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
+load("//kotlin:kotlin.bzl", "kt_jvm_library")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:private"])
-
-load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
-load("//kotlin:kotlin.bzl", "kt_jvm_library")
 
 java_plugin(
     name = "autovalue",
@@ -146,11 +146,11 @@ filegroup(
         ":ap_kotlin_mixed",
         ":ap_kotlin_mixed_inherit_plugin_via_exported_deps",
         ":ap_kotlin_mixed_multiple_plugins",
+        ":ap_kotlin_mixed_multiple_plugins-sources.jar",
         ":ap_kotlin_mixed_multiple_plugins_one_without_processor_class",
         ":ap_kotlin_mixed_no_plugin",
         ":ap_kotlin_resources",
         ":ap_kotlin_resources_mixed",
-        ":ap_kotlin_mixed_multiple_plugins-sources.jar",
     ],
     visibility = ["//visibility:public"],
 )
