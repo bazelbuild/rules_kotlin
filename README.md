@@ -91,8 +91,10 @@ http_archive(
     sha256 = rules_kotlin_sha,
 )
 
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
@@ -109,8 +111,10 @@ http_archive(
     sha256 = rules_kotlin_sha,
 )
 
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
@@ -158,7 +162,7 @@ To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), d
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
 KOTLIN_VERSION = "1.3.31"
 KOTLINC_RELEASE_SHA = "107325d56315af4f59ff28db6837d03c2660088e3efeb7d4e41f3e01bb848d6a"
