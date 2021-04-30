@@ -28,6 +28,7 @@ def _kt_android_artifact(
         kotlinc_opts = None,
         javac_opts = None,
         enable_data_binding = False,
+        testonly = False,
         tags = [],
         **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
@@ -46,6 +47,7 @@ def _kt_android_artifact(
         deps = deps if enable_data_binding else [],
         enable_data_binding = enable_data_binding,
         tags = tags,
+        testonly = testonly,
         **kwargs
     )
     _kt_jvm_library(
@@ -55,7 +57,7 @@ def _kt_android_artifact(
         plugins = plugins,
         friends = friends,
         associates = associates,
-        testonly = kwargs.get("testonly", default = False),
+        testonly = testonly,
         visibility = ["//visibility:private"],
         kotlinc_opts = kotlinc_opts,
         javac_opts = javac_opts,
@@ -98,7 +100,7 @@ def kt_android_local_test(
 
     native.android_local_test(
         name = name,
-        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, **kwargs),
+        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, testonly = True, **kwargs),
         jvm_flags = jvm_flags,
         test_class = test_class,
         visibility = visibility,
