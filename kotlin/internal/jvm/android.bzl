@@ -46,7 +46,6 @@ def _kt_android_artifact(
         deps = deps if enable_data_binding else [],
         enable_data_binding = enable_data_binding,
         tags = tags,
-        testonly = testonly,
         **kwargs
     )
     _kt_jvm_library(
