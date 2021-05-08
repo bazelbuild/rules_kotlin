@@ -28,7 +28,6 @@ def _kt_android_artifact(
         kotlinc_opts = None,
         javac_opts = None,
         enable_data_binding = False,
-        testonly = False,
         tags = [],
         **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
