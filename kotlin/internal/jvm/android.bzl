@@ -56,7 +56,7 @@ def _kt_android_artifact(
         plugins = plugins,
         friends = friends,
         associates = associates,
-        testonly = testonly,
+        testonly = kwargs.get("testonly", default = False),
         visibility = ["//visibility:private"],
         kotlinc_opts = kotlinc_opts,
         javac_opts = javac_opts,
