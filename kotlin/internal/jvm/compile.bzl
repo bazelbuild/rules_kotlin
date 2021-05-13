@@ -266,8 +266,7 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
 def _resourcejar_args_action(ctx):
     res_cmd = []
     for f in ctx.files.resources:
-        res_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
-        target_path = res_path
+        target_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
         if target_path[0] == "/":
             target_path = target_path[1:]
         line = "{target_path}={f_path}\n".format(
