@@ -53,7 +53,7 @@ java_library(
     deps = _COMMON_DEPS + [
         "//third_party:autovalue",
         "//third_party:dagger",
-        "@kotlin_rules_maven//:javax_annotation_javax_annotation_api",
+         "@kotlin_rules_maven//:javax_annotation_jsr250_api",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
     ],
 )
