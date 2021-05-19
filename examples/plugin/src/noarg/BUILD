@@ -35,6 +35,6 @@ kt_jvm_test(
     deps = [
         ":user",
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
-        "@kotlin_rules_maven//:junit_junit",
+        "@maven//:junit_junit",
     ],
 )
