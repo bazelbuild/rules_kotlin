@@ -47,8 +47,7 @@ def kt_download_local_dev_dependencies():
     maybe(
         http_archive,
         name = "bazel_skylib",
-        urls = ["https://github.com/bazelbuild/bazel-skylib/archive/%s.tar.gz" % versions.SKYLIB_VERSION],
-        strip_prefix = "bazel-skylib-%s" % versions.SKYLIB_VERSION,
+        urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (SKYLIB_VERSION, SKYLIB_VERSION)],
         sha256 = versions.SKYLIB_SHA,
     )
 
