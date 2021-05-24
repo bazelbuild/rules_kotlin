@@ -168,10 +168,10 @@ class KotlinBuilder @Inject internal constructor(
       label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL)
       argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND).split("_").also {
         check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
-        platform = checkNotNull(Platform.valueOf(it[1].toUpperCase())) {
+        platform = checkNotNull(Platform.valueOf(it[1].uppercase())) {
           "unrecognized platform ${it[1]}"
         }
-        ruleKind = checkNotNull(RuleKind.valueOf(it[2].toUpperCase())) {
+        ruleKind = checkNotNull(RuleKind.valueOf(it[2].uppercase())) {
           "unrecognized rule kind ${it[2]}"
         }
       }

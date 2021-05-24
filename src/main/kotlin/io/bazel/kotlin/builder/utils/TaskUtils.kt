@@ -21,7 +21,7 @@ import java.io.File
 
 val JvmCompilationTask.Inputs.joinedClasspath: String get() = this.classpathList.joinToString(File.pathSeparator)
 
-val CompilationTaskInfo.bazelRuleKind: String get() = "kt_${platform.name.toLowerCase()}_${ruleKind.name.toLowerCase()}"
+val CompilationTaskInfo.bazelRuleKind: String get() = "kt_${platform.name.lowercase()}_${ruleKind.name.lowercase()}"
 
 fun Iterator<String>.partitionJvmSources(kt: (String) -> Unit, java: (String) -> Unit) {
   forEach {
