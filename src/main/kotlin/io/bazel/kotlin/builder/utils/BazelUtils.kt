@@ -23,7 +23,7 @@ import java.util.Collections
 
 /** Utility class for getting runfiles on windows and *nix.  */
 object BazelRunFiles {
-  private val isWindows = System.getProperty("os.name").toLowerCase().indexOf("win") >= 0
+  private val isWindows = System.getProperty("os.name").lowercase().indexOf("win") >= 0
 
   /**
    * Populated on windows. The RUNFILES_MANIFEST_FILE is set on platforms other then windows but it can be empty,]
