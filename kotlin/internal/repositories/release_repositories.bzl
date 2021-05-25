@@ -30,9 +30,9 @@ BAZEL_JAVA_LAUNCHER_VERSION = "3.7.0"
 
 KOTLIN_CURRENT_COMPILER_RELEASE = {
     "urls": [
-        "https://github.com/JetBrains/kotlin/releases/download/v1.4.20/kotlin-compiler-1.4.20.zip",
+        "https://github.com/JetBrains/kotlin/releases/download/v1.4.21/kotlin-compiler-1.4.21.zip",
     ],
-    "sha256": "11db93a4d6789e3406c7f60b9f267eba26d6483dcd771eff9f85bb7e9837011f",
+    "sha256": "46720991a716e90bfc0cf3f2c81b2bd735c14f4ea6a5064c488e04fd76e6b6c7",
 }
 
 KOTLIN_RULES = absolute_target("//kotlin:kotlin.bzl")
