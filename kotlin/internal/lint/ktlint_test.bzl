@@ -13,14 +13,14 @@ def _ktlint(ctx, srcs, editorconfig):
       A script running ktlint on the input files.
     """
     java_runtime_info = ctx.attr._javabase[java_common.JavaRuntimeInfo]
-    args = []
+    args = ["--reporter=plain"]
     if editorconfig:
         args.append("--editorconfig={file}".format(file = editorconfig.short_path))
 
     for f in srcs:
         args.append(f.path)
 
-    return "PATH=\"{path}/bin:$PATH\" ; {linter} {args}".format(
+    return "{linter} {args}".format(
         path = java_runtime_info.java_home,
         linter = ctx.executable._ktlint_tool.short_path,
         args = " ".join(args),

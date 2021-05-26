@@ -17,9 +17,13 @@ load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
-load("//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+load("//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
+
+load("//kotlin:setup.bzl", "kotlin_setup")
+
+kotlin_setup()
 
 register_toolchains("@dev_io_bazel_rules_kotlin//kotlin/internal:default_toolchain")
 

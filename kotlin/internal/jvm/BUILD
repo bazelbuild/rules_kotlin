@@ -26,9 +26,10 @@ release_archive(
 
 bzl_library(
     name = "jvm",
-    srcs = glob(["*.bzl"]),
+    srcs = glob(["*.bzl"], exclude = ["jvm_lint_wrappers.bzl"]),
     visibility = ["//kotlin:__subpackages__"],
     deps = [
         "//third_party:bzl",
+        "@apple_rules_lint//lint:implementation",
     ],
 )

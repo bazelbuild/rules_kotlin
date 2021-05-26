@@ -1,0 +1,9 @@
+load("@io_bazel_rules_kotlin//kotlin:rules.bzl", "ktlint_config")
+
+ktlint_config(
+    name = "ktlint-config",
+    editorconfig = ".editorconfig",
+    visibility = [
+        "//visibility:public",
+    ]
+)

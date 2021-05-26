@@ -17,7 +17,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
-    srcs = glob(["*.bzl"]),
+    srcs = glob(["*.bzl"], exclude = ["stardoc-hack.bzl"]),
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
@@ -28,7 +28,6 @@ release_archive(
 
 bzl_library(
     name = "kotlin",
-    srcs = ["kotlin.bzl"],
     visibility = ["//kotlin:__subpackages__"],
     deps = [
         "//kotlin/internal",
@@ -39,7 +38,7 @@ bzl_library(
 stardoc(
     name = "stardoc",
     out = "kotlin.md",
-    input = "rules.bzl",
+    input = "stardoc-hack.bzl",
     rule_template = "//kotlin:doc-templates/rule.vm",
     symbol_names = [
         "define_kt_toolchain",
