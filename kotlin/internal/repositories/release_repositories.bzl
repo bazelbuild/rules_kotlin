@@ -78,7 +78,7 @@ def kotlin_repositories(
             "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/{version}/rules_python-{version}.tar.gz".format(
                 version = versions.PYTHON.VERSION,
             ),
-            "https://github.com/bazelbuild/rules_python/releases/download/{python}/rules_python-{version}.tar.gz".format(
+            "https://github.com/bazelbuild/rules_python/releases/download/{version}/rules_python-{version}.tar.gz".format(
                 version = versions.PYTHON.VERSION,
             ),
         ],
