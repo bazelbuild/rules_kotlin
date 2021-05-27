@@ -71,19 +71,18 @@ def kotlin_repositories(
     )
 
     maybe(
-            http_archive,
+        http_archive,
         name = "rules_python",
         sha256 = "778197e26c5fbeb07ac2a2c5ae405b30f6cb7ad1f5510ea6fdac03bded96cc6f",
         urls = [
             "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/{version}/rules_python-{version}.tar.gz".format(
-                version = versions.PYTHON.VERSION
+                version = versions.PYTHON.VERSION,
             ),
             "https://github.com/bazelbuild/rules_python/releases/download/{python}/rules_python-{version}.tar.gz".format(
-                                                                                                                          version = versions.PYTHON.VERSION
-                                                                                                                      ),
+                version = versions.PYTHON.VERSION,
+            ),
         ],
     )
-
 
 def _kotlin_compiler_impl(repository_ctx):
     """Creates the kotlinc repository."""

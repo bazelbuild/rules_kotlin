@@ -30,5 +30,5 @@ versions = struct(
     ),
     PYTHON = struct(
         VERSION = "0.2.0",
-    )
+    ),
 )
