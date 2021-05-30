@@ -1,6 +1,10 @@
 ---
 validate_config: 1
 bazel: 4.1.0
+buildifier:
+  version: latest
+  # no lint warnings for the moment. They are basically a smoke alarm in hell.
+  warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
   ubuntu1604:
     build_targets:

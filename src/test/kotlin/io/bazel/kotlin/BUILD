@@ -1,3 +1,6 @@
+load("//kotlin:kotlin.bzl", "kt_jvm_library")
+load(":defs.bzl", "kt_rules_e2e_test")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:private"])
-
-load("//kotlin:kotlin.bzl", "kt_jvm_library")
-load(":defs.bzl", "kt_rules_e2e_test", "kt_rules_test")
 
 kt_jvm_library(
     name = "assertion_test_case",

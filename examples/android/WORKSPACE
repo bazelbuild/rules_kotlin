@@ -2,6 +2,16 @@ workspace(name = "android_example")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+SKYLIB_VERSION = "1.0.3"
+
+SKYLIB_SHA = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c"
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = SKYLIB_SHA,
+    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (SKYLIB_VERSION, SKYLIB_VERSION)],
+)
+
 RULES_JVM_EXTERNAL_TAG = "2.8"
 
 RULES_JVM_EXTERNAL_SHA = "79c9850690d7614ecdb72d68394f994fef7534b292c4867ce5e7dec0aa7bdfad"
@@ -34,8 +44,6 @@ maven_install(
     ],
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
 http_archive(
     name = "build_bazel_rules_android",
     sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
@@ -43,8 +51,15 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
 )
 
+http_archive(
+    name = "rules_android",
+    sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
+    strip_prefix = "rules_android-0.1.1",
+    urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
+)
+
 load(
-    "@build_bazel_rules_android//android:rules.bzl",
+    "@rules_android//android:rules.bzl",
     "android_ndk_repository",
     "android_sdk_repository",
 )
@@ -73,11 +88,4 @@ http_archive(
     name = "rules_pkg",
     sha256 = "4ba8f4ab0ff85f2484287ab06c0d871dcb31cc54d439457d28fd4ae14b18450a",
     url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.2.4/rules_pkg-0.2.4.tar.gz",
-)
-
-http_archive(
-    name = "build_bazel_rules_android",
-    sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
-    strip_prefix = "rules_android-0.1.1",
-    urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
 )

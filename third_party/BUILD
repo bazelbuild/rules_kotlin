@@ -1,3 +1,7 @@
+load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library", "java_plugin")
+load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,11 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
-
-load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
-load("//kotlin:kotlin.bzl", "kt_jvm_import")
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files([
     "empty.jar",
