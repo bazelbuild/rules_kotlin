@@ -19,9 +19,9 @@ versions = struct(
     BAZEL_JAVA_LAUNCHER_VERSION = "3.7.0",
     KOTLIN_CURRENT_COMPILER_RELEASE = {
         "urls": [
-            "https://github.com/JetBrains/kotlin/releases/download/v1.4.20/kotlin-compiler-1.4.20.zip",
+            "https://github.com/JetBrains/kotlin/releases/download/v1.5.10/kotlin-compiler-1.5.10.zip",
         ],
-        "sha256": "11db93a4d6789e3406c7f60b9f267eba26d6483dcd771eff9f85bb7e9837011f",
+        "sha256": "2f8de1d73b816354055ff6a4b974b711c11ad55a68b948ed30b38155706b3c4e",
     },
     ANDROID = struct(
         VERSION = "0.1.1",
