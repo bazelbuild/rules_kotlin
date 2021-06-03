@@ -202,11 +202,10 @@ def _kotlinc_options_provider_to_flags(opts, language_version):
     return flags
 
 def _validate_kotlinc_options(opts, language_version):
-    if opts.x_allow_jvm_ir_dependencies and language_version >= "1.5":
-        fail("The x_allow_jvm_ir_dependencies flag is enabled by default in Kotlin version 1.5 or greater")
-    if opts.x_use_ir and language_version >= "1.5":
-        fail("The x_use_ir flag is enabled by default in Kotlin version 1.5 or greater")
-    pass
+    if opts.x_allow_jvm_ir_dependencies and language_version != "1.4":
+        fail("The x_use_ir x_allow_jvm_ir_dependencies is only supported on Kotlin 1.4")
+    if opts.x_use_ir and language_version != "1.4":
+        fail("The x_use_ir flag is only supported on Kotlin 1.4")
 
 def _javac_options_provider_to_flags(opts):
     if not opts:
