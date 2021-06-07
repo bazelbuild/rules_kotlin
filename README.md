@@ -33,16 +33,16 @@ Main branch: `master`
   - Supports propagating kotlin version in metadata (which IDEs can consume) (#242)
 * <b>Feb 18, 2020.</b> Changes to how the rules are consumed are live (prefer the release tarball or use development instructions, as stated in the readme).
 * <b>Feb 9, 2020.</b> Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`)
-* <b>Oct 5, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
+* <b>Oct 5, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository.
 
 For older news, please see [Changelog](CHANGELOG.md)
 
-# Overview 
+# Overview
 
-**rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other Bazel 
+**rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other Bazel
 language rules. It also supports `jvm`, `android`, and `js` flavors, with the prefix `kt_jvm`
-and `kt_js`, and `kt_android` typically applied to the rules (the exception being 
-`kt_android_local_test`, which doesn't exist. Use an `android_local_test` that takes a 
+and `kt_js`, and `kt_android` typically applied to the rules (the exception being
+`kt_android_local_test`, which doesn't exist. Use an `android_local_test` that takes a
 `kt_android_library` as a dependency).
 
 Support for kotlin's -Xfriend-paths via the `associates=` attribute in the jvm allow access to
@@ -55,7 +55,7 @@ Also, `kt_jvm_*` rules support the following standard `java_*` rules attributes:
   * `resources`
   * `resources_strip_prefix`
   * `exports`
-  
+
 Android rules also support custom_package for `R.java` generation, `manifest=`, `resource_files`, etc.
 
 Other features:
@@ -64,7 +64,7 @@ Other features:
   * Configurable Kotlinc distribtution and version
   * Configurable Toolchain
   * Kotlin 1.3 support
-  
+
 Javascript is reported to work, but is not as well maintained (at present)
 
 # Documentation
@@ -140,9 +140,9 @@ load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", or "1.4"
+    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", "1.4", or "1.5"
     jvm_target = JAVA_LANGUAGE_LEVEL, # "1.6", "1.8", "9", "10", "11", "12", or "13",
-    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", or "1.4"
+    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", "1.4", or "1.5"
 )
 ```
 
@@ -173,13 +173,13 @@ KOTLINC_RELEASE = {
 kotlin_repositories(compiler_release = KOTLINC_RELEASE)
 ```
 
-## Third party dependencies 
+## Third party dependencies
 _(e.g. Maven artifacts)_
 
 Third party (external) artifacts can be brought in with systems such as [`rules_jvm_external`](https://github.com/bazelbuild/rules_jvm_external) or [`bazel_maven_repository`](https://github.com/square/bazel_maven_repository) or [`bazel-deps`](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use `java_import`, as this will cause bazel to make an interface-only (`ijar`), or ABI jar, and the native `ijar` tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of `rules_jvm_external` and `bazel_maven_repository` are known to work with Kotlin.
 
 # Development Setup Guide
-As of 1.4.0, to use the rules directly from the rules_kotlin workspace (i.e. not the release artifact) additional dependency downloads are required. 
+As of 1.4.0, to use the rules directly from the rules_kotlin workspace (i.e. not the release artifact) additional dependency downloads are required.
 
 In the project's `WORKSPACE`, change the setup:
 ```python
@@ -203,7 +203,7 @@ The `kt_kotlinc_options` and `kt_javac_options` rules allows passing compiler fl
 
 Note: Not all compiler flags are supported in all language versions. When this happens, the rules will fail.
 
-For example you can define global compiler flags by doing: 
+For example you can define global compiler flags by doing:
 ```python
 load("//kotlin:kotlin.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
 
