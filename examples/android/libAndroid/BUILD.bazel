@@ -1,5 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
-load("@build_bazel_rules_android//android:rules.bzl", "android_library")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library", "kt_android_library")
+load("@build_bazel_rules_android//android:rules.bzl", "android_library", "android_local_test")
 
 android_library(
     name = "my_android",
@@ -17,4 +17,33 @@ android_library(
 kt_jvm_library(
     name = "util",
     srcs = glob(["src/main/kotlin/**/*.kt"]),
+)
+
+kt_android_library(
+    name = "test_src",
+    srcs = glob(["src/test/kotlin/**/*.kt"]),
+    custom_package = "examples.android.lib2",
+    manifest = "src/main/AndroidManifest.xml",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":util",
+        "@maven//:junit_junit",
+        "@maven//:com_nhaarman_mockito_kotlin",
+    ],
+)
+
+android_local_test(
+    name = "Test",
+    test_class = "examples.android.lib2.TestDataTest",
+    manifest_values = {
+        "minSdkVersion": "23",
+        "applicationId": "com.snap.mushroom.test",
+    },
+    custom_package = "examples.android.lib2",
+    deps = [
+        ":test_src",
+        "@robolectric//bazel:android-all",
+        "@maven//:junit_junit",
+        "@maven//:com_nhaarman_mockito_kotlin",
+    ],
 )

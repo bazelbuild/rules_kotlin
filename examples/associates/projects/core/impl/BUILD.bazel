@@ -1,13 +1,26 @@
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library", "kt_jvm_test")
 
 kt_jvm_library(
     name = "impl",
-    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    srcs = glob(["src/main/java/**/*.kt"]),
     associates = ["//projects/core/api"],
     visibility = [
         "//projects/core:__subpackages__",
     ],
     deps = [
         # All my deps are associates.
+    ],
+)
+
+kt_jvm_test(
+    name = "Test",
+    srcs = glob(["src/test/java/**/*.kt"]),
+    associates = [
+        "//projects/core/api",
+        "//projects/core/impl",
+    ],
+    deps = [
+        "@maven//:junit_junit",
+        "@maven//:com_nhaarman_mockito_kotlin",
     ],
 )
