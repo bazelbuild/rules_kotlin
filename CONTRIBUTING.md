@@ -21,3 +21,16 @@ Prepare a git commit with your change. Don't forget to add tests. Run the existi
 Create a pull request. This will start the code review process. All submissions, including submissions by project members, require review.
 
 You may be asked to make some changes. You'll also need to sign the CLA at this point, if you haven't done so already. Our continuous integration bots will test your change automatically on supported platforms. Once everything looks good, your change will be merged.
+
+## Formatting
+
+Starlark files should be formatted by buildifier.
+We suggest using a pre-commit hook to automate this.
+First [install pre-commit](https://pre-commit.com/#installation),
+then run
+
+```shell
+pre-commit install
+```
+
+Otherwise the Buildkite CI will yell at you about formatting/linting violations.
