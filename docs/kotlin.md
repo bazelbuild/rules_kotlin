@@ -398,7 +398,7 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 |<a id="kt_kotlinc_options-include_stdlibs"></a>include_stdlibs |  Don't automatically include the Kotlin standard libraries into the classpath (stdlib and reflect).   | String | optional | "all" |
 |<a id="kt_kotlinc_options-java_parameters"></a>java_parameters |  Generate metadata for Java 1.8+ reflection on method parameters.   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-warn"></a>warn |  Control warning behaviour.   | String | optional | "report" |
-|<a id="kt_kotlinc_options-x_allow_jvm_ir_dependencies"></a>x_allow_jvm_ir_dependencies |  Suppress errors thrown when using dependencies not compiled by the IR backend.   | Boolean | optional | False |
+|<a id="kt_kotlinc_options-x_allow_jvm_ir_dependencies"></a>x_allow_jvm_ir_dependencies |  Suppress errors thrown when using dependencies not compiled by the IR backend. Only available in 1.4. | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_allow_result_return_type"></a>x_allow_result_return_type |  Enable kotlin.Result as a return type   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_inline_classes"></a>x_inline_classes |  Enable experimental inline classes   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_jvm_default"></a>x_jvm_default |  Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.   | String | optional | "off" |
@@ -406,7 +406,7 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 |<a id="kt_kotlinc_options-x_no_optimized_callable_references"></a>x_no_optimized_callable_references |  Do not use optimized callable reference superclasses. Available from 1.4.   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_skip_prerelease_check"></a>x_skip_prerelease_check |  Suppress errors thrown when using pre-release classes.   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_use_experimental"></a>x_use_experimental |  Allow the experimental language features.   | Boolean | optional | True |
-|<a id="kt_kotlinc_options-x_use_ir"></a>x_use_ir |  Enable or disable the experimental IR backend.   | Boolean | optional | False |
+|<a id="kt_kotlinc_options-x_use_ir"></a>x_use_ir |  Enable or disable the experimental IR backend. Only available in 1.4. | Boolean | optional | False |
 
 
 <a name="#define_kt_toolchain"></a>
