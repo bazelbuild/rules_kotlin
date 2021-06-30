@@ -7,11 +7,6 @@ buildifier:
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
-  ubuntu1604:
-    build_targets:
-      - "//:rules_kotlin_release"
-    test_targets:
-      - "//:all_tests"
   ubuntu1804:
     test_targets:
       - "//:all_tests"
