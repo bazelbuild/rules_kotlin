@@ -1,4 +1,4 @@
-load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library", "kt_jvm_test")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library", "kt_jvm_test")
 
 kt_compiler_plugin(
     name = "open_for_testing_plugin",
@@ -64,6 +64,6 @@ kt_jvm_test(
     deps = [
         ":user",
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
-        "@kotlin_rules_maven//:junit_junit",
+        "@maven//:junit_junit",
     ],
 )

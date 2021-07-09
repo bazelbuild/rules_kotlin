@@ -1,4 +1,4 @@
-load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library", "kt_jvm_test")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library", "kt_jvm_test")
 
 kt_compiler_plugin(
     name = "serialization_plugin",
@@ -18,7 +18,7 @@ kt_jvm_library(
     srcs = [],
     exported_compiler_plugins = [":serialization_plugin"],
     exports = [
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
     ],
 )
 
@@ -37,6 +37,6 @@ kt_jvm_test(
     deps = [
         ":data",
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
-        "@kotlin_rules_maven//:junit_junit",
+        "@maven//:junit_junit",
     ],
 )
