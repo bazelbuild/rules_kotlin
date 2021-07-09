@@ -16,7 +16,7 @@ versions = struct(
     RULES_PROTO_SHA = "4d421d51f9ecfe9bf96ab23b55c6f2b809cbaf0eea24952683e397decfbd0dd0",
     IO_BAZEL_STARDOC_VERSION = "0.4.0",
     IO_BAZEL_STARDOC_SHA = "6d07d18c15abb0f6d393adbd6075cd661a2219faab56a9517741f0fc755f6f3c",
-    BAZEL_JAVA_LAUNCHER_VERSION = "3.7.0",
+    BAZEL_JAVA_LAUNCHER_VERSION = "5.0.0-pre.20210510.2",
     KOTLIN_CURRENT_COMPILER_RELEASE = {
         "urls": [
             "https://github.com/JetBrains/kotlin/releases/download/v1.4.20/kotlin-compiler-1.4.20.zip",
