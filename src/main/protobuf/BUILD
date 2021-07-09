@@ -5,12 +5,12 @@ package(default_visibility = ["//visibility:public"])
 
 alias(
     name = "deps_java_proto",
-    actual = "@deps//:java_proto",
+    actual = "@bazel_tools//src/main/protobuf:deps_java_proto",
 )
 
 alias(
     name = "worker_protocol_java_proto",
-    actual = "@worker_protocol//:java_proto",
+    actual = "@bazel_tools//src/main/protobuf:worker_protocol_java_proto",
 )
 
 proto_library(
