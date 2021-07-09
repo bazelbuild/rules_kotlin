@@ -14,7 +14,6 @@
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("//kotlin/internal/repositories:http_java_proto_file.bzl", "http_java_proto_file")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
@@ -34,9 +33,9 @@ def kt_configure():
             "com.google.auto.service:auto-service-annotations:1.0-rc5",
             "com.google.auto.value:auto-value:1.6.5",
             "com.google.auto.value:auto-value-annotations:1.6.5",
-            "com.google.dagger:dagger:2.26",
-            "com.google.dagger:dagger-compiler:2.26",
-            "com.google.dagger:dagger-producers:2.26",
+            "com.google.dagger:dagger:2.35.1",
+            "com.google.dagger:dagger-compiler:2.35.1",
+            "com.google.dagger:dagger-producers:2.35.1",
             "javax.annotation:javax.annotation-api:1.3.2",
             "javax.inject:javax.inject:1",
             "org.pantsbuild:jarjar:1.7.2",
@@ -55,18 +54,6 @@ def kt_configure():
 
     rules_proto_dependencies()
     rules_proto_toolchains()
-
-    http_java_proto_file(
-        name = "deps",
-        sha256 = "b861dbce04177df9e4b7204876b2f27e18f40eb6d20b3dffefecdd2baf3cfe92",
-        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/3.4.1/src/main/protobuf/deps.proto"],
-    )
-
-    http_java_proto_file(
-        name = "worker_protocol",
-        sha256 = "1157c93666f98cfcfcc9f7b073b8dac5bbd50e18f5ab981e93c71e03ed08f304",
-        urls = ["https://raw.githubusercontent.com/bazelbuild/bazel/3.4.1/src/main/protobuf/worker_protocol.proto"],
-    )
 
     stardoc_repositories()
 

@@ -30,11 +30,11 @@ def _generate_jvm_service_impl(ctx):
     zipper_inputs = []
     for impl, srv in impl_to_service.items():
         service_to_impl.setdefault(srv, [])
-        service_to_impl[srv] += [impl]
+        service_to_impl[srv].append(impl)
 
     for srv, impls in service_to_impl.items():
         f = _write_service_file(ctx, srv, impls)
-        zipper_inputs += [f]
+        zipper_inputs.append(f)
         zipper_args.add("META-INF/services/" + srv + "=" + f.path)
 
     ctx.actions.run(
