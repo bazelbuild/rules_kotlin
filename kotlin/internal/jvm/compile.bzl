@@ -146,14 +146,14 @@ def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
         fail("Resource file %s is not under the specified prefix to strip" % path)
 
     clean_path = path[len(resource_strip_prefix):]
-    return resource_strip_prefix, clean_path
+    return clean_path
 
 def _adjust_resources_path_by_default_prefixes(path):
     for cp in _CONVENTIONAL_RESOURCE_PATHS:
         dir_1, dir_2, rel_path = path.partition(cp)
         if rel_path:
-            return dir_1 + dir_2, rel_path
-    return "", path
+            return rel_path
+    return path
 
 def _adjust_resources_path(path, resource_strip_prefix):
     if resource_strip_prefix:
@@ -258,14 +258,12 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
 def _resourcejar_args_action(ctx):
     res_cmd = []
     for f in ctx.files.resources:
-        c_dir, res_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
-        target_path = res_path
+        target_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
         if target_path[0] == "/":
             target_path = target_path[1:]
-        line = "{target_path}={c_dir}{res_path}\n".format(
-            res_path = res_path,
+        line = "{target_path}={f_path}\n".format(
             target_path = target_path,
-            c_dir = c_dir,
+            f_path = f.path,
         )
         res_cmd.extend([line])
     zipper_args_file = ctx.actions.declare_file("%s_resources_zipper_args" % ctx.label.name)
