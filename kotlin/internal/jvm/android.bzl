@@ -98,7 +98,7 @@ def kt_android_local_test(
     """
     android_local_test(
         name = name,
-        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, **kwargs),
+        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, testonly = True, **kwargs),
         jvm_flags = jvm_flags,
         test_class = test_class,
         visibility = visibility,
