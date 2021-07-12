@@ -1,5 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+_COMPOSE_VERSION = "1.0.0-beta07"
+
 _KOTLIN_COMPILER_VERSION = "1.5.32"
 
 ## JVM External
@@ -26,10 +28,10 @@ maven_install(
         "androidx.appcompat:appcompat:1.3.0",
         "com.google.android.material:material:1.3.0",
         "androidx.activity:activity-compose:1.3.0-alpha08",
-        "androidx.compose.material:material:1.0.0-beta07",
-        "androidx.compose.ui:ui:1.0.0-beta07",
-        "androidx.compose.ui:ui-tooling:1.0.0-beta07",
-        "androidx.compose.compiler:compiler:1.0.0-beta07",
+        "androidx.compose.material:material:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.ui:ui:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.ui:ui-tooling:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.compiler:compiler:{}".format(_COMPOSE_VERSION),
     ],
     repositories = [
         "https://maven.google.com",
