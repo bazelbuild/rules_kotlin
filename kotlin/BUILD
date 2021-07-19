@@ -39,6 +39,15 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "android",
+    srcs = ["android.bzl"],
+    visibility = ["//kotlin:__subpackages__"],
+    deps = [
+        "//kotlin/internal",
+    ],
+)
+
 stardoc(
     name = "stardoc",
     out = "kotlin.md",
@@ -59,6 +68,7 @@ stardoc(
         "kt_javac_options",
     ],
     deps = [
+        "android",
         "kotlin",
     ],
 )
