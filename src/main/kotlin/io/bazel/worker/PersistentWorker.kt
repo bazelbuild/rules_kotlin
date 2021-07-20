@@ -73,6 +73,8 @@ class PersistentWorker(
               .forEach { request ->
                 launch {
                   compileWork(request, io, writeChannel, execute)
+                  //Be a friendly worker by performing a GC between compilation requests
+                  System.gc()
                 }
               }
         }.invokeOnCompletion { writeChannel.close() }
