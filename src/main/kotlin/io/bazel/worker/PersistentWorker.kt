@@ -41,6 +41,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets.UTF_8
+import java.time.Duration
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 
@@ -55,11 +56,11 @@ import kotlin.coroutines.CoroutineContext
  */
 class PersistentWorker(
   private val coroutineContext: CoroutineContext,
-  private val captureIO: () -> IO
+  private val captureIO: () -> IO,
+  private val cpuTimeBasedGcScheduler: CpuTimeBasedGcScheduler,
 ) : Worker {
 
-  constructor() : this(Dispatchers.IO, IO.Companion::capture)
-
+  constructor() : this(Dispatchers.IO, IO.Companion::capture, CpuTimeBasedGcScheduler(Duration.ofSeconds(10)))
 
   @ExperimentalCoroutinesApi
   override fun start(execute: Work) = WorkerContext.run {
@@ -73,6 +74,8 @@ class PersistentWorker(
               .forEach { request ->
                 launch {
                   compileWork(request, io, writeChannel, execute)
+                  //Be a friendly worker by performing a GC between compilation requests
+                  cpuTimeBasedGcScheduler.maybePerformGc()
                 }
               }
         }.invokeOnCompletion { writeChannel.close() }
