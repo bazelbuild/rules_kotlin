@@ -17,7 +17,7 @@ load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
-load("//kotlin:kotlin.bzl", "kotlin_repositories")
+load("//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 

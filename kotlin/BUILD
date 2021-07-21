@@ -13,7 +13,6 @@
 # limitations under the License.
 load("//kotlin/internal/utils:packager.bzl", "release_archive")
 load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",

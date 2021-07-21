@@ -12,7 +12,7 @@ This feature can be enabled through the `experimental_use_abi_jars` flag in the 
 follows
 
 ```python
-load("//kotlin:kotlin.bzl", "define_kt_toolchain")
+load("//kotlin:core.bzl", "define_kt_toolchain")
 
 
 define_kt_toolchain(
