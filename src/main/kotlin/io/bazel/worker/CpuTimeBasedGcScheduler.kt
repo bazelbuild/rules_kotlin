@@ -5,6 +5,7 @@ import java.lang.management.ManagementFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 
+// This class is intended to mirror https://github.com/Bencodes/bazel/blob/3835d9b21ad524d06873dfbf465ffd2dfb635ba8/src/main/java/com/google/devtools/build/lib/worker/WorkRequestHandler.java#L431-L474
 class CpuTimeBasedGcScheduler(
   /**
    * After this much CPU time has elapsed, we may force a GC run. Set to [Duration.ZERO] to
