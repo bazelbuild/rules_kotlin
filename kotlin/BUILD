@@ -19,12 +19,15 @@ release_archive(
     name = "pkg",
     srcs = glob(
         ["*.bzl"],
-        exclude = ["dependencies.bzl", "repositories.release.bzl"],
+        exclude = [
+            "dependencies.bzl",
+            "repositories.release.bzl",
+        ],
     ),
     src_map = {
         "dependencies.release.bzl": "dependencies.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
-        "repositories.release.bzl": "repositories.release.bzl"
+        "repositories.release.bzl": "repositories.release.bzl",
     },
     deps = [
         "//kotlin/internal:pkg",
@@ -40,16 +43,29 @@ release_archive(
         deps = [
             "//kotlin/internal",
         ],
-    ) for doc in ['js', 'jvm', 'lint', 'core', 'repositories.release']
+    )
+    for doc in [
+        "js",
+        "jvm",
+        "lint",
+        "core",
+        "repositories.release",
+    ]
 ]
 
 genrule(
     name = "stardoc",
+    srcs = [doc for doc in [
+        "js",
+        "jvm",
+        "lint",
+        "core",
+        "repositories.release",
+    ]],
     outs = ["kotlin.md"],
     cmd = """
     for md in $(SRCS); do
       cat "$$md" >> $@
     done
     """,
-    srcs = [doc for doc in ['js', 'jvm', 'lint', 'core', 'repositories.release']],
 )

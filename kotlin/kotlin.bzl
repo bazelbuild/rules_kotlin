@@ -51,8 +51,9 @@ def kotlin_repositories(**kwargs):
     Forwarding macro for _kotlin_repositories
 
     Deprecated:
-         _kotlin_repositories should be loaded from //kotlin:repositories.bzl
+        _kotlin_repositories should be loaded from //kotlin:repositories.bzl
     """
+    print("_kotlin_repositories should be loaded from //kotlin:repositories.bzl")
     _kotlin_repositories(**kwargs)
 
 define_kt_toolchain = _define_kt_toolchain
@@ -70,8 +71,9 @@ def kt_js_library(**kwargs):
     Forwarding macro for kt_js_library
 
     Deprecated:
-         kt_js_library should be loaded from //kotlin:js.bzl
+        kt_js_library should be loaded from //kotlin:js.bzl
     """
+    print("kt_js_library should be loaded from //kotlin:js.bzl")
     _kt_js_library(**kwargs)
 
 def kt_js_import(**kwargs):
@@ -79,8 +81,9 @@ def kt_js_import(**kwargs):
      Forwarding macro for kt_js_import
 
      Deprecated:
-          kt_js_import should be loaded from //kotlin:js.bzl
+        kt_js_import should be loaded from //kotlin:js.bzl
     """
+    print("kt_js_import should be loaded from //kotlin:js.bzl")
     _kt_js_import(**kwargs)
 
 def kt_jvm_binary(**kwargs):
@@ -88,8 +91,9 @@ def kt_jvm_binary(**kwargs):
     Forwarding macro for kt_jvm_binary
 
     Deprecated:
-         kt_jvm_binary should be loaded from //kotlin:jvm.bzl
+        kt_jvm_binary should be loaded from //kotlin:jvm.bzl
     """
+    print("kt_jvm_binary should be loaded from //kotlin:jvm.bzl")
     _kt_jvm_binary(**kwargs)
 
 def kt_jvm_import(**kwargs):
@@ -97,8 +101,9 @@ def kt_jvm_import(**kwargs):
     Forwarding macro for kt_jvm_import
 
     Deprecated:
-         kt_jvm_import should be loaded from //kotlin:jvm.bzl
+        kt_jvm_import should be loaded from //kotlin:jvm.bzl
     """
+    print("kt_jvm_import should be loaded from //kotlin:jvm.bzl")
     _kt_jvm_import(**kwargs)
 
 def kt_jvm_library(**kwargs):
@@ -106,8 +111,9 @@ def kt_jvm_library(**kwargs):
     Forwarding macro for kt_jvm_library
 
     Deprecated:
-         kt_jvm_library should be loaded from //kotlin:jvm.bzl
+        kt_jvm_library should be loaded from //kotlin:jvm.bzl
     """
+    print("kt_jvm_library should be loaded from //kotlin:jvm.bzl")
     _kt_jvm_library(**kwargs)
 
 def kt_jvm_test(**kwargs):
@@ -115,8 +121,9 @@ def kt_jvm_test(**kwargs):
     Forwarding macro for kt_jvm_test
 
     Deprecated:
-         kt_jvm_test should be loaded from //kotlin:jvm.bzl
+        kt_jvm_test should be loaded from //kotlin:jvm.bzl
     """
+    print("kt_jvm_test should be loaded from //kotlin:jvm.bzl")
     _kt_jvm_test(**kwargs)
 
 def kt_android_library(**kwargs):
@@ -124,8 +131,9 @@ def kt_android_library(**kwargs):
     Forwarding macro for kt_android_local_test
 
     Deprecated:
-         kt_android_library should be loaded from //kotlin:android.bzl
+        kt_android_library should be loaded from //kotlin:android.bzl
     """
+    print("kt_android_library should be loaded from //kotlin:android.bzl")
     _kt_android_library(**kwargs)
 
 def kt_android_local_test(**kwargs):
@@ -133,8 +141,9 @@ def kt_android_local_test(**kwargs):
     Forwarding macro for kt_android_local_test
 
     Deprecated:
-         kt_android_local_test should be loaded from //kotlin:android.bzl
+        kt_android_local_test should be loaded from //kotlin:android.bzl
     """
+    print("kt_android_local_test should be loaded from //kotlin:android.bzl")
     _kt_android_local_test(**kwargs)
 
 def ktlint_config(**kwargs):
@@ -142,8 +151,9 @@ def ktlint_config(**kwargs):
     Forwarding macro for ktlint_config
 
     Deprecated:
-         ktlint_config should be loaded from //kotlin:lint.bzl
+        ktlint_config should be loaded from //kotlin:lint.bzl
     """
+    print("ktlint_config should be loaded from //kotlin:lint.bzl")
     _ktlint_config(**kwargs)
 
 def ktlint_fix(**kwargs):
@@ -151,8 +161,9 @@ def ktlint_fix(**kwargs):
     Forwarding macro for ktlint_fix
 
     Deprecated:
-         ktlint_fix should be loaded from //kotlin:lint.bzl
+        ktlint_fix should be loaded from //kotlin:lint.bzl
     """
+    print("ktlint_fix should be loaded from //kotlin:lint.bzl")
     _ktlint_fix(**kwargs)
 
 def ktlint_test(**kwargs):
@@ -160,6 +171,7 @@ def ktlint_test(**kwargs):
     Forwarding macro for ktlint_test
 
     Deprecated:
-         ktlint_test should be loaded from //kotlin:lint.bzl
+        ktlint_test should be loaded from //kotlin:lint.bzl
     """
+    print("ktlint_test should be loaded from //kotlin:lint.bzl")
     _ktlint_test(**kwargs)
