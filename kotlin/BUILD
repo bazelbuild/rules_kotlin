@@ -19,56 +19,37 @@ release_archive(
     name = "pkg",
     srcs = glob(
         ["*.bzl"],
-        exclude = ["dependencies.bzl"],
+        exclude = ["dependencies.bzl", "repositories.release.bzl"],
     ),
     src_map = {
         "dependencies.release.bzl": "dependencies.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
+        "repositories.release.bzl": "repositories.release.bzl"
     },
     deps = [
         "//kotlin/internal:pkg",
     ],
 )
 
-bzl_library(
-    name = "kotlin",
-    srcs = ["kotlin.bzl"],
-    visibility = ["//kotlin:__subpackages__"],
-    deps = [
-        "//kotlin/internal",
-    ],
-)
+[
+    stardoc(
+        name = doc,
+        out = "%s.md" % doc,
+        input = "%s.bzl" % doc,
+        rule_template = "//kotlin:doc-templates/rule.vm",
+        deps = [
+            "//kotlin/internal",
+        ],
+    ) for doc in ['js', 'jvm', 'lint', 'core', 'repositories.release']
+]
 
-bzl_library(
-    name = "android",
-    srcs = ["android.bzl"],
-    visibility = ["//kotlin:__subpackages__"],
-    deps = [
-        "//kotlin/internal",
-    ],
-)
-
-stardoc(
+genrule(
     name = "stardoc",
-    out = "kotlin.md",
-    input = "rules.bzl",
-    rule_template = "//kotlin:doc-templates/rule.vm",
-    symbol_names = [
-        "define_kt_toolchain",
-        "kt_js_library",
-        "kt_js_import",
-        "kt_register_toolchains",
-        "kt_jvm_binary",
-        "kt_jvm_import",
-        "kt_jvm_library",
-        "kt_jvm_test",
-        "kt_android_library",
-        "kt_compiler_plugin",
-        "kt_kotlinc_options",
-        "kt_javac_options",
-    ],
-    deps = [
-        "android",
-        "kotlin",
-    ],
+    outs = ["kotlin.md"],
+    cmd = """
+    for md in $(SRCS); do
+      cat "$$md" >> $@
+    done
+    """,
+    srcs = [doc for doc in ['js', 'jvm', 'lint', 'core', 'repositories.release']],
 )

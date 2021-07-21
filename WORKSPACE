@@ -37,6 +37,9 @@ load(
     "android_sdk_repository",
 )
 
-android_sdk_repository(name = "androidsdk")
+android_sdk_repository(
+    name = "androidsdk",
+    build_tools_version = "30.0.3",  # versions > 30.0.3 do not have the dx.jar anymore.
+)
 
 android_ndk_repository(name = "androidndk")

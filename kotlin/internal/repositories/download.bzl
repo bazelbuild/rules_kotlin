@@ -13,7 +13,7 @@
 # limitations under the versions.License.
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("//kotlin/internal/repositories:rules_android_stardoc.bzl", "rules_android_stardoc_repository")
+load("//kotlin/internal/repositories:rules_stardoc.bzl", "rules_stardoc_repository")
 load(":versions.bzl", "versions")
 
 def kt_download_local_dev_dependencies():
@@ -30,17 +30,6 @@ def kt_download_local_dev_dependencies():
         urls = [
             "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
             "https://github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
-        ],
-    )
-
-    maybe(
-        http_archive,
-        name = "rules_proto",
-        sha256 = versions.RULES_PROTO_SHA,
-        strip_prefix = "rules_proto-%s" % versions.RULES_PROTO_GIT_COMMIT,
-        urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % versions.RULES_PROTO_GIT_COMMIT,
-            "https://github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % versions.RULES_PROTO_GIT_COMMIT,
         ],
     )
 
@@ -99,9 +88,26 @@ def kt_download_local_dev_dependencies():
         url = "https://github.com/bazelbuild/stardoc/archive/%s.tar.gz" % versions.IO_BAZEL_STARDOC_VERSION,
     )
 
-    rules_android_stardoc_repository(
+    rules_stardoc_repository(
         name = "rules_android",
-        sha = versions.ANDROID.SHA,
+        sha256 = versions.ANDROID.SHA,
         strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
         urls = versions.ANDROID.URLS,
+        starlark_packages = [
+            "android",
+        ],
+    )
+
+    rules_stardoc_repository(
+        name = "rules_proto",
+        sha256 = versions.RULES_PROTO_SHA,
+        strip_prefix = "rules_proto-%s" % versions.RULES_PROTO_GIT_COMMIT,
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % versions.RULES_PROTO_GIT_COMMIT,
+            "https://github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % versions.RULES_PROTO_GIT_COMMIT,
+        ],
+        starlark_packages = [
+            "proto",
+            "proto/private",
+        ],
     )

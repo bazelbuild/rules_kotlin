@@ -1,4 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_android_library", "kt_compiler_plugin", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_android_library", "kt_jvm_library")
 
 kt_compiler_plugin(
     name = "parcelize_plugin",

@@ -1,5 +1,5 @@
 load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
-load("//kotlin:kotlin.bzl", "kt_jvm_test")
+load("//kotlin:jvm.bzl", "kt_jvm_test")
 
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #

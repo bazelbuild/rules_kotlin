@@ -13,22 +13,11 @@
 # limitations under the License.
 
 load(
-    "//kotlin/internal/repositories:repositories.bzl",
+    ":repositories.bzl",
     _kotlin_repositories = "kotlin_repositories",
 )
 load(
-    "//kotlin/internal:toolchains.bzl",
-    _define_kt_toolchain = "define_kt_toolchain",
-    _kt_register_toolchains = "kt_register_toolchains",
-)
-load(
-    "//kotlin/internal:opts.bzl",
-    _kt_javac_options = "kt_javac_options",
-    _kt_kotlinc_options = "kt_kotlinc_options",
-)
-load(
     ":jvm.bzl",
-    _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_jvm_binary = "kt_jvm_binary",
     _kt_jvm_import = "kt_jvm_import",
     _kt_jvm_library = "kt_jvm_library",
@@ -41,8 +30,8 @@ load(
 )
 load(
     ":js.bzl",
-    _kt_js_import = "kt_js_import_macro",
-    _kt_js_library = "kt_js_library_macro",
+    _kt_js_import = "kt_js_import",
+    _kt_js_library = "kt_js_library",
 )
 load(
     ":lint.bzl",
@@ -50,15 +39,31 @@ load(
     _ktlint_fix = "ktlint_fix",
     _ktlint_test = "ktlint_test",
 )
+load(
+    ":core.bzl",
+    _define_kt_toolchain = "define_kt_toolchain",
+    _kt_compiler_plugin = "kt_compiler_plugin",
+    _kt_register_toolchains = "kt_register_toolchains",
+)
 
-kotlin_repositories = _kotlin_repositories
+def kotlin_repositories(**kwargs):
+    """
+    Forwarding macro for _kotlin_repositories
+
+    Deprecated:
+         _kotlin_repositories should be loaded from //kotlin:repositories.bzl
+    """
+    _kotlin_repositories(**kwargs)
+
 define_kt_toolchain = _define_kt_toolchain
+kt_register_toolchains = _kt_register_toolchains
+kt_compiler_plugin = _kt_compiler_plugin
 
 def kt_kotlinc_options(**kwargs):
-    fail("use load('//kotlin/compile.bzl', kt_kotlinc_options)")
+    fail("use load('//kotlin:core.bzl', kt_kotlinc_options)")
 
 def kt_javac_options(**kwargs):
-    fail("use load('//kotlin/compile.bzl', kt_javac_options)")
+    fail("use load('//kotlin:core.bzl', kt_javac_options)")
 
 def kt_js_library(**kwargs):
     """
@@ -132,8 +137,6 @@ def kt_android_local_test(**kwargs):
     """
     _kt_android_local_test(**kwargs)
 
-kt_compiler_plugin = _kt_compiler_plugin
-
 def ktlint_config(**kwargs):
     """
     Forwarding macro for ktlint_config
@@ -160,6 +163,3 @@ def ktlint_test(**kwargs):
          ktlint_test should be loaded from //kotlin:lint.bzl
     """
     _ktlint_test(**kwargs)
-
-kt_register_toolchains = _kt_register_toolchains
-kt_compiler_plugin = _kt_compiler_plugin

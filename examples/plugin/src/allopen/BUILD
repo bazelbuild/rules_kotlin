@@ -1,4 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
 
 kt_compiler_plugin(
     name = "open_for_testing_plugin",

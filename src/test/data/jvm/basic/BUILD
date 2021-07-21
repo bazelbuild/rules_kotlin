@@ -1,5 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
-load("//kotlin:kotlin.bzl", "kt_jvm_binary", "kt_jvm_library")
+load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
