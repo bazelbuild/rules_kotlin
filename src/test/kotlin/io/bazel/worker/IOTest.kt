@@ -58,7 +58,19 @@ class IOTest {
     assertThat(captured.written()).isEmpty()
     IO.capture().use { io ->
       println("foo foo is on the loose")
-      assertThat(io.captured.written()).isEqualTo("foo foo is on the loose\n")
+      assertThat(io.readCapturedAsUtf8String()).isEqualTo("foo foo is on the loose\n")
+    }
+    assertThat(captured.written()).isEmpty()
+  }
+
+  @Test
+  fun captureDoesNotRepeatOutput() {
+    assertThat(captured.written()).isEmpty()
+    IO.capture().use { io ->
+      println("foo foo is on the loose")
+      assertThat(io.readCapturedAsUtf8String()).isEqualTo("foo foo is on the loose\n")
+      println("bar bar is on the loose")
+      assertThat(io.readCapturedAsUtf8String()).isEqualTo("bar bar is on the loose\n")
     }
     assertThat(captured.written()).isEmpty()
   }

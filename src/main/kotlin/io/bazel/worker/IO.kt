@@ -23,13 +23,28 @@ import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.InputStream
 import java.io.PrintStream
+import java.nio.charset.StandardCharsets
 
 class IO(
   val input: InputStream,
   val output: PrintStream,
-  val captured: ByteArrayOutputStream,
+  private val captured: ByteArrayOutputStream,
   private val restore: () -> Unit = {}
 ) : Closeable {
+
+  /**
+   * Reads the captured std out and err as a UTF-8 string and then resets the
+   * captured ByteArrayOutputStream.
+   *
+   * Resetting the ByteArrayOutputStream prevents the worker from returning
+   * the same console output multiple times
+   **/
+  fun readCapturedAsUtf8String(): String {
+    val out = captured.toByteArray().toString(StandardCharsets.UTF_8)
+    captured.reset()
+    return out
+  }
+
   companion object {
     fun capture(): IO {
       val stdErr = System.err
