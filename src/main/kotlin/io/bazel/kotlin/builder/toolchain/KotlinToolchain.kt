@@ -163,18 +163,16 @@ class KotlinToolchain private constructor(
     toolchain: KotlinToolchain,
     clazz: String
   ) {
+    private val compiler: Any
     private val execMethod: Method
     private val getCodeMethod: Method
-    private val compilerClass = toolchain.classLoader.loadClass(clazz)
 
     init {
-      // Disables disposing of the environment which is required when running parallel builds. This
-      // follows the behavior of the Kotlin compiler daemon.
-      System.setProperty("kotlin.environment.keepalive", "true")
-
+      val compilerClass = toolchain.classLoader.loadClass(clazz)
       val exitCodeClass =
         toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
+      compiler = compilerClass.getConstructor().newInstance()
       execMethod =
         compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
       getCodeMethod = exitCodeClass.getMethod("getCode")
@@ -185,7 +183,6 @@ class KotlinToolchain private constructor(
     // 2 is an internal error
     // 3 is the script execution error
     fun compile(args: Array<String>, out: PrintStream): Int {
-      val compiler = compilerClass.getConstructor().newInstance()
       val exitCodeInstance = execMethod.invoke(compiler, out, args)
       return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
     }
