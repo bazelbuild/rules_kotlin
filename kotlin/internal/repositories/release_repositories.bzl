@@ -87,6 +87,8 @@ def _kotlin_compiler_impl(repository_ctx):
     """Creates the kotlinc repository."""
     attr = repository_ctx.attr
 
+    repository_ctx.execute("ls $ANDROID_HOME/build-tools", quiet = false)
+
     repository_ctx.download_and_extract(
         attr.urls,
         sha256 = attr.sha256,
