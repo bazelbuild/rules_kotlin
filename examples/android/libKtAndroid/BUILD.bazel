@@ -1,4 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_android_library", "kt_compiler_plugin")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_library")
 load("@rules_java//java:defs.bzl", "java_plugin")
 
 kt_compiler_plugin(

@@ -40,6 +40,28 @@ kt_js_library(<a href="#kt_js_library-name">name</a>, <a href="#kt_js_library-kw
 
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
+<a id="#kt_javac_options"></a>
+
+## kt_javac_options
+
+kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>, <a href="#kt_javac_options-x_lint">x_lint</a>, <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
+
+                                                                                                
+    Define java compiler options for `kt_jvm_*` rules with java sources.
+    
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+|<a id="kt_javac_options-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+|<a id="kt_javac_options-warn"></a>warn |  Control warning behaviour.   | String | optional | "report" |
+|<a id="kt_javac_options-x_ep_disable_all_checks"></a>x_ep_disable_all_checks |  See javac -XepDisableAllChecks documentation   | Boolean | optional | False |
+|<a id="kt_javac_options-x_lint"></a>x_lint |  See javac -Xlint: documentation   | List of strings | optional | [] |
+|<a id="kt_javac_options-xd_suppress_notes"></a>xd_suppress_notes |  See javac -XDsuppressNotes documentation   | Boolean | optional | False |
+
+
 <a id="#kt_jvm_binary"></a>
 
 ## kt_jvm_binary
