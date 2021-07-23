@@ -73,7 +73,7 @@ load(
 
 android_sdk_repository(
     name = "androidsdk",
-    build_tools_version = "30.0.3",  # versions > 30.0.3 do not have the dx.jar anymore.
+    build_tools_version = "30.0.2",  # versions > 30.0.3 do not have the dx.jar anymore.
 )
 
 android_ndk_repository(name = "androidndk")  # Required. Name *must* be "androidndk".

@@ -17,7 +17,7 @@ load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
-load("//kotlin:repositories.bzl", "kotlin_repositories")
+load("//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 kotlin_repositories()
 
@@ -39,7 +39,7 @@ load(
 
 android_sdk_repository(
     name = "androidsdk",
-    build_tools_version = "30.0.3",  # versions > 30.0.3 do not have the dx.jar anymore.
+    build_tools_version = versions.ANDROID.BUILD_TOOLS
 )
 
 android_ndk_repository(name = "androidndk")
