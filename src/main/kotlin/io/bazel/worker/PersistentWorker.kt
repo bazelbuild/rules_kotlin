@@ -105,7 +105,7 @@ class PersistentWorker(
       val response = WorkerProtocol.WorkResponse.newBuilder().apply {
         output = listOf(
           result.log.out.toString(),
-          io.captured.toByteArray().toString(UTF_8)
+          io.readCapturedAsUtf8String()
         ).filter { it.isNotBlank() }.joinToString("\n")
         exitCode = result.status.exit
         requestId = request.requestId
