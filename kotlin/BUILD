@@ -21,12 +21,13 @@ release_archive(
         exclude = [
             "dependencies.bzl",
             "repositories.release.bzl",
+            "repositories.bzl",
         ],
     ),
     src_map = {
         "dependencies.release.bzl": "dependencies.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
-        "repositories.release.bzl": "repositories.release.bzl",
+        "repositories.release.bzl": "repositories.bzl",
     },
     deps = [
         "//kotlin/internal:pkg",
