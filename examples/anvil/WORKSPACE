@@ -105,9 +105,8 @@ android_ndk_repository(name = "androidndk")  # Required. Name *must* be "android
 
 android_sdk_repository(
     name = "androidsdk",
-    build_tools_version = versions.ANDROID.BUILD_TOOLS
+    build_tools_version = versions.ANDROID.BUILD_TOOLS,
 )
-
 
 # Skylib, for build_test, so don't bother initializing the unit test infrastructure.
 http_archive(

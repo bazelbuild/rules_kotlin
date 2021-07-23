@@ -39,7 +39,7 @@ load(
 
 android_sdk_repository(
     name = "androidsdk",
-    build_tools_version = versions.ANDROID.BUILD_TOOLS
+    build_tools_version = versions.ANDROID.BUILD_TOOLS,
 )
 
 android_ndk_repository(name = "androidndk")
