@@ -13,7 +13,7 @@
 # limitations under the License.
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 load("//third_party:jarjar.bzl", "jar_jar")
-load("//kotlin:kotlin.bzl", _for_ide = "kt_jvm_library")
+load("//kotlin:jvm.bzl", _for_ide = "kt_jvm_library")
 
 _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
 

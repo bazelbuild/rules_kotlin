@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@rules_java//java:defs.bzl", "java_test")
-load("//kotlin:kotlin.bzl", "kt_jvm_test")
+load("//kotlin:jvm.bzl", "kt_jvm_test")
 
 def _get_class_name(kwargs):
     if len(kwargs.get("srcs", [])) == 1:

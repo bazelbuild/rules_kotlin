@@ -91,8 +91,10 @@ http_archive(
     sha256 = rules_kotlin_sha,
 )
 
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
@@ -109,9 +111,11 @@ http_archive(
     sha256 = rules_kotlin_sha,
 )
 
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
-kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+kotlin_repositories()
+
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+kt_register_toolchains()
 ```
 
 ## `BUILD` files
@@ -119,7 +123,7 @@ kt_register_toolchains() # to use the default toolchain, otherwise see toolchain
 In your project's `BUILD` files, load the Kotlin rules and use them like so:
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_jvm_library(
     name = "package_name",
@@ -136,7 +140,7 @@ To enable a custom toolchain (to configure language level, etc.)
 do the following.  In a `<workspace>/BUILD.bazel` file define the following:
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "define_kt_toolchain")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
@@ -158,7 +162,7 @@ To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), d
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
 KOTLIN_VERSION = "1.3.31"
 KOTLINC_RELEASE_SHA = "107325d56315af4f59ff28db6837d03c2660088e3efeb7d4e41f3e01bb848d6a"
@@ -192,9 +196,12 @@ local_repository(
 
 load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 kt_download_local_dev_dependencies()
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
-kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
-kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+kotlin_repositories()
+
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+kt_register_toolchains()
 ```
 
 # Kotlin and Java compiler flags
@@ -205,7 +212,7 @@ Note: Not all compiler flags are supported in all language versions. When this h
 
 For example you can define global compiler flags by doing: 
 ```python
-load("//kotlin:kotlin.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
+load("//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
@@ -231,7 +238,8 @@ Compiler flags that are passed to the rule definitions will be taken over the to
 
 Example:
 ```python
-load("//kotlin:kotlin.bzl", "kt_kotlinc_options", "kt_javac_options", "kt_jvm_library")
+load("//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "kt_jvm_library")
+load("//kotlin:jvm.bzl","kt_javac_options", "kt_jvm_library")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
@@ -259,7 +267,8 @@ The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no
 
 For example, you can add allopen to your project like this:
 ```python
-load("//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
+load("//kotlin:core.bzl", "kt_compiler_plugin")
+load("//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_compiler_plugin(
     name = "open_for_testing_plugin",

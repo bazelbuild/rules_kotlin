@@ -1,4 +1,4 @@
-load("//kotlin:kotlin.bzl", "kt_jvm_library", "kt_jvm_test")
+load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 load("@rules_jvm_external//:defs.bzl", "artifact")
 
 kt_jvm_test(

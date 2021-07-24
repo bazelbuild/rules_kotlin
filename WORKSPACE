@@ -17,7 +17,7 @@ load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
-load("//kotlin:kotlin.bzl", "kotlin_repositories")
+load("//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 kotlin_repositories()
 
@@ -37,6 +37,9 @@ load(
     "android_sdk_repository",
 )
 
-android_sdk_repository(name = "androidsdk")
+android_sdk_repository(
+    name = "androidsdk",
+    build_tools_version = versions.ANDROID.BUILD_TOOLS,
+)
 
 android_ndk_repository(name = "androidndk")

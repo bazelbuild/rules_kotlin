@@ -12,7 +12,7 @@ This feature can be enabled through the `experimental_use_abi_jars` flag in the 
 follows
 
 ```python
-load("//kotlin:kotlin.bzl", "define_kt_toolchain")
+load("//kotlin:core.bzl", "define_kt_toolchain")
 
 
 define_kt_toolchain(
@@ -31,7 +31,7 @@ If you encounter such bugs, ABI generation can be disabled on a per target basis
 following tag
 
 ```python
-load("//kotlin:kotlin.bzl", "kt_jvm_library")
+load("//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_jvm_library(
     name = "framework",

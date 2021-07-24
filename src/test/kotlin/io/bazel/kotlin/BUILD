@@ -1,4 +1,4 @@
-load("//kotlin:kotlin.bzl", "kt_jvm_library")
+load("//kotlin:jvm.bzl", "kt_jvm_library")
 load(":defs.bzl", "kt_rules_e2e_test")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.

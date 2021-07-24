@@ -24,10 +24,9 @@ load(
     "http_file",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load(":tools.bzl", "absolute_target")
 load(":versions.bzl", "versions")
 
-KOTLIN_RULES = absolute_target("//kotlin:kotlin.bzl")
+KOTLIN_RULES = Label("//kotlin:core.bzl")
 
 def kotlin_repositories(
         compiler_repostory_name = _KT_COMPILER_REPO,
@@ -42,7 +41,7 @@ def kotlin_repositories(
         name = _KT_COMPILER_REPO,
         urls = compiler_release["urls"],
         sha256 = compiler_release["sha256"],
-        kotlin_rules = KOTLIN_RULES,
+        kotlin_rules = KOTLIN_RULES.workspace_name,
     )
 
     http_file(
@@ -87,7 +86,6 @@ def kotlin_repositories(
 def _kotlin_compiler_impl(repository_ctx):
     """Creates the kotlinc repository."""
     attr = repository_ctx.attr
-
     repository_ctx.download_and_extract(
         attr.urls,
         sha256 = attr.sha256,
@@ -101,7 +99,7 @@ def _kotlin_compiler_impl(repository_ctx):
         "BUILD.bazel",
         attr._template,
         substitutions = {
-            "{{.KotlinRules}}": attr.kotlin_rules,
+            "{{.KotlinRulesRepository}}": attr.kotlin_rules,
         },
         executable = False,
     )

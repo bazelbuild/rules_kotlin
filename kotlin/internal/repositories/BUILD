@@ -31,4 +31,8 @@ bzl_library(
     name = "repositories",
     srcs = glob(["*.bzl"]),
     visibility = ["//kotlin:__subpackages__"],
+    deps = [
+        "@rules_proto//proto",
+        "@rules_proto//proto/private",
+    ],
 )

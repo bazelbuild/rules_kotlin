@@ -1,5 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
-load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_compiler_plugin", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 java_plugin(
     name = "dagger_component_plugin",
