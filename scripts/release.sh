@@ -17,7 +17,7 @@
 
 TMPDIR="$1"
 shift
-if [[ -z $TMPDIR   ]]; then
+if [[ -z $TMPDIR ]]; then
   TMPDIR="/tmp"
 fi
 BUILD_ARGS="$@"
@@ -37,6 +37,11 @@ while [[ ! -f "WORKSPACE" ]]; do
   fi
 done
 
+# lint
+if ! scripts/reflow_skylark; then
+  fail "Lint errors"
+fi
+
 # validate
 if test ! -d examples; then
   fail "unable to find example directory: $PWD"
@@ -52,7 +57,7 @@ rm -rf $ARCHIVE_DIR
 mkdir $ARCHIVE_DIR
 
 tar -C $ARCHIVE_DIR -xzvf bazel-bin/rules_kotlin_release.tgz
-shasum -a 256 bazel-bin/rules_kotlin_release.tgz > bazel-bin/rules_kotlin_release.tgz.sha256
+shasum -a 256 bazel-bin/rules_kotlin_release.tgz >bazel-bin/rules_kotlin_release.tgz.sha256
 
 # iterate through the examples and build them
 for ex in examples/*/; do

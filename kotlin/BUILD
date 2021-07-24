@@ -20,14 +20,12 @@ release_archive(
         ["*.bzl"],
         exclude = [
             "dependencies.bzl",
-            "repositories.release.bzl",
-            "repositories.bzl",
+            "repositories.doc.bzl",
         ],
     ),
     src_map = {
         "dependencies.release.bzl": "dependencies.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
-        "repositories.release.bzl": "repositories.bzl",
     },
     deps = [
         "//kotlin/internal:pkg",
@@ -49,7 +47,7 @@ release_archive(
         "jvm",
         "lint",
         "core",
-        "repositories.release",
+        "repositories.doc",
     ]
 ]
 
@@ -60,7 +58,7 @@ genrule(
         "jvm",
         "lint",
         "core",
-        "repositories.release",
+        "repositories.doc",
     ]],
     outs = ["kotlin.md"],
     cmd = """
