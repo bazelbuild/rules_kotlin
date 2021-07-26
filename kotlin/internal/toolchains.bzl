@@ -25,7 +25,7 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
-    "//kotlin/internal/repositories:tools.bzl",
+    "//src/main/starlark/core/repositories:tools.bzl",
     "absolute_target",
 )
 

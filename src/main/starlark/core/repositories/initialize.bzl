@@ -14,12 +14,15 @@
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
-load("//kotlin/internal/repositories:setup.bzl", "kt_configure")
+load(":setup.bzl", "kt_configure")
 load(
-    "//kotlin/internal/repositories:release_repositories.bzl",
+    ":initialize.release.bzl",
     _release_kotlin_repositories = "kotlin_repositories",
 )
-load(":versions.bzl", "versions")
+load(":versions.bzl", _versions="versions")
+
+#exports
+versions = _versions
 
 def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -29,3 +32,4 @@ def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELE
     """
     kt_configure()
     _release_kotlin_repositories(compiler_release = compiler_release)
+

@@ -1,0 +1,11 @@
+load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/release:packager.bzl", "release_archive")
+
+exports_files(["opts.bzl"],visibility=["//visibility:public"])
+
+release_archive(
+    name = "pkg",
+    srcs = glob(["*.bzl"]),
+    src_map = {
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
+)

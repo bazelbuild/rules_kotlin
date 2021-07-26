@@ -1,4 +1,12 @@
 # All versions for development and release
+version = provider(
+    fields = {
+        "url_templates": "list of string templates with the placeholder {version}",
+        "version": "the version in the form \\D+.\\D+.\\D+(.*)",
+        "sha256": "sha256 checksum for the version being downloaded.",
+    },
+)
+
 versions = struct(
     RULES_NODEJS_VERSION = "1.7.0",
     RULES_NODEJS_SHA = "84abf7ac4234a70924628baa9a73a5a5cbad944c4358cf9abdb4aab29c9a5b77",
@@ -17,12 +25,13 @@ versions = struct(
     IO_BAZEL_STARDOC_VERSION = "0.4.0",
     IO_BAZEL_STARDOC_SHA = "6d07d18c15abb0f6d393adbd6075cd661a2219faab56a9517741f0fc755f6f3c",
     BAZEL_JAVA_LAUNCHER_VERSION = "5.0.0-pre.20210510.2",
-    KOTLIN_CURRENT_COMPILER_RELEASE = {
-        "urls": [
-            "https://github.com/JetBrains/kotlin/releases/download/v1.4.20/kotlin-compiler-1.4.20.zip",
+    KOTLIN_CURRENT_COMPILER_RELEASE = version(
+        version = "1.4.20",
+        url_templates = [
+            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        "sha256": "11db93a4d6789e3406c7f60b9f267eba26d6483dcd771eff9f85bb7e9837011f",
-    },
+        sha256 = "11db93a4d6789e3406c7f60b9f267eba26d6483dcd771eff9f85bb7e9837011f",
+    ),
     ANDROID = struct(
         VERSION = "0.1.1",
         SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
@@ -32,4 +41,13 @@ versions = struct(
     PYTHON = struct(
         VERSION = "0.2.0",
     ),
+    CORE = {
+        "rkt_1_5": struct(
+            prefix = "1.5",
+        ),
+        "rkt_1_4": struct(
+            prefix = "1.4",
+        ),
+        "legacy": None,
+    },
 )

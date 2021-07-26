@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "//kotlin/internal/repositories:download.bzl",
+    "//src/main/starlark/core/repositories:download.bzl",
     _kt_download_local_dev_dependencies = "kt_download_local_dev_dependencies",
 )
 

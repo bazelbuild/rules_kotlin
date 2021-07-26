@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("//src/main/starlark/core/release:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # Configures the toolchains
@@ -20,15 +20,15 @@ kt_configure_toolchains()
 
 release_archive(
     name = "pkg",
-    srcs = glob(["*.bzl"]),
+    srcs = glob(["*.bzl"], exclude=['opts.bzl']),
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
+        "opts.bzl":"opts.release.bzl"
     },
     deps = [
         "//kotlin/internal/js:pkg",
         "//kotlin/internal/jvm:pkg",
         "//kotlin/internal/lint:pkg",
-        "//kotlin/internal/repositories:pkg",
         "//kotlin/internal/utils:pkg",
     ],
 )
@@ -41,7 +41,6 @@ bzl_library(
         "//kotlin/internal/js",
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",
-        "//kotlin/internal/repositories",
         "//kotlin/internal/utils",
     ],
 )
