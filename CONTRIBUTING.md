@@ -68,3 +68,21 @@ New versions of kotlin that change the API should be added to [versions.bzl](src
 existing naming convention.
 
 Multiple versions of kotlin are not currently handled.(_help wanted_)
+
+## Idioms and Styles
+TBD
+
+### Kotlin
+TBD
+
+### Starlark
+  1. New starlark should be placed under `src/main/starlark`:
+      1. `core` of the `rules_kotlin` module, limited to generic structures  
+      1. `legacy` is deprecated, handling options for pre 1.4 kotlin version
+      1. `rkt_<version>` all version specific kotlin related pieces should live here. This of it as versioned core.
+      1. `<feature>` new features like `ktlint`, `android`, etc. etc. should live here.
+  1. Tests. As much as possible all new starlark features should have tests. PRs that extend coverage a very welcome.
+  1. Prefer toolchain to implicit dependencies on rules. Toolchains are handled lazily and offer more versatility.
+  1. Avoid wrapping rule in macros. `rules_kotlin` should be considered a building block for an organization specific DSL, as such macros should be used sparingly.
+  1. Restrict, then Open new rule apis. It's much better to add features based on feedback than to try and remove them. 
+  

@@ -18,10 +18,10 @@ release_archive(
     name = "pkg",
     srcs = [
         "BUILD.com_github_jetbrains_kotlin.bazel",
+        "compiler.bzl",
+        "configured_rules.bzl",
         "tools.bzl",
         "versions.bzl",
-        "compiler.bzl",
-        "configured_rules.bzl"
     ],
     src_map = {
         "initialize.release.bzl": "initialize.bzl",

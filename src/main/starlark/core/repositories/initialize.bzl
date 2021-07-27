@@ -28,7 +28,7 @@ def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELE
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
-        compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
+        compiler_release: (internal) version provider from versions.bzl.
     """
     kt_configure()
     _release_kotlin_repositories(compiler_release = compiler_release)

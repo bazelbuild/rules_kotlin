@@ -39,7 +39,7 @@ def kotlin_repositories(
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
-        compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
+        compiler_release: (internal) version provider from versions.bzl.
     """
 
     kotlin_compiler_repository(
