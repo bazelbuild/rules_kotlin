@@ -13,13 +13,13 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_kotlin_configured//:kotlin/opts.bzl",
+    "@io_bazel_rules_kotlin_configured//kotlin:opts.bzl",
     _KotlincOptions = "KotlincOptions",
     _kotlinc_options_to_flags = "kotlinc_options_to_flags",
     _kt_kotlinc_options = "kt_kotlinc_options",
 )
 load(
-    "@io_bazel_rules_kotlin_configured//:jvm/opts.bzl",
+    "@io_bazel_rules_kotlin_configured//jvm:opts.bzl",
     _JavacOptions = "JavacOptions",
     _javac_options_to_flags = "javac_options_to_flags",
     _kt_javac_options = "kt_javac_options",

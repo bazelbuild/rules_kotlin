@@ -26,7 +26,7 @@ load(
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":configured_rules.bzl", "rules_repository")
-load(":versions.bzl", _versions="versions")
+load(":versions.bzl", _versions = "versions")
 
 versions = _versions
 
@@ -95,9 +95,10 @@ def kotlin_repositories(
 
     rules_repository(
         name = configured_repository_name,
-        archive = "//:%s.tgz" % selected_version,
+        archive = Label("//:%s.tgz" % selected_version),
         parent = KOTLIN_RULES,
         repo_mapping = {
+            "@dev_io_bazel_rules_kotlin": "@%s" % KOTLIN_RULES.workspace_name,
             "@": "@%s" % KOTLIN_RULES.workspace_name,
         },
     )

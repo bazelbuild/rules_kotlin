@@ -32,7 +32,7 @@ _KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {
-            True: "-Xuse-experimental=kotlin.Experimental",
+            True: ["-Xuse-experimental=kotlin.Experimental"],
         },
     ),
     "x_skip_prerelease_check": struct(
@@ -74,8 +74,8 @@ _KOPTS = {
         type = attr.string,
         value_to_flag = {
             "off": None,
-            "enable": "-Xjvm-default=enable",
-            "compatibility": "-Xjvm-default=compatibility",
+            "enable": ["-Xjvm-default=enable"],
+            "compatibility": ["-Xjvm-default=compatibility"],
         },
     ),
     "x_no_optimized_callable_references": struct(
@@ -108,27 +108,14 @@ _KOPTS = {
             True: ["-Xmulti-platform"],
         },
     ),
-    "x_use_ir": struct(
-        args = dict(
-            default = False,
-            doc = "Enable or disable the experimental IR backend.",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xuse-ir"],
-        },
-    ),
-    "x_allow_jvm_ir_dependencies": struct(
-        args = dict(
-            default = False,
-            doc = "Suppress errors thrown when using dependencies not compiled by the IR backend.",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xallow-jvm-ir-dependencies"],
-        },
-    ),
 }
+
+KotlincOptions = provider(
+    fields = {
+        name: o.args["doc"]
+        for name, o in _KOPTS.items()
+    },
+)
 
 def _kotlinc_options_impl(ctx):
     return struct(
@@ -147,28 +134,21 @@ kt_kotlinc_options = rule(
     },
 )
 
-KotlincOptions = provider(
-    fields = {
-        name: o.args["doc"]
-        for name, o in _KOPTS.items()
-    },
-)
-
-def kotlinc_options_to_flags(target):
+def kotlinc_options_to_flags(kotlinc_options):
     """Translate KotlincOptions to worker flags
 
     Args:
-        target maybe containing KotlincOptions
+        kotlinc_options maybe containing KotlincOptions
     Returns:
         list of flags to add to the command line.
     """
-    kotlinc_options = target[KotlincOptions]
     if not kotlinc_options:
         return ""
 
     flags = []
     for n, o in _KOPTS.items():
-        flag = o.value_to_flag[getattr(kotlinc_options, n, None)]
+        value = getattr(kotlinc_options, n, None)
+        flag = o.value_to_flag.get(value, None)
         if flag:
             flags.extend(flag)
     return flags

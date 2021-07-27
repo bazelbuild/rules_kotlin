@@ -1,3 +1,5 @@
+load("@//src/main/starlark/core/options:derive.bzl", "derive")
+
 _JOPTS = {
     "warn": struct(
         args = dict(
@@ -6,7 +8,7 @@ _JOPTS = {
             values = ["off", "report", "error"],
         ),
         type = attr.string,
-        option_to_flag = {
+        value_to_flag = {
             "off": ["-nowarn"],
             "error": ["-Werror"],
             "report": None,
@@ -18,7 +20,7 @@ _JOPTS = {
             doc = "See javac -XepDisableAllChecks documentation",
         ),
         type = attr.bool,
-        option_to_flag = {
+        value_to_flag = {
             True: ["-XepDisableAllChecks"],
         },
     ),
@@ -28,8 +30,8 @@ _JOPTS = {
             doc = "See javac -Xlint: documentation",
         ),
         type = attr.string_list,
-        option_to_flag = {
-            True: ["-Xlint"],
+        value_to_flag = {
+            derive.info: derive.repeated_values_for("-Xlint:"),
         },
     ),
     "xd_suppress_notes": struct(
@@ -38,7 +40,7 @@ _JOPTS = {
             doc = "See javac -XDsuppressNotes documentation",
         ),
         type = attr.bool,
-        option_to_flag = {
+        value_to_flag = {
             True: ["-XDsuppressNotes"],
         },
     ),
@@ -66,7 +68,7 @@ kt_javac_options = rule(
 )
 
 def javac_options_to_flags(javac_options):
-    """Translate KotlincOptions to worker flags
+    """Translate JavacOptions to worker flags
 
     Args:
         javac_options of type JavacOptions or None
@@ -78,7 +80,11 @@ def javac_options_to_flags(javac_options):
 
     flags = []
     for n, o in _JOPTS.items():
-        flag = o.value_to_flag[getattr(javac_options, n)]
-        if flag:
-            flags.extend(flag)
+        value = getattr(javac_options, n, None)
+        if derive.info in o.value_to_flag:
+            info = o.value_to_flag[derive.info]
+            flags.extend(info.derive(info.ctx, value))
+        elif o.value_to_flag.get(value, None):
+            flags.extend(o.value_to_flag[value])
+
     return flags

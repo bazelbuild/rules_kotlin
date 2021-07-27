@@ -32,7 +32,7 @@ _KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {
-            True: "-Xuse-experimental=kotlin.Experimental",
+            True: ["-Xuse-experimental=kotlin.Experimental"],
         },
     ),
     "x_skip_prerelease_check": struct(
@@ -74,8 +74,8 @@ _KOPTS = {
         type = attr.string,
         value_to_flag = {
             "off": None,
-            "enable": "-Xjvm-default=enable",
-            "compatibility": "-Xjvm-default=compatibility",
+            "enable": ["-Xjvm-default=enable"],
+            "compatibility": ["-Xjvm-default=compatibility"],
         },
     ),
     "x_no_optimized_callable_references": struct(
@@ -154,21 +154,21 @@ kt_kotlinc_options = rule(
     },
 )
 
-def kotlinc_options_to_flags(target):
+def kotlinc_options_to_flags(kotlinc_options):
     """Translate KotlincOptions to worker flags
 
     Args:
-        target maybe containing KotlincOptions
+        kotlinc_options maybe containing KotlincOptions
     Returns:
         list of flags to add to the command line.
     """
-    kotlinc_options = target[KotlincOptions]
     if not kotlinc_options:
         return ""
 
     flags = []
     for n, o in _KOPTS.items():
-        flag = o.value_to_flag[getattr(kotlinc_options, n, None)]
+        value = getattr(kotlinc_options, n, None)
+        flag = o.value_to_flag.get(value, None)
         if flag:
             flags.extend(flag)
     return flags

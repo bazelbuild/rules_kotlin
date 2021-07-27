@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//src/main/starlark/core/release:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 
 exports_files([
@@ -57,6 +57,7 @@ release_archive(
     deps = [
         "//kotlin:pkg",
         "//src/main/kotlin:pkg",
+        "//src/main/starlark:pkg",
         "//third_party:pkg",
     ],
 )

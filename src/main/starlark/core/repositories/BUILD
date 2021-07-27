@@ -11,18 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//src/main/starlark/core/release:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
     srcs = [
-        "BUILD.com_github_jetbrains_kotlin",
+        "BUILD.com_github_jetbrains_kotlin.bazel",
         "tools.bzl",
         "versions.bzl",
+        "compiler.bzl",
+        "configured_rules.bzl"
     ],
     src_map = {
-        "release_repositories.bzl": "repositories.bzl",
+        "initialize.release.bzl": "initialize.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
     },
 )
@@ -30,7 +32,7 @@ release_archive(
 bzl_library(
     name = "repositories",
     srcs = glob(["*.bzl"]),
-    visibility = ["//kotlin:__subpackages__"],
+    visibility = ["//:__subpackages__"],
     deps = [
         "@rules_proto//proto",
         "@rules_proto//proto/private",

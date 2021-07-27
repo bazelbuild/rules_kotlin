@@ -20,7 +20,7 @@ _KOPTS = {
         ),
         type = attr.string,
         value_to_flag = {
-            "all": [None],
+            "all": None,
             "stdlib": ["-no-reflect"],
             "none": ["-no-stdlib"],
         },
@@ -73,7 +73,7 @@ _KOPTS = {
         ),
         type = attr.string,
         value_to_flag = {
-            "off": [None],
+            "off": None,
             "enable": ["-Xjvm-default=enable"],
             "compatibility": ["-Xjvm-default=compatibility"],
         },
@@ -134,22 +134,21 @@ kt_kotlinc_options = rule(
     },
 )
 
-
-def kotlinc_options_to_flags(target):
+def kotlinc_options_to_flags(kotlinc_options):
     """Translate KotlincOptions to worker flags
 
     Args:
-        target maybe containing KotlincOptions
+        kotlinc_options maybe containing KotlincOptions
     Returns:
         list of flags to add to the command line.
     """
-    kotlinc_options = target[KotlincOptions]
     if not kotlinc_options:
         return ""
 
     flags = []
     for n, o in _KOPTS.items():
-        flag = o.value_to_flag[getattr(kotlinc_options, n, None)]
+        value = getattr(kotlinc_options, n, None)
+        flag = o.value_to_flag.get(value, None)
         if flag:
             flags.extend(flag)
     return flags

@@ -19,7 +19,7 @@ load(
     ":initialize.release.bzl",
     _release_kotlin_repositories = "kotlin_repositories",
 )
-load(":versions.bzl", _versions="versions")
+load(":versions.bzl", _versions = "versions")
 
 #exports
 versions = _versions
@@ -32,4 +32,3 @@ def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELE
     """
     kt_configure()
     _release_kotlin_repositories(compiler_release = compiler_release)
-

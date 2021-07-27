@@ -1,15 +1,17 @@
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/release:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
-    srcs = ["WORKSPACE"],
+    srcs = glob(
+        ["*.bzl"],
+    ),
+    package_dir = "src/main/starlark",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
-        "//jvm:pkg",
-        "//kotlin:pkg",
+        "//src/main/starlark/core:pkg",
     ],
 )
 
@@ -18,7 +20,6 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//jvm",
-        "//kotlin",
+        "//src/main/starlark/core",
     ],
 )
