@@ -41,7 +41,7 @@ tasks:
     name: "Example - Associates"
     platform: ubuntu1804
     shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
+      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz && cat /tmp/rules_kotlin_release/kotlin/internal/opts.bzl"
     working_directory: examples/associates
     test_flags:
       - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
@@ -51,7 +51,7 @@ tasks:
     name: "Example - Anvil"
     platform: ubuntu1804
     shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
+      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz && cat /tmp/rules_kotlin_release/kotlin/internal/opts.bzl"
     working_directory: examples/anvil
     #test_flags:
     #  - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
@@ -61,7 +61,7 @@ tasks:
     name: "Example - Plugins"
     platform: ubuntu1804
     shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
+      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz && grep -R rkt_1_4 /tmp/rules_kotlin_release"
     working_directory: examples/plugin
     test_flags:
       - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
