@@ -10,7 +10,7 @@ http_archive(
 # Directly load the kotlin rules from the parent repo.
 rules_kotlin_version = "v1.5.0-beta-3"
 
-rules_kotlin_sha = "e4185409c787c18f332ae83a73827aab6e77058a48ffee0cac01123408cbc89a"
+rules_kotlin_sha = "d8650bb939d87a080448ffbbbd1594f5ae054738df5d9471941c18784aa139b9"
 
 http_archive(
     name = "io_bazel_rules_kotlin",
@@ -19,13 +19,21 @@ http_archive(
     type = "zip",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
 )
+
 print("loading repositories")
+
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+
 print("setting up repositories")
+
 kotlin_repositories()  # if you want the default. Otherwise see custom kotlinc distribution below
+
 print("loading core")
+
 load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+
 print("registering toolchians")
+
 kt_register_toolchains()  # to use the default toolchain, otherwise see toolchains below
 
 load(
