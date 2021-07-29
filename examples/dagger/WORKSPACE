@@ -30,17 +30,13 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
-        "junit:junit:4.13.2",
-        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.0.1",
+        "com.google.dagger:dagger:2.35.1",
+        "com.google.dagger:dagger-compiler:2.35.1",
+        "com.google.dagger:dagger-producers:2.35.1",
+        "javax.inject:javax.inject:1",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
-)
-
-load("@rules_android//android:rules.bzl", "android_sdk_repository")
-
-android_sdk_repository(
-    name = "androidsdk",
-    build_tools_version = versions.ANDROID.BUILD_TOOLS,
 )

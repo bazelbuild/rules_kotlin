@@ -436,8 +436,8 @@ Define the Kotlin toolchain.
 | experimental_report_unused_deps |  <p align="center"> - </p>   |  <code>None</code> |
 | experimental_reduce_classpath_mode |  <p align="center"> - </p>   |  <code>None</code> |
 | experimental_multiplex_workers |  <p align="center"> - </p>   |  <code>None</code> |
-| javac_options |  <p align="center"> - </p>   |  <code>None</code> |
-| kotlinc_options |  <p align="center"> - </p>   |  <code>None</code> |
+| javac_options |  <p align="center"> - </p>   |  <code>Label("//kotlin/internal:default_javac_options")</code> |
+| kotlinc_options |  <p align="center"> - </p>   |  <code>Label("//kotlin/internal:default_kotlinc_options")</code> |
 | jacocorunner |  <p align="center"> - </p>   |  <code>None</code> |
 
 

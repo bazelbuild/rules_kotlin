@@ -1,13 +1,15 @@
 workspace(name = "multiplex")
 
 local_repository(
-    name = "io_bazel_rules_kotlin",
-    path = "../..",
+    name = "release_archive",
+    path = "../release_archive",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+load("@release_archive//:repository.bzl", "archive_repository")
 
-kt_download_local_dev_dependencies()
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
