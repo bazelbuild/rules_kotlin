@@ -8,7 +8,7 @@ http_archive(
 )
 
 # Directly load the kotlin rules from the parent repo.
-rules_kotlin_version = "v1.5.0-beta-3"
+rules_kotlin_version = "1.5.0-beta-3"
 
 rules_kotlin_sha = "d8650bb939d87a080448ffbbbd1594f5ae054738df5d9471941c18784aa139b9"
 
@@ -17,7 +17,7 @@ http_archive(
     sha256 = rules_kotlin_sha,
     strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
     type = "zip",
-    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/v%s.zip" % rules_kotlin_version],
 )
 
 print("loading repositories")
