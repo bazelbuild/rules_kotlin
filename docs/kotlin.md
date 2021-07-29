@@ -473,7 +473,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | Name  | Description | Default Value |
 | :-------------: | :-------------: | :-------------: |
 | compiler_repostory_name |  <p align="center"> - </p>   |  <code>"com_github_jetbrains_kotlin"</code> |
-| compiler_release |  (internal) dict containing "urls" and "sha256" for the Kotlin compiler.   |  <code>struct()</code> |
+| compiler_release |  (internal) version provider from versions.bzl.   |  <code>struct()</code> |
 | configured_repository_name |  <p align="center"> - </p>   |  <code>"io_bazel_rules_kotlin_configured"</code> |
 
 
