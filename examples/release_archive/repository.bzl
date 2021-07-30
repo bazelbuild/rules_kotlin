@@ -19,11 +19,13 @@ def archive_repository_implementation(repository_ctx):
     environ = repository_ctx.os.environ
 
     if attr.env_archive in environ:
+        repository_ctx.report_progress("Using release archive from %s" % environ[attr.env_archive])
         repository_ctx.extract(
             archive = environ[attr.env_archive],
             stripPrefix = environ.get(attr.env_archive_prefix, ""),
         )
     elif attr.env_stable in environ:
+        repository_ctx.report_progress("Using release archive from %s" % attr._remote_urls)
         repository_ctx.download_and_extract(
             attr._remote_urls,
             sha256 = attr._remote_sha256,
@@ -31,9 +33,10 @@ def archive_repository_implementation(repository_ctx):
         )
     else:
         # not OS safe. Presuming linux-likes until complaints.
-        workspace = _find_workspace(attr, environ, repository_ctx.path)
-
         release_archive = attr.local_release_archive_target
+
+        # move to execroot, then reference local repo.
+        workspace = repository_ctx.path("../../%s" % release_archive.workspace_root)
 
         target = "//%s:%s" % (release_archive.package, release_archive.name)
 
@@ -48,7 +51,7 @@ def archive_repository_implementation(repository_ctx):
                 target,
             ],
             working_directory = str(workspace),
-            timeout = 1200,  # build take a minute.
+            timeout = 1200,  # builds can take a minute. Or ten.
         )
 
         if result.return_code:
@@ -73,7 +76,7 @@ def _find_workspace(attr, environ, path):
 
     return path(environ["PWD"] + "/" + attr.local_repository_path)
 
-archive_repository = repository_rule(
+_archive_repository = repository_rule(
     implementation = archive_repository_implementation,
     attrs = {
         "_remote_urls": attr.string_list(
@@ -88,17 +91,9 @@ archive_repository = repository_rule(
             doc = "prefix to remove from the remote archive",
             default = versions.RULES_KOTLIN.prefix,
         ),
-        "local_repository_path": attr.string(
-            doc = "local repository directory",
-            default = "../..",
-        ),
-        "local_repository_path_env": attr.string(
-            doc = "local repository directory",
-            default = "RULES_KOTLIN_WORKSPACE_PATH",
-        ),
         "local_release_archive_target": attr.label(
             doc = "release_archive rule.",
-            default = Label("//:rules_kotlin_release"),
+            default = Label("@rules_kotlin_release//:rules_kotlin_release"),
         ),
         "env_archive": attr.string(
             doc = "release archive path environment variable name",
@@ -114,3 +109,19 @@ archive_repository = repository_rule(
         ),
     },
 )
+
+def archive_repository(name, local_path = "../..", release_archive_target = Label("//:rules_kotlin_release")):
+    release_name = "%s_head" % name
+    if not native.existing_rule(release_name):
+        native.local_repository(
+            name = release_name,
+            path = local_path,
+        )
+    _archive_repository(
+        name = name,
+        local_release_archive_target = "@%s//%s:%s" % (
+            release_name,
+            release_archive_target.package,
+            release_archive_target.name,
+        ),
+    )

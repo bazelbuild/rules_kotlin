@@ -30,40 +30,30 @@ tasks:
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
-    shell_commands:
-      - "export RULES_KOTLIN_WORKSPACE_PATH=$(realpath ../..)"
     working_directory: examples/android
     test_targets:
       - //...
   example-associates:
     name: "Example - Associates"
     platform: ubuntu1804
-    shell_commands:
-      - "export RULES_KOTLIN_WORKSPACE_PATH=$(realpath ../..)"
     working_directory: examples/associates
     test_targets:
       - //...
   example-anvil:
     name: "Example - Anvil"
     platform: ubuntu1804
-    shell_commands:
-      - "export RULES_KOTLIN_WORKSPACE_PATH=$(realpath ../..)"
     working_directory: examples/anvil
     test_targets:
       - //...
   example-plugins:
     name: "Example - Plugins"
     platform: ubuntu1804
-    environment:
-        PWD: '/workdir/examples/plugin'
     working_directory: examples/plugin
     test_targets:
       - //...
   examples-trivial:
     name: "Example - Trivial"
     platform: ubuntu1804
-    environment:
-      RULES_KOTLIN_WORKSPACE_PATH: '$(realpath ../..)'
     working_directory: examples/trivial
     include_json_profile:
       - build
@@ -73,8 +63,6 @@ tasks:
   examples-nodejs:
     name: Example - Node
     platform: ubuntu1804
-    shell_commands:
-      - "export RULES_KOTLIN_WORKSPACE_PATH=$(realpath ../..)"
     working_directory: examples/node
     include_json_profile:
       - build
