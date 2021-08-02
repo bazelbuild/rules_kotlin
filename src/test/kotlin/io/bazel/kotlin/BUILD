@@ -51,11 +51,6 @@ kt_rules_e2e_test(
     data = ["//src/test/data/jvm/kapt"],
 )
 
-kt_rules_e2e_test(
-    name = "KotlinJvmDaggerExampleTest",
-    srcs = ["KotlinJvmDaggerExampleTest.kt"],
-    data = ["//examples/dagger:coffee_app"],
-)
 
 kt_rules_e2e_test(
     name = "KotlinJvmAssociatesBasicVisibilityTest",
@@ -74,7 +69,6 @@ test_suite(
         "KotlinJvm13Test",
         "KotlinJvmAssociatesBasicVisibilityTest",
         "KotlinJvmBasicAssertionTest",
-        "KotlinJvmDaggerExampleTest",
         "KotlinJvmKaptAssertionTest",
     ],
 )

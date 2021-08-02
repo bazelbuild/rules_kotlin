@@ -1,2 +1,2 @@
 # Exclude examples from //...:all
-examples/*
+examples

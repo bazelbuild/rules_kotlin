@@ -47,6 +47,8 @@ if test ! -d examples; then
   fail "unable to find example directory: $PWD"
 fi
 
+bazel test //...:all || fail "tests failed"
+
 # build release
 bazel build //:rules_kotlin_release || fail "release archive failed"
 

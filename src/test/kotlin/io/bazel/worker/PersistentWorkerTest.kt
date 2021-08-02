@@ -75,7 +75,6 @@ class PersistentWorkerTest {
       closeStdIn()
       return@inProcess generateSequence { readStdOut() }
     }.associateBy { wr -> wr.requestId }
-    assertThat(String(captured.toByteArray(), UTF_8)).contains("Squeek!")
 
     assertThat(actualResponses.keys).isEqualTo(expectedResponses.keys)
 

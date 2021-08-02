@@ -40,6 +40,7 @@ class IO(
    * the same console output multiple times
    **/
   fun readCapturedAsUtf8String(): String {
+    captured.flush()
     val out = captured.toByteArray().toString(StandardCharsets.UTF_8)
     captured.reset()
     return out

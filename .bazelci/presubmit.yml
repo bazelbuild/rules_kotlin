@@ -60,6 +60,15 @@ tasks:
       - test
     build_targets:
       - //...
+  examples-dagger:
+    name: "Example - Dagger"
+    platform: ubuntu1804
+    working_directory: examples/dagger
+    include_json_profile:
+      - build
+      - test
+    build_targets:
+      - //...
   examples-nodejs:
     name: Example - Node
     platform: ubuntu1804

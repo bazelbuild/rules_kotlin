@@ -86,7 +86,10 @@ class WorkerContext private constructor(
       logger.logp(Level.INFO, sourceName, name, msg)
     }
 
-    override fun error(t: Throwable, msg: () -> String) {
+    override fun error(
+      t: Throwable,
+      msg: () -> String
+    ) {
       logger.logp(Level.SEVERE, sourceName, name, t, msg)
     }
 
