@@ -51,7 +51,6 @@ kt_rules_e2e_test(
     data = ["//src/test/data/jvm/kapt"],
 )
 
-
 kt_rules_e2e_test(
     name = "KotlinJvmAssociatesBasicVisibilityTest",
     srcs = ["KotlinJvmAssociatesBasicVisibilityTest.kt"],
