@@ -21,7 +21,7 @@ def release_archive(name, srcs = None, src_map = {}, package_dir = None, extensi
     Usage:
 
     //:BUILD
-    load("//kotlin/internal/utils:packager.bzl", "release_archive")
+    load("//src/main/starlark/release:packager.bzl", "release_archive")
     release_archive(
         name = "release_archive",
         src_map = {
@@ -34,7 +34,7 @@ def release_archive(name, srcs = None, src_map = {}, package_dir = None, extensi
     )
 
     //dep:BUILD
-    load("//kotlin/internal/utils:packager.bzl", "release_archive")
+    load("//src/main/starlark/release:packager.bzl", "release_archive")
     release_archive(
         name = "pkg",
         srcs = [

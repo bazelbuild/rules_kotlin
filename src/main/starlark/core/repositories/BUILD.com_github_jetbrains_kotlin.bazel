@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility = ["//visibility:public"])
-
+# dev_io_bazel_rules_kotlin
 load("@{{.KotlinRulesRepository}}//kotlin:jvm.bzl", "kt_jvm_import")
 load("@{{.KotlinRulesRepository}}//kotlin:js.bzl", "kt_js_import")
 load("@rules_java//java:defs.bzl", "java_import")
+
+package(default_visibility = ["//visibility:public"])
 
 # Kotlin home filegroup containing everything that is needed.
 filegroup(
@@ -69,13 +70,13 @@ kt_jvm_import(
 )
 
 kt_jvm_import(
-  name = "parcelize-compiler-plugin",
-  jar = "lib/parcelize-compiler.jar",
+    name = "parcelize-compiler-plugin",
+    jar = "lib/parcelize-compiler.jar",
 )
 
 kt_jvm_import(
-  name = "parcelize-runtime",
-  jar = "lib/parcelize-runtime.jar",
+    name = "parcelize-runtime",
+    jar = "lib/parcelize-runtime.jar",
 )
 
 # Kotlin dependencies that are internal to this repo and may be linked.

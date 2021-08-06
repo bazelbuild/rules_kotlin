@@ -14,18 +14,21 @@
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
-load("//kotlin/internal/repositories:setup.bzl", "kt_configure")
+load(":setup.bzl", "kt_configure")
 load(
-    "//kotlin/internal/repositories:release_repositories.bzl",
+    ":initialize.release.bzl",
     _release_kotlin_repositories = "kotlin_repositories",
 )
-load(":versions.bzl", "versions")
+load(":versions.bzl", _versions = "versions")
+
+#exports
+versions = _versions
 
 def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
-        compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
+        compiler_release: (internal) version provider from versions.bzl.
     """
     kt_configure()
     _release_kotlin_repositories(compiler_release = compiler_release)

@@ -1,0 +1,42 @@
+local_repository(
+    name = "release_archive",
+    path = "../release_archive",
+)
+
+load("@release_archive//:repository.bzl", "archive_repository")
+
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+
+kotlin_repositories()
+
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+
+kt_register_toolchains()
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "rules_jvm_external",
+    sha256 = versions.RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % versions.RULES_JVM_EXTERNAL_TAG,
+)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    artifacts = [
+        "com.google.dagger:dagger:2.35.1",
+        "com.google.dagger:dagger-compiler:2.35.1",
+        "com.google.dagger:dagger-producers:2.35.1",
+        "javax.inject:javax.inject:1",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)

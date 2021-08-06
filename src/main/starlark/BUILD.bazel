@@ -1,0 +1,25 @@
+load("//src/main/starlark/release:packager.bzl", "release_archive")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+release_archive(
+    name = "pkg",
+    srcs = glob(
+        ["*.bzl"],
+    ),
+    package_dir = "src/main/starlark",  # explicitly set the package directory, as there are no parent release_archives.
+    src_map = {
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
+    deps = [
+        "//src/main/starlark/core:pkg",
+    ],
+)
+
+bzl_library(
+    name = "starlark",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/main/starlark/core",
+    ],
+)

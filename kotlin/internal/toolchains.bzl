@@ -25,7 +25,7 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
-    "//kotlin/internal/repositories:tools.bzl",
+    "//src/main/starlark/core/repositories:tools.bzl",
     "absolute_target",
 )
 
@@ -230,7 +230,6 @@ _kt_toolchain = rule(
         "javac_options": attr.label(
             doc = "Compiler options for javac",
             providers = [JavacOptions],
-            default = Label("//kotlin/internal:default_javac_options"),
         ),
         "_empty_jar": attr.label(
             doc = """Empty jar for exporting JavaInfos.""",
@@ -241,7 +240,6 @@ _kt_toolchain = rule(
         "kotlinc_options": attr.label(
             doc = "Compiler options for kotlinc",
             providers = [KotlincOptions],
-            default = Label("//kotlin/internal:default_kotlinc_options"),
         ),
         "_empty_jdeps": attr.label(
             doc = """Empty jdeps for exporting JavaInfos.""",
@@ -271,8 +269,8 @@ def define_kt_toolchain(
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
         experimental_multiplex_workers = None,
-        javac_options = None,
-        kotlinc_options = None,
+        javac_options = Label("//kotlin/internal:default_javac_options"),
+        kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
         jacocorunner = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"

@@ -30,51 +30,40 @@ tasks:
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
-    shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/android
-    test_flags:
-      - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
     test_targets:
       - //...
   example-associates:
     name: "Example - Associates"
     platform: ubuntu1804
-    shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/associates
-    test_flags:
-      - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
     test_targets:
       - //...
   example-anvil:
     name: "Example - Anvil"
     platform: ubuntu1804
-    shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/anvil
-    #test_flags:
-    #  - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
     test_targets:
       - //...
   example-plugins:
     name: "Example - Plugins"
     platform: ubuntu1804
-    shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/plugin
-    test_flags:
-      - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
     test_targets:
       - //...
   examples-trivial:
     name: "Example - Trivial"
     platform: ubuntu1804
-    shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/trivial
-    test_flags:
-      - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
+    include_json_profile:
+      - build
+      - test
+    build_targets:
+      - //...
+  examples-dagger:
+    name: "Example - Dagger"
+    platform: ubuntu1804
+    working_directory: examples/dagger
     include_json_profile:
       - build
       - test
@@ -83,14 +72,10 @@ tasks:
   examples-nodejs:
     name: Example - Node
     platform: ubuntu1804
-    shell_commands:
-      - "cd ../.. && bazel build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz"
     working_directory: examples/node
     include_json_profile:
       - build
       - test
-    test_flags:
-      - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
     build_targets:
       - //coroutines-helloworld/...
       - //express/...

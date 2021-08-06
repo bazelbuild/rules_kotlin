@@ -1,8 +1,23 @@
+local_repository(
+    name = "release_archive",
+    path = "../release_archive",
+)
+
+load("@release_archive//:repository.bzl", "archive_repository")
+
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+
+kotlin_repositories()
+
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+
+kt_register_toolchains()
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-SKYLIB_VERSION = "1.0.3"
-
-SKYLIB_SHA = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c"
 
 http_archive(
     name = "rules_android",
@@ -20,26 +35,12 @@ http_archive(
 
 http_archive(
     name = "bazel_skylib",
-    sha256 = SKYLIB_SHA,
-    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (SKYLIB_VERSION, SKYLIB_VERSION)],
+    sha256 = versions.SKYLIB_SHA,
+    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (
+        versions.SKYLIB_VERSION,
+        versions.SKYLIB_VERSION,
+    )],
 )
-
-local_repository(
-    name = "io_bazel_rules_kotlin",
-    path = "../..",
-)
-
-load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
-
-kt_download_local_dev_dependencies()
-
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
-
-kotlin_repositories()
-
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-
-kt_register_toolchains()
 
 http_archive(
     name = "rules_jvm_external",

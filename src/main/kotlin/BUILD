@@ -1,5 +1,5 @@
 load("//third_party:jarjar.bzl", "jar_jar")
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 exports_files(
     ["shade.jarjar"],

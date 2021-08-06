@@ -436,8 +436,8 @@ Define the Kotlin toolchain.
 | experimental_report_unused_deps |  <p align="center"> - </p>   |  <code>None</code> |
 | experimental_reduce_classpath_mode |  <p align="center"> - </p>   |  <code>None</code> |
 | experimental_multiplex_workers |  <p align="center"> - </p>   |  <code>None</code> |
-| javac_options |  <p align="center"> - </p>   |  <code>None</code> |
-| kotlinc_options |  <p align="center"> - </p>   |  <code>None</code> |
+| javac_options |  <p align="center"> - </p>   |  <code>Label("//kotlin/internal:default_javac_options")</code> |
+| kotlinc_options |  <p align="center"> - </p>   |  <code>Label("//kotlin/internal:default_kotlinc_options")</code> |
 | jacocorunner |  <p align="center"> - </p>   |  <code>None</code> |
 
 
@@ -462,7 +462,7 @@ This macro registers the kotlin toolchain.
 ## kotlin_repositories
 
 <pre>
-kotlin_repositories(<a href="#kotlin_repositories-compiler_repostory_name">compiler_repostory_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>)
+kotlin_repositories(<a href="#kotlin_repositories-compiler_repostory_name">compiler_repostory_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>, <a href="#kotlin_repositories-configured_repository_name">configured_repository_name</a>)
 </pre>
 
 Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -473,6 +473,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | Name  | Description | Default Value |
 | :-------------: | :-------------: | :-------------: |
 | compiler_repostory_name |  <p align="center"> - </p>   |  <code>"com_github_jetbrains_kotlin"</code> |
-| compiler_release |  (internal) dict containing "urls" and "sha256" for the Kotlin compiler.   |  <code>{"urls": ["https://github.com/JetBrains/kotlin/releases/download/v1.4.20/kotlin-compiler-1.4.20.zip"], "sha256": "11db93a4d6789e3406c7f60b9f267eba26d6483dcd771eff9f85bb7e9837011f"}</code> |
+| compiler_release |  (internal) version provider from versions.bzl.   |  <code>struct()</code> |
+| configured_repository_name |  <p align="center"> - </p>   |  <code>"io_bazel_rules_kotlin_configured"</code> |
 
 

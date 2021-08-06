@@ -1,4 +1,4 @@
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.

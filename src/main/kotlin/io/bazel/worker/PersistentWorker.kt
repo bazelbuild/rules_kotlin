@@ -19,30 +19,18 @@ package io.bazel.worker
 
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import src.main.kotlin.io.bazel.worker.GcScheduler
 import java.io.PrintStream
-import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
-import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -57,27 +45,34 @@ import kotlin.coroutines.CoroutineContext
 class PersistentWorker(
   private val coroutineContext: CoroutineContext,
   private val captureIO: () -> IO,
-  private val cpuTimeBasedGcScheduler: CpuTimeBasedGcScheduler,
+  private val cpuTimeBasedGcScheduler: GcScheduler
 ) : Worker {
 
-  constructor() : this(Dispatchers.IO, IO.Companion::capture, CpuTimeBasedGcScheduler(Duration.ofSeconds(10)))
+  constructor(
+    coroutineContext: CoroutineContext,
+    captureIO: () -> IO
+  ) : this(coroutineContext, captureIO, GcScheduler {})
+
+  constructor() : this(
+    Dispatchers.IO, IO.Companion::capture, CpuTimeBasedGcScheduler(Duration.ofSeconds(10))
+  )
 
   @ExperimentalCoroutinesApi
   override fun start(execute: Work) = WorkerContext.run {
-    //Use channel to serialize writing output
+    // Use channel to serialize writing output
     val writeChannel = Channel<WorkerProtocol.WorkResponse>(UNLIMITED)
     captureIO().use { io ->
       runBlocking {
-        //Parent coroutine to track all of children and close channel on completion
+        // Parent coroutine to track all of children and close channel on completion
         launch(Dispatchers.Default) {
-            generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
-              .forEach { request ->
-                launch {
-                  compileWork(request, io, writeChannel, execute)
-                  //Be a friendly worker by performing a GC between compilation requests
-                  cpuTimeBasedGcScheduler.maybePerformGc()
-                }
+          generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
+            .forEach { request ->
+              launch {
+                compileWork(request, io, writeChannel, execute)
+                // Be a friendly worker by performing a GC between compilation requests
+                cpuTimeBasedGcScheduler.maybePerformGc()
               }
+            }
         }.invokeOnCompletion { writeChannel.close() }
 
         writeChannel.consumeAsFlow()
@@ -96,30 +91,34 @@ class PersistentWorker(
     chan: Channel<WorkerProtocol.WorkResponse>,
     execute: Work
   ) = withContext(Dispatchers.Default) {
-      val result = doTask("request ${request.requestId}") { ctx ->
-        request.argumentsList.run {
-          execute(ctx, toList())
-        }
+    val result = doTask("request ${request.requestId}") { ctx ->
+      request.argumentsList.run {
+        execute(ctx, toList())
       }
-      info { "task result ${result.status}" }
-      val response = WorkerProtocol.WorkResponse.newBuilder().apply {
-        output = listOf(
-          result.log.out.toString(),
-          io.readCapturedAsUtf8String()
-        ).filter { it.isNotBlank() }.joinToString("\n")
-        exitCode = result.status.exit
-        requestId = request.requestId
-      }.build()
-      info {
-        response.toString()
-      }
-      chan.send(response)
+    }
+    info { "task result ${result.status}" }
+    val response = WorkerProtocol.WorkResponse.newBuilder().apply {
+      val cap = io.readCapturedAsUtf8String()
+      output = listOf(
+        result.log.out.toString(),
+        cap
+      ).joinToString("\n")
+      exitCode = result.status.exit
+      requestId = request.requestId
+    }.build()
+
+    info {
+      response.toString()
+    }
+    chan.send(response)
   }
 
-  private suspend fun writeOutput(response: WorkerProtocol.WorkResponse, output: PrintStream) =
+  private suspend fun writeOutput(
+    response: WorkerProtocol.WorkResponse,
+    output: PrintStream
+  ) =
     withContext(Dispatchers.IO) {
       response.writeDelimitedTo(output)
       output.flush()
     }
-
 }

@@ -17,4 +17,7 @@
 
 package io.bazel.worker
 
-data class TaskResult(val status: Status, val log: ContextLog)
+data class TaskResult(
+  val status: Status,
+  val log: ContextLog
+)

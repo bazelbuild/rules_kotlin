@@ -13,7 +13,7 @@ load("@rules_python//python:defs.bzl", "py_binary")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # TODO(https://github.com/bazelbuild/rules_kotlin/issues/270): Replace with Starlark

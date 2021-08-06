@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal/utils:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
+load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 
 exports_files([
     "scripts/noop.sh",
@@ -35,9 +36,20 @@ test_suite(
     ],
 )
 
+[
+    release_archive(
+        name = version,
+        deps = [
+            "@%s//:pkg" % version,
+        ],
+    )
+    for version in versions.CORE
+]
+
 # Release target.
 release_archive(
     name = "rules_kotlin_release",
+    srcs = ["%s.tgz" % v for v in versions.CORE],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
         "WORKSPACE.release.bazel": "WORKSPACE",
@@ -45,6 +57,7 @@ release_archive(
     deps = [
         "//kotlin:pkg",
         "//src/main/kotlin:pkg",
+        "//src/main/starlark:pkg",
         "//third_party:pkg",
     ],
 )

@@ -1,3 +1,20 @@
+local_repository(
+    name = "release_archive",
+    path = "../release_archive",
+)
+
+load("@release_archive//:repository.bzl", "archive_repository")
+
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+
+kotlin_repositories()
+
+register_toolchains("//:kotlin_toolchain")
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 _KOTLIN_COMPILER_VERSION = "1.4.21"
@@ -127,20 +144,3 @@ android_sdk_repository(
     name = "androidsdk",
     api_level = 29,
 )
-
-## Kotlin
-
-local_repository(
-    name = "io_bazel_rules_kotlin",
-    path = "../..",
-)
-
-load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
-
-kt_download_local_dev_dependencies()
-
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-
-kotlin_repositories()
-
-register_toolchains("//:kotlin_toolchain")

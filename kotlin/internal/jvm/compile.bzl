@@ -23,8 +23,10 @@ load(
 )
 load(
     "//kotlin/internal:opts.bzl",
-    _JavacOptions = "JavacOptions",
-    _KotlincOptions = "KotlincOptions",
+    "JavacOptions",
+    "KotlincOptions",
+    "javac_options_to_flags",
+    "kotlinc_options_to_flags",
 )
 load(
     "//kotlin/internal/jvm:associates.bzl",
@@ -161,68 +163,6 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def _kotlinc_options_provider_to_flags(opts, language_version):
-    if not opts:
-        return ""
-
-    # Validate the compiler opts before they are mapped over to flags
-    _validate_kotlinc_options(opts, language_version)
-
-    flags = []
-    if opts.warn == "off":
-        flags.append("-nowarn")
-    elif opts.warn == "error":
-        flags.append("-Werror")
-    if opts.x_use_experimental:
-        flags.append("-Xuse-experimental=kotlin.Experimental")
-    if opts.x_use_ir:
-        flags.append("-Xuse-ir")
-    if opts.x_allow_jvm_ir_dependencies:
-        flags.append("-Xallow-jvm-ir-dependencies")
-    if opts.x_skip_prerelease_check:
-        flags.append("-Xskip-prerelease-check")
-    if opts.x_inline_classes:
-        flags.append("-Xinline-classes")
-    if opts.x_allow_result_return_type:
-        flags.append("-Xallow-result-return-type")
-    if opts.include_stdlibs == "stdlib":
-        flags.append("-no-reflect")
-    elif opts.include_stdlibs == "none":
-        flags.append("-no-stdlib")
-    if opts.x_jvm_default == "enable":
-        flags.append("-Xjvm-default=enable")
-    elif opts.x_jvm_default == "compatibility":
-        flags.append("-Xjvm-default=compatibility")
-    if opts.x_no_optimized_callable_references:
-        flags.append("-Xno-optimized-callable-references")
-    if opts.x_multi_platform:
-        flags.append("-Xmulti-platform")
-    if opts.java_parameters:
-        flags.append("-java-parameters")
-    return flags
-
-def _validate_kotlinc_options(opts, language_version):
-    if opts.x_allow_jvm_ir_dependencies and language_version < "1.4":
-        fail("The x_allow_jvm_ir_dependencies flag is only avaliable in Kotlin version 1.4 or greater")
-    pass
-
-def _javac_options_provider_to_flags(opts):
-    if not opts:
-        return ""
-
-    flags = []
-    if opts.warn == "off":
-        flags.append("-nowarn")
-    elif opts.warn == "error":
-        flags.append("-Werror")
-    if opts.x_ep_disable_all_checks:
-        flags.append("-XepDisableAllChecks")
-    if opts.x_lint:
-        flags.extend(["-Xlint:%s" % check for check in opts.x_lint])
-    if opts.xd_suppress_notes:
-        flags.append("-XDsuppressNotes")
-    return flags
-
 def _format_compile_plugin_options(options):
     """Format options into id:value for cmd line."""
     return ["%s:%s" % (o.id, o.value) for o in options]
@@ -354,10 +294,10 @@ def _run_kt_builder_action(
         args.add("--" + f, path)
 
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
-    kotlinc_options = ctx.attr.kotlinc_opts[_KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
-    javac_options = ctx.attr.javac_opts[_JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
-    args.add_all("--kotlin_passthrough_flags", _kotlinc_options_provider_to_flags(kotlinc_options, toolchains.kt.language_version))
-    args.add_all("--javacopts", _javac_options_provider_to_flags(javac_options))
+    kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
+    javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kotlinc_options))
+    args.add_all("--javacopts", javac_options_to_flags(javac_options))
     args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
@@ -758,7 +698,7 @@ def _run_kt_java_builder_actions(
     # If there is Java source or KAPT generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
     if srcs.java or generated_src_jars or srcs.src_jars:
-        javac_opts = _javac_options_provider_to_flags(toolchains.kt.javac_options)
+        javac_opts = javac_options_to_flags(toolchains.kt.javac_options)
 
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
         # annotation processors in `deps` also.

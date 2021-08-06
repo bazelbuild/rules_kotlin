@@ -43,3 +43,14 @@ android_sdk_repository(
 )
 
 android_ndk_repository(name = "androidndk")
+
+[
+    local_repository(
+        name = version,
+        path = "src/main/starlark/%s" % version,
+        repo_mapping = {
+            "@dev_io_bazel_rules_kotlin": "@",
+        },
+    )
+    for version in versions.CORE
+]

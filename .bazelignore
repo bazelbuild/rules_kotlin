@@ -1,10 +1,2 @@
-# Some examples have their own WORKSPACE. Ignore as part of this root WORKSPACE so
-# we don't break trying to build separate workspaces using wildcards like //...
-# examples/dagger doesn't have its own workspace, so don't do all of examples.
-examples/android
-examples/associates
-examples/jetpack_compose
-examples/node
-examples/trivial
-examples/anvil
-examples/multiplex
+# Exclude examples from //...:all
+examples

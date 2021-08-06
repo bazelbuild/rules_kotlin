@@ -22,19 +22,31 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.logging.Level
 
 /** Log encapsulates standard out and error of execution. */
-data class ContextLog(val out: CharSequence, val profiles: List<String> = emptyList()) :
+data class ContextLog(
+  val out: CharSequence,
+  val profiles: List<String> = emptyList()
+) :
   CharSequence by out {
-  constructor(bytes: ByteArray, profiles: List<String>) : this(String(bytes, UTF_8), profiles)
+  constructor(
+    bytes: ByteArray,
+    profiles: List<String>
+  ) : this(String(bytes, UTF_8), profiles)
 
   enum class Granularity(val level: Level) {
-    INFO(Level.INFO), ERROR(Level.SEVERE), DEBUG(Level.FINEST)
+    INFO(Level.INFO),
+    ERROR(Level.SEVERE),
+    DEBUG(Level.FINEST)
   }
 
   /** Logging runtime messages lazily */
   interface Logging {
     fun debug(msg: () -> String)
     fun info(msg: () -> String)
-    fun error(t: Throwable, msg: () -> String)
+    fun error(
+      t: Throwable,
+      msg: () -> String
+    )
+
     fun error(msg: () -> String)
   }
 

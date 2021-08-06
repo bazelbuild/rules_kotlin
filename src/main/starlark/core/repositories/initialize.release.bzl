@@ -24,23 +24,28 @@ load(
     "http_file",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load(":versions.bzl", "versions")
+load(":compiler.bzl", "kotlin_compiler_repository")
+load(":configured_rules.bzl", "rules_repository")
+load(":versions.bzl", _versions = "versions")
 
-KOTLIN_RULES = Label("//kotlin:core.bzl")
+versions = _versions
+
+KOTLIN_RULES = Label("//:all")
 
 def kotlin_repositories(
         compiler_repostory_name = _KT_COMPILER_REPO,
-        compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE):
+        compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
+        configured_repository_name = "io_bazel_rules_kotlin_configured"):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
-        compiler_release: (internal) dict containing "urls" and "sha256" for the Kotlin compiler.
+        compiler_release: (internal) version provider from versions.bzl.
     """
 
-    _kotlin_compiler_repository(
+    kotlin_compiler_repository(
         name = _KT_COMPILER_REPO,
-        urls = compiler_release["urls"],
-        sha256 = compiler_release["sha256"],
+        urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
+        sha256 = compiler_release.sha256,
         kotlin_rules = KOTLIN_RULES.workspace_name,
     )
 
@@ -83,44 +88,17 @@ def kotlin_repositories(
         ],
     )
 
-def _kotlin_compiler_impl(repository_ctx):
-    """Creates the kotlinc repository."""
-    attr = repository_ctx.attr
-    repository_ctx.download_and_extract(
-        attr.urls,
-        sha256 = attr.sha256,
-        stripPrefix = "kotlinc",
-    )
-    repository_ctx.file(
-        "WORKSPACE",
-        content = """workspace(name = "%s")""" % attr.name,
-    )
-    repository_ctx.template(
-        "BUILD.bazel",
-        attr._template,
-        substitutions = {
-            "{{.KotlinRulesRepository}}": attr.kotlin_rules,
-        },
-        executable = False,
-    )
+    selected_version = None
+    for (version, criteria) in versions.CORE.items():
+        if (criteria and compiler_release.version.startswith(criteria.prefix)) or (not selected_version and not criteria):
+            selected_version = version
 
-_kotlin_compiler_repository = repository_rule(
-    implementation = _kotlin_compiler_impl,
-    attrs = {
-        "urls": attr.string_list(
-            doc = "A list of urls for the kotlin compiler",
-            mandatory = True,
-        ),
-        "kotlin_rules": attr.string(
-            doc = "target of the kotlin rules.",
-            mandatory = True,
-        ),
-        "sha256": attr.string(
-            doc = "sha256 of the compiler archive",
-        ),
-        "_template": attr.label(
-            doc = "repository build file template",
-            default = Label("//kotlin/internal/repositories:BUILD.com_github_jetbrains_kotlin"),
-        ),
-    },
-)
+    rules_repository(
+        name = configured_repository_name,
+        archive = Label("//:%s.tgz" % selected_version),
+        parent = KOTLIN_RULES,
+        repo_mapping = {
+            "@dev_io_bazel_rules_kotlin": "@%s" % KOTLIN_RULES.workspace_name,
+            "@": "@%s" % KOTLIN_RULES.workspace_name,
+        },
+    )
