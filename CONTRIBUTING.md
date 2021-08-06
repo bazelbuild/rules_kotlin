@@ -53,7 +53,7 @@ To ease development, pains should be taken to keep the packages in the archive t
 
 ### Multi-repo runtime
 
-The `rules_kotlin` runtime is comprised from multiple repositories. The end user will interact with a single repository, that repository delegates to 
+The `rules_kotlin` runtime is comprised of multiple repositories. The end user will interact with a single repository, that repository delegates to 
 versioned feature sub-repositories. Currently, the delegation is managed by using well known names (e.g. core lives in `@io_bazel_rules_kotlin_configured`),
 a necessity while the initial repository can be named arbitrarily. Future development intends to remove this restriction.
 
