@@ -36,7 +36,7 @@ versions = struct(
         VERSION = "0.1.1",
         SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
         URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
-        BUILD_TOOLS = "30.0.1",
+        BUILD_TOOLS = "30.0.3",
     ),
     PYTHON = struct(
         VERSION = "0.2.0",
