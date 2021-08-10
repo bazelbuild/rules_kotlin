@@ -40,6 +40,7 @@ java_binary(
         ":jdeps-gen",
         ":skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
+        "@com_github_jetbrains_kotlin//:lib/jvm-abi-gen.jar",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
