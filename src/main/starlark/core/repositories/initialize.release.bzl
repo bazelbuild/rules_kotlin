@@ -26,7 +26,7 @@ load(
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":configured_rules.bzl", "rules_repository")
-load(":versions.bzl", _versions = "versions")
+load(":versions.bzl", "version", _versions = "versions")
 
 versions = _versions
 
@@ -101,4 +101,13 @@ def kotlin_repositories(
             "@dev_io_bazel_rules_kotlin": "@%s" % KOTLIN_RULES.workspace_name,
             "@": "@%s" % KOTLIN_RULES.workspace_name,
         },
+    )
+
+def kotlinc_version(release, sha256):
+    return version(
+        version = release,
+        url_templates = [
+            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
+        ],
+        sha256 = sha256,
     )
