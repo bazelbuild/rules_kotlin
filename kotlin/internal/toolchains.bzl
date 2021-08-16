@@ -123,24 +123,22 @@ _kt_toolchain = rule(
         ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
-            default = "1.5",
+            default = "1.4",
             values = [
                 "1.1",
                 "1.2",
                 "1.3",
                 "1.4",
-                "1.5",
             ],
         ),
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
-            default = "1.5",
+            default = "1.4",
             values = [
                 "1.1",
                 "1.2",
                 "1.3",
                 "1.4",
-                "1.5",
             ],
         ),
         "debug": attr.string_list(
