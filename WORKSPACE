@@ -13,11 +13,11 @@
 # limitations under the License.
 workspace(name = "dev_io_bazel_rules_kotlin")
 
-load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+load("//src/main/starlark/core/repositories:download.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
-load("//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+load("//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 
@@ -30,27 +30,3 @@ load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
 rbe_autoconfig(
     name = "buildkite_config",
 )
-
-load(
-    "@rules_android//android:rules.bzl",
-    "android_ndk_repository",
-    "android_sdk_repository",
-)
-
-android_sdk_repository(
-    name = "androidsdk",
-    build_tools_version = versions.ANDROID.BUILD_TOOLS,
-)
-
-android_ndk_repository(name = "androidndk")
-
-[
-    local_repository(
-        name = version,
-        path = "src/main/starlark/%s" % version,
-        repo_mapping = {
-            "@dev_io_bazel_rules_kotlin": "@",
-        },
-    )
-    for version in versions.CORE
-]

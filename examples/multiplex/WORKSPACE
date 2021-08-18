@@ -2,7 +2,7 @@ workspace(name = "multiplex")
 
 local_repository(
     name = "release_archive",
-    path = "../release_archive",
+    path = "../../src/main/starlark/release_archive",
 )
 
 load("@release_archive//:repository.bzl", "archive_repository")

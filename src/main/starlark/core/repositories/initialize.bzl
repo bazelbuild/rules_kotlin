@@ -17,12 +17,14 @@
 load(":setup.bzl", "kt_configure")
 load(
     ":initialize.release.bzl",
+    _kotlinc_version = "kotlinc_version",
     _release_kotlin_repositories = "kotlin_repositories",
 )
 load(":versions.bzl", _versions = "versions")
 
 #exports
 versions = _versions
+kotlinc_version = _kotlinc_version
 
 def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.

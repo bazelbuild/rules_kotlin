@@ -162,19 +162,14 @@ To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), d
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version")
 
-KOTLIN_VERSION = "1.3.31"
-KOTLINC_RELEASE_SHA = "107325d56315af4f59ff28db6837d03c2660088e3efeb7d4e41f3e01bb848d6a"
-
-KOTLINC_RELEASE = {
-    "urls": [
-        "https://github.com/JetBrains/kotlin/releases/download/v{v}/kotlin-compiler-{v}.zip".format(v = KOTLIN_VERSION),
-    ],
-    "sha256": KOTLINC_RELEASE_SHA,
-}
-
-kotlin_repositories(compiler_release = KOTLINC_RELEASE)
+kotlin_repositories(
+    compiler_release = kotlinc_version(
+        release = "1.3.31", # just the numeric version
+        sha256 = "107325d56315af4f59ff28db6837d03c2660088e3efeb7d4e41f3e01bb848d6a"
+    )
+)
 ```
 
 ## Third party dependencies 
@@ -183,24 +178,29 @@ _(e.g. Maven artifacts)_
 Third party (external) artifacts can be brought in with systems such as [`rules_jvm_external`](https://github.com/bazelbuild/rules_jvm_external) or [`bazel_maven_repository`](https://github.com/square/bazel_maven_repository) or [`bazel-deps`](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use `java_import`, as this will cause bazel to make an interface-only (`ijar`), or ABI jar, and the native `ijar` tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of `rules_jvm_external` and `bazel_maven_repository` are known to work with Kotlin.
 
 # Development Setup Guide
-As of 1.4.0, to use the rules directly from the rules_kotlin workspace (i.e. not the release artifact) additional dependency downloads are required. 
+As of 1.5.0, to use the rules directly from the rules_kotlin workspace (i.e. not the release artifact)
+ require the use of `release_archive` repository. This repository will build and configure the current
+ workspace to use `rules_kotlin` in the same manner as the released binary artifact.
 
 In the project's `WORKSPACE`, change the setup:
 ```python
 
 # Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
 local_repository(
-    name = "io_bazel_rules_kotlin",
-    path = "../path/to/rules_kotlin_clone",
+    name = "release_archive",
+    path = "../path/to/rules_kotlin_clone/src/main/starklark/release_archive",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
-kt_download_local_dev_dependencies()
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+
 kotlin_repositories()
 
 load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+
 kt_register_toolchains()
 ```
 
@@ -212,7 +212,7 @@ Note: Not all compiler flags are supported in all language versions. When this h
 
 For example you can define global compiler flags by doing: 
 ```python
-load("//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
@@ -238,8 +238,8 @@ Compiler flags that are passed to the rule definitions will be taken over the to
 
 Example:
 ```python
-load("//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "kt_jvm_library")
-load("//kotlin:jvm.bzl","kt_javac_options", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl","kt_javac_options", "kt_jvm_library")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
@@ -267,8 +267,8 @@ The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no
 
 For example, you can add allopen to your project like this:
 ```python
-load("//kotlin:core.bzl", "kt_compiler_plugin")
-load("//kotlin:jvm.bzl", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_compiler_plugin(
     name = "open_for_testing_plugin",
