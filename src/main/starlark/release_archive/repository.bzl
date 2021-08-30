@@ -65,6 +65,12 @@ def archive_repository_implementation(repository_ctx):
             archive = release_artifact,
         )
 
+        # update release when the contents change.
+        return [
+            repository_ctx.path("../../%s" % release_archive.workspace_root),
+        ]
+    return []
+
 # not windows compatible.
 def _find_workspace(attr, environ, path):
     if attr.local_repository_path_env in environ:
