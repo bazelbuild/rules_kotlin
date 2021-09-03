@@ -406,7 +406,8 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 |<a id="kt_kotlinc_options-x_no_optimized_callable_references"></a>x_no_optimized_callable_references |  Do not use optimized callable reference superclasses. Available from 1.4.   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_skip_prerelease_check"></a>x_skip_prerelease_check |  Suppress errors thrown when using pre-release classes.   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_use_experimental"></a>x_use_experimental |  Allow the experimental language features.   | Boolean | optional | True |
-|<a id="kt_kotlinc_options-x_use_ir"></a>x_use_ir |  Enable or disable the experimental IR backend. Only available in 1.4. | Boolean | optional | False |
+|<a id="kt_kotlinc_options-x_use_ir"></a>x_use_ir |  Enable or disable the experimental IR backend.   | Boolean | optional | False |
+|<a id="kt_kotlinc_options-x_explicit_api_mode"></a>x_explicit_api_mode |  Enable or disable Kotlin explicit API mode for library developers.   | String | optional | "off" |
 
 
 <a name="#define_kt_toolchain"></a>
