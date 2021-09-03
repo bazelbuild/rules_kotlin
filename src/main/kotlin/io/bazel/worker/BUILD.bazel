@@ -20,6 +20,6 @@ kt_bootstrap_library(
     ],
     deps = [
         ":worker_proto",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
     ],
 )

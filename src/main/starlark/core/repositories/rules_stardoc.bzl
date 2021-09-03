@@ -19,15 +19,12 @@ def _rules_stardoc_repository_impl(repository_ctx):
         sha256 = attrs.sha256,
         stripPrefix = attrs.strip_prefix,
     )
-    print("%s prepping" % attrs.name)
     for src in attrs.starlark_packages:
         path = repository_ctx.path(src)
         build = path.get_child("BUILD")
         contents = ""
         if build.exists:
             contents = repository_ctx.read(build)
-        print("%s prepping %s" % (attrs.name, contents))
-        print("%s", path.readdir())
         repository_ctx.file(
             "%s/BUILD" % path,
             content = LOAD + contents + RULE_TEMPLATE.format(

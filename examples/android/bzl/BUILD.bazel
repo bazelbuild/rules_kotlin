@@ -11,12 +11,12 @@ kt_javac_options(
 
 define_kt_toolchain(
     name = "experimental_toolchain",
-    api_version = "1.4",
+    api_version = "1.5",
     experimental_reduce_classpath_mode = "KOTLINBUILDER_REDUCED",
     experimental_report_unused_deps = "warn",
     experimental_strict_kotlin_deps = "warn",
     experimental_use_abi_jars = True,
     javac_options = ":default_javac_options",
     kotlinc_options = ":default_kotlinc_options",
-    language_version = "1.4",
+    language_version = "1.5",
 )

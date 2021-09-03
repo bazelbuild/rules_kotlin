@@ -26,11 +26,11 @@ versions = struct(
     IO_BAZEL_STARDOC_SHA = "6d07d18c15abb0f6d393adbd6075cd661a2219faab56a9517741f0fc755f6f3c",
     BAZEL_JAVA_LAUNCHER_VERSION = "5.0.0-pre.20210510.2",
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.4.20",
+        version = "1.5.10",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "11db93a4d6789e3406c7f60b9f267eba26d6483dcd771eff9f85bb7e9837011f",
+        sha256 = "2f8de1d73b816354055ff6a4b974b711c11ad55a68b948ed30b38155706b3c4e",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
