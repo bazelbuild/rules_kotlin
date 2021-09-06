@@ -33,7 +33,7 @@ versions = _versions
 KOTLIN_RULES = Label("//:all")
 
 def kotlin_repositories(
-        compiler_repostory_name = _KT_COMPILER_REPO,
+        compiler_repository_name = _KT_COMPILER_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
         configured_repository_name = "io_bazel_rules_kotlin_configured"):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
