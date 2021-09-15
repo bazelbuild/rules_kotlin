@@ -263,6 +263,11 @@ kt_jvm_library(
 )
 ```
 
+Additionally, you can add options for both tracing and timing of the bazel build using the `kt_trace` and `kt_timings` flags, for example:
+* `bazel build --define=kt_trace=1`
+* `bazel build --define=kt_timings=1`
+
+`kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
 # Kotlin compiler plugins
 
 The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.
