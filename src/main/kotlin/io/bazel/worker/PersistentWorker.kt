@@ -102,7 +102,7 @@ class PersistentWorker(
       output = listOf(
         result.log.out.toString(),
         cap
-      ).joinToString("\n")
+      ).joinToString("\n").trim()
       exitCode = result.status.exit
       requestId = request.requestId
     }.build()
