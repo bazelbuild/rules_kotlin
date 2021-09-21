@@ -128,24 +128,28 @@ def kt_js_import_impl(ctx):
 
     srcjar = ctx.files.srcjar[0] if len(ctx.files.srcjar) == 1 else None
 
-    args = ctx.actions.args()
-    args.add("--jar", jar_file)
-    args.add("--import_pattern", "^[^/.]+\\.js$")
-    args.add("--import_out", ctx.outputs.js)
-    args.add("--aux_pattern", "^[^/]+\\.js\\.map$")
-    args.add("--aux_out", ctx.outputs.js_map)
-
-    tools, _, input_manifest = ctx.resolve_command(tools = [ctx.attr._importer])
-    ctx.actions.run(
+    # The files to extract are the first .js and the first .js.map
+    # files in the root module of the jar - easiest way to get them is
+    # to list the contents and extract the first one.
+    #
+    # For a more satisfactory solution, we'd need
+    # https://github.com/bazelbuild/bazel/issues/5511
+    #
+    # TODO: Deal with .js.map
+    # TODO: Implement for Windows
+    to_extract = ctx.actions.declare_file(ctx.label.name + '_to_extract')
+    ctx.actions.run_shell(
         inputs = [jar_file],
-        tools = tools,
-        executable = ctx.executable._importer,
-        outputs = [
-            ctx.outputs.js,
-            ctx.outputs.js_map,
-        ],
-        arguments = [args],
-        input_manifests = input_manifest,
+        outputs = [to_extract],
+        arguments = [jar_file.path, to_extract.path],
+        command = "jar -f $1 -t | grep -m 1 '.js' > $2",
+    )
+
+    ctx.actions.run_shell(
+        inputs = [jar_file, to_extract],
+        outputs = [ctx.outputs.js],
+        arguments = [jar_file.path, to_extract.path, ctx.outputs.js.path],
+        command = "jar -f $1 -x $(< $2) && mv $(< $2) $3",
     )
 
     return [
