@@ -29,23 +29,46 @@ _EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = depset(), transiti
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
 def _kt_plugin_to_processor(processor):
+    if hasattr(java_common, "JavaPluginInfo"):
+        return processor.processor_classes.to_list()
     return processor.processor_class
 
 def _kt_plugin_to_processorpath(processor):
+    if hasattr(java_common, "JavaPluginInfo"):
+        return [j.path for j in processor.processor_jars.to_list()]
     return [j.path for j in processor.classpath.to_list()]
 
 def _targets_to_annotation_processors(targets):
+    if hasattr(java_common, "JavaPluginInfo"):
+        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+        return depset([
+            (t[_JavaPluginInfo] if _JavaPluginInfo in t else t[JavaInfo]).plugins
+            for t in targets
+            if _JavaPluginInfo in t or JavaInfo in t
+        ])
     return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if KtJvmPluginInfo in t])
 
-def _targets_to_annotation_processors_java_info(targets):
+def _targets_to_annotation_processors_java_plugin_info(targets):
+    if hasattr(java_common, "JavaPluginInfo"):
+        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+        return [t[_JavaPluginInfo] for t in targets if _JavaPluginInfo in t]
     return [t[JavaInfo] for t in targets if KtJvmPluginInfo in t]
 
 def _targets_to_transitive_runtime_jars(targets):
+    if hasattr(java_common, "JavaPluginInfo"):
+        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+        return depset(
+            transitive = [
+                (t[_JavaPluginInfo] if _JavaPluginInfo in t else t[JavaInfo]).plugins.processor_jars
+                for t in targets
+                if _JavaPluginInfo in t or JavaInfo in t
+            ],
+        )
     return depset(transitive = [t[KtJvmPluginInfo].transitive_runtime_jars for t in targets if KtJvmPluginInfo in t])
 
 mappers = struct(
     targets_to_annotation_processors = _targets_to_annotation_processors,
-    targets_to_annotation_processors_java_info = _targets_to_annotation_processors_java_info,
+    targets_to_annotation_processors_java_plugin_info = _targets_to_annotation_processors_java_plugin_info,
     targets_to_transitive_runtime_jars = _targets_to_transitive_runtime_jars,
     kt_plugin_to_processor = _kt_plugin_to_processor,
     kt_plugin_to_processorpath = _kt_plugin_to_processorpath,

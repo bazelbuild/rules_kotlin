@@ -168,7 +168,7 @@ _common_attr = utils.add_dicts(
         "deps": attr.label_list(
             doc = """A list of dependencies of this rule.See general comments about `deps` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
-            aspects = [_kt_jvm_plugin_aspect],
+            aspects = [] if hasattr(java_common, "JavaPluginInfo") else [_kt_jvm_plugin_aspect],
             providers = [
                 [JavaInfo],
             ],
@@ -216,8 +216,8 @@ _common_attr = utils.add_dicts(
         ),
         "plugins": attr.label_list(
             default = [],
-            aspects = [_kt_jvm_plugin_aspect],
-            providers = [JavaInfo],
+            aspects = [] if hasattr(java_common, "JavaPluginInfo") else [_kt_jvm_plugin_aspect],
+            providers = [getattr(java_common, "JavaPluginInfo")] if hasattr(java_common, "JavaPluginInfo") else [JavaInfo],
             cfg = "host",
         ),
         "module_name": attr.string(

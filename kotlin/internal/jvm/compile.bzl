@@ -711,7 +711,7 @@ def _run_kt_java_builder_actions(
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
             deps = compile_deps.deps + kt_stubs_for_java,
             java_toolchain = toolchains.java,
-            plugins = _plugin_mappers.targets_to_annotation_processors_java_info(ctx.attr.plugins),
+            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
             javac_opts = javac_opts,
             neverlink = getattr(ctx.attr, "neverlink", False),
             strict_deps = toolchains.kt.experimental_strict_kotlin_deps,
