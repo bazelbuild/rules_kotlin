@@ -12,4 +12,8 @@ class CoreApiTest {
   @Test fun testCamelCaseFun() {
     assertEquals("FooBar", "foo_bar".camelCase())
   }
+
+  @Test fun testSealedClass() {
+    val result = Result.Success()
+  }
 }
