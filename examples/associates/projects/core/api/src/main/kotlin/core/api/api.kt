@@ -14,8 +14,3 @@ data class MyType(
 internal fun String.camelCase() = this.split("_").joinToString("") {
   "${it[0].toUpperCase()}${it.substring(1)}"
 }
-
-sealed class Result {
-  class Success(): Result()
-  class Failure(): Result()
-}
