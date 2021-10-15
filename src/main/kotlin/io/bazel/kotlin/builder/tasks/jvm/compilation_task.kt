@@ -140,7 +140,7 @@ internal fun JvmCompilationTask.kaptArgs(
   )
   return CompilationArgs()
     .xFlag("plugin", plugins.kapt.jarPath)
-    .base64Encode(
+    .flagRepeated(
       "-P",
       "sources" to listOf(directories.generatedJavaSources),
       "classes" to listOf(directories.generatedClasses),
@@ -149,10 +149,12 @@ internal fun JvmCompilationTask.kaptArgs(
       "javacArguments" to listOf(javacArgs.let(::encodeMap)),
       "correctErrorTypes" to listOf("false"),
       "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
-      "processors" to listOf(inputs.processorsList.joinToString(",")),
+      "processors" to inputs.processorsList.toList(),
       "apclasspath" to inputs.processorpathsList,
-      "aptMode" to listOf(aptMode)
-    ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
+      "aptMode" to listOf(aptMode),
+    ) { option, value ->
+      "plugin:${plugins.kapt.id}:$option=$value"
+    }
 }
 
 internal fun JvmCompilationTask.runPlugins(
