@@ -135,7 +135,7 @@ class KotlinBuilder @Inject internal constructor(
       }
       success = true
     } catch (ex: CompilationStatusException) {
-      taskContext.error(ex) { "Compilation failure: ${ex.message}" }
+      taskContext.error() { "Compilation failure: ${ex.message}" }
       status = ex.status
     } catch (throwable: Throwable) {
       taskContext.error(throwable) { "Uncaught exception" }
