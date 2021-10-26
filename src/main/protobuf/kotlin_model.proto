@@ -84,7 +84,7 @@ message CompilationTaskInfo {
     string reduced_classpath_mode = 11;
 }
 
-// Mested messages not marked with stable could be refactored.
+// Nested messages not marked with stable could be refactored.
 message JvmCompilationTask {
   // Directories used by the builder.
   message Directories {
