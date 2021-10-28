@@ -88,6 +88,19 @@ _KOPTS = {
             True: ["-Xno-optimized-callable-reference"],
         },
     ),
+    "x_explicit_api_mode": struct(
+        args = dict(
+            default = "off",
+            doc = "Enable explicit API mode for Kotlin libraries.",
+            values = ["off", "warning", "strict"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "off": None,
+            "warning": ["-Xexplicit-api=warning"],
+            "strict": ["-Xexplicit-api=strict"],
+        },
+    ),
     "java_parameters": struct(
         args = dict(
             default = False,
