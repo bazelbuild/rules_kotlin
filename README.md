@@ -186,7 +186,7 @@ In the project's `WORKSPACE`, change the setup:
 # Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
 local_repository(
     name = "release_archive",
-    path = "../path/to/rules_kotlin_clone/src/main/starlark/release_archive",
+    local_path = "../path/to/rules_kotlin_clone/src/main/starlark/release_archive",
 )
 
 load("@release_archive//:repository.bzl", "archive_repository")
