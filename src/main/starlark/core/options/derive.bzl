@@ -14,7 +14,7 @@ def _derive_repeated_flag(ctx, value):
 
 def _repeated_values_for(name):
     return _value_to_flag_info(
-        ctx = _derive_flag_ctx,
+        ctx = _derive_flag_ctx(name = name),
         derive = _derive_repeated_flag,
     )
 
