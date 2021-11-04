@@ -1,3 +1,6 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+
 versions = struct(
     RULES_KOTLIN = struct(
         urls = [
@@ -5,6 +8,13 @@ versions = struct(
         ],
         sha256 = "d8650bb939d87a080448ffbbbd1594f5ae054738df5d9471941c18784aa139b9",
         prefix = "rules_kotlin-1.5.0-beta-3",
+    ),
+    RULES_KOTLIN_HEAD = struct(
+        urls = [
+            "https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip",
+        ],
+        sha256 = "cd5388f019d856ede82dd2a3dc7cf935d4925340fee56094f1e23d93a62b5439",
+        prefix = "rules_kotlin-master",
     ),
 )
 
@@ -38,6 +48,9 @@ def archive_repository_implementation(repository_ctx):
         # move to execroot, then reference local repo.
         workspace = repository_ctx.path("../../%s" % release_archive.workspace_root)
 
+        if not workspace.exists:
+            fail("local workspace %s does not exist" % workspace)
+
         target = "//%s:%s" % (release_archive.package, release_archive.name)
 
         repository_ctx.report_progress(
@@ -66,10 +79,12 @@ def archive_repository_implementation(repository_ctx):
         )
 
         # update release when the contents change.
-        return [
-            repository_ctx.path("../../%s" % release_archive.workspace_root),
-        ]
-    return []
+        return {
+            "release_archive" : repository_ctx.path("../../%s" % release_archive.workspace_root),
+        }
+    return {
+        "release_archive" : ""
+    }
 
 # not windows compatible.
 def _find_workspace(attr, environ, path):
@@ -116,10 +131,39 @@ _archive_repository = repository_rule(
     },
 )
 
-def archive_repository(name, local_path = "../..", release_archive_target = Label("//:rules_kotlin_release")):
-    release_name = "%s_head" % name
-    if not native.existing_rule(release_name):
-        native.local_repository(
+def archive_repository(
+        name,
+        local_path = "../..",
+        release_archive_target = Label("//:rules_kotlin_release"),
+        remote_source_archive = None,
+        release_name = None):
+    """
+    archive_repository builds rules_kotlin from either a local_path or a remote archive.
+
+    Args:
+        name: of the repository
+        local_path: to an un-archived rules_kotlin repository. Defaults to '../..'.
+        release_archive_target: Label to build a rules_kotlin release
+        remote_source_archive: struct(
+            urls = list of urls for a remote source archive,
+            sha256 = hash of remote archive,
+            prefix = directory string to strip from extracted archive
+        )
+        release_name: of the release archive. Defaults to `name`_head. If set to an existing
+          repository no new repository will be created.
+    """
+    release_name = release_name or ("%s_head" % name)
+    if remote_source_archive:
+        maybe(
+            http_archive,
+            name = release_name,
+            sha256 = remote_source_archive.sha256,
+            strip_prefix = remote_source_archive.prefix,
+            urls = remote_source_archive.urls,
+        )
+    else:
+        maybe(
+            native.local_repository,
             name = release_name,
             path = local_path,
         )
