@@ -57,6 +57,25 @@ def archive_repository_implementation(repository_ctx):
             "Building %s in %s... (may take a while.)" % (target, workspace),
         )
 
+        repository_ctx.file(
+            "",
+            """workspace(name = "{workspace_name}")
+
+               load("//src/main/starlark/core/repositories:download.bzl", "kt_download_local_dev_dependencies")
+
+               kt_download_local_dev_dependencies()
+
+               load("//kotlin:repositories.bzl", "kotlin_repositories")
+
+               kotlin_repositories()
+
+               register_toolchains("@dev_io_bazel_rules_kotlin//kotlin/internal:default_toolchain")
+            """.format(
+                workspace_name = release_archive.name
+            )
+        )
+
+
         result = repository_ctx.execute(
             [
                 "bazel",
