@@ -80,10 +80,10 @@ def archive_repository_implementation(repository_ctx):
 
         # update release when the contents change.
         return {
-            "release_archive" : repository_ctx.path("../../%s" % release_archive.workspace_root),
+            "release_archive": repository_ctx.path("../../%s" % release_archive.workspace_root),
         }
     return {
-        "release_archive" : ""
+        "release_archive": "",
     }
 
 # not windows compatible.
@@ -136,7 +136,7 @@ def archive_repository(
         local_path = "../..",
         release_archive_target = Label("//:rules_kotlin_release"),
         remote_source_archive = None,
-        release_name = None):
+        source_repository_name = None):
     """
     archive_repository builds rules_kotlin from either a local_path or a remote archive.
 
@@ -149,14 +149,14 @@ def archive_repository(
             sha256 = hash of remote archive,
             prefix = directory string to strip from extracted archive
         )
-        release_name: of the release archive. Defaults to `name`_head. If set to an existing
+        source_repository_name: of the release archive. Defaults to `name`_head. If set to an existing
           repository no new repository will be created.
     """
-    release_name = release_name or ("%s_head" % name)
+    source_repository_name = source_repository_name or ("%s_head" % name)
     if remote_source_archive:
         maybe(
             http_archive,
-            name = release_name,
+            name = source_repository_name,
             sha256 = remote_source_archive.sha256,
             strip_prefix = remote_source_archive.prefix,
             urls = remote_source_archive.urls,
@@ -164,13 +164,13 @@ def archive_repository(
     else:
         maybe(
             native.local_repository,
-            name = release_name,
+            name = source_repository_name,
             path = local_path,
         )
     _archive_repository(
         name = name,
         local_release_archive_target = "@%s//%s:%s" % (
-            release_name,
+            source_repository_name,
             release_archive_target.package,
             release_archive_target.name,
         ),

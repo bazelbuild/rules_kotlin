@@ -213,7 +213,7 @@ rules to this:
 http_archive(
     name = "io_bazel_rules_kotlin_master",
     urls = [ "https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip", ],
-    prefix = "rules_kotlin-master",
+    strip_prefix = "rules_kotlin-master",
 )
 
 load("@io_bazel_rules_kotlin_master//src/main/starklark/release_archive", "archive_repository")
@@ -222,7 +222,7 @@ load("@release_archive//:repository.bzl", "archive_repository")
 
 archive_repository(
     name = "io_bazel_rules_kotlin",
-    release_archive = "io_bazel_rules_kotlin_master"
+    source_repository_name = "io_bazel_rules_kotlin_master"
 )
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
