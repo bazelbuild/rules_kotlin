@@ -47,7 +47,7 @@ def kt_configure():
             "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0",
             "org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.5.0",
             "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
-            "com.android.tools:common:30.0.1"
+            "com.android.tools:common:30.0.1",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",
