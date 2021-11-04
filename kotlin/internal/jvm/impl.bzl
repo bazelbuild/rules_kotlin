@@ -372,7 +372,7 @@ def kt_compiler_plugin_impl(ctx):
 
     return [
         DefaultInfo(files = depset(jars)),
-        java_common.merge([]),
+        getattr(java_common, "JavaPluginInfo")(runtime_deps = [info], processor_class = None) if hasattr(java_common, "JavaPluginInfo") else java_common.merge([]),
         _KtCompilerPluginInfo(
             plugin_jars = jars,
             classpath = depset(jars, transitive = [i.transitive_deps for i in compiler_lib_infos]),

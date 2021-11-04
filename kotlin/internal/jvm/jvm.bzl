@@ -549,5 +549,5 @@ Supports the following template values:
         ),
     },
     implementation = _kt_compiler_plugin_impl,
-    provides = [JavaInfo, _KtCompilerPluginInfo],
+    provides = [getattr(java_common, "JavaPluginInfo") if hasattr(java_common, "JavaPluginInfo") else JavaInfo, _KtCompilerPluginInfo],
 )
