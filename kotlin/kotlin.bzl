@@ -39,6 +39,7 @@ load(
     ":core.bzl",
     _define_kt_toolchain = "define_kt_toolchain",
     _kt_compiler_plugin = "kt_compiler_plugin",
+    _kt_register_toolchains = "kt_register_toolchains",
 )
 
 define_kt_toolchain = _define_kt_toolchain
