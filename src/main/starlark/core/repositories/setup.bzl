@@ -50,8 +50,7 @@ def kt_configure():
             "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
         ],
         repositories = [
-            "https://maven-central.storage.googleapis.com/repos/central/data/",
-            "https://maven.google.com/",
+            "https://maven.google.com",
             "https://repo1.maven.org/maven2",
         ],
     )
