@@ -217,7 +217,6 @@ _common_attr = utils.add_dicts(
         "plugins": attr.label_list(
             default = [],
             aspects = [] if hasattr(java_common, "JavaPluginInfo") else [_kt_jvm_plugin_aspect],
-            providers = [getattr(java_common, "JavaPluginInfo")] if hasattr(java_common, "JavaPluginInfo") else [JavaInfo],
             cfg = "host",
         ),
         "module_name": attr.string(
