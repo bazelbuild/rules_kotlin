@@ -26,7 +26,6 @@ def kt_configure():
         fetch_sources = True,
         artifacts = [
             "com.google.code.findbugs:jsr305:3.0.2",
-            "com.android.tools:common:30.0.1",
             "junit:junit:4.13-beta-3",
             "com.google.protobuf:protobuf-java:3.6.0",
             "com.google.protobuf:protobuf-java-util:3.6.0",
@@ -50,6 +49,7 @@ def kt_configure():
             "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
         ],
         repositories = [
+            "https://maven-central.storage.googleapis.com/repos/central/data/",
             "https://maven.google.com",
             "https://repo1.maven.org/maven2",
         ],
