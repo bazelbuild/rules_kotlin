@@ -32,8 +32,10 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class TestCaseFailedException(name: String? = null, description: String? = null, cause: Throwable) :
-  AssertionError(""""${name?.let { "jar: $it " } ?: ""} "$description" failed, error: ${cause.message}""",
-                 cause)
+  AssertionError(
+    """"${name?.let { "jar: $it " } ?: ""} "$description" failed, error: ${cause.message}""",
+    cause
+  )
 
 abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() {
   private lateinit var currentFile: File
@@ -56,7 +58,11 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
       }
     }
 
-  protected fun jarTestCase(name: String, description: String? = null, op: JarFile.() -> Unit) {
+  protected fun jarTestCase(
+    name: String,
+    description: String? = null,
+    op: JarFile.() -> Unit
+  ) {
     currentFile = testRunfileRoot.resolve(name).toFile()
     check(currentFile.exists()) {
       "testFile $name did not exist in test case root $testRunfileRoot"
@@ -64,11 +70,11 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
     runTestCase(name, description) { JarFile(currentFile).op() }
   }
 
-  protected fun JarFile.assertContainsEntries(vararg entries: String) {
-    entries.forEach {
-      if (this.getJarEntry(it) == null) {
-        fail("jar ${this.name} did not contain entry $it")
-      }
+  protected fun JarFile.assertContainsEntries(vararg want: String) {
+    val got = this.entries().asSequence().map { it.name }.toSet()
+    val missing = want.toSet() - got
+    check(missing.isEmpty()) {
+      "Entries Missing: $missing \nFrom: $got"
     }
   }
 

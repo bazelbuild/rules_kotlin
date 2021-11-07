@@ -17,6 +17,7 @@ package io.bazel.kotlin.builder.utils.jars
 
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
+import java.io.Closeable
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.UncheckedIOException
@@ -40,7 +41,7 @@ class JarCreator(
   path: Path,
   normalize: Boolean = true,
   verbose: Boolean = false
-) : JarHelper(path, normalize, verbose) {
+) : JarHelper(path, normalize, verbose), Closeable {
   // Map from Jar entry names to files. Use TreeMap so we can establish a canonical order for the
   // entries regardless in what order they get added.
   private val jarEntries = TreeMap<String, Path>()
@@ -61,9 +62,9 @@ class JarCreator(
     if (normalizedEntryName.startsWith("/")) {
       normalizedEntryName = normalizedEntryName.substring(1)
     } else if (normalizedEntryName.length >= 3 &&
-               Character.isLetter(normalizedEntryName[0]) &&
-               normalizedEntryName[1] == ':' &&
-               (normalizedEntryName[2] == '\\' || normalizedEntryName[2] == '/')
+      Character.isLetter(normalizedEntryName[0]) &&
+      normalizedEntryName[1] == ':' &&
+      (normalizedEntryName[2] == '\\' || normalizedEntryName[2] == '/')
     ) {
       // Windows absolute path, e.g. "D:\foo" or "e:/blah".
       // Windows paths are case-insensitive, and support both backslashes and forward slashes.
@@ -132,7 +133,8 @@ class JarCreator(
             }
             jarEntries[sb.toString()] = path
           }
-        })
+        }
+      )
     } catch (e: IOException) {
       throw UncheckedIOException(e)
     }
@@ -144,7 +146,7 @@ class JarCreator(
    *
    * <pre>
    * some/long/path.foo => (path.foo, some/long/path.foo)
-  </pre> *
+   </pre> *
    */
   fun addRootEntries(entries: Collection<String>) {
     for (entry in entries) {
@@ -207,6 +209,10 @@ class JarCreator(
     val out = ByteArrayOutputStream()
     manifest.write(out)
     return out.toByteArray()
+  }
+
+  override fun close() {
+    execute()
   }
 
   /**
