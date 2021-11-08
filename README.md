@@ -218,8 +218,6 @@ http_archive(
 
 load("@io_bazel_rules_kotlin_master//src/main/starklark/release_archive", "archive_repository")
 
-load("@release_archive//:repository.bzl", "archive_repository")
-
 archive_repository(
     name = "io_bazel_rules_kotlin",
     source_repository_name = "io_bazel_rules_kotlin_master"
