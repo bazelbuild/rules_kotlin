@@ -178,9 +178,10 @@ Third party (external) artifacts can be brought in with systems such as [`rules_
 # Development Setup Guide
 As of 1.5.0, to use the rules directly from the rules_kotlin workspace (i.e. not the release artifact)
  require the use of `release_archive` repository. This repository will build and configure the current
- workspace to use `rules_kotlin` in the same manner as the released binary artifact.
+workspace to use `rules_kotlin` in the same manner as the released binary artifact.
 
 In the project's `WORKSPACE`, change the setup:
+
 ```python
 
 # Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
@@ -188,11 +189,38 @@ local_repository(
     name = "release_archive",
     path = "../path/to/rules_kotlin_clone/src/main/starlark/release_archive",
 )
-
 load("@release_archive//:repository.bzl", "archive_repository")
+
 
 archive_repository(
     name = "io_bazel_rules_kotlin",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+
+kotlin_repositories()
+
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+
+kt_register_toolchains()
+```
+
+To use rules_kotlin from head without cloning the repository, (caveat emptor, of course), change the
+rules to this:
+
+```python
+# Download master or specific revisions
+http_archive(
+    name = "io_bazel_rules_kotlin_master",
+    urls = [ "https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip", ],
+    strip_prefix = "rules_kotlin-master",
+)
+
+load("@io_bazel_rules_kotlin_master//src/main/starklark/release_archive", "archive_repository")
+
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+    source_repository_name = "io_bazel_rules_kotlin_master"
 )
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
