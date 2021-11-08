@@ -46,10 +46,13 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
       description = "the rules should support the resource_strip_prefix attribute"
     ) {
       assertContainsEntries(
+        "testresources/",
         "testresources/AClass.class",
         "testresources/BClass.class",
+        "one/",
+        "one/alsoAFile.txt",
+        "one/two/",
         "one/two/aFile.txt",
-        "one/alsoAFile.txt"
       )
     }
     jarTestCase(

@@ -175,6 +175,7 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
         "--normalize",
         "--compression",
         "--exclude_build_data",
+        "--add_missing_directories",
     ])
     args.add_all([
         "--deploy_manifest_lines",
