@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    ":repositories.bzl",
-    _kotlin_repositories = "kotlin_repositories",
-)
-load(
     ":jvm.bzl",
     _kt_jvm_binary = "kt_jvm_binary",
     _kt_jvm_import = "kt_jvm_import",
@@ -45,16 +41,6 @@ load(
     _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_register_toolchains = "kt_register_toolchains",
 )
-
-def kotlin_repositories(**kwargs):
-    """
-    Forwarding macro for _kotlin_repositories
-
-    Deprecated:
-        _kotlin_repositories should be loaded from //kotlin:repositories.bzl
-    """
-    print("_kotlin_repositories should be loaded from //kotlin:repositories.bzl")
-    _kotlin_repositories(**kwargs)
 
 define_kt_toolchain = _define_kt_toolchain
 kt_register_toolchains = _kt_register_toolchains
