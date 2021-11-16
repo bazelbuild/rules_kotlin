@@ -186,6 +186,7 @@ class KotlinBuilder @Inject internal constructor(
       toolchainInfoBuilder.commonBuilder.languageVersion =
         argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
       strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
+      reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
       this
     }
 
