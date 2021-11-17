@@ -233,7 +233,7 @@ def _build_resourcejar_action(ctx):
     )
     return resources_jar_output
 
-def _run_merge_jdeps_action(ctx, rule_kind, toolchains, jdeps, outputs):
+def _run_merge_jdeps_action(ctx, rule_kind, toolchains, jdeps, outputs, deps):
     """Creates a Jdeps merger action invocation."""
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
@@ -260,9 +260,12 @@ def _run_merge_jdeps_action(ctx, rule_kind, toolchains, jdeps, outputs):
         ],
     )
 
+    # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs
+    inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_deps for dep in deps])])
+
     ctx.actions.run(
         mnemonic = mnemonic,
-        inputs = depset(jdeps),
+        inputs = inputs,
         tools = tools,
         input_manifests = input_manifests,
         outputs = [f for f in outputs.values()],
@@ -501,6 +504,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             rule_kind = rule_kind,
             toolchains = toolchains,
             jdeps = [kt_jdeps, java_jdeps],
+            deps = compile_deps.deps,
             outputs = {
                 "output": ctx.outputs.jdeps,
             },
@@ -748,6 +752,7 @@ def _run_kt_java_builder_actions(
         rule_kind = rule_kind,
         toolchains = toolchains,
         jdeps = jdeps,
+        deps = compile_deps.deps,
         outputs = {
             "output": ctx.outputs.jdeps,
         },
