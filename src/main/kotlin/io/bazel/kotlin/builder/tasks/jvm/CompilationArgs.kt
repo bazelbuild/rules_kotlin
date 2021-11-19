@@ -18,9 +18,12 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.util.Base64
 
 /**
  * CompilationArgs collects the arguments for executing the Kotlin compiler.
@@ -122,7 +125,8 @@ class CompilationArgs(
     return value(
       toArgs(
         paths.asSequence()
-          .map { dfs.getPath(it) })
+          .map { dfs.getPath(it) }
+      )
     )
   }
 
@@ -164,12 +168,15 @@ class CompilationArgs(
     return this
   }
 
-  fun xFlag(flag: String, value: String): CompilationArgs {
+  fun xFlag(
+    flag: String,
+    value: String
+  ): CompilationArgs {
     args.add("-X$flag=$value")
     return this
   }
 
-  fun flagRepeated(
+  fun repeatFlag(
     flag: String,
     vararg values: Pair<String, List<String>>,
     transform: (option: String, value: String) -> String
@@ -183,4 +190,27 @@ class CompilationArgs(
   }
 
   fun list(): List<String> = args.toList()
+
+  fun base64Encode(
+    flag: String,
+    vararg values: Pair<String, List<String>>,
+    transform: (String) -> String = { it }
+  ): CompilationArgs {
+    val os = ByteArrayOutputStream()
+    val oos = ObjectOutputStream(os)
+
+    oos.writeInt(values.size)
+    for ((k, vs) in values) {
+      oos.writeUTF(k)
+
+      oos.writeInt(vs.size)
+      for (v in vs) {
+        oos.writeUTF(v)
+      }
+    }
+
+    oos.flush()
+    flag(flag, transform(Base64.getEncoder().encodeToString(os.toByteArray())))
+    return this
+  }
 }
