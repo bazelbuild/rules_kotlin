@@ -143,33 +143,28 @@ internal fun JvmCompilationTask.kaptArgs(
   return CompilationArgs().apply {
     xFlag("plugin", plugins.kapt.jarPath)
 
+    val values = arrayOf(
+      "sources" to listOf(directories.generatedJavaSources),
+      "classes" to listOf(directories.generatedClasses),
+      "stubs" to listOf(directories.stubs),
+      "incrementalData" to listOf(directories.incrementalData),
+      "javacArguments" to listOf(javacArgs.let(::encodeMap)),
+      "correctErrorTypes" to listOf("false"),
+      "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
+      "processors" to listOf(inputs.processorsList.joinToString(",")),
+      "apclasspath" to inputs.processorpathsList,
+      "aptMode" to listOf(aptMode)
+    )
+
     val version = info.toolchainInfo.common.apiVersion.toFloat()
     when {
       version < 1.5 -> base64Encode(
         "-P",
-        "sources" to listOf(directories.generatedJavaSources),
-        "classes" to listOf(directories.generatedClasses),
-        "stubs" to listOf(directories.stubs),
-        "incrementalData" to listOf(directories.incrementalData),
-        "javacArguments" to listOf(javacArgs.let(::encodeMap)),
-        "correctErrorTypes" to listOf("false"),
-        "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
-        "processors" to listOf(inputs.processorsList.joinToString(",")),
-        "apclasspath" to inputs.processorpathsList,
-        "aptMode" to listOf(aptMode)
+        *values
       ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
       else -> repeatFlag(
         "-P",
-        "sources" to listOf(directories.generatedJavaSources),
-        "classes" to listOf(directories.generatedClasses),
-        "stubs" to listOf(directories.stubs),
-        "incrementalData" to listOf(directories.incrementalData),
-        "javacArguments" to listOf(javacArgs.let(::encodeMap)),
-        "correctErrorTypes" to listOf("false"),
-        "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
-        "processors" to inputs.processorsList.toList(),
-        "apclasspath" to inputs.processorpathsList,
-        "aptMode" to listOf(aptMode),
+        *values
       ) { option, value ->
         "plugin:${plugins.kapt.id}:$option=$value"
       }
