@@ -265,7 +265,10 @@ class JdepsGenExtension(
     val jarsToClasses = mutableMapOf<String, MutableList<String>>()
     classes.forEach {
       val parts = it.split("!/")
-      jarsToClasses.computeIfAbsent(parts[0]) { ArrayList() }.add(parts[1])
+      val jarPath = parts[0]
+      if (jarPath.endsWith(".jar")) {
+        jarsToClasses.computeIfAbsent(jarPath) { ArrayList() }.add(parts[1])
+      }
     }
     return jarsToClasses
   }
