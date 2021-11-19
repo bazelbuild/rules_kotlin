@@ -125,7 +125,8 @@ class CompilationArgs(
     return value(
       toArgs(
         paths.asSequence()
-          .map { dfs.getPath(it) })
+          .map { dfs.getPath(it) }
+      )
     )
   }
 
@@ -167,8 +168,24 @@ class CompilationArgs(
     return this
   }
 
-  fun xFlag(flag: String, value: String): CompilationArgs {
+  fun xFlag(
+    flag: String,
+    value: String
+  ): CompilationArgs {
     args.add("-X$flag=$value")
+    return this
+  }
+
+  fun repeatFlag(
+    flag: String,
+    vararg values: Pair<String, List<String>>,
+    transform: (option: String, value: String) -> String
+  ): CompilationArgs {
+    values.forEach { (option, values) ->
+      values.forEach {
+        flag(flag, transform(option, it))
+      }
+    }
     return this
   }
 
