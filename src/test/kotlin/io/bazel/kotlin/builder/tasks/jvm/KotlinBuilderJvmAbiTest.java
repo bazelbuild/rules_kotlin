@@ -33,6 +33,7 @@ public class KotlinBuilderJvmAbiTest {
         c -> {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
           c.addSource("AnotherClass.kt", "package something;", "", "class AnotherClass{}");
+          c.outputJar();
           c.outputAbiJar();
           c.compileKotlin();
           c.outputJdeps();

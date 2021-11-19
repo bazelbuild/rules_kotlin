@@ -82,11 +82,11 @@ class JdepsGenExtension(
       return when (val sourceElement: SourceElement = descriptor.source) {
         is JavaSourceElement ->
           if (sourceElement.javaElement is BinaryJavaClass) {
-            (sourceElement.javaElement as BinaryJavaClass).virtualFile.canonicalPath
+            (sourceElement.javaElement as BinaryJavaClass).virtualFile!!.canonicalPath
           } else if (sourceElement.javaElement is BinaryJavaField) {
             val containingClass = (sourceElement.javaElement as BinaryJavaField).containingClass
             if (containingClass is BinaryJavaClass) {
-              containingClass.virtualFile.canonicalPath
+              containingClass.virtualFile!!.canonicalPath
             } else {
               null
             }
