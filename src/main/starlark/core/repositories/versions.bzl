@@ -42,6 +42,9 @@ versions = struct(
         VERSION = "0.2.0",
     ),
     CORE = {
+        "rkt_1_6": struct(
+            prefix = "1.6",
+        ),
         "rkt_1_5": struct(
             prefix = "1.5",
         ),

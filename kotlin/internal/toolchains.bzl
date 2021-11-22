@@ -42,8 +42,8 @@ load("@io_bazel_rules_kotlin//kotlin:toolchains.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name= "custom_toolchain",
-    api_version = "1.5",
-    language_version = "1.5",
+    api_version = "1.6",
+    language_version = "1.6",
 )
 ```
 and then register it in the `WORKSPACE`:
@@ -130,6 +130,7 @@ _kt_toolchain = rule(
                 "1.3",
                 "1.4",
                 "1.5",
+                "1.6",
             ],
         ),
         "api_version": attr.string(
@@ -141,6 +142,7 @@ _kt_toolchain = rule(
                 "1.3",
                 "1.4",
                 "1.5",
+                "1.6",
             ],
         ),
         "debug": attr.string_list(
