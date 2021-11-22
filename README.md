@@ -212,18 +212,18 @@ rules to this:
 # Download master or specific revisions
 http_archive(
     name = "io_bazel_rules_kotlin_master",
-    urls = [ "https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip", ],
     strip_prefix = "rules_kotlin-master",
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip"],
 )
 
-load("@io_bazel_rules_kotlin_master//src/main/starklark/release_archive", "archive_repository")
+load("@io_bazel_rules_kotlin_master//src/main/starlark/release_archive:repository.bzl", "archive_repository")
 
 archive_repository(
     name = "io_bazel_rules_kotlin",
-    source_repository_name = "io_bazel_rules_kotlin_master"
+    source_repository_name = "io_bazel_rules_kotlin_master",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 
