@@ -117,6 +117,7 @@ def _find_workspace(attr, environ, path):
 
 _archive_repository = repository_rule(
     implementation = archive_repository_implementation,
+    local = True,
     attrs = {
         "_remote_urls": attr.string_list(
             doc = "A list of urls for the archive",
