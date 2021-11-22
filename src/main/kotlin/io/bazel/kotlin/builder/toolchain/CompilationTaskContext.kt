@@ -29,7 +29,7 @@ class CompilationTaskContext(
   val info: CompilationTaskInfo,
   private val out: PrintStream,
   private val executionRoot: String = FileSystems.getDefault().getPath("").toAbsolutePath()
-                                        .toString() + File.separator
+    .toString() + File.separator
 ) {
   private val start = System.currentTimeMillis()
   private var timings: MutableList<String>?
