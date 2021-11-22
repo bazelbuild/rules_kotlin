@@ -178,11 +178,11 @@ class CompilationArgs(
 
   fun repeatFlag(
     flag: String,
-    vararg values: Pair<String, List<String>>,
+    vararg flagValues: Pair<String, List<String>>,
     transform: (option: String, value: String) -> String
   ): CompilationArgs {
-    values.forEach { (option, values) ->
-      values.forEach {
+    flagValues.forEach { (option, optionValues) ->
+      optionValues.forEach {
         flag(flag, transform(option, it))
       }
     }
