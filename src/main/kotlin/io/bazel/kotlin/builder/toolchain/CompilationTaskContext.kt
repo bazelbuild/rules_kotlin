@@ -126,14 +126,7 @@ class CompilationTaskContext(
     if (result != 0) {
       if (printOnFail) {
         printCompilerOutput(output)
-        throw CompilationStatusException(
-          "compile phase failed:\ncompile arguments: \n${
-          args.fold("") { out, value ->
-            out + (if (value.startsWith("-")) "\n" else " ") + value
-          }
-          }",
-          result
-        )
+        throw CompilationStatusException("compile phase failed", result)
       }
       throw CompilationStatusException("compile phase failed", result, output)
     } else if (printOnSuccess) {

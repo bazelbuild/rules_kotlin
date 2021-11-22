@@ -106,7 +106,7 @@ internal fun JvmCompilationTask.plugins(
       val formatted = dirTokens.entries.fold(opt) { formatting, (token, value) ->
         formatting.replace(token, value)
       }
-      flag("-P", "'plugin:$formatted'")
+      flag("-P", "plugin:$formatted")
     }
   }
 
