@@ -3,11 +3,11 @@ load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 kt_jvm_library(
     name = "lib",
     srcs = glob(["LibModules.kt"]),
+    plugins = ["//third_party:anvil_library_plugin"],
     visibility = ["//visibility:public"],
-    plugins = ["//third_party:anvil_plugin"],
     deps = [
-        "@maven//:com_squareup_anvil_annotations",
         "@maven//:com_google_dagger_dagger",
+        "@maven//:com_squareup_anvil_annotations",
         "@maven//:javax_inject_javax_inject",
     ],
 )

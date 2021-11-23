@@ -107,12 +107,14 @@ maven_install(
         "org.jetbrains.kotlin:kotlin-test:1.5.10",
         "com.google.truth:truth:1.0.1",
         "org.jetbrains:annotations:13.0",
-        "org.jetbrains.kotlin:kotlin-compiler-embeddable:1.5.10",
     ],
     excluded_artifacts = [
         "org.jetbrains.kotlin:kotlin-stdlib",
         "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
         "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+        "org.jetbrains.kotlin:kotlin-compiler-embeddable",
+        "org.jetbrains.kotlin:kotlin-reflect",
+        "org.jetbrains.kotlin:kotlin-script-runtime",
     ],
     repositories = [
         "https://maven.google.com",
