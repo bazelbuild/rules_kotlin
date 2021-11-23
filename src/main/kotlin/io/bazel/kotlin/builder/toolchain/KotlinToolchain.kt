@@ -111,13 +111,22 @@ class KotlinToolchain private constructor(
       val kotlinCompilerJar = BazelRunFiles.resolveVerified(
         "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
 
+      // The embeddable compiler. Note that paths and naming conventions are not modified
+      // since the classloader expects jars to be placed next to each other.
+      // In particular the following artifacts are declared in kotlin-compiler MANIFEST file
+      // annotations-13.0.jar kotlin-stdlib.jar kotlin-reflect.jar kotlin-script-runtime.jar trove4j.jar
+      // which are preloaded by the classloader when loading kotlin-compiler and need to live next to
+      // kotlin-compiler.
+      val kotlinEmbeddableCompilerJar = BazelRunFiles.resolveVerified(
+        "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
+
       val jvmAbiGenFile = jvmAbiGenPath.verified()
       return KotlinToolchain(
-        kotlinCompilerJar.toPath().parent.parent,
+        kotlinEmbeddableCompilerJar.toPath().parent.parent,
         createClassLoader(
           javaHome,
           listOf(
-            kotlinCompilerJar,
+            kotlinEmbeddableCompilerJar,
             COMPILER.verified().absoluteFile,
             // plugins *must* be preloaded. Not doing so causes class conflicts
             // (and a NoClassDef err) in the compiler extension interfaces.

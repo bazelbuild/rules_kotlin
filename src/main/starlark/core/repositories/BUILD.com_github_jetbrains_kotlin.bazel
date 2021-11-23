@@ -14,15 +14,88 @@
 # dev_io_bazel_rules_kotlin
 load("@{{.KotlinRulesRepository}}//kotlin:jvm.bzl", "kt_jvm_import")
 load("@{{.KotlinRulesRepository}}//kotlin:js.bzl", "kt_js_import")
+load("@{{.KotlinRulesRepository}}//third_party:jarjar.bzl", "jar_jar_dir")
 load("@rules_java//java:defs.bzl", "java_import")
 
 package(default_visibility = ["//visibility:public"])
+
+
+ALL_JARS = [
+	"allopen-compiler-plugin",
+	"android-extensions-compiler",
+	"android-extensions-runtime",
+	"annotations-13.0",
+	"js.engines",
+	"jvm-abi-gen",
+	"kotlin-annotation-processing-cli",
+	"kotlin-annotation-processing-runtime",
+	"kotlin-annotation-processing",
+	"kotlin-annotations-jvm-sources",
+	"kotlin-annotations-jvm",
+	"kotlin-ant",
+	"kotlin-compiler",
+	"kotlin-daemon-client",
+	"kotlin-daemon",
+	"kotlin-imports-dumper-compiler-plugin",
+	"kotlin-main-kts",
+	"kotlin-preloader",
+	"kotlin-reflect-sources",
+	"kotlin-reflect",
+	"kotlin-runner",
+	"kotlin-script-runtime-sources",
+	"kotlin-script-runtime",
+	"kotlin-scripting-common",
+	"kotlin-scripting-compiler-impl",
+	"kotlin-scripting-compiler",
+	"kotlin-scripting-js",
+	"kotlin-scripting-jvm",
+	"kotlin-stdlib-jdk7-sources",
+	"kotlin-stdlib-jdk7",
+	"kotlin-stdlib-jdk8-sources",
+	"kotlin-stdlib-jdk8",
+	"kotlin-stdlib-js-sources",
+	"kotlin-stdlib-js",
+	"kotlin-stdlib-sources",
+	"kotlin-stdlib",
+	"kotlin-test-js-sources",
+	"kotlin-test-js",
+	"kotlin-test-junit-sources",
+	"kotlin-test-junit",
+	"kotlin-test-junit5-sources",
+	"kotlin-test-junit5",
+	"kotlin-test-sources",
+	"kotlin-test-testng-sources",
+	"kotlin-test-testng",
+	"kotlin-test",
+	"kotlinx-coroutines-core",
+	"kotlinx-serialization-compiler-plugin",
+	"mutability-annotations-compat",
+	"noarg-compiler-plugin",
+	"parcelize-compiler",
+	"parcelize-runtime",
+	"sam-with-receiver-compiler-plugin",
+	"trove4j",
+]
 
 # Kotlin home filegroup containing everything that is needed.
 filegroup(
     name = "home",
     srcs = glob(["**"]),
 )
+
+filegroup(
+    name = "shaded_home",
+    srcs = [":%s_shaded" % art for art in ALL_JARS],
+)
+
+[
+    jar_jar_dir(
+        name = "%s_shaded" % art,
+		output_dir = "lib",
+        input_jars = ["lib/%s.jar" % art],
+        rules = "compiler_shade.jarjar")
+    for art in ALL_JARS
+]
 
 kt_jvm_import(
     name = "annotations",
