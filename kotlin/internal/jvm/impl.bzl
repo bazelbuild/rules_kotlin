@@ -314,20 +314,78 @@ def kt_jvm_junit_test_impl(ctx):
         testing.TestEnvironment({}),
     )
 
-_KtCompilerPluginInfoDeps = provider(
+_KtCompilerPluginClasspathInfo = provider(
     fields = {
-        "compiler_libs": "list javainfo of a compiler library",
+        "deshaded_infos": "list deshaded JavaInfos of a compiler library",
+        "infos": "list JavaInfos of a compiler library",
     },
 )
 
 def kt_compiler_deps_aspect_impl(target, ctx):
-    "Collects the dependencies of a target and forward it to allow deshading the plugin jars."
-    return _KtCompilerPluginInfoDeps(
-        compiler_libs = [
-            t[JavaInfo]
-            for d in ["deps", "runtime_deps", "exports"]
-            for t in getattr(ctx.rule.attr, d, [])
-            if JavaInfo in t
+    """
+    Collects and deshades (if necessary) all jars in the plugin transitive closure.
+
+    Args:
+        target: Target of the rule being inspected
+        ctx: aspect ctx
+    Returns:
+        list of _KtCompilerPluginClasspathInfo
+    """
+    transitive_infos = [
+        t[_KtCompilerPluginClasspathInfo]
+        for d in ["deps", "runtime_deps", "exports"]
+        for t in getattr(ctx.rule.attr, d, [])
+        if _KtCompilerPluginClasspathInfo in t
+    ]
+    deshaded_infos = []
+    infos = [
+        i
+        for t in transitive_infos
+        for i in t.infos
+    ]
+    if JavaInfo in target:
+        ji = target[JavaInfo]
+        infos.append(ji)
+        deshaded_infos.append(
+            _deshade_embedded_kotlinc_jars(
+                target = target,
+                ctx = ctx,
+                jars = ji.runtime_output_jars,
+                deps = [
+                    i
+                    for t in transitive_infos
+                    for i in t.deshaded_infos
+                ],
+            ),
+        )
+
+    return [
+        _KtCompilerPluginClasspathInfo(
+            deshaded_infos = deshaded_infos,
+            infos = [java_common.merge(infos)],
+        ),
+    ]
+
+def _deshade_embedded_kotlinc_jars(target, ctx, jars, deps):
+    deshaded = [
+        jarjar_action(
+            actions = ctx.actions,
+            jarjar = ctx.executable._jarjar,
+            label = ctx.label,
+            rules = ctx.file._jetbrains_deshade_rules,
+            input = jar,
+            output = ctx.actions.declare_file(
+                "%s_deshaded_%s" % (target.label.name, jar.basename),
+            ),
+        )
+        for jar in jars
+    ]
+
+    # JavaInfo only takes a single jar, so create many and merge them.
+    return java_common.merge(
+        [
+            JavaInfo(output_jar = jar, compile_jar = jar, deps = deps)
+            for jar in deshaded
         ],
     )
 
@@ -339,43 +397,31 @@ def kt_compiler_plugin_impl(ctx):
             fail("kt_compiler_plugin options keys cannot contain the = symbol")
         options.append(struct(id = plugin_id, value = "%s=%s" % (k, v)))
 
-    jars = []
-    compiler_lib_infos = []
-    for t in [t for t in ctx.attr.deps]:
-        compiler_lib_infos.extend(t[_KtCompilerPluginInfoDeps].compiler_libs)
-        ji = t[JavaInfo]
-        if ji.outputs:  # can be None, according to the docs.
-            for jar_output in ji.outputs.jars:
-                jar = jar_output.class_jar
-                if ctx.attr.target_embedded_compiler:
-                    jars.append(jarjar_action(
-                        actions = ctx.actions,
-                        jarjar = ctx.executable._jarjar,
-                        label = ctx.label,
-                        rules = ctx.file._jetbrains_deshade_rules,
-                        input = jar,
-                        output = ctx.actions.declare_file("%s_deshaded_%s" % (ctx.label.name, jar.basename)),
-                    ))
-                else:
-                    jars.append(jar)
-
-    if not jars:
-        fail("Unable to locate plugin jars. Ensure they are exported or the direct result of a library in the deps.")
-
     if not (ctx.attr.compile_phase or ctx.attr.stubs_phase):
         fail("Plugin must execute during in one or more phases: stubs_phase, compile_phase")
 
-    info = java_common.merge([
-        JavaInfo(output_jar = d, compile_jar = d, deps = compiler_lib_infos)
-        for d in jars
-    ])
+    deps = ctx.attr.deps
+    info = None
+    if ctx.attr.target_embedded_compiler:
+        info = java_common.merge([
+            i
+            for d in deps
+            for i in d[_KtCompilerPluginClasspathInfo].deshaded_infos
+        ])
+    else:
+        info = java_common.merge([
+            i
+            for d in deps
+            for i in d[_KtCompilerPluginClasspathInfo].infos
+        ])
+
+    classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
     return [
-        DefaultInfo(files = depset(jars)),
-        java_common.merge([]),
+        DefaultInfo(files = classpath),
+        info,
         _KtCompilerPluginInfo(
-            plugin_jars = jars,
-            classpath = depset(jars, transitive = [i.transitive_deps for i in compiler_lib_infos]),
+            classpath = classpath,
             options = options,
             stubs = ctx.attr.stubs_phase,
             compile = ctx.attr.compile_phase,
