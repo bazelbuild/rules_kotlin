@@ -225,7 +225,7 @@ def kt_jvm_library_impl(ctx):
 
     if not ctx.attr.srcs and len(ctx.attr.deps) > 0:
         fail(
-            "deps without srcs in invalid." +
+            "deps without srcs is invalid." +
             "\nTo add runtime dependencies use runtime_deps." +
             "\nTo export libraries use exports.",
             attr = "deps",
