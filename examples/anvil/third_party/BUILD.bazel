@@ -32,15 +32,20 @@ kt_jvm_library(
 )
 
 kt_compiler_plugin(
-    name = "anvil_plugin",
-    compile_phase = True,
-    id = "com.squareup.anvil.compiler",
-    options = {
-        "src-gen-dir": "{generatedClasses}",
-    },
-    stubs_phase = True,
-    target_embedded_compiler = True,
+  name = "anvil_plugin",
+  compile_phase = True,
+  visibility = [
+	"//visibility:public"
+  ],
+  id = "com.squareup.anvil.compiler",
+  options = {
+    "src-gen-dir": "{generatedSources}",
+    "generate-dagger-factories": "true"
+  },
+  stubs_phase = True,
+  target_embedded_compiler = True,
     deps = [
         "@maven//:com_squareup_anvil_compiler",
     ],
 )
+
