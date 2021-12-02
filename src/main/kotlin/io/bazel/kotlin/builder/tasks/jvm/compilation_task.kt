@@ -180,7 +180,7 @@ internal fun JvmCompilationTask.runPlugins(
 ): JvmCompilationTask {
   if ((
     inputs.processorsList.isEmpty() &&
-      inputs.stubsPluginsList.isEmpty()
+      inputs.stubsPluginClasspathList.isEmpty()
     ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {

@@ -348,12 +348,6 @@ def _run_kt_builder_action(
         fail("plugins but no phase plugins: %s" % compiler_plugins)
 
     args.add_all(
-        "--stubs_plugin",
-        [j for p in stubs_compiler_plugins for j in p.plugin_jars],
-        omit_if_empty = True,
-    )
-
-    args.add_all(
         "--stubs_plugin_classpath",
         depset(transitive = [p.classpath for p in stubs_compiler_plugins]),
         omit_if_empty = True,
@@ -363,12 +357,6 @@ def _run_kt_builder_action(
         "--stubs_plugin_options",
         [p.options for p in stubs_compiler_plugins],
         map_each = _format_compile_plugin_options,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--compiler_plugin",
-        [j for p in compiler_compiler_plugins for j in p.plugin_jars],
         omit_if_empty = True,
     )
 

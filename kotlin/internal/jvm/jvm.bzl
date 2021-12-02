@@ -466,6 +466,18 @@ exported_plugins, this is not transitive""",
 
 _kt_compiler_deps_aspect = aspect(
     implementation = _kt_compiler_deps_aspect_impl,
+    attr_aspects = ["deps", "runtime_deps", "exports"],
+    attrs = {
+        "_jetbrains_deshade_rules": attr.label(
+            default = Label("//kotlin/internal/jvm:jetbrains-deshade.jarjar"),
+            allow_single_file = True,
+        ),
+        "_jarjar": attr.label(
+            executable = True,
+            cfg = "host",
+            default = Label("//third_party:jarjar_runner"),
+        ),
+    },
 )
 
 kt_compiler_plugin = rule(

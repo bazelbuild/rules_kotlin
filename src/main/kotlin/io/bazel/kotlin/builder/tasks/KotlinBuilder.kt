@@ -74,10 +74,8 @@ class KotlinBuilder @Inject internal constructor(
       BOOT_CLASSPATH("--bootclasspath"),
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
-      STUBS_PLUGIN_PATH("--stubs_plugin"),
       STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
       STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
-      COMPILER_PLUGIN_PATH("--compiler_plugin"),
       COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
       COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
       EXT_CLASSPATH("--extclasspath"),
@@ -120,7 +118,10 @@ class KotlinBuilder @Inject internal constructor(
     }
   }
 
-  fun build(taskContext: WorkerContext.TaskContext, args: List<String>): Int {
+  fun build(
+    taskContext: WorkerContext.TaskContext,
+    args: List<String>
+  ): Int {
     val (argMap, compileContext) = buildContext(taskContext, args)
     var success = false
     var status = 0
@@ -225,7 +226,11 @@ class KotlinBuilder @Inject internal constructor(
       build()
     }
 
-  private fun executeJvmTask(context: CompilationTaskContext, workingDir: Path, argMap: ArgMap) {
+  private fun executeJvmTask(
+    context: CompilationTaskContext,
+    workingDir: Path,
+    argMap: ArgMap
+  ) {
     val task = buildJvmTask(context.info, workingDir, argMap)
     context.whenTracing {
       printProto("jvm task message:", task)
@@ -243,7 +248,9 @@ class KotlinBuilder @Inject internal constructor(
 
       root.compileJava = argMap.mandatorySingle(JavaBuilderFlags.BUILD_JAVA).toBoolean()
       root.compileKotlin = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean()
-      root.instrumentCoverage = argMap.mandatorySingle(KotlinBuilderFlags.INSTRUMENT_COVERAGE).toBoolean()
+      root.instrumentCoverage = argMap.mandatorySingle(
+        KotlinBuilderFlags.INSTRUMENT_COVERAGE
+      ).toBoolean()
 
       with(root.outputsBuilder) {
         argMap.optionalSingle(JavaBuilderFlags.OUTPUT)?.let { jar = it }
@@ -274,7 +281,9 @@ class KotlinBuilder @Inject internal constructor(
         generatedClasses =
           workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes"))
             .toString()
-        temp = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp")).toString()
+        temp = workingDir.resolveNewDirectories(
+          getOutputDirPath(moduleName, "temp")
+        ).toString()
         generatedSources =
           workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources"))
             .toString()
@@ -284,7 +293,8 @@ class KotlinBuilder @Inject internal constructor(
         generatedStubClasses =
           workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
         coverageMetadataClasses =
-          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "coverage-metadata")).toString()
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "coverage-metadata"))
+            .toString()
       }
 
       with(root.inputsBuilder) {
@@ -297,7 +307,6 @@ class KotlinBuilder @Inject internal constructor(
         addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(JavaBuilderFlags.PROCESSOR_PATH) ?: emptyList())
 
-        addAllStubsPlugins(argMap.optional(JavaBuilderFlags.STUBS_PLUGIN_PATH) ?: emptyList())
         addAllStubsPluginOptions(
           argMap.optional(JavaBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList()
         )
@@ -305,9 +314,6 @@ class KotlinBuilder @Inject internal constructor(
           argMap.optional(JavaBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList()
         )
 
-        addAllCompilerPlugins(
-          argMap.optional(JavaBuilderFlags.COMPILER_PLUGIN_PATH) ?: emptyList()
-        )
         addAllCompilerPluginOptions(
           argMap.optional(JavaBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList()
         )
@@ -334,6 +340,9 @@ class KotlinBuilder @Inject internal constructor(
       root.build()
     }
 
-  private fun getOutputDirPath(moduleName: String, dirName: String) =
+  private fun getOutputDirPath(
+    moduleName: String,
+    dirName: String
+  ) =
     "_kotlinc/${moduleName}_jvm/$dirName"
 }
