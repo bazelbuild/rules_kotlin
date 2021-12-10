@@ -124,18 +124,18 @@ load("//kotlin/internal/utils:utils.bzl", "utils")
 _implicit_deps = {
     "_singlejar": attr.label(
         executable = True,
-        cfg = "host",
+        cfg = "exec",
         default = Label("@bazel_tools//tools/jdk:singlejar"),
         allow_files = True,
     ),
     "_zipper": attr.label(
         executable = True,
-        cfg = "host",
+        cfg = "exec",
         default = Label("@bazel_tools//tools/zip:zipper"),
         allow_files = True,
     ),
     "_java_stub_template": attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = Label("@kt_java_stub_template//file"),
     ),
     "_toolchain": attr.label(
@@ -217,7 +217,7 @@ _common_attr = utils.add_dicts(
         "plugins": attr.label_list(
             default = [],
             aspects = [] if hasattr(java_common, "JavaPluginInfo") else [_kt_jvm_plugin_aspect],
-            cfg = "host",
+            cfg = "exec",
         ),
         "module_name": attr.string(
             doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
@@ -474,7 +474,7 @@ _kt_compiler_deps_aspect = aspect(
         ),
         "_jarjar": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("//third_party:jarjar_runner"),
         ),
     },
@@ -518,7 +518,7 @@ kt_jvm_library(
         "deps": attr.label_list(
             doc = "The list of libraries to be added to the compiler's plugin classpath",
             providers = [JavaInfo],
-            cfg = "host",
+            cfg = "exec",
             aspects = [_kt_compiler_deps_aspect],
         ),
         "id": attr.string(
@@ -555,7 +555,7 @@ Supports the following template values:
         ),
         "_jarjar": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("//third_party:jarjar_runner"),
         ),
     },
