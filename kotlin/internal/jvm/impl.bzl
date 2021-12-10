@@ -419,7 +419,7 @@ def kt_compiler_plugin_impl(ctx):
 
     return [
         DefaultInfo(files = classpath),
-        info,
+        java_common.merge([]),
         _KtCompilerPluginInfo(
             classpath = classpath,
             options = options,
