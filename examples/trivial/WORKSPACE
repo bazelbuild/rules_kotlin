@@ -39,7 +39,7 @@ maven_install(
         "org.junit.platform:junit-platform-commons:1.4.2",
         "org.junit.jupiter:junit-jupiter-api:5.4.2",
         "org.junit.jupiter:junit-jupiter-params:5.4.2",
-        "org.apache.logging.log4j:log4j-core:2.12.1",
+        "org.apache.logging.log4j:log4j-core:2.15.0",
     ],
     repositories = [
         "https://maven-central.storage.googleapis.com/repos/central/data/",
