@@ -259,9 +259,10 @@ _kt_toolchain = rule(
     provides = [platform_common.ToolchainInfo],
 )
 
+
 def kt_register_toolchains():
     """This macro registers the kotlin toolchain."""
-    native.register_toolchains("@io_bazel_rules_kotlin//kotlin/internal:default_toolchain")
+    native.register_toolchains(absolute_target("//kotlin/internal:default_toolchain"))
 
 def define_kt_toolchain(
         name,
