@@ -1,0 +1,38 @@
+load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+
+kt_jvm_library(
+    name = "lib",
+    srcs = glob(
+        ["*.kt"],
+        exclude = ["*Test.kt"],
+    ),
+)
+
+kt_jvm_test(
+    name = "WriteWorkspaceTest",
+    srcs = ["WriteWorkspaceTest.kt"],
+    size = "enormous",
+    deps = [
+        ":lib",
+        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
+
+
+kt_jvm_test(
+    name = "multiplex",
+    srcs = ["MultiplexTest.kt"],
+    resources = [
+        "//:rules_kotlin_release.tgz",
+    ],
+    test_class = "io.bazel.kotlin.integration.MultiplexTest",
+    tags = ["local"], # necessary for running Bazel.
+    deps = [
+        ":lib",
+        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
