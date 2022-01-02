@@ -1,0 +1,37 @@
+load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+
+kt_jvm_library(
+    name = "lib",
+    srcs = glob(
+        ["*.kt"],
+        exclude = ["*Test.kt"],
+    ),
+)
+
+kt_jvm_test(
+    name = "WriteWorkspaceTest",
+    size = "enormous",
+    srcs = ["WriteWorkspaceTest.kt"],
+    deps = [
+        ":lib",
+        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
+
+kt_jvm_test(
+    name = "MixedSourceCompileTest",
+    srcs = ["MixedSourceCompileTest.kt"],
+    resources = [
+        "//:rules_kotlin_release.tgz",
+    ],
+    tags = ["local"],  # necessary for running Bazel in a test.
+    test_class = "io.bazel.kotlin.integration.MixedSourceCompileTest",
+    deps = [
+        ":lib",
+        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
