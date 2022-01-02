@@ -59,7 +59,7 @@ object WriteWorkspace {
   }
 
   @WorkspaceContext
-  interface File {
+  interface Paths {
     fun new(path: String, contents: Text.() -> Unit): Path {
       val text = StringBuilder().apply {
         Indenting(this).apply(contents)
@@ -247,7 +247,7 @@ object WriteWorkspace {
     fun target(name: String): String
   }
 
-  interface Package : File, Closeable {
+  interface Package : Paths, Closeable {
 
     fun build(contents: BuildBazel.() -> Unit) {
       new("BUILD.bazel") {
@@ -281,7 +281,7 @@ object WriteWorkspace {
   }
 
 
-  interface Workspace : File, Closeable, Package {
+  interface Workspace : Paths, Closeable, Package {
     fun workspace(contents: BzlWorkspace.() -> Unit) {
       new("WORKSPACE") {
         object : BzlWorkspace, Text by this {}.apply(contents)
@@ -298,7 +298,7 @@ object WriteWorkspace {
     }
   }
 
-  private interface Structure : File {
+  private interface Structure : Paths {
     val workspace: Path
     val root: Path
     fun child(path: String): Structure
