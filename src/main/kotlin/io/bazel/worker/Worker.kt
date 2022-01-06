@@ -25,7 +25,7 @@ interface Worker {
       then: Worker.(Iterable<String>) -> Int
     ): Int {
       val worker = when {
-        "--persistent_worker" in args -> PersistentWorker()
+        "--persistent_worker" in args -> JavaPersistentWorker()
         else -> InvocationWorker(args)
       }
       return worker.then(args.filter { it != "--persistent_worker" })
