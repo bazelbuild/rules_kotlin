@@ -25,7 +25,7 @@ object WriteWorkspace {
    *
    * An opened workspace only allows modification of non-workspace files.
    */
-  fun open(root: Path, contents: Package.() -> Unit) {
+  fun open(root: Path, contents: MutablePackage.() -> Unit) {
     ModifyWorkspace(root).use(contents)
   }
 
@@ -247,6 +247,22 @@ object WriteWorkspace {
     fun target(name: String): String
   }
 
+  interface SubPackage<T:SubPackage<T>> {
+    fun pkg(name: String, contents: T.() -> Unit): Resolve
+
+    operator fun String.invoke(contents: T.() -> Unit): Resolve {
+      return pkg(this, contents)
+    }
+  }
+
+  interface CreatePackage : Package, SubPackage<CreatePackage>
+
+  interface MutablePackage : Package, SubPackage<MutablePackage> {
+    fun remove(path:String) {
+      Files.deleteIfExists(resolve(path))
+    }
+  }
+
   interface Package : Paths, Closeable {
 
     fun build(contents: BuildBazel.() -> Unit) {
@@ -267,12 +283,6 @@ object WriteWorkspace {
       }
     }
 
-    fun pkg(name: String, contents: Package.() -> Unit): Resolve
-
-    operator fun String.invoke(contents: Package.() -> Unit): Resolve {
-      return pkg(this, contents)
-    }
-
     override fun close() {
       if (!exists(resolve("BUILD.bazel"))) {
         build { +"# default package marker" }
@@ -281,7 +291,7 @@ object WriteWorkspace {
   }
 
 
-  interface Workspace : Paths, Closeable, Package {
+  interface Workspace : Paths, Closeable, CreatePackage {
     fun workspace(contents: BzlWorkspace.() -> Unit) {
       new("WORKSPACE") {
         object : BzlWorkspace, Text by this {}.apply(contents)
@@ -294,7 +304,7 @@ object WriteWorkspace {
           +"# Workspace Marker"
         }
       }
-      super<Package>.close()
+      super<CreatePackage>.close()
     }
   }
 
@@ -330,13 +340,21 @@ object WriteWorkspace {
     }
   }
 
-  private interface WritePackage : Package, Structure, Resolve {
+  private interface ResolveByPath : Resolve, Structure {
     override fun target(name: String): String {
       return "\"//${workspace.relativize(root)}:$name\""
     }
+  }
 
-    override fun pkg(name: String, contents: Package.() -> Unit): Resolve {
+  private interface WritePackage : CreatePackage, Structure, ResolveByPath {
+    override fun pkg(name: String, contents: CreatePackage.() -> Unit): Resolve {
       return object : WritePackage, Structure by child(name) {}.apply { use(contents) }
+    }
+  }
+
+  private interface ChangePackage : MutablePackage, Structure, ResolveByPath {
+    override fun pkg(name: String, contents: MutablePackage.() -> Unit): Resolve {
+      return object : ChangePackage, Structure by child(name) {}.apply { use(contents) }
     }
   }
 
@@ -353,7 +371,7 @@ object WriteWorkspace {
   private class ModifyWorkspace(
     root: Path,
     val replace: ReplaceStructure = ReplaceStructure(root, root)
-  ) : WritePackage, Structure by replace {
+  ) : ChangePackage, Structure by replace {
     override fun resolve(path: String): Path {
       check(!path.endsWith("WORKSPACE")) {
         "cannot modify the WORKSPACE file."

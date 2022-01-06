@@ -85,13 +85,13 @@ class MultiplexTest {
       .getOrThrow()
   }
 
-  fun WriteWorkspace.Package.one(contents: WriteWorkspace.Package.() -> Unit): WriteWorkspace.Resolve {
+  fun <T : WriteWorkspace.SubPackage<T>> T.one(contents: T.() -> Unit): WriteWorkspace.Resolve {
     return "library/one"{
       apply(contents)
     }
   }
 
-  fun WriteWorkspace.Package.two(contents: WriteWorkspace.Package.() -> Unit): WriteWorkspace.Resolve {
+  fun <T : WriteWorkspace.SubPackage<T>> T.two(contents: T.() -> Unit): WriteWorkspace.Resolve {
     return "library/two"{
       apply(contents)
     }
@@ -163,52 +163,30 @@ class MultiplexTest {
       }
     }
 
-    (0..50).forEach { round ->
+    (0..50).zipWithNext().forEach { (last, next) ->
       workspace.build("//library/two").run {
         assertWithMessage("Out:\n$out\nErr:\n$err").that(code).isEqualTo(0)
-        println("$round:\n$err\n\n")
+        println("$next:\n$err\n\n")
       }
       WriteWorkspace.open(workspace) {
-        when (round % 3) {
-          0 -> {
-            one {
-              kotlin("One.kt") {}
-            }
-            two {
-              kotlin("Two.kt") {
-                +"package library.two"
-                "class Two" {
-                  "fun one"(!"value:String") {
-                    "println"(!"value")
-                  }
-                }
-              }
-            }
-          }
-          1 -> {
-            one {
-              kotlin("One.kt") {
-                +"package library.one"
-                "interface One" {
-                  "fun one"(!"value:String")
-                }
-              }
-            }
-            two {
-              kotlin("Two.kt") {
-                +"package library.two"
-                +"import library.one.One"
-                "class Two : One" {
-                  "override fun one"(!"value:String") {
-                    "println"(!"value")
-                  }
-                }
-              }
+        one {
+          kotlin("One$next.kt") {
+            +"package library.one"
+            "interface One$next" {
+              "fun one"(!"context:One$next.()->Unit")
             }
           }
         }
-        workspace.build("//library/one").run {
-          assertWithMessage("Out:\n$out\nErr:\n$err").that(code).isEqualTo(0)
+        two {
+          kotlin("Two.kt") {
+            +"package library.two"
+            +"import library.one.One$next"
+            "class Two : One$next" {
+              "override fun one"(!"context:One$next.()->Unit") {
+                "apply"(!"context")
+              }
+            }
+          }
         }
       }
     }
