@@ -14,9 +14,27 @@ java_import(
 
 kt_bootstrap_library(
     name = "worker",
-    srcs = glob(["*.kt"]),
+    srcs = glob(
+        ["*.kt"],
+        exclude = ["CoroutinePersistentWorker.kt"],
+    ),
     visibility = [
         "//:__subpackages__",
+    ],
+    deps = [
+        ":worker_proto",
+    ],
+)
+
+# TODO(rules_kotlin/issues/652): Repro corruption and fix.
+kt_bootstrap_library(
+    name = "CoroutinePersistentWorker",
+    srcs = glob(
+        ["*.kt"],
+        exclude = ["JavaPersistentWorker.kt"],
+    ),
+    visibility = [
+        "//src/test:__subpackages__",
     ],
     deps = [
         ":worker_proto",

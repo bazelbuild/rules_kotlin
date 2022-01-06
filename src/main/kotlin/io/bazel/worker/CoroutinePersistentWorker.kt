@@ -42,7 +42,7 @@ import kotlin.coroutines.CoroutineContext
  * @param coroutineContext for non-threaded operations.
  * @param captureIO to avoid writing stdout and stderr while executing.
  */
-class PersistentWorker(
+class CoroutinePersistentWorker(
   private val coroutineContext: CoroutineContext,
   private val captureIO: () -> IO,
   private val cpuTimeBasedGcScheduler: GcScheduler

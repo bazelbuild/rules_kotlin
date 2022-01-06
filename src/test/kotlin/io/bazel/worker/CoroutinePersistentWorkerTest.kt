@@ -26,7 +26,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
 
 @ExperimentalCoroutinesApi
-class PersistentWorkerTest {
+class CoroutinePersistentWorkerTest {
 
   @Test
   fun multiplexOk() {
@@ -50,7 +50,7 @@ class PersistentWorkerTest {
 
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
-        PersistentWorker(coroutineContext) {
+        CoroutinePersistentWorker(coroutineContext) {
           IO(
             stdIn,
             stdOut,
@@ -89,7 +89,7 @@ class PersistentWorkerTest {
     val captured = ByteArrayOutputStream()
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
-        PersistentWorker(coroutineContext) {
+        CoroutinePersistentWorker(coroutineContext) {
           IO(
             stdIn,
             stdOut,
