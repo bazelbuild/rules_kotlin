@@ -16,13 +16,14 @@ kt_bootstrap_library(
     name = "worker",
     srcs = glob(
         ["*.kt"],
-        exclude = ["CoroutinePersistentWorker.kt"],
+       # exclude = ["CoroutinePersistentWorker.kt"],
     ),
     visibility = [
         "//:__subpackages__",
     ],
     deps = [
         ":worker_proto",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
     ],
 )
 

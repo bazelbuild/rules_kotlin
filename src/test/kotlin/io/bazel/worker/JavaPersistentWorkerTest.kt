@@ -20,13 +20,10 @@ package io.bazel.worker
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
-import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.Executors
 
-@ExperimentalCoroutinesApi
 class JavaPersistentWorkerTest {
 
   @Test
@@ -47,11 +44,11 @@ class JavaPersistentWorkerTest {
       2 to WorkResponse.newBuilder().setRequestId(2).setOutput("sidhe commended").setExitCode(0)
     )
 
-    val captured = ByteArrayOutputStream()
+    val captured = IO.CapturingOutputStream()
 
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
-        JavaPersistentWorker(ForkJoinPool()) {
+        JavaPersistentWorker(Executors.newCachedThreadPool()) {
           IO(stdIn, stdOut, captured)
         }.start { ctx, args ->
           when (args.toList()) {
@@ -70,8 +67,15 @@ class JavaPersistentWorkerTest {
       }
       requests.forEach { writeStdIn(it) }
       closeStdIn()
-      return@inProcess generateSequence { readStdOut() }
-    }.associateBy { wr -> wr.requestId }
+      waitForStdOut()
+      return@inProcess generateSequence {
+        readStdOut().apply {
+          println("sequence $this")
+        }
+      }
+    }.associateBy { wr ->
+      wr.requestId
+    }
 
     assertThat(actualResponses.keys).isEqualTo(expectedResponses.keys)
 
@@ -83,10 +87,10 @@ class JavaPersistentWorkerTest {
 
   @Test
   fun error() {
-    val captured = ByteArrayOutputStream()
+    val captured = IO.CapturingOutputStream()
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
-        JavaPersistentWorker(ForkJoinPool()) {
+        JavaPersistentWorker(Executors.newCachedThreadPool()) {
           IO(stdIn, stdOut, captured)
         }.start { _, _ ->
           throw IllegalArgumentException("missing forest fairy")

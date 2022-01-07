@@ -22,7 +22,6 @@ import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
-import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
 
 @ExperimentalCoroutinesApi
@@ -46,7 +45,7 @@ class CoroutinePersistentWorkerTest {
       2 to WorkResponse.newBuilder().setRequestId(2).setOutput("sidhe commended").setExitCode(0)
     )
 
-    val captured = ByteArrayOutputStream()
+    val captured = IO.CapturingOutputStream()
 
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
@@ -86,7 +85,7 @@ class CoroutinePersistentWorkerTest {
 
   @Test
   fun error() {
-    val captured = ByteArrayOutputStream()
+    val captured = IO.CapturingOutputStream()
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
         CoroutinePersistentWorker(coroutineContext) {
