@@ -121,6 +121,16 @@ _KOPTS = {
             True: ["-Xmulti-platform"],
         },
     ),
+    "x_opt_in_experimental_stdlib_api": struct(
+        args = dict(
+            default = False,
+            doc = "Enable experimental standard library features.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xopt-in=kotlin.ExperimentalStdlibApi"],
+        },
+    ),
 }
 
 KotlincOptions = provider(
