@@ -11,10 +11,10 @@ kt_android_library(
         "@maven//:androidx_activity_activity_compose",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:androidx_compose_material_material",
+        "@maven//:androidx_compose_runtime_runtime",
         "@maven//:androidx_compose_ui_ui",
         "@maven//:androidx_compose_ui_ui_tooling",
         "@maven//:androidx_core_core_ktx",
-        "@maven//:com_google_android_material_material",
         "@maven//:org_jetbrains_kotlin_kotlin_stdlib",
     ],
 )
