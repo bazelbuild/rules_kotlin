@@ -74,34 +74,13 @@ maven_install(
     repositories = ["https://repo1.maven.org/maven2"],
 )
 
-## Protobuf
-
 http_archive(
-    name = "com_google_protobuf",
-    sha256 = versions.PROTOBUF_SHA,
-    strip_prefix = "protobuf-%s" % versions.PROTOBUF_VERSION,
-    urls = [
-        "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
-        "https://github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
-    ],
-)
-
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
-protobuf_deps()
-
-## Rules PKG
-
-_RULES_PKG_VERSION = "0.2.4"
-
-_RULES_PKG_SHA = "4ba8f4ab0ff85f2484287ab06c0d871dcb31cc54d439457d28fd4ae14b18450a"
-
-http_archive(
-    name = "rules_pkg",
-    sha256 = _RULES_PKG_SHA,
-    urls = [
-        "https://github.com/bazelbuild/rules_pkg/releases/download/{0}/rules_pkg-{0}.tar.gz".format(_RULES_PKG_VERSION),
-    ],
+    name = "bazel_skylib",
+    sha256 = versions.SKYLIB_SHA,
+    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (
+        versions.SKYLIB_VERSION,
+        versions.SKYLIB_VERSION,
+    )],
 )
 
 ## Android
