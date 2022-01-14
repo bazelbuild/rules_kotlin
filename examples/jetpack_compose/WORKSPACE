@@ -32,17 +32,11 @@ register_toolchains("//:kotlin_toolchain")
 
 ## JVM External
 
-_RULES_JVM_EXTERNAL_VERSION = "4.2"
-
-_RULES_JVM_EXTERNAL_SHA = "cd1a77b7b02e8e008439ca76fd34f5b07aecb8c752961f9640dea15e9e5ba1ca"
-
 http_archive(
     name = "rules_jvm_external",
-    sha256 = _RULES_JVM_EXTERNAL_SHA,
-    strip_prefix = "rules_jvm_external-{}".format(_RULES_JVM_EXTERNAL_VERSION),
-    urls = [
-        "https://github.com/bazelbuild/rules_jvm_external/archive/{}.zip".format(_RULES_JVM_EXTERNAL_VERSION),
-    ],
+    sha256 = versions.RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % versions.RULES_JVM_EXTERNAL_TAG,
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
@@ -80,55 +74,15 @@ maven_install(
     repositories = ["https://repo1.maven.org/maven2"],
 )
 
-## Stardoc
-
-_STARDOC_VERSION = "0.4.0"
-
-_STARDOC_SHA = "36b8d6c2260068b9ff82faea2f7add164bf3436eac9ba3ec14809f335346d66a"
-
-http_archive(
-    name = "io_bazel_stardoc",
-    sha256 = _STARDOC_SHA,
-    strip_prefix = "stardoc-{}".format(_STARDOC_VERSION),
-    urls = [
-        "https://github.com/bazelbuild/stardoc/archive/{}.zip".format(_STARDOC_VERSION),
-    ],
-)
-
-load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
-
-stardoc_repositories()
-
-## Import Skylib
-
-_SKYLIB_VERSION = "1.0.2"
-
-_SKYLIB_SHA = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44"
-
-http_archive(
-    name = "bazel_skylib",
-    sha256 = _SKYLIB_SHA,
-    urls = [
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/{0}/bazel-skylib-{0}.tar.gz".format(_SKYLIB_VERSION),
-    ],
-)
-
-load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-
-bazel_skylib_workspace()
-
 ## Protobuf
-
-_PROTOBUF_VERSION = "3.14.0"
-
-_PROTOBUF_SHA = "bf0e5070b4b99240183b29df78155eee335885e53a8af8683964579c214ad301"
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = _PROTOBUF_SHA,
-    strip_prefix = "protobuf-{}".format(_PROTOBUF_VERSION),
+    sha256 = versions.PROTOBUF_SHA,
+    strip_prefix = "protobuf-%s" % versions.PROTOBUF_VERSION,
     urls = [
-        "https://github.com/protocolbuffers/protobuf/archive/v{}.zip".format(_PROTOBUF_VERSION),
+        "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
+        "https://github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
     ],
 )
 
@@ -152,20 +106,14 @@ http_archive(
 
 ## Android
 
-_RULES_ANDROID_VERSION = "0.1.1"
-
-_RULES_ANDROID_SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806"
-
 http_archive(
-    name = "build_bazel_rules_android",
-    sha256 = _RULES_ANDROID_SHA,
-    strip_prefix = "rules_android-{}".format(_RULES_ANDROID_VERSION),
-    urls = [
-        "https://github.com/bazelbuild/rules_android/archive/v{}.zip".format(_RULES_ANDROID_VERSION),
-    ],
+    name = "rules_android",
+    sha256 = versions.ANDROID.SHA,
+    strip_prefix = "rules_android-%s"% versions.ANDROID.VERSION,
+    urls = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip"% versions.ANDROID.VERSION],
 )
 
-load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
+load("@rules_android//android:rules.bzl", "android_sdk_repository")
 
 android_sdk_repository(
     name = "androidsdk",
