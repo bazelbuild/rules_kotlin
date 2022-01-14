@@ -4,6 +4,25 @@ _COMPOSE_VERSION = "1.0.0-beta07"
 
 _KOTLIN_COMPILER_VERSION = "1.5.32"
 
+# Setup Kotlin
+
+local_repository(
+    name = "release_archive",
+    path = "../../src/main/starlark/release_archive",
+)
+
+load("@release_archive//:repository.bzl", "archive_repository")
+
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+
+kotlin_repositories()
+
+register_toolchains("//:kotlin_toolchain")
+
 ## JVM External
 
 _RULES_JVM_EXTERNAL_VERSION = "4.0"
