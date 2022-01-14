@@ -17,7 +17,7 @@ archive_repository(
     name = "io_bazel_rules_kotlin",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions", "kotlinc_version")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
 
 kotlin_repositories(
     compiler_release = kotlinc_version(
@@ -44,7 +44,6 @@ http_archive(
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
-
 
 maven_install(
     artifacts = [
