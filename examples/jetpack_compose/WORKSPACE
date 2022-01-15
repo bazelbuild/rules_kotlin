@@ -68,7 +68,7 @@ maven_install(
     artifacts = [
         # Workaround to add missing 'sun.misc' dependencies to 'kotlinx-coroutines-core-jvm' artifact
         # Check root BUILD file and 'override_targets' arg of a primary 'maven_install'
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.1",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2",
     ],
     fetch_sources = True,
     repositories = ["https://repo1.maven.org/maven2"],
