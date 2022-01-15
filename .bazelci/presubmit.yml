@@ -79,6 +79,12 @@ tasks:
     build_targets:
       - //coroutines-helloworld/...
       - //express/...
+  example-jetpack-compose:
+    name: "Example - Jetpack Compose"
+    platform: ubuntu1804
+    working_directory: examples/jetpack_compose
+    test_targets:
+      - //...
   stardoc:
     name: Stardoc api documentation
     platform: ubuntu1804
