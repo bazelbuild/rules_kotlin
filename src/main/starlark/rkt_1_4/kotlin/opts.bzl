@@ -1,3 +1,7 @@
+def _map_optin_class_to_flag(values):
+    return ["-Xopt-in=%s" %v for v in values]
+
+
 _KOPTS = {
     "warn": struct(
         args = dict(
@@ -108,6 +112,15 @@ _KOPTS = {
             True: ["-Xmulti-platform"],
         },
     ),
+    "x_optin": struct(
+        args = dict(
+            default = False,
+            doc = "",
+        ),
+        type = attr.string_list,
+        value_to_flag =None,
+        map_value_to_flag = _map_optin_class_to_flag
+    ),
     "x_use_ir": struct(
         args = dict(
             default = False,
@@ -181,7 +194,7 @@ def kotlinc_options_to_flags(kotlinc_options):
     flags = []
     for n, o in _KOPTS.items():
         value = getattr(kotlinc_options, n, None)
-        flag = o.value_to_flag.get(value, None)
+        flag = o.value_to_flag.get(value, None) if o.value_to_flag else o.map_value_to_flag(value)
         if flag:
             flags.extend(flag)
     return flags

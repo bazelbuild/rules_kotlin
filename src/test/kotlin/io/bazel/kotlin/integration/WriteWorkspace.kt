@@ -1,6 +1,6 @@
 package io.bazel.kotlin.integration
 
-import java.io.*
+import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Files.exists
@@ -9,6 +9,7 @@ import java.nio.file.StandardOpenOption
 import java.nio.file.StandardOpenOption.CREATE_NEW
 import java.nio.file.attribute.FileTime
 import java.time.Instant
+import kotlin.streams.toList
 
 object WriteWorkspace {
   fun using(prefix: String, contents: Workspace.() -> Unit): Path {
@@ -18,7 +19,8 @@ object WriteWorkspace {
   }
 
   inline fun <reified CLASS> using(noinline contents: Workspace.() -> Unit): Path = using(
-    CLASS::class.run { qualifiedName ?: simpleName ?: error("Cannot use unnamed class") }, contents)
+    CLASS::class.run { qualifiedName ?: simpleName ?: error("Cannot use unnamed class") }, contents
+  )
 
   /**
    * [open] the [root] of an existing [Workspace] and apply [contents]
@@ -126,7 +128,8 @@ object WriteWorkspace {
     operator fun CharSequence.invoke(
       argument: CharSequence,
       vararg arguments: CharSequence,
-      contents: Define<T>.() -> Unit) {
+      contents: Define<T>.() -> Unit
+    ) {
       define(this, *(arrayOf(argument) + arguments), contents = contents)
     }
   }
@@ -169,16 +172,18 @@ object WriteWorkspace {
   interface Starlark<T : Starlark<T>> : Block<T>, Variables, Invoke {
 
     @Suppress("PropertyName")
-    val True:CharSequence get() = Rendered("True")
+    val True: CharSequence
+      get() = Rendered("True")
 
     @Suppress("PropertyName")
-    val False:CharSequence get() = Rendered("False")
+    val False: CharSequence
+      get() = Rendered("False")
 
     override fun block(label: CharSequence, contents: Block<T>.() -> Unit) {
       super.block("$label:", contents)
     }
 
-    fun load(pkg: CharSequence, vararg functions: CharSequence) : List<CharSequence> {
+    fun load(pkg: CharSequence, vararg functions: CharSequence): List<CharSequence> {
       "load"(pkg.toString(), functions.render(separator = ", "))
       return functions.map { !it }
     }
@@ -203,13 +208,21 @@ object WriteWorkspace {
 
   interface Bzl : Starlark<Bzl>, Define<Bzl> {
 
-    override fun define(name: CharSequence, vararg arguments: CharSequence, contents: Define<Bzl>.() -> Unit) {
+    override fun define(
+      name: CharSequence,
+      vararg arguments: CharSequence,
+      contents: Define<Bzl>.() -> Unit
+    ) {
       block(arguments.render(prefix = "$name(", separator = ", ", postfix = ")")) {
         contents()
       }
     }
 
-    fun rule(name: String, implementation: CharSequence, vararg attributes: Pair<CharSequence, CharSequence>) {
+    fun rule(
+      name: String,
+      implementation: CharSequence,
+      vararg attributes: Pair<CharSequence, CharSequence>
+    ) {
       +"$name = rule("
       indent {
         "implementation" eq "$implementation,"
@@ -234,20 +247,29 @@ object WriteWorkspace {
     override fun define(
       name: CharSequence,
       vararg arguments: CharSequence,
-      contents: Define<T>.() -> Unit) {
+      contents: Define<T>.() -> Unit
+    ) {
       block(arguments.render(separator = ", ", prefix = "$name(", postfix = ")")) {
         contents()
       }
     }
   }
 
-  interface KotlinSource : Variables, Jvm<KotlinSource>
+  interface KotlinSource : Variables, Jvm<KotlinSource> {
+    fun `package`(pkg: CharSequence) {
+      +"package $pkg"
+    }
+
+    fun `import`(kClass: CharSequence) {
+      +"import $kClass"
+    }
+  }
 
   interface Resolve {
     fun target(name: String): String
   }
 
-  interface SubPackage<T:SubPackage<T>> {
+  interface SubPackage<T : SubPackage<T>> {
     fun pkg(name: String, contents: T.() -> Unit): Resolve
 
     operator fun String.invoke(contents: T.() -> Unit): Resolve {
@@ -258,8 +280,18 @@ object WriteWorkspace {
   interface CreatePackage : Package, SubPackage<CreatePackage>
 
   interface MutablePackage : Package, SubPackage<MutablePackage> {
-    fun remove(path:String) {
-      Files.deleteIfExists(resolve(path))
+    fun remove(path: String) {
+      resolve(path).let { location ->
+        when {
+          Files.isDirectory(location) -> Files
+            .walk(location)
+            .toList()
+            .sorted()
+            .reversed()
+            .forEach(Files::deleteIfExists)
+          else -> Files.deleteIfExists(location)
+        }
+      }
     }
   }
 
@@ -329,8 +361,13 @@ object WriteWorkspace {
     }
   }
 
-  private class ReplaceStructure(override val workspace: Path, override val root: Path) : Structure {
-    override fun write(path: String, contents: ByteArray, vararg options: StandardOpenOption): Path {
+  private class ReplaceStructure(override val workspace: Path, override val root: Path) :
+    Structure {
+    override fun write(
+      path: String,
+      contents: ByteArray,
+      vararg options: StandardOpenOption
+    ): Path {
       Files.deleteIfExists(resolve(path))
       return super.write(path, contents, *options)
     }

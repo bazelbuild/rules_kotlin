@@ -15,13 +15,24 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 
 java_import(
-    name = "worker",
+    name = "worker_lib"
+    jars = ["worker.jar"]
+)
+
+java_import(
+    name = "kotlinc_worker",
     jars = ["kotlin_worker.jar"],
+    deps = [
+      ":worker_lib"
+    ]
 )
 
 java_import(
     name = "jdeps_merger_worker",
     jars = ["jdeps_merger_worker.jar"],
+    deps = [
+      ":worker_lib"
+    ]
 )
 
 java_import(
