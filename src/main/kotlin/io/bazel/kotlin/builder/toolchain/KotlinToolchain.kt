@@ -20,6 +20,7 @@ import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.builder.utils.verifiedPath
+import io.bazel.kotlin.compiler.BazelK2JVMCompiler
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
@@ -159,10 +160,14 @@ class KotlinToolchain private constructor(
     fun run(args: Array<String>, out: PrintWriter): Int = method.invoke(clazz, args, out) as Int
   }
 
+  interface InvokeCompiler {
+   fun compile(args: Array<String>, out: PrintStream): Int
+  }
+
   open class KotlinCliToolInvoker internal constructor(
     toolchain: KotlinToolchain,
     clazz: String
-  ) {
+  ) : InvokeCompiler {
     private val compiler: Any
     private val execMethod: Method
     private val getCodeMethod: Method
@@ -182,7 +187,7 @@ class KotlinToolchain private constructor(
     // 1 is a standard compilation error
     // 2 is an internal error
     // 3 is the script execution error
-    fun compile(args: Array<String>, out: PrintStream): Int {
+    override fun compile(args: Array<String>, out: PrintStream): Int {
       val exitCodeInstance = execMethod.invoke(compiler, out, args)
       return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
     }
@@ -191,7 +196,17 @@ class KotlinToolchain private constructor(
   @Singleton
   class KotlincInvoker @Inject constructor(
     toolchain: KotlinToolchain
-  ) : KotlinCliToolInvoker(toolchain, "io.bazel.kotlin.compiler.BazelK2JVMCompiler")
+  ) : InvokeCompiler {
+
+    private val kotlinc by lazy {
+      BazelK2JVMCompiler()
+    }
+
+    override fun compile(args: Array<String>, out: PrintStream): Int {
+      return kotlinc.exec(out, *args).code
+    }
+
+  }
 
   @Singleton
   class K2JSCompilerInvoker @Inject constructor(

@@ -15,6 +15,18 @@
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
+java_import(
+    name = "kotlin_runtime",
+    jars = [
+        "@com_github_jetbrains_kotlin//:lib/jvm-abi-gen.jar",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-annotation-processing.jar",
+        "@com_github_jetbrains_kotlin//:lib/kotlin-script-runtime.jar",
+    ],
+    deps = [],
+    visibility = ["//src:__subpackages__"],
+)
+
 # The compiler library, this is co-located in the kotlin compiler classloader.
 kt_bootstrap_library(
     name = "compiler",
