@@ -45,8 +45,6 @@ internal class JavaCompiler @Inject constructor(
         "-d", d.javaClasses
       ).also {
         it.addAll(
-          // Kotlin takes care of annotation processing.
-          "-proc:none",
           // Disable option linting, it will complain about the source.
           "-Xlint:-options",
           "-source", command.info.toolchainInfo.jvm.jvmTarget,
@@ -54,6 +52,16 @@ internal class JavaCompiler @Inject constructor(
         )
         it.addAll(command.inputs.javacFlagsList)
         it.addAll(i.javaSourcesList)
+        if (i.kotlinSourcesList.isEmpty() && i.sourceJarsList.isEmpty() && i.processorsList.isNotEmpty()) {
+          // Kotlin did not run so we still need to take care of annotation processing for Java sources
+          it.addAll(
+            "-processor", i.processorsList.joinToString(","),
+            "-processorpath", i.processorpathsList.joinToString(File.pathSeparator)
+          )
+        } else {
+          // Kotlin takes care of annotation processing.
+          it.add("-proc:none")
+        }
       }
       context.executeCompilerTask(args, { a, pw ->
         javacInvoker.compile(a, PrintWriter(pw))
