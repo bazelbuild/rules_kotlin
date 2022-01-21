@@ -22,6 +22,8 @@ class MainActivity : AppCompatActivity() {
     // Ensure Serialization plugin has run and generated code correctly.
     Data.serializer()
 
-    AutoValue_TestKtValue.Builder().setName("Auto Value Test").build()
+    TestKtValue.create {
+      setName("Auto Value Test") // can't use property syntax, because autovalue builder's codegen
+    }
   }
 }
