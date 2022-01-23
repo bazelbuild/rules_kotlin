@@ -45,7 +45,10 @@ java_binary(
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     visibility = ["//visibility:public"],
-    runtime_deps = [":worker"],
+    runtime_deps = [
+        ":worker",
+        "@bazel_tools//tools/jdk:JacocoCoverage",
+    ],
 )
 
 java_binary(
