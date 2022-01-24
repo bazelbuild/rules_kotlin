@@ -1,0 +1,13 @@
+load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_local_test")
+
+kt_android_local_test(
+    name = "SomeTest",
+    srcs = ["SomeTest.kt"],
+    associates = ["//libKtAndroid:my_kt_kt"],
+    custom_package = "examples.android.lib",
+    manifest = "AndroidManifest.xml",
+    deps = [
+        "@maven//:junit_junit",
+        "@robolectric//bazel:android-all",
+    ],
+)
