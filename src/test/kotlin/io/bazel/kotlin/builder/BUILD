@@ -47,6 +47,7 @@ java_library(
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
     ],
     runtime_deps = [
+        "@bazel_tools//tools/jdk:JacocoCoverage",
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
     ],
