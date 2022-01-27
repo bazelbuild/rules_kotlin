@@ -1,5 +1,5 @@
 load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
-load("@build_bazel_rules_android//android:rules.bzl", "android_library")
+load("@rules_android//android:rules.bzl", "android_library")
 
 android_library(
     name = "my_android",
