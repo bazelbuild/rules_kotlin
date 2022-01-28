@@ -808,7 +808,7 @@ def export_only_providers(ctx, actions, attr, outputs):
     java = JavaInfo(
         output_jar = toolchains.kt.empty_jar,
         compile_jar = toolchains.kt.empty_jar,
-        deps = [_java_info(d) for d in attr.deps + attr.plugins],
+        deps = [_java_info(d) for d in attr.deps],
         exports = [_java_info(d) for d in getattr(attr, "exports", [])],
         neverlink = getattr(attr, "neverlink", False),
     )
