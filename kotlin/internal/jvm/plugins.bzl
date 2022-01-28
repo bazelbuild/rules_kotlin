@@ -52,7 +52,7 @@ def _targets_to_annotation_processors_java_plugin_info(targets):
     if hasattr(java_common, "JavaPluginInfo"):
         _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
         return [t[_JavaPluginInfo] for t in targets if _JavaPluginInfo in t]
-    return [t[JavaInfo] for t in targets if KtJvmPluginInfo in t]
+    return [t[JavaInfo] for t in targets if JavaInfo in t]
 
 def _targets_to_transitive_runtime_jars(targets):
     if hasattr(java_common, "JavaPluginInfo"):

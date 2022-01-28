@@ -226,14 +226,14 @@ _common_attr = utils.add_dicts(
             mandatory = False,
         ),
         "kotlinc_opts": attr.label(
-            doc = """Kotlinc options to be used when compiling this target. These opts if provided 
+            doc = """Kotlinc options to be used when compiling this target. These opts if provided
             will be used instead of the ones provided to the toolchain.""",
             default = None,
             providers = [_KotlincOptions],
             mandatory = False,
         ),
         "javac_opts": attr.label(
-            doc = """Javac options to be used when compiling this target. These opts if provided will 
+            doc = """Javac options to be used when compiling this target. These opts if provided will
             be used instead of the ones provided to the toolchain.""",
             default = None,
             providers = [_JavacOptions],
@@ -560,5 +560,5 @@ Supports the following template values:
         ),
     },
     implementation = _kt_compiler_plugin_impl,
-    provides = [JavaInfo, _KtCompilerPluginInfo],
+    provides = [_KtCompilerPluginInfo],
 )

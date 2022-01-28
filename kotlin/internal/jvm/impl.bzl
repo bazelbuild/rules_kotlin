@@ -419,7 +419,6 @@ def kt_compiler_plugin_impl(ctx):
 
     return [
         DefaultInfo(files = classpath),
-        info,
         _KtCompilerPluginInfo(
             classpath = classpath,
             options = options,
