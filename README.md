@@ -2,11 +2,27 @@
 
 # Bazel Kotlin Rules
 
-Current release: ***`legacy-1.3.0`***<br />
-Release candidate: ***`1.5.0-alpha-2`***<br />
+Current release: ***`1.5.0`***<br />
 Main branch: `master`
 
 # News!
+* <b>Feb 2, 2022.</b> Released version [1.5.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0). Some notable changes:
+  - All the legacy-1.4 and 1.5-alpha/beta changes, plus
+  - More recent kotlin versions supported (1.5.x and basic 1.6.x support)
+    - 1.6 support may require more work and patch releases.
+  - improvements on option handling for plugins
+  - improvements in using the repo from head
+  - log4j security upgrades (in examples primarily)
+  - Fixed some plugin handling making jetpack compose work for more cases.
+  - Kotlin internal visibility supported across all libraries, not just tests (called "associates=")
+  - Support more recent bazel versions
+  - open the underlying `_kt` suffixed library for `kt_android_*` targets so that "associates=" can work.
+  - handle arguments to different compiler versions in a versioned way
+  - support explicit API mode
+  - tidy worker output (avoids random failures from bazel worker emiting non-proto data in stdout)
+  - do some better memory handling between work requests
+  - separate out jvm, js, and android rules (i.e. so projects aren't required to have everything android configured if htey don't use it, etc.)
+  - fixes to examples (jetpack compose, etc.)
 * <b>Dec 30, 2020.</b> Released version [1.5.0-alpha-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-2). Includes:
   - Expanded kotlinc options
   - New optimized compilation path (using JavaBuilder) `--define=experimental_use_abi_jars=1`.
