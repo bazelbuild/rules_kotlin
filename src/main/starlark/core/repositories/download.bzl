@@ -89,7 +89,7 @@ def kt_download_local_dev_dependencies():
     )
 
     rules_stardoc_repository(
-        name = "rules_android",
+        name = "build_bazel_rules_android",
         sha256 = versions.ANDROID.SHA,
         strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
         urls = versions.ANDROID.URLS,

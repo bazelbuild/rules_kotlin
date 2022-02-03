@@ -30,6 +30,6 @@ bzl_library(
     visibility = ["//kotlin:__subpackages__"],
     deps = [
         "//third_party:bzl",
-        "@rules_android//android",
+        "@build_bazel_rules_android//android",
     ],
 )

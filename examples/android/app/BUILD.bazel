@@ -1,5 +1,5 @@
-load("@rules_android//android:rules.bzl", "android_binary")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@build_bazel_rules_android//android:rules.bzl", "android_binary")
 
 # An app that consumes android-kt deps
 android_binary(
