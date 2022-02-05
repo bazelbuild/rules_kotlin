@@ -51,6 +51,12 @@ tasks:
     working_directory: examples/plugin
     test_targets:
       - //...
+  example-ksp-plugins:
+    name: "Example - KSP Plugins"
+    platform: ubuntu1804
+    working_directory: examples/ksp
+    test_targets:
+      - //...
   examples-trivial:
     name: "Example - Trivial"
     platform: ubuntu1804

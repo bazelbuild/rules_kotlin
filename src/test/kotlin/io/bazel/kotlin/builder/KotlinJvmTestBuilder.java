@@ -228,6 +228,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder generatedKspSourceJar() {
+            taskBuilder.getOutputsBuilder()
+                    .setGeneratedKspSrcJar(instanceRoot().resolve("gen-src.jar").toAbsolutePath().toString());
+            return this;
+        }
+
         public TaskBuilder ktStubsJar() {
             taskBuilder.getOutputsBuilder()
                 .setGeneratedJavaStubJar(instanceRoot().resolve("kt-stubs.jar").toAbsolutePath().toString());

@@ -239,6 +239,12 @@ _common_attr = utils.add_dicts(
             providers = [_JavacOptions],
             mandatory = False,
         ),
+        "experimental_annotation_processing_mode": attr.string(
+            doc = """Controls which annotation processing strategy to use for this target. If none are specified, the
+            toolchain experimental_annotation_processing_mode will be used.""",
+            values = ["kapt", "ksp"],
+            mandatory = False,
+        ),
     },
 )
 

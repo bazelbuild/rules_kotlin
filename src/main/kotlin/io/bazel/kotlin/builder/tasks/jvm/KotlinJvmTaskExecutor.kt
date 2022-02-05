@@ -125,6 +125,9 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         if (outputs.generatedClassJar.isNotEmpty()) {
           context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
         }
+        if (outputs.generatedKspSrcJar.isNotEmpty()) {
+          context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
+        }
       }
     }
   }

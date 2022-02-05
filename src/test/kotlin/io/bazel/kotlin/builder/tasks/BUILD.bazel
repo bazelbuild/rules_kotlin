@@ -70,6 +70,8 @@ kt_rules_test(
 # TODO(bazelbuild/rules_kotlin/issues/275): Remove full jar reference when the kt_rules_test handles jvm_import data better.
 _MAVEN_CENTRAL_PREFIX = "@kotlin_rules_maven//:v1/https/maven-central.storage.googleapis.com/repos/central/data"
 
+_MAVEN2_PREFIX = "@kotlin_rules_maven//:v1/https/repo1.maven.org/maven2"
+
 _AUTO_VALUE_PREFIX = "%s/com/google/auto/value" % _MAVEN_CENTRAL_PREFIX
 
 _AUTO_VALUE_JAR = _AUTO_VALUE_PREFIX + "/auto-value/1.6.5/auto-value-1.6.5.jar"
@@ -86,6 +88,37 @@ kt_rules_test(
     jvm_flags = [
         "-Dauto_value=$(location %s)" % _AUTO_VALUE_JAR,
         "-Dauto_value_annotations=$(location %s)" % _AUTO_VALUE_ANNOTATIONS_JAR,
+    ],
+)
+
+_MOSHI_PREFIX = "%s/com/squareup/moshi" % _MAVEN2_PREFIX
+
+_MOSHI_JAR = _MOSHI_PREFIX + "/moshi/1.13.0/moshi-1.13.0.jar"
+
+_MOSHI_KOTLIN_JAR = _MOSHI_PREFIX + "/moshi-kotlin/1.13.0/moshi-kotlin-1.13.0.jar"
+
+_MOSHI_KOTLIN_CODEGEN_JAR = _MOSHI_PREFIX + "/moshi-kotlin-codegen/1.13.0/moshi-kotlin-codegen-1.13.0.jar"
+
+_KOTLIN_POET = "%s/com/squareup/kotlinpoet/1.10.2/kotlinpoet-1.10.2.jar" % _MAVEN2_PREFIX
+
+_ASM = "%s/org/ow2/asm/asm/9.2/asm-9.2.jar" % _MAVEN2_PREFIX
+
+kt_rules_test(
+    name = "KotlinBuilderJvmKspTest",
+    srcs = ["jvm/KotlinBuilderJvmKspTest.java"],
+    data = [
+        _MOSHI_JAR,
+        _MOSHI_KOTLIN_JAR,
+        _MOSHI_KOTLIN_CODEGEN_JAR,
+        _KOTLIN_POET,
+        _ASM,
+    ],
+    jvm_flags = [
+        "-Dmoshi=$(location %s)" % _MOSHI_JAR,
+        "-Dmoshi_kotlin=$(location %s)" % _MOSHI_KOTLIN_JAR,
+        "-Dmoshi_kotlin_codegen=$(location %s)" % _MOSHI_KOTLIN_CODEGEN_JAR,
+        "-Dkotlin_poet=$(location %s)" % _KOTLIN_POET,
+        "-Dasm=$(location %s)" % _ASM,
     ],
 )
 

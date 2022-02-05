@@ -22,6 +22,9 @@ JAVA_RUNTIME_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:runtime_toolchain_type"
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 
+# The name of the KSP compiler plugin workspace.
+KSP_COMPILER_PLUGIN_REPO = "com_github_google_ksp"
+
 KtJvmInfo = provider(
     fields = {
         "module_name": "the module name",

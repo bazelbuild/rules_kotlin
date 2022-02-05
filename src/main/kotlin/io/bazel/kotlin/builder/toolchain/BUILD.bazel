@@ -19,6 +19,8 @@ kt_bootstrap_library(
         "*.kt",
     ]),
     neverlink_deps = [
+        "@com_github_google_ksp//:symbol-processing-api",
+        "@com_github_google_ksp//:symbol-processing-cmdline",
         "@com_github_jetbrains_kotlin//:jvm-abi-gen",
         "@com_github_jetbrains_kotlin//:kotlin-compiler",
     ],

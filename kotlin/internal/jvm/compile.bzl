@@ -482,6 +482,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         deps = ctx.attr.deps,
         runtime_deps = ctx.attr.runtime_deps,
     )
+    experimental_annotation_processing_mode = getattr(ctx.attr, "experimental_annotation_processing_mode", toolchains.kt.experimental_annotation_processing_mode)
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
@@ -500,6 +501,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         associates = associates,
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
+        experimental_annotation_processing_mode = experimental_annotation_processing_mode,
         annotation_processors = annotation_processors,
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
@@ -588,6 +590,7 @@ def _run_kt_java_builder_actions(
         associates,
         compile_deps,
         deps_artifacts,
+        experimental_annotation_processing_mode,
         annotation_processors,
         transitive_runtime_jars,
         plugins,
@@ -647,6 +650,14 @@ def _run_kt_java_builder_actions(
                 "kotlin_output_jdeps": kt_jdeps,
             }
 
+        kt_ksp_ap_generated_src_jar = None
+        if annotation_processors and experimental_annotation_processing_mode == "ksp":
+            # Pass in the KSP arguments
+            kt_ksp_ap_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-gensrc.jar")
+            outputs.update({
+                "ksp_generated_java_srcjar": kt_ksp_ap_generated_src_jar,
+            })
+
         _run_kt_builder_action(
             ctx = ctx,
             rule_kind = rule_kind,
@@ -656,7 +667,7 @@ def _run_kt_java_builder_actions(
             associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
-            annotation_processors = [],
+            annotation_processors = [] if not kt_ksp_ap_generated_src_jar else annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = outputs,
@@ -669,6 +680,8 @@ def _run_kt_java_builder_actions(
         output_jars.append(kt_runtime_jar)
         if not annotation_processors or not srcs.kt:
             kt_stubs_for_java.append(JavaInfo(compile_jar = kt_compile_jar, output_jar = kt_runtime_jar, neverlink = True))
+        elif annotation_processors and experimental_annotation_processing_mode == "ksp":
+            generated_src_jars.append(kt_ksp_ap_generated_src_jar)
 
         kt_java_info = JavaInfo(
             output_jar = kt_runtime_jar,

@@ -28,6 +28,7 @@ def _kt_android_artifact(
         kotlinc_opts = None,
         javac_opts = None,
         enable_data_binding = False,
+        experimental_annotation_processing_mode = None,
         tags = [],
         **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
@@ -55,6 +56,7 @@ def _kt_android_artifact(
         srcs = srcs,
         deps = base_deps + [base_name],
         plugins = plugins,
+        experimental_annotation_processing_mode = experimental_annotation_processing_mode,
         friends = friends,
         associates = associates,
         testonly = kwargs.get("testonly", default = False),

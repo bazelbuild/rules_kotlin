@@ -1,0 +1,61 @@
+local_repository(
+    name = "release_archive",
+    path = "../../src/main/starlark/release_archive",
+)
+
+load("@release_archive//:repository.bzl", "archive_repository")
+
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "ksp_version", "versions")
+
+kotlin_repositories(
+    compiler_release = kotlinc_version(
+        release = "1.6.10",
+        sha256 = "432267996d0d6b4b17ca8de0f878e44d4a099b7e9f1587a98edc4d27e76c215a",
+    ),
+    ksp_compiler_release = ksp_version(
+        release = "1.6.10-1.0.2",
+        sha256 = "043cf2b95fce9ad95192369fb5467eded7692ac8e9f9701267738488edcb21d6",
+    ),
+)
+
+register_toolchains("//:kotlin_toolchain")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "rules_jvm_external",
+    sha256 = versions.RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % versions.RULES_JVM_EXTERNAL_TAG,
+)
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = versions.SKYLIB_SHA,
+    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (
+        versions.SKYLIB_VERSION,
+        versions.SKYLIB_VERSION,
+    )],
+)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    artifacts = [
+        "com.squareup.moshi:moshi:1.13.0",
+        "com.squareup.moshi:moshi-kotlin:1.13.0",
+        "com.squareup.moshi:moshi-kotlin-codegen:1.13.0",
+        "org.jetbrains.kotlin:kotlin-stdlib:1.6.10",
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.10",
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10",
+        "org.jetbrains.kotlin:kotlin-stdlib-common:1.6.10",
+        "org.jetbrains.kotlin:kotlin-reflect:1.6.10",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)

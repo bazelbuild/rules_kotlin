@@ -40,7 +40,9 @@ class KotlinToolchain private constructor(
   ),
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
-  val jdepsGen: CompilerPlugin
+  val jdepsGen: CompilerPlugin,
+  val kspSymbolProcessingApi: CompilerPlugin,
+  val kspSymbolProcessingCommandLine: CompilerPlugin,
 ) {
 
   companion object {
@@ -57,8 +59,16 @@ class KotlinToolchain private constructor(
 
     private val COMPILER = BazelRunFiles.resolveVerified(
       RULES_REPOSITORY_NAME,
-      "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
-      "compiler.jar").toPath()
+      "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler", "compiler.jar"
+    ).toPath()
+
+    private val KSP_SYMBOL_PROCESSING_API = BazelRunFiles.resolveVerified(
+      "external", "com_github_google_ksp",  "symbol-processing-api.jar"
+    ).toPath()
+
+    private val KSP_SYMBOL_PROCESSING_CMDLINE = BazelRunFiles.resolveVerified(
+      "external", "com_github_google_ksp",  "symbol-processing-cmdline.jar"
+    ).toPath()
 
     private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerified(
       RULES_REPOSITORY_NAME,
@@ -105,6 +115,9 @@ class KotlinToolchain private constructor(
       val kotlinCompilerJar = BazelRunFiles.resolveVerified(
         "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
 
+      val kspSymbolProcessingApi = KSP_SYMBOL_PROCESSING_API.verified().absoluteFile
+      val kspSymbolProcessingCommandLine = KSP_SYMBOL_PROCESSING_CMDLINE.verified().absoluteFile
+
       val jvmAbiGenFile = jvmAbiGenPath.verified()
       return KotlinToolchain(
         kotlinCompilerJar.toPath().parent.parent,
@@ -118,7 +131,9 @@ class KotlinToolchain private constructor(
             // This may cause issues in accepting user defined compiler plugins.
             jvmAbiGenFile.absoluteFile,
             skipCodeGenFile,
-            jdepsGenFile
+            jdepsGenFile,
+            kspSymbolProcessingApi,
+            kspSymbolProcessingCommandLine,
           )
         ),
         jvmAbiGen = CompilerPlugin(
@@ -130,7 +145,15 @@ class KotlinToolchain private constructor(
         jdepsGen = CompilerPlugin(
           jdepsGenFile.absolutePath,
           "io.bazel.kotlin.plugin.jdeps.JDepsGen"
-        )
+        ),
+        kspSymbolProcessingApi = CompilerPlugin(
+          kspSymbolProcessingApi.absolutePath,
+          "com.google.devtools.ksp.symbol-processing"
+        ),
+        kspSymbolProcessingCommandLine = CompilerPlugin(
+          kspSymbolProcessingCommandLine.absolutePath,
+          "com.google.devtools.ksp.symbol-processing"
+        ),
       )
     }
   }
