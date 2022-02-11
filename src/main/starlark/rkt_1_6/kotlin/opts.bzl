@@ -121,6 +121,30 @@ _KOPTS = {
             True: ["-Xmulti-platform"],
         },
     ),
+    "x_sam_conversions": struct(
+        args = dict(
+            default = "class",
+            doc = "Change codegen behavior of SAM/functional interfaces",
+            values = ["class", "indy"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "class": ["-Xsam-conversions=class"],
+            "indy": ["-Xsam-conversions=indy"],
+        },
+    ),
+    "x_lambdas": struct(
+        args = dict(
+            default = "class",
+            doc = "Change codegen behavior of lambdas",
+            values = ["class", "indy"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "class": ["-Xlambdas=class"],
+            "indy": ["-Xlambdas=indy"],
+        },
+    ),
 }
 
 KotlincOptions = provider(
