@@ -139,10 +139,22 @@ kt_jvm_library(
     ],
 )
 
+kt_jvm_library(
+    name = "ap_only_java",
+    srcs = [
+        "java/TestAutoValue.java",
+    ],
+    plugins = [":autovalue"],
+    deps = [
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+    ],
+)
+
 filegroup(
     name = "kapt",
     srcs = [
         ":ap_kotlin.jar",
+        ":ap_only_java.jar",
         ":ap_kotlin_mixed",
         ":ap_kotlin_mixed_inherit_plugin_via_exported_deps",
         ":ap_kotlin_mixed_multiple_plugins",

@@ -41,6 +41,13 @@ class KotlinJvmKaptAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/ka
   }
 
   @Test
+  fun testJavaOnlyAnnotationProcessing() {
+    jarTestCase("ap_only_java.jar", description = "annotation processing should work when only java sources are specified") {
+      assertContainsEntries("tests/smoke/kapt/java/AutoValue_TestAutoValue.class")
+    }
+  }
+
+  @Test
   fun testMixedModeAnnotationProcessing() {
     jarTestCase(
       "ap_kotlin_mixed.jar",
