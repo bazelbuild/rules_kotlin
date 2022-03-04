@@ -16,7 +16,7 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("@rules_android//android:rules.bzl", "android_ndk_repository", "android_sdk_repository")
+load("@rules_android//android:rules.bzl", "android_sdk_repository")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 
 def kt_configure():
@@ -66,8 +66,6 @@ def kt_configure():
         name = "androidsdk",
         build_tools_version = versions.ANDROID.BUILD_TOOLS,
     )
-
-    android_ndk_repository(name = "androidndk")
 
     [
         native.local_repository(
