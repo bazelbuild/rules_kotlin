@@ -21,12 +21,12 @@ kt_javac_options(
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = "1.5",
+    api_version = "1.6",
     experimental_use_abi_jars = False,
     javac_options = "//:kt_javac_options",
     jvm_target = "1.8",
     kotlinc_options = "//:kt_kotlinc_options",
-    language_version = "1.5",
+    language_version = "1.6",
 )
 
 # Define the compose compiler plugin
@@ -46,8 +46,8 @@ kt_compiler_plugin(
 # Used in 'override_targets' by referencing @//:kotlinx_coroutines_core_jvm
 kt_jvm_import(
     name = "kotlinx_coroutines_core_jvm",
-    jars = ["@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.2/kotlinx-coroutines-core-jvm-1.5.2.jar"],
-    srcjar = "@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.2/kotlinx-coroutines-core-jvm-1.5.2-sources.jar",
+    jars = ["@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.0/kotlinx-coroutines-core-jvm-1.6.0.jar"],
+    srcjar = "@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.0/kotlinx-coroutines-core-jvm-1.6.0-sources.jar",
     visibility = ["//visibility:public"],
     deps = [
         "//stub:sun_misc",
