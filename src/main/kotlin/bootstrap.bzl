@@ -19,7 +19,7 @@ _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
 
 def _resolve_dep_label(d):
     if d.startswith("///src/main/kotlin/io/bazel/kotlin") and not d.endswith("_for_ide"):
-        prefix, _, target = d.rpartition(":")
+        _, _, target = d.rpartition(":")
         if target == None:
             # untested
             return d + "_for_ide"

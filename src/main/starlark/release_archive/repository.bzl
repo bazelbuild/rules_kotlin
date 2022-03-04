@@ -105,6 +105,7 @@ def archive_repository_implementation(repository_ctx):
     }
 
 # not windows compatible.
+# buildifier: disable=unused-variable
 def _find_workspace(attr, environ, path):
     if attr.local_repository_path_env in environ:
         workspace = path(environ[attr.local_repository_path_env])

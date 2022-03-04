@@ -152,7 +152,7 @@ def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
 
 def _adjust_resources_path_by_default_prefixes(path):
     for cp in _CONVENTIONAL_RESOURCE_PATHS:
-        dir_1, dir_2, rel_path = path.partition(cp)
+        _, _, rel_path = path.partition(cp)
         if rel_path:
             return rel_path
     return path
@@ -233,7 +233,7 @@ def _build_resourcejar_action(ctx):
     )
     return resources_jar_output
 
-def _run_merge_jdeps_action(ctx, rule_kind, toolchains, jdeps, outputs, deps):
+def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     """Creates a Jdeps merger action invocation."""
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
@@ -489,7 +489,6 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         )
         _run_merge_jdeps_action(
             ctx = ctx,
-            rule_kind = rule_kind,
             toolchains = toolchains,
             jdeps = [kt_jdeps, java_jdeps],
             deps = compile_deps.deps,
@@ -737,7 +736,6 @@ def _run_kt_java_builder_actions(
 
     _run_merge_jdeps_action(
         ctx = ctx,
-        rule_kind = rule_kind,
         toolchains = toolchains,
         jdeps = jdeps,
         deps = compile_deps.deps,
