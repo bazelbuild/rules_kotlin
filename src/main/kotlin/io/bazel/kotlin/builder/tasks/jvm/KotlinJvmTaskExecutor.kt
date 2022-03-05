@@ -32,8 +32,6 @@ const val X_FRIENDS_PATH_SEPARATOR = ","
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
   private val compiler: KotlinToolchain.KotlincInvoker,
-  private val javaCompiler: JavaCompiler,
-  private val jDepsGenerator: JDepsGenerator,
   private val plugins: InternalCompilerPlugins
 ) {
 
@@ -90,13 +88,6 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                 emptyList()
               }
             }
-            context.execute("javac") {
-              if (compileJava) {
-                javaCompiler.compile(context, this)
-              } else {
-                emptyList()
-              }
-            }
           }
         ).map {
           (it.getOrNull() ?: emptyList()) to it.exceptionOrNull()
@@ -125,9 +116,6 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
         }
         if (outputs.abijar.isNotEmpty()) {
           context.execute("create abi jar", ::createAbiJar)
-        }
-        if (outputs.javaJdeps.isNotEmpty()) {
-          context.execute("generate jdeps for Java compilation") { jDepsGenerator.generateJDeps(this) }
         }
         if (outputs.generatedJavaSrcJar.isNotEmpty()) {
           context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)

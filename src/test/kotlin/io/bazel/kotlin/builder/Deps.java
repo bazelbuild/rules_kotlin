@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.utils.BazelRunFiles;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -51,6 +52,17 @@ public final class Deps {
                     .label(label)
                     .compileJars(
                             ImmutableList.of(BazelRunFiles.resolveVerified(compileJar).getAbsolutePath()))
+                    .build();
+        }
+
+        /**
+         * Import a single dep. Similar to a `kt_jvm_import` or a `kt_js_import`.
+         */
+        public static Dep importJar(String label, File compileJar) {
+            return Dep.builder()
+                    .label(label)
+                    .compileJars(
+                            ImmutableList.of(compileJar.getAbsolutePath()))
                     .build();
         }
 
@@ -97,9 +109,6 @@ public final class Deps {
         @Nullable
         public abstract String jdeps();
 
-        @Nullable
-        public abstract String javaJdeps();
-
         public final String singleCompileJar() {
             Preconditions.checkState(compileJars().size() == 1);
             return compileJars().get(0);
@@ -125,8 +134,6 @@ public final class Deps {
             public abstract Builder sourceJar(String sourceJar);
 
             public abstract Builder jdeps(String jdeps);
-
-            public abstract Builder javaJdeps(String javaJdeps);
 
             public Dep build() {
                 if (!moduleName().isPresent()) {

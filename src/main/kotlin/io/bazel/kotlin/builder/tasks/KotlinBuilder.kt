@@ -88,8 +88,7 @@ class KotlinBuilder @Inject internal constructor(
       POST_PROCESSOR("--post_processor"),
       COMPRESS_JAR("--compress_jar"),
       RULE_KIND("--rule_kind"),
-      TEST_ONLY("--testonly"),
-      BUILD_JAVA("--build_java");
+      TEST_ONLY("--testonly");
     }
 
     enum class KotlinBuilderFlags(override val flag: String) : Flag {
@@ -246,7 +245,6 @@ class KotlinBuilder @Inject internal constructor(
     JvmCompilationTask.newBuilder().let { root ->
       root.info = info
 
-      root.compileJava = argMap.mandatorySingle(JavaBuilderFlags.BUILD_JAVA).toBoolean()
       root.compileKotlin = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean()
       root.instrumentCoverage = argMap.mandatorySingle(
         KotlinBuilderFlags.INSTRUMENT_COVERAGE
@@ -257,7 +255,6 @@ class KotlinBuilder @Inject internal constructor(
         argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
 
         argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
-        argMap.optionalSingle(JavaBuilderFlags.OUTPUT_DEPS_PROTO)?.apply { javaJdeps = this }
         argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
           generatedJavaSrcJar = this
         }

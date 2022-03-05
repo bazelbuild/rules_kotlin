@@ -32,12 +32,10 @@ public class KotlinBuilderJvmAbiTest {
     Deps.Dep d = ctx.runCompileTask(
         c -> {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
-          c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
+          c.addSource("AnotherClass.kt", "package something;", "", "class AnotherClass{}");
           c.outputAbiJar();
-          c.compileJava();
           c.compileKotlin();
           c.outputJdeps();
-          c.outputJavaJdeps();
         });
     ctx.runCompileTask(
         c -> {
@@ -46,7 +44,7 @@ public class KotlinBuilderJvmAbiTest {
               "package dep;",
               "import something.AClass",
               "class Dependent{}");
-          c.outputJar().outputJdeps().outputJavaJdeps().compileKotlin().compileJava();
+          c.outputJar().outputJdeps().compileKotlin();
         });
   }
 
@@ -55,13 +53,11 @@ public class KotlinBuilderJvmAbiTest {
     ctx.runCompileTask(
         c -> {
           c.addSource("AClass.kt", "package something;" + "class AClass{}");
-          c.addSource("AnotherClass.java", "package something;", "", "class AnotherClass{}");
+          c.addSource("AnotherClass.kt", "package something;", "", "class AnotherClass{}");
           c.outputJar();
           c.outputJdeps();
-          c.outputJavaJdeps();
           c.outputAbiJar();
           c.compileKotlin();
-          c.compileJava();
         });
   }
 }

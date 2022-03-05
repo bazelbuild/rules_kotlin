@@ -122,7 +122,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                                     outputs.getAbijar().isEmpty() ? outputs.getJar() : outputs.getAbijar()
                             ))
                             .jdeps(outputs.getJdeps())
-                            .javaJdeps(outputs.getJavaJdeps())
                             .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
                             .sourceJar(taskBuilder.getOutputs().getSrcjar())
                             .build();
@@ -153,7 +152,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public TaskBuilder compileJava() {
-            taskBuilder.setCompileJava(true);
             return this;
         }
 
@@ -215,12 +213,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
         public TaskBuilder kotlinStrictDeps(String level) {
             taskBuilder.getInfoBuilder().setStrictKotlinDeps(level);
-            return this;
-        }
-
-        public TaskBuilder outputJavaJdeps() {
-            taskBuilder.getOutputsBuilder()
-                    .setJavaJdeps(instanceRoot().resolve("java_jdeps_file.jdeps").toAbsolutePath().toString());
             return this;
         }
 

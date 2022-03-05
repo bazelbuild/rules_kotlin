@@ -121,8 +121,6 @@ message JvmCompilationTask {
     string generated_java_stub_jar = 6;
     // The path to the jar containing classes generated from Kotlin annotation processors.
     string generated_class_jar = 7;
-    // The path to the jdeps file from Java compilation.
-    string java_jdeps = 8;
   }
 
   message Inputs {
@@ -164,7 +162,6 @@ message JvmCompilationTask {
   Directories directories = 2;
   Outputs outputs = 3;
   Inputs inputs = 4;
-  bool compile_java = 5;
   bool compile_kotlin = 6;
   bool instrument_coverage = 7;
 }

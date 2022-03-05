@@ -83,7 +83,6 @@ def _kotlin_toolchain_impl(ctx):
             "supports-workers": "1",
             "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
         },
-        experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
@@ -200,11 +199,6 @@ _kt_toolchain = rule(
             doc = """Run workers in multiplex mode.""",
             default = False,
         ),
-        "experimental_use_abi_jars": attr.bool(
-            doc = """Compile using abi jars. Can be disabled for an individual target using the tag
-            `kt_abi_plugin_incompatible`""",
-            default = False,
-        ),
         "experimental_strict_kotlin_deps": attr.string(
             doc = "Report strict deps violations",
             default = "off",
@@ -268,7 +262,6 @@ def define_kt_toolchain(
         language_version = None,
         api_version = None,
         jvm_target = None,
-        experimental_use_abi_jars = False,
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
@@ -293,11 +286,6 @@ def define_kt_toolchain(
                 absolute_target("//kotlin/internal:builder_debug_timings"): ["timings"],
                 "//conditions:default": [],
             }),
-        experimental_use_abi_jars = select({
-            absolute_target("//kotlin/internal:experimental_use_abi_jars"): True,
-            absolute_target("//kotlin/internal:noexperimental_use_abi_jars"): False,
-            "//conditions:default": experimental_use_abi_jars,
-        }),
         experimental_multiplex_workers = experimental_multiplex_workers,
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
@@ -331,15 +319,6 @@ def kt_configure_toolchains():
     kt_javac_options(
         name = "default_javac_options",
         visibility = ["//visibility:public"],
-    )
-
-    native.config_setting(
-        name = "experimental_use_abi_jars",
-        values = {"define": "experimental_use_abi_jars=1"},
-    )
-    native.config_setting(
-        name = "noexperimental_use_abi_jars",
-        values = {"define": "experimental_use_abi_jars=0"},
     )
 
     native.config_setting(

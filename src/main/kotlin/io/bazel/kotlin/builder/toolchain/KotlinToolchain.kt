@@ -143,22 +143,6 @@ class KotlinToolchain private constructor(
 
   data class CompilerPlugin(val jarPath: String, val id: String)
 
-  @Singleton
-  class JavacInvoker @Inject constructor(toolchain: KotlinToolchain) {
-    private val c = toolchain.classLoader.loadClass("com.sun.tools.javac.Main")
-    private val m = c.getMethod("compile", Array<String>::class.java)
-    private val mPw = c.getMethod("compile", Array<String>::class.java, PrintWriter::class.java)
-    fun compile(args: Array<String>) = m.invoke(c, args) as Int
-    fun compile(args: Array<String>, out: PrintWriter) = mPw.invoke(c, args, out) as Int
-  }
-
-  @Singleton
-  class JDepsInvoker @Inject constructor(toolchain: KotlinToolchain) {
-    private val clazz = toolchain.classLoader.loadClass("com.sun.tools.jdeps.Main")
-    private val method = clazz.getMethod("run", Array<String>::class.java, PrintWriter::class.java)
-    fun run(args: Array<String>, out: PrintWriter): Int = method.invoke(clazz, args, out) as Int
-  }
-
   open class KotlinCliToolInvoker internal constructor(
     toolchain: KotlinToolchain,
     clazz: String
