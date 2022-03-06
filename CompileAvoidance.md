@@ -6,7 +6,20 @@
 
 **rules_kotlin** now supports compilation avoidance through the use of ABI jars (also known as
 interface or header jars) for classpath dependencies. This can have significant performance wins for
-non-ABI affecting changes since down stream recompilation can be avoided in such cases.
+non-ABI affecting changes since down stream recompilation can be avoided in such cases. 
+
+This feature can be enabled through the `experimental_use_abi_jars` flag in the tool chain as
+follows
+
+```python
+load("//kotlin:core.bzl", "define_kt_toolchain")
+
+
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    experimental_use_abi_jars = True,
+)
+```
 
 This feature is implemented using the Jetbrains Kotlin JvmABI compiler plugin for generating headers
 for Kotlin code. Unfortunately there are some known bugs with this plugin that affect less than 1%

@@ -415,6 +415,7 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 ## define_kt_toolchain
 
 <pre>
+define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#define_kt_toolchain-language_version">language_version</a>, <a href="#define_kt_toolchain-api_version">api_version</a>, <a href="#define_kt_toolchain-jvm_target">jvm_target</a>, <a href="#define_kt_toolchain-experimental_use_abi_jars">experimental_use_abi_jars</a>,
                     <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>, <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>,
                     <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>, <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>,
                     <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>)
@@ -431,6 +432,7 @@ Define the Kotlin toolchain.
 | language_version |  <p align="center"> - </p>   |  <code>None</code> |
 | api_version |  <p align="center"> - </p>   |  <code>None</code> |
 | jvm_target |  <p align="center"> - </p>   |  <code>None</code> |
+| experimental_use_abi_jars |  <p align="center"> - </p>   |  <code>False</code> |
 | experimental_strict_kotlin_deps |  <p align="center"> - </p>   |  <code>None</code> |
 | experimental_report_unused_deps |  <p align="center"> - </p>   |  <code>None</code> |
 | experimental_reduce_classpath_mode |  <p align="center"> - </p>   |  <code>None</code> |
