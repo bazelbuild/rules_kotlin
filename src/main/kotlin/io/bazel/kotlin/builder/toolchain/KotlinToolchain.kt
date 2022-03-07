@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
 import java.io.PrintStream
-import java.io.PrintWriter
 import java.lang.reflect.Method
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -73,9 +72,16 @@ class KotlinToolchain private constructor(
 
     internal val NO_ARGS = arrayOf<Any>()
 
-    private fun createClassLoader(baseJars: List<File>): ClassLoader =
+    private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
+
+    private fun createClassLoader(javaHome: Path, baseJars: List<File>): ClassLoader =
       ClassPreloadingUtils.preloadClasses(
-        baseJars,
+        mutableListOf<File>().also {
+          it += baseJars
+          if (!isJdk9OrNewer) {
+            it += javaHome.resolveVerified("lib", "tools.jar")
+          }
+        },
         Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
         ClassLoader.getSystemClassLoader(),
         null
@@ -88,6 +94,11 @@ class KotlinToolchain private constructor(
 
     @JvmStatic
     fun createToolchain(jvmAbiGenPath: Path): KotlinToolchain {
+      val df = FileSystems.getDefault()
+      val javaHome = df.getPath(System.getProperty("java.home")).let { path ->
+        path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
+      }.verifiedPath()
+
       val skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified().absoluteFile
       val jdepsGenFile = JDEPS_GEN_PLUGIN.verified().absoluteFile
 
@@ -98,6 +109,7 @@ class KotlinToolchain private constructor(
       return KotlinToolchain(
         kotlinCompilerJar.toPath().parent.parent,
         createClassLoader(
+          javaHome,
           listOf(
             kotlinCompilerJar,
             COMPILER.verified().absoluteFile,
