@@ -83,7 +83,7 @@ def merge_plugin_infos(attrs):
         transitive_runtime_jars = _targets_to_transitive_runtime_jars(attrs),
     )
 
-def _kt_jvm_plugin_aspect_impl(target, ctx):
+def _kt_jvm_plugin_aspect_impl(_, ctx):
     if ctx.rule.kind == "java_plugin":
         processor = ctx.rule.attr
         merged_deps = java_common.merge([j[JavaInfo] for j in processor.deps])

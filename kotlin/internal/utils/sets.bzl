@@ -24,7 +24,6 @@ dictionaries from other sources may result in equality failing, and other odd be
 
 _UNDEFINED = "__UNDEFINED__"
 _EMPTY = "__EMPTY__"  # Check when changing this to keep in sync with sets.bzl
-_SET_DICTIONARY_KEY = "_____SET_DICTIONARY_KEY______"
 
 def _contains(set, item):
     """Returns true if the set contains the supplied item"""
