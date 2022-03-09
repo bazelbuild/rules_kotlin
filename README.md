@@ -23,6 +23,8 @@ Main branch: `master`
   - do some better memory handling between work requests
   - separate out jvm, js, and android rules (i.e. so projects aren't required to have everything android configured if htey don't use it, etc.)
   - fixes to examples (jetpack compose, etc.)
+* <b>Oct 01, 2021.</b> Released version [1.5.0-beta-4](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-4).
+* <b>Jul 27, 2021.</b> Released version [1.5.0-beta-3](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-3).
 * <b>Dec 30, 2020.</b> Released version [1.5.0-alpha-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-2). Includes:
   - Expanded kotlinc options
   - New optimized compilation path (using JavaBuilder) `--define=experimental_use_abi_jars=1`.

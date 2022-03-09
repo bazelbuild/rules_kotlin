@@ -108,6 +108,7 @@ def kt_js_library_impl(ctx):
         ),
     ]
 
+# buildifier: disable=unused-variable
 def _strip_version(jarfile):
     """strip version suffix if present
        e.g. kotlinx-html-js-0.6.12.jar ->  kotlinx-html-js.jar

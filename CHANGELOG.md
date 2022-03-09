@@ -2,7 +2,13 @@
 
 |  Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News  | 
 | :----------- | -------- |
-| Nov 16, 2020  | Released version [1.4.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc4). |
+| Feb 2, 2022  | Released version [1.5.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0). |
+| Oct 01, 2021 | Released version [1.5.0-beta-4](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-4). |
+| Jul 27, 2021 | Released version [1.5.0-beta-3](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-3). |
+| Jul 13, 2021 | Released version [1.5.0-beta-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-2). |
+| Dec 30, 2020 | Released version [1.5.0-alpha-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-2). |
+| Dec 3, 2020  | Released version [1.5.0-alpha-1](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-1). |
+| Nov 16, 2020 | Released version [1.4.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc4). |
 | May 9, 2020  | Released version [1.4.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc3). |
 | May 7, 2020  | Released version [1.4.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc2). |
 | May 1, 2020  | Released version [1.4.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc1). |

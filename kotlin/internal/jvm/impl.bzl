@@ -53,7 +53,7 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
         ] + list(additional_providers),
     )
 
-def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper_preamble = ""):
+def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     """Macro that writes out a launcher script shell script.
       Args:
         rjars: All of the runtime jars required to launch this java target.
@@ -143,6 +143,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, args = "", wrapper
         is_executable = True,
     )
 
+# buildifier: disable=unused-variable
 def _is_source_jar_stub(jar):
     """Workaround for intellij plugin expecting a source jar"""
     return jar.path.endswith("third_party/empty.jar")
