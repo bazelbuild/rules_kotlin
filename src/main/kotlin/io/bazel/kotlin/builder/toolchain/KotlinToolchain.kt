@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
 import java.io.PrintStream
-import java.io.PrintWriter
 import java.lang.reflect.Method
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -35,11 +34,6 @@ import javax.inject.Singleton
 class KotlinToolchain private constructor(
   val kotlinHome: Path,
   val classLoader: ClassLoader,
-  val kotlinStandardLibraries: List<String> = listOf(
-    "kotlin-stdlib.jar",
-    "kotlin-stdlib-jdk7.jar",
-    "kotlin-stdlib-jdk8.jar"
-  ),
   val kapt3Plugin: CompilerPlugin = CompilerPlugin(
     kotlinHome.resolveVerified("lib", "kotlin-annotation-processing.jar").absolutePath,
     "org.jetbrains.kotlin.kapt3"
@@ -142,22 +136,6 @@ class KotlinToolchain private constructor(
   }
 
   data class CompilerPlugin(val jarPath: String, val id: String)
-
-  @Singleton
-  class JavacInvoker @Inject constructor(toolchain: KotlinToolchain) {
-    private val c = toolchain.classLoader.loadClass("com.sun.tools.javac.Main")
-    private val m = c.getMethod("compile", Array<String>::class.java)
-    private val mPw = c.getMethod("compile", Array<String>::class.java, PrintWriter::class.java)
-    fun compile(args: Array<String>) = m.invoke(c, args) as Int
-    fun compile(args: Array<String>, out: PrintWriter) = mPw.invoke(c, args, out) as Int
-  }
-
-  @Singleton
-  class JDepsInvoker @Inject constructor(toolchain: KotlinToolchain) {
-    private val clazz = toolchain.classLoader.loadClass("com.sun.tools.jdeps.Main")
-    private val method = clazz.getMethod("run", Array<String>::class.java, PrintWriter::class.java)
-    fun run(args: Array<String>, out: PrintWriter): Int = method.invoke(clazz, args, out) as Int
-  }
 
   open class KotlinCliToolInvoker internal constructor(
     toolchain: KotlinToolchain,

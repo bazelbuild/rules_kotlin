@@ -31,81 +31,18 @@ import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
-internal class JDepsGenerator @Inject constructor(
-  toolchain: KotlinToolchain,
-  private val invoker: KotlinToolchain.JDepsInvoker
-) {
-  private val isKotlinImplicit = JdepsParser.pathSuffixMatchingPredicate(
-    toolchain.kotlinHome.resolveVerified("lib").toPath(),
-    *toolchain.kotlinStandardLibraries.toTypedArray()
-  )
-
-  fun generateJDeps(command: JvmCompilationTask) {
-    val jdepsContent =
-      if (command.inputs.classpathList.isEmpty()) {
-        emptyJdeps(command.info.label)
-      } else {
-        ByteArrayOutputStream().use { out ->
-          PrintWriter(out).use { writer ->
-            val joinedClasspath = command.inputs.joinedClasspath
-            val version = System.getProperty("java.version").majorJavaVersion()
-            val multiRelease =
-              if (version < 9) arrayOf() else arrayOf("--multi-release", "base")
-            val javaClassDir = command.directories.javaClasses
-            val args = multiRelease + arrayOf("-R", "-summary", "-cp", joinedClasspath, javaClassDir)
-            val res = invoker.run(args, writer)
-            out.toByteArray().inputStream().bufferedReader().readLines().let {
-              if (res != 0) {
-                throw CompilationStatusException("could not run jdeps tool", res, it)
-              } else try {
-                JdepsParser.parse(
-                  command.info.label,
-                  javaClassDir,
-                  command.inputs.directDependenciesList,
-                  it,
-                  isKotlinImplicit
-                )
-              } catch (e: Exception) {
-                throw CompilationException("error reading or parsing jdeps file", e.rootCause)
-              }
-            }
-          }
-        }
-      }
-    writeJdeps(command.outputs.javaJdeps, jdepsContent)
-  }
-
-  companion object {
-    internal fun writeJdeps(path: String, jdepsContent: Deps.Dependencies) {
-      Paths.get(path).also {
-        Files.deleteIfExists(it)
-        FileOutputStream(Files.createFile(it).toFile()).use(jdepsContent::writeTo)
-      }
-    }
-
-    internal fun emptyJdeps(label: String): Deps.Dependencies {
-      return Deps.Dependencies.newBuilder().let {
-        it.ruleLabel = label
-        it.build()
-      }
+object JDepsGenerator {
+  internal fun writeJdeps(path: String, jdepsContent: Deps.Dependencies) {
+    Paths.get(path).also {
+      Files.deleteIfExists(it)
+      FileOutputStream(Files.createFile(it).toFile()).use(jdepsContent::writeTo)
     }
   }
-}
 
-/**
- * Extract the normalized major version from the java.version property.
- *
- * This is more complex than simply taking the first term because later versions of the JVM changed
- * from reporting the version in the `1.x.y_z` format (e.g. `1.8.0_202`) in favor of `x.y.z` (e.g.
- * `11.0.1`). As a result, this function checks for a major version of "1" and if it's so, use the
- * minor version as the major one. Otherwise, it uses the first term as the major version.
- *
- * Also note that the java.version does not include trailing zero elements.
- */
-private fun String.majorJavaVersion(): Int {
-  val elements = this.trim().split('.')
-  val major = elements[0]
-  val parsedMajor = Integer.parseInt(major)
-  return if (parsedMajor == 1) Integer.parseInt(elements[1]) else parsedMajor
+  internal fun emptyJdeps(label: String): Deps.Dependencies {
+    return Deps.Dependencies.newBuilder().let {
+      it.ruleLabel = label
+      it.build()
+    }
+  }
 }

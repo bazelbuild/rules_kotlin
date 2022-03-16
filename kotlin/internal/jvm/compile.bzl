@@ -442,68 +442,24 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
 
     generated_src_jars = []
     annotation_processing = None
-    if toolchains.kt.experimental_use_abi_jars:
-        compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
-        outputs_struct = _run_kt_java_builder_actions(
-            ctx = ctx,
-            rule_kind = rule_kind,
-            toolchains = toolchains,
-            srcs = srcs,
-            generated_src_jars = [],
-            associates = associates,
-            compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
-            annotation_processors = annotation_processors,
-            transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
-            compile_jar = compile_jar,
-        )
-        output_jars = outputs_struct.output_jars
-        generated_src_jars = outputs_struct.generated_src_jars
-        annotation_processing = outputs_struct.annotation_processing
-
-    else:
-        kt_java_output_jar = ctx.actions.declare_file(ctx.label.name + "-kt-java.jar")
-        kt_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-gensrc.jar")
-
-        kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
-        java_jdeps = ctx.actions.declare_file(ctx.label.name + "-java.jdeps")
-        _run_kt_builder_action(
-            ctx = ctx,
-            rule_kind = rule_kind,
-            toolchains = toolchains,
-            srcs = srcs,
-            generated_src_jars = [],
-            associates = associates,
-            compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
-            annotation_processors = annotation_processors,
-            transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
-            outputs = {
-                "output": kt_java_output_jar,
-                "kotlin_output_jdeps": kt_jdeps,
-                "output_deps_proto": java_jdeps,
-                "generated_java_srcjar": kt_generated_java_srcjar,
-            },
-        )
-        _run_merge_jdeps_action(
-            ctx = ctx,
-            toolchains = toolchains,
-            jdeps = [kt_jdeps, java_jdeps],
-            deps = compile_deps.deps,
-            outputs = {
-                "output": ctx.outputs.jdeps,
-            },
-        )
-        compile_jar = kt_java_output_jar
-        output_jars = [kt_java_output_jar]
-        generated_src_jars = [kt_generated_java_srcjar]
-        annotation_processors = _create_annotation_processing(
-            annotation_processors = annotation_processors,
-            ap_class_jar = kt_java_output_jar,
-            ap_source_jar = kt_generated_java_srcjar,
-        )
+    compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
+    outputs_struct = _run_kt_java_builder_actions(
+        ctx = ctx,
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        srcs = srcs,
+        generated_src_jars = [],
+        associates = associates,
+        compile_deps = compile_deps,
+        deps_artifacts = deps_artifacts,
+        annotation_processors = annotation_processors,
+        transitive_runtime_jars = transitive_runtime_jars,
+        plugins = plugins,
+        compile_jar = compile_jar,
+    )
+    output_jars = outputs_struct.output_jars
+    generated_src_jars = outputs_struct.generated_src_jars
+    annotation_processing = outputs_struct.annotation_processing
 
     # If this rule has any resources declared setup a zipper action to turn them into a jar.
     if len(ctx.files.resources) > 0:
@@ -638,7 +594,7 @@ def _run_kt_java_builder_actions(
     if srcs.kt or srcs.src_jars:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
         kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
-        if not "kt_abi_plugin_incompatible" in ctx.attr.tags:
+        if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
             outputs = {
                 "output": kt_runtime_jar,

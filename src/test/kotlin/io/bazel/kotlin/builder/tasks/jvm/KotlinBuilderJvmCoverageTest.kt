@@ -30,13 +30,6 @@ class KotlinBuilderJvmCoverageTest {
   @Test
   fun `generates coverage metadata`() {
     val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("JavaClass.java",
-        """
-          package something;
-          
-          class JavaClass {
-          }
-        """)
       c.addSource("KotlinClass.kt",
         """
             package something
@@ -45,14 +38,37 @@ class KotlinBuilderJvmCoverageTest {
           """)
       c.outputJar()
       c.compileKotlin()
-      c.compileJava()
       c.coverage()
       c.outputJdeps()
-      c.outputJavaJdeps()
     })
 
-    ctx.assertFilesExist(DirectoryType.COVERAGE_METADATA, "something/JavaClass.class.uninstrumented")
     ctx.assertFilesExist(DirectoryType.COVERAGE_METADATA, "something/KotlinClass.class.uninstrumented")
+    ctx.assertFilesExist(DirectoryType.COVERAGE_METADATA, "jar_file.jar-paths-for-coverage.txt")
+  }
+
+  @Test
+  fun `generates coverage metadata for multiple Kotlin classes`() {
+    val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("KotlinClass.kt",
+        """
+          package something;
+          
+          class KotlinClass {}
+        """)
+      c.addSource("AnotherKotlinClass.kt",
+        """
+            package something
+            
+            class AnotherKotlinClass {}
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.coverage()
+      c.outputJdeps()
+    })
+
+    ctx.assertFilesExist(DirectoryType.COVERAGE_METADATA, "something/KotlinClass.class.uninstrumented")
+    ctx.assertFilesExist(DirectoryType.COVERAGE_METADATA, "something/AnotherKotlinClass.class.uninstrumented")
     ctx.assertFilesExist(DirectoryType.COVERAGE_METADATA, "jar_file.jar-paths-for-coverage.txt")
   }
 }

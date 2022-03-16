@@ -18,11 +18,14 @@ package io.bazel.kotlin.builder.tasks.jvm;
 
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.view.proto.Deps
+import io.bazel.kotlin.builder.Deps.*
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
+import io.bazel.kotlin.builder.utils.BazelRunFiles
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.BufferedInputStream
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.function.Consumer
@@ -30,6 +33,13 @@ import java.util.function.Consumer
 @RunWith(JUnit4::class)
 class KotlinBuilderJvmJdepsTest {
   val ctx = KotlinJvmTestBuilder()
+
+  val TEST_FIXTURES_DEP = Dep.importJar(
+    "testFixtures",
+    BazelRunFiles.resolveVerified(
+      "dev_io_bazel_rules_kotlin", "src", "test", "kotlin", "io", "bazel", "kotlin", "builder", "tasks", "libJdepsParserTestFixtures.jar"
+    )
+  )
 
   @Test
   fun `no kotlin source produces empty jdeps`() {
@@ -45,8 +55,6 @@ class KotlinBuilderJvmJdepsTest {
       c.outputJar()
       c.outputJdeps()
       c.compileKotlin()
-      c.compileJava()
-      c.outputJavaJdeps()
     })
     val jdeps = depsProto(deps)
 
@@ -58,12 +66,7 @@ class KotlinBuilderJvmJdepsTest {
   fun `no dependencies`() {
 
     val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AClass.kt",
-        """
-            package something
-            
-            class AClass{}
-          """)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
       c.outputJar()
       c.outputJdeps()
       c.compileKotlin()
@@ -75,60 +78,7 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
-  fun `java class reference`() {
-
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AClass.kt",
-        """
-          package something
-          
-          class AClass{}
-        """)
-      c.outputJar()
-      c.outputJdeps()
-      c.compileKotlin()
-    })
-
-    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AnotherClass.java",
-        """
-          package something;
-          
-          class AnotherClass {
-            public AClass ref = null;
-          }
-        """)
-      c.outputJar()
-      c.compileJava()
-      c.outputJavaJdeps()
-      c.addDirectDependencies(dependentTarget)
-    })
-    val jdeps = javaDepsProto(dependingTarget)
-
-    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
-
-    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
-    assertImplicit(jdeps).isEmpty()
-    assertUnused(jdeps).isEmpty()
-    assertIncomplete(jdeps).isEmpty()
-  }
-
-  @Test
   fun `java class static reference`() {
-
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("JavaClass.java",
-        """
-          package something;
-          
-          class JavaClass {
-            public static boolean staticMethod() { return true; }
-          }
-        """)
-      c.outputJar()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AClass.kt",
         """
@@ -139,11 +89,11 @@ class KotlinBuilderJvmJdepsTest {
       c.outputJar()
       c.compileKotlin()
       c.outputJdeps()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
     })
     val jdeps = depsProto(dependingTarget)
 
-    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).containsExactly(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -151,21 +101,6 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `java constant reference`() {
-
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("Constants.java",
-        """
-          package something;
-          
-          public interface Constants {
-              int HELLO_CONSTANT = 100;
-          }
-        """)
-      c.outputJar()
-      c.outputJavaJdeps()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AnotherClass.kt",
         """
@@ -180,13 +115,13 @@ class KotlinBuilderJvmJdepsTest {
       c.outputJar()
       c.compileKotlin()
       c.outputJdeps()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
     })
     val jdeps = depsProto(dependingTarget)
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).containsExactly(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -194,24 +129,6 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `java annotation reference`() {
-
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("JavaAnnotation.java",
-        """
-          package something;
-          
-          import java.lang.annotation.Retention;
-          import java.lang.annotation.RetentionPolicy;
-          
-          @Retention(RetentionPolicy.RUNTIME)          
-          public @interface JavaAnnotation {
-          }
-        """)
-      c.outputJar()
-      c.outputJavaJdeps()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AnotherClass.kt",
         """
@@ -227,13 +144,13 @@ class KotlinBuilderJvmJdepsTest {
       c.outputJar()
       c.compileKotlin()
       c.outputJdeps()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
     })
     val jdeps = depsProto(dependingTarget)
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -282,20 +199,6 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `cyclic generic type references`() {
-
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AbstractObjectAssert.java",
-        """
-          package pkg.assertion;
-          
-          public class AbstractObjectAssert<SELF extends AbstractObjectAssert<SELF, ACTUAL>, ACTUAL> {
-          }
-        """)
-      c.outputJar()
-      c.outputJavaJdeps()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("FooAssert.kt",
         """
@@ -310,13 +213,13 @@ class KotlinBuilderJvmJdepsTest {
       c.outputJar()
       c.compileKotlin()
       c.outputJdeps()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
     })
     val jdeps = depsProto(dependingTarget)
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -324,23 +227,6 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `java annotation on property is an explict dep`() {
-
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("JavaAnnotation.java",
-        """
-          package something;
-          
-          import java.lang.annotation.Retention;
-          import java.lang.annotation.RetentionPolicy;
-          
-          @Retention(RetentionPolicy.RUNTIME)          
-          public @interface JavaAnnotation {
-          }
-        """)
-      c.outputJar()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AnotherClass.kt",
         """
@@ -354,13 +240,13 @@ class KotlinBuilderJvmJdepsTest {
       c.outputJar()
       c.compileKotlin()
       c.outputJdeps()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
     })
     val jdeps = depsProto(dependingTarget)
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -368,21 +254,6 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `java annotation with field target on companion object property is an explict dep`() {
-
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("LayoutRes.java",
-        """
-          package androidx.annotation;
-          import static java.lang.annotation.ElementType.FIELD;
-          import java.lang.annotation.Target;
-          @Target({FIELD})
-          public @interface LayoutRes {
-          }
-        """)
-      c.outputJar()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("AnotherClass.kt",
         """
@@ -401,13 +272,13 @@ class KotlinBuilderJvmJdepsTest {
       c.outputJar()
       c.compileKotlin()
       c.outputJdeps()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
     })
     val jdeps = depsProto(dependingTarget)
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -664,22 +535,6 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `kotlin property definition`() {
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("JavaClass.java",
-        """
-            package something;
-   
-            public class JavaClass {
-              public interface InnerJavaClass {
-  
-              }          
-            }
-          """)
-      c.outputJar()
-      c.outputJavaJdeps()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("HasPropertyDefinition.kt",
         """
@@ -692,14 +547,14 @@ class KotlinBuilderJvmJdepsTest {
           """)
       c.outputJar()
       c.compileKotlin()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
       c.outputJdeps()
     })
     val jdeps = depsProto(dependingTarget)
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).containsExactly(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -707,19 +562,6 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `java enum reference`() {
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("InnerJavaEnum.java",
-        """
-            package something;
-
-            public enum InnerJavaEnum {
-                A_VALUE;
-            }
-          """)
-      c.outputJar()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("HasPropertyDefinition.kt",
         """
@@ -732,14 +574,14 @@ class KotlinBuilderJvmJdepsTest {
           """)
       c.outputJar()
       c.compileKotlin()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
       c.outputJdeps()
     })
     val jdeps = depsProto(dependingTarget)
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).containsExactly(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -929,22 +771,6 @@ class KotlinBuilderJvmJdepsTest {
 
   @Test
   fun `constructor param inner class recorded`() {
-    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("JavaClass.java",
-        """
-          package something;
- 
-          public class JavaClass {
-            public interface InnerJavaClass {
-
-            }          
-          }
-        """)
-      c.outputJar()
-      c.outputJavaJdeps()
-      c.compileJava()
-    })
-
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("HasConstructorDependency.kt",
         """
@@ -956,14 +782,14 @@ class KotlinBuilderJvmJdepsTest {
           """)
       c.outputJar()
       c.compileKotlin()
-      c.addDirectDependencies(dependentTarget)
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
       c.outputJdeps()
     })
     val jdeps = depsProto(dependingTarget)
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-    assertExplicit(jdeps).containsExactly(dependentTarget.singleCompileJar())
+    assertExplicit(jdeps).containsExactly(TEST_FIXTURES_DEP.singleCompileJar())
     assertImplicit(jdeps).isEmpty()
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
@@ -1107,6 +933,7 @@ class KotlinBuilderJvmJdepsTest {
     assertUnused(jdeps).isEmpty()
     assertIncomplete(jdeps).isEmpty()
   }
+
   @Test
   fun `property reference should collect indirect super class as implicit dependency`() {
     val implicitSuperClassDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
@@ -1240,23 +1067,18 @@ class KotlinBuilderJvmJdepsTest {
     })
 
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-      c.addSource("AnotherClass.java",
-        """
-          package something.reference;
-          
-          class AnotherClass<T> {
-          }
-        """)
       c.addSource("ReferencesGenericTypeWithSuperClass.kt",
         """
             package something.reference
             
             import something.derived.Derived
+            import something.AnotherClass
 
             internal class HasConstructorDependency constructor(genericRef: AnotherClass<Derived>) {}
           """)
       c.outputJar()
       c.compileKotlin()
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
       c.addDirectDependencies(explicitSuperClassDep)
       c.addTransitiveDependencies(implicitSuperClassDep)
       c.outputJdeps()
@@ -1265,6 +1087,7 @@ class KotlinBuilderJvmJdepsTest {
 
     assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
+    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
     assertExplicit(jdeps).contains(explicitSuperClassDep.singleCompileJar())
     assertImplicit(jdeps).contains(implicitSuperClassDep.singleCompileJar())
     assertUnused(jdeps).isEmpty()
@@ -1318,7 +1141,6 @@ class KotlinBuilderJvmJdepsTest {
           """)
       c.outputJar()
       c.compileKotlin()
-      c.compileJava()
       c.addDirectDependencies(explicitSuperClassDep)
       c.addTransitiveDependencies(implicitSuperClassDep)
       c.outputJdeps()
@@ -1613,11 +1435,8 @@ class KotlinBuilderJvmJdepsTest {
     assertImplicit(jdeps).doesNotContain(depWithReturnTypesSuperType)
   }
 
-  private fun depsProto(jdeps: io.bazel.kotlin.builder.Deps.Dep) =
+  private fun depsProto(jdeps: Dep) =
     Deps.Dependencies.parseFrom(BufferedInputStream(Files.newInputStream(Paths.get(jdeps.jdeps()!!))))
-
-  private fun javaDepsProto(jdeps: io.bazel.kotlin.builder.Deps.Dep) =
-    Deps.Dependencies.parseFrom(BufferedInputStream(Files.newInputStream(Paths.get(jdeps.javaJdeps()!!))))
 
   private fun assertExplicit(jdeps: Deps.Dependencies) = assertThat(
     jdeps.dependencyList.filter { it.kind == Deps.Dependency.Kind.EXPLICIT }.map { it.path }
