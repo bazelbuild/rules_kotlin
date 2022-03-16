@@ -19,15 +19,12 @@ package io.bazel.kotlin.builder.toolchain
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.verified
-import io.bazel.kotlin.builder.utils.verifiedPath
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
 import java.io.PrintStream
 import java.lang.reflect.Method
-import java.nio.file.FileSystems
 import java.nio.file.Path
-import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -82,16 +79,9 @@ class KotlinToolchain private constructor(
 
     internal val NO_ARGS = arrayOf<Any>()
 
-    private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
-
-    private fun createClassLoader(javaHome: Path, baseJars: List<File>): ClassLoader =
+    private fun createClassLoader(baseJars: List<File>): ClassLoader =
       ClassPreloadingUtils.preloadClasses(
-        mutableListOf<File>().also {
-          it += baseJars
-          if (!isJdk9OrNewer) {
-            it += javaHome.resolveVerified("lib", "tools.jar")
-          }
-        },
+        baseJars,
         Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
         ClassLoader.getSystemClassLoader(),
         null,
@@ -104,11 +94,6 @@ class KotlinToolchain private constructor(
 
     @JvmStatic
     fun createToolchain(jvmAbiGenPath: Path): KotlinToolchain {
-      val df = FileSystems.getDefault()
-      val javaHome = df.getPath(System.getProperty("java.home")).let { path ->
-        path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
-      }.verifiedPath()
-
       val skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified().absoluteFile
       val jdepsGenFile = JDEPS_GEN_PLUGIN.verified().absoluteFile
 
@@ -120,7 +105,6 @@ class KotlinToolchain private constructor(
       return KotlinToolchain(
         kotlinCompilerJar.toPath().parent.parent,
         createClassLoader(
-          javaHome,
           listOf(
             kotlinCompilerJar,
             COMPILER.verified().absoluteFile,
