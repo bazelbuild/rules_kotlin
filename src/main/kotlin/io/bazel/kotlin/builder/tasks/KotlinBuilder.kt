@@ -49,49 +49,21 @@ class KotlinBuilder @Inject internal constructor(
     @JvmStatic
     private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
 
-    /**
-     * Declares the flags used by the java builder.
-     */
-    enum class JavaBuilderFlags(override val flag: String) : Flag {
+    enum class KotlinBuilderFlags(override val flag: String) : Flag {
       TARGET_LABEL("--target_label"),
       CLASSPATH("--classpath"),
-      JAVAC_OPTS("--javacopts"),
-      DEPENDENCIES("--dependencies"),
       DIRECT_DEPENDENCIES("--direct_dependencies"),
-      DIRECT_DEPENDENCY("--direct_dependency"),
-      INDIRECT_DEPENDENCY("--indirect_dependency"),
-      STRICT_JAVA_DEPS("--strict_java_deps"),
-      OUTPUT_DEPS_PROTO("--output_deps_proto"),
       DEPS_ARTIFACTS("--deps_artifacts"),
-      REDUCE_CLASSPATH("--reduce_classpath"),
-      SOURCEGEN_DIR("--sourcegendir"),
-      GENERATED_SOURCES_OUTPUT("--generated_sources_output"),
-      OUTPUT_MANIFEST_PROTO("--output_manifest_proto"),
       SOURCES("--sources"),
-      SOURCE_ROOTS("--source_roots"),
       SOURCE_JARS("--source_jars"),
-      SOURCE_PATH("--sourcepath"),
-      BOOT_CLASSPATH("--bootclasspath"),
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
       STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
       STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
       COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
       COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
-      EXT_CLASSPATH("--extclasspath"),
-      EXT_DIR("--extdir"),
       OUTPUT("--output"),
-      NATIVE_HEADER_OUTPUT("--native_header_output"),
-      CLASSDIR("--classdir"),
-      TEMPDIR("--tempdir"),
-      GENDIR("--gendir"),
-      POST_PROCESSOR("--post_processor"),
-      COMPRESS_JAR("--compress_jar"),
       RULE_KIND("--rule_kind"),
-      TEST_ONLY("--testonly");
-    }
-
-    enum class KotlinBuilderFlags(override val flag: String) : Flag {
       MODULE_NAME("--kotlin_module_name"),
       PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
       API_VERSION("--kotlin_api_version"),
@@ -113,7 +85,7 @@ class KotlinBuilder @Inject internal constructor(
       BUILD_KOTLIN("--build_kotlin"),
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
-      INSTRUMENT_COVERAGE("--instrument_coverage")
+      INSTRUMENT_COVERAGE("--instrument_coverage");
     }
   }
 
@@ -165,8 +137,8 @@ class KotlinBuilder @Inject internal constructor(
     with(CompilationTaskInfo.newBuilder()) {
       addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
 
-      label = argMap.mandatorySingle(JavaBuilderFlags.TARGET_LABEL)
-      argMap.mandatorySingle(JavaBuilderFlags.RULE_KIND).split("_").also {
+      label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
+      argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).split("_").also {
         check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
         platform = checkNotNull(Platform.valueOf(it[1].uppercase())) {
           "unrecognized platform ${it[1]}"
@@ -214,10 +186,10 @@ class KotlinBuilder @Inject internal constructor(
 
       with(inputsBuilder) {
         addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_LIBRARIES))
-        addAllKotlinSources(argMap.mandatory(JavaBuilderFlags.SOURCES))
+        addAllKotlinSources(argMap.mandatory(KotlinBuilderFlags.SOURCES))
       }
       with(outputsBuilder) {
-        js = argMap.mandatorySingle(JavaBuilderFlags.OUTPUT)
+        js = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT)
         jar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_JS_JAR)
         srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
       }
@@ -251,7 +223,7 @@ class KotlinBuilder @Inject internal constructor(
       ).toBoolean()
 
       with(root.outputsBuilder) {
-        argMap.optionalSingle(JavaBuilderFlags.OUTPUT)?.let { jar = it }
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT)?.let { jar = it }
         argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
 
         argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
@@ -295,36 +267,36 @@ class KotlinBuilder @Inject internal constructor(
       }
 
       with(root.inputsBuilder) {
-        addAllClasspath(argMap.mandatory(JavaBuilderFlags.CLASSPATH))
+        addAllClasspath(argMap.mandatory(KotlinBuilderFlags.CLASSPATH))
         addAllDepsArtifacts(
-          argMap.optional(JavaBuilderFlags.DEPS_ARTIFACTS) ?: emptyList()
+          argMap.optional(KotlinBuilderFlags.DEPS_ARTIFACTS) ?: emptyList()
         )
-        addAllDirectDependencies(argMap.mandatory(JavaBuilderFlags.DIRECT_DEPENDENCIES))
+        addAllDirectDependencies(argMap.mandatory(KotlinBuilderFlags.DIRECT_DEPENDENCIES))
 
-        addAllProcessors(argMap.optional(JavaBuilderFlags.PROCESSORS) ?: emptyList())
-        addAllProcessorpaths(argMap.optional(JavaBuilderFlags.PROCESSOR_PATH) ?: emptyList())
+        addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
+        addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
 
         addAllStubsPluginOptions(
-          argMap.optional(JavaBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList()
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList()
         )
         addAllStubsPluginClasspath(
-          argMap.optional(JavaBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList()
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList()
         )
 
         addAllCompilerPluginOptions(
-          argMap.optional(JavaBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList()
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList()
         )
         addAllCompilerPluginClasspath(
-          argMap.optional(JavaBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList()
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList()
         )
 
-        argMap.optional(JavaBuilderFlags.SOURCES)
+        argMap.optional(KotlinBuilderFlags.SOURCES)
           ?.iterator()
           ?.partitionJvmSources(
             { addKotlinSources(it) },
             { addJavaSources(it) }
           )
-        argMap.optional(JavaBuilderFlags.SOURCE_JARS)
+        argMap.optional(KotlinBuilderFlags.SOURCE_JARS)
           ?.also {
             addAllSourceJars(it)
           }
