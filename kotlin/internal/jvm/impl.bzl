@@ -243,8 +243,8 @@ def kt_jvm_library_impl(ctx):
 
 def kt_jvm_binary_impl(ctx):
     providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_binary")
-    jvm_flags = ctx.attr.jvm_flags[:]
-    jvm_flags.extend(ctx.fragments.java.default_jvm_opts)
+    jvm_flags = ctx.fragments.java.default_jvm_opts
+    jvm_flags.extend(ctx.attr.jvm_flags)
     _write_launcher_action(
         ctx,
         providers.java.transitive_runtime_jars,
