@@ -296,6 +296,7 @@ kt_javac_options(
     name = "kt_javac_options_for_package_name",
     warn = "error",
     x_ep_disable_all_checks = True,
+    x_optin = ["kotlin.Experimental", "kotlin.ExperimentalStdlibApi"]
 )
 
 kt_jvm_library(
