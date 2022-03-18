@@ -68,7 +68,7 @@ def kotlin_repositories(
 
     maybe(
         http_archive,
-        name = "rules_android",
+        name = "build_bazel_rules_android",
         sha256 = versions.ANDROID.SHA,
         strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
         urls = versions.ANDROID.URLS,

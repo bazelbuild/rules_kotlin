@@ -59,14 +59,14 @@ maven_install(
 )
 
 http_archive(
-    name = "rules_android",
+    name = "build_bazel_rules_android",
     sha256 = versions.ANDROID.SHA,
     strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
     urls = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % versions.ANDROID.VERSION],
 )
 
 load(
-    "@rules_android//android:rules.bzl",
+    "@build_bazel_rules_android//android:rules.bzl",
     "android_ndk_repository",
     "android_sdk_repository",
 )
