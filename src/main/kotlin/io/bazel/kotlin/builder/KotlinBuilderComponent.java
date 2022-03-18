@@ -50,7 +50,7 @@ public interface KotlinBuilderComponent {
     class Module {
 
         @Provides
-        public KotlinToolchain.InvokeCompiler provideCompiler(KotlinToolchain toolchain) {
+        public KotlinToolchain.KotlincInvoker provideCompiler(KotlinToolchain toolchain) {
             return new KotlinToolchain.KotlincInvoker(toolchain);
         }
 

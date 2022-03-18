@@ -263,6 +263,17 @@ object WriteWorkspace {
     fun `import`(kClass: CharSequence) {
       +"import $kClass"
     }
+
+    fun `class`(name: String, vararg parents: String, contents: KotlinSource.() -> Unit) {
+      "class $name ${
+        parents
+          .takeIf { it.isNotEmpty() }
+          ?.joinToString(prefix = ":", separator = ", ")
+          ?: ""
+      }" {
+        contents()
+      }
+    }
   }
 
   interface Resolve {

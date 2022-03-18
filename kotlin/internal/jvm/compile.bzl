@@ -727,6 +727,7 @@ def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source
             enabled = True,
             class_jar = ap_class_jar,
             source_jar = ap_source_jar,
+            processor_classpath = depset(),
         )
     return None
 

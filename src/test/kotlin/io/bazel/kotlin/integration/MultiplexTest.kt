@@ -155,7 +155,7 @@ class MultiplexTest {
         dependencies.forEach { dep ->
           `import`(dep.qualifiedName)
         }
-        name.className {
+        "class ${name.className}"  {
           dependencies.forEach { dep ->
             "val ${dep.last()}" eq dep.className()
           }

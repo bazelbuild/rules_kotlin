@@ -176,7 +176,7 @@ private fun Pair<String, List<String>>.asKeyToCommaList() =
 internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
-  compiler: KotlinToolchain.InvokeCompiler
+  compiler: KotlinToolchain.KotlincInvoker
 ): JvmCompilationTask {
   if ((
     inputs.processorsList.isEmpty() &&
@@ -300,7 +300,7 @@ internal fun JvmCompilationTask.createGeneratedClassJar() {
  */
 fun JvmCompilationTask.compileKotlin(
   context: CompilationTaskContext,
-  compiler: KotlinToolchain.InvokeCompiler,
+  compiler: KotlinToolchain.KotlincInvoker,
   args: CompilationArgs = baseArgs(),
   printOnFail: Boolean = true
 ): List<String> {

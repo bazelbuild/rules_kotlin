@@ -15,7 +15,7 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 
 java_import(
-    name = "worker_lib"
+    name = "worker_lib",
     jars = ["worker.jar"]
 )
 
@@ -57,7 +57,7 @@ java_binary(
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     visibility = ["//visibility:public"],
     runtime_deps = [
-        ":worker",
+        ":kotlinc_worker",
         "@bazel_tools//tools/jdk:JacocoCoverage",
     ],
 )

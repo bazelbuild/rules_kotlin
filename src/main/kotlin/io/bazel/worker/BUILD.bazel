@@ -16,7 +16,6 @@ kt_bootstrap_library(
     name = "worker",
     srcs = glob(
         ["*.kt"],
-        exclude = ["CoroutinePersistentWorker.kt"],
     ),
     visibility = [
         "//:__subpackages__",
