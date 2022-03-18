@@ -28,11 +28,8 @@ http_archive(
 
 load(
     "@build_bazel_rules_android//android:rules.bzl",
-    "android_ndk_repository",
     "android_sdk_repository",
 )
-
-android_ndk_repository(name = "androidndk")  # Required. Name *must* be "androidndk".
 
 android_sdk_repository(
     name = "androidsdk",
