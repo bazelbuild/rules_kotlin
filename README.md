@@ -212,6 +212,7 @@ load("@release_archive//:repository.bzl", "archive_repository")
 
 archive_repository(
     name = "io_bazel_rules_kotlin",
+    local_path = "../path/to/rules_kotlin_clone/"
 )
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
