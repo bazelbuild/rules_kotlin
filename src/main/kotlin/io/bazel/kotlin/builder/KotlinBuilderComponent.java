@@ -48,12 +48,6 @@ public interface KotlinBuilderComponent {
 
     @dagger.Module
     class Module {
-
-        @Provides
-        public KotlinToolchain.KotlincInvoker provideCompiler(KotlinToolchain toolchain) {
-            return new KotlinToolchain.KotlincInvoker(toolchain);
-        }
-
         @Provides
         public InternalCompilerPlugins provideInternalPlugins(KotlinToolchain toolchain) {
             return new InternalCompilerPlugins(
