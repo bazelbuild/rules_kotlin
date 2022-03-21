@@ -383,7 +383,7 @@ kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_o
 kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kotlinc_options-include_stdlibs">include_stdlibs</a>, <a href="#kt_kotlinc_options-java_parameters">java_parameters</a>, <a href="#kt_kotlinc_options-warn">warn</a>, <a href="#kt_kotlinc_options-x_allow_jvm_ir_dependencies">x_allow_jvm_ir_dependencies</a>,
                    <a href="#kt_kotlinc_options-x_allow_result_return_type">x_allow_result_return_type</a>, <a href="#kt_kotlinc_options-x_inline_classes">x_inline_classes</a>, <a href="#kt_kotlinc_options-x_jvm_default">x_jvm_default</a>, <a href="#kt_kotlinc_options-x_multi_platform">x_multi_platform</a>,
                    <a href="#kt_kotlinc_options-x_no_optimized_callable_references">x_no_optimized_callable_references</a>, <a href="#kt_kotlinc_options-x_skip_prerelease_check">x_skip_prerelease_check</a>, <a href="#kt_kotlinc_options-x_use_experimental">x_use_experimental</a>,
-                   <a href="#kt_kotlinc_options-x_use_ir">x_use_ir</a>)
+                   <a href="#kt_kotlinc_options-x_use_ir">x_use_ir</a>, <a href="#kt_kotlinc_options-x_explicit_api_mode">x_explicit_api_mode</a>, <a href="#kt_kotlinc_options-x_optin">x_optin</a>)
 
                                                                                                 
     Define kotlin compiler options.
@@ -407,7 +407,7 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 |<a id="kt_kotlinc_options-x_skip_prerelease_check"></a>x_skip_prerelease_check | Suppress errors thrown when using pre-release classes.                                                | Boolean                                                         | optional | False    |
 |<a id="kt_kotlinc_options-x_use_experimental"></a>x_use_experimental | Allow the experimental language features.                                                             | Boolean                                                         | optional | True     |
 |<a id="kt_kotlinc_options-x_use_ir"></a>x_use_ir | Enable or disable the experimental IR backend.                                                        | Boolean                                                         | optional | False    |
-|<a id="kt_kotlinc_options-x_explicit_api_mode"></a>x_explicit_api_mode | Enable or disable Kotlin explicit API mode for library developers.                                    | String                                                          | optional | "off"    |
+|<a id="kt_kotlinc_options-x_explicit_api_mode"></a>x_explicit_api_mode | Enable or disable Kotlin explicit API mode for library developers. Valid options: "off", "warn", "strict".                        | String                                                          | optional | "off"    |
 |<a id="kt_kotlinc_options-x_optin"></a>x_optin | List of experimental annotation opt-ins to enable.                                                    | List of strings                                                 | optional | None     |
 
 
