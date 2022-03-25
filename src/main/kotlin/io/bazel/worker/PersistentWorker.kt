@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong
  * @param captureIO to avoid writing stdout and stderr while executing.
  * @param cpuTimeBasedGcScheduler to trigger gc cleanup.
  */
-class JavaPersistentWorker(
+class PersistentWorker(
   private val captureIO: () -> IO,
   private val executor: ExecutorService,
   private val cpuTimeBasedGcScheduler: GcScheduler

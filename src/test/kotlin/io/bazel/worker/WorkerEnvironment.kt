@@ -94,7 +94,6 @@ object WorkerEnvironment {
 
     fun waitForStdOut() {
       while (stdOut.input.available() != 0) {
-        Thread.onSpinWait()
         Thread.sleep(1) // don't starve other processes.
       }
     }

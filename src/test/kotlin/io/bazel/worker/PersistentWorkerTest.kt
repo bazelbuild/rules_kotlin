@@ -24,7 +24,7 @@ import org.junit.Test
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.Executors
 
-class JavaPersistentWorkerTest {
+class PersistentWorkerTest {
 
   @Test
   fun persistent() {
@@ -48,7 +48,7 @@ class JavaPersistentWorkerTest {
 
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
-        JavaPersistentWorker(Executors.newCachedThreadPool()) {
+        PersistentWorker(Executors.newCachedThreadPool()) {
           IO(stdIn, stdOut, captured)
         }.start { ctx, args ->
           when (args.toList()) {
@@ -73,8 +73,8 @@ class JavaPersistentWorkerTest {
           println("sequence $this")
         }
       }
-    }.associateBy { wr ->
-      wr.requestId
+    }.associateBy { workResponse ->
+      workResponse.requestId
     }
 
     assertThat(actualResponses.keys).isEqualTo(expectedResponses.keys)
@@ -90,7 +90,7 @@ class JavaPersistentWorkerTest {
     val captured = IO.CapturingOutputStream()
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
-        JavaPersistentWorker(Executors.newCachedThreadPool()) {
+        PersistentWorker(Executors.newCachedThreadPool()) {
           IO(stdIn, stdOut, captured)
         }.start { _, _ ->
           throw IllegalArgumentException("missing forest fairy")
