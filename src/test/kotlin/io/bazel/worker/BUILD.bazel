@@ -96,27 +96,15 @@ kt_jvm_test(
 )
 
 kt_jvm_test(
-    name = "PersistentWorkerTest",
+    name = "JavaPersistentWorkerTest",
     srcs = [
-        "PersistentWorkerTest.kt",
+        "JavaPersistentWorkerTest.kt",
     ],
-    test_class = "io.bazel.worker.PersistentWorkerTest",
+    test_class = "io.bazel.worker.JavaPersistentWorkerTest",
     deps = [
         ":WorkerEnvironment",
         "//src/main/kotlin/io/bazel/worker",
         "//src/main/protobuf:worker_protocol_java_proto",
         "@kotlin_rules_maven//:com_google_truth_truth",
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
-            repository_name = "kotlin_rules_maven",
-        ),
     ],
 )

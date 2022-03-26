@@ -20,16 +20,14 @@ package io.bazel.worker
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
-import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.concurrent.Executors
 
-@ExperimentalCoroutinesApi
 class PersistentWorkerTest {
 
   @Test
-  fun multiplexOk() {
+  fun persistent() {
     val requests = listOf(
       WorkRequest.newBuilder().addAllArguments(listOf("--mammal", "bunny")).setRequestId(1)
         .build(),
@@ -46,16 +44,12 @@ class PersistentWorkerTest {
       2 to WorkResponse.newBuilder().setRequestId(2).setOutput("sidhe commended").setExitCode(0)
     )
 
-    val captured = ByteArrayOutputStream()
+    val captured = IO.CapturingOutputStream()
 
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
-        PersistentWorker(coroutineContext) {
-          IO(
-            stdIn,
-            stdOut,
-            captured
-          )
+        PersistentWorker(Executors.newCachedThreadPool()) {
+          IO(stdIn, stdOut, captured)
         }.start { ctx, args ->
           when (args.toList()) {
             listOf("--mammal", "bunny") -> {
@@ -73,8 +67,15 @@ class PersistentWorkerTest {
       }
       requests.forEach { writeStdIn(it) }
       closeStdIn()
-      return@inProcess generateSequence { readStdOut() }
-    }.associateBy { wr -> wr.requestId }
+      waitForStdOut()
+      return@inProcess generateSequence {
+        readStdOut().apply {
+          println("sequence $this")
+        }
+      }
+    }.associateBy { workResponse ->
+      workResponse.requestId
+    }
 
     assertThat(actualResponses.keys).isEqualTo(expectedResponses.keys)
 
@@ -86,15 +87,11 @@ class PersistentWorkerTest {
 
   @Test
   fun error() {
-    val captured = ByteArrayOutputStream()
+    val captured = IO.CapturingOutputStream()
     val actualResponses = WorkerEnvironment.inProcess {
       task { stdIn, stdOut ->
-        PersistentWorker(coroutineContext) {
-          IO(
-            stdIn,
-            stdOut,
-            captured
-          )
+        PersistentWorker(Executors.newCachedThreadPool()) {
+          IO(stdIn, stdOut, captured)
         }.start { _, _ ->
           throw IllegalArgumentException("missing forest fairy")
         }

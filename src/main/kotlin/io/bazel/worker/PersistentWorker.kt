@@ -17,21 +17,16 @@
 
 package io.bazel.worker
 
-import com.google.devtools.build.lib.worker.WorkerProtocol
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
 import src.main.kotlin.io.bazel.worker.GcScheduler
-import java.io.PrintStream
+import java.io.InputStream
 import java.time.Duration
-import kotlin.coroutines.CoroutineContext
+import java.util.concurrent.ExecutorCompletionService
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * PersistentWorker satisfies Bazel persistent worker protocol for executing work.
@@ -39,86 +34,89 @@ import kotlin.coroutines.CoroutineContext
  * Supports multiplex (https://docs.bazel.build/versions/master/multiplex-worker.html) provided
  * the work is thread/coroutine safe.
  *
- * @param coroutineContext for non-threaded operations.
+ * @param executor thread pool for executing tasks.
  * @param captureIO to avoid writing stdout and stderr while executing.
+ * @param cpuTimeBasedGcScheduler to trigger gc cleanup.
  */
 class PersistentWorker(
-  private val coroutineContext: CoroutineContext,
   private val captureIO: () -> IO,
+  private val executor: ExecutorService,
   private val cpuTimeBasedGcScheduler: GcScheduler
 ) : Worker {
 
   constructor(
-    coroutineContext: CoroutineContext,
-    captureIO: () -> IO
-  ) : this(coroutineContext, captureIO, GcScheduler {})
-
-  constructor() : this(
-    Dispatchers.IO, IO.Companion::capture, CpuTimeBasedGcScheduler(Duration.ofSeconds(10))
+    executor: ExecutorService,
+    captureIO: () -> IO,
+  ) : this(
+    captureIO,
+    executor,
+    GcScheduler {}
   )
 
-  @ExperimentalCoroutinesApi
+  constructor() : this(
+    IO.Companion::capture,
+    Executors.newCachedThreadPool(),
+    CpuTimeBasedGcScheduler(Duration.ofSeconds(10))
+  )
+
   override fun start(execute: Work) = WorkerContext.run {
-    // Use channel to serialize writing output
-    val writeChannel = Channel<WorkerProtocol.WorkResponse>(UNLIMITED)
     captureIO().use { io ->
-      runBlocking {
-        // Parent coroutine to track all of children and close channel on completion
-        launch(Dispatchers.Default) {
-          generateSequence { WorkRequest.parseDelimitedFrom(io.input) }
-            .forEach { request ->
-              launch {
-                compileWork(request, io, writeChannel, execute)
-                // Be a friendly worker by performing a GC between compilation requests
-                cpuTimeBasedGcScheduler.maybePerformGc()
-              }
-            }
-        }.invokeOnCompletion { writeChannel.close() }
-
-        writeChannel.consumeAsFlow()
-          .collect { response -> writeOutput(response, io.output) }
+      val running = AtomicLong(0)
+      val completion = ExecutorCompletionService<WorkResponse>(executor)
+      val producer = executor.submit {
+        io.input.readRequestAnd { request ->
+          running.incrementAndGet()
+          completion.submit {
+            doTask(
+              name = "request ${request.requestId}",
+              task = request.workTo(execute)
+            ).asResponseTo(request.requestId, io)
+          }
+        }
       }
-
+      val consumer = executor.submit {
+        while (!producer.isDone || running.get() > 0) {
+          // poll time is how long before checking producer liveliness. Too long, worker hangs
+          // when being shutdown -- too short, and it starves the process.
+          completion.poll(1, TimeUnit.SECONDS)?.run {
+            running.decrementAndGet()
+            get().writeDelimitedTo(io.output)
+            io.output.flush()
+          }
+          cpuTimeBasedGcScheduler.maybePerformGc()
+        }
+      }
+      producer.get()
+      consumer.get()
       io.output.close()
-      info { "stopped worker" }
     }
     return@run 0
   }
 
-  private suspend fun WorkerContext.compileWork(
-    request: WorkRequest,
-    io: IO,
-    chan: Channel<WorkerProtocol.WorkResponse>,
-    execute: Work
-  ) = withContext(Dispatchers.Default) {
-    val result = doTask("request ${request.requestId}") { ctx ->
-      request.argumentsList.run {
-        execute(ctx, toList())
-      }
-    }
-    info { "task result ${result.status}" }
-    val response = WorkerProtocol.WorkResponse.newBuilder().apply {
-      val cap = io.readCapturedAsUtf8String()
-      output = listOf(
-        result.log.out.toString(),
-        cap
-      ).joinToString("\n").trim()
-      exitCode = result.status.exit
-      requestId = request.requestId
-    }.build()
-
-    info {
-      response.toString()
-    }
-    chan.send(response)
+  private fun WorkRequest.workTo(execute: Work): (sub: WorkerContext.TaskContext) -> Status {
+    return { ctx -> execute(ctx, argumentsList.toList()) }
   }
 
-  private suspend fun writeOutput(
-    response: WorkerProtocol.WorkResponse,
-    output: PrintStream
-  ) =
-    withContext(Dispatchers.IO) {
-      response.writeDelimitedTo(output)
-      output.flush()
+  private fun InputStream.readRequestAnd(action: (WorkRequest) -> Unit) {
+    while (true) {
+      WorkRequest.parseDelimitedFrom(this)
+        ?.run(action)
+        ?: return
     }
+  }
+
+  private fun TaskResult.asResponseTo(id: Int, io: IO): WorkResponse {
+    return WorkResponse.newBuilder()
+      .apply {
+        val cap = io.readCapturedAsUtf8String()
+        // append whatever falls through standard out.
+        output = listOf(
+          log.out.toString(),
+          cap
+        ).joinToString("\n").trim()
+        exitCode = status.exit
+        requestId = id
+      }
+      .build()
+  }
 }

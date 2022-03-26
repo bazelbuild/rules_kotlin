@@ -151,11 +151,11 @@ class WorkerContext private constructor(
     name: String,
     task: (sub: TaskContext) -> Status
   ): TaskResult {
-    info { "start task" }
+    info { "start task $name" }
     return WorkingDirectoryContext.use {
       TaskContext(dir, logging = narrowTo(name)).resultOf(task)
     }.also {
-      info { "end task: ${it.status}" }
+      info { "end task $name: ${it.status}" }
     }
   }
 

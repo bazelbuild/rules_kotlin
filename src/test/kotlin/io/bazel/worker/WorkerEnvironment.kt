@@ -43,12 +43,17 @@ object WorkerEnvironment {
       PipedStream().use { stdOut ->
         PipedStream().use { stdIn ->
           val responses = ConcurrentLinkedQueue<WorkResponse>()
-          executor.submit {
-            generateSequence { WorkResponse.parseDelimitedFrom(stdOut.input) }.forEach {
-              responses.add(it)
+          val reader = executor.submit {
+            Thread.currentThread().name = "readStdOut"
+            while (true) {
+              WorkResponse.parseDelimitedFrom(stdOut.input)
+                ?.let(responses::add)
+                ?: break
             }
           }
-          Broker(stdIn, stdOut, executor, responses).run(work)
+          Broker(stdIn, stdOut, executor, responses).run(work).also {
+            reader.get() // wait until the reader finishes
+          }
         }
       }
     } finally {
@@ -84,6 +89,12 @@ object WorkerEnvironment {
         Thread.getAllStackTraces().forEach { (t, st) ->
           println("${t.name} (${t.isAlive}:\n ${st.asIterable().joinToString { "\n\t$it" }}")
         }
+      }
+    }
+
+    fun waitForStdOut() {
+      while (stdOut.input.available() != 0) {
+        Thread.sleep(1) // don't starve other processes.
       }
     }
 

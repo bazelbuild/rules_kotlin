@@ -296,7 +296,7 @@ class JdepsGenExtension(
       rootBuilder.addDependency(dependency)
     }
 
-    explicitDeps.forEach { (jarPath, classes) ->
+    explicitDeps.forEach { (jarPath, _) ->
       val dependency = Deps.Dependency.newBuilder()
       dependency.kind = Deps.Dependency.Kind.EXPLICIT
       dependency.path = jarPath

@@ -22,13 +22,14 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.InputStream
+import java.io.OutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 
 class IO(
   val input: InputStream,
   val output: PrintStream,
-  private val captured: ByteArrayOutputStream,
+  private val captured: CapturingOutputStream,
   private val restore: () -> Unit = {}
 ) : Closeable {
 
@@ -52,7 +53,7 @@ class IO(
       val stdIn = BufferedInputStream(System.`in`)
       val stdOut = System.out
       val inputBuffer = ByteArrayInputStream(ByteArray(0))
-      val captured = ByteArrayOutputStream()
+      val captured = CapturingOutputStream()
       val outputBuffer = PrintStream(captured)
 
       // delegate the system defaults to capture execution information
@@ -66,6 +67,22 @@ class IO(
         System.setErr(stdErr)
       }
     }
+  }
+
+  class CapturingOutputStream : OutputStream() {
+    private val backing = object : ThreadLocal<ByteArrayOutputStream>() {
+      override fun initialValue(): ByteArrayOutputStream = ByteArrayOutputStream()
+    }
+
+    override fun write(b: Int) {
+      backing.get().write(b)
+    }
+
+    fun reset() {
+      backing.get().reset()
+    }
+
+    fun toByteArray(): ByteArray = backing.get().toByteArray()
   }
 
   override fun close() {
