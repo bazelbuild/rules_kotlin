@@ -15,9 +15,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class Kotlin2JsTaskExecutor @Inject constructor(private val invoker: KotlinToolchain.K2JSCompilerInvoker) {
 
     private val fileSystem: FileSystem = FileSystems.getDefault()

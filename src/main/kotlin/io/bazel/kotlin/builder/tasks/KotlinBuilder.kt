@@ -37,9 +37,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.regex.Pattern
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder @Inject internal constructor(
   private val jvmTaskExecutor: KotlinJvmTaskExecutor,

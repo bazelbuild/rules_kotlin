@@ -21,7 +21,6 @@ import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Due to an inconsistency in the handling of -Xfriends-path, jvm uses a comma (property list
@@ -29,7 +28,6 @@ import javax.inject.Singleton
  */
 const val X_FRIENDS_PATH_SEPARATOR = ","
 
-@Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
   private val compiler: KotlinToolchain.KotlincInvoker,
   private val plugins: InternalCompilerPlugins

@@ -29,7 +29,6 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
-import javax.inject.Singleton
 
 class KotlinToolchain private constructor(
   val kotlinHome: Path,
@@ -166,12 +165,10 @@ class KotlinToolchain private constructor(
     }
   }
 
-  @Singleton
   class KotlincInvoker @Inject constructor(
     toolchain: KotlinToolchain
   ) : KotlinCliToolInvoker(toolchain, "io.bazel.kotlin.compiler.BazelK2JVMCompiler")
 
-  @Singleton
   class K2JSCompilerInvoker @Inject constructor(
     toolchain: KotlinToolchain
   ) : KotlinCliToolInvoker(toolchain, "org.jetbrains.kotlin.cli.js.K2JSCompiler")
