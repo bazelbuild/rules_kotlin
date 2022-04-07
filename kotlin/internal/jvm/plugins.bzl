@@ -41,11 +41,18 @@ def _kt_plugin_to_processorpath(processor):
 def _targets_to_annotation_processors(targets):
     if hasattr(java_common, "JavaPluginInfo"):
         _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
-        return depset([
-            (t[_JavaPluginInfo] if _JavaPluginInfo in t else t[JavaInfo]).plugins
-            for t in targets
-            if _JavaPluginInfo in t or JavaInfo in t
-        ])
+        plugins = []
+        for t in targets:
+            if _JavaPluginInfo in t:
+                p = t[_JavaPluginInfo].plugins
+                if p.processor_jars:
+                    plugins.append(p)
+            elif JavaInfo in t:
+                p = t[JavaInfo].plugins
+                if p.processor_jars:
+                    plugins.append(p)
+        return depset(plugins)
+
     return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if KtJvmPluginInfo in t])
 
 def _targets_to_annotation_processors_java_plugin_info(targets):
