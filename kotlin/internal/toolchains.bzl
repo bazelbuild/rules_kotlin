@@ -184,6 +184,8 @@ _kt_toolchain = rule(
                 "11",
                 "12",
                 "13",
+                "15",
+                "17",
             ],
         ),
         "js_target": attr.string(
