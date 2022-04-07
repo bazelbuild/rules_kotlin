@@ -1,6 +1,7 @@
 package io.bazel.kotlin.integration
 
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertWithMessage
 import io.bazel.kotlin.integration.RulesKotlinWorkspace.Companion.build
 import org.junit.Test
 import java.nio.file.Files
@@ -64,9 +65,7 @@ class MixedSourceCompileTest {
       }
     }
 
-    println(Files.readAllLines(workspace.resolve("WORKSPACE")).joinToString("\n"))
-
     val result = workspace.build("//mixed")
-    Truth.assertWithMessage("failed with $result").that(result.exit).isEqualTo(0)
+    assertWithMessage("failed with $result").that(result.exit).isEqualTo(0)
   }
 }
