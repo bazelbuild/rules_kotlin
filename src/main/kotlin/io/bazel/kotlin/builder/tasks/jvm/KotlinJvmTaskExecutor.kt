@@ -81,7 +81,6 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                       given(outputs.jar).empty {
                         plugin(plugins.skipCodeGen)
                       }
-
                     },
                   printOnFail = false)
               } else {
