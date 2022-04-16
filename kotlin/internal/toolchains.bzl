@@ -203,7 +203,7 @@ _kt_toolchain = rule(
         "experimental_use_abi_jars": attr.bool(
             doc = """Compile using abi jars. Can be disabled for an individual target using the tag
             `kt_abi_plugin_incompatible`""",
-            default = False,
+            default = True,
         ),
         "experimental_strict_kotlin_deps": attr.string(
             doc = "Report strict deps violations",
@@ -268,7 +268,7 @@ def define_kt_toolchain(
         language_version = None,
         api_version = None,
         jvm_target = None,
-        experimental_use_abi_jars = False,
+        experimental_use_abi_jars = True,
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
