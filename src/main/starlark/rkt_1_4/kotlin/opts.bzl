@@ -69,13 +69,16 @@ _KOPTS = {
         args = dict(
             default = "off",
             doc = "Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.",
-            values = ["off", "enable", "compatibility"],
+            values = ["off", "enable", "disable", "compatibility", "all-compatibility", "all"],
         ),
         type = attr.string,
         value_to_flag = {
             "off": None,
             "enable": ["-Xjvm-default=enable"],
+            "disable": ["-Xjvm-default=disable"],
             "compatibility": ["-Xjvm-default=compatibility"],
+            "all-compatibility": ["-Xjvm-default=all-compatibility"],
+            "all": ["-Xjvm-default=all"],
         },
     ),
     "x_no_optimized_callable_references": struct(
