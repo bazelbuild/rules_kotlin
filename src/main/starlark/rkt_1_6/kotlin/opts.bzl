@@ -150,6 +150,16 @@ _KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_optin_class_to_flag,
     ),
+    "x_use_fir": struct(
+        args = dict(
+            default = False,
+            doc = "Compile using the experimental Kotlin Front-end IR. Available from 1.6.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xuse-fir"],
+        },
+    ),
 }
 
 KotlincOptions = provider(
