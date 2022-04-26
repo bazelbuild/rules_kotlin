@@ -80,12 +80,16 @@ kt_rules_test(
     name = "KotlinBuilderJvmKaptTest",
     srcs = ["jvm/KotlinBuilderJvmKaptTest.java"],
     data = [
-        _AUTO_VALUE_JAR,
-        _AUTO_VALUE_ANNOTATIONS_JAR,
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value",
+        #        _AUTO_VALUE_JAR,
+        #        _AUTO_VALUE_ANNOTATIONS_JAR,
     ],
     jvm_flags = [
-        "-Dauto_value=$(location %s)" % _AUTO_VALUE_JAR,
-        "-Dauto_value_annotations=$(location %s)" % _AUTO_VALUE_ANNOTATIONS_JAR,
+        #        "-Dauto_value=$(location %s)" % _AUTO_VALUE_JAR,
+        #        "-Dauto_value_annotations=$(location %s)" % _AUTO_VALUE_ANNOTATIONS_JAR,
+        "-Dauto_value=$(location %s)" % "@kotlin_rules_maven//:com_google_auto_value_auto_value",
+        "-Dauto_value_annotations=$(location %s)" % "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
     ],
 )
 

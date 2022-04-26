@@ -19,6 +19,7 @@ package io.bazel.worker
 
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.Path
 import java.util.logging.Level
 
 /** Log encapsulates standard out and error of execution. */
@@ -42,6 +43,7 @@ data class ContextLog(
   interface Logging {
     fun debug(msg: () -> String)
     fun info(msg: () -> String)
+    fun warning(msg: () -> String)
     fun error(
       t: Throwable,
       msg: () -> String,
@@ -50,14 +52,18 @@ data class ContextLog(
     fun error(msg: () -> String)
   }
 
+  interface FileScope {
+    val directory:Path
+  }
+
   /** Summarize all logs at invocation of contents. */
   internal interface Summarize {
     fun contents(): ContextLog
   }
 
   /** ScopeLogging runtime messages to a namespace. */
-  internal interface ScopeLogging : Summarize, Logging {
-    fun narrowTo(name: String): ScopeLogging
+  internal interface LoggingScope : Summarize, Logging {
+    fun narrowTo(name: String): LoggingScope
 
     /** asPrintStream allows direct writing for backwards compatiblity. */
     fun asPrintStream(): PrintStream

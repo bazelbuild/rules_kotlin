@@ -17,10 +17,13 @@
 
 package io.bazel.worker
 
+import io.bazel.worker.ContextLog.FileScope
 import io.bazel.worker.ContextLog.Granularity
 import io.bazel.worker.ContextLog.Granularity.INFO
-import io.bazel.worker.ContextLog.ScopeLogging
+import io.bazel.worker.ContextLog.LoggingScope
 import io.bazel.worker.Status.ERROR
+import io.bazel.worker.Status.INTERNAL_ERROR
+import io.bazel.worker.Status.SUCCESS
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.InterruptedIOException
@@ -34,8 +37,8 @@ import java.util.logging.StreamHandler
 /** WorkerContext encapsulates logging, filesystem, and profiling for a task invocation. */
 class WorkerContext private constructor(
   private val name: String = Companion::class.java.canonicalName,
-  private val verbose: Granularity = INFO,
-) : Closeable, ScopeLogging by ContextLogger(name, verbose.level, null) {
+  private val verbose: Granularity = INFO
+) : Closeable, LoggingScope by ContextLogger(name, verbose.level, null) {
 
   companion object {
     fun <T : Any?> run(
@@ -55,8 +58,8 @@ class WorkerContext private constructor(
   private class ContextLogger(
     val name: String,
     val level: Level,
-    val propagateTo: ContextLogger? = null,
-  ) : ScopeLogging {
+    val propagateTo: ContextLogger? = null
+  ) : LoggingScope {
 
     private val profiles = mutableListOf<String>()
 
@@ -101,7 +104,11 @@ class WorkerContext private constructor(
       logger.logp(Level.FINE, sourceName, name, msg)
     }
 
-    override fun narrowTo(name: String): ScopeLogging {
+    override fun warning(msg: () -> String) {
+      logger.logp(Level.WARNING, sourceName, name, msg)
+    }
+
+    override fun narrowTo(name: String): LoggingScope {
       return ContextLogger(name, level, this)
     }
 
@@ -111,22 +118,26 @@ class WorkerContext private constructor(
   }
 
   class TaskContext internal constructor(
-    val directory: Path,
-    logging: ScopeLogging,
-  ) : ScopeLogging by logging {
-    fun <T> subTask(
-      name: String = javaClass.canonicalName,
-      task: (sub: TaskContext) -> T,
-    ): T {
-      return task(TaskContext(directory, logging = narrowTo(name)))
+    override val directory: Path,
+    logging: LoggingScope
+  ) : FileScope, LoggingScope by logging {
+    var status = SUCCESS
+
+    fun step(name:String, task: () -> Status) {
+      when (status) {
+        SUCCESS ->  status =  task()
+        ERROR -> debug { "Skipping $name due to previous errors" }
+        INTERNAL_ERROR -> error { "Not executing $name due to previous internal errors" }
+      }
     }
 
     /** resultOf a status supplier that includes information collected in the Context. */
-    fun resultOf(executeTaskIn: (TaskContext) -> Status): TaskResult {
+    fun resultOf(executeTaskIn: (TaskContext) -> Unit): TaskResult {
       try {
+        executeTaskIn(this)
         return TaskResult(
-          executeTaskIn(this),
-          contents(),
+          status,
+          contents()
         )
       } catch (t: Throwable) {
         when (t.causes.lastOrNull()) {
@@ -149,7 +160,7 @@ class WorkerContext private constructor(
   /** doTask work in a TaskContext. */
   fun doTask(
     name: String,
-    task: (sub: TaskContext) -> Status,
+    task: (sub: TaskContext) -> Unit
   ): TaskResult {
     info { "start task $name" }
     return WorkingDirectoryContext.use {

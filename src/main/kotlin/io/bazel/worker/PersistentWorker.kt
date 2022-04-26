@@ -93,7 +93,7 @@ class PersistentWorker(
     return@run 0
   }
 
-  private fun WorkRequest.workTo(execute: Work): (sub: WorkerContext.TaskContext) -> Status {
+  private fun WorkRequest.workTo(execute: Work): (sub: WorkerContext.TaskContext) -> Unit {
     return { ctx -> execute(ctx, argumentsList.toList()) }
   }
 

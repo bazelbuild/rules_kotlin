@@ -36,3 +36,4 @@ java_library(
         "@kotlin_rules_maven//:javax_inject_javax_inject",
     ],
 )
+

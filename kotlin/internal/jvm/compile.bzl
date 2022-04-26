@@ -568,6 +568,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
                     class_jar = output_jar,
                     ijar = compile_jar,
                     source_jars = [source_jar],
+                    processor_classpath = depset(),
                 )],
             ),
             transitive_compile_time_jars = java_info.transitive_compile_time_jars,
@@ -766,6 +767,7 @@ def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source
             enabled = True,
             class_jar = ap_class_jar,
             source_jar = ap_source_jar,
+            processor_classpath = depset(),
         )
     return None
 

@@ -37,10 +37,16 @@ kt_jvm_import(
 
 # Kotlin dependencies that are internal to this repo and are meant to be loaded manually into a classloader.
 [
-    kt_jvm_import(
-        name = "kotlin-%s" % art,
-        jar = "lib/kotlin-%s.jar" % art,
-        neverlink = 1,
+    (
+        kt_jvm_import(
+            name = "kotlin-%s" % art,
+            jar = "lib/kotlin-%s.jar" % art,
+            neverlink = 1,
+        ),
+        kt_jvm_import(
+            name = "kotlin-runtime-%s" % art,
+            jar = "lib/kotlin-%s.jar" % art,
+        ),
     )
     for art in [
         "annotation-processing",
