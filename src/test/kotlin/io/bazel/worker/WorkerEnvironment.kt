@@ -19,7 +19,6 @@ package io.bazel.worker
 
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
-import kotlinx.coroutines.asCoroutineDispatcher
 import java.io.Closeable
 import java.io.InputStream
 import java.io.PipedInputStream
@@ -70,8 +69,6 @@ object WorkerEnvironment {
     private val responses: Queue<WorkResponse>
   ) {
     val tasks = mutableListOf<Future<*>>()
-
-    val coroutineContext by lazy { executor.asCoroutineDispatcher() }
 
     fun writeStdIn(request: WorkerProtocol.WorkRequest) {
       request.writeDelimitedTo(stdIn.output)
