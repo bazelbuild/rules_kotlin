@@ -1,10 +1,10 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-_COMPOSE_VERSION = "1.1.0"
+_COMPOSE_VERSION = "1.2.0-alpha08"
 
-_KOTLIN_COMPILER_VERSION = "1.6.10"
+_KOTLIN_COMPILER_VERSION = "1.6.20"
 
-_KOTLIN_COMPILER_SHA = "432267996d0d6b4b17ca8de0f878e44d4a099b7e9f1587a98edc4d27e76c215a"
+_KOTLIN_COMPILER_SHA = "daf17db1c194f4205f3af67129367a69b388f819177963dc53a7b4b2c4d8ce22"
 
 # Setup Kotlin
 
@@ -44,9 +44,9 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 maven_install(
     artifacts = [
         "org.jetbrains.kotlin:kotlin-stdlib:{}".format(_KOTLIN_COMPILER_VERSION),
-        "androidx.core:core-ktx:1.6.0",
-        "androidx.appcompat:appcompat:1.3.0",
-        "androidx.activity:activity-compose:1.3.0",
+        "androidx.core:core-ktx:1.7.0",
+        "androidx.appcompat:appcompat:1.4.1",
+        "androidx.activity:activity-compose:1.4.0",
         "androidx.compose.material:material:{}".format(_COMPOSE_VERSION),
         "androidx.compose.ui:ui:{}".format(_COMPOSE_VERSION),
         "androidx.compose.ui:ui-tooling:{}".format(_COMPOSE_VERSION),
@@ -60,6 +60,7 @@ maven_install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    version_conflict_policy = "pinned",
 )
 
 # Secondary maven repository used mainly for workarounds
