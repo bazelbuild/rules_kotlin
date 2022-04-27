@@ -1,5 +1,4 @@
 load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
-load("@rules_jvm_external//:defs.bzl", "artifact")
 
 kt_jvm_test(
     name = "IOTest",
@@ -34,18 +33,6 @@ kt_jvm_test(
     deps = [
         "//src/main/kotlin/io/bazel/worker",
         "@kotlin_rules_maven//:com_google_truth_truth",
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
-            repository_name = "kotlin_rules_maven",
-        ),
     ],
 )
 
@@ -54,18 +41,6 @@ kt_jvm_library(
     srcs = ["WorkerEnvironment.kt"],
     deps = [
         "//src/main/protobuf:worker_protocol_java_proto",
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
-            repository_name = "kotlin_rules_maven",
-        ),
     ],
 )
 
@@ -80,18 +55,6 @@ kt_jvm_test(
         "//src/main/kotlin/io/bazel/worker",
         "//src/main/protobuf:worker_protocol_java_proto",
         "@kotlin_rules_maven//:com_google_truth_truth",
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-test",
-            repository_name = "kotlin_rules_maven",
-        ),
-        artifact(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-debug",
-            repository_name = "kotlin_rules_maven",
-        ),
     ],
 )
 
