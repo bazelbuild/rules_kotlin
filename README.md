@@ -6,6 +6,18 @@ Current release: ***`1.5.0`***<br />
 Main branch: `master`
 
 # News!
+* <b>April 27, 2022.</b> Released version [1.6.0-RC1](https://github.com/bazelbuild/rules_kotlin/releases/tag/1.6.0-RC-1). Some notable changes:
+  - expanded Kotlinc options to support a generic `-Xopt-in` toolchain options
+  - fixes for runfiles on Windows
+  - stripped out the legacy javac compilation in favor of the new java_common path
+  - support for passing `--jvmopt` values to `kt_jvm_binary`
+  - improved docs for all the toolchain changes
+  - a new java based persistent worker implementation that allows us to drop our dependency on coroutines
+  - fixes for JavaPluginInfo propogating non-null plugin information
+  - support for Kotlin 1.6 as well as `rules_kotlin` is now being built by Kotlin 1.6.x by default
+  - expanded support for more `-Xjvm-default` options
+  - experimental support for the new Kotlin frontend work that's being actively worked on by Jetbrains
+  - support for targeting java 15, 16, and 17 bytecode
 * <b>Feb 2, 2022.</b> Released version [1.5.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0). Some notable changes:
   - All the legacy-1.4 and 1.5-alpha/beta changes, plus
   - More recent kotlin versions supported (1.5.x and basic 1.6.x support)
