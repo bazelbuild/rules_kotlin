@@ -745,7 +745,7 @@ def export_only_providers(ctx, actions, attr, outputs):
         kt_compiler_result
     """
     toolchains = _compiler_toolchains(ctx)
-    output_jdeps = ctx.actions.declare_file(ctx.label.name + "-.jdeps")
+    output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
 
     # satisfy the outputs requirement. should never execute during normal compilation.
     actions.symlink(
