@@ -20,10 +20,8 @@ package io.bazel.worker
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Test
 
-@ExperimentalCoroutinesApi
 class WorkerEnvironmentTest {
 
   @Test
