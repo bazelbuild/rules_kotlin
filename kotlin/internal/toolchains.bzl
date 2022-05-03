@@ -112,14 +112,14 @@ _kt_toolchain = rule(
             default = Label("//src/main/kotlin:build"),
             executable = True,
             allow_files = True,
-            cfg = "host",
+            cfg = "exec",
         ),
         "jdeps_merger": attr.label(
             doc = "the jdeps merger executable",
             default = Label("//src/main/kotlin:jdeps_merger"),
             executable = True,
             allow_files = True,
-            cfg = "host",
+            cfg = "exec",
         ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",

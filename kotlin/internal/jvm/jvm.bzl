@@ -149,7 +149,7 @@ _implicit_deps = {
     ),
     "_host_javabase": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
-        cfg = "host",
+        cfg = "exec",
     ),
     "_java_runtime": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_runtime"),

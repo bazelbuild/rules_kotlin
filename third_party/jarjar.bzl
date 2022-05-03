@@ -49,7 +49,7 @@ jar_jar = rule(
         "rules": attr.label(allow_single_file = True),
         "jarjar_runner": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("//third_party:jarjar_runner"),
         ),
     },
