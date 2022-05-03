@@ -72,7 +72,7 @@ ktlint_test = rule(
         "_ktlint_tool": attr.label(
             default = "@com_github_pinterest_ktlint//file",
             executable = True,
-            cfg = "host",
+            cfg = "exec",
         ),
         "_javabase": attr.label(
             default = "@bazel_tools//tools/jdk:current_java_runtime",

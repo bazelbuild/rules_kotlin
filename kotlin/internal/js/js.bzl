@@ -138,7 +138,7 @@ kt_js_import = rule(
             default = Label("//kotlin/internal/js:importer"),
             allow_files = True,
             executable = True,
-            cfg = "host",
+            cfg = "exec",
         ),
     },
     outputs = dict(
