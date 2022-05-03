@@ -90,4 +90,9 @@ tasks:
     platform: ubuntu1804
     build_targets:
       - //kotlin:stardoc
+  build_release:
+    name: Build rules_kotlin release
+    platform: ubuntu1804
+    shell_commands:
+      - ./scripts/release.sh
 
