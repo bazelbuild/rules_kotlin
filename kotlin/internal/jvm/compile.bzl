@@ -443,6 +443,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     generated_src_jars = []
     annotation_processing = None
     compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
+    output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
     outputs_struct = _run_kt_java_builder_actions(
         ctx = ctx,
         rule_kind = rule_kind,
@@ -456,6 +457,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         compile_jar = compile_jar,
+        output_jdeps = output_jdeps,
     )
     output_jars = outputs_struct.output_jars
     generated_src_jars = outputs_struct.generated_src_jars
@@ -489,7 +491,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         output_jar = output_jar,
         compile_jar = compile_jar,
         source_jar = source_jar,
-        jdeps = ctx.outputs.jdeps,
+        jdeps = output_jdeps,
         deps = compile_deps.deps,
         runtime_deps = [_java_info(d) for d in ctx.attr.runtime_deps],
         exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
@@ -517,7 +519,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             ),
             # intellij aspect needs this.
             outputs = struct(
-                jdeps = ctx.outputs.jdeps,
+                jdeps = output_jdeps,
                 jars = [struct(
                     class_jar = output_jar,
                     ijar = compile_jar,
@@ -542,7 +544,8 @@ def _run_kt_java_builder_actions(
         annotation_processors,
         transitive_runtime_jars,
         plugins,
-        compile_jar):
+        compile_jar,
+        output_jdeps):
     """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 
     Returns:
@@ -696,7 +699,7 @@ def _run_kt_java_builder_actions(
         jdeps = jdeps,
         deps = compile_deps.deps,
         outputs = {
-            "output": ctx.outputs.jdeps,
+            "output": output_jdeps,
         },
     )
 
@@ -742,6 +745,7 @@ def export_only_providers(ctx, actions, attr, outputs):
         kt_compiler_result
     """
     toolchains = _compiler_toolchains(ctx)
+    output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
 
     # satisfy the outputs requirement. should never execute during normal compilation.
     actions.symlink(
@@ -755,7 +759,7 @@ def export_only_providers(ctx, actions, attr, outputs):
     )
 
     actions.symlink(
-        output = outputs.jdeps,
+        output = output_jdeps,
         target_file = toolchains.kt.empty_jdeps,
     )
 
@@ -765,6 +769,7 @@ def export_only_providers(ctx, actions, attr, outputs):
         deps = [_java_info(d) for d in attr.deps],
         exports = [_java_info(d) for d in getattr(attr, "exports", [])],
         neverlink = getattr(attr, "neverlink", False),
+        jdeps = output_jdeps,
     )
 
     return struct(
