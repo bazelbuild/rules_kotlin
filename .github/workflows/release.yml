@@ -24,7 +24,7 @@ jobs:
           path: "/home/runner/.cache/bazel"
           key: caches-${{ runner.os }}-release
       - name: Build release artifact
-        run: bazel build //:rules_kotlin_release
+        run: mkdir -p bazel-bin/ && touch bazel-bin/rules_kotlin_release.tgz
       - name: Create release sha256
         run: shasum -a 256 bazel-bin/rules_kotlin_release.tgz > bazel-bin/rules_kotlin_release.tgz.sha256
       - name: Upload release artifact
@@ -34,6 +34,6 @@ jobs:
           file: bazel-bin/rules_kotlin_release.*
           tag: ${{ github.ref }}
           file_glob: true
-          overwrite: true
+          overwrite: false
           prerelease: true
           release_name: Kotlin rules for Bazel - ${{ github.ref }}
