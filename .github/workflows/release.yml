@@ -24,7 +24,7 @@ jobs:
           path: "/home/runner/.cache/bazel"
           key: caches-${{ runner.os }}-release
       - name: Build release artifact
-        run: mkdir -p bazel-bin/ && touch bazel-bin/rules_kotlin_release.tgz
+        run: bazelisk build //:rules_kotlin_release
       - name: Create release sha256
         run: shasum -a 256 bazel-bin/rules_kotlin_release.tgz > bazel-bin/rules_kotlin_release.tgz.sha256
       - name: Upload bazel-bin/rules_kotlin_release.tgz
