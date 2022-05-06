@@ -20,12 +20,15 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: bazel-bin/rules_kotlin_release.tgz
+          asset_name: rules_kotlin_release.tgz
           tag: ${{ github.ref }}
-          overwrite: false
+          overwrite: true
       - name: Upload bazel-bin/rules_kotlin_release.tgz.sha256
         uses: svenstaro/upload-release-action@2.2.1
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: bazel-bin/rules_kotlin_release.tgz.sha256
+          asset_name: rules_kotlin_release.tgz.sha256
           tag: ${{ github.ref }}
-          overwrite: false
+          overwrite: true
+
