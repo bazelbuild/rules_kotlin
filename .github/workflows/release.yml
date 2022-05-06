@@ -36,4 +36,4 @@ jobs:
           file_glob: true
           overwrite: false
           prerelease: true
-          release_name: Kotlin rules for Bazel - ${{ github.ref }}
+
