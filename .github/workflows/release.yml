@@ -12,7 +12,7 @@ jobs:
       - name: "Checkout the sources"
         uses: actions/checkout@v2.3.1
       - name: Build release artifact
-        run: mkdir -p bazel-bin/ && touch bazel-bin/rules_kotlin_release.tgz
+        run: mkdir -p bazel-bin/ && touch bazel-bin/rules_kotlin_release.tgz && echo "testing" > bazel-bin/rules_kotlin_release.tgz
       - name: Create release sha256
         run: shasum -a 256 bazel-bin/rules_kotlin_release.tgz > bazel-bin/rules_kotlin_release.tgz.sha256
       - name: Upload bazel-bin/rules_kotlin_release.tgz
