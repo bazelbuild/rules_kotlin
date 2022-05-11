@@ -62,7 +62,7 @@ def kt_download_local_dev_dependencies():
         http_archive,
         name = "buildkite_config",
         sha256 = versions.RBE.SHA,
-        urls = versions.RBE.URLS
+        urls = versions.RBE.URLS,
     )
 
     maybe(
