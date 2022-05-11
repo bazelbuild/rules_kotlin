@@ -18,6 +18,8 @@ load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
+load("@bazel_toolchains//rules/exec_properties:exec_properties.bzl", "create_rbe_exec_properties_dict")
+
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
@@ -73,3 +75,4 @@ def kt_configure():
         )
         for version in versions.CORE
     ]
+
