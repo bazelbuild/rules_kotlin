@@ -37,7 +37,7 @@ def _kt_android_artifact(
     kt_name = name + "_kt"
 
     # TODO(bazelbuild/rules_kotlin/issues/273): This should be retrieved from a provider.
-    base_deps = deps + [_ANDROID_SDK_JAR]
+    base_deps = [_ANDROID_SDK_JAR] + deps
 
     # TODO(bazelbuild/rules_kotlin/issues/556): replace with starlark
     # buildifier: disable=native-android
