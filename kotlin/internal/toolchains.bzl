@@ -131,6 +131,7 @@ _kt_toolchain = rule(
                 "1.4",
                 "1.5",
                 "1.6",
+                "1.7",
             ],
         ),
         "api_version": attr.string(
@@ -143,6 +144,7 @@ _kt_toolchain = rule(
                 "1.4",
                 "1.5",
                 "1.6",
+                "1.7",
             ],
         ),
         "debug": attr.string_list(
