@@ -87,9 +87,9 @@ kt_jvm_library(
         ":chai_lib_src",
     ],
     deps = [
+        ":generated_lib",
         "//third_party:dagger",
         "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
-         ":generated_lib",
     ],
 )
 
