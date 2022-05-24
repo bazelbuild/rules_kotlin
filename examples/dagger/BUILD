@@ -49,6 +49,36 @@ rm ChaiCup.kt
     toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
 )
 
+genrule(
+    name = "genereated_module_src",
+    outs = ["genarated_module_src.srcjar"],
+    cmd = """
+cat << EOF > GeneratedModule.kt
+package generated
+
+import dagger.Provides
+import dagger.Module
+
+@Module
+object GeneratedModule {
+    @Provides
+    fun provideString() = "Hello Coffee"
+}
+EOF
+$(JAVABASE)/bin/jar -cf $@ GeneratedModule.kt
+rm GeneratedModule.kt
+""",
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
+)
+
+kt_jvm_library(
+    name = "generated_lib",
+    srcs = [":genereated_module_src"],
+    deps = [
+        "//third_party:dagger",
+    ],
+)
+
 kt_jvm_library(
     name = "coffee_lib",
     srcs = glob(["src/**"]) + [
@@ -59,6 +89,7 @@ kt_jvm_library(
     deps = [
         "//third_party:dagger",
         "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+         ":generated_lib",
     ],
 )
 

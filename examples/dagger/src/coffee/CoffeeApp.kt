@@ -15,6 +15,7 @@
  */
 package coffee
 
+import generated.GeneratedModule
 import dagger.Component
 import kotlinx.coroutines.runBlocking
 import tea.TeaPot
@@ -23,7 +24,7 @@ import javax.inject.Singleton
 
 class CoffeeApp {
   @Singleton
-  @Component(modules = [(DripCoffeeModule::class)])
+  @Component(modules = [DripCoffeeModule::class, GeneratedModule::class])
   interface CoffeeShop {
     fun maker(): CoffeeMaker
   }

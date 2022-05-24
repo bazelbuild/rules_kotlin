@@ -554,9 +554,10 @@ def _run_kt_java_builder_actions(
     compile_jars = []
     output_jars = []
     kt_stubs_for_java = []
+    has_sources = srcs.kt or srcs.src_jars
 
     # Run KAPT
-    if srcs.kt and annotation_processors:
+    if has_sources and annotation_processors:
         ap_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-gensrc.jar")
         kapt_generated_stub_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-stub.jar")
         kapt_generated_class_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-class.jar")
@@ -594,7 +595,7 @@ def _run_kt_java_builder_actions(
     java_infos = []
 
     # Build Kotlin
-    if srcs.kt or srcs.src_jars:
+    if has_sources:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
         kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
