@@ -1,10 +1,10 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-_COMPOSE_VERSION = "1.2.0-alpha08"
+_COMPOSE_VERSION = "1.2.0-beta02"
 
-_KOTLIN_COMPILER_VERSION = "1.6.20"
+_KOTLIN_COMPILER_VERSION = "1.6.21"
 
-_KOTLIN_COMPILER_SHA = "daf17db1c194f4205f3af67129367a69b388f819177963dc53a7b4b2c4d8ce22"
+_KOTLIN_COMPILER_SHA = "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba"
 
 # Setup Kotlin
 
@@ -69,7 +69,7 @@ maven_install(
     artifacts = [
         # Workaround to add missing 'sun.misc' dependencies to 'kotlinx-coroutines-core-jvm' artifact
         # Check root BUILD file and 'override_targets' arg of a primary 'maven_install'
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.0",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.1",
     ],
     fetch_sources = True,
     repositories = ["https://repo1.maven.org/maven2"],
