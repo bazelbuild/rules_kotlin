@@ -30,9 +30,9 @@ Android rules also support custom_package for `R.java` generation, `manifest=`, 
 Other features:
   * Persistent worker support.
   * Mixed-Mode compilation (compile Java and Kotlin in one pass).
-  * Configurable Kotlinc distribtution and version
+  * Configurable Kotlinc distribution and version
   * Configurable Toolchain
-  * Kotlin 1.3 support
+  * Support for all recent major Kotlin releases.
   
 Javascript is reported to work, but is not as well maintained (at present)
 
