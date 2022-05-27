@@ -23,7 +23,8 @@ import javax.inject.Inject
 class CoffeeMaker @Inject internal constructor(
   // Create a possibly costly heater only when we use it.
   private val heater: Lazy<Heater>,
-  private val pump: Pump
+  private val pump: Pump,
+  private val string: String
 ) {
 
   suspend fun brew() {
@@ -32,6 +33,7 @@ class CoffeeMaker @Inject internal constructor(
       heater.get().on()
       pump.pump()
       println(" [_]P coffee! [_]P ")
+      println(string)
       heater.get().off()
     }
   }
