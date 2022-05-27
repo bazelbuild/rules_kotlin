@@ -2,6 +2,7 @@
 
 |  Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News  | 
 | :----------- | -------- |
+| April 27, 2022  | Released version [1.6.0-RC1](https://github.com/bazelbuild/rules_kotlin/releases/tag/1.6.0-RC-1). |
 | Feb 2, 2022  | Released version [1.5.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0). |
 | Oct 01, 2021 | Released version [1.5.0-beta-4](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-4). |
 | Jul 27, 2021 | Released version [1.5.0-beta-3](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-3). |
