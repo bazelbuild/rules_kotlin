@@ -109,13 +109,11 @@ this:
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "legacy-1.3.0"
-rules_kotlin_sha = "4fd769fb0db5d3c6240df8a9500515775101964eebdf85a3f9f0511130885fde"
+rules_kotlin_version = "1.5.0"
+rules_kotlin_sha = "12d22a3d9cbcf00f2e2d8f0683ba87d3823cb8c7f6837568dd7e48846e023307"
 http_archive(
     name = "io_bazel_rules_kotlin",
-    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
-    type = "zip",
-    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
+    urls = ["https://github.com/bazelbuild/rules_kotlin/releases/download/v%s/rules_kotlin_release.tgz" % rules_kotlin_version],
     sha256 = rules_kotlin_sha,
 )
 
@@ -124,26 +122,6 @@ kotlin_repositories() # if you want the default. Otherwise see custom kotlinc di
 
 load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
-```
-
-> Note - as of 1.4.0, release binaries will be available in which case you should do the following:
-
-```python
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-rules_kotlin_version = "legacy-1.4.0-rc3"
-rules_kotlin_sha = "<release sha>"
-http_archive(
-    name = "io_bazel_rules_kotlin",
-    urls = ["https://github.com/bazelbuild/rules_kotlin/releases/download/%s/rules_kotlin_release.tgz" % rules_kotlin_version],
-    sha256 = rules_kotlin_sha,
-)
-
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-kotlin_repositories()
-
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-kt_register_toolchains()
 ```
 
 ## `BUILD` files
