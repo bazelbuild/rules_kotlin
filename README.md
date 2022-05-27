@@ -3,69 +3,10 @@
 # Bazel Kotlin Rules
 
 Current release: ***`1.5.0`***<br />
+Current RC release: ***`v1.6.0-RC-2`***<br />
 Main branch: `master`
 
-# News!
-* <b>April 27, 2022.</b> Released version [1.6.0-RC1](https://github.com/bazelbuild/rules_kotlin/releases/tag/1.6.0-RC-1). Some notable changes:
-  - expanded Kotlinc options to support a generic `-Xopt-in` toolchain options
-  - fixes for runfiles on Windows
-  - stripped out the legacy javac compilation in favor of the new java_common path
-  - support for passing `--jvmopt` values to `kt_jvm_binary`
-  - improved docs for all the toolchain changes
-  - a new java based persistent worker implementation that allows us to drop our dependency on coroutines
-  - fixes for JavaPluginInfo propogating non-null plugin information
-  - support for Kotlin 1.6 as well as `rules_kotlin` is now being built by Kotlin 1.6.x by default
-  - expanded support for more `-Xjvm-default` options
-  - experimental support for the new Kotlin frontend work that's being actively worked on by Jetbrains
-  - support for targeting java 15, 16, and 17 bytecode
-* <b>Feb 2, 2022.</b> Released version [1.5.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0). Some notable changes:
-  - All the legacy-1.4 and 1.5-alpha/beta changes, plus
-  - More recent kotlin versions supported (1.5.x and basic 1.6.x support)
-    - 1.6 support may require more work and patch releases.
-  - improvements on option handling for plugins
-  - improvements in using the repo from head
-  - log4j security upgrades (in examples primarily)
-  - Fixed some plugin handling making jetpack compose work for more cases.
-  - Kotlin internal visibility supported across all libraries, not just tests (called "associates=")
-  - Support more recent bazel versions
-  - open the underlying `_kt` suffixed library for `kt_android_*` targets so that "associates=" can work.
-  - handle arguments to different compiler versions in a versioned way
-  - support explicit API mode
-  - tidy worker output (avoids random failures from bazel worker emiting non-proto data in stdout)
-  - do some better memory handling between work requests
-  - separate out jvm, js, and android rules (i.e. so projects aren't required to have everything android configured if htey don't use it, etc.)
-  - fixes to examples (jetpack compose, etc.)
-* <b>Oct 01, 2021.</b> Released version [1.5.0-beta-4](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-4).
-* <b>Jul 27, 2021.</b> Released version [1.5.0-beta-3](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-beta-3).
-* <b>Dec 30, 2020.</b> Released version [1.5.0-alpha-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-2). Includes:
-  - Expanded kotlinc options
-  - New optimized compilation path (using JavaBuilder) `--define=experimental_use_abi_jars=1`.
-    - *Caveat*: compilation may fail due to https://youtrack.jetbrains.com/issue/KT-40133, https://youtrack.jetbrains.com/issue/KT-40340, https://youtrack.jetbrains.com/issue/KT-41381
-    - *Workaround*: add `tags=['kt_abi_plugin_incompatible']`
-* <b>Dec 3, 2020.</b> Released version [1.5.0-alpha-1](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0-alpha-1). Includes:
-  - Kotlin 1.4 support
-  - Lots of different fixes, especially to kotlinc plugins, `exported_compiler_plugins`, etc.
-  - Supports the new IR backend
-  - Improvements to the kotlin ABI support
-* <b>Nov 16, 2020.</b> Released version [1.4.0-rc4](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc4). Includes:
-  - Deterministic worker behavior
-  - Other minor stability fixes
-* <b>May 9, 2020.</b> Released version [1.4.0-rc3](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc3). Includes:
-  - Fix to the binary release package itself.
-* <b>May 7, 2020.</b> Released version [1.4.0-rc2](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc2). Includes:
-  - Fixes to release image production, which was broken in rc1.
-* <b>May 1, 2020.</b> Released version [1.4.0-rc1](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.4.0-rc1). Includes:
-  - Pre-built binary worker
-  - Support for Kotlin compiler plugins via the kt_compiler_plugin (#308)
-  - Improved determinism for remote builds (#304)
-  - Avoids packaging non-kotlin-generated sources (#263)
-  - Fix for proper classpath handling for java_plugins (annotation processors) (#318)
-  - Supports propagating kotlin version in metadata (which IDEs can consume) (#242)
-* <b>Feb 18, 2020.</b> Changes to how the rules are consumed are live (prefer the release tarball or use development instructions, as stated in the readme).
-* <b>Feb 9, 2020.</b> Released version [1.3.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/legacy-1.3.0). (No changes from `legacy-1.3.0-rc4`)
-* <b>Oct 5, 2019.</b> github.com/cgruber/rules_kotlin upstreamed into this repository. 
-
-For older news, please see [Changelog](CHANGELOG.md)
+For more information about release and changelogs please see [Changelog](CHANGELOG.md) or refer to the [Github Releases](https://github.com/bazelbuild/rules_kotlin/releases) page.
 
 # Overview 
 
