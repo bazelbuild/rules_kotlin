@@ -24,6 +24,18 @@ class RulesKotlinWorkspace private constructor(
     }
 
     fun Path.build(vararg targets: String): BuildResult {
+      return this.executeCommand(cmd = "build", targets = targets)
+    }
+
+    fun Path.run(vararg targets: String): BuildResult {
+      return this.executeCommand(cmd = "run", targets = targets)
+    }
+
+    fun Path.test(vararg targets: String): BuildResult {
+      return this.executeCommand(cmd = "test", targets = targets)
+    }
+
+    private fun Path.executeCommand(cmd: String, vararg targets: String): BuildResult {
       val out = Files.createTempFile("out", "txt").toFile().apply {
         deleteOnExit()
       }
@@ -35,7 +47,7 @@ class RulesKotlinWorkspace private constructor(
         .command(
           listOf(
             "bazel",
-            "build",
+            cmd,
           ) + targets
         )
         .redirectOutput(out)
