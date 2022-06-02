@@ -275,6 +275,53 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
         progress_message = progress_message,
     )
 
+def _run_kapt_builder_actions(
+        ctx,
+        rule_kind,
+        toolchains,
+        srcs,
+        associates,
+        compile_deps,
+        deps_artifacts,
+        annotation_processors,
+        transitive_runtime_jars,
+        plugins):
+    """Runs KAPT using the KotlinBuilder tool
+    Returns:
+        A struct containing KAPT outputs
+    """
+    ap_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-gensrc.jar")
+    kapt_generated_stub_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-stub.jar")
+    kapt_generated_class_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-class.jar")
+
+    _run_kt_builder_action(
+        ctx = ctx,
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        srcs = srcs,
+        generated_src_jars = [],
+        associates = associates,
+        compile_deps = compile_deps,
+        deps_artifacts = deps_artifacts,
+        annotation_processors = annotation_processors,
+        transitive_runtime_jars = transitive_runtime_jars,
+        plugins = plugins,
+        outputs = {
+            "generated_java_srcjar": ap_generated_src_jar,
+            "kapt_generated_stub_jar": kapt_generated_stub_jar,
+            "kapt_generated_class_jar": kapt_generated_class_jar,
+        },
+        build_java = False,
+        build_kotlin = False,
+        mnemonic = "KotlinKapt",
+    )
+
+    return struct(
+        ap_generated_src_jar = ap_generated_src_jar,
+        kapt_generated_stub_jar = kapt_generated_stub_jar,
+        kapt_generated_class_jar = kapt_generated_class_jar,
+    )
+
 def _run_kt_builder_action(
         ctx,
         rule_kind,
@@ -558,36 +605,24 @@ def _run_kt_java_builder_actions(
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
-        ap_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-gensrc.jar")
-        kapt_generated_stub_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-stub.jar")
-        kapt_generated_class_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-class.jar")
-        _run_kt_builder_action(
-            ctx = ctx,
+        kapt_outputs = _run_kapt_builder_actions(
+            ctx,
             rule_kind = rule_kind,
             toolchains = toolchains,
             srcs = srcs,
-            generated_src_jars = [],
             associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
-            outputs = {
-                "generated_java_srcjar": ap_generated_src_jar,
-                "kapt_generated_stub_jar": kapt_generated_stub_jar,
-                "kapt_generated_class_jar": kapt_generated_class_jar,
-            },
-            build_java = False,
-            build_kotlin = False,
-            mnemonic = "KotlinKapt",
         )
-        generated_src_jars.append(ap_generated_src_jar)
-        output_jars.append(kapt_generated_class_jar)
+        generated_src_jars.append(kapt_outputs.ap_generated_src_jar)
+        output_jars.append(kapt_outputs.kapt_generated_class_jar)
         kt_stubs_for_java.append(
             JavaInfo(
-                compile_jar = kapt_generated_stub_jar,
-                output_jar = kapt_generated_stub_jar,
+                compile_jar = kapt_outputs.kapt_generated_stub_jar,
+                output_jar = kapt_outputs.kapt_generated_stub_jar,
                 neverlink = True,
             ),
         )
