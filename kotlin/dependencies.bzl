@@ -33,8 +33,10 @@ To:
 
 local_repository(
     name = "release_archive",
-    path = "<path/to/rules_kotlin>/src/main/starklark/release_archive",
+    path = "<path/to/rules_kotlin>/src/main/starlark/release_archive",
 )
+load("@release_archive//:repository.bzl", "archive_repository")
+
 
 archive_repository(
     name = "io_bazel_rules_kotlin",
