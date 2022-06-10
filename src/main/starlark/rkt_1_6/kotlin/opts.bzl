@@ -117,6 +117,16 @@ _KOPTS = {
             True: ["-Xmulti-platform"],
         },
     ),
+    "x_emit_jvm_type_annotations": struct(
+        args = dict(
+            default = False,
+            doc = "Basic support for type annotations in JVM bytecode.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xemit-jvm-type-annotations"],
+        },
+    ),
     "x_sam_conversions": struct(
         args = dict(
             default = "class",
