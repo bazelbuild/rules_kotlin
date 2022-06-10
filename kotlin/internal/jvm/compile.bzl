@@ -729,15 +729,19 @@ def _run_kt_java_builder_actions(
         if java_info.outputs.jdeps:
             jdeps.append(java_info.outputs.jdeps)
 
-    _run_merge_jdeps_action(
-        ctx = ctx,
-        toolchains = toolchains,
-        jdeps = jdeps,
-        deps = compile_deps.deps,
-        outputs = {
-            "output": output_jdeps,
-        },
-    )
+    if jdeps:
+        _run_merge_jdeps_action(
+            ctx = ctx,
+            toolchains = toolchains,
+            jdeps = jdeps,
+            deps = compile_deps.deps,
+            outputs = {"output": output_jdeps},
+        )
+    else:
+        ctx.actions.symlink(
+            output = output_jdeps,
+            target_file = toolchains.kt.empty_jdeps,
+        )
 
     annotation_processing = None
     if annotation_processors:
