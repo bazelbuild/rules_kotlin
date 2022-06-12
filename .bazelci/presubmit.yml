@@ -27,6 +27,9 @@ tasks:
   macos:
     test_targets:
       - "//:all_tests"
+  windows:
+    test_targets:
+      - "//:all_tests"
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
