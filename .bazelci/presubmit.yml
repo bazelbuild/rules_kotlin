@@ -63,6 +63,15 @@ tasks:
       - test
     build_targets:
       - //...
+  examples-trivial-windows:
+    name: "Example - Trivial (Windows)"
+    platform: windows
+    working_directory: examples/trivial
+    include_json_profile:
+      - build
+      - test
+    test_targets:
+      - //...
   examples-dagger:
     name: "Example - Dagger"
     platform: ubuntu1804
