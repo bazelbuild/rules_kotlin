@@ -99,7 +99,6 @@ def kotlin_repositories(
         parent = KOTLIN_RULES,
         repo_mapping = {
             "@dev_io_bazel_rules_kotlin": "@%s" % KOTLIN_RULES.workspace_name,
-            "@": "@%s" % KOTLIN_RULES.workspace_name,
         },
     )
 
