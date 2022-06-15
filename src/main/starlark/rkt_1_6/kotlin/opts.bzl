@@ -3,7 +3,7 @@ def _map_optin_class_to_flag(values):
 
 def _map_backend_threads_to_flag(n):
     if n == 1:
-      return None
+        return None
     return ["-Xbackend-threads=%d" % n]
 
 _KOPTS = {
