@@ -23,7 +23,6 @@ def _kt_android_artifact(
         srcs = [],
         deps = [],
         plugins = [],
-        friends = None,
         associates = [],
         kotlinc_opts = None,
         javac_opts = None,
@@ -55,7 +54,6 @@ def _kt_android_artifact(
         srcs = srcs,
         deps = base_deps + [base_name],
         plugins = plugins,
-        friends = friends,
         associates = associates,
         testonly = kwargs.get("testonly", default = False),
         visibility = ["//visibility:public"],
@@ -97,7 +95,7 @@ def kt_android_local_test(
         **kwargs):
     """Creates a testable Android sandwich library.
 
-    `srcs`, `deps`, `plugins`, `friends` are routed to `kt_jvm_library` the other android
+    `srcs`, `deps`, `plugins`, `associates` are routed to `kt_jvm_library` the other android
     related attributes are handled by the native `android_library` rule while the test attributes
     are picked out and handled by the `android_local_test` rule.
     """

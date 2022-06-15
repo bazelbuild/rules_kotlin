@@ -10,7 +10,7 @@ def _restore_label(l):
         lbl = lbl.replace("external/", "@")
     return lbl + "//" + l.package + ":" + l.name
 
-# TODO unexport this once init builder args can take care of friends.
+# TODO unexport this once init builder args can take care of associates.
 def _derive_module_name(ctx):
     """Gets the `module_name` attribute if it's set in the ctx, otherwise derive a unique module name using the elements
     found in the label."""

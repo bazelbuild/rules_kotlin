@@ -27,18 +27,7 @@ load(
 def _get_associates(ctx):
     """Creates a struct of associates meta data"""
 
-    friends_legacy = getattr(ctx.attr, "friends", [])
     associates = getattr(ctx.attr, "associates", [])
-
-    if friends_legacy:
-        print("WARNING: friends=[...] is deprecated, please prefer associates=[...] instead.")
-        if associates:
-            fail("friends= may not be used together with associates=. Use one or the other.")
-        elif ctx.attr.testonly == False:
-            fail("Only testonly targets can use the friends attribute. ")
-        else:
-            associates = friends_legacy
-
     if not bool(associates):
         return struct(
             targets = [],

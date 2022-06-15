@@ -207,13 +207,6 @@ _common_attr = utils.add_dicts(
             default = [],
             providers = [JavaInfo, _KtJvmInfo],
         ),
-        "friends": attr.label_list(
-            doc = """A single Kotlin dep which allows Kotlin code in other modules access to
-            internal members. Currently uses the output jar of the module -- i.e., exported
-            deps won't be included. [DEPRECATED, use "associates" instead]""",
-            default = [],
-            providers = [JavaInfo, _KtJvmInfo],
-        ),
         "plugins": attr.label_list(
             default = [],
             aspects = [] if hasattr(java_common, "JavaPluginInfo") else [_kt_jvm_plugin_aspect],
