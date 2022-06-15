@@ -1,6 +1,11 @@
 def _map_optin_class_to_flag(values):
     return ["-opt-in=%s" % v for v in values]
 
+def _map_backend_threads_to_flag(n):
+    if n == 1:
+        return None
+    return ["-Xbackend-threads=%d" % n]
+
 _KOPTS = {
     "warn": struct(
         args = dict(
@@ -169,6 +174,15 @@ _KOPTS = {
         value_to_flag = {
             True: ["-Xuse-fir"],
         },
+    ),
+    "x_backend_threads": struct(
+        args = dict(
+            default = 1,
+            doc = "When using the IR backend, run lowerings by file in N parallel threads. 0 means use a thread per processor core. Default value is 1.",
+        ),
+        type = attr.int,
+        value_to_flag = None,
+        map_value_to_flag = _map_backend_threads_to_flag,
     ),
     "x_report_perf": struct(
         args = dict(
