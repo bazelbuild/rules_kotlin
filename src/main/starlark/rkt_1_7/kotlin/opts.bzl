@@ -170,6 +170,16 @@ _KOPTS = {
             True: ["-Xuse-fir"],
         },
     ),
+    "x_report_perf": struct(
+        args = dict(
+            default = False,
+            doc = "Report detailed performance statistics",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xreport-perf"],
+        },
+    ),
 }
 
 KotlincOptions = provider(
