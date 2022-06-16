@@ -165,14 +165,14 @@ _KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_optin_class_to_flag,
     ),
-    "x_use_fir": struct(
+    "x_use_k2": struct(
         args = dict(
             default = False,
-            doc = "Compile using the experimental Kotlin Front-end IR. Available from 1.6.",
+            doc = "Compile using experimental K2. K2 is a new compiler pipeline, no compatibility guarantees are yet provided",
         ),
         type = attr.bool,
         value_to_flag = {
-            True: ["-Xuse-fir"],
+            True: ["-Xuse-k2"],
         },
     ),
     "x_backend_threads": struct(
