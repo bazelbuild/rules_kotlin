@@ -175,6 +175,16 @@ _KOPTS = {
             True: ["-Xuse-fir"],
         },
     ),
+    "x_no_optimize": struct(
+        args = dict(
+            default = False,
+            doc = "Disable optimizations",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xno-optimize"],
+        },
+    ),
     "x_backend_threads": struct(
         args = dict(
             default = 1,

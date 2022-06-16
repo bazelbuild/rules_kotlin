@@ -170,6 +170,16 @@ _KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_optin_class_to_flag,
     ),
+    "x_no_optimize": struct(
+        args = dict(
+            default = False,
+            doc = "Disable optimizations",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xno-optimize"],
+        },
+    ),
     "x_report_perf": struct(
         args = dict(
             default = False,
