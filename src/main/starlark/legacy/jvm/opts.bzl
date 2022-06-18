@@ -1,4 +1,4 @@
-load("@//src/main/starlark/core/options:derive.bzl", "derive")
+load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:derive.bzl", "derive")
 
 _JOPTS = {
     "warn": struct(
