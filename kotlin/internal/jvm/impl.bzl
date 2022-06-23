@@ -252,7 +252,7 @@ def kt_jvm_binary_impl(ctx):
         jvm_flags,
     )
     if len(ctx.attr.srcs) == 0 and len(ctx.attr.deps) > 0:
-        fail("deps without srcs in invalid. To add runtime classpath and resources, use runtime_deps.", attr = "deps")
+        fail("deps without srcs is invalid. To add runtime classpath and resources, use runtime_deps.", attr = "deps")
 
     return _make_providers(
         ctx,
