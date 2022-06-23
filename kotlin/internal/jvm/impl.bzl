@@ -99,49 +99,29 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
         )
         return [jacoco_metadata_file]
 
-    else:
-        classpath = ctx.configuration.host_path_separator.join(
-            ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
-        )
-        ctx.actions.expand_template(
-            template = template,
-            output = ctx.outputs.executable,
-            substitutions = {
-                "%classpath%": classpath,
-                "%runfiles_manifest_only%": "",
-                "%java_start_class%": main_class,
-                "%javabin%": "JAVABIN=" + java_bin_path,
-                "%jvm_flags%": jvm_flags,
-                "%set_jacoco_metadata%": "",
-                "%set_jacoco_main_class%": "",
-                "%set_jacoco_java_runfiles_root%": "",
-                "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=NO""",
-                "%workspace_prefix%": ctx.workspace_name + "/",
-                "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
-                "%needs_runfiles%": "0" if _is_absolute(java_bin_path) else "1",
-            },
-            is_executable = True,
-        )
-        return []
-
+    classpath = ctx.configuration.host_path_separator.join(
+        ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
+    )
     ctx.actions.expand_template(
         template = template,
         output = ctx.outputs.executable,
         substitutions = {
             "%classpath%": classpath,
+            "%runfiles_manifest_only%": "",
             "%java_start_class%": main_class,
             "%javabin%": "JAVABIN=" + java_bin_path,
             "%jvm_flags%": jvm_flags,
             "%set_jacoco_metadata%": "",
             "%set_jacoco_main_class%": "",
             "%set_jacoco_java_runfiles_root%": "",
-            "%set_java_coverage_new_implementation%": "",
+            "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=NO""",
             "%workspace_prefix%": ctx.workspace_name + "/",
             "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
             "%needs_runfiles%": "0" if _is_absolute(java_bin_path) else "1",
         },
         is_executable = True,
     )
+    return []
 
 # buildifier: disable=unused-variable
 def _is_source_jar_stub(jar):
