@@ -9,8 +9,6 @@ def _ktlint(ctx, srcs, editorconfig):
     This requires running under elevated privileges (Admin rights), Windows 10 Creators Update (1703) or later system version, and enabling developer mode.
 
     ```
-    build --enable_runfiles
-    run --enable_runfiles
     test --enable_runfiles
     ```
 
