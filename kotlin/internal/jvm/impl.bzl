@@ -295,6 +295,8 @@ def kt_jvm_junit_test_impl(ctx):
                         test_class = elements[1].split(".")[0].replace("/", ".")
                         break
 
+    jvm_flags = ctx.fragments.java.default_jvm_opts
+    jvm_flags.extend(ctx.attr.jvm_flags)
     coverage_metadata = _write_launcher_action(
         ctx,
         runtime_jars,
@@ -302,7 +304,7 @@ def kt_jvm_junit_test_impl(ctx):
         jvm_flags = [
             "-ea",
             "-Dbazel.test_suite=%s" % test_class,
-        ] + ctx.attr.jvm_flags,
+        ] + jvm_flags,
     )
 
     return _make_providers(
