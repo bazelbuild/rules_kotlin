@@ -71,6 +71,8 @@ tasks:
       - test
     build_targets:
       - //...
+    test_flags:
+      - "--enable_runfiles"
     test_targets:
       - //...
   examples-dagger:
