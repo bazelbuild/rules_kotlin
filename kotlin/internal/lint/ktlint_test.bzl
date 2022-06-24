@@ -52,11 +52,11 @@ def _ktlint_test_impl(ctx):
 
     if ctx.target_platform_has_constraint(windows_constraint):
         launcher = create_windows_native_launcher_script(ctx, executable)
-        transitive_files = depset(transitive_files.to_list() + [executable])
+        transitive_files = depset([executable], transitive = [transitive_files])
     else:
         launcher = executable
 
-    files = [ctx.executable._ktlint_tool] + ctx.files.srcs + [launcher]
+    files = [ctx.executable._ktlint_tool] + ctx.files.srcs
     if editorconfig:
         files.append(editorconfig)
 
@@ -64,7 +64,7 @@ def _ktlint_test_impl(ctx):
         DefaultInfo(
             runfiles = ctx.runfiles(
                 files = files,
-                transitive_files = transitive_files
+                transitive_files = transitive_files,
             ).merge(ctx.attr._ktlint_tool[DefaultInfo].default_runfiles),
             executable = launcher,
         ),
