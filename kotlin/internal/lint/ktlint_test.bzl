@@ -1,8 +1,16 @@
 load(":editorconfig.bzl", "get_editorconfig")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
+load("//kotlin/internal/utils:windows.bzl", "create_windows_native_launcher_script")
 
 def _ktlint(ctx, srcs, editorconfig):
     """Generates a test action linting the input files.
+
+    To make the tests running on windows as well you have to add the `--enable_runfiles` flag to your `.bazelrc`.
+    This requires running under elevated privileges (Admin rights), Windows 10 Creators Update (1703) or later system version, and enabling developer mode.
+
+    ```
+    test --enable_runfiles
+    ```
 
     Args:
       ctx: analysis context.
@@ -35,10 +43,16 @@ def _ktlint_test_impl(ctx):
         editorconfig = editorconfig,
     )
 
-    ctx.actions.write(
-        output = ctx.outputs.executable,
-        content = script,
-    )
+    executable = ctx.actions.declare_file(ctx.attr.name)
+    ctx.actions.write(executable, content = script, is_executable = True)
+    transitive_files = ctx.attr._javabase[java_common.JavaRuntimeInfo].files
+    windows_constraint = ctx.attr._windows_constraint[platform_common.ConstraintValueInfo]
+
+    if ctx.target_platform_has_constraint(windows_constraint):
+        launcher = create_windows_native_launcher_script(ctx, executable)
+        transitive_files = depset([executable], transitive = [transitive_files])
+    else:
+        launcher = executable
 
     files = [ctx.executable._ktlint_tool] + ctx.files.srcs
     if editorconfig:
@@ -48,9 +62,9 @@ def _ktlint_test_impl(ctx):
         DefaultInfo(
             runfiles = ctx.runfiles(
                 files = files,
-                transitive_files = ctx.attr._javabase[java_common.JavaRuntimeInfo].files,
+                transitive_files = transitive_files,
             ).merge(ctx.attr._ktlint_tool[DefaultInfo].default_runfiles),
-            executable = ctx.outputs.executable,
+            executable = launcher,
         ),
     ]
 
@@ -77,10 +91,12 @@ ktlint_test = rule(
         "_javabase": attr.label(
             default = "@bazel_tools//tools/jdk:current_java_runtime",
         ),
+        "_windows_constraint": attr.label(default = "@platforms//os:windows"),
     },
     doc = "Lint Kotlin files, and fail if the linter raises errors.",
     test = True,
     toolchains = [
         "@bazel_tools//tools/jdk:toolchain_type",
+        "@bazel_tools//tools/sh:toolchain_type",
     ],
 )
