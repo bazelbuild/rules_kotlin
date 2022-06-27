@@ -96,14 +96,6 @@ def archive_repository_implementation(repository_ctx):
             archive = release_artifact,
         )
 
-        # update release when the contents change.
-        return {
-            "release_archive": str(workspace),
-        }
-    return {
-        "release_archive": "",
-    }
-
 # not windows compatible.
 # buildifier: disable=unused-variable
 def _find_workspace(attr, environ, path):
@@ -119,6 +111,7 @@ def _find_workspace(attr, environ, path):
 _archive_repository = repository_rule(
     implementation = archive_repository_implementation,
     local = True,
+    configure = True,
     attrs = {
         "_remote_urls": attr.string_list(
             doc = "A list of urls for the archive",

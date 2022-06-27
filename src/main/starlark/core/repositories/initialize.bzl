@@ -33,4 +33,7 @@ def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELE
         compiler_release: (internal) version provider from versions.bzl.
     """
     kt_configure()
-    _release_kotlin_repositories(compiler_release = compiler_release)
+    _release_kotlin_repositories(
+        compiler_release = compiler_release,
+        configured_repository_name = None,
+    )

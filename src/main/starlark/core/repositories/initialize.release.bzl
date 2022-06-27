@@ -30,7 +30,7 @@ load(":versions.bzl", "version", _versions = "versions")
 
 versions = _versions
 
-KOTLIN_RULES = Label("//:all")
+RULES_KOTLIN = Label("//:all")
 
 def kotlin_repositories(
         compiler_repository_name = _KT_COMPILER_REPO,
@@ -39,14 +39,17 @@ def kotlin_repositories(
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
-        compiler_release: (internal) version provider from versions.bzl.
+        compiler_repository_name: for the kotlinc compiler repository.
+        compiler_release: version provider from versions.bzl.
+        configured_repository_name: for the default versioned kt_* rules repository. If None, no versioned repository is
+         created.
     """
 
     kotlin_compiler_repository(
         name = compiler_repository_name,
         urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
         sha256 = compiler_release.sha256,
-        kotlin_rules = KOTLIN_RULES.workspace_name,
+        kotlin_rules = RULES_KOTLIN.workspace_name,
     )
 
     http_file(
@@ -93,15 +96,15 @@ def kotlin_repositories(
         if (criteria and compiler_release.version.startswith(criteria.prefix)) or (not selected_version and not criteria):
             selected_version = version
 
-    rules_repository(
-        name = configured_repository_name,
-        archive = Label("//:%s.tgz" % selected_version),
-        parent = KOTLIN_RULES,
-        repo_mapping = {
-            "@dev_io_bazel_rules_kotlin": "@%s" % KOTLIN_RULES.workspace_name,
-            "@": "@%s" % KOTLIN_RULES.workspace_name,
-        },
-    )
+    if configured_repository_name:  # without a repository name, no default kt_* rules repository is created.
+        rules_repository(
+            name = configured_repository_name,
+            archive = Label("//:%s.tgz" % selected_version),
+            parent = RULES_KOTLIN,
+            repo_mapping = {
+                "@dev_io_bazel_rules_kotlin": "@%s" % RULES_KOTLIN.workspace_name,
+            },
+        )
 
 def kotlinc_version(release, sha256):
     return version(

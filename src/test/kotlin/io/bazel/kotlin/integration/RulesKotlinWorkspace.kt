@@ -120,6 +120,6 @@ class RulesKotlinWorkspace private constructor(
         "attrs" to !"{'path': attr.string()}"
       )
     }
-    return "@//:archive_repository.bzl" to "archive_repository"
+    return "//:archive_repository.bzl" to "archive_repository"
   }
 }

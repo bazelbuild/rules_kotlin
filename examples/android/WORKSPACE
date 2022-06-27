@@ -67,7 +67,6 @@ http_archive(
 
 load(
     "@build_bazel_rules_android//android:rules.bzl",
-    "android_ndk_repository",
     "android_sdk_repository",
 )
 
@@ -75,8 +74,6 @@ android_sdk_repository(
     name = "androidsdk",
     build_tools_version = versions.ANDROID.BUILD_TOOLS,  # versions > 30.0.3 do not have the dx.jar anymore.
 )
-
-android_ndk_repository(name = "androidndk")  # Required. Name *must* be "androidndk".
 
 http_archive(
     name = "robolectric",
