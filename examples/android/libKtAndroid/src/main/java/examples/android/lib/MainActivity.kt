@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
     setContentView(parent, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
     AlertDialog.Builder(this)
       .setTitle(this.getString(R.string.where_you_at))
-      .setMessage("Blah blah blah?")
+      .setMessage("Blah blah blah? " + getString(R.string.hello))
       .show()
     // Ensure Serialization plugin has run and generated code correctly.
     Data.serializer()
