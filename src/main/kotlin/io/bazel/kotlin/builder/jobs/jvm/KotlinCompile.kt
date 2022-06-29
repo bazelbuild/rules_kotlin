@@ -35,10 +35,7 @@ class KotlinCompile {
       override fun getPath(location: CompilerMessageSourceLocation): String =
         location.path.removePrefix(sourceRoot)
     }
-
-    println(configuration.freeArgs.toList())
-    println(configuration.javaSourceRoots?.toList())
-
+    
     return when (compiler.exec(
       Report(job, renderer),
       Services.EMPTY,

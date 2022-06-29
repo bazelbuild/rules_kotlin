@@ -1,35 +1,36 @@
 package io.bazel.kotlin.builder.jobs.jvm
 
 import java.nio.file.FileSystem
+import java.nio.file.Path
 
 interface CompilationInputs {
   val fileSystem: FileSystem
-  val classpath: List<Artifact>
-  val directDependencies: List<Artifact>
-  val depsArtifacts: List<Artifact>
-  val sources: List<Artifact>
-  val sourcesJars: List<Artifact>
-  val processorPath: List<Artifact>
-  val processors: List<Artifact>
-  val stubsPluginOptions: List<Artifact>
-  val stubsPluginClassPath: List<Artifact>
-  val compilerPluginOptions: List<Artifact>
-  val compilerPluginClassPath: List<Artifact>
+  val classpath: List<Path>
+  val directDependencies: List<Path>
+  val depsPaths: List<Path>
+  val sources: List<Path>
+  val sourcesJars: List<Path>
+  val processorPath: List<Path>
+  val processors: List<Path>
+  val stubsPluginOptions: List<Path>
+  val stubsPluginClassPath: List<Path>
+  val compilerPluginOptions: List<Path>
+  val compilerPluginClassPath: List<Path>
   val ruleKind: String
   val moduleName: String?
   val passthroughFlags: List<String>
   val apiVersion: String?
   val languageVersion: String?
   val jvmTarget: String?
-  val friendsPaths: List<Artifact>
+  val friendsPaths: List<Path>
   val jsPassthroughFlags: List<String>
-  val jsLibraries: List<Artifact>
+  val jsLibraries: List<Path>
   val debug: List<String>
   val taskId: String
-  val abiJar: Artifact?
-  val generatedJavaSrcJar: Artifact?
-  val generatedJavaStubJar: Artifact?
-  val generatedClassJar: Artifact?
+  val abiJar: Path?
+  val generatedJavaSrcJar: Path?
+  val generatedJavaStubJar: Path?
+  val generatedClassJar: Path?
   val buildKotlin: String?
   val strictKotlinDeps: Boolean
   val reducedClasspathMode: Boolean

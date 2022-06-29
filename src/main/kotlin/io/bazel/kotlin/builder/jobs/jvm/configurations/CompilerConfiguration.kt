@@ -1,8 +1,8 @@
 package io.bazel.kotlin.builder.jobs.jvm.configurations
 
-import io.bazel.kotlin.builder.jobs.jvm.Artifact
 import io.bazel.kotlin.builder.jobs.jvm.JobContext
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import java.nio.file.Path
 
 fun interface CompilerConfiguration {
   fun K2JVMCompilerArguments.configure(context: JobContext)
@@ -20,7 +20,7 @@ fun interface CompilerConfiguration {
 
   fun K2JVMCompilerArguments.plugin(
     id: String,
-    classpath: List<Artifact>,
+    classpath: List<Path>,
     vararg arguments: Pair<String, String>,
     jobContext: JobContext
   ) {
@@ -34,7 +34,7 @@ fun interface CompilerConfiguration {
   }
 
   fun K2JVMCompilerArguments.plugins(
-    classpath: List<Artifact>,
+    classpath: List<Path>,
     arguments: List<String>,
     jobContext: JobContext
   ) {
@@ -43,7 +43,7 @@ fun interface CompilerConfiguration {
       "{stubs}" to jobContext.stubs.toString(),
       "{generatedSources}" to jobContext.generatedSources.toString()
     )
-    pluginClasspaths += classpath.map { it.path.toString() }
+    pluginClasspaths += classpath.map { it.toString() }
     pluginOptions += arguments.map { argument ->
       "plugin:" + dirTokens.entries.fold(argument) { formatting, (token, value) ->
         formatting.replace(token, value)

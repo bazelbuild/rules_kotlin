@@ -59,11 +59,11 @@ kt_jvm_test(
 )
 
 kt_jvm_test(
-    name = "JavaPersistentWorkerTest",
+    name = "PersistentWorkerTest",
     srcs = [
-        "JavaPersistentWorkerTest.kt",
+        "PersistentWorkerTest.kt",
     ],
-    test_class = "io.bazel.worker.JavaPersistentWorkerTest",
+    test_class = "io.bazel.worker.PersistentWorkerTest",
     deps = [
         ":WorkerEnvironment",
         "//src/main/kotlin/io/bazel/worker",

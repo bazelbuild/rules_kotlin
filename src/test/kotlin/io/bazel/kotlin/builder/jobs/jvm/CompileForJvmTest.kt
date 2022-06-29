@@ -26,13 +26,13 @@ class CompileForJvmTest {
     override val jvmTarget: String = "11",
     override val moduleName: String = "test",
     override val reducedClasspathMode: Boolean = false,
-    override val depsArtifacts: List<Artifact> = emptyList(),
-    override val classpath: List<Artifact> = emptyList(),
+    override val depsArtifacts: List<Path> = emptyList(),
+    override val classpath: List<Path> = emptyList(),
     override val fileSystem: FileSystem = FileSystems.getDefault(),
-    override val sources: List<Artifact> = emptyList(),
-    override val jdkHome: Artifact = Artifact(
-      FileSystems.getDefault().getPath(System.getProperty("java.home"))
-    )
+    override val sources: List<Path> = emptyList(),
+    override val jdkHome: Path = FileSystems.getDefault().getPath(System.getProperty("java.home")),
+    override val useIr: Boolean = false,
+    override val debug: List<String> = emptyList()
   ) : BaseConfiguration.Inputs
 
   data class TestScope(override val directory: Path) : Logging, FileScope {
@@ -73,7 +73,7 @@ class CompileForJvmTest {
       job, listOf(
         BaseConfiguration(
           TestInputs(
-            sources = listOf(Artifact(source))
+            sources = listOf(source)
           )
         )
       )
@@ -99,7 +99,7 @@ class CompileForJvmTest {
         job, listOf(
           BaseConfiguration(
             TestInputs(
-              sources = listOf(Artifact(source))
+              sources = listOf(source)
             )
           )
         )
@@ -130,7 +130,7 @@ class CompileForJvmTest {
         job, listOf(
           BaseConfiguration(
             TestInputs(
-              sources = listOf(Artifact(kotlin), Artifact(java))
+              sources = listOf(kotlin, java)
             )
           )
         )

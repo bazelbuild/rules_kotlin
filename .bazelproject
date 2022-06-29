@@ -21,12 +21,8 @@ targets:
   //:all_local_tests
   # These targets are built for the ide only. Primary purpose is to ensure the builder can build the targets, but it's
   # also a good way of testing the intellij plugin.
-  //src/main/kotlin/io/bazel/kotlin/builder/tasks:tasks_for_ide
-  //src/main/kotlin/io/bazel/kotlin/builder/utils:utils_for_ide
-  //src/main/kotlin/io/bazel/kotlin/builder/toolchain:toolchain_for_ide
-  //src/main/kotlin/io/bazel/kotlin/compiler:compiler_for_ide
+  //src/...:all
   //kotlin:stardoc
-  //src/main/starlark/core/repositories:all
 
 test_sources:
   src/test/*

@@ -1,16 +1,18 @@
 package io.bazel.kotlin.builder.jobs.jvm
 
 import io.bazel.kotlin.builder.jobs.jvm.configurations.BaseConfiguration
-import io.bazel.kotlin.builder.jobs.jvm.flags.ArtifactInputs
+import io.bazel.kotlin.builder.jobs.jvm.flags.FilesSystemInputs
 import io.bazel.kotlin.builder.utils.Arguments
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
+import java.nio.file.Path
 
 class FlagCompilationInputs(
   argument: Arguments,
   override val fileSystem: FileSystem = FileSystems.getDefault(),
-) : CompilationInputs, ArtifactInputs, BaseConfiguration.Inputs {
+) : CompilationInputs, FilesSystemInputs, BaseConfiguration.Inputs, CompilationOutputs {
   override val jdkHome by argument.artifact("jdk_home", "", System.getenv("JAVA_HOME"))
+  override val useIr: Boolean by lazy { "-Xuse-ir" in passthroughFlags }
   override val classpath by argument.artifactList("classpath", "")
   override val directDependencies by argument.artifactList("direct_dependencies", "")
   override val depsArtifacts by argument.artifactList("deps_artifacts", "")
@@ -97,6 +99,8 @@ class FlagCompilationInputs(
   override val buildKotlin by argument.flag("build_kotlin", "")
   override val targetLabel by argument.flag<String>("target_label", "", "") { toString() }
 
+  override val depsPaths: List<Path> by argument.artifactList("deps", "")
+
   override val strictKotlinDeps by argument.flag<Boolean>(
     "strict_kotlin_deps",
     "",
@@ -114,4 +118,10 @@ class FlagCompilationInputs(
     "",
     default = false
   ) { toBooleanStrict() }
+
+
+  override val outputSrcJar by argument.artifact("kotlin_output_srcjar", "", required = true)
+  override val output by argument.artifact("output", "", required = true)
+  override val outputJdeps by argument.artifact("kotlin_output_jdeps", "")
+  override val outputJsJar by argument.artifact("kotlin_output_js_jar", "")
 }
