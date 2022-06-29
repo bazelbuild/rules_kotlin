@@ -64,8 +64,8 @@ def kotlin_repositories(
     maybe(
         http_file,
         name = "com_github_pinterest_ktlint",
-        sha256 = "4739662e9ac9a9894a1eb47844cbb5610971f15af332eac94d108d4f55ebc19e",
-        urls = ["https://github.com/pinterest/ktlint/releases/download/0.40.0/ktlint"],
+        sha256 = versions.PINTEREST_KTLINT.sha256,
+        urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],
         executable = True,
     )
 
