@@ -53,7 +53,7 @@ def _kt_android_artifact(
     _kt_jvm_library(
         name = kt_name,
         srcs = srcs,
-        deps = base_deps + [base_name],
+        deps = [base_name] + base_deps,
         resources = resources,
         plugins = plugins,
         associates = associates,
