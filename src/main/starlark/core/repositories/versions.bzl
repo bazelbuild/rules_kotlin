@@ -33,11 +33,11 @@ versions = struct(
         sha256 = "45c5e1104490b2f2a342d3b7ddd94898ea76e267c999100be40791ff724276ad",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.6.21",
+        version = "1.7.0",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba",
+        sha256 = "f5216644ad81571e5db62ec2322fe07468927bda40f51147ed626a2884b55f9a",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",

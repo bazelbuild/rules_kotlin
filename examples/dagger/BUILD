@@ -13,6 +13,7 @@
 # limitations under the License.
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -98,4 +99,10 @@ java_binary(
     main_class = "coffee.CoffeeApp",
     visibility = ["//visibility:public"],
     runtime_deps = [":coffee_lib"],
+)
+
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    api_version = "1.6",
+    language_version = "1.6",
 )
