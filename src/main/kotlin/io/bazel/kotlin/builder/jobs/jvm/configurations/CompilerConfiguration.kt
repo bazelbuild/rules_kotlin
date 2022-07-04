@@ -41,7 +41,7 @@ fun interface CompilerConfiguration {
     val dirTokens = mapOf(
       "{generatedClasses}" to jobContext.generatedClasses.toString(),
       "{stubs}" to jobContext.stubs.toString(),
-      "{generatedSources}" to jobContext.generatedSources.toString()
+      "{generatedSources}" to jobContext.generatedSources.toString(),
     )
     pluginClasspaths += classpath.map { it.toString() }
     pluginOptions += arguments.map { argument ->
