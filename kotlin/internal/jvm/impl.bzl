@@ -223,7 +223,9 @@ def kt_jvm_library_impl(ctx):
 
 def kt_jvm_binary_impl(ctx):
     providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_binary")
-    jvm_flags = ctx.fragments.java.default_jvm_opts
+    jvm_flags = []
+    if hasattr(ctx.fragments.java, "default_jvm_opts"):
+        jvm_flags = ctx.fragments.java.default_jvm_opts
     jvm_flags.extend(ctx.attr.jvm_flags)
     _write_launcher_action(
         ctx,
@@ -275,7 +277,9 @@ def kt_jvm_junit_test_impl(ctx):
                         test_class = elements[1].split(".")[0].replace("/", ".")
                         break
 
-    jvm_flags = ctx.fragments.java.default_jvm_opts
+    jvm_flags = []
+    if hasattr(ctx.fragments.java, "default_jvm_opts"):
+        jvm_flags = ctx.fragments.java.default_jvm_opts
     jvm_flags.extend(ctx.attr.jvm_flags)
     coverage_metadata = _write_launcher_action(
         ctx,
@@ -380,7 +384,7 @@ def kt_compiler_plugin_impl(ctx):
     for (k, v) in ctx.attr.options.items():
         if "=" in k:
             fail("kt_compiler_plugin options keys cannot contain the = symbol")
-        options.append(struct(id = plugin_id, value = "%s=%s" % (k, v)))
+        options.append(struct(id = plugin_id, value = "%s=%s" % (k, ctx.expand_location(v))))
 
     if not (ctx.attr.compile_phase or ctx.attr.stubs_phase):
         fail("Plugin must execute during in one or more phases: stubs_phase, compile_phase")
