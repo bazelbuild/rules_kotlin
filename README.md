@@ -3,7 +3,7 @@
 # Bazel Kotlin Rules
 
 Current release: ***`1.6.0`***<br />
-Current RC release: ***`v1.6.0-RC-2`***<br />
+Current RC release: ***`v1.7.0-RC-2`***<br />
 Main branch: `master`
 
 For more information about release and changelogs please see [Changelog](CHANGELOG.md) or refer to the [Github Releases](https://github.com/bazelbuild/rules_kotlin/releases) page.
