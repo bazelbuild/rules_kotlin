@@ -1,10 +1,12 @@
-[![Build Status](https://badge.buildkite.com/a8860e94a7378491ce8f50480e3605b49eb2558cfa851bbf9b.svg)](https://buildkite.com/bazel/kotlin-postsubmit)
-
 # Bazel Kotlin Rules
 
-Current release: ***`1.6.0`***<br />
-Current RC release: ***`v1.6.0-RC-2`***<br />
-Main branch: `master`
+[![Build Status](https://badge.buildkite.com/a8860e94a7378491ce8f50480e3605b49eb2558cfa851bbf9b.svg)](https://buildkite.com/bazel/kotlin-postsubmit)
+<a href="https://github.com/bazelbuild/rules_kotlin/tree/master"><img src="https://img.shields.io/badge/Main%20Branch-master-blue.svg"/></a>
+###  Releases
+
+<a href="https://github.com/bazelbuild/rules_kotlin/releases/latest"><img src="https://img.shields.io/github/v/release/bazelbuild/rules_kotlin?display_name=tag&label=Latest%20Stable%20Release"/></a>
+<br/>
+<a href="https://github.com/bazelbuild/rules_kotlin/releases/"><img src="https://img.shields.io/github/v/release/bazelbuild/rules_kotlin?display_name=tag&include_prereleases&label=Latest%20Release%20Candidate"/></a>
 
 For more information about release and changelogs please see [Changelog](CHANGELOG.md) or refer to the [Github Releases](https://github.com/bazelbuild/rules_kotlin/releases) page.
 
