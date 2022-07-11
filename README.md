@@ -52,7 +52,7 @@ this:
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "1.6.0"
+rules_kotlin_version = "v1.6.0"
 rules_kotlin_sha = "a57591404423a52bd6b18ebba7979e8cd2243534736c5c94d35c89718ea38f94"
 http_archive(
     name = "io_bazel_rules_kotlin",
