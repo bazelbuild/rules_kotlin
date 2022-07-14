@@ -79,6 +79,36 @@ _KOPTS = {
             "all": ["-Xjvm-default=all"],
         },
     ),
+    "x_no_call_assertions": struct(
+        args = dict(
+            default = False,
+            doc = "Don't generate not-null assertions for arguments of platform types",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xno-call-assertions"],
+        },
+    ),
+    "x_no_param_assertions": struct(
+        args = dict(
+            default = False,
+            doc = "Don't generate not-null assertions on parameters of methods accessible from Java",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xno-param-assertions"],
+        },
+    ),
+    "x_no_receiver_assertions": struct(
+        args = dict(
+            default = False,
+            doc = "Don't generate not-null assertion for extension receiver arguments of platform types",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xno-receiver-assertions"],
+        },
+    ),
     "x_no_optimized_callable_references": struct(
         args = dict(
             default = False,
