@@ -14,7 +14,6 @@ TARGETS="libJava1:src_main libAndroid1:src_main libKt1:src_main libKtAndroid1:sr
 BAZEL_BINARY=${BAZEL_BINARY:-bazel}
 
 $BAZEL_BINARY --version || die "Bazel binary invalid or 'bazel' is not on classpath"
-rm -rf profile.gz profile
 
 # Run initial clean build
 $BAZEL_BINARY clean
@@ -47,3 +46,5 @@ git checkout -- libJava4/src/main/java/examples/deps/Dummy4.java
 git checkout -- libAndroid4/src/main/java/examples/deps/Dummy4.java
 git checkout -- libKt4/src/main/kt/examples/deps/KtDummy4.kt
 git checkout -- libKtAndroid4/src/main/kt/examples/deps/KtDummy4.kt
+
+rm -rf profile.gz profile
