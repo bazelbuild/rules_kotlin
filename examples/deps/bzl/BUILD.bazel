@@ -1,0 +1,23 @@
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_kotlinc_options")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
+
+kt_kotlinc_options(
+    name = "default_kotlinc_options",
+)
+
+kt_javac_options(
+    name = "default_javac_options",
+)
+
+define_kt_toolchain(
+    name = "experimental_toolchain",
+    api_version = "1.5",
+    # TODO(630): enable when the reduced classpath can correctly manage transitive maven dependencies.
+    # experimental_reduce_classpath_mode = "KOTLINBUILDER_REDUCED",
+    experimental_report_unused_deps = "warn",
+    experimental_strict_kotlin_deps = "warn",
+    experimental_use_abi_jars = True,
+    javac_options = ":default_javac_options",
+    kotlinc_options = ":default_kotlinc_options",
+    language_version = "1.5",
+)
