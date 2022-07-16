@@ -101,17 +101,14 @@ def _jvm_deps(toolchains, associated_targets, deps, runtime_deps = []):
             ",\n ".join(["    %s" % x for x in list(diff)]),
         )
     dep_infos = [_java_info(d) for d in associated_targets + deps] + [toolchains.kt.jvm_stdlibs]
+
+    transitive_deps = [ d.compile_jars for d in dep_infos ]
+    if not toolchains.kt.experimental_prune_transitive_deps:
+        transitive_deps = transitive_deps + [ d.transitive_compile_time_jars for d in dep_infos ]
+
     return struct(
         deps = dep_infos,
-        compile_jars = depset(
-            transitive = [
-                d.compile_jars
-                for d in dep_infos
-            ] + [
-                d.transitive_compile_time_jars
-                for d in dep_infos
-            ],
-        ),
+        compile_jars = depset(transitive = transitive_deps),
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 
