@@ -32,19 +32,37 @@ $BAZEL_BINARY build $TARGETS $@ --profile=profile.gz || die "Failed to build tar
 gzip -d profile.gz -f
 
 NUM_JAVA_TARGETS=$(cat profile | grep "action processing" | grep "Building libJava" | wc -l | xargs)
-NUM_ANDROID_TARGETS=$(cat profile | grep "action processing" | grep "Building libJava" | wc -l | xargs)
+NUM_ANDROID_TARGETS=$(cat profile | grep "action processing" | grep "Building libAndroid" | wc -l | xargs)
 NUM_KT_TARGETS=$(cat profile | grep "action processing" | grep "KotlinCompile //libKt" | grep -v "KotlinCompile //libKtAndroid" | wc -l | xargs)
 NUM_KT_ANDROID_TARGETS=$(cat profile | grep "action processing" | grep "KotlinCompile //libKtAndroid" | wc -l | xargs)
 
-echo Rebuilt libjava targets: $NUM_JAVA_TARGETS
-echo Rebuilt libandroid targets: $NUM_ANDROID_TARGETS
-echo Rebuilt libkt targets: $NUM_KT_TARGETS
-echo Rebuilt libktandroid targets: $NUM_KT_ANDROID_TARGETS
+# Resource only incremental builds
+invalidate libAndroid4/src/main/res/values/strings.xml
+invalidate libKtAndroid4/src/main/res/values/strings.xml
+
+# Run incremental build
+$BAZEL_BINARY build $TARGETS $@ --profile=profile.gz || die "Failed to build targets"
+
+# Parse profile
+gzip -d profile.gz -f
+
+NUM_ANDROID_TARGETS_RES_ONLY=$(cat profile | grep "action processing" | grep "Building libAndroid" | wc -l | xargs)
+NUM_KT_ANDROID_TARGETS_RES_ONLY=$(cat profile | grep "action processing" | grep "KotlinCompile //libKtAndroid" | wc -l | xargs)
 
 # Cleanup
 git checkout -- libJava4/src/main/java/examples/deps/Dummy4.java
 git checkout -- libAndroid4/src/main/java/examples/deps/Dummy4.java
 git checkout -- libKt4/src/main/kt/examples/deps/KtDummy4.kt
 git checkout -- libKtAndroid4/src/main/kt/examples/deps/KtDummy4.kt
+git checkout -- libAndroid4/src/main/res/values/strings.xml
+git checkout -- libKtAndroid4/src/main/res/values/strings.xml
 
 rm -rf profile.gz profile
+
+# Final output
+echo Rebuilt libjava targets: $NUM_JAVA_TARGETS
+echo Rebuilt libandroid targets: $NUM_ANDROID_TARGETS
+echo Rebuilt libkt targets: $NUM_KT_TARGETS
+echo Rebuilt libktandroid targets: $NUM_KT_ANDROID_TARGETS
+echo Rebuilt libandroid res-only targets: $NUM_ANDROID_TARGETS_RES_ONLY
+echo Rebuilt libktandroid res-only targets: $NUM_KT_ANDROID_TARGETS_RES_ONLY
