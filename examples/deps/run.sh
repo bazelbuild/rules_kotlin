@@ -41,7 +41,11 @@ invalidate libAndroid4/src/main/res/values/strings.xml
 invalidate libKtAndroid4/src/main/res/values/strings.xml
 
 # Run incremental build
-$BAZEL_BINARY build $TARGETS $@ --profile=profile.gz || die "Failed to build targets"
+STARTUP_OPTIONS=""
+if [ ! -z "$DEBUG" ]; then
+    STARTUP_OPTIONS="$STARTUP_OPTIONS --host_jvm_debug"
+fi
+$BAZEL_BINARY $STARTUP_OPTIONS build $TARGETS $@ --profile=profile.gz || die "Failed to build targets"
 
 # Parse profile
 gzip -d profile.gz -f

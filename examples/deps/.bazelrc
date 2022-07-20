@@ -1,0 +1,35 @@
+build --noworker_sandboxing
+#build --strategy=worker,local
+#build --spawn_strategy=worker,local
+
+#build --strategy=DexBuilder=worker,local
+#build --strategy=Javac=worker,local
+#build --strategy=KotlinCompile=worker,local
+#build --strategy=Desugar=worker,local
+#build --strategy=ModelGen=worker,local
+#build --persistent_android_resource_processor
+
+# Enable D8 dexing
+build --define=android_dexmerger_tool=d8_dexmerger
+build --define=android_incremental_dexing_tool=d8_dexbuilder
+build --define=android_standalone_dexing_tool=d8_compat_dx
+build --nouse_workers_with_dexbuilder
+
+# Disable incremental dexing
+build:no_incremental_dexing --use_workers_with_dexbuilder
+build:no_incremental_dexing --incremental_dexing=false
+
+# Generating ABI from full jar Vs compiling header from source, for faster build time
+build:no_java_header_compilation --nojava_header_compilation
+
+# Uber custom configuration. Use only with our custom fork of bazel
+build:uber --override_repository=android_tools=/tmp/android_tools/
+build:uber --merge_android_manifest_permissions
+
+build:uber --nolink_library_resources
+build:uber --experimental_use_rtxt_from_merged_resources
+
+build:uber --nooutput_library_merged_assets
+build:uber --nooutput_library_linked_resources
+
+build:uber --nocompile_with_transitive_deps
