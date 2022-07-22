@@ -28,16 +28,6 @@ _KOPTS = {
             "none": ["-no-stdlib"],
         },
     ),
-    "x_use_experimental": struct(
-        args = dict(
-            default = True,
-            doc = "Allow the experimental language features.",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xuse-experimental=kotlin.Experimental"],
-        },
-    ),
     "x_skip_prerelease_check": struct(
         args = dict(
             default = False,
