@@ -28,7 +28,7 @@ _KOPTS = {
             "none": ["-no-stdlib"],
         },
     ),
-   "x_skip_prerelease_check": struct(
+    "x_skip_prerelease_check": struct(
         args = dict(
             default = False,
             doc = "Suppress errors thrown when using pre-release classes.",
