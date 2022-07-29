@@ -18,9 +18,9 @@ load(":versions.bzl", "versions")
 
 def kt_download_local_dev_dependencies():
     """
-    versions.Downloads all necessary http_* artifacts for rules_kotlin dev configuration.
+    Downloads all necessary http_* artifacts for rules_kotlin dev configuration.
 
-    versions.Must be called before setup_dependencies in the versions.WORKSPACE.
+    Must be called before setup_dependencies in the versions.WORKSPACE.
     """
     maybe(
         http_archive,
@@ -56,6 +56,13 @@ def kt_download_local_dev_dependencies():
             "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/{0}/bazel-toolchains-{0}.tar.gz".format(versions.BAZEL_TOOLCHAINS_VERSION),
             "https://github.com/bazelbuild/bazel-toolchains/releases/download/{0}/bazel-toolchains-{0}.tar.gz".format(versions.BAZEL_TOOLCHAINS_VERSION),
         ],
+    )
+
+    maybe(
+        http_archive,
+        name = "buildkite_config",
+        sha256 = versions.RBE.SHA,
+        urls = versions.RBE.URLS,
     )
 
     maybe(

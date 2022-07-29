@@ -63,4 +63,9 @@ versions = struct(
         ),
         "legacy": None,
     },
+    # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
+    RBE = struct(
+        SHA = "6ac1093b2c8c1199c038697ca726f48390a17bbe0d3108b8b508611ce1e6c1b5",
+        URLS = ["https://storage.googleapis.com/rbe-toolchain/bazel-configs/rbe-ubuntu1604/latest/rbe_default.tar"],
+    ),
 )
