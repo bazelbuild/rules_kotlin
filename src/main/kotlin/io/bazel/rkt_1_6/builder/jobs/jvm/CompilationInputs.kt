@@ -1,4 +1,4 @@
-package io.bazel.kotlin.builder.jobs.jvm
+package io.bazel.rkt_1_6.builder.jobs.jvm
 
 import java.nio.file.FileSystem
 import java.nio.file.Path

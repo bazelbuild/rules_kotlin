@@ -15,6 +15,7 @@
  */
 package io.bazel.kotlin.builder.utils.jars
 
+import java.io.Closeable
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
@@ -30,7 +31,7 @@ import java.util.stream.Stream
 class SourceJarCreator(
   path: Path,
   verbose: Boolean = false,
-) : JarHelper(path, normalize = true, verbose = verbose) {
+) : JarHelper(path, normalize = true, verbose = verbose), Closeable {
   companion object {
     private const val BL = """\p{Blank}*"""
     private const val COM_BL = """$BL(?:/\*[^\n]*\*/$BL)*"""
@@ -201,5 +202,9 @@ class SourceJarCreator(
       "source entry jarName: $name from: $path " +
         "collides with entry from: ${(result as Entry.File).path}"
     }
+  }
+
+  override fun close() {
+    execute()
   }
 }

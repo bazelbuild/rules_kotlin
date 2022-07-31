@@ -24,7 +24,7 @@ import org.junit.Test
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.Executors
 
-class JavaPersistentWorkerTest {
+class PersistentWorkerTest {
 
   @Test
   fun persistent() {

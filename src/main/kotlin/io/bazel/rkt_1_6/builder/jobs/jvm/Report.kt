@@ -1,11 +1,10 @@
-package io.bazel.kotlin.builder.jobs.jvm
+package io.bazel.rkt_1_6.builder.jobs.jvm
 
 import io.bazel.worker.ContextLog.Logging
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
-import java.nio.file.Path
 
 class Report(val logging: Logging, val renderer: MessageRenderer = MessageRenderer.PLAIN_RELATIVE_PATHS) : MessageCollector {
 

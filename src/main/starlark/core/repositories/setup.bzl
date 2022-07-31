@@ -43,6 +43,8 @@ def kt_configure():
             "org.pantsbuild:jarjar:1.7.2",
             "org.jetbrains.kotlinx:atomicfu-js:0.15.2",
             "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
+            "org.ow2.asm:asm:9.3",
+            "org.ow2.asm:asm-util:9.3",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",

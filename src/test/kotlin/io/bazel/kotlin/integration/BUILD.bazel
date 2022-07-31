@@ -1,11 +1,14 @@
 load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 
 kt_jvm_library(
-    name = "lib",
+    name = "integration",
     srcs = glob(
         ["*.kt"],
         exclude = ["*Test.kt"],
     ),
+    visibility = [
+        "//src/test:__subpackages__",
+    ],
 )
 
 kt_jvm_test(
@@ -13,7 +16,7 @@ kt_jvm_test(
     size = "enormous",
     srcs = ["WriteWorkspaceTest.kt"],
     deps = [
-        ":lib",
+        ":integration",
         "@com_github_jetbrains_kotlin//:kotlin-test",
         "@kotlin_rules_maven//:com_google_truth_truth",
         "@kotlin_rules_maven//:junit_junit",
@@ -29,7 +32,7 @@ kt_jvm_test(
     tags = ["local"],  # necessary for running Bazel in a test.
     test_class = "io.bazel.kotlin.integration.MixedSourceCompileTest",
     deps = [
-        ":lib",
+        ":integration",
         "@com_github_jetbrains_kotlin//:kotlin-test",
         "@kotlin_rules_maven//:com_google_truth_truth",
         "@kotlin_rules_maven//:junit_junit",

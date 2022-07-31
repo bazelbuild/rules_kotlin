@@ -1,0 +1,97 @@
+load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+
+kt_jvm_library(
+    name = "lib",
+    srcs = [
+        "CompileConfigurationSubject.kt",
+        "TestScope.kt",
+    ],
+    deps = [
+        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
+        "//src/main/kotlin/io/bazel/worker",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:org_ow2_asm_asm",
+        "@kotlin_rules_maven//:org_ow2_asm_asm_util",
+    ],
+)
+
+kt_jvm_test(
+    name = "CompileForJvmTest",
+    srcs = [
+        "CompileForJvmTest.kt",
+    ],
+    test_class = "io.bazel.rkt_1_6.builder.jobs.jvm.CompileForJvmTest",
+    runtime_deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-runtime-compiler",
+    ],
+    deps = [
+        ":lib",
+        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
+        "//src/test/kotlin/io/bazel/kotlin/integration",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+    ],
+)
+
+kt_jvm_test(
+    name = "GenerateAbiTest",
+    srcs = [
+        "GenerateAbiTest.kt",
+    ],
+    data = [
+        "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
+        "@com_github_jetbrains_kotlin//:jvm-abi-gen",
+    ],
+    jvm_flags = [
+        "-Dabi_plugin=$(rootpath %s)" % "@com_github_jetbrains_kotlin//:jvm-abi-gen",
+        "-Dskip_code_gen=$(rootpath %s)" % "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
+    ],
+    test_class = "io.bazel.rkt_1_6.builder.jobs.jvm.GenerateAbiTest",
+    runtime_deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-runtime-compiler",
+    ],
+    deps = [
+        ":lib",
+        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
+        "//src/test/kotlin/io/bazel/kotlin/integration",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+    ],
+)
+
+kt_jvm_test(
+    name = "GenerateStubsTest",
+    srcs = [
+        "GenerateStubsTest.kt",
+    ],
+    data = [
+        "@com_github_jetbrains_kotlin//:annotations",
+        "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
+        "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+    ],
+    jvm_flags = [
+        "-Dauto_value=$(location %s)" % "@kotlin_rules_maven//:com_google_auto_value_auto_value",
+        "-Dauto_value_annotations=$(location %s)" % "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "-Dkapt=$(location %s)" % "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
+        "-Dkotlin_annotations=$(location %s)" % "@com_github_jetbrains_kotlin//:annotations",
+        "-Dserialization=$(location %s)" % "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
+        "-serialization_plugin=$(location %s)" % "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+    ],
+    test_class = "io.bazel.rkt_1_6.builder.jobs.jvm.GenerateStubsTest",
+    runtime_deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-runtime-compiler",
+    ],
+    deps = [
+        ":lib",
+        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
+        "//src/test/kotlin/io/bazel/kotlin/integration",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+    ],
+)

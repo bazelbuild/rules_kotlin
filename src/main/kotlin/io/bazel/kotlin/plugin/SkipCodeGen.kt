@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.context.ProjectContext
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
 
@@ -44,7 +45,7 @@ class SkipCodeGen : ComponentRegistrar {
   ) {
     AnalysisHandlerExtension.registerExtension(
       project,
-      SkipCodeGen,
+      SkipCodeGen
     )
   }
 
@@ -71,13 +72,14 @@ class SkipCodeGen : ComponentRegistrar {
       bindingTrace: BindingTrace,
       files: Collection<KtFile>,
     ): AnalysisResult? {
+
       // Ensure this is the last plugin, as it will short circuit any other plugin analysisCompleted
       // calls.
       Preconditions.checkState(
         AnalysisHandlerExtension.getInstances(project).last() == this,
-        "SkipCodeGen must be the last plugin: ${AnalysisHandlerExtension.getInstances(project)}",
+        "SkipCodeGen must be the last plugin: ${AnalysisHandlerExtension.getInstances(project)}"
       )
-      return AnalysisResult.Companion.success(bindingTrace.bindingContext, module, false)
+      return AnalysisResult.Companion.success(BindingContext.EMPTY, module, false)
     }
   }
 }

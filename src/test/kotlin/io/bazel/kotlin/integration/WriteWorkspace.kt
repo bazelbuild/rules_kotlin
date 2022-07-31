@@ -167,8 +167,8 @@ object WriteWorkspace {
       call(toString(), *arguments)
     }
 
-    fun CharSequence.list(vararg elements:Any?) : Pair<CharSequence, CharSequence> {
-      return this to !"[${elements.joinToString(","){ it.render() }}]"
+    fun CharSequence.list(vararg elements: Any?): Pair<CharSequence, CharSequence> {
+      return this to !"[${elements.joinToString(",") { it.render() }}]"
     }
   }
 
@@ -241,6 +241,11 @@ object WriteWorkspace {
 
   @WorkspaceContext
   interface Jvm<T : Jvm<T>> : Block<T>, Define<T>, Invoke {
+
+    fun `@`(name: String, vararg args: CharSequence) {
+      +"@$name${args.joinToString(",", "(", ")") { it.render() }}"
+    }
+
     override fun block(label: CharSequence, contents: Block<T>.() -> Unit) {
       super.block("$label {") {
         contents()
@@ -266,6 +271,16 @@ object WriteWorkspace {
 
     fun `import`(kClass: CharSequence) {
       +"import $kClass"
+    }
+
+    fun `fun`(
+      name: CharSequence,
+      vararg arguments: CharSequence,
+      contents: KotlinSource.() -> Unit = {}
+    ) {
+      block("fun $name(${arguments.render(separator = ", ")})") {
+        contents()
+      }
     }
 
     fun `class`(name: String, vararg parents: String, contents: KotlinSource.() -> Unit) {

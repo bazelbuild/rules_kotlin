@@ -32,7 +32,7 @@ class ArgumentsTest {
   @Test
   fun flags() {
     class Forest(a: Arguments) {
-      val little by a.flag("little", "frolicking animal", "rabbit")
+      val little by a.flag("little", "frolicking animal", default = "rabbit")
 
       val surname by a.flag("surname", "surname", emptyList<String>()) {
         split(",")
@@ -82,7 +82,7 @@ class ArgumentsTest {
       val mammal by a.flag(
         "mammal",
         "",
-        "worm"
+        default = "worm"
       )
     }
 
@@ -121,9 +121,9 @@ class ArgumentsTest {
   @Test
   fun expand() {
     class Forest(a: Arguments) {
-      val fairy by a.flag("fairy", "peacekeeper", "anarchy")
+      val fairy by a.flag("fairy", "peacekeeper", default = "anarchy")
 
-      val bopper by a.flag("bopper", "miscreant", "big")
+      val bopper by a.flag("bopper", "miscreant", default = "big")
     }
 
     val params = Files.write(

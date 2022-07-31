@@ -1,6 +1,6 @@
-package io.bazel.kotlin.builder.jobs.jvm
+package io.bazel.rkt_1_6.builder.jobs.jvm
 
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompilerConfiguration
+import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompilerConfiguration
 import io.bazel.worker.Status
 import org.jetbrains.kotlin.cli.common.ExitCode.COMPILATION_ERROR
 import org.jetbrains.kotlin.cli.common.ExitCode.INTERNAL_ERROR
@@ -15,9 +15,10 @@ import org.jetbrains.kotlin.konan.file.File.Companion.separator
 
 class KotlinCompile {
   private val compiler = K2JVMCompiler()
-  fun run(
-    job: JobContext,
-    configurations: List<CompilerConfiguration>,
+
+  fun <IN, OUT> run(
+    job: JobContext<IN, OUT>,
+    configurations: List<CompilerConfiguration<IN, OUT>>,
   ): Status {
 
     val configuration = configurations.fold(K2JVMCompilerArguments()) { arg, cfg ->
@@ -35,16 +36,25 @@ class KotlinCompile {
       override fun getPath(location: CompilerMessageSourceLocation): String =
         location.path.removePrefix(sourceRoot)
     }
-    
+
+    println(configuration.pluginOptions?.joinToString("\n"))
+    println("plugin classpath:" + configuration.pluginClasspaths?.joinToString("\n"))
+
     return when (compiler.exec(
       Report(job, renderer),
       Services.EMPTY,
       configuration
     )) {
-      OK -> Status.SUCCESS
+      OK -> {
+        configurations.forEach { cfg ->
+          cfg.packageArtifacts(job)
+        }
+        Status.SUCCESS
+      }
       COMPILATION_ERROR -> Status.ERROR
       INTERNAL_ERROR -> Status.INTERNAL_ERROR
       SCRIPT_EXECUTION_ERROR -> Status.ERROR
+      else -> Status.ERROR
     }
   }
 }

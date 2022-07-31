@@ -1,33 +1,27 @@
-package io.bazel.kotlin.builder.jobs.jvm.configurations
+package io.bazel.rkt_1_6.builder.jobs.jvm.configurations
 
-import io.bazel.kotlin.builder.jobs.jvm.JobContext
+import io.bazel.rkt_1_6.builder.jobs.jvm.JobContext
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import java.nio.file.Files
 import java.nio.file.Path
 
-fun interface CompilerConfiguration {
-  fun K2JVMCompilerArguments.configure(context: JobContext)
+interface PluginsConfiguration<IN : PluginsConfiguration.In, OUT : PluginsConfiguration.Out>
+  : CompilerConfiguration<IN, OUT> {
 
-  fun applyTo(arguments: K2JVMCompilerArguments, context: JobContext): K2JVMCompilerArguments {
-    return arguments.apply { configure(context) }
-  }
+  interface In
 
-  operator fun plus(that: CompilerConfiguration): CompilerConfiguration {
-    return CompilerConfiguration { context ->
-      applyTo(this, context)
-      that.applyTo(this, context)
-    }
-  }
+  interface Out
 
   fun K2JVMCompilerArguments.plugin(
     id: String,
     classpath: List<Path>,
     vararg arguments: Pair<String, String>,
-    jobContext: JobContext
+    jobContext: JobContext<IN, OUT>
   ) {
     plugins(
       classpath,
       arguments.map { (name, value) ->
-        "plugin:${id}:$name=$value"
+        "${id}:$name=$value"
       },
       jobContext
     )
@@ -36,12 +30,14 @@ fun interface CompilerConfiguration {
   fun K2JVMCompilerArguments.plugins(
     classpath: List<Path>,
     arguments: List<String>,
-    jobContext: JobContext
+    jobContext: JobContext<IN, OUT>
   ) {
     val dirTokens = mapOf(
       "{generatedClasses}" to jobContext.generatedClasses.toString(),
       "{stubs}" to jobContext.stubs.toString(),
       "{generatedSources}" to jobContext.generatedSources.toString(),
+      "{temp}" to Files.createTempDirectory(jobContext.incremental, "plugin").toString(),
+      "{resources}" to jobContext.generatedResources.toString(),
     )
     pluginClasspaths += classpath.map { it.toString() }
     pluginOptions += arguments.map { argument ->
@@ -50,12 +46,5 @@ fun interface CompilerConfiguration {
       }
     }
   }
-
-  operator fun <String> Array<String>?.plus(other: Array<String>): Array<String> = when (this) {
-    null -> other
-    else -> plus(other)
-  }
-
-  operator fun Array<String>?.plus(other: List<String>): Array<String> = plus(other.toTypedArray())
-
 }
+

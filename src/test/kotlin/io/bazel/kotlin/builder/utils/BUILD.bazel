@@ -47,6 +47,17 @@ kt_jvm_test(
     ],
 )
 
+kt_jvm_test(
+    name = "ArugmentsTest",
+    srcs = ["ArugmentsTest.kt"],
+    test_class = "io.bazel.kotlin.builder.utils.ArugmentsTest",
+    deps = [
+        "//src/main/kotlin/io/bazel/worker",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
+
 test_suite(
     name = "utils",
 )

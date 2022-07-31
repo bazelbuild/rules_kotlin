@@ -1,4 +1,4 @@
-package io.bazel.kotlin.builder.jobs.jvm.flags
+package io.bazel.rkt_1_6.builder.jobs.jvm.flags
 
 import io.bazel.kotlin.builder.utils.Arguments
 import java.nio.file.FileSystem
@@ -7,17 +7,17 @@ import java.nio.file.Path
 interface FilesSystemInputs {
   val fileSystem : FileSystem
 
-  fun Arguments.artifact(name: String, description: String, required: Boolean = false) =
+  fun Arguments.path(name: String, description: String, required: Boolean = false) =
     flag<Path>(name, description, required = required) {
       fileSystem.getPath(toString())
     }
 
-  fun Arguments.artifact(name: String, description: String, default:String) =
+  fun Arguments.path(name: String, description: String, default:String) =
     flag(name, description, required = true, default = fileSystem.getPath(default)) {
       fileSystem.getPath(toString())
     }
 
-  fun Arguments.artifactList(name: String, description: String, required: Boolean = false) =
+  fun Arguments.paths(name: String, description: String, required: Boolean = false) =
     flag<List<Path>>(
       name,
       description,
