@@ -136,7 +136,8 @@ _implicit_deps = {
     ),
     "_java_stub_template": attr.label(
         cfg = "exec",
-        default = Label("@kt_java_stub_template//file"),
+        default = Label("@bazel_tools//tools/java:java_stub_template.txt"),
+        allow_files = True,
     ),
     "_toolchain": attr.label(
         doc = """The Kotlin JVM Runtime. it's only purpose is to enable the Android native rules to discover the Kotlin

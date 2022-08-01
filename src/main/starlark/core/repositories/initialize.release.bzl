@@ -52,15 +52,6 @@ def kotlin_repositories(
         kotlin_rules = RULES_KOTLIN.workspace_name,
     )
 
-    http_file(
-        name = "kt_java_stub_template",
-        urls = [("https://raw.githubusercontent.com/bazelbuild/bazel/" +
-                 versions.BAZEL_JAVA_LAUNCHER_VERSION +
-                 "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
-                 "java_stub_template.txt")],
-        sha256 = "ab1370fd990a8bff61a83c7bd94746a3401a6d5d2299e54b1b6bc02db4f87f68",
-    )
-
     maybe(
         http_file,
         name = "com_github_pinterest_ktlint",
