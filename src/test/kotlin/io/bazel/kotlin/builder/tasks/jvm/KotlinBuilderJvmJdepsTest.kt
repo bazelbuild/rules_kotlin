@@ -1223,6 +1223,74 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `function call receiver type`() {
+    val depWithReceiverTypeSuperType = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("SomeSuperType.kt",
+        """
+            package something
+
+            open class SomeSuperType {}
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+      c.setLabel("depWithSuperType")
+    })
+    val depWithReceiverType = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("SomeType.kt",
+        """
+            package something
+
+            class SomeType : SomeSuperType() {}
+            """)
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+      c.setLabel("depWithReceiverType")
+      c.addDirectDependencies(depWithReceiverTypeSuperType)
+    })
+
+    val depWithFunction = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("ContainsFunction.kt",
+        """
+            package something
+
+            fun receiverSomeType(arg: SomeType.() -> Unit) {}
+            """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(depWithReceiverType)
+      c.addTransitiveDependencies(depWithReceiverTypeSuperType)
+      c.setLabel("depWithFunction")
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("CallsFunctionWithReceiver.kt",
+        """
+            package something
+
+            fun foo() {
+              receiverSomeType {
+              }
+            }
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(depWithFunction)
+      c.addTransitiveDependencies(depWithReceiverType, depWithReceiverTypeSuperType)
+      c.outputJdeps()
+      c.setLabel("dependingTarget")
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(depWithFunction.singleCompileJar())
+    assertImplicit(jdeps).contains(depWithReceiverType.singleCompileJar())
+    assertImplicit(jdeps).contains(depWithReceiverTypeSuperType.singleCompileJar())
+  }
+
+  @Test
   fun `constructor parameters are required implicit dependencies`() {
     val fooDep = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("FooClass.kt",

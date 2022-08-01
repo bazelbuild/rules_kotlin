@@ -139,7 +139,7 @@ class JdepsGenExtension(
         is FunctionDescriptor -> {
           resultingDescriptor.returnType?.let { addImplicitDep(it) }
           resultingDescriptor.valueParameters.forEach { valueParameter ->
-            addImplicitDep(valueParameter.type)
+            collectTypeReferences(valueParameter.type, isExplicit = false)
           }
           val virtualFileClass = resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
             ?: return
@@ -217,8 +217,14 @@ class JdepsGenExtension(
      * are other types required for compilation such as supertypes and interfaces of those explicit
      * types.
      */
-    private fun collectTypeReferences(kotlinType: KotlinType, collectSuperTypes: Boolean = true) {
-      addExplicitDep(kotlinType)
+    private fun collectTypeReferences(kotlinType: KotlinType,
+                                      isExplicit: Boolean = true,
+                                      collectSuperTypes: Boolean = true) {
+      if (isExplicit) {
+        addExplicitDep(kotlinType)
+      } else {
+        addImplicitDep(kotlinType)
+      }
 
       if (collectSuperTypes) {
         kotlinType.supertypes().forEach {
@@ -226,16 +232,22 @@ class JdepsGenExtension(
         }
       }
 
-      collectTypeArguments(kotlinType)
+      collectTypeArguments(kotlinType, isExplicit)
     }
 
-    fun collectTypeArguments(kotlinType: KotlinType, visitedKotlinTypes: MutableSet<KotlinType> = mutableSetOf()) {
+    fun collectTypeArguments(kotlinType: KotlinType,
+                             isExplicit: Boolean,
+                             visitedKotlinTypes: MutableSet<KotlinType> = mutableSetOf()) {
       visitedKotlinTypes.add(kotlinType)
       kotlinType.arguments.map { it.type }.forEach { typeArgument ->
-        addExplicitDep(typeArgument)
+        if (isExplicit) {
+          addExplicitDep(typeArgument)
+        } else {
+          addImplicitDep(typeArgument)
+        }
         typeArgument.supertypes().forEach { addImplicitDep(it) }
         if (!visitedKotlinTypes.contains(typeArgument)) {
-          collectTypeArguments(typeArgument, visitedKotlinTypes)
+          collectTypeArguments(typeArgument, isExplicit, visitedKotlinTypes)
         }
       }
     }
