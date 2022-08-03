@@ -107,7 +107,7 @@ def kt_android_local_test(
     # buildifier: disable=native-android
     native.android_local_test(
         name = name,
-        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, testonly = testonly, **kwargs),
+        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, testonly = testonly, exec_properties = exec_properties, **kwargs),
         jvm_flags = jvm_flags,
         test_class = test_class,
         visibility = visibility,
