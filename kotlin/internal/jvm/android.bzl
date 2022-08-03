@@ -94,6 +94,7 @@ def kt_android_local_test(
         shard_count = None,
         visibility = None,
         testonly = True,
+        exec_properties = None,
         **kwargs):
     """Creates a testable Android sandwich library.
 
@@ -119,4 +120,5 @@ def kt_android_local_test(
         manifest_values = manifest_values,
         tags = kwargs.get("tags", default = None),
         testonly = testonly,
+        exec_properties = exec_properties,
     )
