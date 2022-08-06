@@ -43,6 +43,10 @@ java_binary(
         "@com_github_jetbrains_kotlin//:lib/jvm-abi-gen.jar",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
+    jvm_flags = [
+        "-XX:-MaxFDLimit",
+        "-XX:+IgnoreUnrecognizedVMOptions",
+    ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     visibility = ["//visibility:public"],
     runtime_deps = [
@@ -53,6 +57,10 @@ java_binary(
 
 java_binary(
     name = "jdeps_merger",
+    jvm_flags = [
+        "-XX:-MaxFDLimit",
+        "-XX:+IgnoreUnrecognizedVMOptions",
+    ],
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdeps",
     visibility = ["//visibility:public"],
     runtime_deps = [":jdeps_merger_worker"],
