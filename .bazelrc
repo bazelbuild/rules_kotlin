@@ -1,4 +1,0 @@
-build --strategy=KotlinCompile=worker
-build --test_output=all
-build --verbose_failures
-
