@@ -71,7 +71,7 @@ kt_jvm_test(
         "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value",
         "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
-        "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
     ],
     jvm_flags = [
         "-Dauto_value=$(location %s)" % "@kotlin_rules_maven//:com_google_auto_value_auto_value",
@@ -79,7 +79,7 @@ kt_jvm_test(
         "-Dkapt=$(location %s)" % "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
         "-Dkotlin_annotations=$(location %s)" % "@com_github_jetbrains_kotlin//:annotations",
         "-Dserialization=$(location %s)" % "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
-        "-serialization_plugin=$(location %s)" % "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+        "-serialization_plugin=$(location %s)" % "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
     ],
     test_class = "io.bazel.rkt_1_6.builder.jobs.jvm.GenerateStubsTest",
     runtime_deps = [

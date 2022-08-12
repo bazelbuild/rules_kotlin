@@ -78,7 +78,7 @@ class Arguments(
       return this
     }
 
-    inline fun then(
+    fun then(
       onError: ParseResult<T>.() -> Unit = {},
       enact: T.(ParseResult<T>) -> Unit
     ): T? =

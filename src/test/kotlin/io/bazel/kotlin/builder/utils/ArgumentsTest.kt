@@ -15,7 +15,7 @@
  *
  */
 
-package io.bazel.kotlin.cli
+package io.bazel.kotlin.builder.utils
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.utils.Arguments
@@ -29,25 +29,24 @@ class ArgumentsTest {
     Files.createTempDirectory(javaClass.canonicalName)
   }
 
-  @Test
-  fun flags() {
-    class Forest(a: Arguments) {
-      val little by a.flag("little", "frolicking animal", default = "rabbit")
+  class FlagsForest(a: Arguments) {
+    val little by a.flag("little", "frolicking animal", default = "rabbit")
 
-      val surname by a.flag("surname", "surname", emptyList<String>()) {
-        split(",")
-      }
-
-      val bops by a.flag("bop", "head bop count", 0) { last ->
-        RuntimeException().printStackTrace()
-        toInt().plus(last)
-      }
-
-      val fairy by a.flag<Any>("fairy", "parole officer") {
-        object {}
-      }
+    val surname by a.flag("surname", "surname", emptyList<String>()) {
+      split(",")
     }
 
+    val bops by a.flag("bop", "head bop count", 0) { last ->
+      RuntimeException().printStackTrace()
+      toInt().plus(last)
+    }
+
+    val fairy by a.flag<Any>("fairy", "parole officer") {
+      object {}
+    }
+  }
+  @Test
+  fun flags() {
     Arguments(
       "--little", "bunny",
       "--surname", "foo,foo,foo,foo",
@@ -55,7 +54,7 @@ class ArgumentsTest {
       "--bop", "1",
       "--bop", "1",
       "--bop", "1"
-    ).parseInto(::Forest).then { status ->
+    ).parseInto(::FlagsForest).then { status ->
       status.ifError {
         assertThat(errs).isEmpty()
       }
@@ -68,25 +67,26 @@ class ArgumentsTest {
     }
   }
 
-  @Test
-  fun customFlag() {
-    class Forest(a: Arguments) {
-      val locomotion by a.custom.flag(
-        "loco",
-        "moving through the forest",
-        "wiggle"
-      ) {
-        asSequence().joinToString(",")
-      }
-
-      val mammal by a.flag(
-        "mammal",
-        "",
-        default = "worm"
-      )
+  class CustomFlagForest(a: Arguments) {
+    val locomotion by a.custom.flag(
+      "loco",
+      "moving through the forest",
+      "wiggle"
+    ) {
+      asSequence().joinToString(",")
     }
 
-    Arguments("--loco", "hop", "hop", "--mammal", "bunny").parseInto(::Forest).then { status ->
+    val mammal by a.flag(
+      "mammal",
+      "",
+      default = "worm"
+    )
+  }
+
+
+  @Test
+  fun customFlag() {
+    Arguments("--loco", "hop", "hop", "--mammal", "bunny").parseInto(::CustomFlagForest).then { status ->
       status.ifError {
         assertThat(errs).isEmpty()
       }
@@ -97,15 +97,15 @@ class ArgumentsTest {
     }
   }
 
+  class RequiredForest(a: Arguments) {
+    val fairy by a.flag<Any>("fairy", "mice loving (required)", "no fairy", true) {
+      object {}
+    }
+  }
   @Test
   fun required() {
-    class Forest(a: Arguments) {
-      val fairy by a.flag<Any>("fairy", "mice loving (required)", "no fairy", true) {
-        object {}
-      }
-    }
 
-    assertThat(Arguments().parseInto(::Forest).then { status ->
+    assertThat(Arguments().parseInto(::RequiredForest).then { status ->
       status.ifError {
         assertThat(errs).containsExactly("--fairy is required")
         assertThat(help()).isEqualTo(
@@ -118,13 +118,14 @@ class ArgumentsTest {
     }).isNull()
   }
 
+  class ExpandForest(a: Arguments) {
+    val fairy by a.flag("fairy", "peacekeeper", default = "anarchy")
+
+    val bopper by a.flag("bopper", "miscreant", default = "big")
+  }
+
   @Test
   fun expand() {
-    class Forest(a: Arguments) {
-      val fairy by a.flag("fairy", "peacekeeper", default = "anarchy")
-
-      val bopper by a.flag("bopper", "miscreant", default = "big")
-    }
 
     val params = Files.write(
       tmp.resolve("forest.params"),
@@ -133,7 +134,7 @@ class ArgumentsTest {
     )
     Arguments(
       "--fairy", "authoritarian", "@$params"
-    ).parseInto(::Forest).then { status ->
+    ).parseInto(::ExpandForest).then { status ->
       status.ifError {
         assertThat(errs).isEmpty()
       }

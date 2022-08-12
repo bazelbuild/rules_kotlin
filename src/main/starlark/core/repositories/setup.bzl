@@ -42,6 +42,7 @@ def kt_configure():
             "javax.inject:javax.inject:1",
             "org.pantsbuild:jarjar:1.7.2",
             "org.jetbrains.kotlinx:atomicfu-js:0.15.2",
+            "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.0.1",
             "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
             "org.ow2.asm:asm:9.3",
             "org.ow2.asm:asm-util:9.3",
