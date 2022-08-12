@@ -189,7 +189,9 @@ class JdepsGenExtension(
           descriptor.annotations.forEach { annotation ->
             collectTypeReferences(annotation.type)
           }
-          descriptor.extensionReceiverParameter?.value?.type?.let { collectTypeReferences(it) }
+          descriptor.extensionReceiverParameter?.value?.type?.let {
+            collectTypeReferences(it)
+          }
         }
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
