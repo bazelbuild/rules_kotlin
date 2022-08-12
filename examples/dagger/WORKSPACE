@@ -9,7 +9,7 @@ archive_repository(
     name = "io_bazel_rules_kotlin",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 kotlin_repositories()
 
