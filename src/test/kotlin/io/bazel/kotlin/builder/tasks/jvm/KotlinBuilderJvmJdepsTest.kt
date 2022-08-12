@@ -534,6 +534,44 @@ class KotlinBuilderJvmJdepsTest {
   }
 
   @Test
+  fun `kotlin extension property reference 3`() {
+    val dependentTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("AClass.kt",
+        """
+            package something
+
+            class AClass {
+            }
+            """)
+      c.outputJar()
+      c.compileKotlin()
+    })
+
+    val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource("HasPropertyDependency.kt",
+        """
+            package something
+
+            fun AClass?.foo(): String {
+                return "foo"
+            }
+          """)
+      c.outputJar()
+      c.compileKotlin()
+      c.addDirectDependencies(dependentTarget)
+      c.outputJdeps()
+    })
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `kotlin property definition`() {
     val dependingTarget = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("HasPropertyDefinition.kt",
