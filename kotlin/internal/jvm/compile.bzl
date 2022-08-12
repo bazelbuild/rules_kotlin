@@ -630,7 +630,7 @@ def _run_kt_java_builder_actions(
     if has_kt_sources:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
         kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
-        if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
+        if not "kt_abi_plugin_incompatible" in ctx.attr.tags:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
             outputs = {
                 "output": kt_runtime_jar,
