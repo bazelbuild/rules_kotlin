@@ -116,7 +116,7 @@ def kt_jvm_test(**kwargs):
 
 def kt_android_library(**kwargs):
     """
-    Forwarding macro for kt_android_local_test
+    Forwarding macro for kt_android_library
 
     Deprecated:
         kt_android_library should be loaded from //kotlin:android.bzl
