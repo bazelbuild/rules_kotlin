@@ -65,7 +65,8 @@ versions = struct(
     },
     # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
     RBE = struct(
-        SHA = "6ac1093b2c8c1199c038697ca726f48390a17bbe0d3108b8b508611ce1e6c1b5",
+        # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
+        # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
         URLS = ["https://storage.googleapis.com/rbe-toolchain/bazel-configs/rbe-ubuntu1604/latest/rbe_default.tar"],
     ),
 )
