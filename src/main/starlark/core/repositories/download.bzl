@@ -58,10 +58,11 @@ def kt_download_local_dev_dependencies():
         ],
     )
 
+    # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
+    # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
     maybe(
         http_archive,
         name = "buildkite_config",
-        sha256 = versions.RBE.SHA,
         urls = versions.RBE.URLS,
     )
 
