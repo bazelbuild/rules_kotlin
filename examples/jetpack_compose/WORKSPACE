@@ -1,10 +1,12 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-_COMPOSE_VERSION = "1.2.0-beta02"
+_COMPOSE_VERSION = "1.2.1"
 
-_KOTLIN_COMPILER_VERSION = "1.6.21"
+_COMPOSE_COMPILER_VERSION = "1.3.0"
 
-_KOTLIN_COMPILER_SHA = "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba"
+_KOTLIN_COMPILER_VERSION = "1.7.10"
+
+_KOTLIN_COMPILER_SHA = "7683f5451ef308eb773a686ee7779a76a95ed8b143c69ac247937619d7ca3a09"
 
 # Setup Kotlin
 
@@ -50,7 +52,7 @@ maven_install(
         "androidx.compose.material:material:{}".format(_COMPOSE_VERSION),
         "androidx.compose.ui:ui:{}".format(_COMPOSE_VERSION),
         "androidx.compose.ui:ui-tooling:{}".format(_COMPOSE_VERSION),
-        "androidx.compose.compiler:compiler:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.compiler:compiler:{}".format(_COMPOSE_COMPILER_VERSION),
         "androidx.compose.runtime:runtime:{}".format(_COMPOSE_VERSION),
     ],
     override_targets = {
@@ -60,7 +62,6 @@ maven_install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
-    version_conflict_policy = "pinned",
 )
 
 # Secondary maven repository used mainly for workarounds
@@ -69,7 +70,7 @@ maven_install(
     artifacts = [
         # Workaround to add missing 'sun.misc' dependencies to 'kotlinx-coroutines-core-jvm' artifact
         # Check root BUILD file and 'override_targets' arg of a primary 'maven_install'
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.1",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3",
     ],
     fetch_sources = True,
     repositories = ["https://repo1.maven.org/maven2"],
