@@ -9,14 +9,9 @@ archive_repository(
     name = "io_bazel_rules_kotlin",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
-kotlin_repositories(
-    compiler_release = kotlinc_version(
-        release = "1.6.21",
-        sha256 = "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba",
-    ),
-)
+kotlin_repositories()
 
 register_toolchains("//:kotlin_toolchain")
 
@@ -65,11 +60,11 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
-        "com.google.dagger:dagger:2.41",
-        "com.google.dagger:dagger-compiler:2.41",
-        "com.google.dagger:dagger-producers:2.41",
-        "com.squareup.anvil:compiler:2.4.0",
-        "com.squareup.anvil:annotations:2.4.0",
+        "com.google.dagger:dagger:2.43.2",
+        "com.google.dagger:dagger-compiler:2.43.2",
+        "com.google.dagger:dagger-producers:2.43.2",
+        "com.squareup.anvil:compiler:2.4.1",
+        "com.squareup.anvil:annotations:2.4.1",
         "androidx.activity:activity:1.0.0",
         "androidx.annotation:annotation:1.1.0",
         "androidx.appcompat:appcompat-resources:1.1.0",
