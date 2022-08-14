@@ -9,23 +9,10 @@ default_java_toolchain(
     visibility = ["//visibility:public"],
 )
 
-# Kotlin Toolchain
-
-kt_kotlinc_options(
-    name = "kt_kotlinc_options",
-)
-
-kt_javac_options(
-    name = "kt_javac_options",
-)
-
 define_kt_toolchain(
     name = "kotlin_toolchain",
     api_version = "1.6",
-    experimental_use_abi_jars = False,
-    javac_options = "//:kt_javac_options",
     jvm_target = "1.8",
-    kotlinc_options = "//:kt_kotlinc_options",
     language_version = "1.6",
 )
 
@@ -46,8 +33,8 @@ kt_compiler_plugin(
 # Used in 'override_targets' by referencing @//:kotlinx_coroutines_core_jvm
 kt_jvm_import(
     name = "kotlinx_coroutines_core_jvm",
-    jars = ["@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.1/kotlinx-coroutines-core-jvm-1.6.1.jar"],
-    srcjar = "@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.1/kotlinx-coroutines-core-jvm-1.6.1-sources.jar",
+    jars = ["@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar"],
+    srcjar = "@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3-sources.jar",
     visibility = ["//visibility:public"],
     deps = [
         "//stub:sun_misc",
