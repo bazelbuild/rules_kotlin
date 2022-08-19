@@ -1,8 +1,8 @@
-load(":editorconfig.bzl", "get_editorconfig")
+load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
 load("//kotlin/internal/utils:windows.bzl", "create_windows_native_launcher_script")
 
-def _ktlint(ctx, srcs, editorconfig):
+def _ktlint(ctx, srcs, editorconfig, enabled_android_rules, enabled_experimental_rules):
     """Generates a test action linting the input files.
 
     To make the tests running on windows as well you have to add the `--enable_runfiles` flag to your `.bazelrc`.
@@ -16,6 +16,8 @@ def _ktlint(ctx, srcs, editorconfig):
       ctx: analysis context.
       srcs: list of source files to be checked.
       editorconfig: editorconfig file to use (optional)
+      enabled_android_rules: when true the android rules will be enabled in ktlint
+      enabled_experimental_rules: when true the experimental rules will be enabled in ktlint
 
     Returns:
       A script running ktlint on the input files.
@@ -24,6 +26,10 @@ def _ktlint(ctx, srcs, editorconfig):
     args = []
     if editorconfig:
         args.append("--editorconfig={file}".format(file = editorconfig.short_path))
+    if enabled_android_rules:
+        args.append("--android")
+    if enabled_experimental_rules:
+        args.append("--experimental")
 
     for f in srcs:
         args.append(f.path)
@@ -41,6 +47,8 @@ def _ktlint_test_impl(ctx):
         ctx,
         srcs = ctx.files.srcs,
         editorconfig = editorconfig,
+        enabled_android_rules = is_android_rules_enabled(ctx.attr.config),
+        enabled_experimental_rules = is_android_rules_enabled(ctx.attr.config),
     )
 
     executable = ctx.actions.declare_file(ctx.attr.name)

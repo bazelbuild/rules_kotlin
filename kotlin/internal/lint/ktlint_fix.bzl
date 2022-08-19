@@ -1,10 +1,17 @@
-load(":editorconfig.bzl", "get_editorconfig")
+load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
 
 def _ktlint_fix_impl(ctx):
     editorconfig = get_editorconfig(ctx.attr.config)
 
-    editorconfig_arg = "--editorconfig={file}".format(file = editorconfig.path) if editorconfig else ""
+    args = ["--format"]
+    if editorconfig:
+        args.append("--editorconfig={file}".format(file = editorconfig.path))
+    if is_android_rules_enabled(ctx.attr.config):
+        args.append("--android")
+    if is_experimental_rules_enabled(ctx.attr.config):
+        args.append("--experimental")
+    args.append(" ".join([src.path for src in ctx.files.srcs]))
 
     # Much of the following is lifted from:
     # https://cs.opensource.google/bazel/bazel/+/refs/tags/4.0.0:src/main/java/com/google/devtools/build/lib/bazel/rules/java/java_stub_template.txt;l=114
@@ -85,11 +92,10 @@ fi
 SRCS=({srcs})
 SRCS=${{SRCS[@]/#/$BUILD_DIR}}
 
-"$TOOL" --format {editorconfig_arg} $SRCS
+"$TOOL" {args}
 """.format(
         executable = ctx.executable._ktlint_tool.path,
-        editorconfig_arg = editorconfig_arg,
-        srcs = " ".join([src.path for src in ctx.files.srcs]),
+        args = " ".join(args),
     )
 
     content = ctx.expand_location(content, [ctx.attr._ktlint_tool])
