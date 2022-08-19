@@ -48,7 +48,7 @@ def _ktlint_test_impl(ctx):
         srcs = ctx.files.srcs,
         editorconfig = editorconfig,
         enabled_android_rules = is_android_rules_enabled(ctx.attr.config),
-        enabled_experimental_rules = is_android_rules_enabled(ctx.attr.config),
+        enabled_experimental_rules = is_experimental_rules_enabled(ctx.attr.config),
     )
 
     executable = ctx.actions.declare_file(ctx.attr.name)
