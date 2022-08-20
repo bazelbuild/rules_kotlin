@@ -111,5 +111,4 @@ tasks:
     test_targets:
       - //...
     test_flags:
-      - "--test_tag_filters ktlint"
-
+      - "--test_tag_filters=ktlint"
