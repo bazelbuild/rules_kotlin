@@ -30,6 +30,7 @@ def _ktlint(ctx, srcs, editorconfig, enabled_android_rules, enabled_experimental
         args.append("--android")
     if enabled_experimental_rules:
         args.append("--experimental")
+    args.append("--relative")
 
     for f in srcs:
         args.append(f.path)

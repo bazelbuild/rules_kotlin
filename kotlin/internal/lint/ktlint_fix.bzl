@@ -11,7 +11,7 @@ def _ktlint_fix_impl(ctx):
         args.append("--android")
     if is_experimental_rules_enabled(ctx.attr.config):
         args.append("--experimental")
-    args.append(" ".join([src.path for src in ctx.files.srcs]))
+    args.append("--relative")
 
     # Much of the following is lifted from:
     # https://cs.opensource.google/bazel/bazel/+/refs/tags/4.0.0:src/main/java/com/google/devtools/build/lib/bazel/rules/java/java_stub_template.txt;l=114
@@ -92,10 +92,11 @@ fi
 SRCS=({srcs})
 SRCS=${{SRCS[@]/#/$BUILD_DIR}}
 
-"$TOOL" {args}
+"$TOOL" {args} $SRCS
 """.format(
         executable = ctx.executable._ktlint_tool.path,
         args = " ".join(args),
+        srcs = " ".join([src.path for src in ctx.files.srcs]),
     )
 
     content = ctx.expand_location(content, [ctx.attr._ktlint_tool])

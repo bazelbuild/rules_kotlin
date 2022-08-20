@@ -14,6 +14,7 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin:jvm.bzl", _for_ide = "kt_jvm_library")
+load("//kotlin:kotlin.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
 
 _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
 
@@ -119,6 +120,22 @@ rm $(@D)/$${NAME}_temp.jar
         neverlink = 1,
         deps = [_resolve_dep_label(d) for d in deps] + neverlink_deps,
         visibility = ["//visibility:private"],
+    )
+
+    _ktlint_test(
+        name = "%s_ktlint_test" % name,
+        srcs = srcs,
+        visibility = ["//visibility:private"],
+        config = "//:ktlint_editorconfig",
+        tags = ["no-ide"],
+    )
+
+    _ktlint_fix(
+        name = "%s_ktlint_fix" % name,
+        srcs = srcs,
+        visibility = ["//visibility:private"],
+        config = "//:ktlint_editorconfig",
+        tags = ["no-ide"],
     )
 
 def kt_bootstrap_binary(
