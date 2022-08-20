@@ -112,3 +112,4 @@ tasks:
       - //...
     test_flags:
       - "--test_tag_filters=ktlint"
+      - "--test_output=errors"
