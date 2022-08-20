@@ -127,7 +127,7 @@ rm $(@D)/$${NAME}_temp.jar
         srcs = srcs,
         visibility = ["//visibility:private"],
         config = "//:ktlint_editorconfig",
-        tags = ["no-ide"],
+        tags = ["no-ide", "ktlint"],
     )
 
     _ktlint_fix(
@@ -135,7 +135,7 @@ rm $(@D)/$${NAME}_temp.jar
         srcs = srcs,
         visibility = ["//visibility:private"],
         config = "//:ktlint_editorconfig",
-        tags = ["no-ide"],
+        tags = ["no-ide", "ktlint"],
     )
 
 def kt_bootstrap_binary(
