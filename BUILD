@@ -13,10 +13,19 @@
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
+load("//kotlin:lint.bzl", "ktlint_config")
 
 exports_files([
     "scripts/noop.sh",
 ])
+
+ktlint_config(
+    name = "ktlint_editorconfig",
+    android_rules_enabled = False,
+    editorconfig = ".editorconfig",
+    experimental_rules_enabled = False,
+    visibility = ["//visibility:public"],
+)
 
 # The entire test suite excluding local tests.
 test_suite(
