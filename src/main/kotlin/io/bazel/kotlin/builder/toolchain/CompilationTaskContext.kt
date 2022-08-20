@@ -29,7 +29,7 @@ class CompilationTaskContext(
   val info: CompilationTaskInfo,
   private val out: PrintStream,
   private val executionRoot: String = FileSystems.getDefault().getPath("").toAbsolutePath()
-    .toString() + File.separator
+    .toString() + File.separator,
 ) {
   private val start = System.currentTimeMillis()
   private var timings: MutableList<String>?
@@ -63,7 +63,7 @@ class CompilationTaskContext(
     header: String,
     lines: List<String>,
     prefix: String = "|  ",
-    filterEmpty: Boolean = false
+    filterEmpty: Boolean = false,
   ) {
     check(header.isNotEmpty())
     out.println(if (header.endsWith(":")) header else "$header:")
@@ -78,7 +78,9 @@ class CompilationTaskContext(
   fun <T> whenTracing(block: CompilationTaskContext.() -> T): T? {
     return if (isTracing) {
       block()
-    } else null
+    } else {
+      null
+    }
   }
 
   /**
@@ -99,7 +101,9 @@ class CompilationTaskContext(
     // trim off the workspace component
     return if (toPrint.startsWith(executionRoot)) {
       toPrint.replaceFirst(executionRoot, "")
-    } else toPrint
+    } else {
+      toPrint
+    }
   }
 
   /**
@@ -115,7 +119,7 @@ class CompilationTaskContext(
     args: List<String>,
     compile: (Array<String>, PrintStream) -> Int,
     printOnFail: Boolean = true,
-    printOnSuccess: Boolean = true
+    printOnSuccess: Boolean = true,
   ): List<String> {
     val outputStream = ByteArrayOutputStream()
     val ps = PrintStream(outputStream)
@@ -147,7 +151,9 @@ class CompilationTaskContext(
   fun <T> execute(name: () -> String, task: () -> T): T {
     return if (timings == null) {
       task()
-    } else pushTimedTask(name(), task)
+    } else {
+      pushTimedTask(name(), task)
+    }
   }
 
   private inline fun <T> pushTimedTask(name: String, task: () -> T): T {
@@ -177,7 +183,8 @@ class CompilationTaskContext(
     if (successful) {
       timings?.also {
         printLines(
-          "Task timings for ${info.label} (total: ${System.currentTimeMillis() - start} ms)", it
+          "Task timings for ${info.label} (total: ${System.currentTimeMillis() - start} ms)",
+          it,
         )
       }
     }

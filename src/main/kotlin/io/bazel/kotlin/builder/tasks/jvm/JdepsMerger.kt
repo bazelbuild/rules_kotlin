@@ -45,7 +45,7 @@ class JdepsMerger {
           val manifest = jarFile.manifest ?: return JarOwner(jarPath)
           val attributes = manifest.mainAttributes
           val label = attributes[TARGET_LABEL] as String?
-                      ?: return JarOwner(jarPath)
+            ?: return JarOwner(jarPath)
           val injectingRuleKind = attributes[INJECTING_RULE_KIND] as String?
           return JarOwner(jarPath, label, injectingRuleKind)
         }
@@ -60,9 +60,8 @@ class JdepsMerger {
       label: String,
       inputs: List<String>,
       output: String,
-      reportUnusedDeps: String
+      reportUnusedDeps: String,
     ): Int {
-
       val rootBuilder = Deps.Dependencies.newBuilder()
       rootBuilder.success = false
       rootBuilder.ruleLabel = label
@@ -101,11 +100,13 @@ class JdepsMerger {
             val open = "\u001b[35m\u001b[1m"
             val close = "\u001b[0m"
             return@info """
-            |$open ** Please remove the following dependencies:$close ${unusedLabels.joinToString(" ")} from $label 
+            |$open ** Please remove the following dependencies:$close ${unusedLabels.joinToString(
+              " ",
+            )} from $label 
             |$open ** You can use the following buildozer command:$close buildozer 'remove deps ${
-              unusedLabels.joinToString(" ")
+            unusedLabels.joinToString(" ")
             }' $label
-          """.trimMargin()
+            """.trimMargin()
           }
           return if (reportUnusedDeps == "error") 1 else 0
         }

@@ -30,7 +30,7 @@ class IO(
   val input: InputStream,
   val output: PrintStream,
   private val captured: CapturingOutputStream,
-  private val restore: () -> Unit = {}
+  private val restore: () -> Unit = {},
 ) : Closeable {
 
   /**

@@ -12,7 +12,7 @@ class CpuTimeBasedGcScheduler(
    * After this much CPU time has elapsed, we may force a GC run. Set to [Duration.ZERO] to
    * disable.
    */
-  private val cpuUsageBeforeGc: Duration
+  private val cpuUsageBeforeGc: Duration,
 ) : GcScheduler {
 
   /** The total process CPU time at the last GC run (or from the start of the worker).  */

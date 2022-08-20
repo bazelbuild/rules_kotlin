@@ -7,7 +7,9 @@ object JdepsGenConfigurationKeys {
    * Output path of generated Jdeps proto file.
    */
   val OUTPUT_JDEPS: CompilerConfigurationKey<String> =
-    CompilerConfigurationKey.create(JdepsGenCommandLineProcessor.OUTPUT_JDEPS_FILE_OPTION.description)
+    CompilerConfigurationKey.create(
+      JdepsGenCommandLineProcessor.OUTPUT_JDEPS_FILE_OPTION.description,
+    )
 
   /**
    * Label of the Bazel target being analyzed.
@@ -19,11 +21,15 @@ object JdepsGenConfigurationKeys {
    * Label of the Bazel target being analyzed.
    */
   val STRICT_KOTLIN_DEPS: CompilerConfigurationKey<String> =
-    CompilerConfigurationKey.create(JdepsGenCommandLineProcessor.STRICT_KOTLIN_DEPS_OPTION.description)
+    CompilerConfigurationKey.create(
+      JdepsGenCommandLineProcessor.STRICT_KOTLIN_DEPS_OPTION.description,
+    )
 
   /**
    * List of direct dependencies of the target.
    */
   val DIRECT_DEPENDENCIES: CompilerConfigurationKey<List<String>> =
-    CompilerConfigurationKey.create(JdepsGenCommandLineProcessor.DIRECT_DEPENDENCIES_OPTION.description)
+    CompilerConfigurationKey.create(
+      JdepsGenCommandLineProcessor.DIRECT_DEPENDENCIES_OPTION.description,
+    )
 }

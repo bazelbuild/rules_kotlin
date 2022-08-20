@@ -22,7 +22,7 @@ import java.util.HashMap
 import java.util.function.Predicate
 
 internal class JdepsParser private constructor(
-  private val isImplicit: Predicate<String>
+  private val isImplicit: Predicate<String>,
 ) {
   private val depMap = HashMap<String, Deps.Dependency.Builder>()
   private val moduleDeps = HashMap<String, MutableList<String>>()
@@ -60,7 +60,7 @@ internal class JdepsParser private constructor(
   private fun processLine(line: String) {
     val parts = line.split(arrowRegex).dropLastWhile { it.isEmpty() }.toTypedArray()
     if (parts.size == 2 && parts[1].endsWith(".jar")) {
-      addModuleDependency(parts[0], parts[1]);
+      addModuleDependency(parts[0], parts[1])
     }
   }
 
@@ -95,7 +95,7 @@ internal class JdepsParser private constructor(
       jarFile: String,
       classPath: MutableList<String>,
       lines: List<String>,
-      isImplicit: Predicate<String>
+      isImplicit: Predicate<String>,
     ): Deps.Dependencies {
       val filename = Paths.get(jarFile).fileName.toString()
       val jdepsParser = JdepsParser(isImplicit)

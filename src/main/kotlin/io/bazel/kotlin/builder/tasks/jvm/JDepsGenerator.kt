@@ -16,20 +16,9 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
-import io.bazel.kotlin.builder.toolchain.CompilationException
-import io.bazel.kotlin.builder.toolchain.CompilationStatusException
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
-import io.bazel.kotlin.builder.utils.joinedClasspath
-import io.bazel.kotlin.builder.utils.resolveVerified
-import io.bazel.kotlin.builder.utils.rootCause
-import io.bazel.kotlin.model.JvmCompilationTask
-import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
-import java.io.PrintWriter
 import java.nio.file.Files
 import java.nio.file.Paths
-import javax.inject.Inject
-import javax.inject.Singleton
 
 object JDepsGenerator {
   internal fun writeJdeps(path: String, jdepsContent: Deps.Dependencies) {

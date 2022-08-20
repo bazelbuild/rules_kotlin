@@ -25,7 +25,8 @@ import java.nio.file.Path
 class WorkingDirectoryContext(val dir: Path) : Closeable {
   companion object {
     fun newContext(): WorkingDirectoryContext = WorkingDirectoryContext(
-        Files.createTempDirectory("working"))
+      Files.createTempDirectory("working"),
+    )
   }
 
   override fun close() {

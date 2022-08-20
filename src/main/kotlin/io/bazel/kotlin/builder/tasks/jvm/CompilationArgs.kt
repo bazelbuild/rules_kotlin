@@ -30,12 +30,12 @@ import java.util.Base64
  */
 class CompilationArgs(
   val args: MutableList<String> = mutableListOf(),
-  private val dfs: FileSystem = FileSystems.getDefault()
+  private val dfs: FileSystem = FileSystems.getDefault(),
 ) {
 
   class StringConditional(
     val value: String,
-    val parent: CompilationArgs
+    val parent: CompilationArgs,
   ) {
     fun notEmpty(conditionalArgs: CompilationArgs.(it: String) -> Unit): CompilationArgs {
       if (value.isNotEmpty()) {
@@ -55,7 +55,7 @@ class CompilationArgs(
   interface SetFlag {
     fun flag(
       name: String,
-      value: String
+      value: String,
     ): SetFlag
   }
 
@@ -65,13 +65,13 @@ class CompilationArgs(
 
   fun plugin(
     p: KotlinToolchain.CompilerPlugin,
-    flagArgs: SetFlag.() -> Unit
+    flagArgs: SetFlag.() -> Unit,
   ): CompilationArgs {
     value("-Xplugin=${p.jarPath}")
     object : SetFlag {
       override fun flag(
         name: String,
-        value: String
+        value: String,
       ): SetFlag {
         args.add("-P")
         args.add("plugin:${p.id}:$name=$value")
@@ -83,7 +83,7 @@ class CompilationArgs(
 
   fun given(
     test: Boolean,
-    conditionalArgs: CompilationArgs.() -> Unit
+    conditionalArgs: CompilationArgs.() -> Unit,
   ): CompilationArgs {
     if (test) {
       this.conditionalArgs()
@@ -96,12 +96,12 @@ class CompilationArgs(
   }
 
   operator fun plus(other: CompilationArgs): CompilationArgs = CompilationArgs(
-    (args.asSequence() + other.args.asSequence()).toMutableList()
+    (args.asSequence() + other.args.asSequence()).toMutableList(),
   )
 
   fun absolutePaths(
     paths: Collection<String>,
-    toArgs: (Sequence<Path>) -> String
+    toArgs: (Sequence<Path>) -> String,
   ): CompilationArgs {
     if (paths.isEmpty()) {
       return this
@@ -110,14 +110,14 @@ class CompilationArgs(
       toArgs(
         paths.asSequence()
           .map { dfs.getPath(it) }
-          .map(Path::toAbsolutePath)
-      )
+          .map(Path::toAbsolutePath),
+      ),
     )
   }
 
   fun paths(
     paths: Collection<String>,
-    toArgs: (Sequence<Path>) -> String
+    toArgs: (Sequence<Path>) -> String,
   ): CompilationArgs {
     if (paths.isEmpty()) {
       return this
@@ -125,8 +125,8 @@ class CompilationArgs(
     return value(
       toArgs(
         paths.asSequence()
-          .map { dfs.getPath(it) }
-      )
+          .map { dfs.getPath(it) },
+      ),
     )
   }
 
@@ -147,7 +147,7 @@ class CompilationArgs(
 
   fun flag(
     key: String,
-    value: () -> String
+    value: () -> String,
   ): CompilationArgs {
     args.add(key)
     args.add(value())
@@ -156,7 +156,7 @@ class CompilationArgs(
 
   fun flag(
     flag: String,
-    value: String
+    value: String,
   ): CompilationArgs {
     args.add(flag)
     args.add(value)
@@ -170,7 +170,7 @@ class CompilationArgs(
 
   fun xFlag(
     flag: String,
-    value: String
+    value: String,
   ): CompilationArgs {
     args.add("-X$flag=$value")
     return this
@@ -179,7 +179,7 @@ class CompilationArgs(
   fun repeatFlag(
     flag: String,
     vararg flagValues: Pair<String, List<String>>,
-    transform: (option: String, value: String) -> String
+    transform: (option: String, value: String) -> String,
   ): CompilationArgs {
     flagValues.forEach { (option, optionValues) ->
       optionValues.forEach {
@@ -194,7 +194,7 @@ class CompilationArgs(
   fun base64Encode(
     flag: String,
     vararg values: Pair<String, List<String>>,
-    transform: (String) -> String = { it }
+    transform: (String) -> String = { it },
   ): CompilationArgs {
     val os = ByteArrayOutputStream()
     val oos = ObjectOutputStream(os)

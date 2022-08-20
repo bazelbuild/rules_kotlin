@@ -22,7 +22,7 @@ interface Worker {
   companion object {
     fun from(
       args: Iterable<String>,
-      then: Worker.(Iterable<String>) -> Int
+      then: Worker.(Iterable<String>) -> Int,
     ): Int {
       val worker = when {
         "--persistent_worker" in args -> PersistentWorker()

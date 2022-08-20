@@ -77,7 +77,7 @@ fun JvmCompilationTask.baseArgs(): CompilationArgs {
   return CompilationArgs()
     .flag("-cp")
     .paths(
-      classpath + directories.generatedClasses
+      classpath + directories.generatedClasses,
     ) {
       it.map(Path::toString)
         .joinToString(File.pathSeparator)
@@ -90,7 +90,7 @@ fun JvmCompilationTask.baseArgs(): CompilationArgs {
 
 internal fun JvmCompilationTask.plugins(
   options: List<String>,
-  classpath: List<String>
+  classpath: List<String>,
 ): CompilationArgs =
   CompilationArgs().apply {
     classpath.forEach {
@@ -100,7 +100,7 @@ internal fun JvmCompilationTask.plugins(
     val dirTokens = mapOf(
       "{generatedClasses}" to directories.generatedClasses,
       "{stubs}" to directories.stubs,
-      "{generatedSources}" to directories.generatedSources
+      "{generatedSources}" to directories.generatedSources,
     )
     options.forEach { opt ->
       val formatted = dirTokens.entries.fold(opt) { formatting, (token, value) ->
@@ -111,7 +111,7 @@ internal fun JvmCompilationTask.plugins(
   }
 
 internal fun JvmCompilationTask.preProcessingSteps(
-  context: CompilationTaskContext
+  context: CompilationTaskContext,
 ): JvmCompilationTask {
   return context.execute("expand sources") { expandWithSourceJarSources() }
 }
@@ -134,11 +134,11 @@ internal fun encodeMap(options: Map<String, String>): String {
 internal fun JvmCompilationTask.kaptArgs(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
-  aptMode: String
+  aptMode: String,
 ): CompilationArgs {
   val javacArgs = mapOf<String, String>(
     "-target" to info.toolchainInfo.jvm.jvmTarget,
-    "-source" to info.toolchainInfo.jvm.jvmTarget
+    "-source" to info.toolchainInfo.jvm.jvmTarget,
   )
   return CompilationArgs().apply {
     xFlag("plugin", plugins.kapt.jarPath)
@@ -152,17 +152,17 @@ internal fun JvmCompilationTask.kaptArgs(
       "correctErrorTypes" to listOf("false"),
       "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
       "apclasspath" to inputs.processorpathsList,
-      "aptMode" to listOf(aptMode)
+      "aptMode" to listOf(aptMode),
     )
     val version = info.toolchainInfo.common.apiVersion.toFloat()
     when {
       version < 1.5 -> base64Encode(
         "-P",
-        *values + ("processors" to inputs.processorsList).asKeyToCommaList()
+        *values + ("processors" to inputs.processorsList).asKeyToCommaList(),
       ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
       else -> repeatFlag(
         "-P",
-        *values + ("processors" to inputs.processorsList)
+        *values + ("processors" to inputs.processorsList),
       ) { option, value ->
         "plugin:${plugins.kapt.id}:$option=$value"
       }
@@ -176,7 +176,7 @@ private fun Pair<String, List<String>>.asKeyToCommaList() =
 internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
-  compiler: KotlinToolchain.KotlincInvoker
+  compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
   if ((
     inputs.processorsList.isEmpty() &&
@@ -192,11 +192,11 @@ internal fun JvmCompilationTask.runPlugins(
           .plus(
             plugins(
               options = inputs.stubsPluginOptionsList,
-              classpath = inputs.stubsPluginClasspathList
-            )
+              classpath = inputs.stubsPluginClasspathList,
+            ),
           )
           .plus(
-            kaptArgs(context, plugins, "stubsAndApt")
+            kaptArgs(context, plugins, "stubsAndApt"),
           )
         )
         .flag("-d", directories.generatedClasses)
@@ -205,7 +205,7 @@ internal fun JvmCompilationTask.runPlugins(
           context.executeCompilerTask(
             args,
             compiler::compile,
-            printOnSuccess = context.whenTracing { false } ?: true
+            printOnSuccess = context.whenTracing { false } ?: true,
           )
         }.let { outputLines ->
           // if tracing is enabled the output should be formatted in a special way, if we aren't
@@ -226,7 +226,7 @@ internal fun JvmCompilationTask.createOutputJar() =
   JarCreator(
     path = Paths.get(outputs.jar),
     normalize = true,
-    verbose = false
+    verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.classes))
     it.addDirectory(Paths.get(directories.javaClasses))
@@ -242,7 +242,7 @@ internal fun JvmCompilationTask.createAbiJar() =
   JarCreator(
     path = Paths.get(outputs.abijar),
     normalize = true,
-    verbose = false
+    verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.abiClasses))
     it.addDirectory(Paths.get(directories.generatedClasses))
@@ -257,7 +257,7 @@ internal fun JvmCompilationTask.createGeneratedJavaSrcJar() {
   JarCreator(
     path = Paths.get(outputs.generatedJavaSrcJar),
     normalize = true,
-    verbose = false
+    verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.generatedJavaSources))
     it.setJarOwner(info.label, info.bazelRuleKind)
@@ -272,7 +272,7 @@ internal fun JvmCompilationTask.createGeneratedStubJar() {
   JarCreator(
     path = Paths.get(outputs.generatedJavaStubJar),
     normalize = true,
-    verbose = false
+    verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.incrementalData))
     it.setJarOwner(info.label, info.bazelRuleKind)
@@ -287,7 +287,7 @@ internal fun JvmCompilationTask.createGeneratedClassJar() {
   JarCreator(
     path = Paths.get(outputs.generatedClassJar),
     normalize = true,
-    verbose = false
+    verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.generatedClasses))
     it.setJarOwner(info.label, info.bazelRuleKind)
@@ -302,7 +302,7 @@ fun JvmCompilationTask.compileKotlin(
   context: CompilationTaskContext,
   compiler: KotlinToolchain.KotlincInvoker,
   args: CompilationArgs = baseArgs(),
-  printOnFail: Boolean = true
+  printOnFail: Boolean = true,
 ): List<String> {
   if (inputs.kotlinSourcesList.isEmpty()) {
     writeJdeps(outputs.jdeps, emptyJdeps(info.label))
@@ -311,7 +311,7 @@ fun JvmCompilationTask.compileKotlin(
     return (
       args + plugins(
         options = inputs.compilerPluginOptionsList,
-        classpath = inputs.compilerPluginClasspathList
+        classpath = inputs.compilerPluginClasspathList,
       )
       )
       .values(inputs.javaSourcesList)
@@ -332,13 +332,13 @@ fun JvmCompilationTask.compileKotlin(
                   directories.generatedClasses,
                   directories.generatedSources,
                   directories.generatedJavaSources,
-                  directories.temp
+                  directories.temp,
                 )
                   .map { Paths.get(it) }
                   .flatMap { walk(it) }
                   .filter { !isDirectory(it) }
                   .map { it.toString() }
-                  .collect(toList())
+                  .collect(toList()),
               )
             }
           }
@@ -351,28 +351,30 @@ fun JvmCompilationTask.compileKotlin(
  * Java and Kotlin sources merged in.
  */
 internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask =
-  if (inputs.sourceJarsList.isEmpty())
+  if (inputs.sourceJarsList.isEmpty()) {
     this
-  else expandWithSources(
-    SourceJarExtractor(
-      destDir = Paths.get(directories.temp).resolve("_srcjars"),
-      fileMatcher = IS_JVM_SOURCE_FILE
-    ).also {
-      it.jarFiles.addAll(inputs.sourceJarsList.map { p -> Paths.get(p) })
-      it.execute()
-    }.sourcesList.iterator()
-  )
+  } else {
+    expandWithSources(
+      SourceJarExtractor(
+        destDir = Paths.get(directories.temp).resolve("_srcjars"),
+        fileMatcher = IS_JVM_SOURCE_FILE,
+      ).also {
+        it.jarFiles.addAll(inputs.sourceJarsList.map { p -> Paths.get(p) })
+        it.execute()
+      }.sourcesList.iterator(),
+    )
+  }
 
 private val Directories.stubs
   get() = Files.createDirectories(
     Paths.get(temp)
-      .resolve("stubs")
+      .resolve("stubs"),
   )
     .toString()
 private val Directories.incrementalData
   get() = Files.createDirectories(
     Paths.get(temp)
-      .resolve("incrementalData")
+      .resolve("incrementalData"),
   )
     .toString()
 
@@ -388,19 +390,19 @@ internal fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask
       .filter { !isDirectory(it) }
       .map { it.toString() }
       .distinct()
-      .iterator()
+      .iterator(),
   )
 
 private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
   updateBuilder { builder ->
     sources.filterOutNonCompilableSources().partitionJvmSources(
       { builder.inputsBuilder.addKotlinSources(it) },
-      { builder.inputsBuilder.addJavaSources(it) }
+      { builder.inputsBuilder.addJavaSources(it) },
     )
   }
 
 private fun JvmCompilationTask.updateBuilder(
-  block: (JvmCompilationTask.Builder) -> Unit
+  block: (JvmCompilationTask.Builder) -> Unit,
 ): JvmCompilationTask =
   toBuilder().let {
     block(it)

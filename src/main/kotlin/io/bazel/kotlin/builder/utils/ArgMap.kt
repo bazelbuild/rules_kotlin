@@ -32,7 +32,7 @@ class ArgMap(private val map: Map<String, List<String>>) {
       ?.windowed(2, 2)
       ?.map { it[0] to it[1] }
       ?.toMap()
-    ?: emptyMap()
+      ?: emptyMap()
 
   private fun optionalSingle(key: String): String? =
     optional(key)?.let {
@@ -60,9 +60,9 @@ class ArgMap(private val map: Map<String, List<String>>) {
   }
 
   private fun mandatory(key: String): List<String> = optional(key)
-                                                     ?: throw IllegalArgumentException(
-                                                       "$key is not optional"
-                                                     )
+    ?: throw IllegalArgumentException(
+      "$key is not optional",
+    )
 
   private fun optional(key: String): List<String>? = map[key]
 
@@ -95,7 +95,7 @@ object ArgMaps {
   private fun argsToMap(
     args: List<String>,
     argMap: MutableMap<String, MutableList<String>>,
-    isFlag: (String) -> Boolean = { it.startsWith("--") }
+    isFlag: (String) -> Boolean = { it.startsWith("--") },
   ) {
     var currentKey: String =
       args.first().also { require(isFlag(it)) { "first arg must be a flag" } }
