@@ -13,7 +13,7 @@
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
-load("//kotlin:kotlin.bzl", "ktlint_config")
+load("//kotlin:lint.bzl", "ktlint_config")
 
 exports_files([
     "scripts/noop.sh",

@@ -14,7 +14,7 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin:jvm.bzl", _for_ide = "kt_jvm_library")
-load("//kotlin:kotlin.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
+load("//kotlin:lint.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
 
 _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
 
