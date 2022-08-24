@@ -1,0 +1,63 @@
+_KOTLIN_COMPILER_VERSION = "1.7.10"
+
+_KOTLIN_COMPILER_SHA = "7683f5451ef308eb773a686ee7779a76a95ed8b143c69ac247937619d7ca3a09"
+
+local_repository(
+    name = "release_archive",
+    path = "../../src/main/starlark/release_archive",
+)
+
+load("@release_archive//:repository.bzl", "archive_repository")
+
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
+
+kotlin_repositories(
+    compiler_release = kotlinc_version(
+        release = _KOTLIN_COMPILER_VERSION,
+        sha256 = _KOTLIN_COMPILER_SHA,
+    ),
+)
+
+register_toolchains("//:kotlin_toolchain")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "rules_jvm_external",
+    sha256 = versions.RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % versions.RULES_JVM_EXTERNAL_TAG,
+)
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = versions.SKYLIB_SHA,
+    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (
+        versions.SKYLIB_VERSION,
+        versions.SKYLIB_VERSION,
+    )],
+)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    artifacts = [
+        "com.squareup.moshi:moshi:1.13.0",
+        "com.squareup.moshi:moshi-kotlin:1.13.0",
+        "com.squareup.moshi:moshi-kotlin-codegen:1.13.0",
+        "org.jetbrains.kotlin:kotlin-stdlib:{}".format(_KOTLIN_COMPILER_VERSION),
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7:{}".format(_KOTLIN_COMPILER_VERSION),
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8:{}".format(_KOTLIN_COMPILER_VERSION),
+        "org.jetbrains.kotlin:kotlin-stdlib-common:{}".format(_KOTLIN_COMPILER_VERSION),
+        "org.jetbrains.kotlin:kotlin-reflect:{}".format(_KOTLIN_COMPILER_VERSION),
+        "com.google.devtools.ksp:symbol-processing-api:{}-1.0.6".format(_KOTLIN_COMPILER_VERSION),
+        "com.google.devtools.ksp:symbol-processing:{}-1.0.6".format(_KOTLIN_COMPILER_VERSION),
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)
