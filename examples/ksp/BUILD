@@ -93,6 +93,6 @@ java_binary(
 build_test(
     name = "force_build_app_test",
     targets = [
-        "//app:coffee_app",
+        "//:coffee_app",
     ],
 )
