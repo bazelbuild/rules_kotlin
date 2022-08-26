@@ -23,7 +23,10 @@ class InvocationWorker(private val arguments: Iterable<String>) : Worker {
     runCatching {
       WorkerContext.run {
         doTask("invocation") { ctx -> execute(ctx, arguments) }.run {
-          println(log.out.toString())
+          val out = log.out.toString()
+          if (out != "") {
+            println(out)
+          }
           status.exit
         }
       }
