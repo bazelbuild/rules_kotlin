@@ -32,7 +32,7 @@ const val X_FRIENDS_PATH_SEPARATOR = ","
 @Singleton
 class KotlinJvmTaskExecutor @Inject internal constructor(
   private val compiler: KotlinToolchain.KotlincInvoker,
-  private val plugins: InternalCompilerPlugins
+  private val plugins: InternalCompilerPlugins,
 ) {
 
   private fun combine(one: Throwable?, two: Throwable?): Throwable? {
@@ -82,12 +82,13 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                         plugin(plugins.skipCodeGen)
                       }
                     },
-                  printOnFail = false)
+                  printOnFail = false,
+                )
               } else {
                 emptyList()
               }
             }
-          }
+          },
         ).map {
           (it.getOrNull() ?: emptyList()) to it.exceptionOrNull()
         }.map {

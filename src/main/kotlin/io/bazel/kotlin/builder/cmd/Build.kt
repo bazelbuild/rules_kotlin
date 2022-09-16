@@ -32,7 +32,7 @@ object Build {
             .builder()
             .toolchain(createToolchain())
             .build()
-            .work()
+            .work(),
         )
       }
       .run(::exitProcess)

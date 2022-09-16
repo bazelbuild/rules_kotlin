@@ -20,18 +20,24 @@ internal fun JvmCompilationTask.createCoverageInstrumentedJar() {
 
   instrumentRecursively(instr, instrumentedClassesDirectory, Paths.get(directories.classes))
   instrumentRecursively(instr, instrumentedClassesDirectory, Paths.get(directories.javaClasses))
-  instrumentRecursively(instr, instrumentedClassesDirectory, Paths.get(directories.generatedClasses))
+  instrumentRecursively(
+    instr,
+    instrumentedClassesDirectory,
+    Paths.get(directories.generatedClasses),
+  )
 
-  val pathsForCoverage = instrumentedClassesDirectory.resolve( "${Paths.get(outputs.jar).fileName}-paths-for-coverage.txt")
+  val pathsForCoverage = instrumentedClassesDirectory.resolve(
+    "${Paths.get(outputs.jar).fileName}-paths-for-coverage.txt",
+  )
   Files.write(
     pathsForCoverage,
-    inputs.javaSourcesList + inputs.kotlinSourcesList
+    inputs.javaSourcesList + inputs.kotlinSourcesList,
   )
 
   JarCreator(
     path = Paths.get(outputs.jar),
     normalize = true,
-    verbose = false
+    verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.classes))
     it.addDirectory(Paths.get(directories.javaClasses))
@@ -43,7 +49,7 @@ internal fun JvmCompilationTask.createCoverageInstrumentedJar() {
 }
 
 private fun instrumentRecursively(instr: Instrumenter, metadataDir: Path, root: Path) {
-  val visitor = object: SimpleFileVisitor<Path>() {
+  val visitor = object : SimpleFileVisitor<Path>() {
     override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
       if (file.toFile().extension != "class") {
         return FileVisitResult.CONTINUE

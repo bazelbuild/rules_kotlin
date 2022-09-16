@@ -36,39 +36,52 @@ class KotlinToolchain private constructor(
   val classLoader: ClassLoader,
   val kapt3Plugin: CompilerPlugin = CompilerPlugin(
     kotlinHome.resolveVerified("lib", "kotlin-annotation-processing.jar").absolutePath,
-    "org.jetbrains.kotlin.kapt3"
+    "org.jetbrains.kotlin.kapt3",
   ),
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
-  val jdepsGen: CompilerPlugin
+  val jdepsGen: CompilerPlugin,
 ) {
 
   companion object {
     // TODO(issue/432): Remove this gross hack and pass the file locations on the command line.
     private var RULES_REPOSITORY_NAME =
       System.getenv("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
-      ?: System.getenv("REPOSITORY_NAME")?.takeIf { it.isNotBlank() }
-   //   ?: System.getProperty("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
-      ?: error("Unable to determine rules_kotlin repository name.\nenv:${System.getenv()}\nproperties:${System.getProperties()}")
+        ?: System.getenv("REPOSITORY_NAME")?.takeIf { it.isNotBlank() }
+        //   ?: System.getProperty("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
+        ?: error(
+          "Unable to determine rules_kotlin repository " +
+            "name.\nenv:${System.getenv()}\nproperties:${System.getProperties()}",
+        )
 
     private val DEFAULT_JVM_ABI_PATH = BazelRunFiles.resolveVerified(
-      "external", "com_github_jetbrains_kotlin", "lib", "jvm-abi-gen.jar"
+      "external",
+      "com_github_jetbrains_kotlin",
+      "lib",
+      "jvm-abi-gen.jar",
     ).toPath()
 
     private val COMPILER = BazelRunFiles.resolveVerified(
       RULES_REPOSITORY_NAME,
       "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
-      "compiler.jar").toPath()
+      "compiler.jar",
+    ).toPath()
 
     private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerified(
       RULES_REPOSITORY_NAME,
-      "src", "main", "kotlin",
-      "skip-code-gen.jar").toPath()
+      "src",
+      "main",
+      "kotlin",
+      "skip-code-gen.jar",
+    ).toPath()
 
     private val JDEPS_GEN_PLUGIN = BazelRunFiles.resolveVerified(
       RULES_REPOSITORY_NAME,
-      "src", "main", "kotlin",
-      "jdeps-gen.jar").toPath()
+      "src",
+      "main",
+      "kotlin",
+      "jdeps-gen.jar",
+    ).toPath()
 
     internal val NO_ARGS = arrayOf<Any>()
 
@@ -84,7 +97,7 @@ class KotlinToolchain private constructor(
         },
         Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
         ClassLoader.getSystemClassLoader(),
-        null
+        null,
       )
 
     @JvmStatic
@@ -103,7 +116,11 @@ class KotlinToolchain private constructor(
       val jdepsGenFile = JDEPS_GEN_PLUGIN.verified().absoluteFile
 
       val kotlinCompilerJar = BazelRunFiles.resolveVerified(
-        "external", "com_github_jetbrains_kotlin", "lib", "kotlin-compiler.jar")
+        "external",
+        "com_github_jetbrains_kotlin",
+        "lib",
+        "kotlin-compiler.jar",
+      )
 
       val jvmAbiGenFile = jvmAbiGenPath.verified()
       return KotlinToolchain(
@@ -118,19 +135,21 @@ class KotlinToolchain private constructor(
             // This may cause issues in accepting user defined compiler plugins.
             jvmAbiGenFile.absoluteFile,
             skipCodeGenFile,
-            jdepsGenFile
-          )
+            jdepsGenFile,
+          ),
         ),
         jvmAbiGen = CompilerPlugin(
           jvmAbiGenFile.absolutePath,
-          "org.jetbrains.kotlin.jvm.abi"),
+          "org.jetbrains.kotlin.jvm.abi",
+        ),
         skipCodeGen = CompilerPlugin(
           skipCodeGenFile.absolutePath,
-          "io.bazel.kotlin.plugin.SkipCodeGen"),
+          "io.bazel.kotlin.plugin.SkipCodeGen",
+        ),
         jdepsGen = CompilerPlugin(
           jdepsGenFile.absolutePath,
-          "io.bazel.kotlin.plugin.jdeps.JDepsGen"
-        )
+          "io.bazel.kotlin.plugin.jdeps.JDepsGen",
+        ),
       )
     }
   }
@@ -139,7 +158,7 @@ class KotlinToolchain private constructor(
 
   open class KotlinCliToolInvoker internal constructor(
     toolchain: KotlinToolchain,
-    clazz: String
+    clazz: String,
   ) {
     private val compiler: Any
     private val execMethod: Method
@@ -168,11 +187,11 @@ class KotlinToolchain private constructor(
 
   @Singleton
   class KotlincInvoker @Inject constructor(
-    toolchain: KotlinToolchain
+    toolchain: KotlinToolchain,
   ) : KotlinCliToolInvoker(toolchain, "io.bazel.kotlin.compiler.BazelK2JVMCompiler")
 
   @Singleton
   class K2JSCompilerInvoker @Inject constructor(
-    toolchain: KotlinToolchain
+    toolchain: KotlinToolchain,
   ) : KotlinCliToolInvoker(toolchain, "org.jetbrains.kotlin.cli.js.K2JSCompiler")
 }

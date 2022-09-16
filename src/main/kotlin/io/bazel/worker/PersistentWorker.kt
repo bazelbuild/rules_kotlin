@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong
 class PersistentWorker(
   private val captureIO: () -> IO,
   private val executor: ExecutorService,
-  private val cpuTimeBasedGcScheduler: GcScheduler
+  private val cpuTimeBasedGcScheduler: GcScheduler,
 ) : Worker {
 
   constructor(
@@ -50,13 +50,13 @@ class PersistentWorker(
   ) : this(
     captureIO,
     executor,
-    GcScheduler {}
+    GcScheduler {},
   )
 
   constructor() : this(
     IO.Companion::capture,
     Executors.newCachedThreadPool(),
-    CpuTimeBasedGcScheduler(Duration.ofSeconds(10))
+    CpuTimeBasedGcScheduler(Duration.ofSeconds(10)),
   )
 
   override fun start(execute: Work) = WorkerContext.run {
@@ -69,7 +69,7 @@ class PersistentWorker(
           completion.submit {
             doTask(
               name = "request ${request.requestId}",
-              task = request.workTo(execute)
+              task = request.workTo(execute),
             ).asResponseTo(request.requestId, io)
           }
         }
@@ -112,7 +112,7 @@ class PersistentWorker(
         // append whatever falls through standard out.
         output = listOf(
           log.out.toString(),
-          cap
+          cap,
         ).joinToString("\n").trim()
         exitCode = status.exit
         requestId = id

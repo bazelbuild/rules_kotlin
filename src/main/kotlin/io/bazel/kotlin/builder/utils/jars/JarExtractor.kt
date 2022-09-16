@@ -20,7 +20,7 @@ import java.nio.file.Path
 import java.util.jar.JarFile
 
 open class JarExtractor protected constructor(
-  protected var destDir: Path
+  protected var destDir: Path,
 ) {
 
   /**

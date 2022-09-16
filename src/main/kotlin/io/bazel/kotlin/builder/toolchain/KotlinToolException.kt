@@ -17,7 +17,7 @@ package io.bazel.kotlin.builder.toolchain
 
 sealed class KotlinToolException(
   msg: String,
-  ex: Throwable? = null
+  ex: Throwable? = null,
 ) : RuntimeException(msg, ex)
 
 class CompilationException(msg: String, cause: Throwable? = null) :
@@ -26,5 +26,5 @@ class CompilationException(msg: String, cause: Throwable? = null) :
 class CompilationStatusException(
   msg: String,
   val status: Int,
-  val lines: List<String> = emptyList()
+  val lines: List<String> = emptyList(),
 ) : KotlinToolException("$msg:${lines.joinToString("\n", "\n")}")

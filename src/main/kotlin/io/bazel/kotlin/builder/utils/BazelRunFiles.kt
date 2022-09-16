@@ -29,27 +29,29 @@ object BazelRunFiles {
    * Set depending on --enable_runfiles, which defaults to false on Windows and true otherwise.
    */
   private val manifestFile: String? =
-      if (isWindows) {
-        System.getenv("RUNFILES_MANIFEST_FILE")
-      } else null
+    if (isWindows) {
+      System.getenv("RUNFILES_MANIFEST_FILE")
+    } else {
+      null
+    }
 
   private val javaRunFiles = Paths.get(System.getenv("JAVA_RUNFILES"))
 
   private val runfiles by lazy {
     with(mutableMapOf<String, String>()) {
       FileInputStream(manifestFile)
-          .bufferedReader(Charset.forName("UTF-8"))
-          .lines()
-          .forEach { it ->
-            val line = it.trim { it <= ' ' }
-            if (!line.isEmpty()) {
-              // TODO(bazel-team): This is buggy when the path contains spaces, we should fix the manifest format.
-              line.split(" ").also {
-                check(it.size == 2) { "RunFiles manifest entry $line contains more than one space" }
-                put(it[0], it[1])
-              }
+        .bufferedReader(Charset.forName("UTF-8"))
+        .lines()
+        .forEach { it ->
+          val line = it.trim { it <= ' ' }
+          if (!line.isEmpty()) {
+            // TODO(bazel-team): This is buggy when the path contains spaces, we should fix the manifest format.
+            line.split(" ").also {
+              check(it.size == 2) { "RunFiles manifest entry $line contains more than one space" }
+              put(it[0], it[1])
             }
           }
+        }
       Collections.unmodifiableMap(this)
     }
   }
@@ -64,15 +66,15 @@ object BazelRunFiles {
       path.joinToString("/").let { rfPath ->
         // trim off the external/ prefix if it is present.
         val trimmedPath =
-            if (rfPath.startsWith("external/")) {
-              rfPath.replaceFirst("external/", "")
-            } else {
-              rfPath
-            }
+          if (rfPath.startsWith("external/")) {
+            rfPath.replaceFirst("external/", "")
+          } else {
+            rfPath
+          }
         File(
-            checkNotNull(runfiles[trimmedPath]) {
-              "runfile manifest $mf did not contain path mapping for $rfPath"
-            }
+          checkNotNull(runfiles[trimmedPath]) {
+            "runfile manifest $mf did not contain path mapping for $rfPath"
+          },
         )
       }.also {
         check(it.exists()) { "file $it resolved from runfiles did not exist" }
@@ -82,7 +84,7 @@ object BazelRunFiles {
       return fromManifest
     }
 
-    /// if it could not be resolved from the manifest then first try to resolve it directly.
+    // / if it could not be resolved from the manifest then first try to resolve it directly.
     val resolvedDirect = File(path.joinToString(File.separator)).takeIf { it.exists() }
     if (resolvedDirect != null) {
       return resolvedDirect

@@ -29,7 +29,7 @@ import java.util.stream.Stream
  */
 class SourceJarCreator(
   path: Path,
-  verbose: Boolean = false
+  verbose: Boolean = false,
 ) : JarHelper(path, normalize = true, verbose = verbose) {
   companion object {
     private const val BL = """\p{Blank}*"""
@@ -198,7 +198,8 @@ class SourceJarCreator(
 
     val result = entries.putIfAbsent(name, Entry.File(path, bytes))
     require(result as? Entry.Directory != null || result == null) {
-      "source entry jarName: $name from: $path collides with entry from: ${(result as Entry.File).path}"
+      "source entry jarName: $name from: $path " +
+        "collides with entry from: ${(result as Entry.File).path}"
     }
   }
 }

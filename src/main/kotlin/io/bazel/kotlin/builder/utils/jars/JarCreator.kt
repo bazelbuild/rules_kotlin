@@ -32,15 +32,15 @@ import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 
-@Suppress("unused")
 /**
  * A class for creating Jar files. Allows normalization of Jar entries by setting their timestamp to
  * the DOS epoch. All Jar entries are sorted alphabetically.
  */
+@Suppress("unused")
 class JarCreator(
   path: Path,
   normalize: Boolean = true,
-  verbose: Boolean = false
+  verbose: Boolean = false,
 ) : JarHelper(path, normalize, verbose), Closeable {
   // Map from Jar entry names to files. Use TreeMap so we can establish a canonical order for the
   // entries regardless in what order they get added.
@@ -133,7 +133,7 @@ class JarCreator(
             }
             jarEntries[sb.toString()] = path
           }
-        }
+        },
       )
     } catch (e: IOException) {
       throw UncheckedIOException(e)

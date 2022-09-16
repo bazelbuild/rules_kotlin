@@ -40,10 +40,12 @@ class SkipCodeGen : ComponentRegistrar {
 
   override fun registerProjectComponents(
     project: MockProject,
-    configuration: CompilerConfiguration
+    configuration: CompilerConfiguration,
   ) {
-    AnalysisHandlerExtension.registerExtension(project,
-        SkipCodeGen)
+    AnalysisHandlerExtension.registerExtension(
+      project,
+      SkipCodeGen,
+    )
   }
 
   /**
@@ -57,7 +59,7 @@ class SkipCodeGen : ComponentRegistrar {
       projectContext: ProjectContext,
       files: Collection<KtFile>,
       bindingTrace: BindingTrace,
-      componentProvider: ComponentProvider
+      componentProvider: ComponentProvider,
     ): AnalysisResult? {
       return null
     }
@@ -67,13 +69,14 @@ class SkipCodeGen : ComponentRegistrar {
       project: Project,
       module: ModuleDescriptor,
       bindingTrace: BindingTrace,
-      files: Collection<KtFile>
+      files: Collection<KtFile>,
     ): AnalysisResult? {
       // Ensure this is the last plugin, as it will short circuit any other plugin analysisCompleted
       // calls.
       Preconditions.checkState(
-          AnalysisHandlerExtension.getInstances(project).last() == this,
-          "SkipCodeGen must be the last plugin: ${AnalysisHandlerExtension.getInstances(project)}")
+        AnalysisHandlerExtension.getInstances(project).last() == this,
+        "SkipCodeGen must be the last plugin: ${AnalysisHandlerExtension.getInstances(project)}",
+      )
       return AnalysisResult.Companion.success(bindingTrace.bindingContext, module, false)
     }
   }

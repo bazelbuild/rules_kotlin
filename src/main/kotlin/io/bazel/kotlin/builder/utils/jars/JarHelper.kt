@@ -44,7 +44,7 @@ open class JarHelper internal constructor(
   // The properties to describe how to create the Jar
   protected val normalize: Boolean = true,
   protected val verbose: Boolean = false,
-  compression: Boolean = true
+  compression: Boolean = true,
 ) {
   private var storageMethod: Int = JarEntry.DEFLATED
 
@@ -168,8 +168,12 @@ open class JarHelper internal constructor(
         val size = if (isDirectory) 0 else Files.size(path)
         val outEntry = JarEntry(normalizedName)
         val newtime =
-          if (normalize) normalizedTimestamp(normalizedName) else Files.getLastModifiedTime(path)
-            .toMillis()
+          if (normalize) {
+            normalizedTimestamp(normalizedName)
+          } else {
+            Files.getLastModifiedTime(path)
+              .toMillis()
+          }
         outEntry.time = newtime
         outEntry.size = size
         if (size == 0L) {
@@ -210,7 +214,7 @@ open class JarHelper internal constructor(
   protected fun JarOutputStream.copyEntry(
     name: String,
     path: Path? = null,
-    data: ByteArray = EMPTY_BYTEARRAY
+    data: ByteArray = EMPTY_BYTEARRAY,
   ) {
     val outEntry = JarEntry(name)
     outEntry.time = when {

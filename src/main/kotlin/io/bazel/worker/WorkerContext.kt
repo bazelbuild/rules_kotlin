@@ -34,7 +34,7 @@ import java.util.logging.StreamHandler
 /** WorkerContext encapsulates logging, filesystem, and profiling for a task invocation. */
 class WorkerContext private constructor(
   private val name: String = Companion::class.java.canonicalName,
-  private val verbose: Granularity = INFO
+  private val verbose: Granularity = INFO,
 ) : Closeable, ScopeLogging by ContextLogger(name, verbose.level, null) {
 
   companion object {
@@ -42,7 +42,7 @@ class WorkerContext private constructor(
       named: String = "worker",
       verbose: Granularity = INFO,
       report: (ContextLog) -> Unit = {},
-      work: WorkerContext.() -> T
+      work: WorkerContext.() -> T,
     ): T {
       return WorkerContext(verbose = verbose, name = named).run {
         use(work).also {
@@ -55,7 +55,7 @@ class WorkerContext private constructor(
   private class ContextLogger(
     val name: String,
     val level: Level,
-    val propagateTo: ContextLogger? = null
+    val propagateTo: ContextLogger? = null,
   ) : ScopeLogging {
 
     private val profiles = mutableListOf<String>()
@@ -88,7 +88,7 @@ class WorkerContext private constructor(
 
     override fun error(
       t: Throwable,
-      msg: () -> String
+      msg: () -> String,
     ) {
       logger.logp(Level.SEVERE, sourceName, name, t, msg)
     }
@@ -112,11 +112,11 @@ class WorkerContext private constructor(
 
   class TaskContext internal constructor(
     val directory: Path,
-    logging: ScopeLogging
+    logging: ScopeLogging,
   ) : ScopeLogging by logging {
     fun <T> subTask(
       name: String = javaClass.canonicalName,
-      task: (sub: TaskContext) -> T
+      task: (sub: TaskContext) -> T,
     ): T {
       return task(TaskContext(directory, logging = narrowTo(name)))
     }
@@ -126,7 +126,7 @@ class WorkerContext private constructor(
       try {
         return TaskResult(
           executeTaskIn(this),
-          contents()
+          contents(),
         )
       } catch (t: Throwable) {
         when (t.causes.lastOrNull()) {
@@ -135,7 +135,7 @@ class WorkerContext private constructor(
         }
         return TaskResult(
           ERROR,
-          contents()
+          contents(),
         )
       }
     }
@@ -149,7 +149,7 @@ class WorkerContext private constructor(
   /** doTask work in a TaskContext. */
   fun doTask(
     name: String,
-    task: (sub: TaskContext) -> Status
+    task: (sub: TaskContext) -> Status,
   ): TaskResult {
     info { "start task $name" }
     return WorkingDirectoryContext.use {
