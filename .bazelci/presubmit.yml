@@ -105,4 +105,11 @@ tasks:
     platform: ubuntu1804
     build_targets:
       - //kotlin:stardoc
-
+  ktlint:
+    name: KtLint
+    platform: ubuntu1804
+    test_targets:
+      - //...
+    test_flags:
+      - "--test_tag_filters=ktlint"
+      - "--test_output=errors"
