@@ -85,7 +85,8 @@ class KotlinBuilder @Inject internal constructor(
       BUILD_KOTLIN("--build_kotlin"),
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
-      INSTRUMENT_COVERAGE("--instrument_coverage");
+      INSTRUMENT_COVERAGE("--instrument_coverage"),
+      TRACK_CLASS_USAGE("--track_class_usage");
     }
   }
 
@@ -159,6 +160,7 @@ class KotlinBuilder @Inject internal constructor(
         argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
       strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
       reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
+      trackClassUsage = argMap.mandatorySingle(KotlinBuilderFlags.TRACK_CLASS_USAGE)
       this
     }
 

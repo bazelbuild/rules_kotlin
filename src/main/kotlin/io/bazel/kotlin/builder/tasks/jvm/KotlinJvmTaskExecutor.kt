@@ -69,6 +69,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                           flag("direct_dependencies", it)
                         }
                         flag("strict_kotlin_deps", info.strictKotlinDeps)
+                        flag("track_class_usage", info.trackClassUsage)
                       }
                     }
                     .given(outputs.jar).notEmpty {

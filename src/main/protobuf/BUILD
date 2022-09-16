@@ -3,9 +3,23 @@ load("@rules_java//java:defs.bzl", "java_library", "java_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
-alias(
+# TODO: uncomment alias below and remove deps_proto/deps_java_proto rules once deps.proto changes are merged into
+# bazel repository. For now, use local copy which contains tracked classes changes.
+
+#alias(
+#    name = "deps_java_proto",
+#    actual = "@bazel_tools//src/main/protobuf:deps_java_proto",
+#)
+
+proto_library(
+    name = "deps_proto",
+    srcs = [":deps.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
     name = "deps_java_proto",
-    actual = "@bazel_tools//src/main/protobuf:deps_java_proto",
+    deps = [":deps_proto"],
 )
 
 alias(

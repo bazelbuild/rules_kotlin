@@ -82,6 +82,8 @@ message CompilationTaskInfo {
     string strict_kotlin_deps = 10;
     // Optimize classpath by removing dependencies not required for compilation
     string reduced_classpath_mode = 11;
+    // Whether to track used classes in .jdeps
+    string track_class_usage = 12;
 }
 
 // Nested messages not marked with stable could be refactored.

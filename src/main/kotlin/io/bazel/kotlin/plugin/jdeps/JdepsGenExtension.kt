@@ -1,5 +1,7 @@
 package io.bazel.kotlin.plugin.jdeps
 
+import com.google.common.io.ByteStreams
+import com.google.protobuf.ByteString
 import com.google.devtools.build.lib.view.proto.Deps
 import com.intellij.mock.MockProject
 import com.intellij.openapi.project.Project
@@ -12,8 +14,8 @@ import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
@@ -48,6 +50,9 @@ import org.jetbrains.kotlin.types.typeUtil.supertypes
 import java.io.BufferedOutputStream
 import java.io.File
 import java.nio.file.Paths
+import java.util.jar.JarFile
+import java.security.MessageDigest
+
 
 /**
  * Kotlin compiler extension that tracks classes (and corresponding classpath jars) needed to
@@ -291,7 +296,7 @@ class JdepsGenExtension(
     targetLabel: String,
     explicitDeps: Map<String, List<String>>
   ) {
-
+    val trackClassUsage = configuration.getNotNull(JdepsGenConfigurationKeys.TRACK_CLASS_USAGE).equals("on")
     val implicitDeps = createDepsMap(implicitClassesCanonicalPaths)
 
     // Build and write out deps.proto
@@ -309,10 +314,26 @@ class JdepsGenExtension(
       rootBuilder.addDependency(dependency)
     }
 
-    explicitDeps.forEach { (jarPath, _) ->
+    explicitDeps.forEach { (jarPath, usedClasses) ->
       val dependency = Deps.Dependency.newBuilder()
       dependency.kind = Deps.Dependency.Kind.EXPLICIT
       dependency.path = jarPath
+
+      if (trackClassUsage) {
+        // Add tracked classes and their (compile time) hash into final output, as needed for
+        // compilation avoidance.
+        usedClasses.forEach { it ->
+          val name = it.replace(".class", "").replace("/", ".")
+          val hash = ByteString.copyFrom(getHashFromJarEntry(jarPath, it))
+          val usedClass: Deps.UsedClass = Deps.UsedClass.newBuilder()
+            .setFullyQualifiedName(name)
+            .setInternalPath(it)
+            .setHash(hash)
+            .build()
+          dependency.addUsedClasses(usedClass)
+        }
+      }
+
       rootBuilder.addDependency(dependency)
     }
 
@@ -326,6 +347,19 @@ class JdepsGenExtension(
     BufferedOutputStream(File(jdepsOutput).outputStream()).use {
       it.write(rootBuilder.build().toByteArray())
     }
+  }
+
+  /**
+   * Compute hash of internal jar class ABI definition.
+   */
+  private fun getHashFromJarEntry(
+    jarPath: String,
+    internalPath: String
+  ): ByteArray {
+    val jarFile = JarFile(jarPath)
+    val entry = jarFile.getEntry(internalPath)
+    val bytes = ByteStreams.toByteArray(jarFile.getInputStream(entry))
+    return MessageDigest.getInstance("SHA-256").digest(bytes)
   }
 
   private fun doStrictDeps(
