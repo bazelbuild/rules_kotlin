@@ -26,11 +26,11 @@ versions = struct(
     IO_BAZEL_STARDOC_SHA = "5bcd62378fc5ea87936169b49245d0595c690bde41ef695ce319752cc9929c34",
     BAZEL_JAVA_LAUNCHER_VERSION = "5.0.0",
     PINTEREST_KTLINT = version(
-        version = "0.47.0",
+        version = "0.47.1",
         url_templates = [
             "https://github.com/pinterest/ktlint/releases/download/{version}/ktlint",
         ],
-        sha256 = "36e3641018c559492214ab9dd6c30575890edb3d84034dd73daca50b46316384",
+        sha256 = "a333ad0172369a5cd973aea83e02e8b698c06a2daac6f32925da03049aa3dce7",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
         version = "1.7.10",
