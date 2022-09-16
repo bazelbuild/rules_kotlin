@@ -107,7 +107,11 @@ SRCS=${{SRCS[@]/#/$BUILD_DIR}}
         content = content,
         is_executable = True,
     )
-    runfiles = ctx.runfiles(files = [ctx.executable._ktlint_tool])
+
+    files = [ctx.executable._ktlint_tool]
+    if editorconfig:
+        files.append(editorconfig)
+    runfiles = ctx.runfiles(files = files)
 
     return [
         DefaultInfo(

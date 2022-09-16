@@ -19,10 +19,15 @@ exports_files([
     "scripts/noop.sh",
 ])
 
+filegroup(
+    name = "editorconfig",
+    srcs = [".editorconfig"],
+)
+
 ktlint_config(
     name = "ktlint_editorconfig",
     android_rules_enabled = False,
-    editorconfig = ".editorconfig",
+    editorconfig = "//:editorconfig",
     experimental_rules_enabled = False,
     visibility = ["//visibility:public"],
 )
