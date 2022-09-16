@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package io.bazel.kotlin.builder.tasks.jvm;
+package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.DirectoryType
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
@@ -29,7 +29,7 @@ class KotlinBuilderJvmCoverageTest {
 
   @Test
   fun `generates coverage metadata`() {
-    val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+    ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("KotlinClass.kt",
         """
             package something
@@ -48,7 +48,7 @@ class KotlinBuilderJvmCoverageTest {
 
   @Test
   fun `generates coverage metadata for multiple Kotlin classes`() {
-    val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+    ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("KotlinClass.kt",
         """
           package something;
