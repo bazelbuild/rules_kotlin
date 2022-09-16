@@ -96,6 +96,13 @@ def archive_repository_implementation(repository_ctx):
             archive = release_artifact,
         )
 
+        # prepend load to development workspace resource to trigger rebuild on changes.
+        root_build_file = "load('@%s//src/main/starlark/core/repositories:versions.bzl', 'versions')\n%s\n%s" % (
+            release_archive.workspace_name,
+            repository_ctx.read(repository_ctx.path("BUILD.bazel")),
+        )
+        repository_ctx.file("BUILD.bazel", root_build_file)
+
 # not windows compatible.
 # buildifier: disable=unused-variable
 def _find_workspace(attr, environ, path):

@@ -1,4 +1,4 @@
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:derive.bzl", "derive")
+load("//src/main/starlark/core/options:derive.bzl", "derive")
 
 def _javac_options_to_flags(jopts, javac_options):
     """Translate JavacOptions to worker flags

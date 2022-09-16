@@ -97,6 +97,7 @@ def kotlin_repositories(
             selected_version = version
 
     if configured_repository_name:  # without a repository name, no default kt_* rules repository is created.
+        print("Creating rules repository %s" % RULES_KOTLIN.workspace_name)
         rules_repository(
             name = configured_repository_name,
             archive = Label("//:%s.tgz" % selected_version),
