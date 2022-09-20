@@ -27,6 +27,5 @@ nodejs_binary(
     name = "coroutines-helloworld",
     data = [":app"],
     entry_point = ":app.js",
-    node_modules = "@node_ws//:node_modules",
     visibility = ["//visibility:public"],
 )
