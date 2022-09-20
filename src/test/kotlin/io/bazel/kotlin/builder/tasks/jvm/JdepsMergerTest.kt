@@ -3,6 +3,7 @@ package io.bazel.kotlin.builder.tasks.jvm
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.view.proto.Deps
 import com.google.devtools.build.lib.view.proto.Deps.Dependency
+import com.google.protobuf.ByteString
 import io.bazel.kotlin.builder.DaggerJdepsMergerTestComponent
 import io.bazel.kotlin.builder.tasks.MergeJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JdepsMerger.Companion.JdepsMergerFlags
@@ -102,6 +103,181 @@ class JdepsMergerTest {
       "/path/to/kt_dep.jar",
       "/path/to/java_dep.jar"
     )
+  }
+
+  @Test
+  fun `merge used class`() {
+    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
+
+    val kotlinJdeps = jdeps("kt.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = "/path/to/kt_dep.jar"
+          addUsedClasses(with(Deps.UsedClass.newBuilder()) {
+            fullyQualifiedName = "com.package.UsedClass"
+            internalPath = "com/package/UsedClass.class"
+            hash = ByteString.copyFromUtf8("hash")
+            build()
+          })
+          build()
+        }
+      )
+    }
+
+    val javaJdeps = jdeps("java.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = "/path/to/java_dep.jar"
+          build()
+        }
+      )
+    }
+
+    val mergedJdeps = out("merged.jdeps")
+
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            input(kotlinJdeps)
+            input(javaJdeps)
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
+          }
+        )
+      }
+    }
+
+    assertThat(result.status).isEqualTo(SUCCESS)
+
+    val depsProto = depsProto(mergedJdeps)
+    assertThat(depsProto.dependencyList.filter { it.path.equals("/path/to/kt_dep.jar") }).hasSize(1)
+    assertThat(depsProto.dependencyList.filter { it.path.equals("/path/to/kt_dep.jar") }.first().usedClassesCount).isEqualTo(1)
+    assertThat(depsProto.dependencyList.filter { it.path.equals("/path/to/kt_dep.jar") }.first().getUsedClasses(0).fullyQualifiedName).isEqualTo("com.package.UsedClass")
+  }
+
+  @Test
+  fun `merge conflicting used class`() {
+    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
+
+    val kotlinJdeps = jdeps("kt.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = "/path/to/shared_dep.jar"
+          addUsedClasses(with(Deps.UsedClass.newBuilder()) {
+            fullyQualifiedName = "com.package.UsedClass"
+            internalPath = "com/package/UsedClass.class"
+            hash = ByteString.copyFromUtf8("hash")
+            build()
+          })
+          build()
+        }
+      )
+    }
+
+    val javaJdeps = jdeps("java.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.IMPLICIT
+          path = "/path/to/shared_dep.jar"
+          addUsedClasses(with(Deps.UsedClass.newBuilder()) {
+            fullyQualifiedName = "com.package.AnotherUsedClass"
+            internalPath = "com/package/AnotherUsedClass.class"
+            hash = ByteString.copyFromUtf8("hash")
+            build()
+          })
+          build()
+        }
+      )
+    }
+
+    val mergedJdeps = out("merged.jdeps")
+
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            input(kotlinJdeps)
+            input(javaJdeps)
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
+          }
+        )
+      }
+    }
+
+    assertThat(result.status).isEqualTo(SUCCESS)
+
+    val depsProto = depsProto(mergedJdeps)
+    assertThat(depsProto.dependencyList.filter { it.path.equals("/path/to/shared_dep.jar") }).hasSize(1)
+    assertThat(depsProto.dependencyList.filter { it.path.equals("/path/to/shared_dep.jar") }.first().usedClassesCount).isEqualTo(2)
+  }
+
+  @Test
+  fun `merge conflicting used class with weaker kind`() {
+    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
+
+    val kotlinJdeps = jdeps("kt.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.IMPLICIT
+          path = "/path/to/shared_dep.jar"
+          addUsedClasses(with(Deps.UsedClass.newBuilder()) {
+            fullyQualifiedName = "com.package.UsedClass"
+            internalPath = "com/package/UsedClass.class"
+            hash = ByteString.copyFromUtf8("hash")
+            build()
+          })
+          build()
+        }
+      )
+    }
+
+    val javaJdeps = jdeps("java.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = "/path/to/shared_dep.jar"
+          addUsedClasses(with(Deps.UsedClass.newBuilder()) {
+            fullyQualifiedName = "com.package.AnotherUsedClass"
+            internalPath = "com/package/AnotherUsedClass.class"
+            hash = ByteString.copyFromUtf8("hash")
+            build()
+          })
+          build()
+        }
+      )
+    }
+
+    val mergedJdeps = out("merged.jdeps")
+
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            input(kotlinJdeps)
+            input(javaJdeps)
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
+          }
+        )
+      }
+    }
+
+    assertThat(result.status).isEqualTo(SUCCESS)
+
+    val depsProto = depsProto(mergedJdeps)
+    assertThat(depsProto.dependencyList.filter { it.path.equals("/path/to/shared_dep.jar") }).hasSize(1)
+    assertThat(depsProto.dependencyList.filter { it.path.equals("/path/to/shared_dep.jar") }.first().usedClassesCount).isEqualTo(2)
   }
 
   @Test
