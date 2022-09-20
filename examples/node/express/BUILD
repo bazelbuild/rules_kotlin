@@ -40,5 +40,4 @@ nodejs_binary(
     name = "express",
     data = [":app"],
     entry_point = ":app.js",
-    node_modules = "@node_ws//:node_modules",
 )
