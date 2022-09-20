@@ -346,6 +346,10 @@ Setup a simple kotlin_test.
             default = "",
         ),
         "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
+        "env": attr.string_dict(
+            doc = "Specifies additional environment variables to set when the target is executed by bazel test.",
+            default = {},
+        ),
         "_lcov_merger": attr.label(
             default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),
         ),
