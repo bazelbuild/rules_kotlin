@@ -42,6 +42,8 @@ def archive_repository_implementation(repository_ctx):
             stripPrefix = attr._remote_prefix,
         )
     else:
+        print("build %s" % repository_ctx.execute(["date"]).stdout)
+
         # not OS safe. Presuming linux-likes until complaints.
         release_archive = attr.local_release_archive_target
 
@@ -70,7 +72,6 @@ def archive_repository_implementation(repository_ctx):
                 workspace.get_child("WORKSPACE.dev.bazel"),
                 workspace_file,
             )
-
         repository_ctx.report_progress(
             "Building %s in %s... (may take a while.)" % (target, workspace.basename),
         )
@@ -96,12 +97,15 @@ def archive_repository_implementation(repository_ctx):
             archive = release_artifact,
         )
 
-        # prepend load to development workspace resource to trigger rebuild on changes.
-        root_build_file = "load('@%s//src/main/starlark/core/repositories:versions.bzl', 'versions')\n%s" % (
-            release_archive.workspace_name,
-            repository_ctx.read(repository_ctx.path("BUILD.bazel")),
-        )
-        repository_ctx.file("BUILD.bazel", root_build_file)
+        # update the timestamp on the repository rule source to ensure it's always re-evaluated.
+        self = workspace
+        for segment in "src/main/starlark/release_archive/repository.bzl".split("/"):
+            self = self.get_child(segment)
+
+        repository_ctx.execute([
+            "touch",
+            str(self),
+        ])
 
 # not windows compatible.
 # buildifier: disable=unused-variable
