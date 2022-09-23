@@ -28,7 +28,7 @@ def archive_repository_implementation(repository_ctx):
     # Instead, environment variables are a tried and true workaround.
     environ = repository_ctx.os.environ
 
-    if attr.env_archive in environ:
+    if attr.env_archive in environ and environ[attr.env_archive]:
         repository_ctx.report_progress("Using release archive from %s" % environ[attr.env_archive])
         repository_ctx.extract(
             archive = environ[attr.env_archive],
@@ -97,7 +97,7 @@ def archive_repository_implementation(repository_ctx):
         )
 
         # prepend load to development workspace resource to trigger rebuild on changes.
-        root_build_file = "load('@%s//src/main/starlark/core/repositories:versions.bzl', 'versions')\n%s\n%s" % (
+        root_build_file = "load('@%s//src/main/starlark/core/repositories:versions.bzl', 'versions')\n%s" % (
             release_archive.workspace_name,
             repository_ctx.read(repository_ctx.path("BUILD.bazel")),
         )
