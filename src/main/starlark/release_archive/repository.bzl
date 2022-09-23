@@ -28,7 +28,7 @@ def archive_repository_implementation(repository_ctx):
     # Instead, environment variables are a tried and true workaround.
     environ = repository_ctx.os.environ
 
-    if attr.env_archive in environ:
+    if attr.env_archive in environ and environ[attr.env_archive]:
         repository_ctx.report_progress("Using release archive from %s" % environ[attr.env_archive])
         repository_ctx.extract(
             archive = environ[attr.env_archive],
@@ -42,6 +42,8 @@ def archive_repository_implementation(repository_ctx):
             stripPrefix = attr._remote_prefix,
         )
     else:
+        print("build %s" % repository_ctx.execute(["date"]).stdout)
+
         # not OS safe. Presuming linux-likes until complaints.
         release_archive = attr.local_release_archive_target
 
@@ -70,7 +72,6 @@ def archive_repository_implementation(repository_ctx):
                 workspace.get_child("WORKSPACE.dev.bazel"),
                 workspace_file,
             )
-
         repository_ctx.report_progress(
             "Building %s in %s... (may take a while.)" % (target, workspace.basename),
         )
@@ -95,6 +96,16 @@ def archive_repository_implementation(repository_ctx):
         repository_ctx.extract(
             archive = release_artifact,
         )
+
+        # update the timestamp on the repository rule source to ensure it's always re-evaluated.
+        self = workspace
+        for segment in "src/main/starlark/release_archive/repository.bzl".split("/"):
+            self = self.get_child(segment)
+
+        repository_ctx.execute([
+            "touch",
+            str(self),
+        ])
 
 # not windows compatible.
 # buildifier: disable=unused-variable

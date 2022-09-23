@@ -69,10 +69,7 @@ def kt_configure():
     [
         native.local_repository(
             name = version,
-            path = "src/main/starlark/%s" % version,
-            repo_mapping = {
-                "@dev_io_bazel_rules_kotlin": "@",
-            },
+            path = "src/%s" % version,
         )
         for version in versions.CORE
     ]
