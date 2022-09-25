@@ -5,8 +5,8 @@ import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.utils.BazelRunFiles.resolveFromProperty
 import io.bazel.kotlin.integration.WriteWorkspace
 import io.bazel.rkt_1_6.builder.jobs.jvm.CompileConfigurationSubject.Companion.configurations
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.GenerateStubs
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
+import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateStubs
 import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems

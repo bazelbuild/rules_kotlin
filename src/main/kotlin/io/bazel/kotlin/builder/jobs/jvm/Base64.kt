@@ -1,4 +1,4 @@
-package io.bazel.rkt_1_6.builder.jobs.jvm
+package io.bazel.kotlin.builder.jobs.jvm
 
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream

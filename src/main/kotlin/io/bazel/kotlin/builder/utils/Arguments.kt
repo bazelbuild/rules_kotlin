@@ -193,7 +193,7 @@ class Arguments(
    *
    * @return ReadOnlyProperty property for the value.
    */
-  fun <T : Any> flag(
+  fun <T : Any> flagOf(
     name: String,
     description: String,
     default: T,
@@ -218,7 +218,7 @@ class Arguments(
    *
    * @return ReadOnlyProperty property for the value.
    */
-  fun <T : Any> flag(
+  fun <T : Any> flagOf(
     name: String,
     description: String,
     required: Boolean = false,
@@ -231,12 +231,12 @@ class Arguments(
     ).also { options[name] = it }
   }
 
-  fun flag(
+  fun flagOf(
     name: String,
     description: String,
     required: Boolean=false,
     default: String = ""
-  ) = flag(name = name, description = description, required = required, default = default) {
+  ) = flagOf(name = name, description = description, required = required, default = default) {
     toString()
   }
 

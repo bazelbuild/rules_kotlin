@@ -1,4 +1,4 @@
-package io.bazel.rkt_1_6.builder.jobs.jvm
+package io.bazel.kotlin.builder.jobs.jvm
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 
@@ -11,7 +11,6 @@ object RepositoryLocations {
   val RULES_REPOSITORY_NAME =
     System.getenv("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
       ?: System.getenv("REPOSITORY_NAME")?.takeIf { it.isNotBlank() }
-      //   ?: System.getProperty("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
       ?: error("Unable to determine rules_kotlin repository name.\nenv:${System.getenv()}\nproperties:${System.getProperties()}")
 
   val DEFAULT_JVM_ABI_PATH = BazelRunFiles.resolveVerified(

@@ -1,11 +1,11 @@
-package io.bazel.rkt_1_6.builder.jobs.jvm.configurations
+package io.bazel.kotlin.builder.jobs.jvm.configurations
 
 import com.google.devtools.build.lib.view.proto.Deps
 import com.google.devtools.build.lib.view.proto.Deps.Dependency.Kind.EXPLICIT
 import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
-import io.bazel.rkt_1_6.builder.jobs.jvm.JobContext
-import io.bazel.rkt_1_6.builder.jobs.jvm.flags.FilesSystemInputs
+import io.bazel.kotlin.builder.jobs.jvm.JobContext
+import io.bazel.kotlin.builder.jobs.jvm.flags.FilesSystemInputs
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import java.io.BufferedInputStream

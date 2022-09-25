@@ -1,18 +1,20 @@
-package io.bazel.rkt_1_6.builder.jobs.jvm
+package io.bazel.kotlin.builder.jobs.jvm.flags
 
+import io.bazel.kotlin.builder.jobs.jvm.RepositoryLocations
+import io.bazel.kotlin.builder.jobs.jvm.ZipArchive
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileWithAssociates
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileWithPlugins
+import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateAbi
+import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateJDeps
+import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateStubs
 import io.bazel.kotlin.builder.utils.Arguments
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompileWithPlugins
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.GenerateAbi
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.GenerateJDeps
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.GenerateStubs
-import io.bazel.rkt_1_6.builder.jobs.jvm.flags.FilesSystemInputs
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 
 /**
- * [FlagValues] for all [io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompilerConfiguration]s.
+ * [FlagValues] for all [io.bazel.kotlin.builder.jobs.jvm.configurations.CompilerConfiguration]s.
  */
 class FlagValues(
   argument: Arguments,
@@ -21,6 +23,8 @@ class FlagValues(
 ) : FilesSystemInputs,
   CompileKotlin.In,
   CompileKotlin.Out,
+  CompileWithAssociates.In,
+  CompileWithAssociates.Out,
   GenerateJDeps.In,
   GenerateJDeps.Out,
   GenerateAbi.In,
@@ -34,10 +38,10 @@ class FlagValues(
   override val classpath by argument.paths("classpath", "")
   override val directDependencies by argument.paths("direct_dependencies", "")
   override val depsArtifacts by argument.paths("deps_artifacts", "")
-  override val sources by argument.flag<List<Path>>(
+  override val sources by argument.flagOf<List<Path>>(
     "source",
     "sources to compile",
-    emptyList()
+    emptyList(),
   ) { current ->
     split(",").map { fileSystem.getPath(it) } + current
   }
@@ -46,21 +50,21 @@ class FlagValues(
     ZipArchive(workingDirectory.resolve("src_jars"))
   }
 
-  override val sourcesFromJars by argument.flag<List<Path>>(
+  override val sourcesFromJars by argument.flagOf<List<Path>>(
     "source_jars",
     "",
-    default = emptyList()
+    default = emptyList(),
   ) { current ->
     split(",").map(fileSystem::getPath).flatMap(archive::extract) + current
   }
   override val processorPath by argument.paths("processorpath", "")
-  override val processors by argument.flag<List<String>>("processors", "", emptyList()) {
+  override val processors by argument.flagOf<List<String>>("processors", "", emptyList()) {
     split(",")
   }
-  override val stubsPluginOptions by argument.flag<List<String>>(
+  override val stubsPluginOptions by argument.flagOf<List<String>>(
     "stubs_plugin_options",
     "",
-    emptyList()
+    emptyList(),
   ) {
     split(",")
   }
@@ -68,10 +72,10 @@ class FlagValues(
     "stubs_plugin_classpath",
     "",
   )
-  override val compilerPluginOptions by argument.flag<List<String>>(
+  override val compilerPluginOptions by argument.flagOf<List<String>>(
     "compiler_plugin_options",
     "",
-    emptyList()
+    emptyList(),
   ) {
     split(",")
   }
@@ -79,58 +83,63 @@ class FlagValues(
     "compiler_plugin_classpath",
     "",
   )
-  val ruleKind by argument.flag("rule_kind", "")
-  override val moduleName by argument.flag<String>(
+  val ruleKind by argument.flagOf("rule_kind", "")
+  override val moduleName by argument.flagOf<String>(
     "kotlin_module_name",
     "",
     required = true,
-    default = "required"
+    default = "required",
   ) { toString() }
 
-  override val passthroughFlags by argument.flag<List<String>>(
+  override val passthroughFlags by argument.flagOf<List<String>>(
     "kotlin_passthrough_flags",
     "",
-    emptyList()
+    emptyList(),
   ) {
     split(",")
   }
-  override val apiVersion by argument.flag(
+  override val associatePaths: List<Path> by argument.paths(
+    "kotlin_friend_paths",
+    "Modules to associate with the compilation of this module.",
+  )
+
+  override val apiVersion by argument.flagOf(
     "kotlin_api_version",
     "",
-    required = true
+    required = true,
   )
 
-  override val languageVersion by argument.flag(
+  override val languageVersion by argument.flagOf(
     "kotlin_language_version",
     "",
-    required = true
+    required = true,
   )
 
-  override val jvmTarget by argument.flag(
+  override val jvmTarget by argument.flagOf(
     "kotlin_jvm_target",
     "",
-    required = true
+    required = true,
   )
 
   val friendsPaths by argument.paths(
     "kotlin_friend_paths",
     "",
-    required = true
+    required = true,
   )
 
-  val jsPassthroughFlags by argument.flag(
+  val jsPassthroughFlags by argument.flagOf(
     "kotlin_js_passthrough_flags",
     "",
-    emptyList<String>()
+    emptyList<String>(),
   ) {
     split(",")
   }
 
-  override val debug by argument.flag("kotlin_debug_tags", "", emptyList<String>()) {
+  override val debug by argument.flagOf("kotlin_debug_tags", "", emptyList<String>()) {
     split(",")
   }
 
-  val taskId by argument.flag("kotlin_task_id", "")
+  val taskId by argument.flagOf("kotlin_task_id", "")
 
   override val abiJar by argument.path("abi_jar", "")
 
@@ -140,26 +149,26 @@ class FlagValues(
 
   override val generatedClassJar by argument.path("kapt_generated_class_jar", "")
 
-  val buildKotlin by argument.flag("build_kotlin", "") // used for?
+  val buildKotlin by argument.flagOf("build_kotlin", "") // used for?
 
-  override val targetLabel by argument.flag<String>("target_label", "", "") { toString() }
+  override val targetLabel by argument.flagOf<String>("target_label", "", "") { toString() }
 
-  override val strictKotlinDeps by argument.flag<Boolean>(
+  override val strictKotlinDeps by argument.flagOf<Boolean>(
     "strict_kotlin_deps",
     "",
-    default = false
+    default = false,
   ) { toBooleanStrict() }
 
-  override val reducedClasspathMode by argument.flag<Boolean>(
+  override val reducedClasspathMode by argument.flagOf<Boolean>(
     "reduced_classpath_mode",
     "",
-    default = false
+    default = false,
   ) { toBooleanStrict() }
 
-  val instrumentCoverage by argument.flag<Boolean>(
+  val instrumentCoverage by argument.flagOf<Boolean>(
     "instrument_coverage",
     "",
-    default = false
+    default = false,
   ) { toBooleanStrict() }
 
 

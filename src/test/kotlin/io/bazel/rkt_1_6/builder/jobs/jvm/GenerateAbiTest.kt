@@ -6,8 +6,8 @@ import com.google.common.truth.Truth.assertWithMessage
 import io.bazel.kotlin.builder.utils.BazelRunFiles.resolveFromProperty
 import io.bazel.kotlin.integration.WriteWorkspace
 import io.bazel.rkt_1_6.builder.jobs.jvm.CompileConfigurationSubject.Companion.configurations
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.GenerateAbi
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
+import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateAbi
 import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -16,9 +16,7 @@ import java.nio.file.Path
 import kotlin.streams.toList
 
 class GenerateAbiTest {
-
   private val temp = Files.createTempDirectory(GenerateAbiTest::class.qualifiedName)
-
   data class In(
     override val apiVersion: String = "1.6",
     override val languageVersion: String = "1.6",

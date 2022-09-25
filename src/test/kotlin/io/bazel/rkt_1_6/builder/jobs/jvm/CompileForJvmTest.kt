@@ -2,11 +2,11 @@ package io.bazel.rkt_1_6.builder.jobs.jvm
 
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin.In
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin.Out
 import io.bazel.kotlin.integration.WriteWorkspace
 import io.bazel.rkt_1_6.builder.jobs.jvm.CompileConfigurationSubject.Companion.configurations
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompileKotlin.In
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompileKotlin.Out
 import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -34,12 +34,12 @@ class CompileForJvmTest {
     override val useIr: Boolean = false,
     override val debug: List<String> = emptyList(),
     override val sourcesFromJars: List<Path> = emptyList(),
-    override val passthroughFlags: List<String> = emptyList()
+    override val passthroughFlags: List<String> = emptyList(),
   ) : In
 
   data class TestOut(
     override val outputSrcJar: Path? = null,
-    override val output: Path? = null
+    override val output: Path? = null,
   ) : Out
 
   val workspace = WriteWorkspace.using<CompileForJvmTest> {
@@ -56,13 +56,13 @@ class CompileForJvmTest {
         TestOut(
           output = temp.resolve("compiled.jar"),
           outputSrcJar = temp.resolve("compiled.srcjar"),
-        )
+        ),
       ).successfully().and {
         assertThat(out.output.streamPaths().toList()).containsAtLeast(
-          "Simple.class", "META-INF/test.kotlin_module"
+          "Simple.class", "META-INF/test.kotlin_module",
         )
         assertThat(out.outputSrcJar.streamPaths().toList()).contains(
-          "Simple.kt"
+          "Simple.kt",
         )
       }
     }
@@ -72,7 +72,7 @@ class CompileForJvmTest {
   @Test
   fun syntaxError() {
     val source = temp.resolve("Simple.kt").writeLines(
-      listOf("class Simple --")
+      listOf("class Simple --"),
     )
 
     assertAbout(configurations).that(CompileKotlin(), inDirectory = temp) {
@@ -80,13 +80,15 @@ class CompileForJvmTest {
         TestIn(sources = listOf(source)),
         TestOut(
           output = temp.resolve("compiled.jar"),
-        )
+        ),
       ).isError().and {
         assertAboutLogs().containsAtLeast(
           Level.SEVERE,
-          "$source:1:14: error: expecting a top level declaration" +
-            "\nclass Simple --" +
-            "\n             ^"
+          listOf(
+            "$source:1:14: error: expecting a top level declaration" +
+              "\nclass Simple --" +
+              "\n             ^",
+          ),
         )
       }
     }
@@ -95,10 +97,10 @@ class CompileForJvmTest {
   @Test
   fun withJavaSource() {
     val java = temp.resolve("HasJava.java").writeLines(
-      listOf("interface HasJava {}")
+      listOf("interface HasJava {}"),
     )
     val kotlin = temp.resolve("KotlinClass.kt").writeLines(
-      listOf("class KotlinClass : HasJava")
+      listOf("class KotlinClass : HasJava"),
     )
 
     assertAbout(configurations).that(CompileKotlin(), inDirectory = temp) {
@@ -107,16 +109,16 @@ class CompileForJvmTest {
         TestOut(
           output = temp.resolve("compiled.jar"),
           outputSrcJar = temp.resolve("compiled.srcjar"),
-        )
+        ),
       ).successfully().and {
         assertThat(out.output.streamPaths().toList()).apply {
           containsAtLeast(
-            "KotlinClass.class", "META-INF/test.kotlin_module"
+            "KotlinClass.class", "META-INF/test.kotlin_module",
           )
           doesNotContain("HasJava.class")
         }
         assertThat(out.outputSrcJar.streamPaths().toList()).containsAtLeast(
-          kotlin.fileName.toString(), java.fileName.toString()
+          kotlin.fileName.toString(), java.fileName.toString(),
         )
       }
     }

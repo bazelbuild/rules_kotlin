@@ -5,7 +5,8 @@ import com.google.common.truth.FailureMetadata
 import com.google.common.truth.MapSubject
 import com.google.common.truth.StringSubject
 import com.google.common.truth.Subject
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompilerConfiguration
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompilerConfiguration
+import io.bazel.kotlin.builder.jobs.jvm.JobContext
 import io.bazel.worker.Status
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassReader.EXPAND_FRAMES

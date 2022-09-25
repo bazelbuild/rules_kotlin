@@ -1,4 +1,4 @@
-package io.bazel.rkt_1_6.builder.jobs.jvm
+package io.bazel.kotlin.builder.jobs.jvm
 
 import io.bazel.worker.ContextLog.FileScope
 import io.bazel.worker.ContextLog.Logging

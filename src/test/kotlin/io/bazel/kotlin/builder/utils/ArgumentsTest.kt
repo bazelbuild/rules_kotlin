@@ -18,7 +18,6 @@
 package io.bazel.kotlin.builder.utils
 
 import com.google.common.truth.Truth.assertThat
-import io.bazel.kotlin.builder.utils.Arguments
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -30,18 +29,18 @@ class ArgumentsTest {
   }
 
   class FlagsForest(a: Arguments) {
-    val little by a.flag("little", "frolicking animal", default = "rabbit")
+    val little by a.flagOf("little", "frolicking animal", default = "rabbit")
 
-    val surname by a.flag("surname", "surname", emptyList<String>()) {
+    val surname by a.flagOf("surname", "surname", emptyList<String>()) {
       split(",")
     }
 
-    val bops by a.flag("bop", "head bop count", 0) { last ->
+    val bops by a.flagOf("bop", "head bop count", 0) { last ->
       RuntimeException().printStackTrace()
       toInt().plus(last)
     }
 
-    val fairy by a.flag<Any>("fairy", "parole officer") {
+    val fairy by a.flagOf<Any>("fairy", "parole officer") {
       object {}
     }
   }
@@ -76,7 +75,7 @@ class ArgumentsTest {
       asSequence().joinToString(",")
     }
 
-    val mammal by a.flag(
+    val mammal by a.flagOf(
       "mammal",
       "",
       default = "worm"
@@ -98,7 +97,7 @@ class ArgumentsTest {
   }
 
   class RequiredForest(a: Arguments) {
-    val fairy by a.flag<Any>("fairy", "mice loving (required)", "no fairy", true) {
+    val fairy by a.flagOf<Any>("fairy", "mice loving (required)", "no fairy", true) {
       object {}
     }
   }
@@ -119,9 +118,9 @@ class ArgumentsTest {
   }
 
   class ExpandForest(a: Arguments) {
-    val fairy by a.flag("fairy", "peacekeeper", default = "anarchy")
+    val fairy by a.flagOf("fairy", "peacekeeper", default = "anarchy")
 
-    val bopper by a.flag("bopper", "miscreant", default = "big")
+    val bopper by a.flagOf("bopper", "miscreant", default = "big")
   }
 
   @Test

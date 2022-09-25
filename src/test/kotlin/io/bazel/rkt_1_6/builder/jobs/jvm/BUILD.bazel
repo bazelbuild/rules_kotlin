@@ -95,3 +95,26 @@ kt_jvm_test(
         "@kotlin_rules_maven//:com_google_truth_truth",
     ],
 )
+
+kt_jvm_test(
+    name = "CompileWithAssociatesTest",
+    srcs = [
+        "CompileWithAssociatesTest.kt",
+    ],
+    data = [
+        "@local_jdk//:jdk",
+    ],
+    jvm_flags = [
+        "-Djava_home_files='$(rootpaths %s)'" % "@local_jdk//:jdk",
+    ],
+    test_class = "io.bazel.rkt_1_6.builder.jobs.jvm.CompileWithAssociatesTest",
+    runtime_deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-runtime-compiler",
+    ],
+    deps = [
+        ":lib",
+        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
+        "//src/test/kotlin/io/bazel/kotlin/integration",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+    ],
+)

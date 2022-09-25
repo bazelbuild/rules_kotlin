@@ -1,6 +1,6 @@
-package io.bazel.rkt_1_6.builder.jobs.jvm.configurations
+package io.bazel.kotlin.builder.jobs.jvm.configurations
 
-import io.bazel.rkt_1_6.builder.jobs.jvm.JobContext
+import io.bazel.kotlin.builder.jobs.jvm.JobContext
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import java.nio.file.Files
 import java.nio.file.Path

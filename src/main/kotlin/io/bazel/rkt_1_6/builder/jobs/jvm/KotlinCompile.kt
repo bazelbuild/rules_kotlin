@@ -1,6 +1,8 @@
 package io.bazel.rkt_1_6.builder.jobs.jvm
 
-import io.bazel.rkt_1_6.builder.jobs.jvm.configurations.CompilerConfiguration
+import io.bazel.kotlin.builder.jobs.jvm.configurations.CompilerConfiguration
+import io.bazel.kotlin.builder.jobs.jvm.JobContext
+import io.bazel.kotlin.builder.jobs.jvm.Report
 import io.bazel.worker.Status
 import org.jetbrains.kotlin.cli.common.ExitCode.COMPILATION_ERROR
 import org.jetbrains.kotlin.cli.common.ExitCode.INTERNAL_ERROR
@@ -36,10 +38,7 @@ class KotlinCompile {
       override fun getPath(location: CompilerMessageSourceLocation): String =
         location.path.removePrefix(sourceRoot)
     }
-
-    println(configuration.pluginOptions?.joinToString("\n"))
-    println("plugin classpath:" + configuration.pluginClasspaths?.joinToString("\n"))
-
+    
     return when (compiler.exec(
       Report(job, renderer),
       Services.EMPTY,
