@@ -48,7 +48,7 @@ bzl_library(
         "//kotlin/internal/utils",
         "//src/main/starlark",
     ] + [
-        "@%s//:starlark" % v
+        "@%s//starlark" % v
         for v in versions.CORE
     ],
 )
