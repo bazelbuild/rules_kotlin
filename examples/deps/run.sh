@@ -13,7 +13,7 @@ function invalidate() {
 TARGETS="libJava1:src_main libAndroid1:src_main libKt1:src_main libKtAndroid1:src_main libKtAndroid1:src_main_kt"
 BAZEL_BINARY=${BAZEL_BINARY:-bazel}
 
-$BAZEL_BINARY --version || die "Bazel binary invalid or 'bazel' is not on classpath"
+$BAZEL_BINARY version || die "Bazel binary invalid or 'bazel' is not on classpath"
 
 # Run initial clean build
 $BAZEL_BINARY clean
