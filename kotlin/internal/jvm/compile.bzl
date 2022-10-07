@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load(
+    "@bazel_skylib//rules:common_settings.bzl",
+    "BuildSettingInfo",
+)
+load(
+    "@bazel_tools//tools/jdk:toolchain_utils.bzl",
+    "find_java_runtime_toolchain",
+    "find_java_toolchain",
+)
+load(
     "@rules_java//java:defs.bzl",
     "JavaInfo",
     "java_common",
@@ -51,16 +60,6 @@ load(
 )
 
 # UTILITY ##############################################################################################################
-def find_java_toolchain(ctx, target):
-    if _JAVA_TOOLCHAIN_TYPE in ctx.toolchains:
-        return ctx.toolchains[_JAVA_TOOLCHAIN_TYPE].java
-    return target[java_common.JavaToolchainInfo]
-
-def find_java_runtime_toolchain(ctx, target):
-    if _JAVA_RUNTIME_TOOLCHAIN_TYPE in ctx.toolchains:
-        return ctx.toolchains[_JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime
-    return target[java_common.JavaRuntimeInfo]
-
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
@@ -102,6 +101,20 @@ def _compiler_toolchains(ctx):
         java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
     )
 
+_MAVEN_WORKSPACED = [
+    "androidsdk",
+    "maven",
+    "rules_jvm_external++maven+maven",
+    "instantandroid_maven",
+    "rules_jvm_external++maven+instantandroid_maven",
+    "instantandroid_maven_neverlink",
+    "rules_jvm_external++maven+instantandroid_maven_neverlink",
+    "instantandroid_maven_hacks",
+    "rules_jvm_external++maven+instantandroid_maven_hacks",
+    "com_github_jetbrains_kotlin",
+    "rules_jvm_external++maven+com_github_jetbrains_kotlin",
+]
+
 def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
     diff = _sets.intersection(
@@ -116,13 +129,16 @@ def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
     dep_infos = [_java_info(d) for d in associated_targets + deps] + [toolchains.kt.jvm_stdlibs]
 
     # Reduced classpath, exclude transitive deps from compilation
-    if (toolchains.kt.experimental_prune_transitive_deps and
+    if (ctx.attr._experimental_prune_transitive_deps[BuildSettingInfo].value and
         not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
-        transitive = [
-            d.compile_jars
-            for d in dep_infos
-        ]
+        transitive_jars = []
+        for d in dep_infos:
+            for jar in d.transitive_compile_time_jars.to_list():
+                if jar.owner.workspace_name in _MAVEN_WORKSPACED:
+                    transitive_jars.append(jar)
+        transitive = [d.compile_jars for d in dep_infos]
     else:
+        transitive_jars = []
         transitive = [
             d.compile_jars
             for d in dep_infos
@@ -133,9 +149,8 @@ def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
 
     return struct(
         deps = dep_infos,
-        compile_jars = depset(
-            transitive = transitive,
-        ),
+        provided_deps = dep_infos,
+        compile_jars = depset(transitive_jars, transitive = transitive),
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 
