@@ -44,7 +44,7 @@ java_binary(
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
     ],
     jvm_flags = [
-        "-XX:-MaxFDLimit"
+        "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     visibility = ["//visibility:public"],
@@ -57,7 +57,7 @@ java_binary(
 java_binary(
     name = "jdeps_merger",
     jvm_flags = [
-        "-XX:-MaxFDLimit"
+        "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdeps",
     visibility = ["//visibility:public"],
