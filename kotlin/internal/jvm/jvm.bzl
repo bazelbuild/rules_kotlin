@@ -237,6 +237,7 @@ _common_attr = utils.add_dicts(
             Transitive deps required for compilation must be explicitly added""",
             default = ":experimental_prune_transitive_deps",
         ),
+        "_kotlin_deps": attr.label(default = ":kotlin_deps"),
     },
 )
 

@@ -33,6 +33,9 @@ def _is_absolute(path):
     return path.startswith("/") or (len(path) > 2 and path[1] == ":")
 
 def _make_providers(ctx, providers, transitive_files = depset(order = "default"), *additional_providers):
+    files = [ctx.outputs.jar]
+    if providers.java.outputs.jdeps:
+        files.append(providers.java.outputs.jdeps)
     return struct(
         kt = providers.kt,
         providers = [
@@ -40,7 +43,7 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
             providers.kt,
             providers.instrumented_files,
             DefaultInfo(
-                files = depset([ctx.outputs.jar, providers.java.outputs.jdeps]),
+                files = depset(files),
                 runfiles = ctx.runfiles(
                     # explicitly include data files, otherwise they appear to be missing
                     files = ctx.files.data,
