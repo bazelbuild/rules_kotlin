@@ -232,6 +232,7 @@ _common_attr = utils.add_dicts(
             providers = [_JavacOptions],
             mandatory = False,
         ),
+        "_enable_jdeps": attr.label(default = ":enable_jdeps"),
     },
 )
 
