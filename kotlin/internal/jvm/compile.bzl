@@ -490,7 +490,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
 
     output_jdeps = None
-    if ctx.attr._enable_jdeps[BuildSettingInfo].value:
+    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
         output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
 
     outputs_struct = _run_kt_java_builder_actions(
@@ -647,7 +647,7 @@ def _run_kt_java_builder_actions(
             }
 
         kt_jdeps = None
-        if ctx.attr._enable_jdeps[BuildSettingInfo].value:
+        if ctx.attr._kotlin_deps[BuildSettingInfo].value:
             kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
             outputs["kotlin_output_jdeps"] = kt_jdeps
 
@@ -727,7 +727,7 @@ def _run_kt_java_builder_actions(
         input_jars = compile_jars,
     )
 
-    if ctx.attr._enable_jdeps[BuildSettingInfo].value:
+    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
         jdeps = []
         for java_info in java_infos:
             if java_info.outputs.jdeps:
@@ -802,7 +802,7 @@ def export_only_providers(ctx, actions, attr, outputs):
     )
 
     output_jdeps = None
-    if ctx.attr._enable_jdeps[BuildSettingInfo].value:
+    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
         output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
         actions.symlink(
             output = output_jdeps,

@@ -37,9 +37,9 @@ bzl_library(
 )
 
 # Jdeps plugin can be enabled or disabled using the following flag ont the command line
-# --@io_bazel_rules_kotlin//kotlin/internal/jvm:enable_jdeps
+# --@io_bazel_rules_kotlin//kotlin/internal/jvm:kotlin_deps=false
 bool_flag(
-    name = "enable_jdeps",
+    name = "kotlin_deps",
     build_setting_default = True,  # Upstream default behavior
     visibility = ["//visibility:public"],
 )
