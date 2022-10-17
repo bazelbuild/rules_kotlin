@@ -53,7 +53,7 @@ def _kt_android_artifact(
             enable_data_binding = enable_data_binding,
             tags = tags,
             visibility = ["//visibility:private"],
-            **kwargs,
+            **kwargs
         )
         exported_target_labels.append(base_name)
     elif resource_files:
@@ -79,7 +79,7 @@ def _kt_android_artifact(
             enable_data_binding = enable_data_binding,
             tags = tags,
             visibility = ["//visibility:private"],
-            **kwargs,
+            **kwargs
         )
 
     _kt_jvm_library(
