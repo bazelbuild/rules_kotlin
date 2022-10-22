@@ -1,4 +1,5 @@
 build --strategy=KotlinCompile=worker
 build --test_output=all
 build --verbose_failures
+build --experimental_google_legacy_api
 

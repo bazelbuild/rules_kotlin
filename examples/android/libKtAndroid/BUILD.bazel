@@ -32,16 +32,8 @@ kt_android_library(
     tags = ["trace"],
     visibility = ["//visibility:public"],
     deps = [
-        ":res2",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:com_google_auto_value_auto_value_annotations",
         "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
     ],
-)
-
-android_library(
-    name = "res2",
-    custom_package = "examples.android.lib",
-    manifest = "src/main/AndroidManifest.xml",
-    resource_files = glob(["res2/**"]),
 )

@@ -25,8 +25,8 @@ versions = struct(
     PROTOBUF_SHA = "cf754718b0aa945b00550ed7962ddc167167bd922b842199eeb6505e6f344852",
     BAZEL_DEPS_VERSION = "0.1.0",
     BAZEL_DEPS_SHA = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e",
-    RULES_JVM_EXTERNAL_TAG = "4.2",
-    RULES_JVM_EXTERNAL_SHA = "cd1a77b7b02e8e008439ca76fd34f5b07aecb8c752961f9640dea15e9e5ba1ca",
+    RULES_JVM_EXTERNAL_TAG = "4.4.2",
+    RULES_JVM_EXTERNAL_SHA = "735602f50813eb2ea93ca3f5e43b1959bd80b213b836a07a62a29d757670b77b",
     RULES_PROTO_GIT_COMMIT = "f6b8d89b90a7956f6782a4a3609b2f0eee3ce965",
     RULES_PROTO_SHA = "4d421d51f9ecfe9bf96ab23b55c6f2b809cbaf0eea24952683e397decfbd0dd0",
     IO_BAZEL_STARDOC_VERSION = "0.5.1",
@@ -47,9 +47,9 @@ versions = struct(
         sha256 = "5e3c8d0f965410ff12e90d6f8dc5df2fc09fd595a684d514616851ce7e94ae7d",
     ),
     ANDROID = struct(
-        VERSION = "0.1.1",
-        SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
-        URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
+        VERSION = "pre-alpha-01-11-2022-3",
+        SHA = "2f5c455937d647065f31d83e3b760d087bbf6e433e9291dbe3b62c999e2991be",
+        URLS = ["https://github.com/mauriciogg/rules_android/archive/refs/tags/pre-alpha-01-11-2022-3.zip"],
         BUILD_TOOLS = "30.0.3",
     ),
     PYTHON = struct(
