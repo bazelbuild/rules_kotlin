@@ -11,4 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+
 exports_files(["jetbrains-deshade.jarjar"])
+
+# Jdeps plugin can be enabled or disabled using the following flag ont the command line
+# --@io_bazel_rules_kotlin//kotlin/internal/jvm:kotlin_deps=false
+bool_flag(
+    name = "kotlin_deps",
+    build_setting_default = True,  # Upstream default behavior
+    visibility = ["//visibility:public"],
+)

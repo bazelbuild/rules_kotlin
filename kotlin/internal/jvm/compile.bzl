@@ -45,6 +45,7 @@ load(
     "find_java_runtime_toolchain",
     "find_java_toolchain",
 )
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 # UTILITY ##############################################################################################################
 
@@ -487,7 +488,11 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     generated_src_jars = []
     annotation_processing = None
     compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
-    output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
+
+    output_jdeps = None
+    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+        output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
+
     outputs_struct = _run_kt_java_builder_actions(
         ctx = ctx,
         rule_kind = rule_kind,
@@ -629,20 +634,22 @@ def _run_kt_java_builder_actions(
     # Build Kotlin
     if has_kt_sources:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
-        kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
             outputs = {
                 "output": kt_runtime_jar,
                 "abi_jar": kt_compile_jar,
-                "kotlin_output_jdeps": kt_jdeps,
             }
         else:
             kt_compile_jar = kt_runtime_jar
             outputs = {
                 "output": kt_runtime_jar,
-                "kotlin_output_jdeps": kt_jdeps,
             }
+
+        kt_jdeps = None
+        if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+            kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
+            outputs["kotlin_output_jdeps"] = kt_jdeps
 
         _run_kt_builder_action(
             ctx = ctx,
@@ -720,24 +727,25 @@ def _run_kt_java_builder_actions(
         input_jars = compile_jars,
     )
 
-    jdeps = []
-    for java_info in java_infos:
-        if java_info.outputs.jdeps:
-            jdeps.append(java_info.outputs.jdeps)
+    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+        jdeps = []
+        for java_info in java_infos:
+            if java_info.outputs.jdeps:
+                jdeps.append(java_info.outputs.jdeps)
 
-    if jdeps:
-        _run_merge_jdeps_action(
-            ctx = ctx,
-            toolchains = toolchains,
-            jdeps = jdeps,
-            deps = compile_deps.deps,
-            outputs = {"output": output_jdeps},
-        )
-    else:
-        ctx.actions.symlink(
-            output = output_jdeps,
-            target_file = toolchains.kt.empty_jdeps,
-        )
+        if jdeps:
+            _run_merge_jdeps_action(
+                ctx = ctx,
+                toolchains = toolchains,
+                jdeps = jdeps,
+                deps = compile_deps.deps,
+                outputs = {"output": output_jdeps},
+            )
+        else:
+            ctx.actions.symlink(
+                output = output_jdeps,
+                target_file = toolchains.kt.empty_jdeps,
+            )
 
     annotation_processing = None
     if annotation_processors:
@@ -781,7 +789,6 @@ def export_only_providers(ctx, actions, attr, outputs):
         kt_compiler_result
     """
     toolchains = _compiler_toolchains(ctx)
-    output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
 
     # satisfy the outputs requirement. should never execute during normal compilation.
     actions.symlink(
@@ -794,10 +801,13 @@ def export_only_providers(ctx, actions, attr, outputs):
         target_file = toolchains.kt.empty_jar,
     )
 
-    actions.symlink(
-        output = output_jdeps,
-        target_file = toolchains.kt.empty_jdeps,
-    )
+    output_jdeps = None
+    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+        output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
+        actions.symlink(
+            output = output_jdeps,
+            target_file = toolchains.kt.empty_jdeps,
+        )
 
     java = JavaInfo(
         output_jar = toolchains.kt.empty_jar,

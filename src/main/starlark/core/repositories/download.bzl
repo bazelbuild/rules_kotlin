@@ -33,6 +33,8 @@ def kt_download_local_dev_dependencies():
         ],
     )
 
+    # bazel_skylib is initialized twice during developement. This is intentional, as development
+    # needs to be able to run the starlark unittests, while production does not.
     maybe(
         http_archive,
         name = "bazel_skylib",
