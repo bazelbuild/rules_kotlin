@@ -232,6 +232,12 @@ _common_attr = utils.add_dicts(
             providers = [_JavacOptions],
             mandatory = False,
         ),
+        "_experimental_prune_transitive_deps": attr.label(
+            doc = """If enabled, compilation is performed against only direct dependencies.
+            Transitive deps required for compilation must be explicitly added""",
+            default = ":experimental_prune_transitive_deps",
+        ),
+        "_kotlin_deps": attr.label(default = ":kotlin_deps"),
     },
 )
 

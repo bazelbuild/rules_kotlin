@@ -16,6 +16,8 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 # limitations under the License.
 exports_files(["jetbrains-deshade.jarjar"])
 
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+
 release_archive(
     name = "pkg",
     srcs = glob(["*.bzl"]) + ["jetbrains-deshade.jarjar"],
@@ -33,3 +35,20 @@ bzl_library(
         "@build_bazel_rules_android//android",
     ],
 )
+
+# Kotlin strict deps can be enabled by setting the following value on the command line
+# --@io_bazel_rules_kotlin//kotlin/internal/jvm:experimental_prune_transitive_deps=True
+bool_flag(
+    name = "experimental_prune_transitive_deps",
+    build_setting_default = False,
+    visibility = ["//visibility:public"]
+)
+
+# Jdeps plugin can be enabled or disabled using the following flag ont the command line
+# --@io_bazel_rules_kotlin//kotlin/internal/jvm:kotlin_deps=false
+bool_flag(
+    name = "kotlin_deps",
+    build_setting_default = True,  # Upstream default behavior
+    visibility = ["//visibility:public"],
+)
+

@@ -1,0 +1,13 @@
+load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_library")
+
+kt_android_library(
+    name = "src_main",
+    srcs = glob(["src/main/kt/examples/deps/KtDummy1.kt"]),
+    custom_package = "examples.deps.libktandroid1",
+    manifest = "src/main/AndroidManifest.xml",
+    resource_files = glob(["src/main/res/**/*"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//libKtAndroid2:src_main",
+    ],
+)
