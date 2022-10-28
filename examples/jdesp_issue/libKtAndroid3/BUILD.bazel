@@ -1,0 +1,12 @@
+load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_library")
+
+kt_android_library(
+    name = "src_main",
+    srcs = glob(["src/main/kt/**/*.kt"]),
+    custom_package = "examples.deps.libktandroid3",
+    manifest = "src/main/AndroidManifest.xml",
+    resource_files = glob(["src/main/res/**/*"]),
+    visibility = ["//visibility:public"],
+    deps = [
+    ],
+)
