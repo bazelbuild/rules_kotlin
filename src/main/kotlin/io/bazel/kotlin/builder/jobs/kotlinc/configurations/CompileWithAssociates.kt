@@ -8,11 +8,11 @@ class CompileWithAssociates<IN : CompileWithAssociates.In, OUT : CompileWithAsso
   CompilerConfiguration<IN, OUT> {
 
 
-  interface In : CompileKotlin.In {
+  interface In : CompileKotlinForJvm.In {
     val associatePaths : List<Path>
   }
 
-  interface Out : CompileKotlin.Out
+  interface Out : CompileKotlinForJvm.Out
 
   override fun K2JVMCompilerArguments.configure(context: JobContext<IN, OUT>) {
     friendPaths += context.inputs.associatePaths.map(Path::toString)

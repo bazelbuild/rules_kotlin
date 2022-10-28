@@ -1,28 +1,29 @@
-package io.bazel.kotlin.builder.jobs.jvm.flags
+package io.bazel.kotlin.builder.jobs.kotlinc.flags
 
-import io.bazel.kotlin.builder.jobs.jvm.RepositoryLocations
-import io.bazel.kotlin.builder.jobs.jvm.ZipArchive
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileWithAssociates
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileWithPlugins
-import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateAbi
-import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateJDeps
-import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateStubs
+import io.bazel.kotlin.builder.jobs.kotlinc.FilesSystemInputs
+import io.bazel.kotlin.builder.jobs.kotlinc.RepositoryLocations
+import io.bazel.kotlin.builder.jobs.kotlinc.ZipArchive
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileWithAssociates
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileWithPlugins
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.GenerateAbi
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.GenerateJDeps
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.GenerateStubs
 import io.bazel.kotlin.builder.utils.Arguments
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 
 /**
- * [FlagValues] for all [io.bazel.kotlin.builder.jobs.jvm.configurations.CompilerConfiguration]s.
+ * [FlagValues] for all [io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompilerConfiguration]s.
  */
-class FlagValues(
+abstract class FlagValues(
   argument: Arguments,
   workingDirectory: Path,
   override val fileSystem: FileSystem = FileSystems.getDefault(),
 ) : FilesSystemInputs,
-  CompileKotlin.In,
-  CompileKotlin.Out,
+  CompileKotlinForJvm.In,
+  CompileKotlinForJvm.Out,
   CompileWithAssociates.In,
   CompileWithAssociates.Out,
   GenerateJDeps.In,

@@ -2,15 +2,14 @@ package io.bazel.rkt_1_6.builder.jobs.jvm
 
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileWithAssociates
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileWithAssociates
 import io.bazel.kotlin.integration.WriteWorkspace
 import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.readText
 import kotlin.streams.toList
 
 class CompileWithAssociatesTest {
@@ -77,7 +76,7 @@ class CompileWithAssociatesTest {
   @Test
   fun withAssociates() {
     assertAbout(CompileConfigurationSubject.configurations)
-      .that(CompileKotlin(), CompileWithAssociates(), inDirectory = temp) {
+      .that(CompileKotlinForJvm(), CompileWithAssociates(), inDirectory = temp) {
         canCompile(
           TestIn(
             sources = listOf(workspace.resolve("AnAssociate.kt")),

@@ -6,8 +6,8 @@ import com.google.common.truth.Truth.assertWithMessage
 import io.bazel.kotlin.builder.utils.BazelRunFiles.resolveFromProperty
 import io.bazel.kotlin.integration.WriteWorkspace
 import io.bazel.rkt_1_6.builder.jobs.jvm.CompileConfigurationSubject.Companion.configurations
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateAbi
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.GenerateAbi
 import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -33,13 +33,13 @@ class GenerateAbiTest {
     override val jdkHome: Path = resolveFromProperty("java.home"),
     override val abi: Path = resolveFromProperty("abi_plugin"),
     override val passthroughFlags: List<String> = emptyList(),
-  ) : CompileKotlin.In, GenerateAbi.In
+  ) : CompileKotlinForJvm.In, GenerateAbi.In
 
   data class Out(
     override val outputSrcJar: Path? = null,
     override val output: Path? = null,
     override val abiJar: Path? = null
-  ) : CompileKotlin.Out, GenerateAbi.Out
+  ) : CompileKotlinForJvm.Out, GenerateAbi.Out
 
   val workspace = WriteWorkspace.using<GenerateAbiTest> {
     kotlin("upstream/A.kt") {
@@ -67,7 +67,7 @@ class GenerateAbiTest {
   fun singleSource() {
     val source = workspace.resolve("upstream/A.kt")
     assertAbout(configurations)
-      .that(CompileKotlin(), GenerateAbi(), inDirectory = temp)
+      .that(CompileKotlinForJvm(), GenerateAbi(), inDirectory = temp)
       .canCompile(
         In(sources = listOf(source)),
         Out(
@@ -103,7 +103,7 @@ class GenerateAbiTest {
     val sourceA = workspace.resolve("upstream/A.kt")
     val sourceB = workspace.resolve("downstream/B.kt")
     assertAbout(configurations)
-      .that(CompileKotlin(), GenerateAbi(), inDirectory = temp) {
+      .that(CompileKotlinForJvm(), GenerateAbi(), inDirectory = temp) {
         canCompile(
           In(sources = listOf(sourceA)),
           Out(

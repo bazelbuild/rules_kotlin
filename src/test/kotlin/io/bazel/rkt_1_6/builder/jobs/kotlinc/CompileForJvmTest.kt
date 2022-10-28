@@ -2,9 +2,9 @@ package io.bazel.rkt_1_6.builder.jobs.jvm
 
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin.In
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin.Out
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm.In
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm.Out
 import io.bazel.kotlin.integration.WriteWorkspace
 import io.bazel.rkt_1_6.builder.jobs.jvm.CompileConfigurationSubject.Companion.configurations
 import org.junit.Test
@@ -50,7 +50,7 @@ class CompileForJvmTest {
 
   @Test
   fun simpleSource() {
-    assertAbout(configurations).that(CompileKotlin(), inDirectory = temp) {
+    assertAbout(configurations).that(CompileKotlinForJvm(), inDirectory = temp) {
       canCompile(
         TestIn(sources = listOf(workspace.resolve("Simple.kt"))),
         TestOut(
@@ -75,7 +75,7 @@ class CompileForJvmTest {
       listOf("class Simple --"),
     )
 
-    assertAbout(configurations).that(CompileKotlin(), inDirectory = temp) {
+    assertAbout(configurations).that(CompileKotlinForJvm(), inDirectory = temp) {
       canCompile(
         TestIn(sources = listOf(source)),
         TestOut(
@@ -103,7 +103,7 @@ class CompileForJvmTest {
       listOf("class KotlinClass : HasJava"),
     )
 
-    assertAbout(configurations).that(CompileKotlin(), inDirectory = temp) {
+    assertAbout(configurations).that(CompileKotlinForJvm(), inDirectory = temp) {
       canCompile(
         TestIn(sources = listOf(kotlin, java)),
         TestOut(

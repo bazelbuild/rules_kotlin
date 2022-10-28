@@ -8,11 +8,11 @@ import kotlin.io.path.createDirectories
 
 class GenerateAbi<IN : GenerateAbi.In, OUT : GenerateAbi.Out> : PluginsConfiguration<IN, OUT> {
 
-  interface In : PluginsConfiguration.In, CompileKotlin.In {
+  interface In : PluginsConfiguration.In, CompileKotlinForJvm.In {
     val abi: Path
   }
 
-  interface Out : PluginsConfiguration.Out, CompileKotlin.Out {
+  interface Out : PluginsConfiguration.Out, CompileKotlinForJvm.Out {
     val abiJar: Path?
   }
 

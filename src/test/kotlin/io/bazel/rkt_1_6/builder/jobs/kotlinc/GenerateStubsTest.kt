@@ -5,8 +5,8 @@ import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.utils.BazelRunFiles.resolveFromProperty
 import io.bazel.kotlin.integration.WriteWorkspace
 import io.bazel.rkt_1_6.builder.jobs.jvm.CompileConfigurationSubject.Companion.configurations
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlin
-import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateStubs
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.GenerateStubs
 import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -50,7 +50,7 @@ class GenerateStubsTest {
     override val kapt: Path = resolveFromProperty("kapt"),
     override val verbose: Boolean = true,
     override val processorOptions: Map<String, String> = emptyMap(),
-  ) : CompileKotlin.In, GenerateStubs.In
+  ) : CompileKotlinForJvm.In, GenerateStubs.In
 
   data class Out(
     override val outputSrcJar: Path? = null,
@@ -58,7 +58,7 @@ class GenerateStubsTest {
     override val generatedJavaSrcJar: Path?,
     override val generatedJavaStubJar: Path?,
     override val generatedClassJar: Path?
-  ) : CompileKotlin.Out, GenerateStubs.Out
+  ) : CompileKotlinForJvm.Out, GenerateStubs.Out
 
   val workspace = WriteWorkspace.using<GenerateStubsTest> {
     kotlin("autovalue/A.kt") {
@@ -107,7 +107,7 @@ class GenerateStubsTest {
   @Test
   fun autoValueforKotlinClass() {
     val source = workspace.resolve("autovalue/A.kt")
-    assertAbout(configurations).that(CompileKotlin(), GenerateStubs(), inDirectory = temp)
+    assertAbout(configurations).that(CompileKotlinForJvm(), GenerateStubs(), inDirectory = temp)
       .canCompile(
         In(
           sources = listOf(source)
@@ -139,7 +139,7 @@ class GenerateStubsTest {
   fun autoValueDependencies() {
     val sourceA = workspace.resolve("autovalue/A.kt")
     val sourceB = workspace.resolve("autovalue/B.kt")
-    assertAbout(configurations).that(CompileKotlin(), GenerateStubs(), inDirectory = temp) {
+    assertAbout(configurations).that(CompileKotlinForJvm(), GenerateStubs(), inDirectory = temp) {
       canCompile(
         In(sources = listOf(sourceA)),
         Out(
@@ -183,7 +183,7 @@ class GenerateStubsTest {
   fun withStubPlugins() {
     val sourceAutovalue = workspace.resolve("autovalue/A.kt")
     val sourceData = workspace.resolve("serialize/Data.kt")
-    assertAbout(configurations).that(CompileKotlin(), GenerateStubs(), inDirectory = temp)
+    assertAbout(configurations).that(CompileKotlinForJvm(), GenerateStubs(), inDirectory = temp)
       .canCompile(
         In(
           sources = listOf(sourceAutovalue, sourceData),
