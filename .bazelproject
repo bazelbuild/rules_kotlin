@@ -14,15 +14,18 @@
 directories:
   # Add the directories you want added as source here
   # By default, we've added your entire workspace ('.')
-  -examples/*
   .
+  -src/legacy
+  -src/rkt
 
 targets:
-  //:all_local_tests
-  # These targets are built for the ide only. Primary purpose is to ensure the builder can build the targets, but it's
-  # also a good way of testing the intellij plugin.
-  //src/...:all
-  //kotlin:stardoc
+  //src/main/...
+  //src/test/...
+  //third_party/...
+  //kotlin/...
+  @legacy//...
+  @rkt_1_6//...
+  @rkt_1_7//...
 
 test_sources:
   src/test/*

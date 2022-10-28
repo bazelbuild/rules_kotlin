@@ -7,11 +7,11 @@ kt_jvm_library(
         "TestScope.kt",
     ],
     deps = [
-        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
         "//src/main/kotlin/io/bazel/worker",
         "@kotlin_rules_maven//:com_google_truth_truth",
         "@kotlin_rules_maven//:org_ow2_asm_asm",
         "@kotlin_rules_maven//:org_ow2_asm_asm_util",
+        "@rkt_1_6//kotlin/io/bazel/kotlin/builder/jobs/kotlinc:jvm",
     ],
 )
 
@@ -26,9 +26,9 @@ kt_jvm_test(
     ],
     deps = [
         ":lib",
-        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
         "//src/test/kotlin/io/bazel/kotlin/integration",
         "@kotlin_rules_maven//:com_google_truth_truth",
+        "@rkt_1_6//kotlin/io/bazel/kotlin/builder/jobs/kotlinc:jvm",
     ],
 )
 
@@ -51,12 +51,12 @@ kt_jvm_test(
     ],
     deps = [
         ":lib",
-        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
         "//src/test/kotlin/io/bazel/kotlin/integration",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
         "@kotlin_rules_maven//:com_google_truth_truth",
+        "@rkt_1_6//kotlin/io/bazel/kotlin/builder/jobs/kotlinc:jvm",
     ],
 )
 
@@ -87,12 +87,12 @@ kt_jvm_test(
     ],
     deps = [
         ":lib",
-        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
         "//src/test/kotlin/io/bazel/kotlin/integration",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
         "@kotlin_rules_maven//:com_google_truth_truth",
+        "@rkt_1_6//kotlin/io/bazel/kotlin/builder/jobs/kotlinc:jvm",
     ],
 )
 
@@ -113,8 +113,8 @@ kt_jvm_test(
     ],
     deps = [
         ":lib",
-        "//src/main/kotlin/io/bazel/rkt_1_6/builder/jobs/jvm",
         "//src/test/kotlin/io/bazel/kotlin/integration",
         "@kotlin_rules_maven//:com_google_truth_truth",
+        "@rkt_1_6//kotlin/io/bazel/kotlin/builder/jobs/kotlinc:jvm",
     ],
 )

@@ -50,6 +50,11 @@ test_suite(
     ],
 )
 
+package_group(
+    name = "rules_kotlin_development",
+    packages = ["//..."],
+)
+
 [
     release_archive(
         name = version,

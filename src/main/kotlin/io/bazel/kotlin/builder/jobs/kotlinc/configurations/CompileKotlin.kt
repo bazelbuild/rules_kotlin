@@ -1,7 +1,7 @@
-package io.bazel.kotlin.builder.jobs.jvm.configurations
+package io.bazel.kotlin.builder.jobs.kotlinc.configurations
 
-import io.bazel.kotlin.builder.jobs.jvm.JobContext
-import io.bazel.kotlin.builder.jobs.jvm.flags.FilesSystemInputs
+import io.bazel.kotlin.builder.jobs.kotlinc.JobContext
+import io.bazel.kotlin.builder.jobs.kotlinc.FilesSystemInputs
 import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments

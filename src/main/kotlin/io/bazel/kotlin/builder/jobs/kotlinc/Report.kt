@@ -1,4 +1,4 @@
-package io.bazel.kotlin.builder.jobs.jvm
+package io.bazel.kotlin.builder.jobs.kotlinc
 
 import io.bazel.worker.ContextLog.Logging
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity

@@ -1,4 +1,4 @@
-package io.bazel.kotlin.builder.jobs.jvm
+package io.bazel.kotlin.builder.jobs.kotlinc
 
 object MoreArrays {
   private const val EMPTY = ""

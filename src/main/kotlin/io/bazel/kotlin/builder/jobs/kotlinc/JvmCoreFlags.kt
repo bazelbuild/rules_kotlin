@@ -1,8 +1,5 @@
-package io.bazel.kotlin.builder.jobs.kotlinc.flags
+package io.bazel.kotlin.builder.jobs.kotlinc
 
-import io.bazel.kotlin.builder.jobs.kotlinc.FilesSystemInputs
-import io.bazel.kotlin.builder.jobs.kotlinc.RepositoryLocations
-import io.bazel.kotlin.builder.jobs.kotlinc.ZipArchive
 import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm
 import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileWithAssociates
 import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileWithPlugins
@@ -15,9 +12,9 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 
 /**
- * [FlagValues] for all [io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompilerConfiguration]s.
+ * [JvmCoreFlags] for all [io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompilerConfiguration]s.
  */
-abstract class FlagValues(
+abstract class JvmCoreFlags(
   argument: Arguments,
   workingDirectory: Path,
   override val fileSystem: FileSystem = FileSystems.getDefault(),

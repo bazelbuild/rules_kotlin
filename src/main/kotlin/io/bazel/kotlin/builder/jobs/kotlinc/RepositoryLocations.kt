@@ -1,4 +1,4 @@
-package io.bazel.kotlin.builder.jobs.jvm
+package io.bazel.kotlin.builder.jobs.kotlinc
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 

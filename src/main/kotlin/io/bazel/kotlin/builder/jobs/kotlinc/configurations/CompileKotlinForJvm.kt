@@ -1,8 +1,8 @@
-package io.bazel.kotlin.builder.jobs.jvm.configurations
+package io.bazel.kotlin.builder.jobs.kotlinc.configurations
 
 import com.google.devtools.build.lib.view.proto.Deps
 import com.google.devtools.build.lib.view.proto.Deps.Dependency.Kind.EXPLICIT
-import io.bazel.kotlin.builder.jobs.jvm.JobContext
+import io.bazel.kotlin.builder.jobs.kotlinc.JobContext
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import java.io.BufferedInputStream
 import java.io.InputStream

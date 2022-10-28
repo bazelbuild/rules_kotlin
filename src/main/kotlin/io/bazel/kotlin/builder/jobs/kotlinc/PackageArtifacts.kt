@@ -1,7 +1,7 @@
-package io.bazel.kotlin.builder.jobs.jvm
+package io.bazel.kotlin.builder.jobs.kotlinc
 
-import io.bazel.kotlin.builder.jobs.jvm.configurations.CompileKotlinForJvm
-import io.bazel.kotlin.builder.jobs.jvm.configurations.GenerateAbi
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm
+import io.bazel.kotlin.builder.jobs.kotlinc.configurations.GenerateAbi
 import io.bazel.kotlin.builder.utils.jars.JarCreator
 
 class PackageArtifacts {

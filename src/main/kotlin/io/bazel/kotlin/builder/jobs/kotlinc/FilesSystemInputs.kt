@@ -1,4 +1,4 @@
-package io.bazel.kotlin.builder.jobs.kotlinc.flags
+package io.bazel.kotlin.builder.jobs.kotlinc
 
 import io.bazel.kotlin.builder.utils.Arguments
 import java.nio.file.FileSystem

@@ -1,7 +1,7 @@
-package io.bazel.kotlin.builder.jobs.jvm.configurations
+package io.bazel.kotlin.builder.jobs.kotlinc.configurations
 
-import io.bazel.kotlin.builder.jobs.jvm.Base64
-import io.bazel.kotlin.builder.jobs.jvm.JobContext
+import io.bazel.kotlin.builder.jobs.kotlinc.Base64
+import io.bazel.kotlin.builder.jobs.kotlinc.JobContext
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import java.nio.file.Path
 

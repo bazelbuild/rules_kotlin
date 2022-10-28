@@ -1,4 +1,4 @@
-package io.bazel.rkt_1_6.builder.jobs.jvm
+package io.bazel.rkt_1_6.builder.jobs.kotlinc
 
 import io.bazel.worker.ContextLog
 import java.nio.file.Path

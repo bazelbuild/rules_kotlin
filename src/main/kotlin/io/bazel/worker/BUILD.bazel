@@ -16,7 +16,7 @@ kt_bootstrap_library(
     name = "worker",
     srcs = glob(["*.kt"]),
     visibility = [
-        "//:__subpackages__",
+        "//:rules_kotlin_development",
     ],
     deps = [
         ":worker_proto",
