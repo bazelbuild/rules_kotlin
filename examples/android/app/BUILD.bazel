@@ -19,9 +19,11 @@ android_binary(
 android_application(
     name = "application",
     custom_package = "examples.android.app",
+    bundle_config_file = "bundleConfig.pb.json",
     manifest = "src/main/AndroidManifest.xml",
     manifest_values = {
         "lib_name": "lib",
+        "applicationId": "examples.android.app",
     },
     multidex = "native",
     deps = [
