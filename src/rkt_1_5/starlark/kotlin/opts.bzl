@@ -1,5 +1,12 @@
+load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "convert")
+
 def _map_optin_class_to_flag(values):
     return ["-Xopt-in=%s" % v for v in values]
+
+def _map_backend_threads_to_flag(n):
+    if n == 1:
+        return None
+    return ["-Xbackend-threads=%d" % n]
 
 _KOPTS = {
     "warn": struct(
@@ -230,10 +237,7 @@ kt_kotlinc_options = rule(
     implementation = _kotlinc_options_impl,
     doc = "Define kotlin compiler options.",
     provides = [KotlincOptions],
-    attrs = {
-        n: o.type(**o.args)
-        for n, o in _KOPTS.items()
-    },
+    attrs = {n: o.type(**o.args) for n, o in _KOPTS.items()},
 )
 
 def kotlinc_options_to_flags(kotlinc_options):
@@ -244,13 +248,4 @@ def kotlinc_options_to_flags(kotlinc_options):
     Returns:
         list of flags to add to the command line.
     """
-    if not kotlinc_options:
-        return ""
-
-    flags = []
-    for n, o in _KOPTS.items():
-        value = getattr(kotlinc_options, n, None)
-        flag = o.value_to_flag.get(value, None) if o.value_to_flag else o.map_value_to_flag(value)
-        if flag:
-            flags.extend(flag)
-    return flags
+    return convert.kotlinc_options_to_flags(_KOPTS, kotlinc_options)

@@ -338,14 +338,14 @@ def _run_kt_builder_action(
         build_kotlin = True,
         mnemonic = "KotlinCompile"):
     """Creates a KotlinBuilder action invocation."""
-    args = _utils.init_args(ctx, rule_kind, associates.module_name)
+    kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
+    javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    args = _utils.init_args(ctx, rule_kind, associates.module_name, kotlinc_options)
 
     for f, path in outputs.items():
         args.add("--" + f, path)
 
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
-    kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
-    javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
     args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kotlinc_options))
     args.add_all("--javacopts", javac_options_to_flags(javac_options))
     args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
