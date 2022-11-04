@@ -37,7 +37,6 @@ kt_jvm_test(
     test_class = "plugin.serialization.SerializationTest",
     deps = [
         ":data",
-        "@com_github_jetbrains_kotlin//:kotlin-reflect",
         "@maven//:junit_junit",
     ],
 )
