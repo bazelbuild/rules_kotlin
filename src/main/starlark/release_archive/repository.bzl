@@ -97,15 +97,16 @@ def archive_repository_implementation(repository_ctx):
             archive = release_artifact,
         )
 
-        # update the timestamp on the repository rule source to ensure it's always re-evaluated.
-        self = workspace
-        for segment in "src/main/starlark/release_archive/repository.bzl".split("/"):
-            self = self.get_child(segment)
+        if not "win" in repository_ctx.os.name:
+            # update the timestamp on the repository rule source to ensure it's always re-evaluated.
+            self = workspace
+            for segment in "src/main/starlark/release_archive/repository.bzl".split("/"):
+                self = self.get_child(segment)
 
-        repository_ctx.execute([
-            "touch",
-            str(self),
-        ])
+                repository_ctx.execute([
+                    "touch",
+                    str(self),
+                ])
 
 # not windows compatible.
 # buildifier: disable=unused-variable
