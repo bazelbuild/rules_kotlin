@@ -24,8 +24,6 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
       )
     val STRICT_KOTLIN_DEPS_OPTION: CliOption =
       CliOption("strict_kotlin_deps", "<String>", "Report strict deps violations", required = true)
-
-    val WALK_INHERITANCE_GRAPH = CliOption("walk_inheritance_graph", "<String>", "", required = false)
   }
 
   override val pluginId: String
@@ -36,7 +34,6 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
       TARGET_LABEL_OPTION,
       DIRECT_DEPENDENCIES_OPTION,
       STRICT_KOTLIN_DEPS_OPTION,
-      WALK_INHERITANCE_GRAPH
     )
 
   override fun processOption(
@@ -55,8 +52,6 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
         JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
         value,
       )
-      WALK_INHERITANCE_GRAPH -> {
-      }
       else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
     }
   }

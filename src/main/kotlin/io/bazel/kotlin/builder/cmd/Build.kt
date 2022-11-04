@@ -25,7 +25,6 @@ import kotlin.system.exitProcess
 object Build {
   @JvmStatic
   fun main(args: Array<String>) {
-    trivialChange()
     Worker
       .from(args.toList()) {
         start(
@@ -37,9 +36,5 @@ object Build {
         )
       }
       .run(::exitProcess)
-  }
-
-  private fun trivialChange() {
-
   }
 }
