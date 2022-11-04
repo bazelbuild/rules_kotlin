@@ -53,8 +53,6 @@ load("@io_bazel_rules_android//:defs.bzl", "rules_android_workspace")
 
 rules_android_workspace()
 
-#register_toolchains("//bzl/android:android_default_toolchain")
-
 # Setup a custom toolchain from //bzl/kotlin:kotlin_toolchain
 register_toolchains(
     "@io_bazel_rules_android//toolchains/android:android_default_toolchain",

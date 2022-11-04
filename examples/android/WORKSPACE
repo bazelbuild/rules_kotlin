@@ -60,6 +60,8 @@ maven_install(
     aar_import_bzl_label = "@io_bazel_rules_android//rules:rules.bzl",
 )
 
+# Pulling from personal branch since we need a few fixes in rules_android
+# A non complete list can be seen here https://github.com/bazelbuild/rules_android/pulls
 http_archive(
     name = "io_bazel_rules_android",
     sha256 = versions.ANDROID.SHA,

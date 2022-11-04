@@ -167,6 +167,9 @@ kt_android_local_test = rule(
             allow_files = True,
         ),
         # TODO(mgalindo): unify with android_sdk (BUILD-3813)
+        # rules_android uses ctx._android_sdk rules_kotlin uses ctx.android_sdk
+        # rules_android should just use ctx.android_sdk and then this should
+        # be deleted.
         "_android_sdk": attr.label(
             default = Label("@bazel_tools//tools/android:sdk"),
             allow_files = True,

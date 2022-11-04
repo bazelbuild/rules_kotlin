@@ -1,1 +1,3 @@
+# Expose (not really) experimental Android providers need by rules_android-
+# AndroidLibraryResourceClassJarProvider, AndroidIdeInfo, ...
 common --experimental_google_legacy_api
