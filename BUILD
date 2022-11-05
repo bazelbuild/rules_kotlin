@@ -38,6 +38,7 @@ test_suite(
     tests = [
         "//src/test/kotlin/io/bazel/kotlin:assertion_tests",
         "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
+        "//src/test/starlark:convert_tests",
     ],
 )
 
@@ -47,6 +48,7 @@ test_suite(
     tests = [
         ":all_tests",
         "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
+        "//src/test/starlark:convert_tests",
     ],
 )
 
