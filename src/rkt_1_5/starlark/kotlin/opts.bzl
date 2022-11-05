@@ -3,10 +3,10 @@ load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "
 def _map_optin_class_to_flag(values):
     return ["-Xopt-in=%s" % v for v in values]
 
-def _map_backend_threads_to_flag(n):
-    if n == 1:
+def _map_jvm_target_to_flag(version):
+    if not version:
         return None
-    return ["-Xbackend-threads=%d" % n]
+    return ["-jvm-target=%s" % version]
 
 _KOPTS = {
     "warn": struct(
@@ -216,6 +216,16 @@ _KOPTS = {
         value_to_flag = {
             True: ["-Xreport-perf"],
         },
+    ),
+    "jvm_target": struct(
+        args = dict(
+            default = "",
+            doc = "The -jvm_target flag. This is only tested at 1.8.",
+            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_jvm_target_to_flag,
     ),
 }
 
