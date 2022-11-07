@@ -32,16 +32,20 @@ kt_android_library(
     tags = ["trace"],
     visibility = ["//visibility:public"],
     deps = [
-        ":res2",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:com_google_auto_value_auto_value_annotations",
         "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
     ],
 )
 
-android_library(
-    name = "res2",
-    custom_package = "examples.android.lib",
-    manifest = "src/main/AndroidManifest.xml",
-    resource_files = glob(["res2/**"]),
-)
+# Commenting out- rules_android resource processing wil produce
+# two resource classes with the same package and upstream targets
+# that depend on res and res2 will only see definitions from
+# the jar that appears firs in the classpaht resulting in
+# field not found exceptions.
+#android_library(
+#    name = "res2",
+#    custom_package = "examples.android.lib",
+#    manifest = "src/main/AndroidManifest.xml",
+#    resource_files = glob(["res2/**"]),
+#)

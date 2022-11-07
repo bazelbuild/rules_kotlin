@@ -559,3 +559,10 @@ Supports the following template values:
     implementation = _kt_compiler_plugin_impl,
     provides = [_KtCompilerPluginInfo],
 )
+
+#
+# Exposed for kt_android_* rules.
+#
+lib_common_attr_exposed = _lib_common_attr
+runnable_common_attr_exposed = _runnable_common_attr
+common_outputs_exposed = _common_outputs

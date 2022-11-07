@@ -1,0 +1,46 @@
+{
+  "optimizations": {
+    "uncompressNativeLibraries": { "enabled": false },
+    "standaloneConfig": {
+      "dexMergingStrategy": "NEVER_MERGE"
+    }
+  },
+  "compression": {
+    "uncompressedGlob": [
+      "**/*.3g2",
+      "**/*.3gp",
+      "**/*.3gpp",
+      "**/*.3gpp2",
+      "**/*.aac",
+      "**/*.amr",
+      "**/*.awb",
+      "**/*.gif",
+      "**/*.imy",
+      "**/*.jet",
+      "**/*.jpeg",
+      "**/*.jpg",
+      "**/*.m4a",
+      "**/*.m4v",
+      "**/*.mid",
+      "**/*.midi",
+      "**/*.mkv",
+      "**/*.mp2",
+      "**/*.mp3",
+      "**/*.mp4",
+      "**/*.mpeg",
+      "**/*.mpg",
+      "**/*.ogg",
+      "**/*.png",
+      "**/*.rtttl",
+      "**/*.smf",
+      "**/*.so.xz",
+      "**/*.so.zst",
+      "**/*.wav",
+      "**/*.webm",
+      "**/*.wma",
+      "**/*.wmv",
+      "**/*.xmf",
+      "**/*.zst.so"
+    ]
+  }
+}

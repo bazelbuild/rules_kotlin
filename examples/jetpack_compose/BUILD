@@ -33,11 +33,16 @@ kt_compiler_plugin(
 # Used in 'override_targets' by referencing @//:kotlinx_coroutines_core_jvm
 kt_jvm_import(
     name = "kotlinx_coroutines_core_jvm",
-    jars = ["@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar"],
-    srcjar = "@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3-sources.jar",
+    jars = [":kotlinx_coroutines_core_jvm_jar"],
     visibility = ["//visibility:public"],
     deps = [
         "//stub:sun_misc",
         "@maven//:org_jetbrains_kotlin_kotlin_stdlib",
     ],
+)
+
+# HACK: for some reason the underlying jar is not visible when using starlark rules
+filegroup(
+    name = "kotlinx_coroutines_core_jvm_jar",
+    srcs =  ["@maven_secondary//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm_1_6_3"],
 )

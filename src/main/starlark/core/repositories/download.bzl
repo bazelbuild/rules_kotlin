@@ -104,7 +104,10 @@ def kt_download_local_dev_dependencies():
         strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
         urls = versions.ANDROID.URLS,
         starlark_packages = [
-            "android",
+            "src",
+            "rules",
+            "toolchains",
+            "tools",
         ],
     )
 

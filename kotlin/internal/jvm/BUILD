@@ -32,7 +32,7 @@ bzl_library(
     deps = [
         "//third_party:bzl",
         "@bazel_skylib//rules:common_settings",
-        "@build_bazel_rules_android//android",
+        "@build_bazel_rules_android//rules",
     ],
 )
 

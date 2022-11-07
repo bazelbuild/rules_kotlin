@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@build_bazel_rules_android//android:rules.bzl", "android_binary")
+load("@io_bazel_rules_android//rules:rules.bzl", "android_binary", "android_application")
 
 # An app that consumes android-kt deps
 android_binary(
@@ -9,6 +9,21 @@ android_binary(
     manifest = "src/main/AndroidManifest.xml",
     manifest_values = {
         "lib_name": "lib",
+    },
+    multidex = "native",
+    deps = [
+        "//libKtAndroid:my_kt",
+    ],
+)
+
+android_application(
+    name = "application",
+    custom_package = "examples.android.app",
+    bundle_config_file = "bundleConfig.pb.json",
+    manifest = "src/main/AndroidManifest.xml",
+    manifest_values = {
+        "lib_name": "lib",
+        "applicationId": "examples.android.app",
     },
     multidex = "native",
     deps = [

@@ -1,4 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 _COMPOSE_VERSION = "1.2.1"
 
@@ -62,6 +63,8 @@ maven_install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    use_starlark_android_rules = True,
+    aar_import_bzl_label = "@io_bazel_rules_android//rules:rules.bzl",
 )
 
 # Secondary maven repository used mainly for workarounds
@@ -74,6 +77,8 @@ maven_install(
     ],
     fetch_sources = True,
     repositories = ["https://repo1.maven.org/maven2"],
+    use_starlark_android_rules = True,
+    aar_import_bzl_label = "@io_bazel_rules_android//rules:rules.bzl",
 )
 
 http_archive(
@@ -88,13 +93,20 @@ http_archive(
 ## Android
 
 http_archive(
-    name = "build_bazel_rules_android",
+    name = "io_bazel_rules_android",
     sha256 = versions.ANDROID.SHA,
     strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
-    urls = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % versions.ANDROID.VERSION],
+    urls = ["https://github.com/mauriciogg/rules_android/archive/refs/tags/pre-alpha-01-11-2022-3.zip"],
 )
 
-load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
+load("@io_bazel_rules_android//:defs.bzl", "rules_android_workspace")
+
+rules_android_workspace()
+
+register_toolchains(
+    "@io_bazel_rules_android//toolchains/android:android_default_toolchain",
+    "@io_bazel_rules_android//toolchains/android_sdk:android_sdk_tools",
+)
 
 android_sdk_repository(
     name = "androidsdk",

@@ -1,3 +1,5 @@
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
 local_repository(
     name = "release_archive",
     path = "../../src/main/starlark/release_archive",
@@ -36,9 +38,28 @@ maven_install(
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
+    use_starlark_android_rules = True,
+    aar_import_bzl_label = "@io_bazel_rules_android//rules:rules.bzl",
 )
 
-load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
+http_archive(
+    name = "io_bazel_rules_android",
+    sha256 = versions.ANDROID.SHA,
+    strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
+    urls = ["https://github.com/mauriciogg/rules_android/archive/refs/tags/pre-alpha-01-11-2022-3.zip"],
+)
+
+load("@io_bazel_rules_android//:defs.bzl", "rules_android_workspace")
+
+rules_android_workspace()
+
+# Setup a custom toolchain from //bzl/kotlin:kotlin_toolchain
+register_toolchains(
+    "@io_bazel_rules_android//toolchains/android:android_default_toolchain",
+    "@io_bazel_rules_android//toolchains/android_sdk:android_sdk_tools",
+)
+
+
 
 android_sdk_repository(
     name = "androidsdk",
