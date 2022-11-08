@@ -309,7 +309,11 @@ fun JvmCompilationTask.compileKotlin(
     return emptyList()
   } else {
     return (
-      args + plugins(
+      args.also{ compileArgs ->
+        context.whenTracing {
+          compileArgs.flag("-verbose").flag("-Xreport-perf")
+        }
+      } + plugins(
         options = inputs.compilerPluginOptionsList,
         classpath = inputs.compilerPluginClasspathList
       )

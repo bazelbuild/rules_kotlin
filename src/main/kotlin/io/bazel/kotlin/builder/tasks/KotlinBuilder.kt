@@ -16,6 +16,7 @@
  */
 package io.bazel.kotlin.builder.tasks
 
+import com.sun.management.OperatingSystemMXBean
 import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
@@ -31,10 +32,14 @@ import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
 import io.bazel.worker.WorkerContext
+import java.lang.management.ManagementFactory
+import java.lang.management.MemoryUsage
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Duration
+import java.time.Duration.*
 import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -197,16 +202,82 @@ class KotlinBuilder @Inject internal constructor(
       build()
     }
 
+  private data class JvmTrace(
+    val gcCount: Long,
+    val gcTime: Duration,
+    val loadedClasses: Long,
+    val unloadedClasses: Long,
+    val heap: MemoryUsage,
+    val nonHeap: MemoryUsage,
+    val cpu: Duration
+  )
+
   private fun executeJvmTask(
     context: CompilationTaskContext,
     workingDir: Path,
     argMap: ArgMap
   ) {
-    val task = buildJvmTask(context.info, workingDir, argMap)
-    context.whenTracing {
+    val task = context.execute("buildtask") { buildJvmTask(context.info, workingDir, argMap) }
+
+    val trace = context.whenTracing {
+      print("alive for ${ofMillis(ManagementFactory.getRuntimeMXBean().uptime)}")
       printProto("jvm task message:", task)
+
+      val (totalGcCount, totalGcDuration) = getGcStats()
+      val (heapMemoryUsage, nonHeapMemoryUsage) = getMemoryStats()
+      val (loadedClasses, unloadedClasses) = getClassStats()
+      return@whenTracing JvmTrace(
+        gcCount = totalGcCount,
+        gcTime = totalGcDuration,
+        loadedClasses = loadedClasses.toLong(),
+        unloadedClasses = unloadedClasses,
+        heap = heapMemoryUsage,
+        nonHeap = nonHeapMemoryUsage,
+        cpu = getCpuTime()
+      )
     }
     jvmTaskExecutor.execute(context, task)
+
+    trace?.run {
+      val (postGcCount, postGcDuration) = getGcStats()
+      val (heapMemoryUsage, nonHeapMemoryUsage) = getMemoryStats()
+      val (postLoadedClasses, postUnloadedClasses) = getClassStats()
+      print("""
+        gc: 
+          task: ${postGcCount - gcCount}, ${postGcDuration.minus(gcTime)}
+          total: $postGcCount, $postGcDuration
+        mem:
+          heap:
+            pre: $heap
+            post: $heapMemoryUsage
+          nonheap:
+            pre: $nonHeap
+            post: $nonHeapMemoryUsage
+        classes (loaded/unloaded):
+            pre: $loadedClasses / $unloadedClasses
+            post: $postLoadedClasses / $postUnloadedClasses 
+        cpu time: ${getCpuTime().minus(cpu)}
+      """.trimIndent())
+    }
+  }
+
+  private fun getCpuTime() = Duration.ofNanos((ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean).processCpuTime)
+
+  private fun getMemoryStats() = ManagementFactory.getMemoryMXBean().run {
+    heapMemoryUsage to nonHeapMemoryUsage
+  }
+
+  private fun getGcStats() = ManagementFactory.getGarbageCollectorMXBeans()
+    .asSequence()
+    .map { bean ->
+      bean.collectionCount to ofMillis(bean.collectionTime)
+    }
+    .reduce { (totalCount, totalDuration), (currentCount, currentDuration) ->
+      totalCount + currentCount to totalDuration + currentDuration
+    }
+
+  private fun getClassStats() = ManagementFactory.getClassLoadingMXBean().run {
+    loadedClassCount to unloadedClassCount
   }
 
   private fun buildJvmTask(

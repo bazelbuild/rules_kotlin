@@ -18,11 +18,13 @@ package io.bazel.kotlin.builder.toolchain
 
 import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.TextFormat
+import com.sun.management.OperatingSystemMXBean
 import io.bazel.kotlin.model.CompilationTaskInfo
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
+import java.lang.management.ManagementFactory
 import java.nio.file.FileSystems
 
 class CompilationTaskContext(
