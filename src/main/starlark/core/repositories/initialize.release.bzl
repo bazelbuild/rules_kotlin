@@ -91,6 +91,14 @@ def kotlin_repositories(
         ],
     )
 
+    # See note in versions.bzl before updating bazel_skylib
+    maybe(
+        http_archive,
+        name = "bazel_skylib",
+        urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (versions.SKYLIB_VERSION, versions.SKYLIB_VERSION)],
+        sha256 = versions.SKYLIB_SHA,
+    )
+
     selected_version = None
     for (version, criteria) in versions.CORE.items():
         if (criteria and compiler_release.version.startswith(criteria.prefix)) or (not selected_version and not criteria):

@@ -239,5 +239,10 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                 .setGeneratedClassJar(instanceRoot().resolve("incremental.jar").toAbsolutePath().toString());
             return this;
         }
+
+        public TaskBuilder useK2() {
+            taskBuilder.getInfoBuilder().addPassthroughFlags("-Xuse-k2");
+            return this;
+        }
     }
 }

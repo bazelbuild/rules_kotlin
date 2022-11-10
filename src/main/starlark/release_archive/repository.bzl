@@ -42,6 +42,8 @@ def archive_repository_implementation(repository_ctx):
             stripPrefix = attr._remote_prefix,
         )
     else:
+        print("build %s" % repository_ctx.execute(["date"]).stdout)
+
         # not OS safe. Presuming linux-likes until complaints.
         release_archive = attr.local_release_archive_target
 
@@ -95,14 +97,14 @@ def archive_repository_implementation(repository_ctx):
             archive = release_artifact,
         )
 
-        # update the timestamp on the repository rule source to ensure it's always re-evaluated.
-        self = workspace
-        for segment in "src/main/starlark/release_archive/repository.bzl".split("/"):
-            self = self.get_child(segment)
-        touch = repository_ctx.which("touch")
-        if touch:
+        # Update the timestamp on the repository rule source to ensure it's always re-evaluated.
+        # This appears to cause issues on windows with permissions -- so don't do it.
+        if not "win" in repository_ctx.os.name:
+            self = workspace
+            for segment in "src/main/starlark/release_archive/repository.bzl".split("/"):
+                self = self.get_child(segment)
             repository_ctx.execute([
-                touch,
+                "touch",
                 str(self),
             ])
 

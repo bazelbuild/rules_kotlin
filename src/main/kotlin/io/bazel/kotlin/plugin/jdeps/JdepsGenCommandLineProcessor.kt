@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOptionProcessingException
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
 class JdepsGenCommandLineProcessor : CommandLineProcessor {
   companion object {
@@ -54,5 +55,23 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
       )
       else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
     }
+  }
+
+  override fun <T> CompilerConfiguration.appendList(
+    option: CompilerConfigurationKey<List<T>>,
+    value: T,
+  ) {
+    val paths = getList(option).toMutableList()
+    paths.add(value)
+    put(option, paths)
+  }
+
+  override fun <T> CompilerConfiguration.appendList(
+    option: CompilerConfigurationKey<List<T>>,
+    values: List<T>,
+  ) {
+    val paths = getList(option).toMutableList()
+    paths.addAll(values)
+    put(option, paths)
   }
 }

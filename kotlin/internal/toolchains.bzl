@@ -341,25 +341,30 @@ def kt_configure_toolchains():
     native.config_setting(
         name = "experimental_use_abi_jars",
         values = {"define": "experimental_use_abi_jars=1"},
+        visibility = ["//visibility:public"],
     )
     native.config_setting(
         name = "noexperimental_use_abi_jars",
         values = {"define": "experimental_use_abi_jars=0"},
+        visibility = ["//visibility:public"],
     )
 
     native.config_setting(
         name = "builder_debug_timings",
         values = {"define": "kt_timings=1"},
+        visibility = ["//visibility:public"],
     )
 
     native.config_setting(
         name = "experimental_multiplex_workers",
         values = {"define": "kt_multiplex=1"},
+        visibility = ["//visibility:public"],
     )
 
     native.config_setting(
         name = "builder_debug_trace",
         values = {"define": "kt_trace=1"},
+        visibility = ["//visibility:public"],
     )
 
     native.toolchain_type(

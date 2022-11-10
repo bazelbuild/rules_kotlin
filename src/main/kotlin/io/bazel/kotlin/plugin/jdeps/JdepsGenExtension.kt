@@ -371,26 +371,31 @@ class JdepsGenExtension(
   ): Boolean {
     val missingStrictDeps = result.keys
       .filter { !directDeps.contains(it) }
-      .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)).label }
+      .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)) }
 
     if (missingStrictDeps.isNotEmpty()) {
+      val missingStrictLabels = missingStrictDeps.mapNotNull { it.label }
+
       val open = "\u001b[35m\u001b[1m"
       val close = "\u001b[0m"
-      val command =
-        """
-              |$open ** Please add the following dependencies:$close ${
-        missingStrictDeps.joinToString(
-          " ",
-        )
-        } to $targetLabel 
-              |$open ** You can use the following buildozer command:$close buildozer 'add deps ${
-        missingStrictDeps.joinToString(
-          " ",
-        )
-        }' $targetLabel
-        """.trimMargin()
 
-      println(command)
+      var command =
+        """
+        $open ** Please add the following dependencies:$close
+        ${
+        missingStrictDeps.map { it.label ?: it.jar }.joinToString(" ")
+        } to $targetLabel
+        """
+
+      if (missingStrictLabels.isNotEmpty()) {
+        command += """$open ** You can use the following buildozer command:$close
+        buildozer 'add deps ${
+        missingStrictLabels.joinToString(" ")
+        }' $targetLabel
+        """
+      }
+
+      println(command.trimIndent())
       return true
     }
     return false

@@ -232,6 +232,7 @@ _common_attr = utils.add_dicts(
             providers = [_JavacOptions],
             mandatory = False,
         ),
+        "_kotlin_deps": attr.label(default = ":kotlin_deps"),
     },
 )
 

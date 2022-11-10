@@ -12,6 +12,13 @@ versions = struct(
     RULES_NODEJS_SHA = "f10a3a12894fc3c9bf578ee5a5691769f6805c4be84359681a785a0c12e8d2b6",
     BAZEL_TOOLCHAINS_VERSION = "4.1.0",
     BAZEL_TOOLCHAINS_SHA = "179ec02f809e86abf56356d8898c8bd74069f1bd7c56044050c2cd3d79d0e024",
+    # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
+    # This means the bazel_skylib_workspace call is skipped, as it only registers the unittest
+    # toolchains. However, if a new workspace dependency is introduced, this precondition will fail.
+    # Why skip it? Because it would introduce a 3rd function call to rules kotlin setup:
+    # 1. Download archive
+    # 2. Download dependencies and Configure rules
+    # --> 3. Configure dependencies <--
     SKYLIB_VERSION = "1.2.1",
     SKYLIB_SHA = "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728",
     PROTOBUF_VERSION = "3.11.3",
@@ -33,11 +40,11 @@ versions = struct(
         sha256 = "a333ad0172369a5cd973aea83e02e8b698c06a2daac6f32925da03049aa3dce7",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.7.10",
+        version = "1.7.20",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "7683f5451ef308eb773a686ee7779a76a95ed8b143c69ac247937619d7ca3a09",
+        sha256 = "5e3c8d0f965410ff12e90d6f8dc5df2fc09fd595a684d514616851ce7e94ae7d",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
