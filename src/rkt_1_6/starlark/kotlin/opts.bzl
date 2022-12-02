@@ -8,6 +8,11 @@ def _map_backend_threads_to_flag(n):
         return None
     return ["-Xbackend-threads=%d" % n]
 
+def _map_jvm_target_to_flag(version):
+    if not version:
+        return None
+    return ["-jvm-target=%s" % version]
+
 _KOPTS = {
     "warn": struct(
         args = dict(
@@ -236,6 +241,16 @@ _KOPTS = {
             True: ["-Xreport-perf"],
         },
     ),
+    "jvm_target": struct(
+        args = dict(
+            default = "",
+            doc = "The -jvm_target flag. This is only tested at 1.8.",
+            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_jvm_target_to_flag,
+    ),
 }
 
 KotlincOptions = provider(
@@ -256,10 +271,7 @@ kt_kotlinc_options = rule(
     implementation = _kotlinc_options_impl,
     doc = "Define kotlin compiler options.",
     provides = [KotlincOptions],
-    attrs = {
-        n: o.type(**o.args)
-        for n, o in _KOPTS.items()
-    },
+    attrs = {n: o.type(**o.args) for n, o in _KOPTS.items()},
 )
 
 def kotlinc_options_to_flags(kotlinc_options):
@@ -270,6 +282,4 @@ def kotlinc_options_to_flags(kotlinc_options):
     Returns:
         list of flags to add to the command line.
     """
-    if not kotlinc_options:
-        return ""
     return convert.kotlinc_options_to_flags(_KOPTS, kotlinc_options)

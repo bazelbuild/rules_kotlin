@@ -1,0 +1,3 @@
+load(":convert_test.bzl", "convert_test_suite")
+
+convert_test_suite(name = "convert_tests")
