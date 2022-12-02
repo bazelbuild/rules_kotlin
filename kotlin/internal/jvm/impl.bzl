@@ -216,7 +216,7 @@ def kt_jvm_library_impl(ctx):
         )
     return _make_providers(
         ctx,
-        _kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs else export_only_providers(
+        _kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else export_only_providers(
             ctx = ctx,
             actions = ctx.actions,
             outputs = ctx.outputs,
