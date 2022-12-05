@@ -70,6 +70,7 @@ release_archive(
         "BUILD.release.bazel": "BUILD.bazel",
         "WORKSPACE.release.bazel": "WORKSPACE",
         "MODULE.bazel": "MODULE.bazel",
+        "WORKSPACE.bzlmod": "WORKSPACE.bzlmod",
     },
     deps = [
         "//kotlin:pkg",
