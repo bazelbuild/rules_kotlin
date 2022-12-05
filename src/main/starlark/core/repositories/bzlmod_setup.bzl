@@ -54,7 +54,7 @@ def _kt_configure_impl(_module_ctx):
 
 def _local_repository_impl(repository_ctx):
     path = repository_ctx.attr.path
-    root = repository_ctx.path(Label("@//:MODULE.bazel")).dirname
+    root = repository_ctx.path(Label("@@//:MODULE.bazel")).dirname
     for segment in path.split("/"):
         root = root.get_child(segment)
     repository_ctx.symlink(root, ".")
