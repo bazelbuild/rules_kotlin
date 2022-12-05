@@ -35,6 +35,7 @@ def kt_rules_test(name, **kwargs):
         "//src/main/kotlin:jdeps-gen",
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:jvm-abi-gen",
+        "@com_github_jetbrains_kotlin//:kotlin-compiler",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",

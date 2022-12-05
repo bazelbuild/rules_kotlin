@@ -143,6 +143,7 @@ def kt_bootstrap_binary(
         main_class,
         runtime_library,
         shade_rules,
+        jvm_flags = [],
         data = [],
         visibility = ["//visibility:public"]):
     raw = name + "_raw"
@@ -165,7 +166,7 @@ def kt_bootstrap_binary(
     java_binary(
         name = name,
         data = data,
-        jvm_flags = [
+        jvm_flags = jvm_flags + [
             "-XX:+IgnoreUnrecognizedVMOptions",
             "--add-opens=java.base/java.nio=ALL-UNNAMED",
             "--add-opens=java.base/java.lang=ALL-UNNAMED",

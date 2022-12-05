@@ -55,10 +55,7 @@ class KotlinToolchain private constructor(
         )
 
     private val DEFAULT_JVM_ABI_PATH = BazelRunFiles.resolveVerified(
-      "external",
-      "com_github_jetbrains_kotlin",
-      "lib",
-      "jvm-abi-gen.jar",
+      System.getProperty("@com_github_jetbrains_kotlin...jvm-abi-gen"),
     ).toPath()
 
     private val COMPILER = BazelRunFiles.resolveVerified(
@@ -116,10 +113,7 @@ class KotlinToolchain private constructor(
       val jdepsGenFile = JDEPS_GEN_PLUGIN.verified().absoluteFile
 
       val kotlinCompilerJar = BazelRunFiles.resolveVerified(
-        "external",
-        "com_github_jetbrains_kotlin",
-        "lib",
-        "kotlin-compiler.jar",
+        System.getProperty("@com_github_jetbrains_kotlin...kotlin-compiler"),
       )
 
       val jvmAbiGenFile = jvmAbiGenPath.verified()
