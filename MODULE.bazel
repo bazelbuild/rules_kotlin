@@ -17,7 +17,11 @@ use_repo(kt, "rkt_1_7", "rkt_1_6", "rkt_1_5", "rkt_1_4", "legacy", "com_github_j
 
 bazel_dep(name = "rules_jvm_external", version = "4.4.2")
 
-maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven = use_extension(
+    "@rules_jvm_external//:extensions.bzl",
+    "maven",
+    dev_dependency = True,
+)
 
 maven.install(
     name = "kotlin_rules_maven",
