@@ -33,15 +33,9 @@ import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_STDLIB;
 @RunWith(JUnit4.class)
 public class KotlinBuilderJvmKaptTest {
     private static final Dep AUTO_VALUE_ANNOTATIONS =
-            Dep.importJar(
-                    "autovalue_annotations",
-                    System.getProperty("auto_value_annotations")
-                            .replaceFirst("external" + File.separator, ""));
+            Dep.fromLabel("auto_value_annotations");
     private static final Dep AUTO_VALUE =
-            Dep.importJar(
-                    "autovalue",
-                    System.getProperty("auto_value")
-                            .replaceFirst("external" + File.separator, ""));
+            Dep.fromLabel("auto_value");
     private static final AnnotationProcessor AUTO_VALUE_ANNOTATION_PROCESSOR =
             AnnotationProcessor.builder()
                     .processClass("com.google.auto.value.processor.AutoValueProcessor")

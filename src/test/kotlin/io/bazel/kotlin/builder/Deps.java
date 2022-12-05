@@ -77,7 +77,7 @@ public final class Deps {
          * @return Dep reprenseting the resource
          * @throws IllegalArgumentException if the label does not exist.
          */
-        protected static Dep fromLabel(String label) {
+        public static Dep fromLabel(String label) {
             // jvm properties do not allow slashes or :.
             String key = label.replaceAll("/", ".").replaceAll(":", ".");
             Properties properties = System.getProperties();
