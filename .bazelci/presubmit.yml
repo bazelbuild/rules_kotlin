@@ -27,6 +27,15 @@ tasks:
   macos:
     test_targets:
       - "//:all_tests"
+  ubuntu2004_bzlmod:
+    bazel: last_green
+    platform: ubuntu2004
+    build_flags:
+      - "--enable_bzlmod"
+    test_targets:
+      - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
