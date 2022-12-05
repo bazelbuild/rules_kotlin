@@ -6,31 +6,15 @@ module(
 )
 
 bazel_dep(name = "platforms", version = "0.0.4")
-bazel_dep(name = "rules_pkg", version = "0.7.0")
 bazel_dep(name = "bazel_skylib", version = "1.2.1")
-bazel_dep(name = "stardoc", repo_name = "io_bazel_stardoc", version = "0.5.3")
 bazel_dep(name = "rules_java", version = "5.1.0")
+bazel_dep(name = "rules_android", repo_name = "build_bazel_rules_android", version = "0.1.1")
+bazel_dep(name = "rules_python", version = "0.12.0")
 
 kt = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "kt_bzlmod_ext")
 
-use_repo(kt, "rkt_1_7")
+use_repo(kt, "rkt_1_7", "rkt_1_6", "rkt_1_5", "rkt_1_4", "legacy", "com_github_jetbrains_kotlin", "kt_java_stub_template", "com_github_pinterest_ktlint")
 
-use_repo(kt, "rkt_1_6")
-
-use_repo(kt, "rkt_1_5")
-
-use_repo(kt, "rkt_1_4")
-
-use_repo(kt, "legacy")
-
-use_repo(kt, "com_github_jetbrains_kotlin")
-
-use_repo(kt, "kt_java_stub_template")
-
-use_repo(kt, "com_github_pinterest_ktlint")
-
-bazel_dep(name = "rules_proto", version = "4.0.0")
-bazel_dep(name = "rules_android", repo_name = "build_bazel_rules_android", version = "0.1.1")
 bazel_dep(name = "rules_jvm_external", version = "4.4.2")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
@@ -67,6 +51,8 @@ maven.install(
 
 use_repo(maven, "kotlin_rules_maven")
 
-bazel_dep(name = "rules_python", version = "0.12.0")
+bazel_dep(name = "rules_pkg", dev_dependency = True, version = "0.7.0")
+bazel_dep(name = "stardoc", dev_dependency = True, repo_name = "io_bazel_stardoc", version = "0.5.3")
+bazel_dep(name = "rules_proto", dev_dependency = True, version = "4.0.0")
 
 register_toolchains("//kotlin/internal:default_toolchain")
