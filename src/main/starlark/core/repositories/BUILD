@@ -18,6 +18,7 @@ release_archive(
     name = "pkg",
     srcs = [
         "BUILD.com_github_jetbrains_kotlin.bazel",
+        "bzlmod_setup.bzl",
         "compiler.bzl",
         "configured_rules.bzl",
         "tools.bzl",
