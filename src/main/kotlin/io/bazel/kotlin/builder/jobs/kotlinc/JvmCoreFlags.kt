@@ -81,7 +81,9 @@ abstract class JvmCoreFlags(
     "compiler_plugin_classpath",
     "",
   )
-  val ruleKind by argument.flagOf("rule_kind", "")
+
+  val ruleKind by argument.flagOf("rule_kind", "deprecated")
+
   override val moduleName by argument.flagOf<String>(
     "kotlin_module_name",
     "",
@@ -178,8 +180,9 @@ abstract class JvmCoreFlags(
   override val output by argument.path("output", "", required = true)
   override val outputJdeps by argument.path("kotlin_output_jdeps", "")
 
-  override val verbose: Boolean
-    get() = TODO("Not yet implemented")
+  override val verbose: Boolean by lazy {
+    "trace" in debug
+  }
 
   // TODO(): Implement passing kapt annotation options.
   override val processorOptions: Map<String, String> = emptyMap()

@@ -5,10 +5,11 @@ kt_jvm_library(
     srcs = ["Build.kt"],
     visibility = [
         "//:__subpackages__",
-        "@dev_io_bazel_rules_kotlin//:rules_kotlin_development",
     ],
     deps = [
         "//kotlin/io/bazel/kotlin/builder/jobs/kotlinc:jvm",
+        "@dev_io_bazel_rules_kotlin//src/main/kotlin:jdeps-gen",
+        "@dev_io_bazel_rules_kotlin//src/main/kotlin:skip-code-gen",
         "@dev_io_bazel_rules_kotlin//src/main/kotlin/io/bazel/worker",
     ],
 )
@@ -18,8 +19,6 @@ kt_jvm_binary(
     data = [
         "@com_github_jetbrains_kotlin//:lib/jvm-abi-gen.jar",
         "@com_github_jetbrains_kotlin//:lib/kotlin-compiler.jar",
-        "@dev_io_bazel_rules_kotlin//src/main/kotlin:jdeps-gen",
-        "@dev_io_bazel_rules_kotlin//src/main/kotlin:skip-code-gen",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     visibility = [

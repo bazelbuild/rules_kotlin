@@ -98,6 +98,18 @@ def kt_download_local_dev_dependencies():
         url = "https://github.com/bazelbuild/stardoc/archive/%s.tar.gz" % versions.IO_BAZEL_STARDOC_VERSION,
     )
 
+    maybe(
+        http_archive,
+        name = "stable_io_bazel_rules_kotlin",
+        sha256 = versions.STABLE_RULES_KOTLIN.sha256,
+        urls = [
+            url.format(
+                version = versions.STABLE_RULES_KOTLIN.version,
+            )
+            for url in versions.STABLE_RULES_KOTLIN.url_templates
+        ],
+    )
+
     rules_stardoc_repository(
         name = "build_bazel_rules_android",
         sha256 = versions.ANDROID.SHA,
