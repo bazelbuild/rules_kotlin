@@ -13,6 +13,11 @@ def _map_jvm_target_to_flag(version):
         return None
     return ["-jvm-target=%s" % version]
 
+def _map_dump_processor_stats_to_flag(dest_file):
+    if not dest_file:
+        return None
+    return ["-P\nplugin:org.jetbrains.kotlin.kapt3:dumpProcessorStats=%s" % dest_file]
+
 _KOPTS = {
     "warn": struct(
         args = dict(
@@ -250,6 +255,15 @@ _KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_jvm_target_to_flag,
+    ),
+    "dump_processor_stats": struct(
+        args = dict(
+            default = "",
+            doc = "Report annotation processor performance statistics to provided file",
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_dump_processor_stats_to_flag,
     ),
 }
 
