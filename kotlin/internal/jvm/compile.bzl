@@ -46,7 +46,6 @@ load(
     "find_java_runtime_toolchain",
     "find_java_toolchain",
 )
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 # UTILITY ##############################################################################################################
 
@@ -105,7 +104,7 @@ def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
     dep_infos = [_java_info(d) for d in associated_targets + deps] + [toolchains.kt.jvm_stdlibs]
 
     # Reduced classpath, exclude transitive deps from compilation
-    if (ctx.attr._experimental_prune_transitive_deps[BuildSettingInfo].value):
+    if (toolchains.kt.experimental_prune_transitive_deps_v2):
         transitive = [
             d.compile_jars
             for d in dep_infos

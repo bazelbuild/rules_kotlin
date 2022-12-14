@@ -28,6 +28,7 @@ load(
     "//src/main/starlark/core/repositories:tools.bzl",
     "absolute_target",
 )
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 """Kotlin Toolchains
 
@@ -92,6 +93,7 @@ def _kotlin_toolchain_impl(ctx):
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
         jacocorunner = ctx.attr.jacocorunner,
+        experimental_prune_transitive_deps_v2 = ctx.attr._experimental_prune_transitive_deps_v2[BuildSettingInfo].value,
     )
 
     return [
@@ -258,6 +260,11 @@ _kt_toolchain = rule(
         ),
         "jacocorunner": attr.label(
             default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
+        ),
+        "_experimental_prune_transitive_deps_v2": attr.label(
+            doc = """If enabled, compilation is performed against only direct dependencies.
+            Transitive deps required for compilation must be explicitly added""",
+            default = Label("//kotlin/settings:experimental_prune_transitive_deps_v2"),
         ),
     },
     implementation = _kotlin_toolchain_impl,
