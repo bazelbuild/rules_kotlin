@@ -11,4 +11,3 @@ kt_android_library(
         "//libKtAndroid3:src_main",
     ],
 )
-
