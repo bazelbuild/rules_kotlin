@@ -14,6 +14,11 @@ TARGETS="libJava1:src_main libAndroid1:src_main libKt1:src_main libKtAndroid1:sr
 BAZEL_BINARY=${BAZEL_BINARY:-bazel}
 
 $BAZEL_BINARY version || die "Bazel binary invalid or 'bazel' is not on classpath"
+if ! command -v gzip &> /dev/null
+then
+    echo "gzip could not be found"
+    exit
+fi
 
 # Run initial clean build
 $BAZEL_BINARY clean
