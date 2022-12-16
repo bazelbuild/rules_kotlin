@@ -104,7 +104,7 @@ class JdepsMerger {
               " ",
             )} from $label 
             |$open ** You can use the following buildozer command:$close buildozer 'remove deps ${
-            unusedLabels.joinToString(" ")
+              unusedLabels.joinToString(" ")
             }' $label
             """.trimMargin()
           }
