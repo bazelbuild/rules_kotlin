@@ -21,5 +21,4 @@ package io.bazel.worker
 enum class Status(val exit: Int) {
   ERROR(1),
   SUCCESS(0),
-  ;
 }
