@@ -28,16 +28,3 @@ kt_compiler_plugin(
         "@maven//:androidx_compose_compiler_compiler",
     ],
 )
-
-# Add missing 'sun.misc' files to coroutines artifact
-# Used in 'override_targets' by referencing @//:kotlinx_coroutines_core_jvm
-kt_jvm_import(
-    name = "kotlinx_coroutines_core_jvm",
-    jars = ["@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar"],
-    srcjar = "@maven_secondary//:v1/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3-sources.jar",
-    visibility = ["//visibility:public"],
-    deps = [
-        "//stub:sun_misc",
-        "@maven//:org_jetbrains_kotlin_kotlin_stdlib",
-    ],
-)
