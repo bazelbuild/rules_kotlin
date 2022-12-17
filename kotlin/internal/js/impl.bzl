@@ -89,7 +89,7 @@ def kt_js_library_impl(ctx):
         executable = toolchain.kotlinbuilder.files_to_run.executable,
         execution_requirements = {"supports-workers": "1"},
         arguments = [args],
-        progress_message = "Compiling Kotlin to JS %s { kt: %d }" % (ctx.label, len(ctx.files.srcs)),
+        progress_message = "Compiling Kotlin to JS %%{label} { kt: %d }" % len(ctx.files.srcs),
         input_manifests = input_manifests,
         env = {
             "REPOSITORY_NAME": _utils.builder_workspace_name(ctx),
