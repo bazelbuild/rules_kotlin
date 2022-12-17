@@ -1,0 +1,11 @@
+android_library(
+    name = "src_main",
+    srcs = glob(["src/main/java/**/*.java"]),
+    custom_package = "example.deps.libandroid1",
+    manifest = "src/main/AndroidManifest.xml",
+    resource_files = glob(["src/main/res/**/*"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//libAndroid2:src_main",
+    ],
+)
