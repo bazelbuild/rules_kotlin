@@ -345,8 +345,15 @@ def _run_kt_builder_action(
     for f, path in outputs.items():
         args.add("--" + f, path)
 
+    experimental_multiplex_flags = [
+        "-Xuse-fast-jar-file-system",
+    ] if toolchains.kt.execution_requirements["supports-multiplex-workers"] else []
+
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
-    args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kotlinc_options))
+    args.add_all(
+        "--kotlin_passthrough_flags",
+        kotlinc_options_to_flags(kotlinc_options) + experimental_multiplex_flags,
+    )
     args.add_all("--javacopts", javac_options_to_flags(javac_options))
     args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
