@@ -70,10 +70,7 @@ load(
     "android_sdk_repository",
 )
 
-android_sdk_repository(
-    name = "androidsdk",
-    build_tools_version = versions.ANDROID.BUILD_TOOLS,  # versions > 30.0.3 do not have the dx.jar anymore.
-)
+android_sdk_repository(name = "androidsdk")
 
 http_archive(
     name = "robolectric",

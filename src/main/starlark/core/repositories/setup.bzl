@@ -58,10 +58,7 @@ def kt_configure():
 
     bazel_skylib_workspace()
 
-    android_sdk_repository(
-        name = "androidsdk",
-        build_tools_version = versions.ANDROID.BUILD_TOOLS,
-    )
+    android_sdk_repository(name = "androidsdk")
 
     [
         native.local_repository(
