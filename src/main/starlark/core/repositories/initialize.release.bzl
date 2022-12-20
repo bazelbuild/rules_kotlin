@@ -109,9 +109,6 @@ def kotlin_repositories(
             name = configured_repository_name,
             archive = Label("//:%s.tgz" % selected_version),
             parent = RULES_KOTLIN,
-            repo_mapping = {
-                "@io_bazel_rules_kotlin": "@%s" % RULES_KOTLIN.workspace_name,
-            },
         )
 
 def kotlinc_version(release, sha256):
