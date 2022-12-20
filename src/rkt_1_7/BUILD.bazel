@@ -1,4 +1,4 @@
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/release:packager.bzl", "release_archive")
+load("@io_bazel_rules_kotlin//src/main/starlark/release:packager.bzl", "release_archive")
 
 release_archive(
     name = "pkg",

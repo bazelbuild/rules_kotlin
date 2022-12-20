@@ -26,7 +26,7 @@ local_repository(
     path = "<path/to/rules_kotlin>",
 )
 
-load("@dev_io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 kt_download_local_dev_dependencies()
 
 To:

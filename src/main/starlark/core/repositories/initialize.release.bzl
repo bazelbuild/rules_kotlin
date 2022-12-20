@@ -110,7 +110,7 @@ def kotlin_repositories(
             archive = Label("//:%s.tgz" % selected_version),
             parent = RULES_KOTLIN,
             repo_mapping = {
-                "@dev_io_bazel_rules_kotlin": "@%s" % RULES_KOTLIN.workspace_name,
+                "@io_bazel_rules_kotlin": "@%s" % RULES_KOTLIN.workspace_name,
             },
         )
 

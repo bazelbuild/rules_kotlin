@@ -1,4 +1,4 @@
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "convert")
+load("@io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "convert")
 
 def _map_jvm_target_to_flag(version):
     if not version:

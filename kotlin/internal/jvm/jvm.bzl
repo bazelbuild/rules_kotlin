@@ -23,10 +23,10 @@ git_repository(
     remote = "https://github.com/bazelbuild/rules_kotlin.git",
     commit = "<COMMIT_HASH>",
 )
-load("@dev_io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories(kotlin_release_version = "1.4.0")
 
-load("@dev_io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 kt_register_toolchains()
 ```
 

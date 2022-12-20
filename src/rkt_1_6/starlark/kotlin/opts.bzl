@@ -1,4 +1,4 @@
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "convert")
+load("@io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "convert")
 
 def _map_optin_class_to_flag(values):
     return ["-opt-in=%s" % v for v in values]
