@@ -193,7 +193,7 @@ To attach debugger and step through native action code when using local checkout
 3. Locate the subcommand for the kotlin action you want to debug, let's say `KotlinCompile`. Note: If you don't see it, target rebuild may have been skipped (in this case `touch` one of the source .kt file to trigger rebuild).
 4. Export `REPOSITORY_NAME` as specified in action env, ex : `export REPOSITORY_NAME=io_bazel_rules_kotlin`
 5. Copy the command line, ex : `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/io_bazel_rules_kotlin/src/main/kotlin/build '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`
-6. Change directory into the [execRoot](https://bazel.build/remote/output-directories#layout-diagram), normally `bazel-MYPROJECT`.
+6. Change directory into the [execRoot](https://bazel.build/remote/output-directories#layout-diagram), normally `bazel-MYPROJECT`, available via `bazel info | grep execution_root`.
 7. Add `--debug=5005` to command line to make the action wait for a debugger to attach, ex: `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/io_bazel_rules_kotlin/src/main/kotlin/build --debug=5005 '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`. Note: if command invokes `java` toolchain directly, use `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` instead.
 8. You should see in output that action is waiting for debugger. Use a default `Remote JVM Debug` configuration in Android Studio, set breakpoint in kotlin action java/kt code, and attach debugger. Breakpoints should be hit.
 
