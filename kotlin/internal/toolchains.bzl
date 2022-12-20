@@ -268,10 +268,10 @@ def kt_register_toolchains():
 
 # Evaluating the select in the context of bzl file to get its repository
 _DEBUG_SELECT = select({
-    "//kotlin/internal:builder_debug_trace": ["trace"],
+    Label("//kotlin/internal:builder_debug_trace"): ["trace"],
     "//conditions:default": [],
 }) + select({
-    "//kotlin/internal:builder_debug_timings": ["timings"],
+    Label("//kotlin/internal:builder_debug_timings"): ["timings"],
     "//conditions:default": [],
 })
 
