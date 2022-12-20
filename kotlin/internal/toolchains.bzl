@@ -24,10 +24,6 @@ load(
     _KtJsInfo = "KtJsInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
-load(
-    "//src/main/starlark/core/repositories:tools.bzl",
-    "absolute_target",
-)
 
 """Kotlin Toolchains
 
@@ -264,9 +260,24 @@ _kt_toolchain = rule(
     provides = [platform_common.ToolchainInfo],
 )
 
+_KT_DEFAULT_TOOLCHAIN = Label("//kotlin/internal:default_toolchain")
+
 def kt_register_toolchains():
     """This macro registers the kotlin toolchain."""
-    native.register_toolchains(absolute_target("//kotlin/internal:default_toolchain"))
+    native.register_toolchains(_KT_DEFAULT_TOOLCHAIN)
+
+# Evaluating the select in the context of bzl file to get its repository
+_DEBUG_SELECT = select({
+    "//kotlin/internal:builder_debug_trace": ["trace"],
+    "//conditions:default": [],
+}) + select({
+    "//kotlin/internal:builder_debug_timings": ["timings"],
+    "//conditions:default": [],
+})
+
+# Evaluating the labels in the context of bzl file to get its repository
+_EXPERIMENTAL_USE_ABI_JARS = Label("//kotlin/internal:experimental_use_abi_jars")
+_NOEXPERIMENTAL_USE_ABI_JARS = Label("//kotlin/internal:noexperimental_use_abi_jars")
 
 def define_kt_toolchain(
         name,
@@ -289,18 +300,10 @@ def define_kt_toolchain(
         language_version = language_version,
         api_version = api_version,
         jvm_target = jvm_target,
-        debug =
-            select({
-                absolute_target("//kotlin/internal:builder_debug_trace"): ["trace"],
-                "//conditions:default": [],
-            }) +
-            select({
-                absolute_target("//kotlin/internal:builder_debug_timings"): ["timings"],
-                "//conditions:default": [],
-            }),
+        debug = _DEBUG_SELECT,
         experimental_use_abi_jars = select({
-            absolute_target("//kotlin/internal:experimental_use_abi_jars"): True,
-            absolute_target("//kotlin/internal:noexperimental_use_abi_jars"): False,
+            _EXPERIMENTAL_USE_ABI_JARS: True,
+            _NOEXPERIMENTAL_USE_ABI_JARS: False,
             "//conditions:default": experimental_use_abi_jars,
         }),
         experimental_multiplex_workers = experimental_multiplex_workers,

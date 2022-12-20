@@ -20,7 +20,6 @@ release_archive(
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "compiler.bzl",
         "configured_rules.bzl",
-        "tools.bzl",
         "versions.bzl",
     ],
     src_map = {
