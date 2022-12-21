@@ -89,7 +89,7 @@ kt_js_library = rule(
         ),
         "_toolchain": attr.label(
             doc = """The Kotlin JS Runtime.""",
-            default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-js"),
+            default = Label("//kotlin/compiler:kotlin-stdlib-js"),
             cfg = "target",
         ),
     },
@@ -104,11 +104,13 @@ kt_js_library = rule(
     provides = [_KtJsInfo],
 )
 
+_KOTLIN_STDLIB_JS = Label("//kotlin/compiler:kotlin-stdlib-js")
+
 def kt_js_library_macro(name, **kwargs):
     kwargs = _lock_attrs(name, kwargs)
 
     # TODO this is a runtime dep, it should be picked up from the _toolchain attr or from a provider.
-    kwargs["deps"] = kwargs.get("deps", []) + ["@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-js"]
+    kwargs["deps"] = kwargs.get("deps", []) + [_KOTLIN_STDLIB_JS]
     kt_js_library(name = name, **kwargs)
 
 kt_js_import = rule(
