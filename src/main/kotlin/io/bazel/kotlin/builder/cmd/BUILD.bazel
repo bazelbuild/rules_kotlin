@@ -15,11 +15,11 @@ kt_bootstrap_library(
 kt_bootstrap_binary(
     name = "build",
     data = [
+        "//kotlin/compiler:jvm-abi-gen",
+        "//kotlin/compiler:kotlin-compiler",
         "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "//kotlin/compiler:jvm-abi-gen",
-        "//kotlin/compiler:kotlin-compiler",
     ],
     jvm_flags = [
         "-D..kotlin.compiler.jvm-abi-gen=$(rootpath //kotlin/compiler:jvm-abi-gen)",

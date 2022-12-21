@@ -39,9 +39,9 @@ java_binary(
     data = [
         ":jdeps-gen",
         ":skip-code-gen",
-        "//src/main/kotlin/io/bazel/kotlin/compiler",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-compiler",
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
     ],
     jvm_flags = [
         "-D..kotlin.compiler.jvm-abi-gen=$(rootpath //kotlin/compiler:jvm-abi-gen)",
