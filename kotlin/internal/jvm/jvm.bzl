@@ -41,12 +41,12 @@ test --strategy=KotlinCompile=worker
 ### Standard Libraries
 
 The Kotlin libraries that are bundled in a kotlin release should be used with the rules, the mandatory standard libraries are added implicetly. After enabling
-the repository the following Kotlin Libraries are also made available from the workspace `com_github_jetbrains_kotlin`:
+the repository the following Kotlin Libraries are also made available from the package `//kotlin/compiler`:
 
 * `kotlin-test`,
 * `kotlin-reflect`.
 
-So if you needed to add reflect as a dep use the following label `@com_github_jetbrains_kotlin//:kotlin-reflect`.
+So if you needed to add reflect as a dep use the following label `@rules_kotlin//kotlin/compiler:kotlin-reflect`.
 
 ### Mixed Mode compilation
 
@@ -141,7 +141,7 @@ _implicit_deps = {
     "_toolchain": attr.label(
         doc = """The Kotlin JVM Runtime. it's only purpose is to enable the Android native rules to discover the Kotlin
         runtime for dexing""",
-        default = Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
+        default = Label("//kotlin/compiler:kotlin-stdlib"),
         cfg = "target",
     ),
     "_java_toolchain": attr.label(
@@ -335,7 +335,7 @@ Setup a simple kotlin_test.
 
 **Notes:**
 * The kotlin test library is not added implicitly, it is available with the label
-`@com_github_jetbrains_kotlin//:kotlin-test`.
+`@rules_kotlin//kotlin/compiler:kotlin-test`.
 """,
     attrs = utils.add_dicts(_runnable_common_attr, {
         "_bazel_test_runner": attr.label(
@@ -492,7 +492,7 @@ kt_compiler_plugin(
         "annotation": "plugin.OpenForTesting",
     },
     deps = [
-        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        "@rules_kotlin//kotlin/compiler:allopen-compiler-plugin",
     ],
 )
 

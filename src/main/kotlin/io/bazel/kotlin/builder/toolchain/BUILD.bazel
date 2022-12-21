@@ -19,8 +19,8 @@ kt_bootstrap_library(
         "*.kt",
     ]),
     neverlink_deps = [
-        "@com_github_jetbrains_kotlin//:jvm-abi-gen",
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
+        "//kotlin/compiler:jvm-abi-gen",
+        "//kotlin/compiler:kotlin-compiler",
     ],
     visibility = ["//src:__subpackages__"],
     deps = [
@@ -28,7 +28,7 @@ kt_bootstrap_library(
         "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen-lib",
         "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen-lib",
         "//src/main/protobuf:kotlin_model_java_proto",
-        "@com_github_jetbrains_kotlin//:kotlin-preloader",
+        "//kotlin/compiler:kotlin-preloader",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
