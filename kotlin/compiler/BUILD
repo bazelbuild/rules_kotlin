@@ -14,7 +14,7 @@
 load(":compiler.bzl", "kt_configure_compiler")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
-package(default_visibility = ["//:__subpackages__"])
+package(default_visibility = ["//visibility:public"])
 
 # Configures the compiler
 kt_configure_compiler()
