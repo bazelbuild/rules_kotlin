@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 load("//src/main/starlark/core/options:convert.bzl", "convert")
 load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 
@@ -140,14 +139,14 @@ _KOPTS_ALL = {
         },
     ),
     "x_no_optimized_callable_references": struct(
-        flag = "-Xno-optimized-callable-reference",
+        flag = "-Xno-optimized-callable-references",
         args = dict(
             default = False,
             doc = "Do not use optimized callable reference superclasses. Available from 1.4.",
         ),
         type = attr.bool,
         value_to_flag = {
-            True: ["-Xno-optimized-callable-reference"],
+            True: ["-Xno-optimized-callable-references"],
         },
     ),
     "x_explicit_api_mode": struct(
@@ -231,7 +230,20 @@ _KOPTS_ALL = {
         value_to_flag = None,
         map_value_to_flag = _map_optin_class_to_flag,
     ),
+    "x_use_fir": struct(
+        # 1.6
+        flag = "-Xuse-fir",
+        args = dict(
+            default = False,
+            doc = "Compile using the experimental Kotlin Front-end IR. Available from 1.6.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xuse-fir"],
+        },
+    ),
     "x_use_k2": struct(
+        # 1.7
         flag = "-Xuse-k2",
         args = dict(
             default = False,
@@ -254,6 +266,7 @@ _KOPTS_ALL = {
         },
     ),
     "x_backend_threads": struct(
+        # 1.6.20, 1.7
         flag = "-Xbackend-threads",
         args = dict(
             default = 1,
@@ -275,6 +288,7 @@ _KOPTS_ALL = {
         },
     ),
     "jvm_target": struct(
+        flag = "-jvm_target",
         args = dict(
             default = "",
             doc = "The -jvm_target flag. This is only tested at 1.8.",
