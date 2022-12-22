@@ -20,6 +20,7 @@ release_archive(
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "compiler.bzl",
         "versions.bzl",
+        "bzlmod_setup.bzl",
     ] + glob(["capabilities_*.bazel"]),
     src_map = {
         "initialize.release.bzl": "initialize.bzl",
