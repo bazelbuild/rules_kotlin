@@ -485,7 +485,7 @@ This macro registers the kotlin toolchain.
 ## kotlin_repositories
 
 <pre>
-kotlin_repositories(<a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>, <a href="#kotlin_repositories-configured_repository_name">configured_repository_name</a>)
+kotlin_repositories(<a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>)
 </pre>
 
 Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -497,6 +497,5 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | :------------- | :------------- | :------------- |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  <code>"com_github_jetbrains_kotlin"</code> |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  <code>struct()</code> |
-| <a id="kotlin_repositories-configured_repository_name"></a>configured_repository_name |  for the default versioned kt_* rules repository. If None, no versioned repository is created.   |  <code>"io_bazel_rules_kotlin_configured"</code> |
 
 
