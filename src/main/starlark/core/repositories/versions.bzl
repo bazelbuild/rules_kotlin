@@ -54,21 +54,6 @@ versions = struct(
     PYTHON = struct(
         VERSION = "0.2.0",
     ),
-    CORE = {
-        "rkt_1_7": struct(
-            prefix = "1.7",
-        ),
-        "rkt_1_6": struct(
-            prefix = "1.6",
-        ),
-        "rkt_1_5": struct(
-            prefix = "1.5",
-        ),
-        "rkt_1_4": struct(
-            prefix = "1.4",
-        ),
-        "legacy": None,
-    },
     # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
     RBE = struct(
         # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice

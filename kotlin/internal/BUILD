@@ -23,11 +23,9 @@ release_archive(
     name = "pkg",
     srcs = glob(
         ["*.bzl"],
-        exclude = ["opts.bzl"],
     ),
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
-        "opts.release.bzl": "opts.bzl",
     },
     deps = [
         "//kotlin/internal/js:pkg",
@@ -47,8 +45,5 @@ bzl_library(
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",
         "//src/main/starlark",
-    ] + [
-        "@%s//starlark" % v
-        for v in versions.CORE
     ],
 )
