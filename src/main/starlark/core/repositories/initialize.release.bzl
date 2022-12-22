@@ -47,6 +47,7 @@ def kotlin_repositories(
 
     kotlin_compiler_repository(
         name = compiler_repository_name,
+        kotlin_rules_repository = RULES_KOTLIN.workspace_name,
         urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
         sha256 = compiler_release.sha256,
     )

@@ -8,7 +8,7 @@ kt_compiler_plugin(
     id = "org.jetbrains.kotlin.parcelize",
     stubs_phase = True,
     deps = [
-        "@io_bazel_rules_kotlin//kotlin/compiler:parcelize-compiler-plugin",
+        "@com_github_jetbrains_kotlin//:parcelize-compiler-plugin",
     ],
 )
 
@@ -21,7 +21,7 @@ kt_jvm_library(
     ],
     visibility = ["//visibility:public"],
     exports = [
-        "@io_bazel_rules_kotlin//kotlin/compiler:parcelize-runtime",
+        "@com_github_jetbrains_kotlin//:parcelize-runtime",
     ],
 )
 
