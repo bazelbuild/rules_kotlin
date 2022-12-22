@@ -15,6 +15,7 @@
 load("@{{.KotlinRulesRepository}}//kotlin:jvm.bzl", "kt_jvm_import")
 load("@{{.KotlinRulesRepository}}//kotlin:js.bzl", "kt_js_import")
 load("@rules_java//java:defs.bzl", "java_import")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -121,3 +122,8 @@ kt_jvm_import(
         "stdlib-js",
     ]
 ]
+
+bzl_library(
+    name = "capabilities_bzl",
+    srcs = ["capabilities.bzl"],
+)
