@@ -14,7 +14,7 @@ kt_jvm_test(
     srcs = ["WriteWorkspaceTest.kt"],
     deps = [
         ":lib",
-        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "//kotlin/compiler:kotlin-test",
         "@kotlin_rules_maven//:com_google_truth_truth",
         "@kotlin_rules_maven//:junit_junit",
     ],
@@ -30,7 +30,7 @@ kt_jvm_test(
     test_class = "io.bazel.kotlin.integration.MixedSourceCompileTest",
     deps = [
         ":lib",
-        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "//kotlin/compiler:kotlin-test",
         "@kotlin_rules_maven//:com_google_truth_truth",
         "@kotlin_rules_maven//:junit_junit",
     ],

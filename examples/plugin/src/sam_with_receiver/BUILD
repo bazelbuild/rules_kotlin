@@ -11,7 +11,7 @@ kt_compiler_plugin(
     },
     stubs_phase = True,
     deps = [
-        "@com_github_jetbrains_kotlin//:sam-with-receiver-compiler-plugin",
+        "@io_bazel_rules_kotlin//kotlin/compiler:sam-with-receiver-compiler-plugin",
     ],
 )
 

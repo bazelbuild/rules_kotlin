@@ -18,10 +18,12 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//src:__subpackages__"],
     runtime_deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+        "//kotlin/compiler:kotlin-stdlib-jdk7",
+        "//kotlin/compiler:kotlin-stdlib-jdk8",
     ],
     deps = [
+        "//kotlin/compiler:annotations",
+        "//kotlin/compiler:kotlin-stdlib",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
         "//src/main/kotlin/io/bazel/kotlin/builder/utils",
@@ -30,8 +32,6 @@ java_library(
         "//src/main/protobuf:kotlin_model_java_proto",
         "//src/main/protobuf:worker_protocol_java_proto",
         "//third_party:dagger",
-        "@com_github_jetbrains_kotlin//:annotations",
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@kotlin_rules_maven//:javax_annotation_javax_annotation_api",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
     ],
