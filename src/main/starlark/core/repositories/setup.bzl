@@ -20,8 +20,29 @@ load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
+# Workaround for https://github.com/bazelbuild/rules_proto/commit/f371ed34ed7f1a8b83cc34ae96db277e0ba4fcb0
+load("@rules_proto//proto/private:dependencies.bzl", "maven_dependencies")
+load("@bazel_tools//tools/build_defs/repo:java.bzl", "java_import_external")
+
+CORRECTED_RULES_PROTO_SHAS = {
+    # bad -> good
+    "ad275e75ee79e6c6388198dcb9acf0db2edee64782e11b508f379c3a2a17d168": "51febfb24af6faa7eb729c880b8ba011cbab8ce55920656a450740b73d343ee2",
+    "0b16133638b1455bea3449c002c7769c75962007d55e9a39c0bed55128da7f70": "34dc0c5bc98416e95a28b3b18caf74816eaa083b2f9c5702b2300a3763970c7b",
+}
+
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
+
+    # workaround for https://github.com/bazelbuild/rules_proto/commit/f371ed34ed7f1a8b83cc34ae96db277e0ba4fcb0
+    for (name, arguments) in maven_dependencies.items():
+        java_import_external(
+            name = name,
+            **{
+                n: CORRECTED_RULES_PROTO_SHAS.get(str(a), a)
+                for n, a in arguments.items()
+            }
+        )
+
     maven_install(
         name = "kotlin_rules_maven",
         fetch_sources = True,
