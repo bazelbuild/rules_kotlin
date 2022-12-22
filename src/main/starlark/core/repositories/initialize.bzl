@@ -35,5 +35,4 @@ def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELE
     kt_configure()
     _release_kotlin_repositories(
         compiler_release = compiler_release,
-        configured_repository_name = None,
     )

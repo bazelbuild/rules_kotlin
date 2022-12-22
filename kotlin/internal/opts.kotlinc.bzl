@@ -1,4 +1,19 @@
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "convert")
+# Copyright 2022 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("//src/main/starlark/core/options:convert.bzl", "convert")
+load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 
 def _map_optin_class_to_flag(values):
     return ["-opt-in=%s" % v for v in values]
@@ -13,7 +28,7 @@ def _map_jvm_target_to_flag(version):
         return None
     return ["-jvm-target=%s" % version]
 
-_KOPTS = {
+_KOPTS_ALL = {
     "warn": struct(
         args = dict(
             default = "report",
@@ -41,6 +56,7 @@ _KOPTS = {
         },
     ),
     "x_skip_prerelease_check": struct(
+        flag = "-Xskip-prerelease-check",
         args = dict(
             default = False,
             doc = "Suppress errors thrown when using pre-release classes.",
@@ -51,6 +67,7 @@ _KOPTS = {
         },
     ),
     "x_inline_classes": struct(
+        flag = "-Xinline-classes",
         args = dict(
             default = False,
             doc = "Enable experimental inline classes",
@@ -61,6 +78,7 @@ _KOPTS = {
         },
     ),
     "x_allow_result_return_type": struct(
+        flag = "-Xallow-result-return-type",
         args = dict(
             default = False,
             doc = "Enable kotlin.Result as a return type",
@@ -71,6 +89,7 @@ _KOPTS = {
         },
     ),
     "x_jvm_default": struct(
+        flag = "-Xjvm-default",
         args = dict(
             default = "off",
             doc = "Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.",
@@ -87,6 +106,7 @@ _KOPTS = {
         },
     ),
     "x_no_call_assertions": struct(
+        flag = "-Xno-call-assertions",
         args = dict(
             default = False,
             doc = "Don't generate not-null assertions for arguments of platform types",
@@ -97,6 +117,7 @@ _KOPTS = {
         },
     ),
     "x_no_param_assertions": struct(
+        flag = "-Xno-param-assertions",
         args = dict(
             default = False,
             doc = "Don't generate not-null assertions on parameters of methods accessible from Java",
@@ -107,6 +128,7 @@ _KOPTS = {
         },
     ),
     "x_no_receiver_assertions": struct(
+        flag = "-Xno-receiver-assertions",
         args = dict(
             default = False,
             doc = "Don't generate not-null assertion for extension receiver arguments of platform types",
@@ -117,16 +139,18 @@ _KOPTS = {
         },
     ),
     "x_no_optimized_callable_references": struct(
+        flag = "-Xno-optimized-callable-references",
         args = dict(
             default = False,
             doc = "Do not use optimized callable reference superclasses. Available from 1.4.",
         ),
         type = attr.bool,
         value_to_flag = {
-            True: ["-Xno-optimized-callable-reference"],
+            True: ["-Xno-optimized-callable-references"],
         },
     ),
     "x_explicit_api_mode": struct(
+        flag = "-Xexplicit-api",
         args = dict(
             default = "off",
             doc = "Enable explicit API mode for Kotlin libraries.",
@@ -150,6 +174,7 @@ _KOPTS = {
         },
     ),
     "x_multi_platform": struct(
+        flag = "-Xmulti-platform",
         args = dict(
             default = False,
             doc = "Enable experimental language support for multi-platform projects",
@@ -159,17 +184,8 @@ _KOPTS = {
             True: ["-Xmulti-platform"],
         },
     ),
-    "x_emit_jvm_type_annotations": struct(
-        args = dict(
-            default = False,
-            doc = "Basic support for type annotations in JVM bytecode.",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xemit-jvm-type-annotations"],
-        },
-    ),
     "x_sam_conversions": struct(
+        flag = "-Xsam-conversions",
         args = dict(
             default = "class",
             doc = "Change codegen behavior of SAM/functional interfaces",
@@ -182,6 +198,7 @@ _KOPTS = {
         },
     ),
     "x_lambdas": struct(
+        flag = "-Xlambdas",
         args = dict(
             default = "class",
             doc = "Change codegen behavior of lambdas",
@@ -191,6 +208,17 @@ _KOPTS = {
         value_to_flag = {
             "class": ["-Xlambdas=class"],
             "indy": ["-Xlambdas=indy"],
+        },
+    ),
+    "x_emit_jvm_type_annotations": struct(
+        flag = "-Xemit-jvm-type-annotations",
+        args = dict(
+            default = False,
+            doc = "Basic support for type annotations in JVM bytecode.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xemit-jvm-type-annotations"],
         },
     ),
     "x_optin": struct(
@@ -203,6 +231,8 @@ _KOPTS = {
         map_value_to_flag = _map_optin_class_to_flag,
     ),
     "x_use_fir": struct(
+        # 1.6
+        flag = "-Xuse-fir",
         args = dict(
             default = False,
             doc = "Compile using the experimental Kotlin Front-end IR. Available from 1.6.",
@@ -212,7 +242,20 @@ _KOPTS = {
             True: ["-Xuse-fir"],
         },
     ),
+    "x_use_k2": struct(
+        # 1.7
+        flag = "-Xuse-k2",
+        args = dict(
+            default = False,
+            doc = "Compile using experimental K2. K2 is a new compiler pipeline, no compatibility guarantees are yet provided",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xuse-k2"],
+        },
+    ),
     "x_no_optimize": struct(
+        flag = "-Xno-optimize",
         args = dict(
             default = False,
             doc = "Disable optimizations",
@@ -223,6 +266,8 @@ _KOPTS = {
         },
     ),
     "x_backend_threads": struct(
+        # 1.6.20, 1.7
+        flag = "-Xbackend-threads",
         args = dict(
             default = 1,
             doc = "When using the IR backend, run lowerings by file in N parallel threads. 0 means use a thread per processor core. Default value is 1.",
@@ -232,6 +277,7 @@ _KOPTS = {
         map_value_to_flag = _map_backend_threads_to_flag,
     ),
     "x_report_perf": struct(
+        flag = "-Xreport-perf",
         args = dict(
             default = False,
             doc = "Report detailed performance statistics",
@@ -252,6 +298,9 @@ _KOPTS = {
         map_value_to_flag = _map_jvm_target_to_flag,
     ),
 }
+
+# Filters out options that are not available in current compiler release
+_KOPTS = {attr: defn for (attr, defn) in _KOPTS_ALL.items() if not hasattr(defn, "flag") or defn.flag in _KOTLIN_OPTS}
 
 KotlincOptions = provider(
     fields = {
@@ -282,4 +331,4 @@ def kotlinc_options_to_flags(kotlinc_options):
     Returns:
         list of flags to add to the command line.
     """
-    return convert.kotlinc_options_to_flags(_KOPTS, kotlinc_options)
+    return convert.javac_options_to_flags(_KOPTS, kotlinc_options)

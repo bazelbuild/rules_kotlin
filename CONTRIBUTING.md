@@ -57,18 +57,6 @@ The `rules_kotlin` runtime is comprised of multiple repositories. The end user w
 versioned feature sub-repositories. Currently, the delegation is managed by using well known names (e.g. core lives in `@io_bazel_rules_kotlin_configured`),
 a necessity while the initial repository can be named arbitrarily. Future development intends to remove this restriction.
 
-### Versioning
-
-To cope with API churn, the release archive can configure different rule attributes for depending on the chosen kotlin version.
- Each major release of kotlin (1.4, 1.5) has a specific sub-repository under [src/main/starlark](src/main/starlark). The naming convention for these
-  is `rkt_<major>_<minor>` ([r]elease [k]o[t]lin).
-
-The version is selected by the [kotlin_repositories](src/main/starlark/repositories/initialize.release.bzl) rule during initialization. 
-New versions of kotlin that change the API should be added to [versions.bzl](src/main/starlark/repositories/versions.bzl), under `CORE` following the 
-existing naming convention.
-
-Multiple versions of kotlin are not currently handled.(_help wanted_)
-
 ## Idioms and Styles
 TBD
 
