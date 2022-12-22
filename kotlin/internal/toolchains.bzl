@@ -268,16 +268,16 @@ def kt_register_toolchains():
 
 # Evaluating the select in the context of bzl file to get its repository
 _DEBUG_SELECT = select({
-    Label("//kotlin/internal:builder_debug_trace"): ["trace"],
+    str(Label("//kotlin/internal:builder_debug_trace")): ["trace"],
     "//conditions:default": [],
 }) + select({
-    Label("//kotlin/internal:builder_debug_timings"): ["timings"],
+    str(Label("//kotlin/internal:builder_debug_timings")): ["timings"],
     "//conditions:default": [],
 })
 
 # Evaluating the labels in the context of bzl file to get its repository
-_EXPERIMENTAL_USE_ABI_JARS = Label("//kotlin/internal:experimental_use_abi_jars")
-_NOEXPERIMENTAL_USE_ABI_JARS = Label("//kotlin/internal:noexperimental_use_abi_jars")
+_EXPERIMENTAL_USE_ABI_JARS = str(Label("//kotlin/internal:experimental_use_abi_jars"))
+_NOEXPERIMENTAL_USE_ABI_JARS = str(Label("//kotlin/internal:noexperimental_use_abi_jars"))
 
 def define_kt_toolchain(
         name,
