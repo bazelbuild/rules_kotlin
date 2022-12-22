@@ -288,7 +288,6 @@ _KOPTS_ALL = {
         },
     ),
     "jvm_target": struct(
-        flag = "-jvm_target",
         args = dict(
             default = "",
             doc = "The -jvm_target flag. This is only tested at 1.8.",

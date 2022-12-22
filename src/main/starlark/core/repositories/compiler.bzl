@@ -26,17 +26,19 @@ def _kotlin_compiler_impl(repository_ctx):
     )
 
 def _get_capability_template(compiler_version, templates):
-        for ver,template in zip(_CAPABILITIES_TEMPLATES.keys(), templates):
-            if compiler_version.startswith(ver):
-                return template
-        # After latest version
-        if compiler_version > _CAPABILITIES_TEMPLATES.keys()[-1]:
-            templates[-1]
-        # Legacy
-        return templates[0]
+    for ver, template in zip(_CAPABILITIES_TEMPLATES.keys(), templates):
+        if compiler_version.startswith(ver):
+            return template
+
+    # After latest version
+    if compiler_version > _CAPABILITIES_TEMPLATES.keys()[-1]:
+        templates[-1]
+
+    # Legacy
+    return templates[0]
 
 _CAPABILITIES_TEMPLATES = {
-    "legacy": ":capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel", # keep first
+    "legacy": ":capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel",  # keep first
     "1.4": ":capabilities_1.4.bzl.com_github_jetbrains_kotlin.bazel",
     "1.5": ":capabilities_1.5.bzl.com_github_jetbrains_kotlin.bazel",
     "1.6": ":capabilities_1.6.bzl.com_github_jetbrains_kotlin.bazel",
@@ -66,7 +68,7 @@ kotlin_compiler_repository = repository_rule(
         ),
         "_capabilities_templates": attr.label_list(
             doc = "compiler capabilities file templates",
-            default =  _CAPABILITIES_TEMPLATES.values(),
+            default = _CAPABILITIES_TEMPLATES.values(),
         ),
     },
 )

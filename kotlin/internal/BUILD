@@ -44,6 +44,6 @@ bzl_library(
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",
         "//src/main/starlark",
-        "@com_github_jetbrains_kotlin//:capabilities_bzl"
+        "@com_github_jetbrains_kotlin//:capabilities_bzl",
     ],
 )
