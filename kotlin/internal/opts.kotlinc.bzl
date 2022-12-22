@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "convert")
+load("//src/main/starlark/core/options:convert.bzl", "convert")
 load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 
 def _map_optin_class_to_flag(values):

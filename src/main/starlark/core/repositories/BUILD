@@ -19,9 +19,8 @@ release_archive(
     srcs = [
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "compiler.bzl",
-        "configured_rules.bzl",
         "versions.bzl",
-    ],
+    ] + glob(["capabilities_*.bazel"]),
     src_map = {
         "initialize.release.bzl": "initialize.bzl",
         "BUILD.release.bazel": "BUILD.bazel",

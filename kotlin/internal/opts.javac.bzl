@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:derive.bzl", "derive")
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:convert.bzl", "convert")
+load("//src/main/starlark/core/options:derive.bzl", "derive")
+load("//src/main/starlark/core/options:convert.bzl", "convert")
 
 _JOPTS = {
     "warn": struct(
