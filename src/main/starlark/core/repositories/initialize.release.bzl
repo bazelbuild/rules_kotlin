@@ -77,18 +77,10 @@ def kotlin_repositories(
         urls = versions.ANDROID.URLS,
     )
 
-    maybe(
-        http_archive,
+    versions.use_repository(
         name = "rules_python",
-        sha256 = "778197e26c5fbeb07ac2a2c5ae405b30f6cb7ad1f5510ea6fdac03bded96cc6f",
-        urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/{version}/rules_python-{version}.tar.gz".format(
-                version = versions.PYTHON.VERSION,
-            ),
-            "https://github.com/bazelbuild/rules_python/releases/download/{version}/rules_python-{version}.tar.gz".format(
-                version = versions.PYTHON.VERSION,
-            ),
-        ],
+        rule = http_archive,
+        version = versions.RULES_PYTHON,
     )
 
     # See note in versions.bzl before updating bazel_skylib
