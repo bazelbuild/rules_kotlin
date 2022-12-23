@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(":compiler.bzl", "kotlin_compiler_repository")
-load(":versions.bzl", "version", "versions")
+load(":versions.bzl", "versions")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
