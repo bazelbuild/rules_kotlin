@@ -18,9 +18,19 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
-    "empty.jar",
     "empty.jdeps",
 ])
+
+genrule(
+    name = "empty",
+    srcs = [
+        "empty-definately-not-binary-jar.txt",
+    ],
+    outs = [
+        "empty.jar",
+    ],
+    cmd = "cp $(location empty-definately-not-binary-jar.txt) $@",
+)
 
 java_plugin(
     name = "autovalue_plugin",

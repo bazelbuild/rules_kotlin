@@ -43,9 +43,7 @@ java_library(
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
     ],
-    exports = _COMMON_DEPS + [
-        "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
-    ],
+    exports = _COMMON_DEPS,
     runtime_deps = [
         "@bazel_tools//tools/jdk:JacocoCoverage",
         "@com_github_jetbrains_kotlin//:kotlin-reflect",
