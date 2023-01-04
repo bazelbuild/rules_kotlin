@@ -23,13 +23,13 @@ exports_files([
 
 genrule(
     name = "empty",
-    cmd = "cp $(location empty-definately-not-binary-jar.txt) $@",
     srcs = [
-      "empty-definately-not-binary-jar.txt"
+        "empty-definately-not-binary-jar.txt",
     ],
     outs = [
-        "empty.jar"
-    ]
+        "empty.jar",
+    ],
+    cmd = "cp $(location empty-definately-not-binary-jar.txt) $@",
 )
 
 java_plugin(
