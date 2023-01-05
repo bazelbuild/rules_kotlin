@@ -23,6 +23,6 @@ public class KotlinBuilderJsTest {
                 () ->
                         builder.runCompilationTask(
                                 it -> it.addSource("AClass.kt", "package something", "class AClass{")),
-                lines -> assertThat(lines.get(0)).startsWith(builder.toPlatform("sources/AClass.kt")));
+                lines -> assertThat(lines).contains(builder.toPlatform("sources/AClass.kt:2:14: error: missing '}")));
     }
 }
