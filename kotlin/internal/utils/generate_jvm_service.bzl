@@ -43,7 +43,7 @@ def _generate_jvm_service_impl(ctx):
         inputs = zipper_inputs,
         outputs = [jar],
         arguments = [zipper_args],
-        progress_message = "JVM service info jar for %s" % ctx.label,
+        progress_message = "JVM service info jar for %%{label}",
     )
     return struct(
         providers = [

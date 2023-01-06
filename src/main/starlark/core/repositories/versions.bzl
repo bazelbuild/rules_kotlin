@@ -1,11 +1,23 @@
 # All versions for development and release
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+
 version = provider(
     fields = {
         "url_templates": "list of string templates with the placeholder {version}",
         "version": "the version in the form \\D+.\\D+.\\D+(.*)",
         "sha256": "sha256 checksum for the version being downloaded.",
+        "strip_prefix_template": "string template with the placeholder {version}.",
     },
 )
+
+def _use_repository(name, version, rule, **kwargs):
+    http_archive_arguments = dict(kwargs)
+    http_archive_arguments["sha256"] = version.sha256
+    http_archive_arguments["urls"] = [u.format(version = version.version) for u in version.url_templates]
+    if (hasattr(version, "strip_prefix_template")):
+        http_archive_arguments["strip_prefix"] = version.strip_prefix_template.format(version = version.version)
+
+    maybe(rule, name = name, **http_archive_arguments)
 
 versions = struct(
     RULES_NODEJS_VERSION = "5.5.3",
@@ -25,35 +37,39 @@ versions = struct(
     PROTOBUF_SHA = "cf754718b0aa945b00550ed7962ddc167167bd922b842199eeb6505e6f344852",
     BAZEL_DEPS_VERSION = "0.1.0",
     BAZEL_DEPS_SHA = "05498224710808be9687f5b9a906d11dd29ad592020246d4cd1a26eeaed0735e",
-    RULES_JVM_EXTERNAL_TAG = "4.2",
-    RULES_JVM_EXTERNAL_SHA = "cd1a77b7b02e8e008439ca76fd34f5b07aecb8c752961f9640dea15e9e5ba1ca",
-    RULES_PROTO_GIT_COMMIT = "f6b8d89b90a7956f6782a4a3609b2f0eee3ce965",
-    RULES_PROTO_SHA = "4d421d51f9ecfe9bf96ab23b55c6f2b809cbaf0eea24952683e397decfbd0dd0",
+    RULES_JVM_EXTERNAL_TAG = "4.4.2",
+    RULES_JVM_EXTERNAL_SHA = "735602f50813eb2ea93ca3f5e43b1959bd80b213b836a07a62a29d757670b77b",
+    RULES_PROTO = version(
+        version = "5.3.0-21.5",
+        sha256 = "80d3a4ec17354cccc898bfe32118edd934f851b03029d63ef3fc7c8663a7415c",
+        strip_prefix_template = "rules_proto-{version}",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_proto/archive/refs/tags/{version}.tar.gz",
+        ],
+    ),
+    MAVEN_PROTO_FIX_GIT_COMMIT = "fcad4680fee127dbd8344e6a961a28eef5820ef4",
+    MAVEN_PROTO_FIX_SHA = "36476f17a78a4c495b9a9e70bd92d182e6e78db476d90c74bac1f5f19f0d6d04",
     IO_BAZEL_STARDOC_VERSION = "0.5.1",
     IO_BAZEL_STARDOC_SHA = "5bcd62378fc5ea87936169b49245d0595c690bde41ef695ce319752cc9929c34",
     BAZEL_JAVA_LAUNCHER_VERSION = "5.0.0",
     PINTEREST_KTLINT = version(
-        version = "0.47.1",
+        version = "0.48.0",
         url_templates = [
             "https://github.com/pinterest/ktlint/releases/download/{version}/ktlint",
         ],
-        sha256 = "a333ad0172369a5cd973aea83e02e8b698c06a2daac6f32925da03049aa3dce7",
+        sha256 = "5f6412986b351cc569baa6cfde2e8ff8bc527a7bc15af4fe5a49cfd76b73b569",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.7.20",
+        version = "1.7.22",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "5e3c8d0f965410ff12e90d6f8dc5df2fc09fd595a684d514616851ce7e94ae7d",
+        sha256 = "9db4b467743c1aea8a21c08e1c286bc2aeb93f14c7ba2037dbd8f48adc357d83",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
         SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
         URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
-        BUILD_TOOLS = "30.0.3",
-    ),
-    PYTHON = struct(
-        VERSION = "0.2.0",
     ),
     CORE = {
         "rkt_1_7": struct(
@@ -76,4 +92,21 @@ versions = struct(
         # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
         URLS = ["https://storage.googleapis.com/rbe-toolchain/bazel-configs/rbe-ubuntu1604/latest/rbe_default.tar"],
     ),
+    PKG = version(
+        version = "0.7.0",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_pkg/releases/download/{version}/rules_pkg-{version}.tar.gz",
+        ],
+        sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
+    ),
+    # needed for rules_pkg and java
+    RULES_PYTHON = version(
+        version = "0.16.1",
+        strip_prefix_template = "rules_python-{version}",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_python/archive/refs/tags/{version}.tar.gz",
+        ],
+        sha256 = "497ca47374f48c8b067d786b512ac10a276211810f4a580178ee9b9ad139323a",
+    ),
+    use_repository = _use_repository,
 )

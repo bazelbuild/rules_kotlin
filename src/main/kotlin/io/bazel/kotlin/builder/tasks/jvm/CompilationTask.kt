@@ -179,9 +179,9 @@ internal fun JvmCompilationTask.runPlugins(
   compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
   if ((
-    inputs.processorsList.isEmpty() &&
-      inputs.stubsPluginClasspathList.isEmpty()
-    ) ||
+      inputs.processorsList.isEmpty() &&
+        inputs.stubsPluginClasspathList.isEmpty()
+      ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this

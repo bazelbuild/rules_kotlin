@@ -29,10 +29,7 @@ load(
     "android_sdk_repository",
 )
 
-android_sdk_repository(
-    name = "androidsdk",
-    build_tools_version = versions.ANDROID.BUILD_TOOLS,
-)
+android_sdk_repository(name = "androidsdk")
 
 # Skylib, for build_test, so don't bother initializing the unit test infrastructure.
 http_archive(
@@ -45,8 +42,8 @@ http_archive(
 
 http_archive(
     name = "rules_pkg",
-    sha256 = "4ba8f4ab0ff85f2484287ab06c0d871dcb31cc54d439457d28fd4ae14b18450a",
-    url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.2.4/rules_pkg-0.2.4.tar.gz",
+    sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
+    url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
 )
 
 http_archive(
@@ -60,11 +57,11 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
-        "com.google.dagger:dagger:2.43.2",
-        "com.google.dagger:dagger-compiler:2.43.2",
-        "com.google.dagger:dagger-producers:2.43.2",
-        "com.squareup.anvil:compiler:2.4.1",
-        "com.squareup.anvil:annotations:2.4.1",
+        "com.google.dagger:dagger:2.44.2",
+        "com.google.dagger:dagger-compiler:2.44.2",
+        "com.google.dagger:dagger-producers:2.44.2",
+        "com.squareup.anvil:compiler:2.4.3",
+        "com.squareup.anvil:annotations:2.4.3",
         "androidx.activity:activity:1.0.0",
         "androidx.annotation:annotation:1.1.0",
         "androidx.appcompat:appcompat-resources:1.1.0",

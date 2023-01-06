@@ -46,12 +46,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
 
   val ctx = KotlinJvmTestBuilder()
 
-  val TEST_FIXTURES_DEP = Dep.importJar(
-    "testFixtures",
-    BazelRunFiles.resolveVerified(
-      "dev_io_bazel_rules_kotlin", "src", "test", "kotlin", "io", "bazel", "kotlin", "builder", "tasks", "libJdepsParserTestFixtures.jar"
-    )
-  )
+  val TEST_FIXTURES_DEP = Dep.fromLabel(":JdepsParserTestFixtures")
 
   @Test
   fun `no kotlin source produces empty jdeps`() {

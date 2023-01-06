@@ -383,14 +383,14 @@ class JdepsGenExtension(
         """
         $open ** Please add the following dependencies:$close
         ${
-        missingStrictDeps.map { it.label ?: it.jar }.joinToString(" ")
+          missingStrictDeps.map { it.label ?: it.jar }.joinToString(" ")
         } to $targetLabel
         """
 
       if (missingStrictLabels.isNotEmpty()) {
         command += """$open ** You can use the following buildozer command:$close
         buildozer 'add deps ${
-        missingStrictLabels.joinToString(" ")
+          missingStrictLabels.joinToString(" ")
         }' $targetLabel
         """
       }

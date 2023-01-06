@@ -55,25 +55,10 @@ maven_install(
         "androidx.compose.compiler:compiler:{}".format(_COMPOSE_COMPILER_VERSION),
         "androidx.compose.runtime:runtime:{}".format(_COMPOSE_VERSION),
     ],
-    override_targets = {
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": "@//:kotlinx_coroutines_core_jvm",
-    },
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
-)
-
-# Secondary maven repository used mainly for workarounds
-maven_install(
-    name = "maven_secondary",
-    artifacts = [
-        # Workaround to add missing 'sun.misc' dependencies to 'kotlinx-coroutines-core-jvm' artifact
-        # Check root BUILD file and 'override_targets' arg of a primary 'maven_install'
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3",
-    ],
-    fetch_sources = True,
-    repositories = ["https://repo1.maven.org/maven2"],
 )
 
 http_archive(
@@ -96,8 +81,4 @@ http_archive(
 
 load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
 
-android_sdk_repository(
-    name = "androidsdk",
-    api_level = 31,
-    build_tools_version = versions.ANDROID.BUILD_TOOLS,  # versions > 30.0.3 do not have the dx.jar anymore.
-)
+android_sdk_repository(name = "androidsdk")

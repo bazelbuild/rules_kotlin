@@ -22,16 +22,6 @@ def kt_download_local_dev_dependencies():
 
     Must be called before setup_dependencies in the versions.WORKSPACE.
     """
-    maybe(
-        http_archive,
-        name = "com_google_protobuf",
-        sha256 = versions.PROTOBUF_SHA,
-        strip_prefix = "protobuf-%s" % versions.PROTOBUF_VERSION,
-        urls = [
-            "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
-            "https://github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
-        ],
-    )
 
     # bazel_skylib is initialized twice during developement. This is intentional, as development
     # needs to be able to run the starlark unittests, while production does not.
@@ -83,11 +73,10 @@ def kt_download_local_dev_dependencies():
         url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % versions.RULES_JVM_EXTERNAL_TAG,
     )
 
-    maybe(
-        http_archive,
+    versions.use_repository(
         name = "rules_pkg",
-        url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.2.4/rules_pkg-0.2.4.tar.gz",
-        sha256 = "4ba8f4ab0ff85f2484287ab06c0d871dcb31cc54d439457d28fd4ae14b18450a",
+        rule = http_archive,
+        version = versions.PKG,
     )
 
     maybe(
@@ -108,14 +97,10 @@ def kt_download_local_dev_dependencies():
         ],
     )
 
-    rules_stardoc_repository(
+    versions.use_repository(
         name = "rules_proto",
-        sha256 = versions.RULES_PROTO_SHA,
-        strip_prefix = "rules_proto-%s" % versions.RULES_PROTO_GIT_COMMIT,
-        urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % versions.RULES_PROTO_GIT_COMMIT,
-            "https://github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % versions.RULES_PROTO_GIT_COMMIT,
-        ],
+        version = versions.RULES_PROTO,
+        rule = rules_stardoc_repository,
         starlark_packages = [
             "proto",
             "proto/private",

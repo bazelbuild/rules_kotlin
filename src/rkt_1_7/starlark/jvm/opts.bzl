@@ -89,7 +89,4 @@ def javac_options_to_flags(javac_options):
     Returns:
         list of flags to add to the command line.
     """
-    if not javac_options:
-        return ""
-
     return convert.javac_options_to_flags(_JOPTS, javac_options)
