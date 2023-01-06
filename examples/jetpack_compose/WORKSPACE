@@ -1,12 +1,12 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-_COMPOSE_VERSION = "1.2.1"
+_COMPOSE_VERSION = "1.4.0-alpha03"
 
-_COMPOSE_COMPILER_VERSION = "1.3.2"
+_COMPOSE_COMPILER_VERSION = "1.4.0-alpha02"
 
-_KOTLIN_COMPILER_VERSION = "1.7.20"
+_KOTLIN_COMPILER_VERSION = "1.7.21"
 
-_KOTLIN_COMPILER_SHA = "5e3c8d0f965410ff12e90d6f8dc5df2fc09fd595a684d514616851ce7e94ae7d"
+_KOTLIN_COMPILER_SHA = "9db4b467743c1aea8a21c08e1c286bc2aeb93f14c7ba2037dbd8f48adc357d83"
 
 # Setup Kotlin
 
