@@ -191,8 +191,7 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
         outputs = [output_jar],
         executable = toolchains.java.single_jar,
         arguments = [args],
-        progress_message = "Merging Kotlin output jar %s%s from %d inputs" % (
-            ctx.label,
+        progress_message = "Merging Kotlin output jar %%{label}%s from %d inputs" % (
             "" if not action_type else " (%s)" % action_type,
             len(input_jars),
         ),
@@ -230,7 +229,7 @@ def _build_resourcejar_action(ctx):
             resources_jar_output = resources_jar_output.path,
             zipper = ctx.executable._zipper.path,
         ),
-        progress_message = "Creating intermediate resource jar %s" % ctx.label,
+        progress_message = "Creating intermediate resource jar %{label}",
     )
     return resources_jar_output
 
@@ -249,9 +248,8 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     args.add("--report_unused_deps", toolchains.kt.experimental_report_unused_deps)
 
     mnemonic = "JdepsMerge"
-    progress_message = "%s %s { jdeps: %d }" % (
+    progress_message = "%s %%{label} { jdeps: %d }" % (
         mnemonic,
-        ctx.label,
         len(jdeps),
     )
 
@@ -421,9 +419,8 @@ def _run_kt_builder_action(
 
     args.add("--build_kotlin", build_kotlin)
 
-    progress_message = "%s %s { kt: %d, java: %d, srcjars: %d } for %s" % (
+    progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
         mnemonic,
-        ctx.label,
         len(srcs.kt),
         len(srcs.java),
         len(srcs.src_jars),

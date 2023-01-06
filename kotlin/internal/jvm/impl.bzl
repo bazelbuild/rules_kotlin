@@ -363,7 +363,6 @@ def _deshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         jarjar_action(
             actions = ctx.actions,
             jarjar = ctx.executable._jarjar,
-            label = ctx.label,
             rules = ctx.file._jetbrains_deshade_rules,
             input = jar,
             output = ctx.actions.declare_file(
