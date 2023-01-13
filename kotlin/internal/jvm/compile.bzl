@@ -746,9 +746,10 @@ def _run_kt_java_builder_actions(
 
     annotation_processing = None
     if annotation_processors:
+        jars_list = [java_info.outputs.jars for java_info in java_infos]
         annotation_processing = _create_annotation_processing(
             annotation_processors = annotation_processors,
-            ap_class_jar = [jars.class_jar for jars in [java_info.outputs.jars for java_info in java_infos]][0],
+            ap_class_jar = [jars.class_jar for jars in jars_list][0],
             ap_source_jar = ap_generated_src_jar,
         )
 
