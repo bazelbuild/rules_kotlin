@@ -96,7 +96,7 @@ def kotlin_repositories(
         if (criteria and compiler_release.version.startswith(criteria.prefix)) or (not selected_version and not criteria):
             selected_version = version
 
-    if configured_repository_name:  # without a repository name, no default kt_* rules repository is created.
+    if configured_repository_name != "":  # without a repository name, no default kt_* rules repository is created.
         rules_repository(
             name = configured_repository_name,
             archive = Label("//:%s.tgz" % selected_version),
