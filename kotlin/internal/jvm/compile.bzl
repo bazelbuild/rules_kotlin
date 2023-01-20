@@ -420,6 +420,7 @@ def _run_kt_builder_action(
     )
 
     args.add("--build_kotlin", build_kotlin)
+    args.add("--build_using_kapt", build_using_kapt)
 
     progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
         mnemonic,
@@ -664,6 +665,7 @@ def _run_kt_java_builder_actions(
             plugins = plugins,
             outputs = outputs,
             build_kotlin = True,
+            build_using_kapt = False,
             mnemonic = "KotlinCompile",
         )
 
