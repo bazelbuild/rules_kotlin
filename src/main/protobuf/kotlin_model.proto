@@ -164,6 +164,7 @@ message JvmCompilationTask {
   Inputs inputs = 4;
   bool compile_kotlin = 6;
   bool instrument_coverage = 7;
+  bool compile_with_kapt = 8;
 }
 
 message JsCompilationTask {

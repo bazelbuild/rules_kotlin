@@ -311,6 +311,7 @@ def _run_kapt_builder_actions(
             "kapt_generated_class_jar": kapt_generated_class_jar,
         },
         build_kotlin = False,
+        build_using_kapt = True,
         mnemonic = "KotlinKapt",
     )
 
@@ -334,6 +335,7 @@ def _run_kt_builder_action(
         plugins,
         outputs,
         build_kotlin = True,
+        build_using_kapt = False,
         mnemonic = "KotlinCompile"):
     """Creates a KotlinBuilder action invocation."""
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
