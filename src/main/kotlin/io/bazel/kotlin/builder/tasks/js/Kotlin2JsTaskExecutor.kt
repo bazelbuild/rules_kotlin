@@ -50,6 +50,7 @@ class Kotlin2JsTaskExecutor @Inject constructor(
       it.addAll(passThroughFlagsList)
       it.addAll("-libraries", inputs.librariesList.joinToString(":"))
       it.addAll("-output", outputs.js)
+      it.addAll("-Xuse-deprecated-legacy-compiler")
       it.addAll(inputs.kotlinSourcesList)
     }
     context.whenTracing { printLines("js compile args", args) }

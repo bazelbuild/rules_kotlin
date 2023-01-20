@@ -1,0 +1,24 @@
+load("@dev_io_bazel_rules_kotlin//src/main/starlark/release:packager.bzl", "release_archive")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+exports_files(
+    ["opts.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+release_archive(
+    name = "pkg",
+    srcs = glob(["*.bzl"]),
+    src_map = {
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
+)
+
+bzl_library(
+    name = "jvm",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "@dev_io_bazel_rules_kotlin//src/main/starlark",
+    ],
+)

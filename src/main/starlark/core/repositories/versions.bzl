@@ -60,11 +60,11 @@ versions = struct(
         sha256 = "5f6412986b351cc569baa6cfde2e8ff8bc527a7bc15af4fe5a49cfd76b73b569",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.7.22",
+        version = "1.8.0",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "9db4b467743c1aea8a21c08e1c286bc2aeb93f14c7ba2037dbd8f48adc357d83",
+        sha256 = "0bb9419fac9832a56a3a19cad282f8f2d6f1237d2d467dc8dfe9bd4a2a43c42e",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
@@ -72,6 +72,9 @@ versions = struct(
         URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
     ),
     CORE = {
+        "rkt_1_8": struct(
+            prefix = "1.8",
+        ),
         "rkt_1_7": struct(
             prefix = "1.7",
         ),
