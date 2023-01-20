@@ -22,10 +22,7 @@ package(default_visibility = ["//visibility:public"])
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = "1.6",
-    experimental_use_abi_jars = True,
     jvm_target = "1.8",
-    language_version = "1.6",
 )
 
 kt_compiler_plugin(
