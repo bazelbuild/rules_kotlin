@@ -43,11 +43,6 @@ import java.util.Base64
 import java.util.stream.Collectors.toList
 import java.util.stream.Stream
 
-/**
- * Return a list with the common arguments for compilation with code generation.
- */
-fun JvmCompilationTask.commonArgs(): CompilationArgs = baseArgs() + codeGenArgs()
-
 fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
   .absolutePaths(info.friendPathsList) {
     "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
