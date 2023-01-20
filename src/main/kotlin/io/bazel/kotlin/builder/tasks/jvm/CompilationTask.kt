@@ -198,6 +198,12 @@ internal fun JvmCompilationTask.runPlugins(
           .plus(
             kaptArgs(context, plugins, "stubsAndApt"),
           )
+          .plus(
+            plugins(
+              options = inputs.stubsPluginOptionsList,
+              classpath = inputs.stubsPluginClasspathList,
+            ),
+          )
         )
         .flag("-d", directories.generatedClasses)
         .values(inputs.kotlinSourcesList)
