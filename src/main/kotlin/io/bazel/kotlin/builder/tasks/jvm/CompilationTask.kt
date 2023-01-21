@@ -190,12 +190,6 @@ internal fun JvmCompilationTask.runPlugins(
       (
         baseArgs()
           .plus(
-            plugins(
-              options = inputs.stubsPluginOptionsList,
-              classpath = inputs.stubsPluginClasspathList,
-            ),
-          )
-          .plus(
             kaptArgs(context, plugins, "stubsAndApt"),
           )
           .plus(
