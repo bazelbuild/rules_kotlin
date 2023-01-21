@@ -99,8 +99,11 @@ internal fun JvmCompilationTask.plugins(
 
     val dirTokens = mapOf(
       "{generatedClasses}" to directories.generatedClasses,
-      "{stubs}" to directories.stubs,
       "{generatedSources}" to directories.generatedSources,
+      "{incrementalData}" to directories.incrementalData,
+      "{stubs}" to directories.stubs,
+      "{temp}" to directories.temp,
+      "{apclasspath}" to inputs.processorpathsList.joinToString(File.pathSeparator),
     )
     options.forEach { opt ->
       val formatted = dirTokens.entries.fold(opt) { formatting, (token, value) ->
