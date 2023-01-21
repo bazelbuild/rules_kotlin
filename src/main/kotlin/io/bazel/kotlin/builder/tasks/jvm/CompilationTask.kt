@@ -182,7 +182,7 @@ internal fun JvmCompilationTask.runPlugins(
       inputs.processorsList.isEmpty() &&
         inputs.stubsPluginClasspathList.isEmpty()
       ) ||
-    inputs.kotlinSourcesList.isEmpty()
+    inputs.kotlinSourcesList.isEmpty() || !this.compileWithKapt
   ) {
     return this
   } else {

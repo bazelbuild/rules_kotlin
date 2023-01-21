@@ -240,6 +240,11 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder compileWithKapt() {
+            taskBuilder.setCompileWithKapt(true);
+            return this;
+        }
+
         public TaskBuilder useK2() {
             taskBuilder.getInfoBuilder().addPassthroughFlags("-Xuse-k2");
             return this;

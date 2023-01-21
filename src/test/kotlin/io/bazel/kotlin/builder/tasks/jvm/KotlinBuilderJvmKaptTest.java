@@ -74,8 +74,10 @@ public class KotlinBuilderJvmKaptTest {
                                     + "        abstract fun build(): TestKtValue\n"
                                     + "    }\n"
                                     + "}");
+                    c.outputJar();
                     c.generatedSourceJar();
                     c.ktStubsJar();
+                    c.compileWithKapt();
                     c.incrementalData();
                 }
         );
@@ -133,7 +135,11 @@ public class KotlinBuilderJvmKaptTest {
                                     + "    }\n"
                                     + "\n"
                                     + "}");
+                    ctx.generatedSourceJar();
+                    ctx.ktStubsJar();
                     ctx.outputJar();
+                    ctx.compileWithKapt();
+                    ctx.incrementalData();
                 });
         ctx.assertFilesExist(
                 DirectoryType.JAVA_SOURCE_GEN,
