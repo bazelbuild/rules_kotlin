@@ -660,7 +660,7 @@ def _run_kt_java_builder_actions(
             associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
-            annotation_processors = [],
+            annotation_processors = annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = outputs,
