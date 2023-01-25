@@ -128,6 +128,7 @@ _kt_toolchain = rule(
                 "1.5",
                 "1.6",
                 "1.7",
+                "1.8",
             ],
         ),
         "api_version": attr.string(
