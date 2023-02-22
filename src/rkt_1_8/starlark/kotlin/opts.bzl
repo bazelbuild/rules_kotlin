@@ -251,6 +251,16 @@ _KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_jvm_target_to_flag,
     ),
+    "x_debug": struct(
+        args = dict(
+            default = False,
+            doc = "Enable debugging, this option allows for a better debugging experience, especially when using coroutines, but should not be used in production",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xdebug"],
+        },
+    ),
 }
 
 KotlincOptions = provider(
