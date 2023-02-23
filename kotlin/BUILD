@@ -29,6 +29,7 @@ release_archive(
     },
     deps = [
         "//kotlin/internal:pkg",
+        "//kotlin/settings:pkg",
     ],
 )
 
