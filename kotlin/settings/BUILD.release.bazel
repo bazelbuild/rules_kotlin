@@ -11,5 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 
-exports_files(["jetbrains-deshade.jarjar"])
+# Flag that controls the emission of jdeps files during kotlin jvm compilation.
+bool_flag(
+    name = "jvm_emit_jdeps",
+    build_setting_default = True,  # Upstream default behavior
+    visibility = ["//visibility:public"],
+)

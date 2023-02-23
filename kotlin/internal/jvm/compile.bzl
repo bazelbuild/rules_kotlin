@@ -45,7 +45,6 @@ load(
     "find_java_runtime_toolchain",
     "find_java_toolchain",
 )
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 # UTILITY ##############################################################################################################
 
@@ -485,9 +484,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     generated_src_jars = []
     annotation_processing = None
     compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
-
     output_jdeps = None
-    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+    if toolchains.kt.jvm_emit_jdeps:
         output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
 
     outputs_struct = _run_kt_java_builder_actions(
@@ -644,7 +642,7 @@ def _run_kt_java_builder_actions(
             }
 
         kt_jdeps = None
-        if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+        if toolchains.kt.jvm_emit_jdeps:
             kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
             outputs["kotlin_output_jdeps"] = kt_jdeps
 
@@ -724,7 +722,7 @@ def _run_kt_java_builder_actions(
         input_jars = compile_jars,
     )
 
-    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+    if toolchains.kt.jvm_emit_jdeps:
         jdeps = []
         for java_info in java_infos:
             if java_info.outputs.jdeps:
@@ -800,7 +798,7 @@ def export_only_providers(ctx, actions, attr, outputs):
     )
 
     output_jdeps = None
-    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+    if toolchains.kt.jvm_emit_jdeps:
         output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
         actions.symlink(
             output = output_jdeps,
