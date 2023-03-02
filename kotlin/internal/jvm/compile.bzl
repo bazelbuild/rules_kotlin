@@ -138,7 +138,9 @@ def _collect_plugins_for_export(local, exports):
     )
 
 _CONVENTIONAL_RESOURCE_PATHS = [
+    "src/main/java",
     "src/main/resources",
+    "src/test/java",
     "src/test/resources",
     "kotlin",
 ]
