@@ -276,6 +276,27 @@ _KOPTS_ALL = {
         value_to_flag = None,
         map_value_to_flag = _map_backend_threads_to_flag,
     ),
+    "x_enable_incremental_compilation": struct(
+        args = dict(
+            default = False,
+            doc = "Enable incremental compilation",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xenable-incremental-compilation"],
+        },
+    ),
+    "x_report_perf": struct(
+        flag = "-Xreport-perf",
+        args = dict(
+            default = False,
+            doc = "Report detailed performance statistics",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xreport-perf"],
+        },
+    ),
     "x_report_perf": struct(
         flag = "-Xreport-perf",
         args = dict(
