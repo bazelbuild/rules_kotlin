@@ -38,8 +38,8 @@ versions = struct(
     RULES_JVM_EXTERNAL_TAG = "4.4.2",
     RULES_JVM_EXTERNAL_SHA = "735602f50813eb2ea93ca3f5e43b1959bd80b213b836a07a62a29d757670b77b",
     RULES_PROTO = version(
-        version = "5.3.0-21.5",
-        sha256 = "80d3a4ec17354cccc898bfe32118edd934f851b03029d63ef3fc7c8663a7415c",
+        version = "5.3.0-21.7",
+        sha256 = "dc3fb206a2cb3441b485eb1e423165b231235a1ea9b031b4433cf7bc1fa460dd",
         strip_prefix_template = "rules_proto-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_proto/archive/refs/tags/{version}.tar.gz",
