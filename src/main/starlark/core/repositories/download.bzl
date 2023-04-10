@@ -33,13 +33,6 @@ def kt_download_local_dev_dependencies():
     )
 
     maybe(
-        http_jar,
-        name = "bazel_deps",
-        sha256 = versions.BAZEL_DEPS_SHA,
-        url = "https://github.com/hsyed/bazel-deps/releases/download/v%s/parseproject_deploy.jar" % versions.BAZEL_DEPS_VERSION,
-    )
-
-    maybe(
         http_archive,
         name = "bazel_toolchains",
         sha256 = versions.BAZEL_TOOLCHAINS_SHA,
