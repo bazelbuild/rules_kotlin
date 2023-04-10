@@ -47,8 +47,6 @@ versions = struct(
             "https://github.com/bazelbuild/rules_proto/archive/refs/tags/{version}.tar.gz",
         ],
     ),
-    MAVEN_PROTO_FIX_GIT_COMMIT = "fcad4680fee127dbd8344e6a961a28eef5820ef4",
-    MAVEN_PROTO_FIX_SHA = "36476f17a78a4c495b9a9e70bd92d182e6e78db476d90c74bac1f5f19f0d6d04",
     IO_BAZEL_STARDOC_VERSION = "0.5.1",
     IO_BAZEL_STARDOC_SHA = "5bcd62378fc5ea87936169b49245d0595c690bde41ef695ce319752cc9929c34",
     BAZEL_JAVA_LAUNCHER_VERSION = "5.0.0",
