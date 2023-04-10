@@ -57,7 +57,7 @@ versions = struct(
         url_templates = [
             "https://github.com/pinterest/ktlint/releases/download/{version}/ktlint",
         ],
-        sha256 = "89491ea865d369b39cfaca2dcf60b38adbdcd74985f5e0170c0bb73034000135",
+        sha256 = "e0647f930f48583b35b7d52133119a3e5efdd9cf57384847bfe6241544fd0342",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
         version = "1.8.10",
