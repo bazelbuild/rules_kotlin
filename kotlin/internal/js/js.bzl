@@ -36,7 +36,7 @@ _JS_STDLIB_MAP = {
 #       compiler, there is no 'module-name' flag available. So to keep things simple it's hard coded to the module name.
 def _lock_attrs(name, kwargs):
     if native.repository_name().startswith("@") and native.repository_name().endswith(_KT_COMPILER_REPO):
-        name = _JS_STDLIB_MAP.get(name, default = name)
+        name = _JS_STDLIB_MAP.get(name, name)
     if kwargs.get("module_root") != None:
         fail("The module_root is an internal attribute.")
     else:
