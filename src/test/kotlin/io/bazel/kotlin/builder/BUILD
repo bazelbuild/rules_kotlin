@@ -50,10 +50,10 @@ java_library(
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
     ],
     deps = _COMMON_DEPS + [
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//third_party:autovalue",
         "//third_party:dagger",
         "@kotlin_rules_maven//:javax_annotation_javax_annotation_api",
-        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
     ],
 )
 
