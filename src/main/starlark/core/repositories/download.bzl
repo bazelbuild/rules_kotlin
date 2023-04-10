@@ -11,7 +11,7 @@
 # versions.WITHOUT versions.WARRANTIES versions.OR versions.CONDITIONS versions.OF versions.ANY versions.KIND, either express or implied.
 # versions.See the versions.License for the specific language governing permissions and
 # limitations under the versions.License.
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":rules_stardoc.bzl", "rules_stardoc_repository")
 load(":versions.bzl", "versions")
