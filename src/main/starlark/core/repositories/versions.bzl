@@ -40,8 +40,8 @@ versions = struct(
     RULES_JVM_EXTERNAL_TAG = "4.4.2",
     RULES_JVM_EXTERNAL_SHA = "735602f50813eb2ea93ca3f5e43b1959bd80b213b836a07a62a29d757670b77b",
     RULES_PROTO = version(
-        version = "5.3.0-21.5",
-        sha256 = "80d3a4ec17354cccc898bfe32118edd934f851b03029d63ef3fc7c8663a7415c",
+        version = "5.3.0-21.7",
+        sha256 = "dc3fb206a2cb3441b485eb1e423165b231235a1ea9b031b4433cf7bc1fa460dd",
         strip_prefix_template = "rules_proto-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_proto/archive/refs/tags/{version}.tar.gz",
@@ -60,35 +60,17 @@ versions = struct(
         sha256 = "5f6412986b351cc569baa6cfde2e8ff8bc527a7bc15af4fe5a49cfd76b73b569",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.8.10",
+        version = "1.8.20",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "4c3fa7bc1bb9ef3058a2319d8bcc3b7196079f88e92fdcd8d304a46f4b6b5787",
+        sha256 = "10df74c3c6e2eafd4c7a5572352d37cbe41774996e42de627023cb4c82b50ae4",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
         SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
         URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
     ),
-    CORE = {
-        "rkt_1_8": struct(
-            prefix = "1.8",
-        ),
-        "rkt_1_7": struct(
-            prefix = "1.7",
-        ),
-        "rkt_1_6": struct(
-            prefix = "1.6",
-        ),
-        "rkt_1_5": struct(
-            prefix = "1.5",
-        ),
-        "rkt_1_4": struct(
-            prefix = "1.4",
-        ),
-        "legacy": None,
-    },
     # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
     RBE = struct(
         # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
