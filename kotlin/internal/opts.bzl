@@ -13,13 +13,13 @@
 # limitations under the License.
 
 load(
-    "@rkt_1_8//starlark/kotlin:opts.bzl",
+    "//src/main/starlark/core/options/kotlin:opts.bzl",
     _KotlincOptions = "KotlincOptions",
     _kotlinc_options_to_flags = "kotlinc_options_to_flags",
     _kt_kotlinc_options = "kt_kotlinc_options",
 )
 load(
-    "@rkt_1_8//starlark/jvm:opts.bzl",
+    "//src/main/starlark/core/options/jvm:opts.bzl",
     _JavacOptions = "JavacOptions",
     _javac_options_to_flags = "javac_options_to_flags",
     _kt_javac_options = "kt_javac_options",

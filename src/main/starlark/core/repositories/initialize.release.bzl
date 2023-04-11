@@ -38,8 +38,7 @@ def kotlin_repositories(
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
-        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE,
-        configured_repository_name = "io_bazel_rules_kotlin_configured"):
+        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
@@ -103,21 +102,6 @@ def kotlin_repositories(
         urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (versions.SKYLIB_VERSION, versions.SKYLIB_VERSION)],
         sha256 = versions.SKYLIB_SHA,
     )
-
-    selected_version = None
-    for (version, criteria) in versions.CORE.items():
-        if (criteria and compiler_release.version.startswith(criteria.prefix)) or (not selected_version and not criteria):
-            selected_version = version
-
-    if configured_repository_name:  # without a repository name, no default kt_* rules repository is created.
-        rules_repository(
-            name = configured_repository_name,
-            archive = Label("//:%s.tgz" % selected_version),
-            parent = RULES_KOTLIN,
-            repo_mapping = {
-                "@dev_io_bazel_rules_kotlin": "@%s" % RULES_KOTLIN.workspace_name,
-            },
-        )
 
 def kotlinc_version(release, sha256):
     return version(

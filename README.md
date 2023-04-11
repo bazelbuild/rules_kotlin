@@ -141,16 +141,13 @@ In the project's `WORKSPACE`, change the setup:
 
 # Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
 local_repository(
-    name = "release_archive",
-    path = "../path/to/rules_kotlin_clone/src/main/starlark/release_archive",
-)
-load("@release_archive//:repository.bzl", "archive_repository")
-
-
-archive_repository(
     name = "io_bazel_rules_kotlin",
-    local_path = "../path/to/rules_kotlin_clone/"
+    path = "../path/to/rules_kotlin_clone/",
 )
+
+load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+
+kt_download_local_dev_dependencies()
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
@@ -167,16 +164,9 @@ rules to this:
 ```python
 # Download master or specific revisions
 http_archive(
-    name = "io_bazel_rules_kotlin_master",
+    name = "io_bazel_rules_kotlin",
     strip_prefix = "rules_kotlin-master",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip"],
-)
-
-load("@io_bazel_rules_kotlin_master//src/main/starlark/release_archive:repository.bzl", "archive_repository")
-
-archive_repository(
-    name = "io_bazel_rules_kotlin",
-    source_repository_name = "io_bazel_rules_kotlin_master",
 )
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
@@ -213,13 +203,13 @@ load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
-    warn = "report",
+    kotlinc_opts = ["-Xno-param-assertions"],
+    jvm_target = "1.8",
 )
 
 kt_javac_options(
     name = "kt_javac_options",
-    warn = "report",
-    x_ep_disable_all_checks = False,
+    javac_opts = ["-nowarn"],
 )
 
 define_kt_toolchain(
@@ -240,14 +230,16 @@ load("@io_bazel_rules_kotlin//kotlin:jvm.bzl","kt_javac_options", "kt_jvm_librar
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
-    warn = "error",
-    x_optin = ["kotlin.Experimental", "kotlin.ExperimentalStdlibApi"],
+    kotlinc_opts = [
+     "-Xno-param-assertions",
+     "-Xopt-in=kotlin.Experimental",
+     "-Xopt-in=kotlin.ExperimentalStdlibApi",
+    ],
 )
 
 kt_javac_options(
     name = "kt_javac_options_for_package_name",
-    warn = "error",
-    x_ep_disable_all_checks = True,
+    javac_opts = ["-nowarn"],
 )
 
 kt_jvm_library(

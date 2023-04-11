@@ -4,7 +4,7 @@ load(
     "unittest",
 )
 load("//src/main/starlark/core/options:convert.bzl", "convert")
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/core/options:derive.bzl", "derive")
+load("//src/main/starlark/core/options:derive.bzl", "derive")
 
 def _test_map_value_to_flag(value):
     return ["-flag={}".format(value)]
@@ -35,8 +35,8 @@ def _convert_options_to_flags_empty_options_test(ctx):
     """
     env = unittest.begin(ctx)
 
-    asserts.true(env, not convert.kotlinc_options_to_flags({}, None))
-    asserts.true(env, not convert.javac_options_to_flags({}, None))
+    asserts.true(env, not convert.convert_opts_to_flags({}, None))
+    asserts.true(env, not convert.convert_opts_to_flags({}, None))
 
     return unittest.end(env)
 
@@ -57,7 +57,7 @@ def _convert_options_to_flags_test(ctx):
     )
     asserts.equals(
         env,
-        expected = convert.kotlinc_options_to_flags(_TEST_OPTS, attrs),
+        expected = convert.convert_opts_to_flags(_TEST_OPTS, attrs),
         actual = [
             "-foo-options",
             "-bar:1",

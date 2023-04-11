@@ -1,4 +1,4 @@
-load("@dev_io_bazel_rules_kotlin//src/main/starlark/release:packager.bzl", "release_archive")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files(
@@ -15,10 +15,7 @@ release_archive(
 )
 
 bzl_library(
-    name = "jvm",
+    name = "kotlin",
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
-    deps = [
-        "@dev_io_bazel_rules_kotlin//src/main/starlark",
-    ],
 )

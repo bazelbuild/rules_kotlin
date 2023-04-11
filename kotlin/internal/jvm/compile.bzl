@@ -383,8 +383,12 @@ def _run_kt_builder_action(
     for f, path in outputs.items():
         args.add("--" + f, path)
 
+    opts = kotlinc_options_to_flags(kotlinc_options)
+    if "dump_perf_report" in outputs:
+        opts.append("-Xdump-perf={}".format(outputs["dump_perf_report"].path))
+
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
-    args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kotlinc_options))
+    args.add_all("--kotlin_passthrough_flags", opts)
     args.add_all("--javacopts", javac_options_to_flags(javac_options))
     args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
@@ -707,6 +711,10 @@ def _run_kt_java_builder_actions(
         if toolchains.kt.jvm_emit_jdeps:
             kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
             outputs["kotlin_output_jdeps"] = kt_jdeps
+
+        #        if srcs.kt:
+        #            dump_perf_file = ctx.actions.declare_file(ctx.label.name + "-perf-report.txt")
+        #            outputs["dump_perf_report"] = dump_perf_file
 
         _run_kt_builder_action(
             ctx = ctx,
