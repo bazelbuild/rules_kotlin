@@ -102,10 +102,6 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
-    "//kotlin/internal/jvm:plugins.bzl",
-    _kt_jvm_plugin_aspect = "kt_jvm_plugin_aspect",
-)
-load(
     "//kotlin/internal:opts.bzl",
     _JavacOptions = "JavacOptions",
     _KotlincOptions = "KotlincOptions",
@@ -168,7 +164,6 @@ _common_attr = utils.add_dicts(
         "deps": attr.label_list(
             doc = """A list of dependencies of this rule.See general comments about `deps` at
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
-            aspects = [] if hasattr(java_common, "JavaPluginInfo") else [_kt_jvm_plugin_aspect],
             providers = [
                 [JavaInfo],
             ],
@@ -209,7 +204,6 @@ _common_attr = utils.add_dicts(
         ),
         "plugins": attr.label_list(
             default = [],
-            aspects = [] if hasattr(java_common, "JavaPluginInfo") else [_kt_jvm_plugin_aspect],
             cfg = "exec",
         ),
         "module_name": attr.string(

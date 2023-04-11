@@ -89,33 +89,3 @@ def merge_plugin_infos(attrs):
         annotation_processors = _targets_to_annotation_processors(attrs),
         transitive_runtime_jars = _targets_to_transitive_runtime_jars(attrs),
     )
-
-def _kt_jvm_plugin_aspect_impl(_, ctx):
-    if ctx.rule.kind == "java_plugin":
-        processor = ctx.rule.attr
-        merged_deps = java_common.merge([j[JavaInfo] for j in processor.deps])
-        return [KtJvmPluginInfo(
-            annotation_processors = depset([
-                struct(
-                    label = _utils.restore_label(ctx.label),
-                    processor_class = processor.processor_class,
-                    classpath = merged_deps.transitive_runtime_jars,
-                    generates_api = processor.generates_api,
-                ),
-            ]),
-            transitive_runtime_jars = depset(transitive = [merged_deps.transitive_runtime_jars]),
-        )]
-    elif ctx.rule.kind == "java_library":
-        return [merge_plugin_infos(ctx.rule.attr.exported_plugins)]
-    else:
-        return _EMPTY_PLUGIN_INFO
-
-kt_jvm_plugin_aspect = aspect(
-    doc = """This aspect collects Java Plugins info and other Kotlin compiler plugin configurations from the graph.""",
-    attr_aspects = [
-        "plugins",
-        "exported_plugins",
-    ],
-    provides = [KtJvmPluginInfo],
-    implementation = _kt_jvm_plugin_aspect_impl,
-)
