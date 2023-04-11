@@ -13,7 +13,6 @@
 # limitations under the License.
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # Configures the toolchains
