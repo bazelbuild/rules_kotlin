@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+_JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+
 KtJvmPluginInfo = provider(
     doc = "This provider contains the plugin info for the JVM aspect",
     fields = {
@@ -22,49 +24,35 @@ KtJvmPluginInfo = provider(
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
 def _kt_plugin_to_processor(processor):
-    if hasattr(java_common, "JavaPluginInfo"):
-        return processor.processor_classes.to_list()
-    return processor.processor_class
+    return processor.processor_classes.to_list()
 
 def _kt_plugin_to_processorpath(processor):
-    if hasattr(java_common, "JavaPluginInfo"):
-        return [j.path for j in processor.processor_jars.to_list()]
-    return [j.path for j in processor.classpath.to_list()]
+    return [j.path for j in processor.processor_jars.to_list()]
 
 def _targets_to_annotation_processors(targets):
-    if hasattr(java_common, "JavaPluginInfo"):
-        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
-        plugins = []
-        for t in targets:
-            if _JavaPluginInfo in t:
-                p = t[_JavaPluginInfo].plugins
-                if p.processor_jars:
-                    plugins.append(p)
-            elif JavaInfo in t:
-                p = t[JavaInfo].plugins
-                if p.processor_jars:
-                    plugins.append(p)
-        return depset(plugins)
-
-    return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if KtJvmPluginInfo in t])
+    plugins = []
+    for t in targets:
+        if _JavaPluginInfo in t:
+            p = t[_JavaPluginInfo].plugins
+            if p.processor_jars:
+                plugins.append(p)
+        elif JavaInfo in t:
+            p = t[JavaInfo].plugins
+            if p.processor_jars:
+                plugins.append(p)
+    return depset(plugins)
 
 def _targets_to_annotation_processors_java_plugin_info(targets):
-    if hasattr(java_common, "JavaPluginInfo"):
-        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
-        return [t[_JavaPluginInfo] for t in targets if _JavaPluginInfo in t]
-    return [t[JavaInfo] for t in targets if JavaInfo in t]
+    return [t[_JavaPluginInfo] for t in targets if _JavaPluginInfo in t]
 
 def _targets_to_transitive_runtime_jars(targets):
-    if hasattr(java_common, "JavaPluginInfo"):
-        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
-        return depset(
-            transitive = [
-                (t[_JavaPluginInfo] if _JavaPluginInfo in t else t[JavaInfo]).plugins.processor_jars
-                for t in targets
-                if _JavaPluginInfo in t or JavaInfo in t
-            ],
-        )
-    return depset(transitive = [t[KtJvmPluginInfo].transitive_runtime_jars for t in targets if KtJvmPluginInfo in t])
+    return depset(
+        transitive = [
+            (t[_JavaPluginInfo] if _JavaPluginInfo in t else t[JavaInfo]).plugins.processor_jars
+            for t in targets
+            if _JavaPluginInfo in t or JavaInfo in t
+        ],
+    )
 
 mappers = struct(
     targets_to_annotation_processors = _targets_to_annotation_processors,
