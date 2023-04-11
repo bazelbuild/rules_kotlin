@@ -19,8 +19,6 @@ KtJvmPluginInfo = provider(
     },
 )
 
-_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = depset(), transitive_runtime_jars = depset())]
-
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
 def _kt_plugin_to_processor(processor):
