@@ -56,11 +56,11 @@ versions = struct(
         sha256 = "e0647f930f48583b35b7d52133119a3e5efdd9cf57384847bfe6241544fd0342",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.7.10",
+        version = "1.8.20",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "7683f5451ef308eb773a686ee7779a76a95ed8b143c69ac247937619d7ca3a09",
+        sha256 = "10df74c3c6e2eafd4c7a5572352d37cbe41774996e42de627023cb4c82b50ae4",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "1.8.20-1.0.10",
