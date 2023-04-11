@@ -61,12 +61,3 @@ mappers = struct(
     kt_plugin_to_processor = _kt_plugin_to_processor,
     kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
 )
-
-def merge_plugin_infos(attrs):
-    """Merge all of the plugin infos found in the provided sequence of attributes.
-    Returns:
-        A KtJvmPluginInfo provider, Each of the entries is serializable."""
-    return KtJvmPluginInfo(
-        annotation_processors = _targets_to_annotation_processors(attrs),
-        transitive_runtime_jars = _targets_to_transitive_runtime_jars(attrs),
-    )
