@@ -24,4 +24,6 @@ class InternalCompilerPlugins constructor(
   val skipCodeGen: KotlinToolchain.CompilerPlugin,
   val kapt: KotlinToolchain.CompilerPlugin,
   val jdeps: KotlinToolchain.CompilerPlugin,
+  val kspSymbolProcessingApi: KotlinToolchain.CompilerPlugin,
+  val kspSymbolProcessingCommandLine: KotlinToolchain.CompilerPlugin,
 )

@@ -321,6 +321,45 @@ def _run_kapt_builder_actions(
         kapt_generated_class_jar = kapt_generated_class_jar,
     )
 
+def _run_ksp_builder_actions(
+        ctx,
+        rule_kind,
+        toolchains,
+        srcs,
+        associates,
+        compile_deps,
+        deps_artifacts,
+        annotation_processors,
+        transitive_runtime_jars,
+        plugins):
+    """Runs KSP using the KotlinBuilder tool
+
+    Returns:
+        A struct containing KSP outputs
+    """
+    ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-gensrc.jar")
+
+    _run_kt_builder_action(
+        ctx = ctx,
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        srcs = srcs,
+        generated_src_jars = [],
+        associates = associates,
+        compile_deps = compile_deps,
+        deps_artifacts = deps_artifacts,
+        annotation_processors = annotation_processors,
+        transitive_runtime_jars = transitive_runtime_jars,
+        plugins = plugins,
+        outputs = {
+            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
+        },
+        build_kotlin = False,
+        mnemonic = "KotlinKsp",
+    )
+
+    return struct(ksp_generated_class_jar = ksp_generated_java_srcjar)
+
 def _run_kt_builder_action(
         ctx,
         rule_kind,
@@ -481,6 +520,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         runtime_deps = ctx.attr.runtime_deps,
     )
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
+    ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
     deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + associates.targets)
@@ -502,6 +542,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
+        ksp_annotation_processors = ksp_annotation_processors,
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         compile_jar = compile_jar,
@@ -590,6 +631,7 @@ def _run_kt_java_builder_actions(
         compile_deps,
         deps_artifacts,
         annotation_processors,
+        ksp_annotation_processors,
         transitive_runtime_jars,
         plugins,
         compile_jar,
@@ -627,6 +669,22 @@ def _run_kt_java_builder_actions(
                 neverlink = True,
             ),
         )
+
+    # Run KSP
+    if has_kt_sources and ksp_annotation_processors:
+        ksp_outputs = _run_ksp_builder_actions(
+            ctx,
+            rule_kind = rule_kind,
+            toolchains = toolchains,
+            srcs = srcs,
+            associates = associates,
+            compile_deps = compile_deps,
+            deps_artifacts = deps_artifacts,
+            annotation_processors = ksp_annotation_processors,
+            transitive_runtime_jars = transitive_runtime_jars,
+            plugins = plugins,
+        )
+        generated_src_jars.append(ksp_outputs.ksp_generated_class_jar)
 
     java_infos = []
 

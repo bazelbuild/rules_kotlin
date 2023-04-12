@@ -1,0 +1,56 @@
+workspace(name = "ksp_example")
+
+local_repository(
+    name = "io_bazel_rules_kotlin",
+    path = "../..",
+)
+
+load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+
+kt_download_local_dev_dependencies()
+
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+
+kotlin_repositories()
+
+register_toolchains("//:kotlin_toolchain")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = versions.SKYLIB_SHA,
+    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (
+        versions.SKYLIB_VERSION,
+        versions.SKYLIB_VERSION,
+    )],
+)
+
+http_archive(
+    name = "rules_jvm_external",
+    sha256 = versions.RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % versions.RULES_JVM_EXTERNAL_TAG,
+)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+_KOTLIN_COMPILER_VERSION = "1.8.20"
+
+maven_install(
+    artifacts = [
+        "com.squareup.moshi:moshi:1.14.0",
+        "com.squareup.moshi:moshi-kotlin:1.14.0",
+        "com.squareup.moshi:moshi-kotlin-codegen:1.14.0",
+        "org.jetbrains.kotlin:kotlin-stdlib:1.8.20",
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20",
+        "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20",
+        "org.jetbrains.kotlin:kotlin-stdlib-common:1.8.20",
+        "org.jetbrains.kotlin:kotlin-reflect:1.8.20",
+        "com.google.devtools.ksp:symbol-processing-api:{}-1.0.10".format(_KOTLIN_COMPILER_VERSION),
+        "com.google.devtools.ksp:symbol-processing:{}-1.0.10".format(_KOTLIN_COMPILER_VERSION),
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)

@@ -41,6 +41,8 @@ class KotlinToolchain private constructor(
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
+  val kspSymbolProcessingApi: CompilerPlugin,
+  val kspSymbolProcessingCommandLine: CompilerPlugin,
 ) {
 
   companion object {
@@ -56,6 +58,14 @@ class KotlinToolchain private constructor(
 
     private val DEFAULT_JVM_ABI_PATH = BazelRunFiles.resolveVerified(
       System.getProperty("@com_github_jetbrains_kotlin...jvm-abi-gen"),
+    ).toPath()
+
+    private val KSP_SYMBOL_PROCESSING_API = BazelRunFiles.resolveVerified(
+      System.getProperty("@com_github_google_ksp...symbol-processing-api"),
+    ).toPath()
+
+    private val KSP_SYMBOL_PROCESSING_CMDLINE = BazelRunFiles.resolveVerified(
+      System.getProperty("@com_github_google_ksp...symbol-processing-cmdline"),
     ).toPath()
 
     private val COMPILER = BazelRunFiles.resolveVerified(
@@ -116,6 +126,9 @@ class KotlinToolchain private constructor(
         System.getProperty("@com_github_jetbrains_kotlin...kotlin-compiler"),
       )
 
+      val kspSymbolProcessingApi = KSP_SYMBOL_PROCESSING_API.verified().absoluteFile
+      val kspSymbolProcessingCommandLine = KSP_SYMBOL_PROCESSING_CMDLINE.verified().absoluteFile
+
       val jvmAbiGenFile = jvmAbiGenPath.verified()
       return KotlinToolchain(
         kotlinCompilerJar.toPath().parent.parent,
@@ -130,6 +143,8 @@ class KotlinToolchain private constructor(
             jvmAbiGenFile.absoluteFile,
             skipCodeGenFile,
             jdepsGenFile,
+            kspSymbolProcessingApi,
+            kspSymbolProcessingCommandLine,
           ),
         ),
         jvmAbiGen = CompilerPlugin(
@@ -143,6 +158,14 @@ class KotlinToolchain private constructor(
         jdepsGen = CompilerPlugin(
           jdepsGenFile.absolutePath,
           "io.bazel.kotlin.plugin.jdeps.JDepsGen",
+        ),
+        kspSymbolProcessingApi = CompilerPlugin(
+          kspSymbolProcessingApi.absolutePath,
+          "com.google.devtools.ksp.symbol-processing",
+        ),
+        kspSymbolProcessingCommandLine = CompilerPlugin(
+          kspSymbolProcessingCommandLine.absolutePath,
+          "com.google.devtools.ksp.symbol-processing",
         ),
       )
     }
