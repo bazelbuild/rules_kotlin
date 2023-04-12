@@ -11,67 +11,40 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load(
-    "//kotlin/internal/utils:utils.bzl",
-    _utils = "utils",
-)
-
-KtJvmPluginInfo = provider(
-    doc = "This provider contains the plugin info for the JVM aspect",
-    fields = {
-        "annotation_processors": "depset of structs containing annotation processor definitions",
-        "transitive_runtime_jars": "depset of transitive_runtime_jars for this plugin and deps",
-    },
-)
-
-_EMPTY_PLUGIN_INFO = [KtJvmPluginInfo(annotation_processors = depset(), transitive_runtime_jars = depset())]
+load("//kotlin/internal:defs.bzl", _JavaPluginInfo = "JavaPluginInfo")
 
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
 def _kt_plugin_to_processor(processor):
-    if hasattr(java_common, "JavaPluginInfo"):
-        return processor.processor_classes.to_list()
-    return processor.processor_class
+    return processor.processor_classes.to_list()
 
 def _kt_plugin_to_processorpath(processor):
-    if hasattr(java_common, "JavaPluginInfo"):
-        return [j.path for j in processor.processor_jars.to_list()]
-    return [j.path for j in processor.classpath.to_list()]
+    return [j.path for j in processor.processor_jars.to_list()]
 
 def _targets_to_annotation_processors(targets):
-    if hasattr(java_common, "JavaPluginInfo"):
-        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
-        plugins = []
-        for t in targets:
-            if _JavaPluginInfo in t:
-                p = t[_JavaPluginInfo].plugins
-                if p.processor_jars:
-                    plugins.append(p)
-            elif JavaInfo in t:
-                p = t[JavaInfo].plugins
-                if p.processor_jars:
-                    plugins.append(p)
-        return depset(plugins)
-
-    return depset(transitive = [t[KtJvmPluginInfo].annotation_processors for t in targets if KtJvmPluginInfo in t])
+    plugins = []
+    for t in targets:
+        if _JavaPluginInfo in t:
+            p = t[_JavaPluginInfo].plugins
+            if p.processor_jars:
+                plugins.append(p)
+        elif JavaInfo in t:
+            p = t[JavaInfo].plugins
+            if p.processor_jars:
+                plugins.append(p)
+    return depset(plugins)
 
 def _targets_to_annotation_processors_java_plugin_info(targets):
-    if hasattr(java_common, "JavaPluginInfo"):
-        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
-        return [t[_JavaPluginInfo] for t in targets if _JavaPluginInfo in t]
-    return [t[JavaInfo] for t in targets if JavaInfo in t]
+    return [t[_JavaPluginInfo] for t in targets if _JavaPluginInfo in t]
 
 def _targets_to_transitive_runtime_jars(targets):
-    if hasattr(java_common, "JavaPluginInfo"):
-        _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
-        return depset(
-            transitive = [
-                (t[_JavaPluginInfo] if _JavaPluginInfo in t else t[JavaInfo]).plugins.processor_jars
-                for t in targets
-                if _JavaPluginInfo in t or JavaInfo in t
-            ],
-        )
-    return depset(transitive = [t[KtJvmPluginInfo].transitive_runtime_jars for t in targets if KtJvmPluginInfo in t])
+    return depset(
+        transitive = [
+            (t[_JavaPluginInfo] if _JavaPluginInfo in t else t[JavaInfo]).plugins.processor_jars
+            for t in targets
+            if _JavaPluginInfo in t or JavaInfo in t
+        ],
+    )
 
 mappers = struct(
     targets_to_annotation_processors = _targets_to_annotation_processors,
@@ -79,43 +52,4 @@ mappers = struct(
     targets_to_transitive_runtime_jars = _targets_to_transitive_runtime_jars,
     kt_plugin_to_processor = _kt_plugin_to_processor,
     kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
-)
-
-def merge_plugin_infos(attrs):
-    """Merge all of the plugin infos found in the provided sequence of attributes.
-    Returns:
-        A KtJvmPluginInfo provider, Each of the entries is serializable."""
-    return KtJvmPluginInfo(
-        annotation_processors = _targets_to_annotation_processors(attrs),
-        transitive_runtime_jars = _targets_to_transitive_runtime_jars(attrs),
-    )
-
-def _kt_jvm_plugin_aspect_impl(_, ctx):
-    if ctx.rule.kind == "java_plugin":
-        processor = ctx.rule.attr
-        merged_deps = java_common.merge([j[JavaInfo] for j in processor.deps])
-        return [KtJvmPluginInfo(
-            annotation_processors = depset([
-                struct(
-                    label = _utils.restore_label(ctx.label),
-                    processor_class = processor.processor_class,
-                    classpath = merged_deps.transitive_runtime_jars,
-                    generates_api = processor.generates_api,
-                ),
-            ]),
-            transitive_runtime_jars = depset(transitive = [merged_deps.transitive_runtime_jars]),
-        )]
-    elif ctx.rule.kind == "java_library":
-        return [merge_plugin_infos(ctx.rule.attr.exported_plugins)]
-    else:
-        return _EMPTY_PLUGIN_INFO
-
-kt_jvm_plugin_aspect = aspect(
-    doc = """This aspect collects Java Plugins info and other Kotlin compiler plugin configurations from the graph.""",
-    attr_aspects = [
-        "plugins",
-        "exported_plugins",
-    ],
-    provides = [KtJvmPluginInfo],
-    implementation = _kt_jvm_plugin_aspect_impl,
 )
