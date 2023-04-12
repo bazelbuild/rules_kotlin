@@ -105,7 +105,7 @@ def _kt_jvm_plugin_aspect_impl(_, ctx):
             ]),
             transitive_runtime_jars = depset(transitive = [merged_deps.transitive_runtime_jars]),
         )]
-    elif ctx.rule.kind == "java_library":
+    elif ctx.rule.kind == "java_library" or ctx.rule.kind == 'android_library':
         return [merge_plugin_infos(ctx.rule.attr.exported_plugins)]
     else:
         return _EMPTY_PLUGIN_INFO
