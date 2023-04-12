@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-_JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+load("//kotlin/internal:defs.bzl", _JavaPluginInfo = "JavaPluginInfo")
 
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.

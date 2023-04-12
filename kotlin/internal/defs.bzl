@@ -19,6 +19,9 @@ TOOLCHAIN_TYPE = "%s" % Label("//kotlin/internal:kt_toolchain_type")
 JAVA_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:toolchain_type"
 JAVA_RUNTIME_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:runtime_toolchain_type"
 
+# Upstream provider for Java plugins
+JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 
