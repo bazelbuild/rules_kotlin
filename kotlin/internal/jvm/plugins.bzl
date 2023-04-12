@@ -13,14 +13,6 @@
 # limitations under the License.
 _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
 
-KtJvmPluginInfo = provider(
-    doc = "This provider contains the plugin info for the JVM aspect",
-    fields = {
-        "annotation_processors": "depset of structs containing annotation processor definitions",
-        "transitive_runtime_jars": "depset of transitive_runtime_jars for this plugin and deps",
-    },
-)
-
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
 def _kt_plugin_to_processor(processor):
