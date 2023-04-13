@@ -46,6 +46,7 @@ maven_install(
         "com.google.auto.value:auto-value-annotations:1.10.1",
     ],
     repositories = [
+        "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
 )
