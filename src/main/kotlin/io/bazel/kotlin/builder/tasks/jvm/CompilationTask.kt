@@ -222,7 +222,13 @@ internal fun JvmCompilationTask.runPlugins(
   plugins: InternalCompilerPlugins,
   compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
-  if ((inputs.processorsList.isEmpty() && inputs.stubsPluginClasspathList.isEmpty()) || inputs.kotlinSourcesList.isEmpty()) {
+  if (
+    (
+      inputs.processorsList.isEmpty() &&
+        inputs.stubsPluginClasspathList.isEmpty()
+      ) ||
+    inputs.kotlinSourcesList.isEmpty()
+  ) {
     return this
   } else {
     if (!outputs.generatedKspSrcJar.isNullOrEmpty()) {
