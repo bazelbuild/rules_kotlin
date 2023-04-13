@@ -1,13 +1,15 @@
 workspace(name = "ksp_example")
 
 local_repository(
-    name = "io_bazel_rules_kotlin",
-    path = "../..",
+    name = "release_archive",
+    path = "../../src/main/starlark/release_archive",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+load("@release_archive//:repository.bzl", "archive_repository")
 
-kt_download_local_dev_dependencies()
+archive_repository(
+    name = "io_bazel_rules_kotlin",
+)
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
@@ -35,20 +37,13 @@ http_archive(
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
-_KOTLIN_COMPILER_VERSION = "1.8.20"
-
 maven_install(
     artifacts = [
         "com.squareup.moshi:moshi:1.14.0",
         "com.squareup.moshi:moshi-kotlin:1.14.0",
         "com.squareup.moshi:moshi-kotlin-codegen:1.14.0",
-        "org.jetbrains.kotlin:kotlin-stdlib:1.8.20",
-        "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20",
-        "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20",
-        "org.jetbrains.kotlin:kotlin-stdlib-common:1.8.20",
-        "org.jetbrains.kotlin:kotlin-reflect:1.8.20",
-        "com.google.devtools.ksp:symbol-processing-api:{}-1.0.10".format(_KOTLIN_COMPILER_VERSION),
-        "com.google.devtools.ksp:symbol-processing:{}-1.0.10".format(_KOTLIN_COMPILER_VERSION),
+        "com.google.auto.value:auto-value:1.10.1",
+        "com.google.auto.value:auto-value-annotations:1.10.1",
     ],
     repositories = [
         "https://repo1.maven.org/maven2",

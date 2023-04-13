@@ -22,11 +22,14 @@ class CoffeeApp {
   companion object {
 
     private val adapter = CoffeeAppModelJsonAdapter(Moshi.Builder().build())
+    private val d = AutoValue_CoffeeAppJavaModel.Builder()
+      .setCoffeeAppModel(CoffeeAppModel("1"))
+      .build()
 
     @JvmStatic
     fun main(args: Array<String>) {
       println(
-        adapter.toJson(CoffeeAppModel("1"))
+        adapter.toJson(d.coffeeAppModel())
       )
     }
   }

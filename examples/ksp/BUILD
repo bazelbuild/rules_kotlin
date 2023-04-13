@@ -18,21 +18,14 @@ load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
-# Kotlin Toolchain
-
 define_kt_toolchain(name = "kotlin_toolchain")
 
-#java_plugin(
-#    name = "moshi-kotlin-codegen",
-#    features = ["ksp"],
-#    generates_api = 1,
-#    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
-#    deps = [
-#        "@maven//:com_squareup_moshi_moshi",
-#        "@maven//:com_squareup_moshi_moshi_kotlin",
-#        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
-#    ],
-#)
+java_plugin(
+    name = "autovalue",
+    generates_api = True,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = ["@maven//:com_google_auto_value_auto_value"],
+)
 
 kt_ksp_plugin_info(
     name = "moshi-kotlin-codegen",
@@ -44,20 +37,18 @@ kt_ksp_plugin_info(
     ],
 )
 
-#kt_jvm_library(
-#    name = "moshi-java-plugin",
-#    exported_compiler_plugins = [":moshi-kotlin-codegen"],
-#    exports = [
-#        "@maven//:com_squareup_moshi_moshi",
-#        "@maven//:com_squareup_moshi_moshi_kotlin",
-#    ],
-#)
-
 kt_jvm_library(
     name = "coffee_lib",
-    srcs = glob(["*.kt"]),
-    plugins = ["//:moshi-kotlin-codegen"],
+    srcs = glob([
+        "*.kt",
+        "*.java",
+    ]),
+    plugins = [
+        "//:moshi-kotlin-codegen",
+        "//:autovalue",
+    ],
     deps = [
+        "@maven//:com_google_auto_value_auto_value_annotations",
         "@maven//:com_squareup_moshi_moshi",
         "@maven//:com_squareup_moshi_moshi_kotlin",
     ],
@@ -74,5 +65,7 @@ build_test(
     name = "force_build_app_test",
     targets = [
         "//:coffee_app",
+        # build_test doesn't actually fail unless you force the deploy jar to be built
+        "//:coffee_app_deploy.jar",
     ],
 )
