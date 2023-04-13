@@ -36,6 +36,7 @@ RULES_KOTLIN = Label("//:all")
 
 def kotlin_repositories(
         compiler_repository_name = _KT_COMPILER_REPO,
+        ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE,
         configured_repository_name = "io_bazel_rules_kotlin_configured"):
@@ -57,7 +58,7 @@ def kotlin_repositories(
     )
 
     ksp_compiler_plugin_repository(
-        name = _KSP_COMPILER_PLUGIN_REPO,
+        name = ksp_repository_name,
         urls = [url.format(version = ksp_compiler_release.version) for url in ksp_compiler_release.url_templates],
         sha256 = ksp_compiler_release.sha256,
         strip_version = ksp_compiler_release.version,
