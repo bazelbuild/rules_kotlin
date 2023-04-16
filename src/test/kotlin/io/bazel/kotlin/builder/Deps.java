@@ -47,17 +47,6 @@ public final class Deps {
         /**
          * Import a single dep. Similar to a `kt_jvm_import` or a `kt_js_import`.
          */
-        public static Dep importJar(String label, String compileJar) {
-            return Dep.builder()
-                    .label(label)
-                    .compileJars(
-                            ImmutableList.of(BazelRunFiles.resolveVerified(compileJar).getAbsolutePath()))
-                    .build();
-        }
-
-        /**
-         * Import a single dep. Similar to a `kt_jvm_import` or a `kt_js_import`.
-         */
         public static Dep importJar(String label, File compileJar) {
             return Dep.builder()
                     .label(label)
@@ -74,7 +63,7 @@ public final class Deps {
          * passing.
          *
          * @param label The label of the resource expected to be included
-         * @return Dep reprenseting the resource
+         * @return Dep representing the resource
          * @throws IllegalArgumentException if the label does not exist.
          */
         public static Dep fromLabel(String label) {
@@ -91,7 +80,7 @@ public final class Deps {
                     .label(label)
                     .compileJars(
                             ImmutableList.of(
-                                    BazelRunFiles.resolveVerified(properties.getProperty(key)).getPath()))
+                                    BazelRunFiles.resolveVerifiedFromProperty(key).getPath()))
                     .build();
         }
 
