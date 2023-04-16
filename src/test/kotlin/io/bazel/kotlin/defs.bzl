@@ -28,6 +28,7 @@ def kt_rules_test(name, **kwargs):
     args.setdefault("size", "small")
     args.setdefault("data", [])
     args.setdefault("jvm_flags", [])
+
     args["deps"] = args.setdefault("deps", []) + ["//src/test/kotlin/io/bazel/kotlin/builder:test_lib"]
     for dep in [
         "//src/main/kotlin/io/bazel/kotlin/compiler",
@@ -46,6 +47,15 @@ def kt_rules_test(name, **kwargs):
             args["data"].append(dep)
 
         args["jvm_flags"].append("-D%s=$(rootpath %s)" % (dep.replace("/", ".").replace(":", "."), dep))
+
+    # Required by KotlinToolchain.kt to resolve the necessary paths.
+    args["jvm_flags"].extend([
+        "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath @com_github_jetbrains_kotlin//:jvm-abi-gen)",
+        "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath @com_github_jetbrains_kotlin//:kotlin-compiler)",
+        "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
+        "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
+        "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
+    ])
 
     args.setdefault("test_class", _get_class_name(kwargs))
     for f in args.get("srcs"):

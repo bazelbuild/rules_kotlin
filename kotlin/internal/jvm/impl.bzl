@@ -189,7 +189,7 @@ def kt_jvm_import_impl(ctx):
                 runfiles = ctx.runfiles(
                     # Append class jar with the optional sources jar
                     files = [artifact.class_jar] + [artifact.source_jar] if artifact.source_jar else [],
-                ),
+                ).merge_all([d[DefaultInfo].default_runfiles for d in ctx.attr.deps]),
             ),
             JavaInfo(
                 output_jar = artifact.class_jar,
