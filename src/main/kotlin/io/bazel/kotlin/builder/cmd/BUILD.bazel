@@ -22,8 +22,11 @@ kt_bootstrap_binary(
         "@com_github_jetbrains_kotlin//:kotlin-compiler",
     ],
     jvm_flags = [
-        "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rootpath @com_github_jetbrains_kotlin//:jvm-abi-gen)",
-        "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rootpath @com_github_jetbrains_kotlin//:kotlin-compiler)",
+        "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath @com_github_jetbrains_kotlin//:jvm-abi-gen)",
+        "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath @com_github_jetbrains_kotlin//:kotlin-compiler)",
+        "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
+        "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
+        "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     runtime_library = ":build_lib",

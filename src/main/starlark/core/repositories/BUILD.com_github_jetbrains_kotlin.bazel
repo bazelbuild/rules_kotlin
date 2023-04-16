@@ -21,13 +21,20 @@ package(default_visibility = ["//visibility:public"])
 # Kotlin home filegroup containing everything that is needed.
 filegroup(
     name = "home",
-    srcs = glob(["**"]),
+    srcs = glob([
+        "**",
+        "**/*.jar",
+    ]),
 )
 
 kt_jvm_import(
     name = "annotations",
     jar = "lib/annotations-13.0.jar",
-    neverlink = 1,
+)
+
+kt_jvm_import(
+    name = "trove4j",
+    jar = "lib/trove4j.jar",
 )
 
 kt_jvm_import(
@@ -35,19 +42,27 @@ kt_jvm_import(
     jar = "lib/jvm-abi-gen.jar",
 )
 
-# Kotlin dependencies that are internal to this repo and are meant to be loaded manually into a classloader.
-[
-    kt_jvm_import(
-        name = "kotlin-%s" % art,
-        jar = "lib/kotlin-%s.jar" % art,
-        neverlink = 1,
-    )
-    for art in [
-        "annotation-processing",
-        "annotation-processing-runtime",
-        "compiler",
-    ]
-]
+kt_jvm_import(
+    name = "kotlin-compiler",
+    jar = "lib/kotlin-compiler.jar",
+    deps = [
+        ":annotations",
+        ":kotlin-reflect",
+        ":kotlin-script-runtime",
+        ":kotlin-stdlib",
+        ":trove4j",
+    ],
+)
+
+kt_jvm_import(
+    name = "kotlin-annotation-processing-runtime",
+    jar = "lib/kotlin-annotation-processing-runtime.jar",
+)
+
+kt_jvm_import(
+    name = "kotlin-annotation-processing",
+    jar = "lib/kotlin-annotation-processing.jar",
+)
 
 kt_jvm_import(
     name = "kotlinx-serialization-compiler-plugin",

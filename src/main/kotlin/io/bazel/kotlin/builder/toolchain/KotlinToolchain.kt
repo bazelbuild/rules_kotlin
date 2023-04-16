@@ -32,74 +32,62 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 class KotlinToolchain private constructor(
-  val kotlinHome: Path,
   val classLoader: ClassLoader,
-  val kapt3Plugin: CompilerPlugin = CompilerPlugin(
-    kotlinHome.resolveVerified("lib", "kotlin-annotation-processing.jar").absolutePath,
-    "org.jetbrains.kotlin.kapt3",
-  ),
+  val kapt3Plugin: CompilerPlugin,
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
 ) {
 
   companion object {
-    // TODO(issue/432): Remove this gross hack and pass the file locations on the command line.
-    private var RULES_REPOSITORY_NAME =
-      System.getenv("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
-        ?: System.getenv("REPOSITORY_NAME")?.takeIf { it.isNotBlank() }
-        //   ?: System.getProperty("TEST_WORKSPACE")?.takeIf { it.isNotBlank() }
-        ?: error(
-          "Unable to determine rules_kotlin repository " +
-            "name.\nenv:${System.getenv()}\nproperties:${System.getProperties()}",
-        )
-
-    private val DEFAULT_JVM_ABI_PATH = BazelRunFiles.resolveVerified(
-      System.getProperty("@com_github_jetbrains_kotlin...jvm-abi-gen"),
+    private val JVM_ABI_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
+      "@com_github_jetbrains_kotlin...jvm-abi-gen",
     ).toPath()
 
-    private val COMPILER = BazelRunFiles.resolveVerified(
-      RULES_REPOSITORY_NAME,
-      "src", "main", "kotlin", "io", "bazel", "kotlin", "compiler",
-      "compiler.jar",
+    private val KAPT_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
+      "@com_github_jetbrains_kotlin...kapt",
     ).toPath()
 
-    private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerified(
-      RULES_REPOSITORY_NAME,
-      "src",
-      "main",
-      "kotlin",
-      "skip-code-gen.jar",
+    private val COMPILER = BazelRunFiles.resolveVerifiedFromProperty(
+      "@rules_kotlin...compiler",
     ).toPath()
 
-    private val JDEPS_GEN_PLUGIN = BazelRunFiles.resolveVerified(
-      RULES_REPOSITORY_NAME,
-      "src",
-      "main",
-      "kotlin",
-      "jdeps-gen.jar",
+    private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
+      "@rules_kotlin...skip-code-gen",
     ).toPath()
+
+    private val JDEPS_GEN_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
+      "@rules_kotlin...jdeps-gen",
+    ).toPath()
+
+    private val KOTLINC = BazelRunFiles.resolveVerifiedFromProperty(
+      "@com_github_jetbrains_kotlin...kotlin-compiler",
+    )
 
     internal val NO_ARGS = arrayOf<Any>()
 
     private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
 
     private fun createClassLoader(javaHome: Path, baseJars: List<File>): ClassLoader =
-      ClassPreloadingUtils.preloadClasses(
-        mutableListOf<File>().also {
-          it += baseJars
-          if (!isJdk9OrNewer) {
-            it += javaHome.resolveVerified("lib", "tools.jar")
-          }
-        },
-        Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
-        ClassLoader.getSystemClassLoader(),
-        null,
-      )
+      runCatching {
+        ClassPreloadingUtils.preloadClasses(
+          mutableListOf<File>().also {
+            it += baseJars
+            if (!isJdk9OrNewer) {
+              it += javaHome.resolveVerified("lib", "tools.jar")
+            }
+          },
+          Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
+          ClassLoader.getSystemClassLoader(),
+          null,
+        )
+      }.onFailure {
+        throw RuntimeException("$javaHome, $baseJars", it)
+      }.getOrThrow()
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain {
-      return createToolchain(DEFAULT_JVM_ABI_PATH)
+      return createToolchain(JVM_ABI_PLUGIN)
     }
 
     @JvmStatic
@@ -109,40 +97,38 @@ class KotlinToolchain private constructor(
         path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
       }.verifiedPath()
 
-      val skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified().absoluteFile
-      val jdepsGenFile = JDEPS_GEN_PLUGIN.verified().absoluteFile
-
-      val kotlinCompilerJar = BazelRunFiles.resolveVerified(
-        System.getProperty("@com_github_jetbrains_kotlin...kotlin-compiler"),
-      )
-
+      val skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified()
+      val jdepsGenFile = JDEPS_GEN_PLUGIN.verified()
       val jvmAbiGenFile = jvmAbiGenPath.verified()
       return KotlinToolchain(
-        kotlinCompilerJar.toPath().parent.parent,
         createClassLoader(
           javaHome,
           listOf(
-            kotlinCompilerJar,
-            COMPILER.verified().absoluteFile,
+            KOTLINC,
+            COMPILER.verified(),
             // plugins *must* be preloaded. Not doing so causes class conflicts
             // (and a NoClassDef err) in the compiler extension interfaces.
             // This may cause issues in accepting user defined compiler plugins.
-            jvmAbiGenFile.absoluteFile,
+            jvmAbiGenFile,
             skipCodeGenFile,
             jdepsGenFile,
           ),
         ),
         jvmAbiGen = CompilerPlugin(
-          jvmAbiGenFile.absolutePath,
+          jvmAbiGenFile.path,
           "org.jetbrains.kotlin.jvm.abi",
         ),
         skipCodeGen = CompilerPlugin(
-          skipCodeGenFile.absolutePath,
+          skipCodeGenFile.path,
           "io.bazel.kotlin.plugin.SkipCodeGen",
         ),
         jdepsGen = CompilerPlugin(
-          jdepsGenFile.absolutePath,
+          jdepsGenFile.path,
           "io.bazel.kotlin.plugin.jdeps.JDepsGen",
+        ),
+        kapt3Plugin = CompilerPlugin(
+          KAPT_PLUGIN.verified().path,
+          "org.jetbrains.kotlin.kapt3",
         ),
       )
     }
