@@ -40,29 +40,41 @@ class KotlinToolchain private constructor(
 ) {
 
   companion object {
-    private val JVM_ABI_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
-      "@com_github_jetbrains_kotlin...jvm-abi-gen",
-    ).toPath()
+    private val JVM_ABI_PLUGIN by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@com_github_jetbrains_kotlin...jvm-abi-gen",
+      ).toPath()
+    }
 
-    private val KAPT_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
-      "@com_github_jetbrains_kotlin...kapt",
-    ).toPath()
+    private val KAPT_PLUGIN by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@com_github_jetbrains_kotlin...kapt",
+      ).toPath()
+    }
 
-    private val COMPILER = BazelRunFiles.resolveVerifiedFromProperty(
-      "@rules_kotlin...compiler",
-    ).toPath()
+    private val COMPILER by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@rules_kotlin...compiler",
+      ).toPath()
+    }
 
-    private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
-      "@rules_kotlin...skip-code-gen",
-    ).toPath()
+    private val SKIP_CODE_GEN_PLUGIN by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@rules_kotlin...skip-code-gen",
+      ).toPath()
+    }
 
-    private val JDEPS_GEN_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
-      "@rules_kotlin...jdeps-gen",
-    ).toPath()
+    private val JDEPS_GEN_PLUGIN by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@rules_kotlin...jdeps-gen",
+      ).toPath()
+    }
 
-    private val KOTLINC = BazelRunFiles.resolveVerifiedFromProperty(
-      "@com_github_jetbrains_kotlin...kotlin-compiler",
-    )
+    private val KOTLINC by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@com_github_jetbrains_kotlin...kotlin-compiler",
+      ).toPath()
+    }
 
     internal val NO_ARGS = arrayOf<Any>()
 
@@ -87,31 +99,42 @@ class KotlinToolchain private constructor(
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain {
-      return createToolchain(JVM_ABI_PLUGIN)
+      return createToolchain(
+        FileSystems.getDefault().getPath(System.getProperty("java.home")).let { path ->
+          path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
+        }.verifiedPath(),
+        KOTLINC.verified().absoluteFile,
+        COMPILER.verified().absoluteFile,
+        JVM_ABI_PLUGIN.verified().absoluteFile,
+        SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
+        JDEPS_GEN_PLUGIN.verified().absoluteFile,
+        KAPT_PLUGIN.verified().absoluteFile,
+      )
     }
 
     @JvmStatic
-    fun createToolchain(jvmAbiGenPath: Path): KotlinToolchain {
-      val df = FileSystems.getDefault()
-      val javaHome = df.getPath(System.getProperty("java.home")).let { path ->
-        path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
-      }.verifiedPath()
-
-      val skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified()
-      val jdepsGenFile = JDEPS_GEN_PLUGIN.verified()
-      val jvmAbiGenFile = jvmAbiGenPath.verified()
+    fun createToolchain(
+      javaHome: Path,
+      kotlinc: File,
+      compiler: File,
+      jvmAbiGenFile: File,
+      skipCodeGenFile: File,
+      jdepsGenFile: File,
+      kaptFile: File,
+    ): KotlinToolchain {
       return KotlinToolchain(
         createClassLoader(
           javaHome,
           listOf(
-            KOTLINC,
-            COMPILER.verified(),
+            kotlinc,
+            compiler,
             // plugins *must* be preloaded. Not doing so causes class conflicts
             // (and a NoClassDef err) in the compiler extension interfaces.
             // This may cause issues in accepting user defined compiler plugins.
             jvmAbiGenFile,
             skipCodeGenFile,
             jdepsGenFile,
+            kaptFile,
           ),
         ),
         jvmAbiGen = CompilerPlugin(
@@ -127,7 +150,7 @@ class KotlinToolchain private constructor(
           "io.bazel.kotlin.plugin.jdeps.JDepsGen",
         ),
         kapt3Plugin = CompilerPlugin(
-          KAPT_PLUGIN.verified().path,
+          kaptFile.path,
           "org.jetbrains.kotlin.kapt3",
         ),
       )

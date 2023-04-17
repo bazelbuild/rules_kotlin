@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 
@@ -90,8 +89,8 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     private static KotlinBuilderTestComponent component() {
         if (component == null) {
             component = DaggerKotlinBuilderTestComponent.builder()
-                .toolchain(KotlinToolchain.createToolchain())
-                .build();
+                    .toolchain(toolchainForTest())
+                    .build();
         }
         return component;
     }
@@ -108,10 +107,10 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     JvmCompilationTask.Outputs outputs = task.getOutputs();
                     assertFilesExist(
                             Stream.of(
-                                    outputs.getAbijar(),
-                                    outputs.getJar(),
-                                    outputs.getJdeps(),
-                                    outputs.getSrcjar())
+                                            outputs.getAbijar(),
+                                            outputs.getJar(),
+                                            outputs.getJdeps(),
+                                            outputs.getSrcjar())
                                     .filter(p -> !p.isEmpty())
                                     .toArray(String[]::new)
                     );
@@ -156,6 +155,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public TaskBuilder compileKotlin() {
+            taskBuilder.setInfo(CompilationTaskInfo.newBuilder().addDebug("trace").addDebug("timings"));
             taskBuilder.setCompileKotlin(true);
             return this;
         }
@@ -224,19 +224,19 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
         public TaskBuilder generatedSourceJar() {
             taskBuilder.getOutputsBuilder()
-                .setGeneratedJavaSrcJar(instanceRoot().resolve("gen-src.jar").toAbsolutePath().toString());
+                    .setGeneratedJavaSrcJar(instanceRoot().resolve("gen-src.jar").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder ktStubsJar() {
             taskBuilder.getOutputsBuilder()
-                .setGeneratedJavaStubJar(instanceRoot().resolve("kt-stubs.jar").toAbsolutePath().toString());
+                    .setGeneratedJavaStubJar(instanceRoot().resolve("kt-stubs.jar").toAbsolutePath().toString());
             return this;
         }
 
         public TaskBuilder incrementalData() {
             taskBuilder.getOutputsBuilder()
-                .setGeneratedClassJar(instanceRoot().resolve("incremental.jar").toAbsolutePath().toString());
+                    .setGeneratedClassJar(instanceRoot().resolve("incremental.jar").toAbsolutePath().toString());
             return this;
         }
 

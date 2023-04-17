@@ -34,6 +34,11 @@ object BazelRunFiles {
     System.getProperty(key)
       ?.let { path -> runfiles.rlocation(path) }
       ?.let { File(it) }
+      ?.also {
+        if (!it.exists()) {
+          throw IllegalStateException("$it does not exist in the runfiles!\n${System.getenv().entries.joinToString("\n\t") { (k,v) -> "$k: $v" }}")
+        }
+      }
       ?: let {
         throw FileNotFoundException("no reference for $key in ${System.getProperties()}")
       }

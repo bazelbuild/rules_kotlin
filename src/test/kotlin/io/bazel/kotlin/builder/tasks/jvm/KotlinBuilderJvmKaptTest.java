@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.File;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -79,6 +78,8 @@ public class KotlinBuilderJvmKaptTest {
                     c.incrementalData();
                 }
         );
+
+        ctx.outLines().forEach(System.out::println);
 
         ctx.assertFilesExist(
                 DirectoryType.INCREMENTAL_DATA,
