@@ -13,21 +13,20 @@ def _kotlin_compiler_impl(repository_ctx):
     repository_ctx.template(
         "BUILD.bazel",
         attr._template,
-        substitutions = {
-            "{{.KotlinRulesRepository}}": attr.kotlin_rules,
-        },
         executable = False,
+        substitutions = {
+            "{{.KotlinRulesRepository}}": attr.kotlin_rules_repository,
+        },
     )
 
 kotlin_compiler_repository = repository_rule(
     implementation = _kotlin_compiler_impl,
     attrs = {
+        "kotlin_rules_repository": attr.string(
+            doc = "The rules_kotlin repository name for deprecation warnings.",
+        ),
         "urls": attr.string_list(
             doc = "A list of urls for the kotlin compiler",
-            mandatory = True,
-        ),
-        "kotlin_rules": attr.string(
-            doc = "target of the kotlin rules.",
             mandatory = True,
         ),
         "sha256": attr.string(

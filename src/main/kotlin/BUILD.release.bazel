@@ -39,13 +39,13 @@ java_binary(
     data = [
         ":jdeps-gen",
         ":skip-code-gen",
+        "//kotlin/compiler:jvm-abi-gen",
+        "//kotlin/compiler:kotlin-compiler",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "@com_github_jetbrains_kotlin//:jvm-abi-gen",
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
     ],
     jvm_flags = [
-        "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rootpath @com_github_jetbrains_kotlin//:jvm-abi-gen)",
-        "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rootpath @com_github_jetbrains_kotlin//:kotlin-compiler)",
+        "-D..kotlin.compiler.jvm-abi-gen=$(rootpath //kotlin/compiler:jvm-abi-gen)",
+        "-D..kotlin.compiler.kotlin-compiler=$(rootpath //kotlin/compiler:kotlin-compiler)",
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",

@@ -15,15 +15,15 @@ kt_bootstrap_library(
 kt_bootstrap_binary(
     name = "build",
     data = [
+        "//kotlin/compiler:jvm-abi-gen",
+        "//kotlin/compiler:kotlin-compiler",
         "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "@com_github_jetbrains_kotlin//:jvm-abi-gen",
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
     ],
     jvm_flags = [
-        "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rootpath @com_github_jetbrains_kotlin//:jvm-abi-gen)",
-        "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rootpath @com_github_jetbrains_kotlin//:kotlin-compiler)",
+        "-D..kotlin.compiler.jvm-abi-gen=$(rootpath //kotlin/compiler:jvm-abi-gen)",
+        "-D..kotlin.compiler.kotlin-compiler=$(rootpath //kotlin/compiler:kotlin-compiler)",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     runtime_library = ":build_lib",

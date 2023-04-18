@@ -11,9 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# dev_io_bazel_rules_kotlin
-load("@{{.KotlinRulesRepository}}//kotlin:jvm.bzl", "kt_jvm_import")
-load("@{{.KotlinRulesRepository}}//kotlin:js.bzl", "kt_js_import")
 load("@rules_java//java:defs.bzl", "java_import")
 
 package(default_visibility = ["//visibility:public"])
@@ -24,22 +21,27 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-kt_jvm_import(
+_DEPRECATION_MESSAGE = "This target has been moved to @{{.KotlinRulesRepository}}//kotlin/compiler"
+
+java_import(
     name = "annotations",
-    jar = "lib/annotations-13.0.jar",
+    deprecation = _DEPRECATION_MESSAGE,
+    jars = ["lib/annotations-13.0.jar"],
     neverlink = 1,
 )
 
-kt_jvm_import(
+java_import(
     name = "jvm-abi-gen",
-    jar = "lib/jvm-abi-gen.jar",
+    deprecation = _DEPRECATION_MESSAGE,
+    jars = ["lib/jvm-abi-gen.jar"],
 )
 
 # Kotlin dependencies that are internal to this repo and are meant to be loaded manually into a classloader.
 [
-    kt_jvm_import(
+    java_import(
         name = "kotlin-%s" % art,
-        jar = "lib/kotlin-%s.jar" % art,
+        deprecation = _DEPRECATION_MESSAGE,
+        jars = ["lib/kotlin-%s.jar" % art],
         neverlink = 1,
     )
     for art in [
@@ -49,40 +51,47 @@ kt_jvm_import(
     ]
 ]
 
-kt_jvm_import(
+java_import(
     name = "kotlinx-serialization-compiler-plugin",
-    jar = "lib/kotlinx-serialization-compiler-plugin.jar",
+    deprecation = _DEPRECATION_MESSAGE,
+    jars = ["lib/kotlinx-serialization-compiler-plugin.jar"],
 )
 
-kt_jvm_import(
+java_import(
     name = "allopen-compiler-plugin",
-    jar = "lib/allopen-compiler-plugin.jar",
+    deprecation = _DEPRECATION_MESSAGE,
+    jars = ["lib/allopen-compiler-plugin.jar"],
 )
 
-kt_jvm_import(
+java_import(
     name = "noarg-compiler-plugin",
-    jar = "lib/noarg-compiler-plugin.jar",
+    deprecation = _DEPRECATION_MESSAGE,
+    jars = ["lib/noarg-compiler-plugin.jar"],
 )
 
-kt_jvm_import(
+java_import(
     name = "sam-with-receiver-compiler-plugin",
-    jar = "lib/sam-with-receiver-compiler-plugin.jar",
+    deprecation = _DEPRECATION_MESSAGE,
+    jars = ["lib/sam-with-receiver-compiler-plugin.jar"],
 )
 
-kt_jvm_import(
+java_import(
     name = "parcelize-compiler-plugin",
-    jar = "lib/parcelize-compiler.jar",
+    deprecation = _DEPRECATION_MESSAGE,
+    jars = ["lib/parcelize-compiler.jar"],
 )
 
-kt_jvm_import(
+java_import(
     name = "parcelize-runtime",
-    jar = "lib/parcelize-runtime.jar",
+    deprecation = _DEPRECATION_MESSAGE,
+    jars = ["lib/parcelize-runtime.jar"],
 )
 
 # Kotlin dependencies that are internal to this repo and may be linked.
 [
     java_import(
         name = "kotlin-%s" % art,
+        deprecation = _DEPRECATION_MESSAGE,
         jars = ["lib/kotlin-%s.jar" % art],
     )
     for art in [
@@ -92,9 +101,10 @@ kt_jvm_import(
 
 #  The Kotlin standard libraries. These should be setup in a Toolchain.
 [
-    kt_jvm_import(
+    java_import(
         name = "kotlin-%s" % art,
-        jar = "lib/kotlin-%s.jar" % art,
+        deprecation = _DEPRECATION_MESSAGE,
+        jars = ["lib/kotlin-%s.jar" % art],
         srcjar = "lib/kotlin-%s-sources.jar" % art,
         visibility = ["//visibility:public"],
     )
@@ -110,8 +120,9 @@ kt_jvm_import(
 
 #  The Kotlin JS standard libraries. These should be setup in a Toolchain.
 [
-    kt_js_import(
+    java_import(
         name = "kotlin-%s" % art,
+        deprecation = _DEPRECATION_MESSAGE,
         jars = ["lib/kotlin-%s.jar" % art],
         srcjar = "lib/kotlin-%s-sources.jar" % art,
         visibility = ["//visibility:public"],
