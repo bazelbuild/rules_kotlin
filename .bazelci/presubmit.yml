@@ -33,6 +33,12 @@ tasks:
     working_directory: examples/android
     test_targets:
       - //...
+  example-ksp:
+    name: "Example - Android KSP"
+    platform: ubuntu1804
+    working_directory: examples/ksp
+    test_targets:
+      - //...
   example-associates:
     name: "Example - Associates"
     platform: ubuntu1804

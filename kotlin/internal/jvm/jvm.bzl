@@ -97,6 +97,7 @@ load(
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
     _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KspPluginInfo = "KspPluginInfo",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
@@ -114,6 +115,7 @@ load(
     _kt_jvm_import_impl = "kt_jvm_import_impl",
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
     _kt_jvm_library_impl = "kt_jvm_library_impl",
+    _kt_ksp_plugin_info_impl = "kt_ksp_plugin_info_impl",
 )
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
@@ -551,4 +553,25 @@ Supports the following template values:
     },
     implementation = _kt_compiler_plugin_impl,
     provides = [_KtCompilerPluginInfo],
+)
+
+kt_ksp_plugin_info = rule(
+    doc = """\
+TODO(bencodes) Add proper docs for this rule
+```
+""",
+    attrs = {
+        "deps": attr.label_list(
+            doc = "The list of libraries to be added to the compiler's plugin classpath",
+            providers = [JavaInfo],
+            cfg = "exec",
+            aspects = [_kt_compiler_deps_aspect],
+        ),
+        "processor_class": attr.string(
+            doc = " The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.",
+            mandatory = True,
+        ),
+    },
+    implementation = _kt_ksp_plugin_info_impl,
+    provides = [_KspPluginInfo],
 )

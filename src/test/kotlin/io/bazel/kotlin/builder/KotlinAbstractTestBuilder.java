@@ -234,7 +234,9 @@ abstract class KotlinAbstractTestBuilder<T> {
                 new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:jvm-abi-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-annotation-processing").singleCompileJar())
+                new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-annotation-processing").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@com_github_google_ksp//:symbol-processing-api").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@com_github_google_ksp//:symbol-processing-cmdline").singleCompileJar())
         );
     }
 }

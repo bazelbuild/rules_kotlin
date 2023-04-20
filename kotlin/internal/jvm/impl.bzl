@@ -18,6 +18,7 @@ load(
 )
 load(
     "//kotlin/internal:defs.bzl",
+    _KspPluginInfo = "KspPluginInfo",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
@@ -416,4 +417,23 @@ def kt_compiler_plugin_impl(ctx):
             stubs = ctx.attr.stubs_phase,
             compile = ctx.attr.compile_phase,
         ),
+    ]
+
+def kt_ksp_plugin_info_impl(ctx):
+    _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+
+    info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])
+    classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
+
+    return [
+        DefaultInfo(files = classpath),
+        _KspPluginInfo(plugins = [
+            _JavaPluginInfo(
+                runtime_deps = [
+                    info,
+                ],
+                processor_class = ctx.attr.processor_class,
+                generates_api = False,
+            ),
+        ]),
     ]

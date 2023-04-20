@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//kotlin/internal:defs.bzl", _JavaPluginInfo = "JavaPluginInfo")
+load(
+    "//kotlin/internal:defs.bzl",
+    _JavaPluginInfo = "JavaPluginInfo",
+    _KspPluginInfo = "KspPluginInfo",
+)
 
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
@@ -34,6 +38,14 @@ def _targets_to_annotation_processors(targets):
                 plugins.append(p)
     return depset(plugins)
 
+def _targets_to_ksp_annotation_processors(targets):
+    plugins = []
+    for t in targets:
+        if _KspPluginInfo in t:
+            for plugin in t[_KspPluginInfo].plugins:
+                plugins.append(plugin.plugins)
+    return depset(plugins)
+
 def _targets_to_annotation_processors_java_plugin_info(targets):
     return [t[_JavaPluginInfo] for t in targets if _JavaPluginInfo in t]
 
@@ -48,6 +60,7 @@ def _targets_to_transitive_runtime_jars(targets):
 
 mappers = struct(
     targets_to_annotation_processors = _targets_to_annotation_processors,
+    targets_to_ksp_annotation_processors = _targets_to_ksp_annotation_processors,
     targets_to_annotation_processors_java_plugin_info = _targets_to_annotation_processors_java_plugin_info,
     targets_to_transitive_runtime_jars = _targets_to_transitive_runtime_jars,
     kt_plugin_to_processor = _kt_plugin_to_processor,

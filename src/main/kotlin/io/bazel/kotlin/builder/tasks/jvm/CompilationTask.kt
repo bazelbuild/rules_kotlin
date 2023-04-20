@@ -165,6 +165,53 @@ internal fun JvmCompilationTask.kaptArgs(
   }
 }
 
+internal fun JvmCompilationTask.kspArgs(
+  plugins: InternalCompilerPlugins,
+): CompilationArgs {
+  return CompilationArgs().apply {
+    plugin(plugins.kspSymbolProcessingCommandLine)
+    plugin(plugins.kspSymbolProcessingApi) {
+      flag("-Xallow-no-source-files")
+
+      val values = arrayOf(
+        "apclasspath" to listOf(inputs.processorpathsList.joinToString(File.pathSeparator)),
+        // projectBaseDir shouldn't matter because incremental is disabled
+        "projectBaseDir" to listOf(directories.incrementalData),
+        // Disable incremental mode
+        "incremental" to listOf("false"),
+        // Directory where class files are written to. Files written to this directory are class
+        // files being written directly from the annotation processor, not Kotlinc
+        "classOutputDir" to listOf(directories.generatedClasses),
+        // Directory where generated Java sources files are written to
+        "javaOutputDir" to listOf(directories.generatedJavaSources),
+        // Directory where generated Kotlin sources files are written to
+        "kotlinOutputDir" to listOf(directories.generatedSources),
+        // Directory where META-INF data is written to. This might not be the most ideal place to
+        // write this. Maybe just directly to the classes directory?
+        "resourceOutputDir" to listOf(directories.generatedSources),
+        // TODO(bencodes) Not sure what this directory is yet.
+        "kspOutputDir" to listOf(directories.incrementalData),
+        // Directory to write KSP caches. Shouldn't matter because incremental is disabled
+        "cachesDir" to listOf(directories.incrementalData),
+        // Set withCompilation to false because we run this as part of the standard kotlinc pass
+        // If we ever want to flip this to true, we probably want to integrate this directly
+        // into the KotlinCompile action.
+        "withCompilation" to listOf("false"),
+        // Set returnOkOnError to false because we want to fail the build if there are any errors
+        "returnOkOnError" to listOf("false"),
+        // TODO(bencodes) This should probably be enabled via some KSP options
+        "allWarningsAsErrors" to listOf("false"),
+      )
+
+      values.forEach { pair ->
+        pair.second.forEach { value ->
+          flag(pair.first, value)
+        }
+      }
+    }
+  }
+}
+
 private fun Pair<String, List<String>>.asKeyToCommaList() =
   first to listOf(second.joinToString(","))
 
@@ -173,7 +220,8 @@ internal fun JvmCompilationTask.runPlugins(
   plugins: InternalCompilerPlugins,
   compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
-  if ((
+  if (
+    (
       inputs.processorsList.isEmpty() &&
         inputs.stubsPluginClasspathList.isEmpty()
       ) ||
@@ -181,36 +229,71 @@ internal fun JvmCompilationTask.runPlugins(
   ) {
     return this
   } else {
-    return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
-      (
-        baseArgs()
-          .plus(
-            plugins(
-              options = inputs.stubsPluginOptionsList,
-              classpath = inputs.stubsPluginClasspathList,
-            ),
-          )
-          .plus(
-            kaptArgs(context, plugins, "stubsAndApt"),
-          )
-        )
-        .flag("-d", directories.generatedClasses)
-        .values(inputs.kotlinSourcesList)
-        .values(inputs.javaSourcesList).list().let { args ->
-          context.executeCompilerTask(
-            args,
-            compiler::compile,
-            printOnSuccess = context.whenTracing { false } ?: true,
-          )
-        }.let { outputLines ->
-          // if tracing is enabled the output should be formatted in a special way, if we aren't
-          // tracing then any compiler output would make it's way to the console as is.
-          context.whenTracing {
-            printLines("kapt output", outputLines)
-          }
-          return@let expandWithGeneratedSources()
-        }
+    if (!outputs.generatedKspSrcJar.isNullOrEmpty()) {
+      return runKspPlugin(context, plugins, compiler)
+    } else if (!outputs.generatedClassJar.isNullOrEmpty()) {
+      return runKaptPlugin(context, plugins, compiler)
+    } else {
+      return this
     }
+  }
+}
+
+private fun JvmCompilationTask.runKaptPlugin(
+  context: CompilationTaskContext,
+  plugins: InternalCompilerPlugins,
+  compiler: KotlinToolchain.KotlincInvoker,
+): JvmCompilationTask {
+  return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
+    baseArgs().plus(
+      plugins(
+        options = inputs.stubsPluginOptionsList,
+        classpath = inputs.stubsPluginClasspathList,
+      ),
+    ).plus(
+      kaptArgs(context, plugins, "stubsAndApt"),
+    ).flag("-d", directories.generatedClasses).values(inputs.kotlinSourcesList)
+      .values(inputs.javaSourcesList).list().let { args ->
+        context.executeCompilerTask(
+          args,
+          compiler::compile,
+          printOnSuccess = context.whenTracing { false } ?: true,
+        )
+      }.let { outputLines ->
+        // if tracing is enabled the output should be formatted in a special way, if we aren't
+        // tracing then any compiler output would make it's way to the console as is.
+        context.whenTracing {
+          printLines("kapt output", outputLines)
+        }
+        return@let expandWithGeneratedSources()
+      }
+  }
+}
+
+private fun JvmCompilationTask.runKspPlugin(
+  context: CompilationTaskContext,
+  plugins: InternalCompilerPlugins,
+  compiler: KotlinToolchain.KotlincInvoker,
+): JvmCompilationTask {
+  return context.execute("Ksp (${inputs.processorsList.joinToString(", ")})") {
+    baseArgs()
+      .plus(kspArgs(plugins))
+      .flag("-d", directories.generatedClasses)
+      .values(inputs.kotlinSourcesList)
+      .values(inputs.javaSourcesList).list().let { args ->
+        context.executeCompilerTask(
+          args,
+          compiler::compile,
+          printOnSuccess = context.whenTracing { false } ?: true,
+        )
+      }.let { outputLines ->
+        // if tracing is enabled the output should be formatted in a special way, if we aren't
+        // tracing then any compiler output would make it's way to the console as is.
+        context.whenTracing {
+          printLines("Ksp output", outputLines)
+        }
+        return@let expandWithGeneratedSources()
+      }
   }
 }
 
@@ -285,6 +368,18 @@ internal fun JvmCompilationTask.createGeneratedClassJar() {
     verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.generatedClasses))
+    it.setJarOwner(info.label, info.bazelRuleKind)
+    it.execute()
+  }
+}
+
+internal fun JvmCompilationTask.createGeneratedKspKotlinSrcJar() {
+  JarCreator(
+    path = Paths.get(outputs.generatedKspSrcJar),
+    normalize = true,
+    verbose = false,
+  ).also {
+    it.addDirectory(Paths.get(directories.generatedSources))
     it.setJarOwner(info.label, info.bazelRuleKind)
     it.execute()
   }
