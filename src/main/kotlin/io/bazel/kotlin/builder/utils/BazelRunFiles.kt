@@ -36,7 +36,9 @@ object BazelRunFiles {
       ?.let { File(it) }
       ?.also {
         if (!it.exists()) {
-          throw IllegalStateException("$it does not exist in the runfiles!\n${System.getenv().entries.joinToString("\n\t") { (k,v) -> "$k: $v" }}")
+          throw IllegalStateException(
+            "$it does not exist in the runfiles!",
+          )
         }
       }
       ?: let {

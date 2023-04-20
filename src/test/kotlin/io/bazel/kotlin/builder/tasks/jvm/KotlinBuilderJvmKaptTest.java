@@ -79,8 +79,6 @@ public class KotlinBuilderJvmKaptTest {
                 }
         );
 
-        ctx.outLines().forEach(System.out::println);
-
         ctx.assertFilesExist(
                 DirectoryType.INCREMENTAL_DATA,
                 "autovalue/TestKtValue.class");
