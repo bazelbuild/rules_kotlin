@@ -36,5 +36,3 @@ additional_languages:
 
 import_run_configurations:
   src/test/Bazel_all_local_tests.xml
-
-android_sdk_platform: android-31

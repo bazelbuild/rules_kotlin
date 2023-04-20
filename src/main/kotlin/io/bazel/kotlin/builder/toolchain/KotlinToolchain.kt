@@ -18,7 +18,6 @@ package io.bazel.kotlin.builder.toolchain
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
-import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.builder.utils.verifiedPath
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
@@ -42,37 +41,53 @@ class KotlinToolchain private constructor(
 ) {
 
   companion object {
-    private val JVM_ABI_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
-      "@com_github_jetbrains_kotlin...jvm-abi-gen",
-    ).toPath()
+    private val JVM_ABI_PLUGIN by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@com_github_jetbrains_kotlin...jvm-abi-gen",
+      ).toPath()
+    }
 
-    private val KAPT_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
-      "@com_github_jetbrains_kotlin...kapt",
-    ).toPath()
+    private val KAPT_PLUGIN by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@com_github_jetbrains_kotlin...kapt",
+      ).toPath()
+    }
 
-    private val COMPILER = BazelRunFiles.resolveVerifiedFromProperty(
-      "@rules_kotlin...compiler",
-    ).toPath()
+    private val COMPILER by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@rules_kotlin...compiler",
+      ).toPath()
+    }
 
-    private val SKIP_CODE_GEN_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
-      "@rules_kotlin...skip-code-gen",
-    ).toPath()
+    private val SKIP_CODE_GEN_PLUGIN by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@rules_kotlin...skip-code-gen",
+      ).toPath()
+    }
 
-    private val JDEPS_GEN_PLUGIN = BazelRunFiles.resolveVerifiedFromProperty(
-      "@rules_kotlin...jdeps-gen",
-    ).toPath()
+    private val JDEPS_GEN_PLUGIN by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@rules_kotlin...jdeps-gen",
+      ).toPath()
+    }
 
-    private val KOTLINC = BazelRunFiles.resolveVerifiedFromProperty(
-      "@com_github_jetbrains_kotlin...kotlin-compiler",
-    )
+    private val KOTLINC by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@com_github_jetbrains_kotlin...kotlin-compiler",
+      ).toPath()
+    }
 
-    private val KSP_SYMBOL_PROCESSING_API = BazelRunFiles.resolveVerifiedFromProperty(
-      "@com_github_google_ksp...symbol-processing-api"
-    ).toPath()
+    private val KSP_SYMBOL_PROCESSING_API by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@com_github_google_ksp...symbol-processing-api",
+      ).toPath()
+    }
 
-    private val KSP_SYMBOL_PROCESSING_CMDLINE = BazelRunFiles.resolveVerifiedFromProperty(
-      "@com_github_google_ksp...symbol-processing-cmdline"
-    ).toPath()
+    private val KSP_SYMBOL_PROCESSING_CMDLINE by lazy {
+      BazelRunFiles.resolveVerifiedFromProperty(
+        "@com_github_google_ksp...symbol-processing-cmdline",
+      ).toPath()
+    }
 
     internal val NO_ARGS = arrayOf<Any>()
 
@@ -97,28 +112,42 @@ class KotlinToolchain private constructor(
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain {
-      return createToolchain(JVM_ABI_PLUGIN)
+      val javaHome = FileSystems.getDefault()
+        .getPath(System.getProperty("java.home"))
+        .let { path ->
+          path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
+        }.verifiedPath()
+      return createToolchain(
+        javaHome,
+        KOTLINC.toFile(),
+        COMPILER.toFile(),
+        JVM_ABI_PLUGIN.toFile(),
+        SKIP_CODE_GEN_PLUGIN.toFile(),
+        JDEPS_GEN_PLUGIN.toFile(),
+        KAPT_PLUGIN.toFile(),
+        KSP_SYMBOL_PROCESSING_API.toFile(),
+        KSP_SYMBOL_PROCESSING_CMDLINE.toFile(),
+      )
     }
 
     @JvmStatic
-    fun createToolchain(jvmAbiGenPath: Path): KotlinToolchain {
-      val df = FileSystems.getDefault()
-      val javaHome = df.getPath(System.getProperty("java.home")).let { path ->
-        path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
-      }.verifiedPath()
-
-      val skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified()
-      val jdepsGenFile = JDEPS_GEN_PLUGIN.verified()
-      val jvmAbiGenFile = jvmAbiGenPath.verified()
-      val kspSymbolProcessingApi = KSP_SYMBOL_PROCESSING_API.verified().absoluteFile
-      val kspSymbolProcessingCommandLine = KSP_SYMBOL_PROCESSING_CMDLINE.verified().absoluteFile
-
+    fun createToolchain(
+      javaHome: Path,
+      kotlinc: File,
+      compiler: File,
+      jvmAbiGenFile: File,
+      skipCodeGenFile: File,
+      jdepsGenFile: File,
+      kaptFile: File,
+      kspSymbolProcessingApi: File,
+      kspSymbolProcessingCommandLine: File,
+    ): KotlinToolchain {
       return KotlinToolchain(
         createClassLoader(
           javaHome,
           listOf(
-            KOTLINC,
-            COMPILER.verified(),
+            kotlinc,
+            compiler,
             // plugins *must* be preloaded. Not doing so causes class conflicts
             // (and a NoClassDef err) in the compiler extension interfaces.
             // This may cause issues in accepting user defined compiler plugins.
@@ -142,7 +171,7 @@ class KotlinToolchain private constructor(
           "io.bazel.kotlin.plugin.jdeps.JDepsGen",
         ),
         kapt3Plugin = CompilerPlugin(
-          KAPT_PLUGIN.verified().path,
+          kaptFile.path,
           "org.jetbrains.kotlin.kapt3",
         ),
         kspSymbolProcessingApi = CompilerPlugin(
