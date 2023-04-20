@@ -15,7 +15,6 @@
  */
 package io.bazel.kotlin.builder;
 
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JsCompilationTask;
 
@@ -29,7 +28,7 @@ public final class KotlinJsTestBuilder extends KotlinAbstractTestBuilder<JsCompi
             Arrays.asList("-source-map", "-meta-info", "-module-kind", "commonjs", "-target", "v5");
     private static final JsCompilationTask.Builder taskBuilder = JsCompilationTask.newBuilder();
     private static final KotlinBuilderComponent component =
-            DaggerKotlinBuilderComponent.builder().toolchain(KotlinToolchain.createToolchain()).build();
+            DaggerKotlinBuilderComponent.builder().toolchain(toolchainForTest()).build();
     private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
             EnumSet.of(DirectoryType.SOURCES);
     private final TaskBuilder taskBuilderInstance = new TaskBuilder();

@@ -18,12 +18,14 @@ package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
 import io.bazel.kotlin.model.RuleKind;
 
 import java.io.*;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,7 +58,7 @@ abstract class KotlinAbstractTestBuilder<T> {
         pathStream.forEach(
                 path -> {
                     if (shouldExist)
-                        assertWithMessage("file did not exist: " + path).that(path.toFile().exists()).isTrue();
+                        assertWithMessage("file did not exist: %s", path).that(path.toFile().exists()).isTrue();
                     else assertWithMessage("file existed: " + path).that(path.toFile().exists()).isFalse();
                 });
     }
@@ -160,6 +162,7 @@ abstract class KotlinAbstractTestBuilder<T> {
                             .lines()
                             .collect(toList()));
         }
+
     }
 
     public final void assertFilesExist(DirectoryType dir, String... paths) {
@@ -216,5 +219,22 @@ abstract class KotlinAbstractTestBuilder<T> {
                 directoryContents(type)
                         .map(Path::toString)
                         .collect(Collectors.joining("\n", "directory " + type.name + " contents:\n", "")));
+    }
+
+    static KotlinToolchain toolchainForTest() {
+        FileSystem fd = FileSystems.getDefault();
+        Path javaHome = fd.getPath(System.getProperty("java.home"));
+        if (javaHome.endsWith(fd.getPath("jre"))) {
+            javaHome = javaHome.getParent();
+        }
+        return KotlinToolchain.createToolchain(
+                javaHome,
+                new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-compiler").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:jvm-abi-gen").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-annotation-processing").singleCompileJar())
+        );
     }
 }
