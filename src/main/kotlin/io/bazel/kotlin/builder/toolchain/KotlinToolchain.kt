@@ -18,6 +18,7 @@ package io.bazel.kotlin.builder.toolchain
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
+import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.builder.utils.verifiedPath
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
@@ -112,19 +113,16 @@ class KotlinToolchain private constructor(
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain {
-      val javaHome = FileSystems.getDefault()
-        .getPath(System.getProperty("java.home"))
-        .let { path ->
-          path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
-        }.verifiedPath()
       return createToolchain(
-        javaHome,
-        KOTLINC.toFile(),
-        COMPILER.toFile(),
-        JVM_ABI_PLUGIN.toFile(),
-        SKIP_CODE_GEN_PLUGIN.toFile(),
-        JDEPS_GEN_PLUGIN.toFile(),
-        KAPT_PLUGIN.toFile(),
+        FileSystems.getDefault().getPath(System.getProperty("java.home")).let { path ->
+          path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
+        }.verifiedPath(),
+        KOTLINC.verified().absoluteFile,
+        COMPILER.verified().absoluteFile,
+        JVM_ABI_PLUGIN.verified().absoluteFile,
+        SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
+        JDEPS_GEN_PLUGIN.verified().absoluteFile,
+        KAPT_PLUGIN.verified().absoluteFile,
         KSP_SYMBOL_PROCESSING_API.toFile(),
         KSP_SYMBOL_PROCESSING_CMDLINE.toFile(),
       )
