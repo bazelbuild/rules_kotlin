@@ -111,6 +111,8 @@ tasks:
     platform: ubuntu1804
     build_targets:
       - //kotlin:stardoc
+    shell_commands:
+      - diff -u bazel-bin/kotlin/kotlin.md docs/kotlin.md
   ktlint:
     name: KtLint
     platform: ubuntu1804
