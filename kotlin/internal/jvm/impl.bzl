@@ -432,7 +432,9 @@ def kt_ksp_plugin_info_impl(ctx):
                     info,
                 ],
                 processor_class = ctx.attr.processor_class,
-                generates_api = False,
+                # rules_kotlin doesn't support stripping non-api generating annotation
+                # processors out of the public ABI.
+                generates_api = True,
             ),
         ]),
     ]
