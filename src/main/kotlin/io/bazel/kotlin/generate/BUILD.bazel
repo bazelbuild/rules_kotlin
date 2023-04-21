@@ -1,0 +1,18 @@
+load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "kotlin_release_options_lib",
+    srcs = glob(["**/*.kt"]),
+    deps = [
+        "@com_github_jetbrains_kotlin//:kotlin-compiler",
+        "@com_github_jetbrains_kotlin//:kotlin-reflect",
+    ],
+)
+
+kt_jvm_binary(
+    name = "kotlin_release_options",
+    main_class = "io.bazel.kotlin.generate.ReadK2JVMOptions",
+    runtime_deps = [
+        ":kotlin_release_options_lib",
+    ],
+)
