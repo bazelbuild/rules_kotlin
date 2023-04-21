@@ -5,7 +5,7 @@ _JARS_INSIDE_REPO = [
 ]
 
 def _ksp_compiler_plugin_repository_impl(repository_ctx):
-    """Creates the kotlinc repository."""
+    """Creates the KSP repository."""
     attr = repository_ctx.attr
     repository_ctx.download_and_extract(
         attr.urls,
