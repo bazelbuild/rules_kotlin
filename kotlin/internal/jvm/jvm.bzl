@@ -115,7 +115,7 @@ load(
     _kt_jvm_import_impl = "kt_jvm_import_impl",
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
     _kt_jvm_library_impl = "kt_jvm_library_impl",
-    _kt_ksp_plugin_info_impl = "kt_ksp_plugin_info_impl",
+    _kt_ksp_plugin_impl = "kt_ksp_plugin_impl",
 )
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
@@ -555,7 +555,7 @@ Supports the following template values:
     provides = [_KtCompilerPluginInfo],
 )
 
-kt_ksp_plugin_info = rule(
+kt_ksp_plugin = rule(
     doc = """\
 TODO(bencodes) Add proper docs for this rule
 ```
@@ -572,6 +572,6 @@ TODO(bencodes) Add proper docs for this rule
             mandatory = True,
         ),
     },
-    implementation = _kt_ksp_plugin_info_impl,
+    implementation = _kt_ksp_plugin_impl,
     provides = [_KspPluginInfo],
 )
