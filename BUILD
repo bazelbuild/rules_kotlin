@@ -52,20 +52,9 @@ test_suite(
     ],
 )
 
-[
-    release_archive(
-        name = version,
-        deps = [
-            "@%s//:pkg" % version,
-        ],
-    )
-    for version in versions.CORE
-]
-
 # Release target.
 release_archive(
     name = "rules_kotlin_release",
-    srcs = ["%s.tgz" % v for v in versions.CORE],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
         "WORKSPACE.release.bazel": "WORKSPACE",

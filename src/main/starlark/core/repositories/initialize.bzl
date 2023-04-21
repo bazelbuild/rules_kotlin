@@ -38,4 +38,7 @@ def kotlin_repositories(
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
     kt_configure()
-    _release_kotlin_repositories(compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release, configured_repository_name = None)
+    _release_kotlin_repositories(
+        compiler_release = compiler_release,
+        ksp_compiler_release = ksp_compiler_release,
+    )
