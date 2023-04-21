@@ -11,7 +11,7 @@ kt_jvm_library(
 
 kt_jvm_binary(
     name = "kotlin_release_options",
-    main_class = "io.bazel.kotlin.generate.ReadK2JVMOptions",
+    main_class = "io.bazel.kotlin.generate.WriteKotlincCapabilities",
     runtime_deps = [
         ":kotlin_release_options_lib",
     ],
