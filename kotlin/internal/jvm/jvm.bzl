@@ -557,8 +557,27 @@ Supports the following template values:
 
 kt_ksp_plugin = rule(
     doc = """\
-TODO(bencodes) Add proper docs for this rule
-```
+Define a KSP plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
+of the `kt_jvm_*` and `kt_android_*` rules.
+
+An example can be found under `//examples/ksp`:
+
+```bzl
+kt_ksp_plugin(
+    name = "moshi-kotlin-codegen",
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@maven//:com_squareup_moshi_moshi",
+        "@maven//:com_squareup_moshi_moshi_kotlin",
+        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+kt_jvm_library(
+    name = "lib",
+    srcs = glob(["*.kt"]),
+    plugins = ["//:moshi-kotlin-codegen"],
+)
 """,
     attrs = {
         "deps": attr.label_list(
