@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_ksp_plugin_info")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_ksp_plugin")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_java//java:defs.bzl", "java_binary", "java_plugin")
 load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
@@ -27,7 +27,7 @@ java_plugin(
     deps = ["@maven//:com_google_auto_value_auto_value"],
 )
 
-kt_ksp_plugin_info(
+kt_ksp_plugin(
     name = "moshi-kotlin-codegen",
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [

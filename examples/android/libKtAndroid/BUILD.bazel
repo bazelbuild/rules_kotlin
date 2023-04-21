@@ -1,4 +1,4 @@
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin", "kt_ksp_plugin_info")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin", "kt_ksp_plugin")
 load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_library")
 load("@rules_java//java:defs.bzl", "java_plugin")
 
@@ -19,7 +19,7 @@ java_plugin(
     deps = ["@maven//:com_google_auto_value_auto_value"],
 )
 
-kt_ksp_plugin_info(
+kt_ksp_plugin(
     name = "moshi-kotlin-codegen",
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
