@@ -20,7 +20,6 @@ release_archive(
         "BUILD.com_github_google_ksp.bazel",
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "compiler.bzl",
-        "configured_rules.bzl",
         "ksp.bzl",
         "versions.bzl",
     ],

@@ -27,7 +27,6 @@ load(
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
-load(":configured_rules.bzl", "rules_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
 versions = _versions
