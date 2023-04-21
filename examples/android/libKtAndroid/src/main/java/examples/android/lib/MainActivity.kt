@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     Data.serializer()
 
     val adapter = DataJsonModelJsonAdapter(Moshi.Builder().build())
-    println(adapter.toJson(DataJsonModelJson("foo")))
+    println(adapter.toJson(DataJsonModel("foo")))
 
     TestKtValue.create {
       setName("Auto Value Test") // can't use property syntax, because autovalue builder's codegen
