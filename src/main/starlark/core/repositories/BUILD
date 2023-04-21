@@ -17,9 +17,11 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 release_archive(
     name = "pkg",
     srcs = [
+        "BUILD.com_github_google_ksp.bazel",
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "compiler.bzl",
         "configured_rules.bzl",
+        "ksp.bzl",
         "versions.bzl",
     ],
     src_map = {

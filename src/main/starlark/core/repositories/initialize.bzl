@@ -18,6 +18,7 @@ load(":setup.bzl", "kt_configure")
 load(
     ":initialize.release.bzl",
     _kotlinc_version = "kotlinc_version",
+    _ksp_version = "ksp_version",
     _release_kotlin_repositories = "kotlin_repositories",
 )
 load(":versions.bzl", _versions = "versions")
@@ -25,15 +26,16 @@ load(":versions.bzl", _versions = "versions")
 #exports
 versions = _versions
 kotlinc_version = _kotlinc_version
+ksp_version = _ksp_version
 
-def kotlin_repositories(compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE):
+def kotlin_repositories(
+        compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
+        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
         compiler_release: (internal) version provider from versions.bzl.
+        ksp_compiler_release: (internal) version provider from versions.bzl.
     """
     kt_configure()
-    _release_kotlin_repositories(
-        compiler_release = compiler_release,
-        configured_repository_name = None,
-    )
+    _release_kotlin_repositories(compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release, configured_repository_name = None)

@@ -133,6 +133,9 @@ public class KotlinBuilderJvmKaptTest {
                                     + "\n"
                                     + "}");
                     ctx.outputJar();
+                    ctx.generatedSourceJar();
+                    ctx.ktStubsJar();
+                    ctx.incrementalData();
                 });
         ctx.assertFilesExist(
                 DirectoryType.JAVA_SOURCE_GEN,

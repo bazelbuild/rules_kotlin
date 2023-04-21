@@ -86,6 +86,7 @@ class KotlinBuilder @Inject internal constructor(
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
+      KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
     }
   }
 
@@ -236,6 +237,9 @@ class KotlinBuilder @Inject internal constructor(
         argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR)?.let { abijar = it }
         argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
           generatedClassJar = it
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP_GENERATED_JAVA_SRCJAR)?.let {
+          generatedKspSrcJar = it
         }
       }
 
