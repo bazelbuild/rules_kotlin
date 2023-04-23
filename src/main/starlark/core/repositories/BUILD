@@ -17,6 +17,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 release_archive(
     name = "pkg",
     srcs = [
+        "BUILD.com_github_google_ksp.bazel",
         "ksp.bzl",
         "versions.bzl",
     ],
