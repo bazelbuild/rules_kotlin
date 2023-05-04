@@ -43,6 +43,7 @@ _CAPABILITIES_TEMPLATES = {
     "1.5": "capabilities_1.5.bzl.com_github_jetbrains_kotlin.bazel",
     "1.6": "capabilities_1.6.bzl.com_github_jetbrains_kotlin.bazel",
     "1.7": "capabilities_1.7.bzl.com_github_jetbrains_kotlin.bazel",
+    "1.8": "capabilities_1.8.bzl.com_github_jetbrains_kotlin.bazel",
 }
 
 kotlin_compiler_repository = repository_rule(
