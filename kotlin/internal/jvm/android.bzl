@@ -45,7 +45,7 @@ def _kt_android_artifact(
     # TODO(bazelbuild/rules_kotlin/issues/273): This should be retrieved from a provider.
     base_deps = [_ANDROID_SDK_JAR] + deps
 
-    android_library(
+    _android_library(
         name = base_name,
         visibility = ["//visibility:private"],
         exports = base_deps,
