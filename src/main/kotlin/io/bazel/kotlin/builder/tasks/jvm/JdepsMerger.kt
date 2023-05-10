@@ -72,8 +72,21 @@ class JdepsMerger {
           val deps: Deps.Dependencies = Deps.Dependencies.parseFrom(it)
           deps.getDependencyList().forEach {
             val dependency = dependencyMap.get(it.path)
-            // Replace dependency if it has a stronger kind than one we encountered before.
-            if (dependency == null || dependency.kind > it.kind) {
+            if (dependency != null) {
+              // Replace dependency if it has a stronger kind than one we encountered before, and
+              // merge used classes list.
+              if (dependency.kind > it.kind) {
+                dependencyMap.put(
+                  it.path,
+                  it.toBuilder().addAllUsedClasses(dependency.getUsedClassesList()).build(),
+                )
+              } else {
+                dependencyMap.put(
+                  it.path,
+                  dependency.toBuilder().addAllUsedClasses(it.getUsedClassesList()).build(),
+                )
+              }
+            } else {
               dependencyMap.put(it.path, it)
             }
           }
@@ -88,6 +101,7 @@ class JdepsMerger {
       BufferedOutputStream(File(output).outputStream()).use {
         it.write(rootBuilder.build().toByteArray())
       }
+
       if (reportUnusedDeps != "off") {
         val kindMap = mutableMapOf<String, Deps.Dependency.Kind>()
 
@@ -97,8 +111,9 @@ class JdepsMerger {
         dependencyMap.values.forEach {
           val label = readJarOwnerFromManifest(Paths.get(it.path)).label
           if (label != null &&
-              kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind) {
-              kindMap.put(label, it.kind)
+            kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind
+          ) {
+            kindMap.put(label, it.kind)
           }
         }
 
