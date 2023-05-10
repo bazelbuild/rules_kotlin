@@ -72,21 +72,8 @@ class JdepsMerger {
           val deps: Deps.Dependencies = Deps.Dependencies.parseFrom(it)
           deps.getDependencyList().forEach {
             val dependency = dependencyMap.get(it.path)
-            if (dependency != null) {
-              // Replace dependency if it has a stronger kind than one we encountered before, and
-              // merge used classes list.
-              if (dependency.kind > it.kind) {
-                dependencyMap.put(
-                  it.path,
-                  it.toBuilder().addAllUsedClasses(dependency.getUsedClassesList()).build(),
-                )
-              } else {
-                dependencyMap.put(
-                  it.path,
-                  dependency.toBuilder().addAllUsedClasses(it.getUsedClassesList()).build(),
-                )
-              }
-            } else {
+            // Replace dependency if it has a stronger kind than one we encountered before.
+            if (dependency == null || dependency.kind > it.kind) {
               dependencyMap.put(it.path, it)
             }
           }
