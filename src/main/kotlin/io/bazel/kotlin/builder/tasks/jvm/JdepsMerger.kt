@@ -96,7 +96,8 @@ class JdepsMerger {
         // unless all of the jars are unused.
         dependencyMap.values.forEach {
           val label = readJarOwnerFromManifest(Paths.get(it.path)).label
-          if (label != null && kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind) {
+          if (label != null &&
+              kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind) {
               kindMap.put(label, it.kind)
           }
         }
