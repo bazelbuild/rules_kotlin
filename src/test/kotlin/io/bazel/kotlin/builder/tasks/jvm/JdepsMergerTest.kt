@@ -25,7 +25,7 @@ class JdepsMergerTest {
 
   private fun jdeps(
     path: String,
-    buildDeps: (Deps.Dependencies.Builder.() -> Deps.Dependencies.Builder)
+    buildDeps: (Deps.Dependencies.Builder.() -> Deps.Dependencies.Builder),
   ): Path {
     val jdepsPath = Files.createDirectories(wrkDir.resolve("jdeps")).resolve(path)
 
@@ -40,12 +40,12 @@ class JdepsMergerTest {
     return Files.createDirectories(wrkDir.resolve("out")).resolve(name)
   }
 
-  fun ktJvmLibrary(label: String): String {
-    val path = Files.createDirectories(wrkDir.resolve("out")).resolve("lib$label.jar")
+  fun ktJvmLibrary(label: String, suffix: String = ""): String {
+    val path = Files.createDirectories(wrkDir.resolve("out")).resolve("lib${label}$suffix.jar")
     JarCreator(
       path = path,
       normalize = true,
-      verbose = false
+      verbose = false,
     ).also {
       it.setJarOwner(label, "kt_jvm_library")
       it.execute()
@@ -63,7 +63,7 @@ class JdepsMergerTest {
           kind = Dependency.Kind.EXPLICIT
           path = "/path/to/kt_dep.jar"
           build()
-        }
+        },
       )
     }
 
@@ -73,7 +73,7 @@ class JdepsMergerTest {
           kind = Dependency.Kind.EXPLICIT
           path = "/path/to/java_dep.jar"
           build()
-        }
+        },
       )
     }
 
@@ -89,7 +89,7 @@ class JdepsMergerTest {
             input(javaJdeps)
             flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
             flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
-          }
+          },
         )
       }
     }
@@ -100,7 +100,7 @@ class JdepsMergerTest {
     assertThat(depsProto.ruleLabel).isEqualTo("//foo/bar:baz")
     assertThat(depsProto.dependencyList.map { it.path }).containsExactly(
       "/path/to/kt_dep.jar",
-      "/path/to/java_dep.jar"
+      "/path/to/java_dep.jar",
     )
   }
 
@@ -114,7 +114,7 @@ class JdepsMergerTest {
           kind = Dependency.Kind.UNUSED
           path = "/path/to/shared_dep.jar"
           build()
-        }
+        },
       )
     }
 
@@ -124,7 +124,7 @@ class JdepsMergerTest {
           kind = Dependency.Kind.EXPLICIT
           path = "/path/to/shared_dep.jar"
           build()
-        }
+        },
       )
     }
 
@@ -140,7 +140,7 @@ class JdepsMergerTest {
             input(javaJdeps)
             flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
             flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "off")
-          }
+          },
         )
       }
     }
@@ -163,7 +163,7 @@ class JdepsMergerTest {
           kind = Dependency.Kind.UNUSED
           path = unusedKotlinDep
           build()
-        }
+        },
       )
     }
 
@@ -173,7 +173,7 @@ class JdepsMergerTest {
           kind = Dependency.Kind.EXPLICIT
           path = ktJvmLibrary("java_dep")
           build()
-        }
+        },
       )
     }
 
@@ -189,7 +189,7 @@ class JdepsMergerTest {
             flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
             flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
             flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "warn")
-          }
+          },
         )
       }
     }
@@ -200,7 +200,7 @@ class JdepsMergerTest {
     assertThat(
       depsProto.dependencyList
         .filter { it.kind == Dependency.Kind.UNUSED }
-        .map { it.path }
+        .map { it.path },
     ).containsExactly(unusedKotlinDep)
   }
 
@@ -215,7 +215,7 @@ class JdepsMergerTest {
           kind = Dependency.Kind.UNUSED
           path = unusedKotlinDep
           build()
-        }
+        },
       )
     }
 
@@ -225,7 +225,7 @@ class JdepsMergerTest {
           kind = Dependency.Kind.EXPLICIT
           path = ktJvmLibrary("java_dep")
           build()
-        }
+        },
       )
     }
 
@@ -242,7 +242,7 @@ class JdepsMergerTest {
             flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
             flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
             flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "error")
-          }
+          },
         )
       }
     }
@@ -253,8 +253,98 @@ class JdepsMergerTest {
     assertThat(
       depsProto.dependencyList
         .filter { it.kind == Dependency.Kind.UNUSED }
-        .map { it.path }
+        .map { it.path },
     ).containsExactly(unusedKotlinDep)
+  }
+
+  @Test
+  fun `unused deps multiple jars for label`() {
+    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
+
+    val unusedKotlinDepA = ktJvmLibrary("kotlin_dep", "_a")
+    val unusedKotlinDepB = ktJvmLibrary("kotlin_dep", "_b")
+    val kotlinJdeps = jdeps("kt.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = unusedKotlinDepA
+          build()
+        },
+      )
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = unusedKotlinDepB
+          build()
+        },
+      )
+    }
+
+    val mergedJdeps = out("merged.jdeps")
+
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            input(kotlinJdeps)
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "warn")
+          },
+        )
+      }
+    }
+    assertThat(result.status).isEqualTo(SUCCESS)
+    assertThat(result.log.out.toString()).contains("'remove deps kotlin_dep' //foo/bar:baz")
+  }
+
+  @Test
+  fun `used deps multiple jars for label`() {
+    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
+
+    val unusedKotlinDepA = ktJvmLibrary("kotlin_dep", "_a")
+    val unusedKotlinDepB = ktJvmLibrary("kotlin_dep", "_b")
+    val kotlinJdeps = jdeps("kt.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = unusedKotlinDepA
+          build()
+        },
+      )
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = unusedKotlinDepB
+          build()
+        },
+      )
+    }
+
+    val mergedJdeps = out("merged.jdeps")
+
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            input(kotlinJdeps)
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "warn")
+          },
+        )
+      }
+    }
+    assertThat(result.status).isEqualTo(SUCCESS)
+
+    val depsProto = depsProto(mergedJdeps)
+    assertThat(
+      depsProto.dependencyList
+        .filter { it.kind == Dependency.Kind.EXPLICIT }
+        .map { it.path },
+    ).containsExactly(unusedKotlinDepB)
   }
 
   private fun depsProto(mergedJdeps: Path) =
