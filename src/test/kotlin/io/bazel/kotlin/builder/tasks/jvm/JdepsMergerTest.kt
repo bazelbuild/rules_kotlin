@@ -303,20 +303,20 @@ class JdepsMergerTest {
   fun `used deps multiple jars for label`() {
     val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
-    val unusedKotlinDepA = ktJvmLibrary("kotlin_dep", "_a")
-    val unusedKotlinDepB = ktJvmLibrary("kotlin_dep", "_b")
+    val unusedKotlinDep = ktJvmLibrary("kotlin_dep", "_a")
+    val usedKotlinDep = ktJvmLibrary("kotlin_dep", "_b")
     val kotlinJdeps = jdeps("kt.jdeps") {
       addDependency(
         with(Dependency.newBuilder()) {
           kind = Dependency.Kind.UNUSED
-          path = unusedKotlinDepA
+          path = unusedKotlinDep
           build()
         },
       )
       addDependency(
         with(Dependency.newBuilder()) {
           kind = Dependency.Kind.EXPLICIT
-          path = unusedKotlinDepB
+          path = usedKotlinDep
           build()
         },
       )
@@ -344,7 +344,7 @@ class JdepsMergerTest {
       depsProto.dependencyList
         .filter { it.kind == Dependency.Kind.EXPLICIT }
         .map { it.path },
-    ).containsExactly(unusedKotlinDepB)
+    ).containsExactly(usedKotlinDep)
   }
 
   private fun depsProto(mergedJdeps: Path) =
