@@ -99,10 +99,10 @@ class JdepsMerger {
           var label = readJarOwnerFromManifest(Paths.get(it.path)).label
           if (label != null) {
             if (label.startsWith("@@") || label.startsWith("@/")) {
-                label = label.substring(1)
+              label = label.substring(1)
             }
             if (kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind) {
-                kindMap.put(label, it.kind)
+              kindMap.put(label, it.kind)
             }
           }
         }
