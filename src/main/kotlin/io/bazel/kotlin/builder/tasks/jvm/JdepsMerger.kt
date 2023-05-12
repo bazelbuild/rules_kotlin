@@ -98,12 +98,12 @@ class JdepsMerger {
         dependencyMap.values.forEach {
           var label = readJarOwnerFromManifest(Paths.get(it.path)).label
           if (label != null) {
-              if (label.startsWith("@@") || label.startsWith("@/")) {
-                  label = label.substring(1)
-              }
-              if (kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind) {
-                  kindMap.put(label, it.kind)
-              }
+            if (label.startsWith("@@") || label.startsWith("@/")) {
+                label = label.substring(1)
+            }
+            if (kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind) {
+                kindMap.put(label, it.kind)
+            }
           }
         }
 
