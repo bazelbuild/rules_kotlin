@@ -56,18 +56,18 @@ versions = struct(
         sha256 = "e0647f930f48583b35b7d52133119a3e5efdd9cf57384847bfe6241544fd0342",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.8.20",
+        version = "1.8.21",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "10df74c3c6e2eafd4c7a5572352d37cbe41774996e42de627023cb4c82b50ae4",
+        sha256 = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "1.8.20-1.0.10",
+        version = "1.8.21-1.0.11",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "dfab77faeef894060b8065788fa0d70ea2d9026c8bd9f3028651cb3e742e9245",
+        sha256 = "81a609b48fddd4431bac2abe3570e36f79b1266672be30b581a0595c3fb2e615",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
