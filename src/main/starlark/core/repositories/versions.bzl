@@ -74,24 +74,6 @@ versions = struct(
         SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
         URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
     ),
-    CORE = {
-        "rkt_1_8": struct(
-            prefix = "1.8",
-        ),
-        "rkt_1_7": struct(
-            prefix = "1.7",
-        ),
-        "rkt_1_6": struct(
-            prefix = "1.6",
-        ),
-        "rkt_1_5": struct(
-            prefix = "1.5",
-        ),
-        "rkt_1_4": struct(
-            prefix = "1.4",
-        ),
-        "legacy": None,
-    },
     # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
     RBE = struct(
         # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice

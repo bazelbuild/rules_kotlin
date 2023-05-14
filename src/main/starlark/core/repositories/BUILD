@@ -18,9 +18,6 @@ release_archive(
     name = "pkg",
     srcs = [
         "BUILD.com_github_google_ksp.bazel",
-        "BUILD.com_github_jetbrains_kotlin.bazel",
-        "compiler.bzl",
-        "configured_rules.bzl",
         "ksp.bzl",
         "versions.bzl",
     ],
@@ -28,6 +25,9 @@ release_archive(
         "initialize.release.bzl": "initialize.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
     },
+    deps = [
+        "//src/main/starlark/core/repositories/kotlin:pkg",
+    ],
 )
 
 bzl_library(
@@ -35,6 +35,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
+        "//src/main/starlark/core/repositories/kotlin",
         "@rules_proto//proto",
         "@rules_proto//proto/private",
     ],

@@ -3,19 +3,15 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 release_archive(
     name = "pkg",
-    srcs = glob(
-        ["*.bzl"],
-    ),
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
+    srcs = [
+        "BUILD",
+        "BUILD.com_github_jetbrains_kotlin.bazel",
+        "compiler.bzl",
+    ] + glob(["capabilities_*.bazel"]),
 )
 
 bzl_library(
-    name = "options",
+    name = "kotlin",
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
-    deps = [
-        "@com_github_jetbrains_kotlin//:capabilities",
-    ],
 )

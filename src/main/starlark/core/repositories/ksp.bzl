@@ -56,7 +56,7 @@ ksp_compiler_plugin_repository = repository_rule(
         ),
         "_template": attr.label(
             doc = "repository build file template",
-            default = ":BUILD.com_github_google_ksp.bazel",
+            default = "//src/main/starlark/core/repositories:BUILD.com_github_google_ksp.bazel",
         ),
     },
 )
