@@ -14,7 +14,9 @@
 load(
     "//kotlin/internal:opts.bzl",
     "JavacOptions",
+    "KaptOptions",
     "KotlincOptions",
+    "kapt_options",
     "kt_javac_options",
     "kt_kotlinc_options",
 )
@@ -90,6 +92,7 @@ def _kotlin_toolchain_impl(ctx):
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
         jacocorunner = ctx.attr.jacocorunner,
+        kapt_options = ctx.attr.kapt_options[KaptOptions],
     )
 
     return [
@@ -260,6 +263,10 @@ _kt_toolchain = rule(
             default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
         ),
         "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),
+        "kapt_options": attr.label(
+            doc = """kapt args kotlin annotation processor arguments""",
+            providers = [KaptOptions],
+        ),
     },
     implementation = _kotlin_toolchain_impl,
     provides = [platform_common.ToolchainInfo],
@@ -296,7 +303,8 @@ def define_kt_toolchain(
         experimental_multiplex_workers = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
-        jacocorunner = None):
+        jacocorunner = None,
+        kapt_options = Label("//kotlin/internal:default_kapt_options")):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
 
@@ -319,6 +327,7 @@ def define_kt_toolchain(
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
         jacocorunner = jacocorunner,
+        kapt_options = kapt_options,
     )
     native.toolchain(
         name = name,
@@ -343,6 +352,11 @@ def kt_configure_toolchains():
 
     kt_javac_options(
         name = "default_javac_options",
+        visibility = ["//visibility:public"],
+    )
+
+    kapt_options(
+        name = "default_kapt_options",
         visibility = ["//visibility:public"],
     )
 

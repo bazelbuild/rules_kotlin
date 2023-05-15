@@ -24,6 +24,12 @@ load(
     _javac_options_to_flags = "javac_options_to_flags",
     _kt_javac_options = "kt_javac_options",
 )
+load(
+    "//src/main/starlark/core/options:kapt_opts.bzl",
+    _KaptOptions = "KaptOptions",
+    _kapt_options = "kapt_options",
+    _kapt_options_to_flag = "kapt_options_to_flag",
+)
 
 JavacOptions = _JavacOptions
 javac_options_to_flags = _javac_options_to_flags
@@ -32,3 +38,7 @@ kt_javac_options = _kt_javac_options
 KotlincOptions = _KotlincOptions
 kotlinc_options_to_flags = _kotlinc_options_to_flags
 kt_kotlinc_options = _kt_kotlinc_options
+
+KaptOptions = _KaptOptions
+kapt_options_to_flag = _kapt_options_to_flag
+kapt_options = _kapt_options

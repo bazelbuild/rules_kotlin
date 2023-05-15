@@ -86,6 +86,7 @@ class KotlinBuilder @Inject internal constructor(
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
+      KAPT_PASSTHROUGH_FLAGS("--kapt_passthrough_flags"),
       KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
     }
   }
@@ -152,6 +153,11 @@ class KotlinBuilder @Inject internal constructor(
         check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
       }
       addAllPassthroughFlags(argMap.optional(KotlinBuilderFlags.PASSTHROUGH_FLAGS) ?: emptyList())
+      addAllKaptPassthroughFlags(
+        argMap.optional(
+          KotlinBuilderFlags.KAPT_PASSTHROUGH_FLAGS,
+        ) ?: emptyList(),
+      )
 
       argMap.optional(KotlinBuilderFlags.FRIEND_PATHS)?.let(::addAllFriendPaths)
       toolchainInfoBuilder.commonBuilder.apiVersion =

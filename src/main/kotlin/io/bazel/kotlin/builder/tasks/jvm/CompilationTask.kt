@@ -19,6 +19,7 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
+import io.bazel.kotlin.builder.tasks.KaptArgs
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.emptyJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.writeJdeps
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
@@ -129,12 +130,13 @@ internal fun encodeMap(options: Map<String, String>): String {
 internal fun JvmCompilationTask.kaptArgs(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
-  aptMode: String,
 ): CompilationArgs {
   val javacArgs = mapOf<String, String>(
     "-target" to info.toolchainInfo.jvm.jvmTarget,
     "-source" to info.toolchainInfo.jvm.jvmTarget,
   )
+  val kaptArgs = KaptArgs.create(info.kaptPassthroughFlagsList)
+
   return CompilationArgs().apply {
     xFlag("plugin", plugins.kapt.jarPath)
 
@@ -144,10 +146,10 @@ internal fun JvmCompilationTask.kaptArgs(
       "stubs" to listOf(directories.stubs),
       "incrementalData" to listOf(directories.incrementalData),
       "javacArguments" to listOf(javacArgs.let(::encodeMap)),
-      "correctErrorTypes" to listOf("false"),
+      "correctErrorTypes" to listOf(kaptArgs.correctErrorTypes),
       "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
       "apclasspath" to inputs.processorpathsList,
-      "aptMode" to listOf(aptMode),
+      "aptMode" to listOf(kaptArgs.aptMode),
     )
     val version = info.toolchainInfo.common.apiVersion.toFloat()
     when {
@@ -229,12 +231,12 @@ internal fun JvmCompilationTask.runPlugins(
   ) {
     return this
   } else {
-    if (!outputs.generatedKspSrcJar.isNullOrEmpty()) {
-      return runKspPlugin(context, plugins, compiler)
+    return if (!outputs.generatedKspSrcJar.isNullOrEmpty()) {
+      runKspPlugin(context, plugins, compiler)
     } else if (!outputs.generatedClassJar.isNullOrEmpty()) {
-      return runKaptPlugin(context, plugins, compiler)
+      runKaptPlugin(context, plugins, compiler)
     } else {
-      return this
+      this
     }
   }
 }
@@ -251,7 +253,7 @@ private fun JvmCompilationTask.runKaptPlugin(
         classpath = inputs.stubsPluginClasspathList,
       ),
     ).plus(
-      kaptArgs(context, plugins, "stubsAndApt"),
+      kaptArgs(context, plugins),
     ).flag("-d", directories.generatedClasses).values(inputs.kotlinSourcesList)
       .values(inputs.javaSourcesList).list().let { args ->
         context.executeCompilerTask(
