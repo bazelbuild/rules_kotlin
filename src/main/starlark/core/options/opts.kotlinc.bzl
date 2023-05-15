@@ -297,17 +297,6 @@ _KOPTS_ALL = {
             True: ["-Xreport-perf"],
         },
     ),
-    "x_report_perf": struct(
-        flag = "-Xreport-perf",
-        args = dict(
-            default = False,
-            doc = "Report detailed performance statistics",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xreport-perf"],
-        },
-    ),
     "jvm_target": struct(
         args = dict(
             default = "",
