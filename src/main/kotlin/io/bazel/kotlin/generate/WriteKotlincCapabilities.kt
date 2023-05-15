@@ -76,7 +76,7 @@ object WriteKotlincCapabilities {
     List<KotlincCapability> by capabilities.toList() {
 
     companion object {
-      fun Sequence<KotlincCapability>.asCapabilities() = KotlincCapabilities(toList())
+      fun Sequence<KotlincCapability>.asCapabilities() = KotlincCapabilities(sorted().toList())
     }
 
     fun asCapabilitiesBzl() = HEADER + "\n" + joinToString(
@@ -91,8 +91,9 @@ object WriteKotlincCapabilities {
     private val flag: String,
     private val default: String,
     private val type: String,
-  ) {
+  ) : Comparable<KotlincCapability> {
     fun asCapabilityFlag() = "\"${flag}\""
+    override fun compareTo(other: KotlincCapability): Int = flag.compareTo(other.flag)
   }
 
 
