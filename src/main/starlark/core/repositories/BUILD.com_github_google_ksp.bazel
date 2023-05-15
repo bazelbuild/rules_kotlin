@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# dev_io_bazel_rules_kotlin
+# io_bazel_rules_kotlin
 load("@{{.KotlinRulesRepository}}//kotlin:jvm.bzl", "kt_jvm_import")
 
 package(default_visibility = ["//visibility:public"])
