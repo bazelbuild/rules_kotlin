@@ -105,6 +105,7 @@ load(
 load(
     "//kotlin/internal:opts.bzl",
     _JavacOptions = "JavacOptions",
+    _KaptOptions = "KaptOptions",
     _KotlincOptions = "KotlincOptions",
 )
 load(
@@ -219,6 +220,12 @@ _common_attr = utils.add_dicts(
             will be used instead of the ones provided to the toolchain.""",
             default = None,
             providers = [_KotlincOptions],
+            mandatory = False,
+        ),
+        "kapt_opts": attr.label(
+            doc = """Kapt options to be used when compiling this target.""",
+            default = None,
+            providers = [_KaptOptions],
             mandatory = False,
         ),
         "javac_opts": attr.label(

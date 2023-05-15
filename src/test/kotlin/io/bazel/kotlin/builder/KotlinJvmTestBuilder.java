@@ -21,6 +21,9 @@ import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
+import io.bazel.kotlin.builder.tasks.KaptArgs;
+import io.bazel.kotlin.builder.tasks.KotlinBuilder;
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 
@@ -83,7 +86,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     @SafeVarargs
     public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
-        return executeTask(component().jvmTaskExecutor()::execute, setup);
+        return executeTask((context, task) -> component().jvmTaskExecutor().execute(context, task), setup);
     }
 
     private static KotlinBuilderTestComponent component() {

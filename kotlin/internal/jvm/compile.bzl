@@ -24,8 +24,10 @@ load(
 load(
     "//kotlin/internal:opts.bzl",
     "JavacOptions",
+    "KaptOptions",
     "KotlincOptions",
     "javac_options_to_flags",
+    "kapt_options_to_flag",
     "kotlinc_options_to_flags",
 )
 load(
@@ -378,6 +380,7 @@ def _run_kt_builder_action(
     """Creates a KotlinBuilder action invocation."""
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    kapt_options = ctx.attr.kapt_opts[KaptOptions] if ctx.attr.kapt_opts else toolchains.kt.kapt_options
     args = _utils.init_args(ctx, rule_kind, associates.module_name, kotlinc_options)
 
     for f, path in outputs.items():
@@ -395,6 +398,7 @@ def _run_kt_builder_action(
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
     args.add_all("--kotlin_friend_paths", associates.jars, map_each = _associate_utils.flatten_jars)
     args.add("--instrument_coverage", ctx.coverage_instrumented())
+    args.add_all("--kapt_passthrough_flags", kapt_options_to_flag(kapt_options))
 
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(

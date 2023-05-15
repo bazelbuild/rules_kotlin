@@ -56,6 +56,10 @@ def kt_kotlinc_options(**kwargs):
 def kt_javac_options(**kwargs):
     fail("use load('//kotlin:core.bzl', kt_javac_options)")
 
+# buildifier: disable=unused-variable Will be removed in a future release
+def kapt_options(**kwargs):
+    fail("use load('//kotlin:core.bzl', kapt_options)")
+
 def kt_js_library(**kwargs):
     """
     Forwarding macro for kt_js_library

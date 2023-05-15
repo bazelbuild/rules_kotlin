@@ -29,4 +29,5 @@ def _to_flags(opts, attr_provider):
 convert = struct(
     kotlinc_options_to_flags = _to_flags,
     javac_options_to_flags = _to_flags,
+    kapt_options_to_flag = _to_flags,
 )
