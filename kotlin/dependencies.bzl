@@ -18,6 +18,7 @@ load(
 )
 
 def kt_download_local_dev_dependencies():
+<<<<<<< HEAD
     print("""kt_download_local_dev_dependencies is deprecated. To use rules_kotlin locally, change
 the WORKSPACE loading from:
 
@@ -41,4 +42,6 @@ load("@release_archive//:repository.bzl", "archive_repository")
 archive_repository(
     name = "io_bazel_rules_kotlin",
 )""")
+=======
+>>>>>>> 76554453 (Remove print warning from kt_download_local_dev_dependencies)
     _kt_download_local_dev_dependencies()
