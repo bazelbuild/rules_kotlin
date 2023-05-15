@@ -297,6 +297,16 @@ _KOPTS_ALL = {
             True: ["-Xreport-perf"],
         },
     ),
+    "x_use_fir_lt": struct(
+        args = dict(
+            default = False,
+            doc = "Compile using LightTree parser with Front-end IR. Warning: this feature is far from being production-ready",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xuse-fir-lt"],
+        },
+    ),
     "jvm_target": struct(
         args = dict(
             default = "",
