@@ -15,6 +15,33 @@ import kotlin.io.path.writeText
  */
 object WriteKotlincCapabilities {
 
+  /** Options that are either confusing, useless, or unexpected to be set outside the worker. */
+  private val suppressedFlags = setOf(
+    "-P",
+    "-X",
+    "-Xbuild-file",
+    "-Xcompiler-plugin",
+    "-Xcompiler-plugin",
+    "-Xdump-declarations-to",
+    "-Xdump-directory",
+    "-Xdump-fqname",
+    "-Xdump-perf",
+    "-Xintellij-plugin-root",
+    "-Xplugin",
+    "-classpath",
+    "-d",
+    "-expression",
+    "-help",
+    "-include-runtime",
+    "-jdk-home",
+    "-kotlin-home",
+    "-module-name",
+    "-no-jdk",
+    "-no-stdlib",
+    "-script",
+    "-script-templates",
+  )
+
   @JvmStatic
   fun main(vararg args: String) {
     // TODO: Replace with a real option parser
@@ -33,12 +60,11 @@ object WriteKotlincCapabilities {
       "capabilities_${major}.${minor}.bzl.com_github_jetbrains_kotlin.bazel"
     }
 
-
-    val env_pattern = Regex("\\$\\{(\\w+)}")
+    val envPattern = Regex("\\$\\{(\\w+)}")
     val capabilitiesDirectory = options["--out"]
       ?.first()
       ?.let { env ->
-        env_pattern.replace(env) {
+        envPattern.replace(env) {
           System.getenv(it.groups[1]?.value)
         }
       }
@@ -59,12 +85,14 @@ object WriteKotlincCapabilities {
             }
             .filterNotNull()
             .map { (member, argument) ->
-              KotlincCapability(
-                flag = argument.value,
-                default = "${member.call(instance)}",
-                type = member.returnType.toString(),
-              )
-            }.asCapabilities().asCapabilitiesBzl(),
+                KotlincCapability(
+                  flag = argument.value,
+                  default = "${member.call(instance)}",
+                  type = member.returnType.toString(),
+                )
+            }
+            .filterNot(KotlincCapability::shouldSuppress)
+            .asCapabilities().asCapabilitiesBzl(),
         )
       }
       .let {
@@ -92,6 +120,9 @@ object WriteKotlincCapabilities {
     private val default: String,
     private val type: String,
   ) : Comparable<KotlincCapability> {
+
+    fun shouldSuppress()  = flag in suppressedFlags
+
     fun asCapabilityFlag() = "\"${flag}\""
     override fun compareTo(other: KotlincCapability): Int = flag.compareTo(other.flag)
   }
