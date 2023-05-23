@@ -47,6 +47,7 @@ kt_jvm_import(
 kt_jvm_import(
     name = "kotlin-compiler",
     jar = "lib/kotlin-compiler.jar",
+    neverlink = 1,
     deps = [
         ":annotations",
         ":kotlin-reflect",
