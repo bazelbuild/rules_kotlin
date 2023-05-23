@@ -60,5 +60,3 @@ def kt_configure():
     stardoc_repositories()
 
     bazel_skylib_workspace()
-
-    android_sdk_repository(name = "androidsdk")
