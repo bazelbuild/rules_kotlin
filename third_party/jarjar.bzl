@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def jarjar_action(actions, label, rules, input, output, jarjar):
+def jarjar_action(actions, rules, input, output, jarjar):
     actions.run(
         inputs = [rules, input],
         outputs = [output],
         executable = jarjar,
-        progress_message = "jarjar %s" % label,
+        progress_message = "jarjar %%{label}",
         arguments = ["process", rules.path, input.path, output.path],
     )
     return output
@@ -25,7 +25,6 @@ def jarjar_action(actions, label, rules, input, output, jarjar):
 def _jar_jar_impl(ctx):
     jar = jarjar_action(
         actions = ctx.actions,
-        label = ctx.label,
         rules = ctx.file.rules,
         input = ctx.file.input_jar,
         output = ctx.outputs.jar,

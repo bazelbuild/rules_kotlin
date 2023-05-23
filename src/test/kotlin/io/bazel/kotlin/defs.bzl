@@ -28,20 +28,25 @@ def kt_rules_test(name, **kwargs):
     args.setdefault("size", "small")
     args.setdefault("data", [])
     args.setdefault("jvm_flags", [])
+
     args["deps"] = args.setdefault("deps", []) + ["//src/test/kotlin/io/bazel/kotlin/builder:test_lib"]
     for dep in [
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin:jdeps-gen",
+        "@com_github_google_ksp//:symbol-processing-api",
+        "@com_github_google_ksp//:symbol-processing-cmdline",
         "@com_github_jetbrains_kotlin//:annotations",
         "@com_github_jetbrains_kotlin//:jvm-abi-gen",
+        "@com_github_jetbrains_kotlin//:kotlin-compiler",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
         "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+        "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)
-        args["jvm_flags"].append("-D%s=$(rootpath %s)" % (dep.replace("/", ".").replace(":", "."), dep))
+        args["jvm_flags"].append("-D%s=$(rlocationpath %s)" % (dep.replace("/", ".").replace(":", "."), dep))
 
     args.setdefault("test_class", _get_class_name(kwargs))
     for f in args.get("srcs"):

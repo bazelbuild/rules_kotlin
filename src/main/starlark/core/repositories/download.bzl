@@ -11,7 +11,7 @@
 # versions.WITHOUT versions.WARRANTIES versions.OR versions.CONDITIONS versions.OF versions.ANY versions.KIND, either express or implied.
 # versions.See the versions.License for the specific language governing permissions and
 # limitations under the versions.License.
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":rules_stardoc.bzl", "rules_stardoc_repository")
 load(":versions.bzl", "versions")
@@ -22,16 +22,6 @@ def kt_download_local_dev_dependencies():
 
     Must be called before setup_dependencies in the versions.WORKSPACE.
     """
-    maybe(
-        http_archive,
-        name = "com_google_protobuf",
-        sha256 = versions.PROTOBUF_SHA,
-        strip_prefix = "protobuf-%s" % versions.PROTOBUF_VERSION,
-        urls = [
-            "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
-            "https://github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % versions.PROTOBUF_VERSION,
-        ],
-    )
 
     # bazel_skylib is initialized twice during developement. This is intentional, as development
     # needs to be able to run the starlark unittests, while production does not.
@@ -40,13 +30,6 @@ def kt_download_local_dev_dependencies():
         name = "bazel_skylib",
         urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (versions.SKYLIB_VERSION, versions.SKYLIB_VERSION)],
         sha256 = versions.SKYLIB_SHA,
-    )
-
-    maybe(
-        http_jar,
-        name = "bazel_deps",
-        sha256 = versions.BAZEL_DEPS_SHA,
-        url = "https://github.com/hsyed/bazel-deps/releases/download/v%s/parseproject_deploy.jar" % versions.BAZEL_DEPS_VERSION,
     )
 
     maybe(
@@ -83,11 +66,10 @@ def kt_download_local_dev_dependencies():
         url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % versions.RULES_JVM_EXTERNAL_TAG,
     )
 
-    maybe(
-        http_archive,
+    versions.use_repository(
         name = "rules_pkg",
-        url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.2.4/rules_pkg-0.2.4.tar.gz",
-        sha256 = "4ba8f4ab0ff85f2484287ab06c0d871dcb31cc54d439457d28fd4ae14b18450a",
+        rule = http_archive,
+        version = versions.PKG,
     )
 
     maybe(
@@ -120,14 +102,10 @@ def kt_download_local_dev_dependencies():
         ],
     )
 
-    rules_stardoc_repository(
+    versions.use_repository(
         name = "rules_proto",
-        sha256 = versions.RULES_PROTO_SHA,
-        strip_prefix = "rules_proto-%s" % versions.RULES_PROTO_GIT_COMMIT,
-        urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % versions.RULES_PROTO_GIT_COMMIT,
-            "https://github.com/bazelbuild/rules_proto/archive/%s.tar.gz" % versions.RULES_PROTO_GIT_COMMIT,
-        ],
+        version = versions.RULES_PROTO,
+        rule = rules_stardoc_repository,
         starlark_packages = [
             "proto",
             "proto/private",

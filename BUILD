@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load("//kotlin:lint.bzl", "ktlint_config")
 
 exports_files([
@@ -38,6 +37,7 @@ test_suite(
     tests = [
         "//src/test/kotlin/io/bazel/kotlin:assertion_tests",
         "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
+        "//src/test/starlark:convert_tests",
     ],
 )
 
@@ -47,28 +47,13 @@ test_suite(
     tests = [
         ":all_tests",
         "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
+        "//src/test/starlark:convert_tests",
     ],
 )
-
-package_group(
-    name = "rules_kotlin_development",
-    packages = ["//..."],
-)
-
-[
-    release_archive(
-        name = version,
-        deps = [
-            "@%s//:pkg" % version,
-        ],
-    )
-    for version in versions.CORE
-]
 
 # Release target.
 release_archive(
     name = "rules_kotlin_release",
-    srcs = ["%s.tgz" % v for v in versions.CORE],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
         "WORKSPACE.release.bazel": "WORKSPACE",

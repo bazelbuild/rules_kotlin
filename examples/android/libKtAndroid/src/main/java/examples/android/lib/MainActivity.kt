@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
 import androidx.appcompat.app.AppCompatActivity
+import com.squareup.moshi.Moshi
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,6 +22,9 @@ class MainActivity : AppCompatActivity() {
       .show()
     // Ensure Serialization plugin has run and generated code correctly.
     Data.serializer()
+
+    val adapter = DataJsonModelJsonAdapter(Moshi.Builder().build())
+    println(adapter.toJson(DataJsonModel("foo")))
 
     TestKtValue.create {
       setName("Auto Value Test") // can't use property syntax, because autovalue builder's codegen

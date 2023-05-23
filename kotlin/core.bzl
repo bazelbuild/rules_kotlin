@@ -6,6 +6,7 @@ load(
 load(
     "//kotlin/internal/jvm:jvm.bzl",
     _kt_compiler_plugin = "kt_compiler_plugin",
+    _kt_ksp_plugin = "kt_ksp_plugin",
 )
 load(
     "//kotlin/internal:toolchains.bzl",
@@ -18,3 +19,4 @@ kt_register_toolchains = _kt_register_toolchains
 kt_javac_options = _kt_javac_options
 kt_kotlinc_options = _kt_kotlinc_options
 kt_compiler_plugin = _kt_compiler_plugin
+kt_ksp_plugin = _kt_ksp_plugin

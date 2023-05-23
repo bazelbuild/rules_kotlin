@@ -59,7 +59,7 @@ class KotlinJvmBasicAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/b
       "conventional_strip_resources.jar",
       description = "the rules should support conventional prefix stripping"
     ) {
-      assertContainsEntries("main.txt", "test.txt")
+      assertContainsEntries("java_main.txt", "java_test.txt", "main.txt", "test.txt")
     }
   }
 

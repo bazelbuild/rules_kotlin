@@ -18,7 +18,6 @@ package io.bazel.kotlin.builder.tasks.jvm;
 
 import io.bazel.kotlin.builder.Deps;
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder;
-import java.util.function.Consumer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

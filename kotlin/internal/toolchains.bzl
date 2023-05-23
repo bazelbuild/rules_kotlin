@@ -24,10 +24,7 @@ load(
     _KtJsInfo = "KtJsInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
-load(
-    "//src/main/starlark/core/repositories:tools.bzl",
-    "absolute_target",
-)
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 """Kotlin Toolchains
 
@@ -78,6 +75,7 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
+        jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         js_stdlibs = ctx.attr.js_stdlibs,
         execution_requirements = {
             "supports-workers": "1",
@@ -123,7 +121,7 @@ _kt_toolchain = rule(
         ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
-            default = "1.7",
+            default = "1.8",
             values = [
                 "1.1",
                 "1.2",
@@ -132,11 +130,12 @@ _kt_toolchain = rule(
                 "1.5",
                 "1.6",
                 "1.7",
+                "1.8",
             ],
         ),
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
-            default = "1.7",
+            default = "1.8",
             values = [
                 "1.1",
                 "1.2",
@@ -145,6 +144,7 @@ _kt_toolchain = rule(
                 "1.5",
                 "1.6",
                 "1.7",
+                "1.8",
             ],
         ),
         "debug": attr.string_list(
@@ -259,14 +259,30 @@ _kt_toolchain = rule(
         "jacocorunner": attr.label(
             default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
         ),
+        "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),
     },
     implementation = _kotlin_toolchain_impl,
     provides = [platform_common.ToolchainInfo],
 )
 
+_KT_DEFAULT_TOOLCHAIN = Label("//kotlin/internal:default_toolchain")
+
 def kt_register_toolchains():
     """This macro registers the kotlin toolchain."""
-    native.register_toolchains(absolute_target("//kotlin/internal:default_toolchain"))
+    native.register_toolchains(str(_KT_DEFAULT_TOOLCHAIN))
+
+# Evaluating the select in the context of bzl file to get its repository
+_DEBUG_SELECT = select({
+    str(Label("//kotlin/internal:builder_debug_trace")): ["trace"],
+    "//conditions:default": [],
+}) + select({
+    str(Label("//kotlin/internal:builder_debug_timings")): ["timings"],
+    "//conditions:default": [],
+})
+
+# Evaluating the labels in the context of bzl file to get its repository
+_EXPERIMENTAL_USE_ABI_JARS = str(Label("//kotlin/internal:experimental_use_abi_jars"))
+_NOEXPERIMENTAL_USE_ABI_JARS = str(Label("//kotlin/internal:noexperimental_use_abi_jars"))
 
 def define_kt_toolchain(
         name,
@@ -289,18 +305,10 @@ def define_kt_toolchain(
         language_version = language_version,
         api_version = api_version,
         jvm_target = jvm_target,
-        debug =
-            select({
-                absolute_target("//kotlin/internal:builder_debug_trace"): ["trace"],
-                "//conditions:default": [],
-            }) +
-            select({
-                absolute_target("//kotlin/internal:builder_debug_timings"): ["timings"],
-                "//conditions:default": [],
-            }),
+        debug = _DEBUG_SELECT,
         experimental_use_abi_jars = select({
-            absolute_target("//kotlin/internal:experimental_use_abi_jars"): True,
-            absolute_target("//kotlin/internal:noexperimental_use_abi_jars"): False,
+            _EXPERIMENTAL_USE_ABI_JARS: True,
+            _NOEXPERIMENTAL_USE_ABI_JARS: False,
             "//conditions:default": experimental_use_abi_jars,
         }),
         experimental_multiplex_workers = experimental_multiplex_workers,

@@ -90,9 +90,23 @@ class JdepsMerger {
       }
 
       if (reportUnusedDeps != "off") {
-        val unusedLabels = dependencyMap.values
-          .filter { it.kind == Deps.Dependency.Kind.UNUSED }
-          .mapNotNull { readJarOwnerFromManifest(Paths.get(it.path)).label }
+        val kindMap = mutableMapOf<String, Deps.Dependency.Kind>()
+
+        // A target might produce multiple jars (Android produces _resources.jar)
+        // so we need to make sure wedon't mart the dependency as unused
+        // unless all of the jars are unused.
+        dependencyMap.values.forEach {
+          val label = readJarOwnerFromManifest(Paths.get(it.path)).label
+          if (label != null &&
+            kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind
+          ) {
+            kindMap.put(label, it.kind)
+          }
+        }
+
+        val unusedLabels = kindMap.entries
+          .filter { it.value == Deps.Dependency.Kind.UNUSED }
+          .map { it.key }
           .filter { it != label }
 
         if (unusedLabels.isNotEmpty()) {
@@ -104,7 +118,7 @@ class JdepsMerger {
               " ",
             )} from $label 
             |$open ** You can use the following buildozer command:$close buildozer 'remove deps ${
-            unusedLabels.joinToString(" ")
+              unusedLabels.joinToString(" ")
             }' $label
             """.trimMargin()
           }

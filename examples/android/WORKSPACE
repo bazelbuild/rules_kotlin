@@ -45,9 +45,12 @@ maven_install(
         "androidx.test.espresso:espresso-core:3.1.1",
         "org.hamcrest:hamcrest-library:1.3",
         "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
-        "com.google.dagger:dagger:2.35.1",
-        "com.google.dagger:dagger-compiler:2.35.1",
-        "com.google.dagger:dagger-producers:2.35.1",
+        "com.squareup.moshi:moshi:1.14.0",
+        "com.squareup.moshi:moshi-kotlin:1.14.0",
+        "com.squareup.moshi:moshi-kotlin-codegen:1.14.0",
+        "com.google.dagger:dagger:2.45",
+        "com.google.dagger:dagger-compiler:2.45",
+        "com.google.dagger:dagger-producers:2.45",
         "com.google.auto.value:auto-value:1.6.5",
         "com.google.auto.value:auto-value-annotations:1.6.5",
         "org.robolectric:robolectric:4.8.1",
@@ -70,10 +73,7 @@ load(
     "android_sdk_repository",
 )
 
-android_sdk_repository(
-    name = "androidsdk",
-    build_tools_version = versions.ANDROID.BUILD_TOOLS,  # versions > 30.0.3 do not have the dx.jar anymore.
-)
+android_sdk_repository(name = "androidsdk")
 
 http_archive(
     name = "robolectric",

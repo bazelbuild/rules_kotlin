@@ -10,6 +10,10 @@
 
 For more information about release and changelogs please see [Changelog](CHANGELOG.md) or refer to the [Github Releases](https://github.com/bazelbuild/rules_kotlin/releases) page.
 
+# `rules_kotlin` Bazel Compatibility
+- HEAD: `5`, `6`
+- [Release 1.7](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.7.1): `4`, `5`, `6`
+
 # Overview 
 
 **rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other Bazel 
@@ -52,8 +56,8 @@ this:
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "1.6.0"
-rules_kotlin_sha = "a57591404423a52bd6b18ebba7979e8cd2243534736c5c94d35c89718ea38f94"
+rules_kotlin_version = "1.7.1"
+rules_kotlin_sha = "fd92a98bd8a8f0e1cdcb490b93f5acef1f1727ed992571232d33de42395ca9b3"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/bazelbuild/rules_kotlin/releases/download/v%s/rules_kotlin_release.tgz" % rules_kotlin_version],
@@ -192,11 +196,10 @@ To attach debugger and step through native action code when using local checkout
 2. In terminal, build the kotlin target you want to debug, using the subcommand option, ex: `bazel build //lib/mylib:main_kt -s`. You can also use `bazel aquery` to get this info.
 3. Locate the subcommand for the kotlin action you want to debug, let's say `KotlinCompile`. Note: If you don't see it, target rebuild may have been skipped (in this case `touch` one of the source .kt file to trigger rebuild).
 4. Export `REPOSITORY_NAME` as specified in action env, ex : `export REPOSITORY_NAME=io_bazel_rules_kotlin`
-5. Copy and execute command line, ex : `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/io_bazel_rules_kotlin/src/main/kotlin/build '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`
-6. You might notice missing files warnings in command output, ex : `warning: classpath entry points to a non-existent location: external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar`. To fix this, edit params file and update the few problematic path to point to valid location, this is due to the fact command is executed outside Bazel runtime and symlinks might be missing.
-7. Same for the output, you might want to edit output paths to specify writable path location, to avoid 'Permission denied' error when rule is creating output(s).
-8. When you get command to succeed, add `--debug=5005` to command line to have action spwan debugger, ex: `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/io_bazel_rules_kotlin/src/main/kotlin/build --debug=5005 '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`. Note: if command invokes `java` toolchain directly, use `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` instead.
-9. You should see in output that action is waiting for debugger. Use a default `Remote JVM Debug` configuration in Android Studio, set breakpoint in kotlin action java/kt code, and attach debugger. Breakpoints should be hit.
+5. Copy the command line, ex : `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/io_bazel_rules_kotlin/src/main/kotlin/build '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`
+6. Change directory into the [execRoot](https://bazel.build/remote/output-directories#layout-diagram), normally `bazel-MYPROJECT`, available via `bazel info | grep execution_root`.
+7. Add `--debug=5005` to command line to make the action wait for a debugger to attach, ex: `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/io_bazel_rules_kotlin/src/main/kotlin/build --debug=5005 '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`. Note: if command invokes `java` toolchain directly, use `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` instead.
+8. You should see in output that action is waiting for debugger. Use a default `Remote JVM Debug` configuration in Android Studio, set breakpoint in kotlin action java/kt code, and attach debugger. Breakpoints should be hit.
 
 # Kotlin and Java compiler flags
 
@@ -238,13 +241,13 @@ load("@io_bazel_rules_kotlin//kotlin:jvm.bzl","kt_javac_options", "kt_jvm_librar
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
     warn = "error",
+    x_optin = ["kotlin.Experimental", "kotlin.ExperimentalStdlibApi"],
 )
 
 kt_javac_options(
     name = "kt_javac_options_for_package_name",
     warn = "error",
     x_ep_disable_all_checks = True,
-    x_optin = ["kotlin.Experimental", "kotlin.ExperimentalStdlibApi"]
 )
 
 kt_jvm_library(
@@ -261,6 +264,7 @@ Additionally, you can add options for both tracing and timing of the bazel build
 * `bazel build --define=kt_timings=1`
 
 `kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
+
 # Kotlin compiler plugins
 
 The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.
@@ -292,6 +296,34 @@ kt_jvm_library(
     ],
 )
 ```
+
+# KSP Annotation Processing
+
+The `kt_ksp_plugin` rule allows running KSP annotation processors, such as Moshi.
+
+For example, you can add allopen to your project like this:
+```python
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_ksp_plugin(
+    name = "moshi-kotlin-codegen",
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@maven//:com_squareup_moshi_moshi",
+        "@maven//:com_squareup_moshi_moshi_kotlin",
+        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+kt_jvm_library(
+    name = "lib",
+    srcs = glob(["*.kt"]),
+    plugins = ["//:moshi-kotlin-codegen"],
+)
+```
+
+Full examples of using compiler plugins can be found [here](examples/plugin).
 
 Full examples of using compiler plugins can be found [here](examples/plugin).
 

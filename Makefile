@@ -29,6 +29,10 @@ sky.reflow:
 deps.regen:
 	scripts/regen_deps
 
+docs.regen:
+	bazel build //kotlin:stardoc
+	cp bazel-bin/kotlin/kotlin.md docs/kotlin.md
+
 proto.regen:
 	scripts/gen_proto_jars
 
