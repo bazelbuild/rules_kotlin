@@ -488,7 +488,7 @@ def _run_kt_builder_action(
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
         execution_requirements = _utils.add_dicts(
             toolchains.kt.execution_requirements,
-            {"worker-key-mnemonic": "KotlinCompile"},
+            {"worker-key-mnemonic": mnemonic},
         ),
         arguments = [args],
         progress_message = progress_message,
