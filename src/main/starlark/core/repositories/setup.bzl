@@ -16,7 +16,6 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 def kt_configure():
@@ -60,5 +59,3 @@ def kt_configure():
     stardoc_repositories()
 
     bazel_skylib_workspace()
-
-    android_sdk_repository(name = "androidsdk")
