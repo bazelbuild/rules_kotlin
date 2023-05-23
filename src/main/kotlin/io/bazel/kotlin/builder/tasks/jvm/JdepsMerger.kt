@@ -96,11 +96,14 @@ class JdepsMerger {
         // so we need to make sure wedon't mart the dependency as unused
         // unless all of the jars are unused.
         dependencyMap.values.forEach {
-          val label = readJarOwnerFromManifest(Paths.get(it.path)).label
-          if (label != null &&
-            kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind
-          ) {
-            kindMap.put(label, it.kind)
+          var label = readJarOwnerFromManifest(Paths.get(it.path)).label
+          if (label != null) {
+            if (label.startsWith("@@") || label.startsWith("@/")) {
+              label = label.substring(1)
+            }
+            if (kindMap.getOrDefault(label, Deps.Dependency.Kind.UNUSED) >= it.kind) {
+              kindMap.put(label, it.kind)
+            }
           }
         }
 
