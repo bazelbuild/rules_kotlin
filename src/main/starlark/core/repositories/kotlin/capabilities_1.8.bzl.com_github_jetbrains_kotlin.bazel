@@ -1,4 +1,4 @@
-# Copyright 2022 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 KOTLIN_OPTS = [
+    "-Werror",
     "-Xabi-stability",
     "-Xadd-modules",
     "-Xallow-any-scripts-in-source-roots",
@@ -22,13 +22,11 @@ KOTLIN_OPTS = [
     "-Xallow-unstable-dependencies",
     "-Xassertions",
     "-Xbackend-threads",
-    "-Xbuild-file",
     "-Xbuiltins-from-sources",
     "-Xcheck-phase-conditions",
     "-Xcheck-sticky-phase-conditions",
     "-Xcommon-sources",
     "-Xcompile-java",
-    "-Xcompiler-plugin",
     "-Xcontext-receivers",
     "-Xdebug",
     "-Xdefault-script-extension",
@@ -36,10 +34,6 @@ KOTLIN_OPTS = [
     "-Xdisable-phases",
     "-Xdisable-standard-script",
     "-Xdisable-ultra-light-classes",
-    "-Xdump-declarations-to",
-    "-Xdump-directory",
-    "-Xdump-fqname",
-    "-Xdump-perf",
     "-Xeffect-system",
     "-Xemit-jvm-type-annotations",
     "-Xenable-builder-inference",
@@ -53,7 +47,6 @@ KOTLIN_OPTS = [
     "-Xignore-const-optimization-errors",
     "-Xinference-compatibility",
     "-Xinline-classes",
-    "-Xintellij-plugin-root",
     "-Xir-do-not-clear-binding-context",
     "-Xjava-package-prefix",
     "-Xjava-source-roots",
@@ -95,7 +88,6 @@ KOTLIN_OPTS = [
     "-Xphases-to-validate",
     "-Xphases-to-validate-after",
     "-Xphases-to-validate-before",
-    "-Xplugin",
     "-Xprofile",
     "-Xprofile-phases",
     "-Xproper-ieee754-comparisons",
@@ -135,4 +127,14 @@ KOTLIN_OPTS = [
     "-Xvalidate-ir",
     "-Xvalue-classes",
     "-Xverbose-phases",
+    "-api-version",
+    "-java-parameters",
+    "-jvm-target",
+    "-language-version",
+    "-no-reflect",
+    "-nowarn",
+    "-opt-in",
+    "-progressive",
+    "-verbose",
+    "-version"
 ]
