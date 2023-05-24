@@ -393,12 +393,12 @@ kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_o
 ## kt_kotlinc_options
 
 kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kotlinc_options-include_stdlibs">include_stdlibs</a>, <a href="#kt_kotlinc_options-java_parameters">java_parameters</a>, <a href="#kt_kotlinc_options-jvm_target">jvm_target</a>, <a href="#kt_kotlinc_options-warn">warn</a>,
-                   <a href="#kt_kotlinc_options-x_allow_result_return_type">x_allow_result_return_type</a>, <a href="#kt_kotlinc_options-x_backend_threads">x_backend_threads</a>, <a href="#kt_kotlinc_options-x_debug">x_debug</a>,
-                   <a href="#kt_kotlinc_options-x_emit_jvm_type_annotations">x_emit_jvm_type_annotations</a>, <a href="#kt_kotlinc_options-x_explicit_api_mode">x_explicit_api_mode</a>, <a href="#kt_kotlinc_options-x_inline_classes">x_inline_classes</a>, <a href="#kt_kotlinc_options-x_jvm_default">x_jvm_default</a>,
-                   <a href="#kt_kotlinc_options-x_lambdas">x_lambdas</a>, <a href="#kt_kotlinc_options-x_multi_platform">x_multi_platform</a>, <a href="#kt_kotlinc_options-x_no_call_assertions">x_no_call_assertions</a>, <a href="#kt_kotlinc_options-x_no_optimize">x_no_optimize</a>,
+                   <a href="#kt_kotlinc_options-x_allow_result_return_type">x_allow_result_return_type</a>, <a href="#kt_kotlinc_options-x_backend_threads">x_backend_threads</a>, <a href="#kt_kotlinc_options-x_emit_jvm_type_annotations">x_emit_jvm_type_annotations</a>,
+                   <a href="#kt_kotlinc_options-x_enable_incremental_compilation">x_enable_incremental_compilation</a>, <a href="#kt_kotlinc_options-x_explicit_api_mode">x_explicit_api_mode</a>, <a href="#kt_kotlinc_options-x_inline_classes">x_inline_classes</a>,
+                   <a href="#kt_kotlinc_options-x_jvm_default">x_jvm_default</a>, <a href="#kt_kotlinc_options-x_lambdas">x_lambdas</a>, <a href="#kt_kotlinc_options-x_multi_platform">x_multi_platform</a>, <a href="#kt_kotlinc_options-x_no_call_assertions">x_no_call_assertions</a>, <a href="#kt_kotlinc_options-x_no_optimize">x_no_optimize</a>,
                    <a href="#kt_kotlinc_options-x_no_optimized_callable_references">x_no_optimized_callable_references</a>, <a href="#kt_kotlinc_options-x_no_param_assertions">x_no_param_assertions</a>,
                    <a href="#kt_kotlinc_options-x_no_receiver_assertions">x_no_receiver_assertions</a>, <a href="#kt_kotlinc_options-x_optin">x_optin</a>, <a href="#kt_kotlinc_options-x_report_perf">x_report_perf</a>, <a href="#kt_kotlinc_options-x_sam_conversions">x_sam_conversions</a>,
-                   <a href="#kt_kotlinc_options-x_skip_prerelease_check">x_skip_prerelease_check</a>, <a href="#kt_kotlinc_options-x_use_k2">x_use_k2</a>)
+                   <a href="#kt_kotlinc_options-x_skip_prerelease_check">x_skip_prerelease_check</a>, <a href="#kt_kotlinc_options-x_use_fir_lt">x_use_fir_lt</a>, <a href="#kt_kotlinc_options-x_use_k2">x_use_k2</a>)
 
                                                                                                 
     Define kotlin compiler options.
@@ -416,8 +416,8 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 |<a id="kt_kotlinc_options-warn"></a>warn |  Control warning behaviour.   | String | optional | "report" |
 |<a id="kt_kotlinc_options-x_allow_result_return_type"></a>x_allow_result_return_type |  Enable kotlin.Result as a return type   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_backend_threads"></a>x_backend_threads |  When using the IR backend, run lowerings by file in N parallel threads. 0 means use a thread per processor core. Default value is 1.   | Integer | optional | 1 |
-|<a id="kt_kotlinc_options-x_debug"></a>x_debug |  Enable debugging, this option allows for a better debugging experience, especially when using coroutines, but should not be used in production   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_emit_jvm_type_annotations"></a>x_emit_jvm_type_annotations |  Basic support for type annotations in JVM bytecode.   | Boolean | optional | False |
+|<a id="kt_kotlinc_options-x_enable_incremental_compilation"></a>x_enable_incremental_compilation |  Enable incremental compilation   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_explicit_api_mode"></a>x_explicit_api_mode |  Enable explicit API mode for Kotlin libraries.   | String | optional | "off" |
 |<a id="kt_kotlinc_options-x_inline_classes"></a>x_inline_classes |  Enable experimental inline classes   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_jvm_default"></a>x_jvm_default |  Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.   | String | optional | "off" |
@@ -432,6 +432,7 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 |<a id="kt_kotlinc_options-x_report_perf"></a>x_report_perf |  Report detailed performance statistics   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_sam_conversions"></a>x_sam_conversions |  Change codegen behavior of SAM/functional interfaces   | String | optional | "class" |
 |<a id="kt_kotlinc_options-x_skip_prerelease_check"></a>x_skip_prerelease_check |  Suppress errors thrown when using pre-release classes.   | Boolean | optional | False |
+|<a id="kt_kotlinc_options-x_use_fir_lt"></a>x_use_fir_lt |  Compile using LightTree parser with Front-end IR. Warning: this feature is far from being production-ready   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_use_k2"></a>x_use_k2 |  Compile using experimental K2. K2 is a new compiler pipeline, no compatibility guarantees are yet provided   | Boolean | optional | False |
 
 
@@ -529,7 +530,7 @@ This macro registers the kotlin toolchain.
 
 <pre>
 kotlin_repositories(<a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-ksp_repository_name">ksp_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>,
-                    <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>, <a href="#kotlin_repositories-configured_repository_name">configured_repository_name</a>)
+                    <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>)
 </pre>
 
 Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -543,7 +544,6 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  <code>"com_github_google_ksp"</code> |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  <code>struct()</code> |
 | <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  <code>struct()</code> |
-| <a id="kotlin_repositories-configured_repository_name"></a>configured_repository_name |  for the default versioned kt_* rules repository. If None, no versioned repository is created.   |  <code>"io_bazel_rules_kotlin_configured"</code> |
 
 
 <a id="versions.use_repository"></a>
