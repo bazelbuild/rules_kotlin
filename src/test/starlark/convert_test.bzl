@@ -4,7 +4,7 @@ load(
     "unittest",
 )
 load("//src/main/starlark/core/options:convert.bzl", "convert")
-load("@io_bazel_rules_kotlin//src/main/starlark/core/options:derive.bzl", "derive")
+load("//src/main/starlark/core/options:derive.bzl", "derive")
 
 def _test_map_value_to_flag(value):
     return ["-flag={}".format(value)]
