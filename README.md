@@ -256,6 +256,40 @@ Additionally, you can add options for both tracing and timing of the bazel build
 * `bazel build --define=kt_timings=1`
 
 `kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
+
+# KSP (Kotlin Symbol Processing)
+
+KSP is officially supported as of `rules_kotlin` 1.8 and can be declared using the new
+`kt_ksp_plugin` rule. 
+
+A few things to note:
+- As of now `rules_kotlin` only supports KSP plugins that generate Kotlin code.
+- KSP is [not yet thread safe](https://github.com/google/ksp/issues/1385) and will likely fail if you are using it in a build that has multiplex workers enabled. To work around this add the following flag to your Bazelrc:
+  ```
+  build --experimental_worker_max_multiplex_instances=KotlinKsp=1
+  ```
+
+```python
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_ksp_plugin(
+    name = "moshi-kotlin-codegen",
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@maven//:com_squareup_moshi_moshi",
+        "@maven//:com_squareup_moshi_moshi_kotlin",
+        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+kt_jvm_library(
+    name = "lib",
+    srcs = glob(["*.kt"]),
+    plugins = ["//:moshi-kotlin-codegen"],
+)
+```
+
 # Kotlin compiler plugins
 
 The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.
