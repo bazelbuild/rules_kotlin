@@ -2,7 +2,7 @@ package io.bazel.rkt_1_6.builder.jobs.kotlinc
 
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
-import io.bazel.kotlin.builder.utils.BazelRunFiles.resolveFromProperty
+import io.bazel.kotlin.builder.utils.BazelRunFiles.resolveVerifiedFromProperty
 import io.bazel.kotlin.integration.WriteWorkspace
 import io.bazel.rkt_1_6.builder.jobs.kotlinc.CompileConfigurationSubject.Companion.configurations
 import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompileKotlinForJvm
@@ -26,28 +26,28 @@ class GenerateStubsTest {
     override val reducedClasspathMode: Boolean = false,
     override val depsArtifacts: List<Path> = emptyList(),
     override val classpath: List<Path> = listOf(
-      resolveFromProperty("auto_value_annotations"),
-      resolveFromProperty("auto_value"),
-      resolveFromProperty("kotlin_annotations"),
+      resolveVerifiedFromProperty("auto_value_annotations").toPath(),
+      resolveVerifiedFromProperty("auto_value").toPath(),
+      resolveVerifiedFromProperty("kotlin_annotations").toPath(),
     ),
     override val fileSystem: FileSystem = FileSystems.getDefault(),
     override val sources: List<Path> = emptyList(),
     override val useIr: Boolean = false,
     override val debug: List<String> = listOf("trace", "debug"),
     override val sourcesFromJars: List<Path> = emptyList(),
-    override val jdkHome: Path = resolveFromProperty("java.home"),
+    override val jdkHome: Path = resolveVerifiedFromProperty("java.home").toPath(),
     override val passthroughFlags: List<String> = emptyList(),
     override val stubsPluginClassPath: List<Path> = emptyList(),
     override val stubsPluginOptions: List<String> = emptyList(),
     override val processorPath: List<Path> = listOf(
-      resolveFromProperty("auto_value_annotations"),
-      resolveFromProperty("auto_value"),
-      resolveFromProperty("kotlin_annotations"),
+      resolveVerifiedFromProperty("auto_value_annotations").toPath(),
+      resolveVerifiedFromProperty("auto_value").toPath(),
+      resolveVerifiedFromProperty("kotlin_annotations").toPath(),
     ),
     override val processors: List<String> = listOf(
       "com.google.auto.value.processor.AutoValueProcessor"
     ),
-    override val kapt: Path = resolveFromProperty("kapt"),
+    override val kapt: Path = resolveVerifiedFromProperty("kapt").toPath(),
     override val verbose: Boolean = true,
     override val processorOptions: Map<String, String> = emptyMap(),
   ) : CompileKotlinForJvm.In, GenerateStubs.In
@@ -111,7 +111,8 @@ class GenerateStubsTest {
       .canCompile(
         In(
           sources = listOf(source)
-        ), Out(
+        ),
+        Out(
           generatedJavaSrcJar = temp.resolve("generatedJava.srcjar"),
           generatedJavaStubJar = temp.resolve("stubs.jar"),
           generatedClassJar = temp.resolve("generated.jar")
@@ -187,8 +188,8 @@ class GenerateStubsTest {
       .canCompile(
         In(
           sources = listOf(sourceAutovalue, sourceData),
-          classpath = listOf(resolveFromProperty("serialization_core")),
-          stubsPluginClassPath = listOf(resolveFromProperty("serialization_plugin")),
+          classpath = listOf(resolveVerifiedFromProperty("serialization_core").toPath()),
+          stubsPluginClassPath = listOf(resolveVerifiedFromProperty("serialization_plugin").toPath()),
           stubsPluginOptions = listOf()
         ),
         Out(

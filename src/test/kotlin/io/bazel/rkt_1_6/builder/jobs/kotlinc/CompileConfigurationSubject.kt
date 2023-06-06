@@ -7,7 +7,7 @@ import com.google.common.truth.StringSubject
 import com.google.common.truth.Subject
 import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompilerConfiguration
 import io.bazel.kotlin.builder.jobs.kotlinc.JobContext
-import io.bazel.kotlin.builder.jobs.kotlinc.KotlinCompile
+import io.bazel.kotlin.builder.jobs.kotlinc.KotlinToJvm
 import io.bazel.worker.Status
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassReader.EXPAND_FRAMES
@@ -136,7 +136,7 @@ class CompileConfigurationSubject<IN, OUT>(
       metadata,
       outputs,
       scope,
-      KotlinCompile().run(
+      KotlinToJvm().run(
         JobContext.of(
           scope,
           inputs,

@@ -173,8 +173,8 @@ abstract class JvmCoreFlags(
 
 
   override val jdeps: Path = RepositoryLocations.JDEPS_GEN_PLUGIN
-  override val abi: Path = RepositoryLocations.DEFAULT_JVM_ABI_PATH
-  override val kapt: Path = RepositoryLocations.KAPT
+  override val abi: Path = RepositoryLocations.JVM_ABI_PLUGIN
+  override val kapt: Path = RepositoryLocations.KAPT_PLUGIN
 
   override val outputSrcJar by argument.path("kotlin_output_srcjar", "", required = true)
   override val output by argument.path("output", "", required = true)

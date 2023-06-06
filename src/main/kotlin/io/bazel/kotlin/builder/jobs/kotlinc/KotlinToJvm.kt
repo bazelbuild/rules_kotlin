@@ -1,8 +1,6 @@
 package io.bazel.kotlin.builder.jobs.kotlinc
 
 import io.bazel.kotlin.builder.jobs.kotlinc.configurations.CompilerConfiguration
-import io.bazel.kotlin.builder.jobs.kotlinc.JobContext
-import io.bazel.kotlin.builder.jobs.kotlinc.Report
 import io.bazel.worker.Status
 import org.jetbrains.kotlin.cli.common.ExitCode.COMPILATION_ERROR
 import org.jetbrains.kotlin.cli.common.ExitCode.INTERNAL_ERROR
@@ -15,7 +13,7 @@ import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.konan.file.File.Companion.separator
 
-class KotlinCompile {
+class KotlinToJvm {
   private val compiler = K2JVMCompiler()
 
   fun <IN, OUT> run(
