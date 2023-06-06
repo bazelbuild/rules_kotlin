@@ -225,8 +225,8 @@ Compiler flags that are passed to the rule definitions will be taken over the to
 
 Example:
 ```python
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "kt_jvm_library")
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl","kt_javac_options", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
@@ -245,8 +245,8 @@ kt_javac_options(
 kt_jvm_library(
     name = "package_name",
     srcs = glob(["*.kt"]),
-    kotlinc_options = "//:kt_kotlinc_options_for_package_name",
-    javac_options = "//:kt_javac_options_for_package_name",
+    kotlinc_opts = "//:kt_kotlinc_options_for_package_name",
+    javac_opts = "//:kt_javac_options_for_package_name",
     deps = ["//path/to/dependency"],
 )
 ```
