@@ -45,8 +45,14 @@ versions = struct(
             "https://github.com/bazelbuild/rules_proto/archive/refs/tags/{version}.tar.gz",
         ],
     ),
-    IO_BAZEL_STARDOC_VERSION = "0.5.1",
-    IO_BAZEL_STARDOC_SHA = "5bcd62378fc5ea87936169b49245d0595c690bde41ef695ce319752cc9929c34",
+    IO_BAZEL_STARDOC = version(
+        version = "0.5.6",
+        sha256 = "dfbc364aaec143df5e6c52faf1f1166775a5b4408243f445f44b661cfdc3134f",
+        url_templates = [
+            "https://mirror.bazel.build/github.com/bazelbuild/stardoc/releases/download/{version}/stardoc-{version}.tar.gz",
+            "https://github.com/bazelbuild/stardoc/releases/download/{version}/stardoc-{version}.tar.gz",
+        ],
+    ),
     BAZEL_JAVA_LAUNCHER_VERSION = "5.0.0",
     PINTEREST_KTLINT = version(
         version = "0.49.1",
@@ -95,6 +101,14 @@ versions = struct(
             "https://github.com/bazelbuild/rules_python/archive/refs/tags/{version}.tar.gz",
         ],
         sha256 = "a644da969b6824cc87f8fe7b18101a8a6c57da5db39caa6566ec6109f37d2141",
+    ),
+    RULES_LICENSE = version(
+        version = "0.0.3",
+        url_templates = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
+            "https://github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
+        ],
+        sha256 = None,
     ),
     use_repository = _use_repository,
 )

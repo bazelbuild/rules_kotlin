@@ -67,17 +67,21 @@ def kt_download_local_dev_dependencies():
     )
 
     versions.use_repository(
+        name = "rules_license",
+        rule = http_archive,
+        version = versions.RULES_LICENSE,
+    )
+
+    versions.use_repository(
         name = "rules_pkg",
         rule = http_archive,
         version = versions.PKG,
     )
 
-    maybe(
-        http_archive,
+    versions.use_repository(
         name = "io_bazel_stardoc",
-        sha256 = versions.IO_BAZEL_STARDOC_SHA,
-        strip_prefix = "stardoc-%s" % versions.IO_BAZEL_STARDOC_VERSION,
-        url = "https://github.com/bazelbuild/stardoc/archive/%s.tar.gz" % versions.IO_BAZEL_STARDOC_VERSION,
+        version = versions.IO_BAZEL_STARDOC,
+        rule = http_archive,
     )
 
     rules_stardoc_repository(
