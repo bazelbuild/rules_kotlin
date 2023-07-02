@@ -67,6 +67,12 @@ def kt_download_local_dev_dependencies():
     )
 
     versions.use_repository(
+        name = "rules_license",
+        rule = http_archive,
+        version = versions.RULES_LICENSE,
+    )
+
+    versions.use_repository(
         name = "rules_pkg",
         rule = http_archive,
         version = versions.PKG,

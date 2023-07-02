@@ -102,5 +102,13 @@ versions = struct(
         ],
         sha256 = "a644da969b6824cc87f8fe7b18101a8a6c57da5db39caa6566ec6109f37d2141",
     ),
+    RULES_LICENSE = version(
+        version = "0.0.3",
+        url_templates = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
+            "https://github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
+        ],
+        sha256 = None,
+    ),
     use_repository = _use_repository,
 )
