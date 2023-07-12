@@ -137,6 +137,9 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     )
     return []
 
+# Exposed for kt_android_* rules
+write_launcher_action_exposed = _write_launcher_action
+
 # buildifier: disable=unused-variable
 def _is_source_jar_stub(jar):
     """Workaround for intellij plugin expecting a source jar"""

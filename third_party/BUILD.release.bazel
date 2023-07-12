@@ -28,13 +28,6 @@ java_binary(
     runtime_deps = [":jarjar.jar"],
 )
 
-java_import(
-    name = "android_sdk",
-    jars = ["@rules_android//tools/android:android_jar"],
-    neverlink = True,
-    visibility = ["//visibility:public"],
-)
-
 bzl_library(
     name = "bzl",
     srcs = [

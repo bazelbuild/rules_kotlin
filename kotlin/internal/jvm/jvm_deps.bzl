@@ -21,9 +21,9 @@ load("//kotlin/internal/utils:sets.bzl", _sets = "sets")
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
-def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps = []):
+def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
-    dep_infos = [_java_info(d) for d in deps] + [toolchains.kt.jvm_stdlibs]
+    dep_infos = deps_java_infos + [_java_info(d) for d in deps] + [toolchains.kt.jvm_stdlibs]
 
     associates = _associate_utils.get_associates(ctx, toolchains = toolchains, associates = associate_deps)
 
