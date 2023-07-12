@@ -70,7 +70,7 @@ def kotlin_repositories(
                  versions.BAZEL_JAVA_LAUNCHER_VERSION +
                  "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
                  "java_stub_template.txt")],
-        sha256 = "ab1370fd990a8bff61a83c7bd94746a3401a6d5d2299e54b1b6bc02db4f87f68",
+        sha256 = "78e29525872594ffc783c825f428b3e61d4f3e632f46eaa64f004b2814c4a612",
     )
 
     maybe(
