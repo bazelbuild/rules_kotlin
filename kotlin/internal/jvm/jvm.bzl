@@ -253,6 +253,7 @@ _common_attr = utils.add_dicts(
             Transitive deps required for compilation must be explicitly added""",
             default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
         ),
+        "_use_auto_exec_groups": attr.bool(default = False),
     },
 )
 
@@ -663,3 +664,10 @@ kt_plugin_cfg = rule(
         ),
     },
 )
+
+#
+# Exposed for kt_android_* rules.
+#
+lib_common_attr_exposed = _lib_common_attr
+runnable_common_attr_exposed = _runnable_common_attr
+common_outputs_exposed = _common_outputs
