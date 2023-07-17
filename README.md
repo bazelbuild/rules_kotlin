@@ -290,6 +290,20 @@ kt_jvm_library(
 )
 ```
 
+To choose a different `ksp_version` distribution,
+do the following in your `WORKSPACE` file (or import from a `.bzl` file):
+
+```python
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "ksp_version")
+
+kotlin_repositories(
+    ksp_compiler_release = ksp_version(
+        release = "1.8.22-1.0.11",
+        sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
+    ),
+)
+```
+
 # Kotlin compiler plugins
 
 The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.
