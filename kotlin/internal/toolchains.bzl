@@ -24,7 +24,6 @@ load(
     _KtJsInfo = "KtJsInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
-
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 """Kotlin Toolchains
