@@ -25,10 +25,6 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 
-load(
-    "//src/main/starlark/core/repositories:tools.bzl",
-    "absolute_target",
-)
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 """Kotlin Toolchains
