@@ -30,7 +30,7 @@ kt_bootstrap_library(
 generate_jvm_service(
     name = "skip-code-gen-services",
     services = {
-        "io.bazel.kotlin.plugin.SkipCodeGen": "org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar",
+        "io.bazel.kotlin.plugin.SkipCodeGen": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",
     },
 )
 
