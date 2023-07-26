@@ -263,7 +263,8 @@ _kt_toolchain = rule(
         ),
         "_experimental_prune_transitive_deps": attr.label(
             doc = """If enabled, compilation is performed against only direct dependencies.
-            Transitive deps required for compilation must be explicitly added""",
+            Transitive deps required for compilation must be explicitly added. Using
+            kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
             default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
         ),
         "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),

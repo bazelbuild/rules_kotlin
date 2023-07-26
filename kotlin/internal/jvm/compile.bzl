@@ -40,7 +40,6 @@ load(
     "//kotlin/internal/utils:sets.bzl",
     _sets = "sets",
 )
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(
     "@bazel_tools//tools/jdk:toolchain_utils.bzl",
     "find_java_runtime_toolchain",
@@ -90,7 +89,7 @@ def _compiler_toolchains(ctx):
         java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
     )
 
-def _jvm_deps(toolchains, associated_targets, deps, runtime_deps = []):
+def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
     diff = _sets.intersection(
         _sets.copy_of([x.label for x in associated_targets]),
@@ -104,7 +103,8 @@ def _jvm_deps(toolchains, associated_targets, deps, runtime_deps = []):
     dep_infos = [_java_info(d) for d in associated_targets + deps] + [toolchains.kt.jvm_stdlibs]
 
     # Reduced classpath, exclude transitive deps from compilation
-    if (toolchains.kt.experimental_prune_transitive_deps):
+    if (toolchains.kt.experimental_prune_transitive_deps and
+        not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
         transitive = [
             d.compile_jars
             for d in dep_infos
@@ -525,6 +525,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     srcs = _partitioned_srcs(ctx.files.srcs)
     associates = _associate_utils.get_associates(ctx)
     compile_deps = _jvm_deps(
+        ctx,
         toolchains,
         associates.targets,
         deps = ctx.attr.deps,
