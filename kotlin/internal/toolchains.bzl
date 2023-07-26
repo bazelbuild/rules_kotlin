@@ -80,6 +80,7 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
+        jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         js_stdlibs = ctx.attr.js_stdlibs,
         execution_requirements = {
             "supports-workers": "1",
@@ -126,7 +127,7 @@ _kt_toolchain = rule(
         ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
-            default = "1.7",
+            default = "1.8",
             values = [
                 "1.1",
                 "1.2",
@@ -135,11 +136,12 @@ _kt_toolchain = rule(
                 "1.5",
                 "1.6",
                 "1.7",
+                "1.8",
             ],
         ),
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
-            default = "1.7",
+            default = "1.8",
             values = [
                 "1.1",
                 "1.2",
@@ -148,6 +150,7 @@ _kt_toolchain = rule(
                 "1.5",
                 "1.6",
                 "1.7",
+                "1.8",
             ],
         ),
         "debug": attr.string_list(
@@ -267,6 +270,7 @@ _kt_toolchain = rule(
             Transitive deps required for compilation must be explicitly added""",
             default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
         ),
+        "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),
     },
     implementation = _kotlin_toolchain_impl,
     provides = [platform_common.ToolchainInfo],

@@ -106,14 +106,14 @@ class JarCreator(
             if (path != directory) {
               // For consistency with legacy behaviour, include entries for directories except for
               // the root.
-              addEntry(path, /* isDirectory= */ true)
+              addEntry(path, isDirectory = true)
             }
             return FileVisitResult.CONTINUE
           }
 
           @Throws(IOException::class)
           override fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
-            addEntry(path, /* isDirectory= */ false)
+            addEntry(path, isDirectory = false)
             return FileVisitResult.CONTINUE
           }
 

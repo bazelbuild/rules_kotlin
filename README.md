@@ -10,6 +10,10 @@
 
 For more information about release and changelogs please see [Changelog](CHANGELOG.md) or refer to the [Github Releases](https://github.com/bazelbuild/rules_kotlin/releases) page.
 
+# `rules_kotlin` Bazel Compatibility
+- HEAD: `5`, `6`
+- [Release 1.7](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.7.1): `4`, `5`, `6`
+
 # Overview 
 
 **rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other Bazel 
@@ -52,8 +56,8 @@ this:
 ```python
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-rules_kotlin_version = "1.7.1"
-rules_kotlin_sha = "fd92a98bd8a8f0e1cdcb490b93f5acef1f1727ed992571232d33de42395ca9b3"
+rules_kotlin_version = "1.8"
+rules_kotlin_sha = "01293740a16e474669aba5b5a1fe3d368de5832442f164e4fbfc566815a8bc3a"
 http_archive(
     name = "io_bazel_rules_kotlin",
     urls = ["https://github.com/bazelbuild/rules_kotlin/releases/download/v%s/rules_kotlin_release.tgz" % rules_kotlin_version],
@@ -137,16 +141,13 @@ In the project's `WORKSPACE`, change the setup:
 
 # Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
 local_repository(
-    name = "release_archive",
-    path = "../path/to/rules_kotlin_clone/src/main/starlark/release_archive",
-)
-load("@release_archive//:repository.bzl", "archive_repository")
-
-
-archive_repository(
     name = "io_bazel_rules_kotlin",
-    local_path = "../path/to/rules_kotlin_clone/"
+    path = "../path/to/rules_kotlin_clone/",
 )
+
+load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+
+kt_download_local_dev_dependencies()
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
@@ -163,16 +164,9 @@ rules to this:
 ```python
 # Download master or specific revisions
 http_archive(
-    name = "io_bazel_rules_kotlin_master",
+    name = "io_bazel_rules_kotlin",
     strip_prefix = "rules_kotlin-master",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip"],
-)
-
-load("@io_bazel_rules_kotlin_master//src/main/starlark/release_archive:repository.bzl", "archive_repository")
-
-archive_repository(
-    name = "io_bazel_rules_kotlin",
-    source_repository_name = "io_bazel_rules_kotlin_master",
 )
 
 load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
@@ -209,13 +203,13 @@ load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
-    warn = "report",
+    kotlinc_opts = ["-Xno-param-assertions"],
+    jvm_target = "1.8",
 )
 
 kt_javac_options(
     name = "kt_javac_options",
-    warn = "report",
-    x_ep_disable_all_checks = False,
+    javac_opts = ["-nowarn"],
 )
 
 define_kt_toolchain(
@@ -231,26 +225,28 @@ Compiler flags that are passed to the rule definitions will be taken over the to
 
 Example:
 ```python
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "kt_jvm_library")
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl","kt_javac_options", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
-    warn = "error",
-    x_optin = ["kotlin.Experimental", "kotlin.ExperimentalStdlibApi"],
+    kotlinc_opts = [
+     "-Xno-param-assertions",
+     "-Xopt-in=kotlin.Experimental",
+     "-Xopt-in=kotlin.ExperimentalStdlibApi",
+    ],
 )
 
 kt_javac_options(
     name = "kt_javac_options_for_package_name",
-    warn = "error",
-    x_ep_disable_all_checks = True,
+    javac_opts = ["-nowarn"],
 )
 
 kt_jvm_library(
     name = "package_name",
     srcs = glob(["*.kt"]),
-    kotlinc_options = "//:kt_kotlinc_options_for_package_name",
-    javac_options = "//:kt_javac_options_for_package_name",
+    kotlinc_opts = "//:kt_kotlinc_options_for_package_name",
+    javac_opts = "//:kt_javac_options_for_package_name",
     deps = ["//path/to/dependency"],
 )
 ```
@@ -260,6 +256,54 @@ Additionally, you can add options for both tracing and timing of the bazel build
 * `bazel build --define=kt_timings=1`
 
 `kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
+
+# KSP (Kotlin Symbol Processing)
+
+KSP is officially supported as of `rules_kotlin` 1.8 and can be declared using the new
+`kt_ksp_plugin` rule. 
+
+A few things to note:
+- As of now `rules_kotlin` only supports KSP plugins that generate Kotlin code.
+- KSP is [not yet thread safe](https://github.com/google/ksp/issues/1385) and will likely fail if you are using it in a build that has multiplex workers enabled. To work around this add the following flag to your Bazelrc:
+  ```
+  build --experimental_worker_max_multiplex_instances=KotlinKsp=1
+  ```
+
+```python
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_ksp_plugin(
+    name = "moshi-kotlin-codegen",
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@maven//:com_squareup_moshi_moshi",
+        "@maven//:com_squareup_moshi_moshi_kotlin",
+        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+kt_jvm_library(
+    name = "lib",
+    srcs = glob(["*.kt"]),
+    plugins = ["//:moshi-kotlin-codegen"],
+)
+```
+
+To choose a different `ksp_version` distribution,
+do the following in your `WORKSPACE` file (or import from a `.bzl` file):
+
+```python
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "ksp_version")
+
+kotlin_repositories(
+    ksp_compiler_release = ksp_version(
+        release = "1.8.22-1.0.11",
+        sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
+    ),
+)
+```
+
 # Kotlin compiler plugins
 
 The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.

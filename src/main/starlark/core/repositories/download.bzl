@@ -11,7 +11,7 @@
 # versions.WITHOUT versions.WARRANTIES versions.OR versions.CONDITIONS versions.OF versions.ANY versions.KIND, either express or implied.
 # versions.See the versions.License for the specific language governing permissions and
 # limitations under the versions.License.
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":rules_stardoc.bzl", "rules_stardoc_repository")
 load(":versions.bzl", "versions")
@@ -30,13 +30,6 @@ def kt_download_local_dev_dependencies():
         name = "bazel_skylib",
         urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (versions.SKYLIB_VERSION, versions.SKYLIB_VERSION)],
         sha256 = versions.SKYLIB_SHA,
-    )
-
-    maybe(
-        http_jar,
-        name = "bazel_deps",
-        sha256 = versions.BAZEL_DEPS_SHA,
-        url = "https://github.com/hsyed/bazel-deps/releases/download/v%s/parseproject_deploy.jar" % versions.BAZEL_DEPS_VERSION,
     )
 
     maybe(
@@ -74,17 +67,21 @@ def kt_download_local_dev_dependencies():
     )
 
     versions.use_repository(
+        name = "rules_license",
+        rule = http_archive,
+        version = versions.RULES_LICENSE,
+    )
+
+    versions.use_repository(
         name = "rules_pkg",
         rule = http_archive,
         version = versions.PKG,
     )
 
-    maybe(
-        http_archive,
+    versions.use_repository(
         name = "io_bazel_stardoc",
-        sha256 = versions.IO_BAZEL_STARDOC_SHA,
-        strip_prefix = "stardoc-%s" % versions.IO_BAZEL_STARDOC_VERSION,
-        url = "https://github.com/bazelbuild/stardoc/archive/%s.tar.gz" % versions.IO_BAZEL_STARDOC_VERSION,
+        version = versions.IO_BAZEL_STARDOC,
+        rule = http_archive,
     )
 
     rules_stardoc_repository(

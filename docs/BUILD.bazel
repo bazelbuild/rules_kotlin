@@ -1,0 +1,12 @@
+sh_test(
+    name = "are_docs_up_to_date_test",
+    srcs = ["are_docs_up_to_date_test.sh"],
+    args = [
+        "$(location kotlin.md)",
+        "$(location //kotlin:stardoc)",
+    ],
+    data = [
+        "kotlin.md",
+        "//kotlin:stardoc",
+    ],
+)

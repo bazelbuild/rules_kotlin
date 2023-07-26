@@ -149,7 +149,9 @@ def _collect_plugins_for_export(local, exports):
     )
 
 _CONVENTIONAL_RESOURCE_PATHS = [
+    "src/main/java",
     "src/main/resources",
+    "src/test/java",
     "src/test/resources",
     "kotlin",
 ]
@@ -330,6 +332,45 @@ def _run_kapt_builder_actions(
         kapt_generated_class_jar = kapt_generated_class_jar,
     )
 
+def _run_ksp_builder_actions(
+        ctx,
+        rule_kind,
+        toolchains,
+        srcs,
+        associates,
+        compile_deps,
+        deps_artifacts,
+        annotation_processors,
+        transitive_runtime_jars,
+        plugins):
+    """Runs KSP using the KotlinBuilder tool
+
+    Returns:
+        A struct containing KSP outputs
+    """
+    ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-gensrc.jar")
+
+    _run_kt_builder_action(
+        ctx = ctx,
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        srcs = srcs,
+        generated_src_jars = [],
+        associates = associates,
+        compile_deps = compile_deps,
+        deps_artifacts = deps_artifacts,
+        annotation_processors = annotation_processors,
+        transitive_runtime_jars = transitive_runtime_jars,
+        plugins = plugins,
+        outputs = {
+            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
+        },
+        build_kotlin = False,
+        mnemonic = "KotlinKsp",
+    )
+
+    return struct(ksp_generated_class_jar = ksp_generated_java_srcjar)
+
 def _run_kt_builder_action(
         ctx,
         rule_kind,
@@ -372,12 +413,14 @@ def _run_kt_builder_action(
         annotation_processors,
         map_each = _plugin_mappers.kt_plugin_to_processor,
         omit_if_empty = True,
+        uniquify = True,
     )
     args.add_all(
         "--processorpath",
         annotation_processors,
         map_each = _plugin_mappers.kt_plugin_to_processorpath,
         omit_if_empty = True,
+        uniquify = True,
     )
 
     compiler_plugins = [
@@ -456,7 +499,7 @@ def _run_kt_builder_action(
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
         execution_requirements = _utils.add_dicts(
             toolchains.kt.execution_requirements,
-            {"worker-key-mnemonic": "KotlinCompile"},
+            {"worker-key-mnemonic": mnemonic},
         ),
         arguments = [args],
         progress_message = progress_message,
@@ -488,6 +531,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         runtime_deps = ctx.attr.runtime_deps,
     )
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
+    ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
     deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + associates.targets)
@@ -495,9 +539,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     generated_src_jars = []
     annotation_processing = None
     compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
-
     output_jdeps = None
-    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+    if toolchains.kt.jvm_emit_jdeps:
         output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
 
     outputs_struct = _run_kt_java_builder_actions(
@@ -510,6 +553,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
+        ksp_annotation_processors = ksp_annotation_processors,
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         compile_jar = compile_jar,
@@ -598,6 +642,7 @@ def _run_kt_java_builder_actions(
         compile_deps,
         deps_artifacts,
         annotation_processors,
+        ksp_annotation_processors,
         transitive_runtime_jars,
         plugins,
         compile_jar,
@@ -636,6 +681,22 @@ def _run_kt_java_builder_actions(
             ),
         )
 
+    # Run KSP
+    if has_kt_sources and ksp_annotation_processors:
+        ksp_outputs = _run_ksp_builder_actions(
+            ctx,
+            rule_kind = rule_kind,
+            toolchains = toolchains,
+            srcs = srcs,
+            associates = associates,
+            compile_deps = compile_deps,
+            deps_artifacts = deps_artifacts,
+            annotation_processors = ksp_annotation_processors,
+            transitive_runtime_jars = transitive_runtime_jars,
+            plugins = plugins,
+        )
+        generated_src_jars.append(ksp_outputs.ksp_generated_class_jar)
+
     java_infos = []
 
     # Build Kotlin
@@ -654,7 +715,7 @@ def _run_kt_java_builder_actions(
             }
 
         kt_jdeps = None
-        if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+        if toolchains.kt.jvm_emit_jdeps:
             kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
             outputs["kotlin_output_jdeps"] = kt_jdeps
 
@@ -734,7 +795,7 @@ def _run_kt_java_builder_actions(
         input_jars = compile_jars,
     )
 
-    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+    if toolchains.kt.jvm_emit_jdeps:
         jdeps = []
         for java_info in java_infos:
             if java_info.outputs.jdeps:
@@ -756,9 +817,10 @@ def _run_kt_java_builder_actions(
 
     annotation_processing = None
     if annotation_processors:
+        outputs_list = [java_info.outputs for java_info in java_infos]
         annotation_processing = _create_annotation_processing(
             annotation_processors = annotation_processors,
-            ap_class_jar = [jars.class_jar for jars in java_info.outputs.jars][0],
+            ap_class_jar = [jars.class_jar for outputs in outputs_list for jars in outputs.jars][0],
             ap_source_jar = ap_generated_src_jar,
         )
 
@@ -809,7 +871,7 @@ def export_only_providers(ctx, actions, attr, outputs):
     )
 
     output_jdeps = None
-    if ctx.attr._kotlin_deps[BuildSettingInfo].value:
+    if toolchains.kt.jvm_emit_jdeps:
         output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
         actions.symlink(
             output = output_jdeps,

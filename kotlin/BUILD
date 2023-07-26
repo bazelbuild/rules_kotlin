@@ -67,4 +67,7 @@ genrule(
       cat "$$md" >> $@
     done
     """,
+    visibility = [
+        "//visibility:public",
+    ],
 )

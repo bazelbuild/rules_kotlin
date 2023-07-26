@@ -13,7 +13,6 @@
 # limitations under the License.
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # Configures the toolchains
@@ -23,11 +22,9 @@ release_archive(
     name = "pkg",
     srcs = glob(
         ["*.bzl"],
-        exclude = ["opts.bzl"],
     ),
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
-        "opts.release.bzl": "opts.bzl",
     },
     deps = [
         "//kotlin/internal/js:pkg",
@@ -47,8 +44,5 @@ bzl_library(
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",
         "//src/main/starlark",
-    ] + [
-        "@%s//starlark" % v
-        for v in versions.CORE
     ],
 )

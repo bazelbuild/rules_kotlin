@@ -1,8 +1,8 @@
 ---
 validate_config: 1
-bazel: 6.0.0
+bazel: 6.1.1
 buildifier:
-  version: 5.1.0
+  version: 6.1.0
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
@@ -31,6 +31,12 @@ tasks:
     name: "Example - Android"
     platform: ubuntu1804
     working_directory: examples/android
+    test_targets:
+      - //...
+  example-ksp:
+    name: "Example - Android KSP"
+    platform: ubuntu1804
+    working_directory: examples/ksp
     test_targets:
       - //...
   example-associates:
@@ -105,6 +111,8 @@ tasks:
     platform: ubuntu1804
     build_targets:
       - //kotlin:stardoc
+    test_targets:
+      - //docs:are_docs_up_to_date_test
   ktlint:
     name: KtLint
     platform: ubuntu1804

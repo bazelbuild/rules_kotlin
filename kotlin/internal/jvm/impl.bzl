@@ -18,6 +18,8 @@ load(
 )
 load(
     "//kotlin/internal:defs.bzl",
+    _JavaPluginInfo = "JavaPluginInfo",
+    _KspPluginInfo = "KspPluginInfo",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
@@ -188,7 +190,7 @@ def kt_jvm_import_impl(ctx):
                 runfiles = ctx.runfiles(
                     # Append class jar with the optional sources jar
                     files = [artifact.class_jar] + [artifact.source_jar] if artifact.source_jar else [],
-                ),
+                ).merge_all([d[DefaultInfo].default_runfiles for d in ctx.attr.deps]),
             ),
             JavaInfo(
                 output_jar = artifact.class_jar,
@@ -416,4 +418,25 @@ def kt_compiler_plugin_impl(ctx):
             stubs = ctx.attr.stubs_phase,
             compile = ctx.attr.compile_phase,
         ),
+    ]
+
+def kt_ksp_plugin_impl(ctx):
+    _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+
+    info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])
+    classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
+
+    return [
+        DefaultInfo(files = classpath),
+        _KspPluginInfo(plugins = [
+            _JavaPluginInfo(
+                runtime_deps = [
+                    info,
+                ],
+                processor_class = ctx.attr.processor_class,
+                # rules_kotlin doesn't support stripping non-api generating annotation
+                # processors out of the public ABI.
+                generates_api = True,
+            ),
+        ]),
     ]

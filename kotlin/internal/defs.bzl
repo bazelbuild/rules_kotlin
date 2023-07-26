@@ -19,8 +19,14 @@ TOOLCHAIN_TYPE = "%s" % Label("//kotlin/internal:kt_toolchain_type")
 JAVA_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:toolchain_type"
 JAVA_RUNTIME_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:runtime_toolchain_type"
 
+# Upstream provider for Java plugins
+JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
+
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
+
+# The name of the KSP compiler plugin workspace
+KSP_COMPILER_PLUGIN_REPO = "com_github_google_ksp"
 
 KtJvmInfo = provider(
     fields = {
@@ -52,5 +58,11 @@ KtCompilerPluginInfo = provider(
         "stubs": "Run this plugin during kapt stub generation.",
         "compile": "Run this plugin during koltinc compilation.",
         "options": "List of plugin options, represented as structs with an id and a value field, to be passed to the compiler",
+    },
+)
+
+KspPluginInfo = provider(
+    fields = {
+        "plugins": "List of JavaPLuginInfo providers for the plugins to run with KSP",
     },
 )

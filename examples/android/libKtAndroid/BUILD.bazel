@@ -1,4 +1,4 @@
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin", "kt_ksp_plugin")
 load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_library")
 load("@rules_java//java:defs.bzl", "java_plugin")
 
@@ -19,12 +19,23 @@ java_plugin(
     deps = ["@maven//:com_google_auto_value_auto_value"],
 )
 
+kt_ksp_plugin(
+    name = "moshi-kotlin-codegen",
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@maven//:com_squareup_moshi_moshi",
+        "@maven//:com_squareup_moshi_moshi_kotlin",
+        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
 kt_android_library(
     name = "my_kt",
     srcs = glob(["src/main/java/**/*.kt"]),
     custom_package = "examples.android.lib",
     manifest = "src/main/AndroidManifest.xml",
     plugins = [
+        ":moshi-kotlin-codegen",
         ":serialization_plugin",
         ":autovalue",
     ],
@@ -35,6 +46,7 @@ kt_android_library(
         ":res2",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:com_google_auto_value_auto_value_annotations",
+        "@maven//:com_squareup_moshi_moshi",
         "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
     ],
 )

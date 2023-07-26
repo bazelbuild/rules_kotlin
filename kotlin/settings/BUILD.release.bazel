@@ -13,6 +13,13 @@
 # limitations under the License.
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 
+# Flag that controls the emission of jdeps files during kotlin jvm compilation.
+bool_flag(
+    name = "jvm_emit_jdeps",
+    build_setting_default = True,  # Upstream default behavior
+    visibility = ["//visibility:public"],
+)
+
 # Kotlin strict deps can be enabled by setting the following value on the command line
 # --@io_bazel_rules_kotlin//kotlin/settings:experimental_prune_transitive_deps=True
 bool_flag(

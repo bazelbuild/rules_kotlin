@@ -15,6 +15,11 @@ load(
     "//kotlin/internal/jvm:jvm.bzl",
     _kt_jvm_library = "kt_jvm_library",
 )
+load(
+    "@build_bazel_rules_android//android:rules.bzl",
+    _android_library = "android_library",
+    _android_local_test = "android_local_test",
+)
 
 _ANDROID_SDK_JAR = "%s" % Label("//third_party:android_sdk")
 
@@ -45,7 +50,7 @@ def _kt_android_artifact(
     if "kt_prune_transitive_deps_incompatible" in tags:
         # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
         # buildifier: disable=native-android
-        native.android_library(
+        _android_library(
             name = base_name,
             resource_files = resource_files,
             exports = base_deps,
@@ -60,7 +65,7 @@ def _kt_android_artifact(
         # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
         # buildifier: disable=native-android
         # Do not export deps to avoid all upstream targets to be invalidated when ABI changes.
-        native.android_library(
+        _android_library(
             name = base_name,
             resource_files = resource_files,
             deps = deps,
@@ -73,7 +78,7 @@ def _kt_android_artifact(
         exported_target_labels.append(base_name)
     else:
         # No need to export this target, as it's used exclusively internally
-        native.android_library(
+        _android_library(
             name = base_name,
             exports = deps,
             enable_data_binding = enable_data_binding,
@@ -105,9 +110,7 @@ def kt_android_library(name, exports = [], visibility = None, exec_properties = 
     related attributes are handled by the native `android_library` rule.
     """
 
-    # TODO(bazelbuild/rules_kotlin/issues/556): replace with starlark
-    # buildifier: disable=native-android
-    native.android_library(
+    _android_library(
         name = name,
         exports = exports + _kt_android_artifact(name, exec_properties = exec_properties, **kwargs),
         visibility = visibility,
@@ -123,6 +126,7 @@ def kt_android_local_test(
         manifest_values = None,
         test_class = None,
         size = None,
+        data = None,
         timeout = None,
         flaky = False,
         shard_count = None,
@@ -138,15 +142,14 @@ def kt_android_local_test(
     are picked out and handled by the `android_local_test` rule.
     """
 
-    # TODO(556): replace with starlark
-    # buildifier: disable=native-android
-    native.android_local_test(
+    _android_local_test(
         name = name,
         deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, testonly = testonly, exec_properties = exec_properties, **kwargs),
         jvm_flags = jvm_flags,
         test_class = test_class,
         visibility = visibility,
         size = size,
+        data = data,
         timeout = timeout,
         flaky = flaky,
         shard_count = shard_count,

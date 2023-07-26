@@ -19,31 +19,32 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "build_bazel_rules_android",
-    sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
-    strip_prefix = "rules_android-0.1.1",
-    urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
+    sha256 = versions.ANDROID.SHA,
+    strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
+    urls = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % versions.ANDROID.VERSION],
 )
 
-load(
-    "@build_bazel_rules_android//android:rules.bzl",
-    "android_sdk_repository",
-)
+load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
 
 android_sdk_repository(name = "androidsdk")
 
 # Skylib, for build_test, so don't bother initializing the unit test infrastructure.
 http_archive(
     name = "bazel_skylib",
-    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
-    urls = [
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
-    ],
+    sha256 = versions.SKYLIB_SHA,
+    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (
+        versions.SKYLIB_VERSION,
+        versions.SKYLIB_VERSION,
+    )],
 )
 
 http_archive(
     name = "rules_pkg",
-    sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
-    url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
+    sha256 = versions.PKG.sha256,
+    url = "https://github.com/bazelbuild/rules_pkg/releases/download/%s/rules_pkg-%s.tar.gz" % (
+        versions.PKG.version,
+        versions.PKG.version,
+    ),
 )
 
 http_archive(
@@ -57,11 +58,11 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
-        "com.google.dagger:dagger:2.44.2",
-        "com.google.dagger:dagger-compiler:2.44.2",
-        "com.google.dagger:dagger-producers:2.44.2",
-        "com.squareup.anvil:compiler:2.4.3",
-        "com.squareup.anvil:annotations:2.4.3",
+        "com.google.dagger:dagger:2.45",
+        "com.google.dagger:dagger-compiler:2.45",
+        "com.google.dagger:dagger-producers:2.45",
+        "com.squareup.anvil:compiler:2.4.5",
+        "com.squareup.anvil:annotations:2.4.5",
         "androidx.activity:activity:1.0.0",
         "androidx.annotation:annotation:1.1.0",
         "androidx.appcompat:appcompat-resources:1.1.0",
@@ -76,7 +77,6 @@ maven_install(
         "androidx.cursoradapter:cursoradapter:1.0.0",
         "androidx.customview:customview:1.0.0",
         "androidx.drawerlayout:drawerlayout:1.0.0",
-        "androidx.fragment:fragment:1.0.0",
         "androidx.fragment:fragment:1.1.0",
         "androidx.interpolator:interpolator:1.0.0",
         "androidx.lifecycle:lifecycle-common:2.1.0",

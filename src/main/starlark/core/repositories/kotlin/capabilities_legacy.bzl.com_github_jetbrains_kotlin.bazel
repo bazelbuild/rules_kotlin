@@ -1,0 +1,68 @@
+# Copyright 2022 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+KOTLIN_OPTS = [
+    "-Xadd-compiler-builtins",
+    "-Xadd-modules",
+    "-Xallow-kotlin-package",
+    "-Xallow-result-return-type",
+    "-Xassertions",
+    "-Xbuild-file",
+    "-Xcommon-sources",
+    "-Xcompile-java",
+    "-Xcoroutines",
+    "-Xdisable-default-scripting-plugin",
+    "-Xdisable-standard-script",
+    "-Xdump-declarations-to",
+    "-Xdump-perf",
+    "-Xeffect-system",
+    "-Xexperimental",
+    "-Xfriend-modules",
+    "-Xfriend-modules-disabled",
+    "-Xfriend-paths",
+    "-Xgenerate-strict-metadata-version",
+    "-Xintellij-plugin-root",
+    "-Xjavac-arguments",
+    "-Xjps",
+    "-Xjsr305",
+    "-Xjvm-default",
+    "-Xlegacy-smart-cast-after-try",
+    "-Xload-builtins-from-dependencies",
+    "-Xmetadata-version",
+    "-Xmodule-path",
+    "-Xmulti-platform",
+    "-Xmultifile-parts-inherit",
+    "-Xnew-inference",
+    "-Xno-check-actual",
+    "-Xno-exception-on-explicit-equals-for-boxed-null",
+    "-Xno-inline",
+    "-Xnormalize-constructor-calls",
+    "-Xplugin",
+    "-Xprint-reachability-info",
+    "-Xproper-ieee754-comparisons",
+    "-Xread-deserialized-contracts",
+    "-Xreport-output-files",
+    "-Xscript-resolver-environment",
+    "-Xsingle-module",
+    "-Xskip-metadata-version-check",
+    "-Xskip-runtime-version-check",
+    "-Xstrict-java-nullability-assertions",
+    "-Xsupport-compatqual-checker-framework-annotations",
+    "-Xtyped-arrays",
+    "-Xuse-experimental",
+    "-Xuse-ir",
+    "-Xuse-javac",
+    "-Xuse-old-class-files-reading",
+    "-Xuse-type-table",
+]
