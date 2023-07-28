@@ -19,11 +19,19 @@ package io.bazel.kotlin.builder.cmd
 
 import io.bazel.kotlin.builder.DaggerJdepsMergerComponent
 import io.bazel.worker.Worker
+import java.nio.file.FileSystems
+import kotlin.io.path.walk
 import kotlin.system.exitProcess
 
 object MergeJdeps {
   @JvmStatic
   fun main(args: Array<String>) {
+    println("JDeps inputs files:")
+    FileSystems.getDefault().getPath(".").walk().forEach { p ->
+      System.out.println(p)
+    }
+
+
     Worker
       .from(args.toList()) {
         start(DaggerJdepsMergerComponent.builder().build().work())
