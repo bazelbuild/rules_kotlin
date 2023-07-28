@@ -42,8 +42,10 @@ maven_install(
         "com.squareup.moshi:moshi:1.14.0",
         "com.squareup.moshi:moshi-kotlin:1.14.0",
         "com.squareup.moshi:moshi-kotlin-codegen:1.14.0",
+        "com.google.auto.service:auto-service-annotations:jar:1.1.1",
         "com.google.auto.value:auto-value:1.10.1",
         "com.google.auto.value:auto-value-annotations:1.10.1",
+        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.1.0",
     ],
     repositories = [
         "https://maven.google.com",
