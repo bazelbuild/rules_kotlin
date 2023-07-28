@@ -27,9 +27,9 @@ import kotlin.system.exitProcess
 object MergeJdeps {
   @JvmStatic
   fun main(args: Array<String>) {
-    println("JDeps inputs files:")
+    System.err.println("Inputs:")
     Files.walk(FileSystems.getDefault().getPath(".")).forEach { p ->
-      println(p)
+      System.err.println(p)
     }
 
 
