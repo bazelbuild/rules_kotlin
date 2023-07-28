@@ -249,7 +249,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     """Creates a Jdeps merger action invocation."""
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
-    args.use_param_file("--flagfile=%s", use_always = False)
+    args.use_param_file("--flagfile=%s", use_always = True)
 
     args.add("--target_label", ctx.label)
 
