@@ -249,7 +249,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     """Creates a Jdeps merger action invocation."""
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
-    args.use_param_file("--flagfile=%s", use_always = True)
+    args.use_param_file("--flagfile=%s", use_always = False)
 
     args.add("--target_label", ctx.label)
 
@@ -260,9 +260,9 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     args.add("--report_unused_deps", toolchains.kt.experimental_report_unused_deps)
 
     mnemonic = "JdepsMerge"
-    progress_message = "%s %%{label} { jdeps: %d }" % (
+    progress_message = "%s %%{label} { jdeps: %s }" % (
         mnemonic,
-        len(jdeps),
+        jdeps,
     )
 
     tools, input_manifests = ctx.resolve_tools(
