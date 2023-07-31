@@ -27,12 +27,6 @@ import kotlin.system.exitProcess
 object MergeJdeps {
   @JvmStatic
   fun main(args: Array<String>) {
-    System.err.println("Inputs:")
-    Files.walk(FileSystems.getDefault().getPath(".")).forEach { p ->
-      System.err.println(p)
-    }
-
-
     Worker
       .from(args.toList()) {
         start(DaggerJdepsMergerComponent.builder().build().work())
