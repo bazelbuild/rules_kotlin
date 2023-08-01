@@ -149,6 +149,9 @@ _implicit_deps = {
         default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
         cfg = "exec",
     ),
+}
+
+_runnable_implicit_deps = {
     "_java_runtime": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
     ),
@@ -269,7 +272,7 @@ this is not transitive""",
     ),
 })
 
-_runnable_common_attr = utils.add_dicts(_common_attr, {
+_runnable_common_attr = utils.add_dicts(_common_attr, _runnable_implicit_deps, {
     "jvm_flags": attr.string_list(
         doc = """A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet
         support make variable substitution.""",
@@ -287,6 +290,9 @@ _common_outputs = dict(
 _common_toolchains = [
     _TOOLCHAIN_TYPE,
     _JAVA_TOOLCHAIN_TYPE,
+]
+
+_runnable_common_toolchains = [
     _JAVA_RUNTIME_TOOLCHAIN_TYPE,
 ]
 
@@ -318,7 +324,7 @@ It is appropriate for building workspace utilities. `java_binary` should be pref
     }.items()),
     executable = True,
     outputs = _common_outputs,
-    toolchains = _common_toolchains,
+    toolchains = _common_toolchains + _runnable_common_toolchains,
     fragments = ["java"],  # Required fragments of the target configuration
     host_fragments = ["java"],  # Required fragments of the host configuration
     implementation = _kt_jvm_binary_impl,
@@ -353,7 +359,7 @@ Setup a simple kotlin_test.
     executable = True,
     outputs = _common_outputs,
     test = True,
-    toolchains = _common_toolchains,
+    toolchains = _common_toolchains + _runnable_common_toolchains,
     implementation = _kt_jvm_junit_test_impl,
     fragments = ["java"],  # Required fragments of the target configuration
     host_fragments = ["java"],  # Required fragments of the host configuration
