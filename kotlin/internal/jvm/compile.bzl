@@ -261,7 +261,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     )
 
     # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs
-    inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_deps for dep in deps])])
+    inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_compile_time_jars for dep in deps])])
 
     ctx.actions.run(
         mnemonic = mnemonic,
