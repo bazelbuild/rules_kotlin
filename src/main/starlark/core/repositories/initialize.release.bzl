@@ -95,6 +95,12 @@ def kotlin_repositories(
         version = versions.RULES_PYTHON,
     )
 
+    versions.use_repository(
+        name = "rules_java",
+        rule = http_archive,
+        version = versions.RULES_JAVA,
+    )
+
     # See note in versions.bzl before updating bazel_skylib
     maybe(
         http_archive,
