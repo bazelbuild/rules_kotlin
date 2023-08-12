@@ -260,10 +260,6 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     args.add("--report_unused_deps", toolchains.kt.experimental_report_unused_deps)
 
     mnemonic = "JdepsMerge"
-    progress_message = "%s %%{label} { jdeps: %s }" % (
-        mnemonic,
-        jdeps,
-    )
 
     tools, input_manifests = ctx.resolve_tools(
         tools = [
@@ -273,6 +269,14 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
 
     # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs
     inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_deps for dep in deps])])
+
+    if "trace" in ctx.args.tags:
+        print(inputs)
+    progress_message = "%s %%{label} { jdeps: %s } { inputs: %s }" % (
+        mnemonic,
+        jdeps,
+        inputs,
+    )
 
     ctx.actions.run(
         mnemonic = mnemonic,
