@@ -37,6 +37,10 @@ def _use_repository(name, version, rule, **kwargs):
 
     maybe(rule, name = name, **http_archive_arguments)
 
+def _get_major(version):
+    parts = version.split(".")
+    return ".".join(parts[:2])
+
 versions = struct(
     RULES_NODEJS_VERSION = "5.5.3",
     RULES_NODEJS_SHA = "f10a3a12894fc3c9bf578ee5a5691769f6805c4be84359681a785a0c12e8d2b6",
@@ -83,6 +87,20 @@ versions = struct(
         release = "1.8.21",
         sha256 = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
     ),
+    KOTLIN_COMPILER_RELEASES = [
+        kotlinc_version(
+            release = "1.8.21",
+            sha256 = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
+        ),
+        kotlinc_version(
+            release = "1.7.22",
+            sha256 = "9db4b467743c1aea8a21c08e1c286bc2aeb93f14c7ba2037dbd8f48adc357d83",
+        ),
+        kotlinc_version(
+            release = "1.6.21",
+            sha256 = "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba",
+        ),
+    ],
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "1.8.21-1.0.11",
         url_templates = [
@@ -126,4 +144,5 @@ versions = struct(
         sha256 = None,
     ),
     use_repository = _use_repository,
+    get_major = _get_major,
 )

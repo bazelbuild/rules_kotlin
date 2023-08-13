@@ -1,3 +1,23 @@
+load("//src/main/starlark/core/repositories:versions.bzl", "versions")
+
+_CAPABILITIES_TEMPLATES = {
+    "legacy": "capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel",  # keep first
+    "1.4": "capabilities_1.4.bzl.com_github_jetbrains_kotlin.bazel",
+    "1.5": "capabilities_1.5.bzl.com_github_jetbrains_kotlin.bazel",
+    "1.6": "capabilities_1.6.bzl.com_github_jetbrains_kotlin.bazel",
+    "1.7": "capabilities_1.7.bzl.com_github_jetbrains_kotlin.bazel",
+    "1.8": "capabilities_1.8.bzl.com_github_jetbrains_kotlin.bazel",
+}
+
+# Index of major kotlinc revision to calculated repository name and release.
+KOTLINC_INDEX = {
+    versions.get_major(compiler_release.version): struct(
+        repository_name = "com_github_jetbrains_kotlin_%s" % versions.get_major(compiler_release.version).replace(".", "_"),
+        release = compiler_release,
+    )
+    for compiler_release in versions.KOTLIN_COMPILER_RELEASES
+}
+
 def _kotlin_compiler_impl(repository_ctx):
     """Creates the kotlinc repository."""
     attr = repository_ctx.attr
@@ -25,26 +45,27 @@ def _kotlin_compiler_impl(repository_ctx):
         executable = False,
     )
 
+    repository_ctx.file(
+        "version.bzl",
+        """
+        MAJOR_VERSION="%s"
+        """.strip() % versions.get_major(attr.compiler_version),
+        executable = False,
+    )
+
 def _get_capability_template(compiler_version, templates):
+    major_version = versions.get_major(compiler_version)
+
     for ver, template in zip(_CAPABILITIES_TEMPLATES.keys(), templates):
-        if compiler_version.startswith(ver):
+        if ver == major_version:
             return template
 
     # After latest version
-    if compiler_version > _CAPABILITIES_TEMPLATES.keys()[-1]:
+    if major_version > _CAPABILITIES_TEMPLATES.keys()[-1]:
         templates[-1]
 
     # Legacy
     return templates[0]
-
-_CAPABILITIES_TEMPLATES = {
-    "legacy": "capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel",  # keep first
-    "1.4": "capabilities_1.4.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.5": "capabilities_1.5.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.6": "capabilities_1.6.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.7": "capabilities_1.7.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.8": "capabilities_1.8.bzl.com_github_jetbrains_kotlin.bazel",
-}
 
 kotlin_compiler_repository = repository_rule(
     implementation = _kotlin_compiler_impl,
