@@ -10,6 +10,24 @@ version = provider(
     },
 )
 
+def kotlinc_version(release, sha256):
+    return version(
+        version = release,
+        url_templates = [
+            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
+        ],
+        sha256 = sha256,
+    )
+
+def ksp_version(release, sha256):
+    return version(
+        version = release,
+        url_templates = [
+            "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
+        ],
+        sha256 = sha256,
+    )
+
 def _use_repository(name, version, rule, **kwargs):
     http_archive_arguments = dict(kwargs)
     http_archive_arguments["sha256"] = version.sha256
@@ -61,11 +79,8 @@ versions = struct(
         ],
         sha256 = "2b3f6f674a944d25bb8d283c3539947bbe86074793012909a55de4b771f74bcc",
     ),
-    KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.8.21",
-        url_templates = [
-            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
-        ],
+    KOTLIN_CURRENT_COMPILER_RELEASE = kotlinc_version(
+        release = "1.8.21",
         sha256 = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
