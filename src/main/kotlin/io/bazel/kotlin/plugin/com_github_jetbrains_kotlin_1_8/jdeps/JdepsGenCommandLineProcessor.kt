@@ -1,3 +1,4 @@
+@file:Suppress("ktlint:standard:package-name")
 package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_8.jdeps
 
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
@@ -47,13 +48,15 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
       OUTPUT_JDEPS_FILE_OPTION -> configuration.put(JdepsGenConfigurationKeys.OUTPUT_JDEPS, value)
       TARGET_LABEL_OPTION -> configuration.put(JdepsGenConfigurationKeys.TARGET_LABEL, value)
       DIRECT_DEPENDENCIES_OPTION -> configuration.appendList(
-          JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
+        JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
         value,
       )
+
       STRICT_KOTLIN_DEPS_OPTION -> configuration.put(
-          JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
+        JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
         value,
       )
+
       else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
     }
   }

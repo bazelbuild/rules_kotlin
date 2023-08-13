@@ -1,4 +1,6 @@
-package io.bazel.kotlin.plugin.jdeps
+@file:Suppress("ktlint:standard:package-name")
+
+package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_6.jdeps
 
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
@@ -15,7 +17,13 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
     val TARGET_LABEL_OPTION: CliOption =
       CliOption("target_label", "<String>", "Label of target being analyzed", required = true)
     val DIRECT_DEPENDENCIES_OPTION: CliOption =
-      CliOption("direct_dependencies", "<List>", "List of targets direct dependencies", required = false, allowMultipleOccurrences = true)
+      CliOption(
+        "direct_dependencies",
+        "<List>",
+        "List of targets direct dependencies",
+        required = false,
+        allowMultipleOccurrences = true,
+      )
     val STRICT_KOTLIN_DEPS_OPTION: CliOption =
       CliOption("strict_kotlin_deps", "<String>", "Report strict deps violations", required = true)
   }
@@ -23,14 +31,31 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
   override val pluginId: String
     get() = COMPILER_PLUGIN_ID
   override val pluginOptions: Collection<AbstractCliOption>
-    get() = listOf(OUTPUT_JDEPS_FILE_OPTION, TARGET_LABEL_OPTION, DIRECT_DEPENDENCIES_OPTION, STRICT_KOTLIN_DEPS_OPTION)
+    get() = listOf(
+      OUTPUT_JDEPS_FILE_OPTION,
+      TARGET_LABEL_OPTION,
+      DIRECT_DEPENDENCIES_OPTION,
+      STRICT_KOTLIN_DEPS_OPTION,
+    )
 
-  override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {
+  override fun processOption(
+    option: AbstractCliOption,
+    value: String,
+    configuration: CompilerConfiguration,
+  ) {
     when (option) {
       OUTPUT_JDEPS_FILE_OPTION -> configuration.put(JdepsGenConfigurationKeys.OUTPUT_JDEPS, value)
       TARGET_LABEL_OPTION -> configuration.put(JdepsGenConfigurationKeys.TARGET_LABEL, value)
-      DIRECT_DEPENDENCIES_OPTION -> configuration.appendList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES, value)
-      STRICT_KOTLIN_DEPS_OPTION -> configuration.put(JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS, value)
+      DIRECT_DEPENDENCIES_OPTION -> configuration.appendList(
+        JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
+        value,
+      )
+
+      STRICT_KOTLIN_DEPS_OPTION -> configuration.put(
+        JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
+        value,
+      )
+
       else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
     }
   }

@@ -14,6 +14,7 @@
  *  limitations under the License.
  *
  */
+@file:Suppress("ktlint:standard:package-name")
 package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_6
 
 import com.google.common.base.Preconditions
