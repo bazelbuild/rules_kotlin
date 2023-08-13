@@ -54,13 +54,13 @@ release_archive(
 
 genrule(
     name = "stardoc",
-    srcs = [doc for doc in [
-        "js",
-        "jvm",
-        "lint",
-        "core",
-        "repositories.doc",
-    ]],
+    srcs = [
+        ":js",
+        ":jvm",
+        ":lint",
+        ":core",
+        ":repositories.doc",
+    ],
     outs = ["kotlin.md"],
     cmd = """
     for md in $(SRCS); do
