@@ -29,7 +29,6 @@ load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "kotlin_compil
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
 load(
     ":versions.bzl",
-    "version",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",
     _versions = "versions",
