@@ -9,15 +9,6 @@ _CAPABILITIES_TEMPLATES = {
     "1.8": "capabilities_1.8.bzl.com_github_jetbrains_kotlin.bazel",
 }
 
-# Index of major kotlinc revision to calculated repository name and release.
-KOTLINC_INDEX = {
-    versions.get_major(compiler_release.version): struct(
-        repository_name = "com_github_jetbrains_kotlin_%s" % versions.get_major(compiler_release.version).replace(".", "_"),
-        release = compiler_release,
-    )
-    for compiler_release in versions.KOTLIN_COMPILER_RELEASES
-}
-
 def _kotlin_compiler_impl(repository_ctx):
     """Creates the kotlinc repository."""
     attr = repository_ctx.attr

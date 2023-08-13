@@ -22,7 +22,8 @@ load(
     _ksp_version = "ksp_version",
     _release_kotlin_repositories = "kotlin_repositories",
 )
-load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "KOTLINC_INDEX", "kotlin_compiler_repository")
+load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "kotlin_compiler_repository")
+load("//src/main/starlark/core/repositories/kotlin:releases.bzl", "KOTLINC_INDEX")
 load(":versions.bzl", _versions = "versions")
 
 #exports

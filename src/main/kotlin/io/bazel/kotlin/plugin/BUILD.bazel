@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "KOTLINC_INDEX")
+load("//src/main/starlark/core/repositories/kotlin:releases.bzl", "KOTLINC_INDEX")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 load("//kotlin/internal/utils:generate_jvm_service.bzl", "generate_jvm_service")
@@ -81,6 +81,7 @@ load("@com_github_jetbrains_kotlin//:version.bzl", KOTLINC_MAJOR_VERSION = "MAJO
     for version, release in KOTLINC_INDEX.items()
 ]
 
+# Deploy jars are not aliased, so repack in a java_binary.
 java_binary(
     name = "skip-code-gen",
     visibility = ["//src:__subpackages__"],
@@ -96,6 +97,7 @@ alias(
     visibility = ["//src:__subpackages__"],
 )
 
+# Deploy jars are not aliased, so repack in a java_binary.
 java_binary(
     name = "jdeps-gen",
     visibility = ["//src:__subpackages__"],

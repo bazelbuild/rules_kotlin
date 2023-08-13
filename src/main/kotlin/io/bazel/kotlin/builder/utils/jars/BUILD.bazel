@@ -1,4 +1,4 @@
-load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "KOTLINC_INDEX")
+load("//src/main/starlark/core/repositories/kotlin:releases.bzl", "KOTLINC_INDEX")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
 kt_bootstrap_library(
