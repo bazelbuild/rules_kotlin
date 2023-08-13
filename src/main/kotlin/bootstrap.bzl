@@ -30,7 +30,14 @@ def _resolve_dep_label(d):
     else:
         return d
 
-def kt_bootstrap_library(name, srcs, visibility = [], deps = [], neverlink_deps = [], runtime_deps = []):
+def kt_bootstrap_library(
+        name,
+        srcs,
+        visibility = [],
+        deps = [],
+        neverlink_deps = [],
+        runtime_deps = [],
+        kotlinc_repository_name = "com_github_jetbrains_kotlin"):
     """
     Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
 
@@ -41,6 +48,7 @@ def kt_bootstrap_library(name, srcs, visibility = [], deps = [], neverlink_deps 
     deps: the dependenices, the are setup as runtime_deps of the library.
     neverlink_deps: deps that won't be linked. These deps are added to the `"for_ide"` target.
     """
+    kotlinc_repository = "@" + kotlinc_repository_name
     jar_label = name + "_jar"
     dep_label = name + "_deps"
     native.filegroup(
@@ -50,7 +58,7 @@ def kt_bootstrap_library(name, srcs, visibility = [], deps = [], neverlink_deps 
         visibility = ["//visibility:private"],
     )
     command = """
-function join_by { local IFS="$$1"; shift; echo "$$*"; }
+function join_by {{ local IFS="$$1"; shift; echo "$$*"; }}
 case "$$(uname -s)" in
     CYGWIN*|MINGW32*|MSYS*)
         SEP=";"
@@ -59,14 +67,14 @@ case "$$(uname -s)" in
         SEP=":"
         ;;
 esac
-NAME=%s
-CP="%s"
-ARGS="%s"
+NAME={name}
+CP="{classpath}"
+ARGS="{args}"
 
 CMD="$(JAVA) -Xmx256M -Xms32M -noverify \
-      -cp $(location @com_github_jetbrains_kotlin//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
-      -cp $(location @com_github_jetbrains_kotlin//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
-      $$CP -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)"
+      -cp $(location {kotlinc_repository}//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
+      -cp $(location {kotlinc_repository}//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+      $$CP -d $(@D)/$${{NAME}}_temp.jar $${{ARGS}} $(SRCS)"
 
 $$CMD
 
@@ -82,17 +90,22 @@ esac
 $$SJ \
     --normalize \
     --compression \
-    --sources $(@D)/$${NAME}_temp.jar \
+    --sources $(@D)/$${{NAME}}_temp.jar \
     --output $(OUTS)
 
-rm $(@D)/$${NAME}_temp.jar
-""" % (name, "-cp $$(join_by $$SEP $(locations :%s)) " % dep_label if deps + neverlink_deps else "", " ".join(_BOOTSTRAP_LIB_ARGS))
+rm $(@D)/$${{NAME}}_temp.jar
+""".format(
+        name = name,
+        classpath = "-cp $$(join_by $$SEP $(locations :%s)) " % dep_label if deps + neverlink_deps else "",
+        args = " ".join(_BOOTSTRAP_LIB_ARGS),
+        kotlinc_repository = kotlinc_repository,
+    )
     native.genrule(
         name = jar_label,
         tools = [
-            "@com_github_jetbrains_kotlin//:home",
-            "@com_github_jetbrains_kotlin//:kotlin-preloader",
-            "@com_github_jetbrains_kotlin//:kotlin-compiler",
+            "%s//:home" % kotlinc_repository,
+            "%s//:kotlin-preloader" % kotlinc_repository,
+            "%s//:kotlin-compiler" % kotlinc_repository,
             "@bazel_tools//tools/jdk:singlejar",
             dep_label,
         ],
