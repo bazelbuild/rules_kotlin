@@ -1,4 +1,4 @@
-package io.bazel.kotlin.plugin.jdeps
+package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_8.jdeps
 
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 

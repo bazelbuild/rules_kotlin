@@ -50,15 +50,16 @@ import java.nio.file.Paths
 /**
  * Kotlin compiler extension that tracks classes (and corresponding classpath jars) needed to
  * compile current kotlin target. Tracked data should include all classes whose changes could
- * affect target's compilation out : direct class dependencies (i.e. external classes directly
+ * affect target's compilation out : direct class dependencies (i.e external classes directly
  * used), but also their superclass, interfaces, etc.
  * The primary use of this extension is to improve Kotlin module compilation avoidance in build
  * systems (like Buck).
  *
- * Tracking of classes and their ancestors is done via modules and class
+ * Tracking of classes is done with a Remapper, which exposes all object types used by the class
+ * bytecode being generated. Tracking of the ancestor classes is done via modules and class
  * descriptors that got generated during analysis/resolve phase of Kotlin compilation.
  *
- * Note: annotation processors dependencies may need to be tracked separately (and may not need
+ * Note: annotation processors dependencies may need to be tracked separatly (and may not need
  * per-class ABI change tracking)
  *
  * @param project the current compilation project
@@ -66,8 +67,7 @@ import java.nio.file.Paths
  */
 class JdepsGenExtension(
   val project: MockProject,
-  val configuration: CompilerConfiguration,
-) :
+  val configuration: CompilerConfiguration) :
   AnalysisHandlerExtension, StorageComponentContainerContributor {
 
   companion object {
@@ -82,11 +82,11 @@ class JdepsGenExtension(
       return when (val sourceElement: SourceElement = descriptor.source) {
         is JavaSourceElement ->
           if (sourceElement.javaElement is BinaryJavaClass) {
-            (sourceElement.javaElement as BinaryJavaClass).virtualFile.canonicalPath
+            (sourceElement.javaElement as BinaryJavaClass).virtualFile!!.canonicalPath
           } else if (sourceElement.javaElement is BinaryJavaField) {
             val containingClass = (sourceElement.javaElement as BinaryJavaField).containingClass
             if (containingClass is BinaryJavaClass) {
-              containingClass.virtualFile.canonicalPath
+              containingClass.virtualFile!!.canonicalPath
             } else {
               null
             }
@@ -101,11 +101,7 @@ class JdepsGenExtension(
     }
 
     fun getClassCanonicalPath(typeConstructor: TypeConstructor): String? {
-      return (typeConstructor.declarationDescriptor as? DeclarationDescriptorWithSource)?.let {
-        getClassCanonicalPath(
-          it,
-        )
-      }
+      return (typeConstructor.declarationDescriptor as? DeclarationDescriptorWithSource)?.let { getClassCanonicalPath(it) }
     }
   }
 
@@ -115,43 +111,38 @@ class JdepsGenExtension(
   override fun registerModuleComponents(
     container: StorageComponentContainer,
     platform: TargetPlatform,
-    moduleDescriptor: ModuleDescriptor,
+    moduleDescriptor: ModuleDescriptor
   ) {
-    container.useInstance(
-      ClasspathCollectingChecker(explicitClassesCanonicalPaths, implicitClassesCanonicalPaths),
-    )
+    container.useInstance(ClasspathCollectingChecker(explicitClassesCanonicalPaths, implicitClassesCanonicalPaths))
   }
 
   class ClasspathCollectingChecker(
     private val explicitClassesCanonicalPaths: MutableSet<String>,
-    private val implicitClassesCanonicalPaths: MutableSet<String>,
+    private val implicitClassesCanonicalPaths: MutableSet<String>
   ) : CallChecker, DeclarationChecker {
 
     override fun check(
       resolvedCall: ResolvedCall<*>,
       reportOn: PsiElement,
-      context: CallCheckerContext,
+      context: CallCheckerContext
     ) {
       when (val resultingDescriptor = resolvedCall.resultingDescriptor) {
         is FunctionImportedFromObject -> {
-          collectTypeReferences(resultingDescriptor.containingObject.defaultType)
+          collectTypeReferences((resolvedCall.resultingDescriptor as FunctionImportedFromObject).containingObject.defaultType)
         }
         is PropertyImportedFromObject -> {
-          collectTypeReferences(resultingDescriptor.containingObject.defaultType)
+          collectTypeReferences((resolvedCall.resultingDescriptor as PropertyImportedFromObject).containingObject.defaultType)
         }
         is JavaMethodDescriptor -> {
-          getClassCanonicalPath(
-            (resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor,
-          )?.let { explicitClassesCanonicalPaths.add(it) }
+          getClassCanonicalPath((resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is FunctionDescriptor -> {
           resultingDescriptor.returnType?.let { addImplicitDep(it) }
           resultingDescriptor.valueParameters.forEach { valueParameter ->
-            collectTypeReferences(valueParameter.type, isExplicit = false)
+            addImplicitDep(valueParameter.type)
           }
-          val virtualFileClass =
-            resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
-              ?: return
+          val virtualFileClass = resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
+            ?: return
           explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
         }
         is ParameterDescriptor -> {
@@ -165,13 +156,9 @@ class JdepsGenExtension(
         }
         is PropertyDescriptor -> {
           when (resultingDescriptor.containingDeclaration) {
-            is ClassDescriptor -> collectTypeReferences(
-              (resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType,
-            )
+            is ClassDescriptor -> collectTypeReferences((resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType)
             else -> {
-              val virtualFileClass =
-                (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
-                  ?: return
+              val virtualFileClass = (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass ?: return
               explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
             }
           }
@@ -184,7 +171,7 @@ class JdepsGenExtension(
     override fun check(
       declaration: KtDeclaration,
       descriptor: DeclarationDescriptor,
-      context: DeclarationCheckerContext,
+      context: DeclarationCheckerContext
     ) {
       when (descriptor) {
         is ClassDescriptor -> {
@@ -199,9 +186,6 @@ class JdepsGenExtension(
           }
           descriptor.annotations.forEach { annotation ->
             collectTypeReferences(annotation.type)
-          }
-          descriptor.extensionReceiverParameter?.value?.type?.let {
-            collectTypeReferences(it)
           }
         }
         is PropertyDescriptor -> {
@@ -233,38 +217,25 @@ class JdepsGenExtension(
      * are other types required for compilation such as supertypes and interfaces of those explicit
      * types.
      */
-    private fun collectTypeReferences(
-      kotlinType: KotlinType,
-      isExplicit: Boolean = true,
-    ) {
-      if (isExplicit) {
-        addExplicitDep(kotlinType)
-      } else {
-        addImplicitDep(kotlinType)
+    private fun collectTypeReferences(kotlinType: KotlinType, collectSuperTypes: Boolean = true) {
+      addExplicitDep(kotlinType)
+
+      if (collectSuperTypes) {
+        kotlinType.supertypes().forEach {
+          addImplicitDep(it)
+        }
       }
 
-      kotlinType.supertypes().forEach {
-        addImplicitDep(it)
-      }
-
-      collectTypeArguments(kotlinType, isExplicit)
+      collectTypeArguments(kotlinType)
     }
 
-    private fun collectTypeArguments(
-      kotlinType: KotlinType,
-      isExplicit: Boolean,
-      visitedKotlinTypes: MutableSet<KotlinType> = mutableSetOf(),
-    ) {
+    fun collectTypeArguments(kotlinType: KotlinType, visitedKotlinTypes: MutableSet<KotlinType> = mutableSetOf()) {
       visitedKotlinTypes.add(kotlinType)
       kotlinType.arguments.map { it.type }.forEach { typeArgument ->
-        if (isExplicit) {
-          addExplicitDep(typeArgument)
-        } else {
-          addImplicitDep(typeArgument)
-        }
+        addExplicitDep(typeArgument)
         typeArgument.supertypes().forEach { addImplicitDep(it) }
         if (!visitedKotlinTypes.contains(typeArgument)) {
-          collectTypeArguments(typeArgument, isExplicit, visitedKotlinTypes)
+          collectTypeArguments(typeArgument, visitedKotlinTypes)
         }
       }
     }
@@ -274,7 +245,7 @@ class JdepsGenExtension(
     project: Project,
     module: ModuleDescriptor,
     bindingTrace: BindingTrace,
-    files: Collection<KtFile>,
+    files: Collection<KtFile>
   ): AnalysisResult? {
     val directDeps = configuration.getList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES)
     val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
@@ -305,8 +276,9 @@ class JdepsGenExtension(
   private fun doWriteJdeps(
     directDeps: MutableList<String>,
     targetLabel: String,
-    explicitDeps: Map<String, List<String>>,
+    explicitDeps: Map<String, List<String>>
   ) {
+
     val implicitDeps = createDepsMap(implicitClassesCanonicalPaths)
 
     // Build and write out deps.proto
@@ -347,16 +319,11 @@ class JdepsGenExtension(
     compilerConfiguration: CompilerConfiguration,
     targetLabel: String,
     directDeps: MutableList<String>,
-    explicitDeps: Map<String, List<String>>,
-  ) {
+    explicitDeps: Map<String, List<String>>) {
     when (compilerConfiguration.getNotNull(JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS)) {
       "warn" -> checkStrictDeps(explicitDeps, directDeps, targetLabel)
       "error" -> {
-        if (checkStrictDeps(explicitDeps, directDeps, targetLabel)) {
-          error(
-            "Strict Deps Violations - please fix",
-          )
-        }
+        if (checkStrictDeps(explicitDeps, directDeps, targetLabel)) error("Strict Deps Violations - please fix")
       }
     }
   }
@@ -367,35 +334,22 @@ class JdepsGenExtension(
   private fun checkStrictDeps(
     result: Map<String, List<String>>,
     directDeps: List<String>,
-    targetLabel: String,
+    targetLabel: String
   ): Boolean {
     val missingStrictDeps = result.keys
       .filter { !directDeps.contains(it) }
-      .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)) }
+      .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)).label }
 
     if (missingStrictDeps.isNotEmpty()) {
-      val missingStrictLabels = missingStrictDeps.mapNotNull { it.label }
-
       val open = "\u001b[35m\u001b[1m"
       val close = "\u001b[0m"
-
-      var command =
+      val command =
         """
-        $open ** Please add the following dependencies:$close
-        ${
-          missingStrictDeps.map { it.label ?: it.jar }.joinToString(" ")
-        } to $targetLabel
-        """
+              |$open ** Please add the following dependencies:$close ${missingStrictDeps.joinToString(" ")} to $targetLabel 
+              |$open ** You can use the following buildozer command:$close buildozer 'add deps ${missingStrictDeps.joinToString(" ")}' $targetLabel
+            """.trimMargin()
 
-      if (missingStrictLabels.isNotEmpty()) {
-        command += """$open ** You can use the following buildozer command:$close
-        buildozer 'add deps ${
-          missingStrictLabels.joinToString(" ")
-        }' $targetLabel
-        """
-      }
-
-      println(command.trimIndent())
+      println(command)
       return true
     }
     return false

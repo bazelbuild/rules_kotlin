@@ -1,4 +1,4 @@
-package io.bazel.kotlin.plugin.jdeps
+package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_7.jdeps
 
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
@@ -7,7 +7,6 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
-@OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 class JdepsGenCommandLineProcessor : CommandLineProcessor {
   companion object {
     val COMPILER_PLUGIN_ID = "io.bazel.kotlin.plugin.jdeps.JDepsGen"

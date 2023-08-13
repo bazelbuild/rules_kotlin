@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package io.bazel.kotlin.plugin
+package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_8
 
 import com.google.common.base.Preconditions
 import com.intellij.mock.MockProject

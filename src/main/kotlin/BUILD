@@ -15,7 +15,7 @@ jar_jar(
 
 jar_jar(
     name = "jdeps-gen",
-    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
+    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin:jdeps-gen_deploy.jar",
     rules = "shade.jarjar",
     visibility = ["//visibility:public"],
 )
