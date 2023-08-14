@@ -102,6 +102,14 @@ versions = struct(
         ],
         sha256 = "a644da969b6824cc87f8fe7b18101a8a6c57da5db39caa6566ec6109f37d2141",
     ),
+    # needed for rules_pkg and java
+    RULES_JAVA = version(
+        version = "6.4.0",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
+        ],
+        sha256 = "27abf8d2b26f4572ba4112ae8eb4439513615018e03a299f85a8460f6992f6a3",
+    ),
     RULES_LICENSE = version(
         version = "0.0.3",
         url_templates = [
