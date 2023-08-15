@@ -63,7 +63,7 @@ def kt_js_library_impl(ctx):
         ],
     )
 
-    args.add("--output", ctx.outputs.js)
+    # args.add("--output", ctx.outputs.js)
     args.add("--kotlin_js_dir", out_dir.path)
     args.add("--kotlin_output_js_jar", ctx.outputs.jar)
     args.add("--kotlin_output_srcjar", ctx.outputs.srcjar)
