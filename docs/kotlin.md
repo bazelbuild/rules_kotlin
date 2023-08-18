@@ -211,7 +211,7 @@ kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-associat
         
         **Notes:**
         * The kotlin test library is not added implicitly, it is available with the label
-        `@com_github_jetbrains_kotlin//:kotlin-test`.
+        `@io_bazel_rules_kotlin//kotlin/compiler:kotlin-test`.
     
 
 **ATTRIBUTES**
@@ -330,7 +330,7 @@ kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_com
                 "annotation": "plugin.OpenForTesting",
             },
             deps = [
-                "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+                "@io_bazel_rules_kotlin//kotlin/compiler:allopen-compiler-plugin",
             ],
         )
         
