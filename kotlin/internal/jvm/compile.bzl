@@ -537,7 +537,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         rule_kind = rule_kind,
         toolchains = toolchains,
         srcs = srcs,
-        generated_src_jars = [],
+        generated_kapt_src_jars = [],
+        generated_ksp_src_jars = [],
         associates = associates,
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
@@ -626,7 +627,8 @@ def _run_kt_java_builder_actions(
         rule_kind,
         toolchains,
         srcs,
-        generated_src_jars,
+        generated_kapt_src_jars,
+        generated_ksp_src_jars,
         associates,
         compile_deps,
         deps_artifacts,
@@ -660,7 +662,7 @@ def _run_kt_java_builder_actions(
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
         )
-        generated_src_jars.append(kapt_outputs.ap_generated_src_jar)
+        generated_kapt_src_jars.append(kapt_outputs.ap_generated_src_jar)
         output_jars.append(kapt_outputs.kapt_generated_class_jar)
         kt_stubs_for_java.append(
             JavaInfo(
@@ -684,7 +686,7 @@ def _run_kt_java_builder_actions(
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
         )
-        generated_src_jars.append(ksp_outputs.ksp_generated_class_jar)
+        generated_ksp_src_jars.append(ksp_outputs.ksp_generated_class_jar)
 
     java_infos = []
 
@@ -713,7 +715,7 @@ def _run_kt_java_builder_actions(
             rule_kind = rule_kind,
             toolchains = toolchains,
             srcs = srcs,
-            generated_src_jars = generated_src_jars,
+            generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
             associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
@@ -744,7 +746,7 @@ def _run_kt_java_builder_actions(
     # Build Java
     # If there is Java source or KAPT generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
-    if srcs.java or generated_src_jars or srcs.src_jars:
+    if srcs.java or generated_kapt_src_jars or srcs.src_jars:
         javac_opts = javac_options_to_flags(toolchains.kt.javac_options)
 
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
@@ -754,7 +756,7 @@ def _run_kt_java_builder_actions(
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
-            source_jars = generated_src_jars + srcs.src_jars,
+            source_jars = generated_kapt_src_jars + srcs.src_jars,
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
             deps = compile_deps.deps + kt_stubs_for_java,
             java_toolchain = toolchains.java,
@@ -815,7 +817,7 @@ def _run_kt_java_builder_actions(
 
     return struct(
         output_jars = output_jars,
-        generated_src_jars = generated_src_jars,
+        generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
         annotation_processing = annotation_processing,
     )
 
