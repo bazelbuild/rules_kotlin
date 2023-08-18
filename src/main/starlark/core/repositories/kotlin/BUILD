@@ -5,8 +5,6 @@ release_archive(
     name = "pkg",
     srcs = [
         "BUILD",
-        "BUILD.com_github_jetbrains_kotlin.bazel",
-        "compiler.bzl",
     ] + glob(["capabilities_*.bazel"]),
 )
 

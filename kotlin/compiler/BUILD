@@ -11,27 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
+load(":compiler.bzl", "kt_configure_compiler")
+load(":ksp.bzl", "kt_configure_ksp")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
-# The compiler library, this is co-located in the kotlin compiler classloader.
-kt_bootstrap_library(
-    name = "compiler",
-    srcs = glob(["*.kt"]),
-    neverlink_deps = [
-        "//kotlin/compiler:kotlin-compiler",
-        "//kotlin/compiler:kotlin-annotation-processing",
-        "//kotlin/compiler:kotlin-script-runtime",
-    ],
-    visibility = ["//src:__subpackages__"],
-)
+package(default_visibility = ["//visibility:public"])
+
+# Configures the compiler
+kt_configure_compiler()
+
+# Configures the KSP plugins
+kt_configure_ksp()
 
 release_archive(
     name = "pkg",
-    package_dir = "io/bazel/kotlin/compiler",
+    srcs = glob(["*.bzl"]),
     src_map = {
-        ":compiler": "compiler.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
 )
