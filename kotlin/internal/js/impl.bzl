@@ -17,6 +17,11 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
+    "//kotlin/internal:opts.bzl",
+    "KotlincOptions",
+    "kotlinc_options_to_flags",
+)
+load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
@@ -42,9 +47,11 @@ def kt_js_library_impl(ctx):
         _utils.derive_module_name(ctx),
     )
 
+    kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchain.kotlinc_options
+
     args.add_all(
         "--kotlin_js_passthrough_flags",
-        [
+        kotlinc_options_to_flags(kotlinc_options) + [
             "-source-map",
             "-Xir-produce-klib-dir",
             "-no-stdlib",
