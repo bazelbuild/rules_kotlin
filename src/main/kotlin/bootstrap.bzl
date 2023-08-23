@@ -64,6 +64,7 @@ CP="%s"
 ARGS="%s"
 
 CMD="$(JAVA) -Xmx256M -Xms32M -noverify \
+      --add-opens java.base/java.util=ALL-UNNAMED \
       -cp $(location @com_github_jetbrains_kotlin//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
       -cp $(location @com_github_jetbrains_kotlin//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
       $$CP -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)"
