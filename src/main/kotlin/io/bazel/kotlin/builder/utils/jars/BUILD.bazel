@@ -1,3 +1,4 @@
+load("//src/main/starlark/core/repositories/kotlin:releases.bzl", "KOTLINC_INDEX")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
 kt_bootstrap_library(
@@ -6,6 +7,8 @@ kt_bootstrap_library(
         "*.kt",
         "**/*.kt",
     ]),
+    # Need for the 1.6 jdeps-gen plugin
+    kotlinc_repository_name = KOTLINC_INDEX["1.6"].repository_name,
     visibility = ["//src:__subpackages__"],
     deps = [
         "//src/main/protobuf:deps_java_proto",

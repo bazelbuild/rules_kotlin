@@ -1,7 +1,8 @@
-package io.bazel.kotlin.plugin.jdeps
+@file:Suppress("ktlint:standard:package-name")
+
+package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_8.jdeps
 
 import com.google.devtools.build.lib.view.proto.Deps
-import com.intellij.mock.MockProject
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import io.bazel.kotlin.builder.utils.jars.JarOwner
@@ -65,7 +66,6 @@ import java.nio.file.Paths
  * @param configuration the current compilation configuration
  */
 class JdepsGenExtension(
-  val project: MockProject,
   val configuration: CompilerConfiguration,
 ) :
   AnalysisHandlerExtension, StorageComponentContainerContributor {
@@ -94,8 +94,10 @@ class JdepsGenExtension(
             // Ignore Java source local to this module.
             null
           }
+
         is KotlinJvmBinarySourceElement ->
           (sourceElement.binaryClass as VirtualFileKotlinClass).file.canonicalPath
+
         else -> null
       }
     }
@@ -136,14 +138,17 @@ class JdepsGenExtension(
         is FunctionImportedFromObject -> {
           collectTypeReferences(resultingDescriptor.containingObject.defaultType)
         }
+
         is PropertyImportedFromObject -> {
           collectTypeReferences(resultingDescriptor.containingObject.defaultType)
         }
+
         is JavaMethodDescriptor -> {
           getClassCanonicalPath(
             (resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor,
           )?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is FunctionDescriptor -> {
           resultingDescriptor.returnType?.let { addImplicitDep(it) }
           resultingDescriptor.valueParameters.forEach { valueParameter ->
@@ -154,20 +159,25 @@ class JdepsGenExtension(
               ?: return
           explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
         }
+
         is ParameterDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is FakeCallableDescriptorForObject -> {
           collectTypeReferences(resultingDescriptor.type)
         }
+
         is JavaPropertyDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is PropertyDescriptor -> {
           when (resultingDescriptor.containingDeclaration) {
             is ClassDescriptor -> collectTypeReferences(
               (resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType,
             )
+
             else -> {
               val virtualFileClass =
                 (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
@@ -177,6 +187,7 @@ class JdepsGenExtension(
           }
           addImplicitDep(resultingDescriptor.type)
         }
+
         else -> return
       }
     }
@@ -192,6 +203,7 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is FunctionDescriptor -> {
           descriptor.returnType?.let { collectTypeReferences(it) }
           descriptor.valueParameters.forEach { valueParameter ->
@@ -204,6 +216,7 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
           descriptor.annotations.forEach { annotation ->
@@ -213,6 +226,7 @@ class JdepsGenExtension(
             collectTypeReferences(annotation.type)
           }
         }
+
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)
         }

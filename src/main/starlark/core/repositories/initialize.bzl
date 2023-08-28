@@ -17,10 +17,13 @@
 load(":setup.bzl", "kt_configure")
 load(
     ":initialize.release.bzl",
+    _RULES_KOTLIN = "RULES_KOTLIN",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",
     _release_kotlin_repositories = "kotlin_repositories",
 )
+load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "kotlin_compiler_repository")
+load("//src/main/starlark/core/repositories/kotlin:releases.bzl", "KOTLINC_INDEX")
 load(":versions.bzl", _versions = "versions")
 
 #exports
@@ -39,3 +42,16 @@ def kotlin_repositories(
     """
     _release_kotlin_repositories(compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
     kt_configure()
+
+    # Provide versioned kotlinc repositories. These are used for compiling plugins.
+    for versioned_kotlinc in KOTLINC_INDEX.values():
+        kotlin_compiler_repository(
+            name = versioned_kotlinc.repository_name,
+            urls = [
+                url.format(version = versioned_kotlinc.release.version)
+                for url in versioned_kotlinc.release.url_templates
+            ],
+            sha256 = versioned_kotlinc.release.sha256,
+            kotlin_rules = _RULES_KOTLIN.workspace_name,
+            compiler_version = versioned_kotlinc.release.version,
+        )

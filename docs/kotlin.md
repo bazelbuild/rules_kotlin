@@ -567,3 +567,21 @@ versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a hre
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 
+<a id="versions.get_major"></a>
+
+## versions.get_major
+
+<pre>
+versions.get_major(<a href="#versions.get_major-version">version</a>)
+</pre>
+
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="versions.get_major-version"></a>version |  <p align="center"> - </p>   |  none |
+
+

@@ -14,7 +14,9 @@
  *  limitations under the License.
  *
  */
-package io.bazel.kotlin.plugin
+@file:Suppress("ktlint:standard:package-name")
+
+package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_6
 
 import com.google.common.base.Preconditions
 import com.intellij.mock.MockProject
@@ -32,11 +34,10 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
 /**
  *  SkipCodeGen registers an extension to skip code generation. Must be the last compiler plugin.
  */
-@OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 class SkipCodeGen : ComponentRegistrar {
 
   companion object {
-    val COMPILER_PLUGIN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"
+    val COMPILER_PLUGIN_ID = "io.bazel.kotlin.plugin.kt_1_8.SkipCodeGen"
   }
 
   override fun registerProjectComponents(

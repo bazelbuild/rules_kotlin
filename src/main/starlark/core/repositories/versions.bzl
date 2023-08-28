@@ -10,6 +10,24 @@ version = provider(
     },
 )
 
+def kotlinc_version(release, sha256):
+    return version(
+        version = release,
+        url_templates = [
+            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
+        ],
+        sha256 = sha256,
+    )
+
+def ksp_version(release, sha256):
+    return version(
+        version = release,
+        url_templates = [
+            "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
+        ],
+        sha256 = sha256,
+    )
+
 def _use_repository(name, version, rule, **kwargs):
     http_archive_arguments = dict(kwargs)
     http_archive_arguments["sha256"] = version.sha256
@@ -18,6 +36,10 @@ def _use_repository(name, version, rule, **kwargs):
         http_archive_arguments["strip_prefix"] = version.strip_prefix_template.format(version = version.version)
 
     maybe(rule, name = name, **http_archive_arguments)
+
+def _get_major(version):
+    parts = version.split(".")
+    return ".".join(parts[:2])
 
 versions = struct(
     RULES_NODEJS_VERSION = "5.5.3",
@@ -61,13 +83,24 @@ versions = struct(
         ],
         sha256 = "2b3f6f674a944d25bb8d283c3539947bbe86074793012909a55de4b771f74bcc",
     ),
-    KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.8.21",
-        url_templates = [
-            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
-        ],
+    KOTLIN_CURRENT_COMPILER_RELEASE = kotlinc_version(
+        release = "1.8.21",
         sha256 = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
     ),
+    KOTLIN_COMPILER_RELEASES = [
+        kotlinc_version(
+            release = "1.8.21",
+            sha256 = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
+        ),
+        kotlinc_version(
+            release = "1.7.22",
+            sha256 = "9db4b467743c1aea8a21c08e1c286bc2aeb93f14c7ba2037dbd8f48adc357d83",
+        ),
+        kotlinc_version(
+            release = "1.6.21",
+            sha256 = "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba",
+        ),
+    ],
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "1.8.21-1.0.11",
         url_templates = [
@@ -119,4 +152,5 @@ versions = struct(
         sha256 = None,
     ),
     use_repository = _use_repository,
+    get_major = _get_major,
 )

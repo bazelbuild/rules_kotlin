@@ -27,7 +27,15 @@ load(
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
-load(":versions.bzl", "version", _versions = "versions")
+load(
+    ":versions.bzl",
+    _kotlinc_version = "kotlinc_version",
+    _ksp_version = "ksp_version",
+    _versions = "versions",
+)
+
+kotlinc_version = _kotlinc_version
+ksp_version = _ksp_version
 
 versions = _versions
 
@@ -107,22 +115,4 @@ def kotlin_repositories(
         name = "bazel_skylib",
         urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (versions.SKYLIB_VERSION, versions.SKYLIB_VERSION)],
         sha256 = versions.SKYLIB_SHA,
-    )
-
-def kotlinc_version(release, sha256):
-    return version(
-        version = release,
-        url_templates = [
-            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
-        ],
-        sha256 = sha256,
-    )
-
-def ksp_version(release, sha256):
-    return version(
-        version = release,
-        url_templates = [
-            "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
-        ],
-        sha256 = sha256,
     )

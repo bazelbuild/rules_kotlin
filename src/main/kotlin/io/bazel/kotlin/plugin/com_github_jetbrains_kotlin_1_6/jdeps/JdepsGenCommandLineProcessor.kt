@@ -1,13 +1,13 @@
-package io.bazel.kotlin.plugin.jdeps
+@file:Suppress("ktlint:standard:package-name")
+
+package io.bazel.kotlin.plugin.com_github_jetbrains_kotlin_1_6.jdeps
 
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOptionProcessingException
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
-@OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 class JdepsGenCommandLineProcessor : CommandLineProcessor {
   companion object {
     val COMPILER_PLUGIN_ID = "io.bazel.kotlin.plugin.jdeps.JDepsGen"
@@ -50,29 +50,13 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
         JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
         value,
       )
+
       STRICT_KOTLIN_DEPS_OPTION -> configuration.put(
         JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
         value,
       )
+
       else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
     }
-  }
-
-  override fun <T> CompilerConfiguration.appendList(
-    option: CompilerConfigurationKey<List<T>>,
-    value: T,
-  ) {
-    val paths = getList(option).toMutableList()
-    paths.add(value)
-    put(option, paths)
-  }
-
-  override fun <T> CompilerConfiguration.appendList(
-    option: CompilerConfigurationKey<List<T>>,
-    values: List<T>,
-  ) {
-    val paths = getList(option).toMutableList()
-    paths.addAll(values)
-    put(option, paths)
   }
 }
