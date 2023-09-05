@@ -37,7 +37,6 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
-        "//src/main/starlark/core/repositories/kotlin",
         "@rules_proto//proto",
         "@rules_proto//proto/private",
     ],

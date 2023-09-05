@@ -43,6 +43,5 @@ bzl_library(
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",
-        "//src/main/starlark",
     ],
 )
