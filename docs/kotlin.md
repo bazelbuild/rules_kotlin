@@ -330,7 +330,7 @@ kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_com
                 "annotation": "plugin.OpenForTesting",
             },
             deps = [
-                "@io_bazel_rules_kotlin//kotlin/compiler:allopen-compiler-plugin",
+                "//kotlin/compiler:allopen-compiler-plugin",
             ],
         )
         

@@ -335,7 +335,7 @@ Setup a simple kotlin_test.
 
 **Notes:**
 * The kotlin test library is not added implicitly, it is available with the label
-`//kotlin/compiler:kotlin-test`.
+`@io_bazel_rules_kotlin//kotlin/compiler:kotlin-test`.
 """,
     attrs = utils.add_dicts(_runnable_common_attr, {
         "_bazel_test_runner": attr.label(
