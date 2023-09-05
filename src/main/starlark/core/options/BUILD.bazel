@@ -13,6 +13,8 @@ release_archive(
 
 bzl_library(
     name = "options",
-    srcs = glob(["*.bzl"]),
+    srcs = glob(["*.bzl"]) + [
+        "@com_github_jetbrains_kotlin//:capabilities.bzl",
+    ],
     visibility = ["//:__subpackages__"],
 )
