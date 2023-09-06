@@ -41,6 +41,7 @@ _CAPABILITIES_TEMPLATES = {
     "1.6": "//src/main/starlark/core/repositories/kotlin:capabilities_1.6.bzl.com_github_jetbrains_kotlin.bazel",
     "1.7": "//src/main/starlark/core/repositories/kotlin:capabilities_1.7.bzl.com_github_jetbrains_kotlin.bazel",
     "1.8": "//src/main/starlark/core/repositories/kotlin:capabilities_1.8.bzl.com_github_jetbrains_kotlin.bazel",
+    "1.9": "//src/main/starlark/core/repositories/kotlin:capabilities_1.9.bzl.com_github_jetbrains_kotlin.bazel",
 }
 
 kotlin_compiler_repository = repository_rule(

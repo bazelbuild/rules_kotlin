@@ -46,12 +46,15 @@ class Kotlin2JsTaskExecutor @Inject constructor(
   }
 
   private fun JsCompilationTask.compile(context: CompilationTaskContext) {
+    val outputDirectory = Paths.get(outputs.js).parent
+    val outputFile = Paths.get(outputs.js).fileName
+
     val args = mutableListOf<String>().also {
       it.addAll(passThroughFlagsList)
       it.addAll("-libraries", inputs.librariesList.joinToString(":"))
       it.addAll("-Xir-produce-js")
-      it.addAll("-ir-output-dir", outputs.js)
-      it.addAll("-ir-output-name", outputs.js)
+      it.addAll("-ir-output-dir", outputDirectory.toString())
+      it.addAll("-ir-output-name", outputFile.toString())
       it.addAll(inputs.kotlinSourcesList)
     }
     context.whenTracing { printLines("js compile args", args) }
