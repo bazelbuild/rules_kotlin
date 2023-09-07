@@ -12,6 +12,6 @@ release_archive(
 
 bzl_library(
     name = "kotlin",
-    srcs = glob(["*.bzl"]),
+    srcs = ["compiler.bzl"],
     visibility = ["//:__subpackages__"],
 )

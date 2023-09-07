@@ -6,6 +6,13 @@ def _kotlin_compiler_impl(repository_ctx):
         sha256 = attr.sha256,
         stripPrefix = "kotlinc",
     )
+
+    _unpack_js(
+        repository_ctx.extract,
+        repository_ctx.path,
+        repository_ctx.symlink,
+    )
+
     repository_ctx.file(
         "WORKSPACE",
         content = """workspace(name = "%s")""" % attr.name,
@@ -13,9 +20,12 @@ def _kotlin_compiler_impl(repository_ctx):
     repository_ctx.template(
         "BUILD.bazel",
         attr._template,
-        substitutions = {
-            "{{.KotlinRulesRepository}}": attr.kotlin_rules,
-        },
+        executable = False,
+    )
+
+    repository_ctx.template(
+        "kt_repo_import.bzl",
+        attr._repo_import_template,
         executable = False,
     )
 
@@ -24,6 +34,29 @@ def _kotlin_compiler_impl(repository_ctx):
         _get_capability_template(attr.compiler_version, attr._capabilities_templates),
         executable = False,
     )
+
+    repository_ctx.template(
+        "providers.bzl",
+        attr._providers_import_template,
+        executable = False,
+    )
+
+def _unpack_js(extract, path, symlink):
+    """Unpack js jars and create symlinks to the .js and .map.js files for each jar."""
+    extract_root = path("js")
+
+    for art in ["kotlin-test-js", "kotlin-stdlib-js"]:
+        output = "js/%s" % art
+        extract("lib/%s.jar" % art, output = output)
+
+        # create symlinks to the .js and .map file from the exploded jars.
+        for f in path(output).readdir():
+            # splits on the first . (ex. foo.bar.js -> [foo, ., bar.js])
+            parts = f.basename.partition(".")
+            if parts[2] == "js":  # has  .meta.js and a .js. want .js only
+                symlink(f, extract_root.get_child(art + ".js"))
+            elif parts[2] == "js.map":
+                symlink(f, extract_root.get_child(art + ".js.map"))
 
 def _get_capability_template(compiler_version, templates):
     for ver, template in zip(_CAPABILITIES_TEMPLATES.keys(), templates):
@@ -70,6 +103,14 @@ kotlin_compiler_repository = repository_rule(
         "_capabilities_templates": attr.label_list(
             doc = "compiler capabilities file templates",
             default = _CAPABILITIES_TEMPLATES.values(),
+        ),
+        "_repo_import_template": attr.label(
+            doc = "",
+            default = "kt_repo_import.com_github_jetbrains_kotlin.bzl",
+        ),
+        "_providers_import_template": attr.label(
+            doc = "",
+            default = "providers.com_github_jetbrains_kotlin.bzl",
         ),
     },
 )

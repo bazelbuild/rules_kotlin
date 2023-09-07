@@ -15,11 +15,6 @@
 """
 
 load(
-    "//kotlin/internal:defs.bzl",
-    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-)
-load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
     "http_file",
@@ -27,15 +22,15 @@ load(
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
-load(":versions.bzl", "version", _versions = "versions")
+load(":versions.bzl", "constants", "version", _versions = "versions")
 
 versions = _versions
 
 RULES_KOTLIN = Label("//:all")
 
 def kotlin_repositories(
-        compiler_repository_name = _KT_COMPILER_REPO,
-        ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
+        compiler_repository_name = constants.KT_COMPILER_REPO,
+        ksp_repository_name = constants.KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.

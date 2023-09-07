@@ -16,6 +16,6 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
-        "@com_github_jetbrains_kotlin//:capabilities",
+        "@com_github_jetbrains_kotlin//:bzl",
     ],
 )

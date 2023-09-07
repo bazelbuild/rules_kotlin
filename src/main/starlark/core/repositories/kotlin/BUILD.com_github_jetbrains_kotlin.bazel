@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # io_bazel_rules_kotlin
-load("@{{.KotlinRulesRepository}}//kotlin:jvm.bzl", "kt_jvm_import")
-load("@{{.KotlinRulesRepository}}//kotlin:js.bzl", "kt_js_import")
-load("@rules_java//java:defs.bzl", "java_import")
+load(":kt_repo_import.bzl", "kt_repo_import")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 package(default_visibility = ["//visibility:public"])
 
 exports_files(
-    ["capabilities.bzl"],
+    [
+        "capabilities.bzl",
+        "providers.bzl",
+    ],
 )
 
 # Kotlin home filegroup containing everything that is needed.
@@ -29,22 +30,22 @@ filegroup(
     srcs = glob(["**"]),
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "annotations",
     jar = "lib/annotations-13.0.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "trove4j",
     jar = "lib/trove4j.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "jvm-abi-gen",
     jar = "lib/jvm-abi-gen.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "kotlin-compiler",
     jar = "lib/kotlin-compiler.jar",
     neverlink = 1,
@@ -57,51 +58,51 @@ kt_jvm_import(
     ],
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "kotlin-annotation-processing-runtime",
     jar = "lib/kotlin-annotation-processing-runtime.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "kotlin-annotation-processing",
     jar = "lib/kotlin-annotation-processing.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "kotlinx-serialization-compiler-plugin",
     jar = "lib/kotlinx-serialization-compiler-plugin.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "allopen-compiler-plugin",
     jar = "lib/allopen-compiler-plugin.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "noarg-compiler-plugin",
     jar = "lib/noarg-compiler-plugin.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "sam-with-receiver-compiler-plugin",
     jar = "lib/sam-with-receiver-compiler-plugin.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "parcelize-compiler-plugin",
     jar = "lib/parcelize-compiler.jar",
 )
 
-kt_jvm_import(
+kt_repo_import(
     name = "parcelize-runtime",
     jar = "lib/parcelize-runtime.jar",
 )
 
 # Kotlin dependencies that are internal to this repo and may be linked.
 [
-    java_import(
+    kt_repo_import(
         name = "kotlin-%s" % art,
-        jars = ["lib/kotlin-%s.jar" % art],
+        jar = "lib/kotlin-%s.jar" % art,
     )
     for art in [
         "preloader",
@@ -110,7 +111,7 @@ kt_jvm_import(
 
 #  The Kotlin standard libraries. These should be setup in a Toolchain.
 [
-    kt_jvm_import(
+    kt_repo_import(
         name = "kotlin-%s" % art,
         jar = "lib/kotlin-%s.jar" % art,
         srcjar = "lib/kotlin-%s-sources.jar" % art,
@@ -128,19 +129,22 @@ kt_jvm_import(
 
 #  The Kotlin JS standard libraries. These should be setup in a Toolchain.
 [
-    kt_js_import(
-        name = "kotlin-%s" % art,
-        jars = ["lib/kotlin-%s.jar" % art],
-        srcjar = "lib/kotlin-%s-sources.jar" % art,
+    kt_repo_import(
+        name = name,
+        jar = "lib/%s.jar" % name,
+        # symlinked by the kotlin_compiler_repository rule.
+        js = "js/%s.js" % name,
+        js_map = "js/%s.js.map" % name,
+        srcjar = "lib/%s.srcjar" % name,
         visibility = ["//visibility:public"],
     )
-    for art in [
-        "test-js",
-        "stdlib-js",
+    for name in [
+        "kotlin-test-js",
+        "kotlin-stdlib-js",
     ]
 ]
 
 bzl_library(
-    name = "capabilities",
-    srcs = ["capabilities.bzl"],
+    name = "bzl",
+    srcs = glob(["*.bzl"]),
 )
