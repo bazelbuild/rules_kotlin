@@ -10,7 +10,7 @@ kt_compiler_plugin(
     },
     stubs_phase = True,
     deps = [
-        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        "@io_bazel_rules_kotlin//kotlin/compiler:allopen-compiler-plugin",
     ],
 )
 
@@ -23,7 +23,7 @@ kt_compiler_plugin(
     },
     stubs_phase = True,
     deps = [
-        "@com_github_jetbrains_kotlin//:noarg-compiler-plugin",
+        "@io_bazel_rules_kotlin//kotlin/compiler:noarg-compiler-plugin",
     ],
 )
 
@@ -64,7 +64,7 @@ kt_jvm_test(
     test_class = "plugin.allopennoarg.UserHasNoargConstructorTest",
     deps = [
         ":user",
-        "@com_github_jetbrains_kotlin//:kotlin-reflect",
+        "@io_bazel_rules_kotlin//kotlin/compiler:kotlin-reflect",
         "@maven//:junit_junit",
     ],
 )

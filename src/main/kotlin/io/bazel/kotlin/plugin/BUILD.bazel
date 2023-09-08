@@ -22,7 +22,7 @@ kt_bootstrap_library(
     srcs = glob(["*.kt"]),
     visibility = ["//src:__subpackages__"],
     deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
+        "//kotlin/compiler:kotlin-compiler",
     ],
 )
 

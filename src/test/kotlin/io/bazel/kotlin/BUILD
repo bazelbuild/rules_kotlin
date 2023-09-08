@@ -22,13 +22,13 @@ kt_jvm_library(
     srcs = ["KotlinAssertionTestCase.kt"],
     visibility = ["//visibility:public"],
     exports = [
-        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "//kotlin/compiler:kotlin-test",
         "@kotlin_rules_maven//:com_google_guava_guava",
         "@kotlin_rules_maven//:com_google_truth_truth",
         "@kotlin_rules_maven//:junit_junit",
     ],
     deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-test",
+        "//kotlin/compiler:kotlin-test",
         "@kotlin_rules_maven//:com_google_guava_guava",
     ],
 )

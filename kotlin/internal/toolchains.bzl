@@ -157,7 +157,7 @@ _kt_toolchain = rule(
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
             default = [
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
+                Label("//kotlin/compiler:kotlin-stdlib"),
             ],
             providers = [JavaInfo],
             cfg = "target",
@@ -165,12 +165,12 @@ _kt_toolchain = rule(
         "jvm_stdlibs": attr.label_list(
             doc = "The jvm stdlibs. This is internal.",
             default = [
-                Label("@" + _KT_COMPILER_REPO + "//:annotations"),
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk7"),
+                Label("//kotlin/compiler:annotations"),
+                Label("//kotlin/compiler:kotlin-stdlib"),
+                Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
                 # JDK8 is being added blindly but I think we will probably not support bytecode levels 1.6 when the
                 # repo stabelizes so this should be fine.
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk8"),
+                Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
             ],
             providers = [JavaInfo],
             cfg = "target",
@@ -197,7 +197,7 @@ _kt_toolchain = rule(
         ),
         "js_stdlibs": attr.label_list(
             default = [
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-js"),
+                Label("//kotlin/compiler:kotlin-stdlib-js"),
             ],
             providers = [_KtJsInfo],
         ),

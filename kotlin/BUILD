@@ -28,6 +28,7 @@ release_archive(
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
+        "//kotlin/compiler:pkg",
         "//kotlin/internal:pkg",
         "//kotlin/settings:pkg",
     ],

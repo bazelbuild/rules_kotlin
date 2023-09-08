@@ -25,7 +25,7 @@ load(
     "http_file",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "kotlin_compiler_repository")
+load(":compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
@@ -52,7 +52,6 @@ def kotlin_repositories(
         name = compiler_repository_name,
         urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
         sha256 = compiler_release.sha256,
-        kotlin_rules = RULES_KOTLIN.workspace_name,
         compiler_version = compiler_release.version,
     )
 
@@ -61,7 +60,6 @@ def kotlin_repositories(
         urls = [url.format(version = ksp_compiler_release.version) for url in ksp_compiler_release.url_templates],
         sha256 = ksp_compiler_release.sha256,
         strip_version = ksp_compiler_release.version,
-        kotlin_rules = RULES_KOTLIN.workspace_name,
     )
 
     http_file(

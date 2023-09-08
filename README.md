@@ -320,7 +320,7 @@ kt_compiler_plugin(
         "annotation": "plugin.allopen.OpenForTesting",
     },
     deps = [
-        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        "//kotlin/compiler:allopen-compiler-plugin",
     ],
 )
 

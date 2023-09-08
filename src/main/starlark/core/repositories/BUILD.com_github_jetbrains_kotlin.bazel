@@ -13,8 +13,8 @@
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
 
-# KSP filegroup containing everything that might be needed
+# Kotlin home filegroup containing everything that is needed.
 filegroup(
-    name = "ksp",
+    name = "home",
     srcs = glob(["**"]),
 )
