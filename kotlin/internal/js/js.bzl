@@ -18,6 +18,10 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
+    "//kotlin/internal:opts.bzl",
+    _KotlincOptions = "KotlincOptions",
+)
+load(
     "//kotlin/internal/js:impl.bzl",
     _kt_js_import_impl = "kt_js_import_impl",
     _kt_js_library_impl = "kt_js_library_impl",
@@ -85,6 +89,13 @@ kt_js_library = rule(
         ),
         "module_name": attr.string(
             doc = "internal attribute",
+            mandatory = False,
+        ),
+        "kotlinc_opts": attr.label(
+            doc = """Kotlinc options to be used when compiling this target. These opts if provided
+                    will be used instead of the ones provided to the toolchain.""",
+            default = None,
+            providers = [_KotlincOptions],
             mandatory = False,
         ),
         "_toolchain": attr.label(
