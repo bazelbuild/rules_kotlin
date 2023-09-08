@@ -8,6 +8,21 @@ buildifier:
   warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
   ubuntu1804:
+    build_flags:
+      - "--enable_bzlmod=false"
+    test_targets:
+      - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
+  macos:
+    test_flags:
+      - "--enable_bzlmod=false"
+    test_targets:
+      - "//:all_tests"
+  ubuntu2004_bzlmod:
+    platform: ubuntu2004
+    build_flags:
+      - "--enable_bzlmod"
     test_targets:
       - "//:all_tests"
     build_targets:
