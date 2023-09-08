@@ -29,6 +29,7 @@ kotlinc_version = _kotlinc_version
 ksp_version = _ksp_version
 
 def kotlin_repositories(
+        bzlmod = False,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -37,5 +38,9 @@ def kotlin_repositories(
         compiler_release: (internal) version provider from versions.bzl.
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
-    _release_kotlin_repositories(compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
+    _release_kotlin_repositories(bzlmod = bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
+
+    # When Bzlmod is enabled skip over the toolchain setup entirely
+    if bzlmod:
+        return
     kt_configure()

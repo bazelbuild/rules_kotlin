@@ -1,6 +1,6 @@
 module(
-    name = "rules_kotlin",
-    version = "1.8.0",
+    name = "io_bazel_rules_kotlin",
+    version = "1.8.1",
     compatibility_level = 1,
     repo_name = "io_bazel_rules_kotlin",
 )
@@ -11,20 +11,28 @@ bazel_dep(name = "rules_java", version = "6.4.0")
 bazel_dep(name = "rules_android", version = "0.1.1", repo_name = "build_bazel_rules_android")
 bazel_dep(name = "rules_python", version = "0.24.0")
 
-kt = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "kt_bzlmod_ext")
-use_repo(kt, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_pinterest_ktlint", "kt_java_stub_template", "buildkite_config")
+rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
+rules_kotlin_extensions.kotlinc_version(
+    version = "1.8.21",
+    url_templates = [
+        "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
+    ],
+    sha256 = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
+)
+use_repo(
+    rules_kotlin_extensions,
+    "com_github_google_ksp",
+    "com_github_jetbrains_kotlin",
+    "com_github_pinterest_ktlint",
+    "kt_java_stub_template",
+)
 
 register_toolchains("//kotlin/internal:default_toolchain")
 
 # Development depenencies
 
 bazel_dep(name = "rules_jvm_external", version = "4.4.2")
-
-maven = use_extension(
-    "@rules_jvm_external//:extensions.bzl",
-    "maven",
-    dev_dependency = True,
-)
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "kotlin_rules_maven",
     artifacts = [
@@ -34,10 +42,10 @@ maven.install(
         "com.google.protobuf:protobuf-java-util:3.6.0",
         "com.google.guava:guava:27.1-jre",
         "com.google.truth:truth:0.45",
-        "com.google.auto.service:auto-service:1.0-rc5",
-        "com.google.auto.service:auto-service-annotations:1.0-rc5",
-        "com.google.auto.value:auto-value:1.6.5",
-        "com.google.auto.value:auto-value-annotations:1.6.5",
+        "com.google.auto.service:auto-service:1.0.1",
+        "com.google.auto.service:auto-service-annotations:1.0.1",
+        "com.google.auto.value:auto-value:1.10.1",
+        "com.google.auto.value:auto-value-annotations:1.10.1",
         "com.google.dagger:dagger:2.43.2",
         "com.google.dagger:dagger-compiler:2.43.2",
         "com.google.dagger:dagger-producers:2.43.2",
@@ -56,6 +64,8 @@ maven.install(
 )
 use_repo(maven, "kotlin_rules_maven")
 
-bazel_dep(name = "rules_pkg", version = "0.7.0", dev_dependency = True)
-bazel_dep(name = "stardoc", version = "0.5.3", dev_dependency = True, repo_name = "io_bazel_stardoc")
-bazel_dep(name = "rules_proto", version = "5.3.0-21.7", dev_dependency = True)
+bazel_dep(name = "rules_pkg", version = "0.7.0")
+bazel_dep(name = "stardoc", version = "0.5.3", repo_name = "io_bazel_stardoc")
+bazel_dep(name = "rules_proto", version = "5.3.0-21.7")
+
+register_toolchains("@io_bazel_rules_kotlin//kotlin/internal:default_toolchain")

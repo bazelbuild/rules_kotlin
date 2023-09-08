@@ -34,6 +34,7 @@ versions = _versions
 RULES_KOTLIN = Label("//:all")
 
 def kotlin_repositories(
+        bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
@@ -68,7 +69,7 @@ def kotlin_repositories(
                  versions.BAZEL_JAVA_LAUNCHER_VERSION +
                  "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
                  "java_stub_template.txt")],
-        sha256 = "78e29525872594ffc783c825f428b3e61d4f3e632f46eaa64f004b2814c4a612",
+        sha256 = versions.BAZEL_JAVA_LAUNCHER_SHA,
     )
 
     maybe(
@@ -78,6 +79,9 @@ def kotlin_repositories(
         urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],
         executable = True,
     )
+
+    if bzlmod:
+        return
 
     maybe(
         http_archive,
