@@ -25,6 +25,7 @@ tasks:
     build_targets:
       - "//:rules_kotlin_release"
   macos:
+    name: "Tests (Latest Macos)"
     test_targets:
       - "//:all_tests"
     build_targets:
@@ -75,6 +76,21 @@ tasks:
     name: "Example - Trivial (Ubuntu 18.04)"
     platform: ubuntu1804
     working_directory: examples/trivial
+    include_json_profile:
+      - build
+      - test
+    build_targets:
+      - //...
+    test_targets:
+      - //...
+  examples-trivial-bzlmod-ubuntu1804:
+    name: "Example - Trivial Bzlmod (Ubuntu 18.04)"
+    platform: ubuntu1804
+    working_directory: examples/trivial
+    build_flags:
+      - "--enable_bzlmod=false"
+    test_flags:
+      - "--enable_bzlmod=false"
     include_json_profile:
       - build
       - test
