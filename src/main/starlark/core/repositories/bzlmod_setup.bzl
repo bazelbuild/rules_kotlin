@@ -7,95 +7,75 @@ load(
 load(
     "//src/main/starlark/core/repositories:initialize.bzl",
     _kotlin_repositories = "kotlin_repositories",
-    _kotlinc_version_impl = "kotlinc_version",
-    _ksp_version_impl = "ksp_version",
+    _kotlinc_version = "kotlinc_version",
+    _ksp_version = "ksp_version",
 )
 load(
     "//src/main/starlark/core/repositories:versions.bzl",
     _versions = "versions",
 )
 
-_kotlinc_version = tag_class(
+_kotlinc_version_tag = tag_class(
     attrs = {
         "version": attr.string(
             mandatory = True,
-            default = "1.8.21",
-        ),
-        "url_templates": attr.string_list(
-            mandatory = True,
-            default = [
-                "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
-            ],
+            default = _versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
         ),
         "sha256": attr.string(
             mandatory = True,
-            default = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
+            default = _versions.KOTLIN_CURRENT_COMPILER_RELEASE.sha256,
         ),
     },
 )
 
-_ksp_version = tag_class(
+_ksp_version_tag = tag_class(
     attrs = {
         "version": attr.string(
             mandatory = True,
-            default = "1.8.21-1.0.11",
-        ),
-        "url_templates": attr.string_list(
-            mandatory = True,
-            default = [
-                "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
-            ],
+            default = _versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE.version,
         ),
         "sha256": attr.string(
             mandatory = True,
-            default = "81a609b48fddd4431bac2abe3570e36f79b1266672be30b581a0595c3fb2e615",
+            default = _versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE.sha256,
         ),
     },
 )
 
-def _rules_kotlin_extensions_impl(mctx):
-    kotlinc_version = {}
-    ksp_version = {}
-    for mod in mctx.modules:
-        for override in mod.tags.kotlinc_version:
-            if kotlinc_version:
-                fail("Nope!")
-            kotlinc_version["version"] = override.version
-            kotlinc_version["url_templates"] = override.url_templates
-            kotlinc_version["sha256"] = override.sha256
-        for override in mod.tags.ksp_version:
-            if ksp_version:
-                fail("Nope!")
-            ksp_version["version"] = override.version
-            ksp_version["url_templates"] = override.url_templates
-            ksp_version["sha256"] = override.sha256
-
-    _kotlin_repositories(
-        bzlmod = True,
-        compiler_release = _kotlinc_version_impl(
-            release = kotlinc_version["version"],
-            sha256 = kotlinc_version["sha256"],
-        ),
-    )
-
-    http_archive(
-        name = "build_bazel_rules_android",
-        sha256 = _versions.ANDROID.SHA,
-        strip_prefix = "rules_android-%s" % _versions.ANDROID.VERSION,
-        urls = _versions.ANDROID.URLS,
-    )
-
+def _extra_repositories():
+    # TODO(bencodes) This really needs to be a development dependency
+    # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
+    # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
     http_archive(
         name = "buildkite_config",
         urls = _versions.RBE.URLS,
     )
 
-    pass
+def _rules_kotlin_extensions_impl(mctx):
+    kotlinc_version = None
+    ksp_version = None
+    for mod in mctx.modules:
+        for override in mod.tags.kotlinc_version:
+            if kotlinc_version:
+                fail("Only one kotlinc_version is supported right now!")
+            kotlinc_version = _kotlinc_version(release = override.version, sha256 = override.sha256)
+        for override in mod.tags.ksp_version:
+            if ksp_version:
+                fail("Only one ksp_version is supported right now!")
+            ksp_version = _ksp_version(release = override.version, sha256 = override.sha256)
+
+    _kotlin_repositories_args = dict(bzlmod = True)
+    if kotlinc_version:
+        _kotlin_repositories_args["compiler_release"] = kotlinc_version
+    if ksp_version:
+        _kotlin_repositories_args["ksp_compiler_release"] = ksp_version
+    _kotlin_repositories(**_kotlin_repositories_args)
+
+    _extra_repositories()
 
 rules_kotlin_extensions = module_extension(
     implementation = _rules_kotlin_extensions_impl,
     tag_classes = {
-        "kotlinc_version": _kotlinc_version,
-        "ksp_version": _ksp_version,
+        "kotlinc_version": _kotlinc_version_tag,
+        "ksp_version": _ksp_version_tag,
     },
 )

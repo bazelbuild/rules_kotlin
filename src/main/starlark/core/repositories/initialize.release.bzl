@@ -80,9 +80,6 @@ def kotlin_repositories(
         executable = True,
     )
 
-    if bzlmod:
-        return
-
     maybe(
         http_archive,
         name = "build_bazel_rules_android",
@@ -90,6 +87,9 @@ def kotlin_repositories(
         strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
         urls = versions.ANDROID.URLS,
     )
+
+    if bzlmod:
+        return
 
     versions.use_repository(
         name = "rules_python",
