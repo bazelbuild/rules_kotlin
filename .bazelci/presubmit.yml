@@ -9,7 +9,9 @@ buildifier:
 tasks:
   ubuntu1804:
     name: "Tests without Bzlmod (Ubuntu 18.04)"
-    common_flags:
+    build_flags:
+      - "--enable_bzlmod=false"
+    test_flags:
       - "--enable_bzlmod=false"
     test_targets:
       - "//:all_tests"
@@ -17,7 +19,9 @@ tasks:
       - "//:rules_kotlin_release"
   macos:
     name: "Tests without Bzlmod (Macos)"
-    common_flags:
+    build_flags:
+      - "--enable_bzlmod=false"
+    test_flags:
       - "--enable_bzlmod=false"
     test_targets:
       - "//:all_tests"
