@@ -211,7 +211,7 @@ kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-associat
         
         **Notes:**
         * The kotlin test library is not added implicitly, it is available with the label
-        `@io_bazel_rules_kotlin//kotlin/compiler:kotlin-test`.
+        `@rules_kotlin//kotlin/compiler:kotlin-test`.
     
 
 **ATTRIBUTES**
