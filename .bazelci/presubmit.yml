@@ -7,17 +7,16 @@ buildifier:
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
-  ubuntu1804:
-    build_flags_workspace:
+  ubuntu1804_without_bzlmod:
+    build_flags:
+      - "--enable_bzlmod=false"
+    test_flags:
       - "--enable_bzlmod=false"
     test_targets:
       - "//:all_tests"
     build_targets:
       - "//:rules_kotlin_release"
-  ubuntu2004:
-    platform: ubuntu2004
-    build_flags:
-      - "--enable_bzlmod"
+  ubuntu1804:
     test_targets:
       - "//:all_tests"
     build_targets:
