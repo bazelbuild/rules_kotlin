@@ -15,29 +15,10 @@ load(
     _versions = "versions",
 )
 
-_kotlinc_version_tag = tag_class(
+_version_tag = tag_class(
     attrs = {
-        "version": attr.string(
-            mandatory = True,
-            default = _versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
-        ),
-        "sha256": attr.string(
-            mandatory = True,
-            default = _versions.KOTLIN_CURRENT_COMPILER_RELEASE.sha256,
-        ),
-    },
-)
-
-_ksp_version_tag = tag_class(
-    attrs = {
-        "version": attr.string(
-            mandatory = True,
-            default = _versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE.version,
-        ),
-        "sha256": attr.string(
-            mandatory = True,
-            default = _versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE.sha256,
-        ),
+        "version": attr.string(mandatory = True),
+        "sha256": attr.string(mandatory = True),
     },
 )
 
@@ -75,7 +56,7 @@ def _rules_kotlin_extensions_impl(mctx):
 rules_kotlin_extensions = module_extension(
     implementation = _rules_kotlin_extensions_impl,
     tag_classes = {
-        "kotlinc_version": _kotlinc_version_tag,
-        "ksp_version": _ksp_version_tag,
+        "kotlinc_version": _version_tag,
+        "ksp_version": _version_tag,
     },
 )
