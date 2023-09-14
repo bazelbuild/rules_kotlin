@@ -18,9 +18,8 @@ tasks:
     build_targets:
       - "//:rules_kotlin_release"
   ubuntu2004_bzlmod:
+    name: "Tests (Ubuntu 20.04)"
     platform: ubuntu2004
-    build_flags:
-      - "--enable_bzlmod"
     test_targets:
       - "//:all_tests"
     build_targets:
