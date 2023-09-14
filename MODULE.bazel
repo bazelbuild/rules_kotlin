@@ -13,12 +13,12 @@ bazel_dep(name = "rules_python", version = "0.24.0")
 rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
 use_repo(
     rules_kotlin_extensions,
+    "build_bazel_rules_android",
+    "buildkite_config",
     "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
     "com_github_pinterest_ktlint",
     "kt_java_stub_template",
-    "build_bazel_rules_android",
-    "buildkite_config",
 )
 
 register_toolchains("//kotlin/internal:default_toolchain")
@@ -26,6 +26,7 @@ register_toolchains("//kotlin/internal:default_toolchain")
 # Development depenencies
 
 bazel_dep(name = "rules_jvm_external", version = "4.4.2")
+
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "kotlin_rules_maven",
