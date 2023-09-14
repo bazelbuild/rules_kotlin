@@ -88,9 +88,9 @@ tasks:
     platform: ubuntu1804
     working_directory: examples/trivial
     build_flags:
-      - "--enable_bzlmod=false"
+      - "--enable_bzlmod=true"
     test_flags:
-      - "--enable_bzlmod=false"
+      - "--enable_bzlmod=true"
     include_json_profile:
       - build
       - test
