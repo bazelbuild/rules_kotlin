@@ -34,7 +34,7 @@ versions = _versions
 RULES_KOTLIN = Label("//:all")
 
 def kotlin_repositories(
-        bzlmod = False,
+        is_bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
@@ -88,7 +88,7 @@ def kotlin_repositories(
         urls = versions.ANDROID.URLS,
     )
 
-    if bzlmod:
+    if is_bzlmod:
         return
 
     versions.use_repository(

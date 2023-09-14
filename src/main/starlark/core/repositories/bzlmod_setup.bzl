@@ -63,7 +63,7 @@ def _rules_kotlin_extensions_impl(mctx):
                 fail("Only one ksp_version is supported right now!")
             ksp_version = _ksp_version(release = override.version, sha256 = override.sha256)
 
-    _kotlin_repositories_args = dict(bzlmod = True)
+    _kotlin_repositories_args = dict(is_bzlmod = True)
     if kotlinc_version:
         _kotlin_repositories_args["compiler_release"] = kotlinc_version
     if ksp_version:
