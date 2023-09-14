@@ -16,6 +16,15 @@ tasks:
       - "//:all_tests"
     build_targets:
       - "//:rules_kotlin_release"
+  macos_without_bzlmod:
+    build_flags:
+      - "--enable_bzlmod=false"
+    test_flags:
+      - "--enable_bzlmod=false"
+    test_targets:
+      - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
   ubuntu1804:
     test_targets:
       - "//:all_tests"
@@ -24,6 +33,8 @@ tasks:
   macos:
     test_targets:
       - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
   rbe_ubuntu1604:
     test_targets:
       - "--"
