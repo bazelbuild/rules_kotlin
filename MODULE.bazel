@@ -25,6 +25,7 @@ use_repo(
     "com_github_pinterest_ktlint",
     "kt_java_stub_template",
     "build_bazel_rules_android",
+    "buildkite_config",
 )
 
 register_toolchains("//kotlin/internal:default_toolchain")

@@ -85,6 +85,11 @@ def _rules_kotlin_extensions_impl(mctx):
         urls = _versions.ANDROID.URLS,
     )
 
+    http_archive(
+        name = "buildkite_config",
+        urls = _versions.RBE.URLS,
+    )
+
     pass
 
 rules_kotlin_extensions = module_extension(
