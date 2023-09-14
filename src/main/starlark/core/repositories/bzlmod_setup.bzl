@@ -1,10 +1,18 @@
 """Definitions for bzlmod module extensions."""
 
 load(
+    "@bazel_tools//tools/build_defs/repo:http.bzl",
+    "http_archive",
+)
+load(
     "//src/main/starlark/core/repositories:initialize.bzl",
     _kotlin_repositories = "kotlin_repositories",
     _kotlinc_version_impl = "kotlinc_version",
     _ksp_version_impl = "ksp_version",
+)
+load(
+    "//src/main/starlark/core/repositories:versions.bzl",
+    _versions = "versions",
 )
 
 _kotlinc_version = tag_class(
@@ -68,6 +76,13 @@ def _rules_kotlin_extensions_impl(mctx):
             release = kotlinc_version["version"],
             sha256 = kotlinc_version["sha256"],
         ),
+    )
+
+    http_archive(
+        name = "build_bazel_rules_android",
+        sha256 = _versions.ANDROID.SHA,
+        strip_prefix = "rules_android-%s" % _versions.ANDROID.VERSION,
+        urls = _versions.ANDROID.URLS,
     )
 
     pass

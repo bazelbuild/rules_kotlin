@@ -8,7 +8,6 @@ module(
 bazel_dep(name = "platforms", version = "0.0.6")
 bazel_dep(name = "bazel_skylib", version = "1.3.0")
 bazel_dep(name = "rules_java", version = "6.4.0")
-bazel_dep(name = "rules_android", version = "0.1.1", repo_name = "build_bazel_rules_android")
 bazel_dep(name = "rules_python", version = "0.24.0")
 
 rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
@@ -25,6 +24,7 @@ use_repo(
     "com_github_jetbrains_kotlin",
     "com_github_pinterest_ktlint",
     "kt_java_stub_template",
+    "build_bazel_rules_android",
 )
 
 register_toolchains("//kotlin/internal:default_toolchain")
