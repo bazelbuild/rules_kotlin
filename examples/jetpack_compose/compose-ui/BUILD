@@ -1,4 +1,4 @@
-load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_library")
+load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
 
 kt_android_library(
     name = "lib",

@@ -1,5 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin", "kt_ksp_plugin")
-load("@io_bazel_rules_kotlin//kotlin:android.bzl", "kt_android_library")
+load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin", "kt_ksp_plugin")
+load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
 load("@rules_java//java:defs.bzl", "java_plugin")
 
 kt_compiler_plugin(
@@ -8,7 +8,7 @@ kt_compiler_plugin(
     id = "org.jetbrains.kotlin.serialization",
     stubs_phase = True,
     deps = [
-        "@io_bazel_rules_kotlin//kotlin/compiler:kotlinx-serialization-compiler-plugin",
+        "@rules_kotlin//kotlin/compiler:kotlinx-serialization-compiler-plugin",
     ],
 )
 
