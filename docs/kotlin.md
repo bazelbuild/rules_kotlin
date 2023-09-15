@@ -211,7 +211,7 @@ kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-associat
         
         **Notes:**
         * The kotlin test library is not added implicitly, it is available with the label
-        `@io_bazel_rules_kotlin//kotlin/compiler:kotlin-test`.
+        `@rules_kotlin//kotlin/compiler:kotlin-test`.
     
 
 **ATTRIBUTES**
@@ -529,7 +529,7 @@ This macro registers the kotlin toolchain.
 ## kotlin_repositories
 
 <pre>
-kotlin_repositories(<a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-ksp_repository_name">ksp_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>,
+kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-ksp_repository_name">ksp_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>,
                     <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>)
 </pre>
 
@@ -540,6 +540,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
+| <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  <code>False</code> |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  <code>"com_github_jetbrains_kotlin"</code> |
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  <code>"com_github_google_ksp"</code> |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  <code>struct()</code> |

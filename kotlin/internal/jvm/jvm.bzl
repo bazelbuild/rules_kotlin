@@ -19,14 +19,14 @@ Add the following snippet to your `WORKSPACE` file:
 
 ```bzl
 git_repository(
-    name = "io_bazel_rules_kotlin",
+    name = "rules_kotlin",
     remote = "https://github.com/bazelbuild/rules_kotlin.git",
     commit = "<COMMIT_HASH>",
 )
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories(kotlin_release_version = "1.4.0")
 
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 kt_register_toolchains()
 ```
 
@@ -335,7 +335,7 @@ Setup a simple kotlin_test.
 
 **Notes:**
 * The kotlin test library is not added implicitly, it is available with the label
-`@io_bazel_rules_kotlin//kotlin/compiler:kotlin-test`.
+`@rules_kotlin//kotlin/compiler:kotlin-test`.
 """,
     attrs = utils.add_dicts(_runnable_common_attr, {
         "_bazel_test_runner": attr.label(

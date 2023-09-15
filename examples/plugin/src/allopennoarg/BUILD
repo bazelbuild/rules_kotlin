@@ -1,5 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 
 kt_compiler_plugin(
     name = "open_for_testing_plugin",
@@ -10,7 +10,7 @@ kt_compiler_plugin(
     },
     stubs_phase = True,
     deps = [
-        "@io_bazel_rules_kotlin//kotlin/compiler:allopen-compiler-plugin",
+        "@rules_kotlin//kotlin/compiler:allopen-compiler-plugin",
     ],
 )
 
@@ -23,7 +23,7 @@ kt_compiler_plugin(
     },
     stubs_phase = True,
     deps = [
-        "@io_bazel_rules_kotlin//kotlin/compiler:noarg-compiler-plugin",
+        "@rules_kotlin//kotlin/compiler:noarg-compiler-plugin",
     ],
 )
 
@@ -64,7 +64,7 @@ kt_jvm_test(
     test_class = "plugin.allopennoarg.UserHasNoargConstructorTest",
     deps = [
         ":user",
-        "@io_bazel_rules_kotlin//kotlin/compiler:kotlin-reflect",
         "@maven//:junit_junit",
+        "@rules_kotlin//kotlin/compiler:kotlin-reflect",
     ],
 )

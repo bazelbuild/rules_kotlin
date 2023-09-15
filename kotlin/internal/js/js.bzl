@@ -108,7 +108,7 @@ def kt_js_library_macro(name, **kwargs):
     kwargs = _lock_attrs(name, kwargs)
 
     # TODO this is a runtime dep, it should be picked up from the _toolchain attr or from a provider.
-    kwargs["deps"] = kwargs.get("deps", []) + ["@io_bazel_rules_kotlin//kotlin/compiler:kotlin-stdlib-js"]
+    kwargs["deps"] = kwargs.get("deps", []) + ["@rules_kotlin//kotlin/compiler:kotlin-stdlib-js"]
     kt_js_library(name = name, **kwargs)
 
 kt_js_import = rule(

@@ -37,7 +37,6 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
-        "@rules_proto//proto",
-        "@rules_proto//proto/private",
+        "@rules_proto//proto:defs",
     ],
 )

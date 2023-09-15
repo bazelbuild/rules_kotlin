@@ -18,10 +18,10 @@ local_repository(
 load("@release_archive//:repository.bzl", "archive_repository")
 
 archive_repository(
-    name = "io_bazel_rules_kotlin",
+    name = "rules_kotlin",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
 
 kotlin_repositories(
     compiler_release = kotlinc_version(

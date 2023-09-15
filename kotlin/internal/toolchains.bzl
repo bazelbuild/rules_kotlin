@@ -35,7 +35,7 @@ This file contains macros for defining and registering specific toolchains.
 To override a tool chain use the appropriate macro in a `BUILD` file to declare the toolchain:
 
 ```bzl
-load("@io_bazel_rules_kotlin//kotlin:toolchains.bzl", "define_kt_toolchain")
+load("@rules_kotlin//kotlin:toolchains.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name= "custom_toolchain",
