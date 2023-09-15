@@ -30,9 +30,6 @@ def _ksp_compiler_plugin_repository_impl(repository_ctx):
     repository_ctx.template(
         "BUILD.bazel",
         attr._template,
-        substitutions = {
-            "{{.KotlinRulesRepository}}": attr.kotlin_rules,
-        },
         executable = False,
     )
 
@@ -41,10 +38,6 @@ ksp_compiler_plugin_repository = repository_rule(
     attrs = {
         "urls": attr.string_list(
             doc = "A list of urls for the kotlin compiler",
-            mandatory = True,
-        ),
-        "kotlin_rules": attr.string(
-            doc = "target of the kotlin rules.",
             mandatory = True,
         ),
         "sha256": attr.string(

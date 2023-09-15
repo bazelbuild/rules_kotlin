@@ -63,7 +63,7 @@ def kt_download_local_dev_dependencies():
         name = "rules_jvm_external",
         sha256 = versions.RULES_JVM_EXTERNAL_SHA,
         strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
-        url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % versions.RULES_JVM_EXTERNAL_TAG,
+        url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (versions.RULES_JVM_EXTERNAL_TAG, versions.RULES_JVM_EXTERNAL_TAG),
     )
 
     versions.use_repository(

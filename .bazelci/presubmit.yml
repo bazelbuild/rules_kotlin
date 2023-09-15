@@ -1,6 +1,6 @@
 ---
 validate_config: 1
-bazel: 6.1.1
+bazel: 6.3.2
 buildifier:
   version: 6.1.0
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
@@ -12,6 +12,9 @@ tasks:
       - "//:all_tests"
     build_targets:
       - "//:rules_kotlin_release"
+  macos:
+    test_targets:
+      - "//:all_tests"
   rbe_ubuntu1604:
     test_targets:
       - "--"
@@ -24,9 +27,6 @@ tasks:
       # Override the default worker strategy for remote builds (worker strategy
       # cannot be used with remote builds)
       - "--strategy=KotlinCompile=remote"
-  macos:
-    test_targets:
-      - "//:all_tests"
   example-android:
     name: "Example - Android"
     platform: ubuntu1804

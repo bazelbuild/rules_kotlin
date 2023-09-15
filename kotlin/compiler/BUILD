@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,33 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load(":compiler.bzl", "kt_configure_compiler")
+load(":ksp.bzl", "kt_configure_ksp")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# Configures the compiler
+kt_configure_compiler()
+
+# Configures the KSP plugins
+kt_configure_ksp()
 
 release_archive(
     name = "pkg",
-    srcs = [
-        "BUILD.com_github_google_ksp.bazel",
-        "BUILD.com_github_jetbrains_kotlin.bazel",
-        "compiler.bzl",
-        "ksp.bzl",
-        "versions.bzl",
-    ],
+    srcs = glob(["*.bzl"]),
     src_map = {
-        "initialize.release.bzl": "initialize.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
     },
-    deps = [
-        "//src/main/starlark/core/repositories/kotlin:pkg",
-    ],
-)
-
-bzl_library(
-    name = "repositories",
-    srcs = glob(["*.bzl"]),
-    visibility = ["//:__subpackages__"],
-    deps = [
-        "@rules_proto//proto",
-        "@rules_proto//proto/private",
-    ],
 )

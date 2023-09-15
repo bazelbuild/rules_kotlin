@@ -10,7 +10,7 @@ kt_compiler_plugin(
     },
     stubs_phase = True,
     deps = [
-        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        "@io_bazel_rules_kotlin//kotlin/compiler:allopen-compiler-plugin",
     ],
 )
 

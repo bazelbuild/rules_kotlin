@@ -35,8 +35,8 @@ versions = struct(
     SKYLIB_SHA = "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728",
     PROTOBUF_VERSION = "3.11.3",
     PROTOBUF_SHA = "cf754718b0aa945b00550ed7962ddc167167bd922b842199eeb6505e6f344852",
-    RULES_JVM_EXTERNAL_TAG = "4.4.2",
-    RULES_JVM_EXTERNAL_SHA = "735602f50813eb2ea93ca3f5e43b1959bd80b213b836a07a62a29d757670b77b",
+    RULES_JVM_EXTERNAL_TAG = "5.3",
+    RULES_JVM_EXTERNAL_SHA = "d31e369b854322ca5098ea12c69d7175ded971435e55c18dd9dd5f29cc5249ac",
     RULES_PROTO = version(
         version = "5.3.0-21.7",
         sha256 = "dc3fb206a2cb3441b485eb1e423165b231235a1ea9b031b4433cf7bc1fa460dd",
@@ -53,7 +53,7 @@ versions = struct(
             "https://github.com/bazelbuild/stardoc/releases/download/{version}/stardoc-{version}.tar.gz",
         ],
     ),
-    BAZEL_JAVA_LAUNCHER_VERSION = "5.0.0",
+    BAZEL_JAVA_LAUNCHER_VERSION = "6.2.1",
     PINTEREST_KTLINT = version(
         version = "0.49.1",
         url_templates = [
@@ -101,6 +101,14 @@ versions = struct(
             "https://github.com/bazelbuild/rules_python/archive/refs/tags/{version}.tar.gz",
         ],
         sha256 = "a644da969b6824cc87f8fe7b18101a8a6c57da5db39caa6566ec6109f37d2141",
+    ),
+    # needed for rules_pkg and java
+    RULES_JAVA = version(
+        version = "6.4.0",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
+        ],
+        sha256 = "27abf8d2b26f4572ba4112ae8eb4439513615018e03a299f85a8460f6992f6a3",
     ),
     RULES_LICENSE = version(
         version = "0.0.3",
