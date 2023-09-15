@@ -19,6 +19,7 @@ release_archive(
     srcs = [
         "BUILD.com_github_google_ksp.bazel",
         "BUILD.com_github_jetbrains_kotlin.bazel",
+        "bzlmod_setup.bzl",
         "compiler.bzl",
         "ksp.bzl",
         "versions.bzl",
