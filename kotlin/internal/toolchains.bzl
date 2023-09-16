@@ -90,6 +90,7 @@ def _kotlin_toolchain_impl(ctx):
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
         jacocorunner = ctx.attr.jacocorunner,
+        experimental_prune_transitive_deps = ctx.attr._experimental_prune_transitive_deps[BuildSettingInfo].value,
     )
 
     return [
@@ -258,6 +259,12 @@ _kt_toolchain = rule(
         ),
         "jacocorunner": attr.label(
             default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
+        ),
+        "_experimental_prune_transitive_deps": attr.label(
+            doc = """If enabled, compilation is performed against only direct dependencies.
+            Transitive deps required for compilation must be explicitly added. Using
+            kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
+            default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
         ),
         "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),
     },

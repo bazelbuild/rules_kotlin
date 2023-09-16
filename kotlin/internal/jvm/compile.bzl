@@ -89,7 +89,7 @@ def _compiler_toolchains(ctx):
         java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
     )
 
-def _jvm_deps(toolchains, associated_targets, deps, runtime_deps = []):
+def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
     diff = _sets.intersection(
         _sets.copy_of([x.label for x in associated_targets]),
@@ -101,16 +101,27 @@ def _jvm_deps(toolchains, associated_targets, deps, runtime_deps = []):
             ",\n ".join(["    %s" % x for x in list(diff)]),
         )
     dep_infos = [_java_info(d) for d in associated_targets + deps] + [toolchains.kt.jvm_stdlibs]
+
+    # Reduced classpath, exclude transitive deps from compilation
+    if (toolchains.kt.experimental_prune_transitive_deps and
+        not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
+        transitive = [
+            d.compile_jars
+            for d in dep_infos
+        ]
+    else:
+        transitive = [
+            d.compile_jars
+            for d in dep_infos
+        ] + [
+            d.transitive_compile_time_jars
+            for d in dep_infos
+        ]
+
     return struct(
         deps = dep_infos,
         compile_jars = depset(
-            transitive = [
-                d.compile_jars
-                for d in dep_infos
-            ] + [
-                d.transitive_compile_time_jars
-                for d in dep_infos
-            ],
+            transitive = transitive,
         ),
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
@@ -249,10 +260,6 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     args.add("--report_unused_deps", toolchains.kt.experimental_report_unused_deps)
 
     mnemonic = "JdepsMerge"
-    progress_message = "%s %%{label} { jdeps: %d }" % (
-        mnemonic,
-        len(jdeps),
-    )
 
     tools, input_manifests = ctx.resolve_tools(
         tools = [
@@ -262,6 +269,14 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
 
     # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs
     inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_compile_time_jars for dep in deps])])
+
+    if "trace" in ctx.args.tags:
+        print(inputs)
+    progress_message = "%s %%{label} { jdeps: %s } { inputs: %s }" % (
+        mnemonic,
+        jdeps,
+        inputs,
+    )
 
     ctx.actions.run(
         mnemonic = mnemonic,
@@ -514,6 +529,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     srcs = _partitioned_srcs(ctx.files.srcs)
     associates = _associate_utils.get_associates(ctx)
     compile_deps = _jvm_deps(
+        ctx,
         toolchains,
         associates.targets,
         deps = ctx.attr.deps,

@@ -19,6 +19,9 @@ package io.bazel.kotlin.builder.cmd
 
 import io.bazel.kotlin.builder.DaggerJdepsMergerComponent
 import io.bazel.worker.Worker
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import kotlin.io.path.walk
 import kotlin.system.exitProcess
 
 object MergeJdeps {
