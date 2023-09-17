@@ -80,7 +80,8 @@ android_sdk_repository(name = "androidsdk")
 
 http_archive(
     name = "robolectric",
-    strip_prefix = "robolectric-bazel-4.8.1",
+    sha256 = "1b199a932cbde4af728dd8275937091adbb89a4bf63d326de49e6d0a42e723bf",
+    strip_prefix = "robolectric-bazel-4.10.3",
     urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.8.1.tar.gz"],
 )
 
