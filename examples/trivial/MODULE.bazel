@@ -8,6 +8,7 @@ local_path_override(
 )
 
 bazel_dep(name = "rules_jvm_external", version = "5.3")
+
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
