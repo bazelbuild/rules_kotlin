@@ -1,3 +1,5 @@
+load("//src/main/starlark/release:packager.bzl", "release_archive")
+
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +15,6 @@
 # limitations under the License.
 load(":compiler.bzl", "kt_configure_compiler")
 load(":ksp.bzl", "kt_configure_ksp")
-load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 package(default_visibility = ["//visibility:public"])
 

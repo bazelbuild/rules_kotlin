@@ -1,6 +1,6 @@
+load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
-load("@rules_java//java:defs.bzl", "java_library")
 
 kt_compiler_plugin(
     name = "sam_with_receiver_plugin",

@@ -15,16 +15,16 @@
 """
 
 load(
-    "//kotlin/internal:defs.bzl",
-    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-)
-load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
     "http_file",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+)
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
 load(":versions.bzl", "version", _versions = "versions")

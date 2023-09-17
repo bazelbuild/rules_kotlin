@@ -14,13 +14,13 @@
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
-load(":setup.bzl", "kt_configure")
 load(
     ":initialize.release.bzl",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",
     _release_kotlin_repositories = "kotlin_repositories",
 )
+load(":setup.bzl", "kt_configure")
 load(":versions.bzl", _versions = "versions")
 
 #exports

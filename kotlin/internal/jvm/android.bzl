@@ -1,3 +1,9 @@
+load(
+    "@build_bazel_rules_android//android:rules.bzl",
+    _android_library = "android_library",
+    _android_local_test = "android_local_test",
+)
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +20,6 @@
 load(
     "//kotlin/internal/jvm:jvm.bzl",
     _kt_jvm_library = "kt_jvm_library",
-)
-load(
-    "@build_bazel_rules_android//android:rules.bzl",
-    _android_library = "android_library",
-    _android_local_test = "android_local_test",
 )
 
 _ANDROID_SDK_JAR = "%s" % Label("//third_party:android_sdk")

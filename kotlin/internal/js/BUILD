@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_python//python:defs.bzl", "py_binary")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -14,7 +15,6 @@ load("@rules_python//python:defs.bzl", "py_binary")
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # TODO(https://github.com/bazelbuild/rules_kotlin/issues/270): Replace with Starlark
 py_binary(

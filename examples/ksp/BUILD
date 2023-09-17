@@ -1,3 +1,6 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_java//java:defs.bzl", "java_binary", "java_plugin")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_ksp_plugin")
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_java//java:defs.bzl", "java_binary", "java_plugin")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])

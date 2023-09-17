@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin:jvm.bzl", "kt_jvm_import")
-load("//kotlin:js.bzl", "kt_js_import")
 load("@rules_java//java:defs.bzl", "java_import")
+load("//kotlin:js.bzl", "kt_js_import")
+load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
 _KT_COMPILER_REPO_PREFIX = "@" + _KT_COMPILER_REPO + "//:"
