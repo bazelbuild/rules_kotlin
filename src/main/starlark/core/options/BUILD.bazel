@@ -1,10 +1,13 @@
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":opts.kotlinc.test.bzl", "kt_kotlinc_options_test")
+load(":opts.kotlinc.bzl", "kt_kotlinc_options")
 
 release_archive(
     name = "pkg",
     srcs = glob(
         ["*.bzl"],
+        exclude = ["*.test.bzl"],
     ),
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
@@ -17,4 +20,14 @@ bzl_library(
         "@com_github_jetbrains_kotlin//:capabilities.bzl",
     ],
     visibility = ["//:__subpackages__"],
+)
+
+kt_kotlinc_options(
+    name = "defaults",
+)
+
+kt_kotlinc_options_test(
+    name = "do_not_set_defaults",
+    target_under_test = ":defaults",
+    want_flags = [],
 )

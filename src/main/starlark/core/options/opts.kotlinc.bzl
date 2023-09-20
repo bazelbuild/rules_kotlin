@@ -351,4 +351,4 @@ def kotlinc_options_to_flags(kotlinc_options):
     Returns:
         list of flags to add to the command line.
     """
-    return convert.javac_options_to_flags(_KOPTS, kotlinc_options)
+    return convert.kotlinc_options_to_flags(_KOPTS, kotlinc_options)

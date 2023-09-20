@@ -10,11 +10,13 @@ def _to_flags(opts, attr_provider):
         list of flags to add to the command line.
     """
     if not attr_provider:
-        return ""
+        return []
 
     flags = []
     for n, o in opts.items():
         value = getattr(attr_provider, n, None)
+        if value == o.args["default"]:
+            continue
         if o.value_to_flag and o.value_to_flag.get(derive.info, None):
             info = o.value_to_flag[derive.info]
             flag = info.derive(info.ctx, value)
