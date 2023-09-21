@@ -49,7 +49,8 @@ abstract class KotlinAbstractTestBuilder<T> {
             FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"));
 
     private static final AtomicInteger counter = new AtomicInteger(0);
-    private final CompilationTaskInfo.Builder infoBuilder = CompilationTaskInfo.newBuilder();
+    private final CompilationTaskInfo.Builder infoBuilder = CompilationTaskInfo.newBuilder()
+        .addDebug("trace");
     private Path instanceRoot = null;
     private String label = null;
     private List<String> outLines = null;
@@ -96,7 +97,7 @@ abstract class KotlinAbstractTestBuilder<T> {
 
     public final void resetForNext() {
         outLines = null;
-        label = "a_test_" + counter.incrementAndGet();
+        label = "a-test-" + counter.incrementAndGet();
         infoBuilder
                 .setLabel("//some/bogus:" + label())
                 .setModuleName("some_bogus_module")
@@ -106,9 +107,9 @@ abstract class KotlinAbstractTestBuilder<T> {
                         KotlinToolchainInfo.newBuilder()
                                 .setCommon(
                                         KotlinToolchainInfo.Common.newBuilder()
-                                                .setApiVersion("1.6")
+                                                .setApiVersion("1.8")
                                                 .setCoroutines("enabled")
-                                                .setLanguageVersion("1.6"))
+                                                .setLanguageVersion("1.8"))
                                 .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
         try {
             this.instanceRoot = Files.createTempDirectory(BAZEL_TEST_DIR, label);
@@ -129,6 +130,11 @@ abstract class KotlinAbstractTestBuilder<T> {
 
     final Path writeFile(DirectoryType dirType, String filename, String[] lines) {
         Path path = directory(dirType).resolve(filename).toAbsolutePath();
+        try {
+            Files.createDirectories(path.getParent());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
             fos.write(String.join("\n", lines).getBytes(UTF_8));
         } catch (IOException e) {
@@ -136,6 +142,8 @@ abstract class KotlinAbstractTestBuilder<T> {
         }
         return path;
     }
+
+
 
     public final Path writeSourceFile(String filename, String[] lines) {
         return writeFile(DirectoryType.SOURCES, filename, lines);
@@ -162,7 +170,6 @@ abstract class KotlinAbstractTestBuilder<T> {
                             .lines()
                             .collect(toList()));
         }
-
     }
 
     public final void assertFilesExist(DirectoryType dir, String... paths) {

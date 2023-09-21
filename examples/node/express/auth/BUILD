@@ -17,4 +17,5 @@ kt_js_library(
     name = "acme-auth",
     srcs = ["Auth.kt"],
     visibility = ["//visibility:public"],
+    tags = ["trace"]
 )
