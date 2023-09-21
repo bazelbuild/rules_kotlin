@@ -397,8 +397,8 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
                    <a href="#kt_kotlinc_options-x_enable_incremental_compilation">x_enable_incremental_compilation</a>, <a href="#kt_kotlinc_options-x_explicit_api_mode">x_explicit_api_mode</a>, <a href="#kt_kotlinc_options-x_inline_classes">x_inline_classes</a>,
                    <a href="#kt_kotlinc_options-x_jvm_default">x_jvm_default</a>, <a href="#kt_kotlinc_options-x_lambdas">x_lambdas</a>, <a href="#kt_kotlinc_options-x_multi_platform">x_multi_platform</a>, <a href="#kt_kotlinc_options-x_no_call_assertions">x_no_call_assertions</a>, <a href="#kt_kotlinc_options-x_no_optimize">x_no_optimize</a>,
                    <a href="#kt_kotlinc_options-x_no_optimized_callable_references">x_no_optimized_callable_references</a>, <a href="#kt_kotlinc_options-x_no_param_assertions">x_no_param_assertions</a>,
-                   <a href="#kt_kotlinc_options-x_no_receiver_assertions">x_no_receiver_assertions</a>, <a href="#kt_kotlinc_options-x_optin">x_optin</a>, <a href="#kt_kotlinc_options-x_report_perf">x_report_perf</a>, <a href="#kt_kotlinc_options-x_sam_conversions">x_sam_conversions</a>,
-                   <a href="#kt_kotlinc_options-x_skip_prerelease_check">x_skip_prerelease_check</a>, <a href="#kt_kotlinc_options-x_use_fir_lt">x_use_fir_lt</a>, <a href="#kt_kotlinc_options-x_use_k2">x_use_k2</a>)
+                   <a href="#kt_kotlinc_options-x_no_receiver_assertions">x_no_receiver_assertions</a>, <a href="#kt_kotlinc_options-x_no_source_debug_extension">x_no_source_debug_extension</a>, <a href="#kt_kotlinc_options-x_optin">x_optin</a>, <a href="#kt_kotlinc_options-x_report_perf">x_report_perf</a>,
+                   <a href="#kt_kotlinc_options-x_sam_conversions">x_sam_conversions</a>, <a href="#kt_kotlinc_options-x_skip_prerelease_check">x_skip_prerelease_check</a>, <a href="#kt_kotlinc_options-x_use_fir_lt">x_use_fir_lt</a>, <a href="#kt_kotlinc_options-x_use_k2">x_use_k2</a>)
 
                                                                                                 
     Define kotlin compiler options.
@@ -428,6 +428,7 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 |<a id="kt_kotlinc_options-x_no_optimized_callable_references"></a>x_no_optimized_callable_references |  Do not use optimized callable reference superclasses. Available from 1.4.   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_no_param_assertions"></a>x_no_param_assertions |  Don't generate not-null assertions on parameters of methods accessible from Java   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_no_receiver_assertions"></a>x_no_receiver_assertions |  Don't generate not-null assertion for extension receiver arguments of platform types   | Boolean | optional | False |
+|<a id="kt_kotlinc_options-x_no_source_debug_extension"></a>x_no_source_debug_extension |  Do not generate @kotlin.jvm.internal.SourceDebugExtension annotation on a class with the copy of SMAP   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_optin"></a>x_optin |  Define APIs to opt-in to.   | List of strings | optional | [] |
 |<a id="kt_kotlinc_options-x_report_perf"></a>x_report_perf |  Report detailed performance statistics   | Boolean | optional | False |
 |<a id="kt_kotlinc_options-x_sam_conversions"></a>x_sam_conversions |  Change codegen behavior of SAM/functional interfaces   | String | optional | "class" |
