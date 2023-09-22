@@ -47,6 +47,7 @@ def _kt_android_artifact(
     base_deps = [_ANDROID_SDK_JAR] + deps
 
     exported_target_labels = [kt_name]
+    manifest = kwargs.get("manifest", default = None)
     if "kt_prune_transitive_deps_incompatible" in tags:
         # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
         # buildifier: disable=native-android
@@ -61,7 +62,7 @@ def _kt_android_artifact(
             **kwargs
         )
         exported_target_labels.append(base_name)
-    elif resource_files:
+    elif resource_files or manifest:
         # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
         # buildifier: disable=native-android
         # Do not export deps to avoid all upstream targets to be invalidated when ABI changes.
@@ -70,7 +71,7 @@ def _kt_android_artifact(
             resource_files = resource_files,
             deps = deps,
             custom_package = kwargs.get("custom_package", default = None),
-            manifest = kwargs.get("manifest", default = None),
+            manifest = manifest,
             enable_data_binding = enable_data_binding,
             tags = tags,
             visibility = ["//visibility:private"],
