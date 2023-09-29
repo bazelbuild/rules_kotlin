@@ -1,4 +1,4 @@
-load("@rules_java//java:defs.bzl", "JavaInfo", "java_common", "JavaPluginInfo")
+load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
     _KspPluginInfo = "KspPluginInfo",
