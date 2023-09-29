@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_common")
 load("//kotlin/internal/utils:windows.bzl", "create_windows_native_launcher_script")
 load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
