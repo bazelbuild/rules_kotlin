@@ -1,5 +1,5 @@
-load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
