@@ -46,6 +46,18 @@ tasks:
     name: "Example - Android"
     platform: ubuntu1804
     working_directory: examples/android
+    bazel: 7.0.0-pre.20230906.2
+    test_flags:
+      - "--enable_bzlmod=false"
+    test_targets:
+      - //...
+  example-bzlmod-android:
+    name: "Example Bzlmod - Android"
+    platform: ubuntu1804
+    working_directory: examples/android
+    bazel: 7.0.0-pre.20230906.2
+    test_flags:
+      - "--enable_bzlmod=true"
     test_targets:
       - //...
   example-ksp:

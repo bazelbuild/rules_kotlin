@@ -56,7 +56,7 @@ maven_install(
         "com.google.dagger:dagger-producers:2.45",
         "com.google.auto.value:auto-value:1.6.5",
         "com.google.auto.value:auto-value-annotations:1.6.5",
-        "org.robolectric:robolectric:4.8.1",
+        "org.robolectric:robolectric:4.10.3",
     ],
     repositories = [
         "https://maven.google.com",
@@ -80,8 +80,9 @@ android_sdk_repository(name = "androidsdk")
 
 http_archive(
     name = "robolectric",
-    strip_prefix = "robolectric-bazel-4.8.1",
-    urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.8.1.tar.gz"],
+    sha256 = "1b199a932cbde4af728dd8275937091adbb89a4bf63d326de49e6d0a42e723bf",
+    strip_prefix = "robolectric-bazel-4.10.3",
+    urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.10.3.tar.gz"],
 )
 
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
