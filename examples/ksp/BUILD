@@ -43,6 +43,10 @@ kt_jvm_library(
         "*.kt",
         "*.java",
     ]),
+    ksp_opts = {
+        "arg1": "value1",
+        "arg2": "value2",
+    },
     plugins = [
         "//:moshi-kotlin-codegen",
         "//:autovalue",
