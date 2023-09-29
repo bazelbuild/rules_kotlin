@@ -84,6 +84,22 @@ tasks:
     working_directory: examples/plugin
     test_targets:
       - //...
+  example-multiplex:
+    name: "Example - Multiplex"
+    platform: ubuntu1804
+    working_directory: examples/multiplex
+    build_flags:
+      - "--enable_bzlmod=false"
+    build_targets:
+      - //...
+  example-bzlmod-multiplex:
+    name: "Example Bzlmod - Multiplex"
+    platform: ubuntu1804
+    working_directory: examples/multiplex
+    build_flags:
+      - "--enable_bzlmod=true"
+    build_targets:
+      - //...
   examples-trivial-ubuntu1804:
     name: "Example - Trivial (Ubuntu 18.04)"
     platform: ubuntu1804
