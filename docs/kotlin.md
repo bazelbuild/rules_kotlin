@@ -72,9 +72,9 @@ kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_o
 
 ## kt_jvm_binary
 
-kt_jvm_binary(<a href="#kt_jvm_binary-name">name</a>, <a href="#kt_jvm_binary-associates">associates</a>, <a href="#kt_jvm_binary-data">data</a>, <a href="#kt_jvm_binary-deps">deps</a>, <a href="#kt_jvm_binary-javac_opts">javac_opts</a>, <a href="#kt_jvm_binary-jvm_flags">jvm_flags</a>, <a href="#kt_jvm_binary-kotlinc_opts">kotlinc_opts</a>, <a href="#kt_jvm_binary-main_class">main_class</a>,
-              <a href="#kt_jvm_binary-module_name">module_name</a>, <a href="#kt_jvm_binary-plugins">plugins</a>, <a href="#kt_jvm_binary-resource_jars">resource_jars</a>, <a href="#kt_jvm_binary-resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_binary-resources">resources</a>, <a href="#kt_jvm_binary-runtime_deps">runtime_deps</a>,
-              <a href="#kt_jvm_binary-srcs">srcs</a>)
+kt_jvm_binary(<a href="#kt_jvm_binary-name">name</a>, <a href="#kt_jvm_binary-associates">associates</a>, <a href="#kt_jvm_binary-data">data</a>, <a href="#kt_jvm_binary-deps">deps</a>, <a href="#kt_jvm_binary-javac_opts">javac_opts</a>, <a href="#kt_jvm_binary-jvm_flags">jvm_flags</a>, <a href="#kt_jvm_binary-kotlinc_opts">kotlinc_opts</a>, <a href="#kt_jvm_binary-ksp_opts">ksp_opts</a>,
+              <a href="#kt_jvm_binary-main_class">main_class</a>, <a href="#kt_jvm_binary-module_name">module_name</a>, <a href="#kt_jvm_binary-plugins">plugins</a>, <a href="#kt_jvm_binary-resource_jars">resource_jars</a>, <a href="#kt_jvm_binary-resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_binary-resources">resources</a>,
+              <a href="#kt_jvm_binary-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_binary-srcs">srcs</a>)
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     Builds a Java archive ("jar file"), plus a wrapper shell script with the same name as the rule. The wrapper
@@ -97,6 +97,7 @@ kt_jvm_binary(<a href="#kt_jvm_binary-name">name</a>, <a href="#kt_jvm_binary-as
 |<a id="kt_jvm_binary-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will             be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 |<a id="kt_jvm_binary-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet         support make variable substitution.   | List of strings | optional | [] |
 |<a id="kt_jvm_binary-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided             will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
+|<a id="kt_jvm_binary-ksp_opts"></a>ksp_opts |  KSP processor options to be used when compiling this target.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 |<a id="kt_jvm_binary-main_class"></a>main_class |  Name of class with main() method to use as entry point.   | String | required |  |
 |<a id="kt_jvm_binary-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
 |<a id="kt_jvm_binary-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
@@ -168,8 +169,8 @@ kt_jvm_import(<a href="#kt_jvm_import-name">name</a>, <a href="#kt_jvm_import-de
 ## kt_jvm_library
 
 kt_jvm_library(<a href="#kt_jvm_library-name">name</a>, <a href="#kt_jvm_library-associates">associates</a>, <a href="#kt_jvm_library-data">data</a>, <a href="#kt_jvm_library-deps">deps</a>, <a href="#kt_jvm_library-exported_compiler_plugins">exported_compiler_plugins</a>, <a href="#kt_jvm_library-exports">exports</a>, <a href="#kt_jvm_library-javac_opts">javac_opts</a>,
-               <a href="#kt_jvm_library-kotlinc_opts">kotlinc_opts</a>, <a href="#kt_jvm_library-module_name">module_name</a>, <a href="#kt_jvm_library-neverlink">neverlink</a>, <a href="#kt_jvm_library-plugins">plugins</a>, <a href="#kt_jvm_library-resource_jars">resource_jars</a>, <a href="#kt_jvm_library-resource_strip_prefix">resource_strip_prefix</a>,
-               <a href="#kt_jvm_library-resources">resources</a>, <a href="#kt_jvm_library-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_library-srcs">srcs</a>)
+               <a href="#kt_jvm_library-kotlinc_opts">kotlinc_opts</a>, <a href="#kt_jvm_library-ksp_opts">ksp_opts</a>, <a href="#kt_jvm_library-module_name">module_name</a>, <a href="#kt_jvm_library-neverlink">neverlink</a>, <a href="#kt_jvm_library-plugins">plugins</a>, <a href="#kt_jvm_library-resource_jars">resource_jars</a>,
+               <a href="#kt_jvm_library-resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_library-resources">resources</a>, <a href="#kt_jvm_library-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_library-srcs">srcs</a>)
 
                                                                                                 
     This rule compiles and links Kotlin and Java sources into a .jar file.
@@ -188,6 +189,7 @@ kt_jvm_library(<a href="#kt_jvm_library-name">name</a>, <a href="#kt_jvm_library
 |<a id="kt_jvm_library-exports"></a>exports |  Exported libraries.<br><br>Deps listed here will be made available to other rules, as if the parents explicitly depended on these deps. This is not true for regular (non-exported) deps.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 |<a id="kt_jvm_library-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will             be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 |<a id="kt_jvm_library-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided             will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
+|<a id="kt_jvm_library-ksp_opts"></a>ksp_opts |  KSP processor options to be used when compiling this target.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 |<a id="kt_jvm_library-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
 |<a id="kt_jvm_library-neverlink"></a>neverlink |  If true only use this library for compilation and not at runtime.   | Boolean | optional | False |
 |<a id="kt_jvm_library-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
@@ -202,9 +204,9 @@ kt_jvm_library(<a href="#kt_jvm_library-name">name</a>, <a href="#kt_jvm_library
 
 ## kt_jvm_test
 
-kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-associates">associates</a>, <a href="#kt_jvm_test-data">data</a>, <a href="#kt_jvm_test-deps">deps</a>, <a href="#kt_jvm_test-env">env</a>, <a href="#kt_jvm_test-javac_opts">javac_opts</a>, <a href="#kt_jvm_test-jvm_flags">jvm_flags</a>, <a href="#kt_jvm_test-kotlinc_opts">kotlinc_opts</a>, <a href="#kt_jvm_test-main_class">main_class</a>,
-            <a href="#kt_jvm_test-module_name">module_name</a>, <a href="#kt_jvm_test-plugins">plugins</a>, <a href="#kt_jvm_test-resource_jars">resource_jars</a>, <a href="#kt_jvm_test-resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_test-resources">resources</a>, <a href="#kt_jvm_test-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_test-srcs">srcs</a>,
-            <a href="#kt_jvm_test-test_class">test_class</a>)
+kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-associates">associates</a>, <a href="#kt_jvm_test-data">data</a>, <a href="#kt_jvm_test-deps">deps</a>, <a href="#kt_jvm_test-env">env</a>, <a href="#kt_jvm_test-javac_opts">javac_opts</a>, <a href="#kt_jvm_test-jvm_flags">jvm_flags</a>, <a href="#kt_jvm_test-kotlinc_opts">kotlinc_opts</a>, <a href="#kt_jvm_test-ksp_opts">ksp_opts</a>,
+            <a href="#kt_jvm_test-main_class">main_class</a>, <a href="#kt_jvm_test-module_name">module_name</a>, <a href="#kt_jvm_test-plugins">plugins</a>, <a href="#kt_jvm_test-resource_jars">resource_jars</a>, <a href="#kt_jvm_test-resource_strip_prefix">resource_strip_prefix</a>, <a href="#kt_jvm_test-resources">resources</a>,
+            <a href="#kt_jvm_test-runtime_deps">runtime_deps</a>, <a href="#kt_jvm_test-srcs">srcs</a>, <a href="#kt_jvm_test-test_class">test_class</a>)
 
                                                                                                                                                                                                                                                                                                                                                                                                     
     Setup a simple kotlin_test.
@@ -227,6 +229,7 @@ kt_jvm_test(<a href="#kt_jvm_test-name">name</a>, <a href="#kt_jvm_test-associat
 |<a id="kt_jvm_test-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will             be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 |<a id="kt_jvm_test-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet         support make variable substitution.   | List of strings | optional | [] |
 |<a id="kt_jvm_test-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided             will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
+|<a id="kt_jvm_test-ksp_opts"></a>ksp_opts |  KSP processor options to be used when compiling this target.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 |<a id="kt_jvm_test-main_class"></a>main_class |  -   | String | optional | "com.google.testing.junit.runner.BazelTestRunner" |
 |<a id="kt_jvm_test-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g.,         <code>//some/package/path:label_name</code> is translated to         <code>some_package_path-label_name</code>.   | String | optional | "" |
 |<a id="kt_jvm_test-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
