@@ -1,3 +1,5 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@rules_kotlin//kotlin:js.bzl", "kt_js_library")
-load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
 
 kt_js_library(
     name = "app",

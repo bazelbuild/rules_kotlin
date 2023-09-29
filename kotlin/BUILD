@@ -1,3 +1,5 @@
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 
 release_archive(
     name = "pkg",

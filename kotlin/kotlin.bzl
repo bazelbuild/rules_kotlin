@@ -13,27 +13,9 @@
 # limitations under the License.
 
 load(
-    ":jvm.bzl",
-    _kt_jvm_binary = "kt_jvm_binary",
-    _kt_jvm_import = "kt_jvm_import",
-    _kt_jvm_library = "kt_jvm_library",
-    _kt_jvm_test = "kt_jvm_test",
-)
-load(
     ":android.bzl",
     _kt_android_library = "kt_android_library",
     _kt_android_local_test = "kt_android_local_test",
-)
-load(
-    ":js.bzl",
-    _kt_js_import = "kt_js_import",
-    _kt_js_library = "kt_js_library",
-)
-load(
-    ":lint.bzl",
-    _ktlint_config = "ktlint_config",
-    _ktlint_fix = "ktlint_fix",
-    _ktlint_test = "ktlint_test",
 )
 load(
     ":core.bzl",
@@ -41,6 +23,24 @@ load(
     _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_ksp_plugin = "kt_ksp_plugin",
     _kt_register_toolchains = "kt_register_toolchains",
+)
+load(
+    ":js.bzl",
+    _kt_js_import = "kt_js_import",
+    _kt_js_library = "kt_js_library",
+)
+load(
+    ":jvm.bzl",
+    _kt_jvm_binary = "kt_jvm_binary",
+    _kt_jvm_import = "kt_jvm_import",
+    _kt_jvm_library = "kt_jvm_library",
+    _kt_jvm_test = "kt_jvm_test",
+)
+load(
+    ":lint.bzl",
+    _ktlint_config = "ktlint_config",
+    _ktlint_fix = "ktlint_fix",
+    _ktlint_test = "ktlint_test",
 )
 
 define_kt_toolchain = _define_kt_toolchain

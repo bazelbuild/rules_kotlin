@@ -1,6 +1,6 @@
+load("//kotlin/internal/utils:windows.bzl", "create_windows_native_launcher_script")
 load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
-load("//kotlin/internal/utils:windows.bzl", "create_windows_native_launcher_script")
 
 def _ktlint(ctx, srcs, editorconfig, enabled_android_rules, enabled_experimental_rules):
     """Generates a test action linting the input files.

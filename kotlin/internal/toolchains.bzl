@@ -1,3 +1,11 @@
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KtJsInfo = "KtJsInfo",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +26,6 @@ load(
     "kt_javac_options",
     "kt_kotlinc_options",
 )
-load(
-    "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-    _KtJsInfo = "KtJsInfo",
-    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
-)
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 """Kotlin Toolchains
 

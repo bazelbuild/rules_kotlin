@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
-load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
+load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """

@@ -1,3 +1,9 @@
+load(
+    "@bazel_tools//tools/jdk:toolchain_utils.bzl",
+    "find_java_runtime_toolchain",
+    "find_java_toolchain",
+)
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +24,6 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
-    "//kotlin/internal/jvm:plugins.bzl",
-    _plugin_mappers = "mappers",
-)
-load(
     "//kotlin/internal:opts.bzl",
     "JavacOptions",
     "KotlincOptions",
@@ -33,17 +35,16 @@ load(
     _associate_utils = "associate_utils",
 )
 load(
-    "//kotlin/internal/utils:utils.bzl",
-    _utils = "utils",
+    "//kotlin/internal/jvm:plugins.bzl",
+    _plugin_mappers = "mappers",
 )
 load(
     "//kotlin/internal/utils:sets.bzl",
     _sets = "sets",
 )
 load(
-    "@bazel_tools//tools/jdk:toolchain_utils.bzl",
-    "find_java_runtime_toolchain",
-    "find_java_toolchain",
+    "//kotlin/internal/utils:utils.bzl",
+    _utils = "utils",
 )
 
 # UTILITY ##############################################################################################################
