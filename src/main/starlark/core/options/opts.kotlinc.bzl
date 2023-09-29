@@ -307,6 +307,16 @@ _KOPTS_ALL = {
             True: ["-Xuse-fir-lt"],
         },
     ),
+    "x_no_source_debug_extension": struct(
+        args = dict(
+            default = False,
+            doc = "Do not generate @kotlin.jvm.internal.SourceDebugExtension annotation on a class with the copy of SMAP",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            False: ["-Xno-source-debug-extension"],
+        },
+    ),
     "jvm_target": struct(
         args = dict(
             default = "",
