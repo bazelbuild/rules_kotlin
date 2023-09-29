@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo")
 load(
     "//kotlin/internal:defs.bzl",
-    _JavaPluginInfo = "JavaPluginInfo",
     _KspPluginInfo = "KspPluginInfo",
 )
 
@@ -31,8 +31,8 @@ def _targets_to_annotation_processors(targets):
         if _KspPluginInfo in targets:
             # KSP plugins are handled by the KSP Kotlinc compiler plugin
             pass
-        elif _JavaPluginInfo in t:
-            p = t[_JavaPluginInfo].plugins
+        elif JavaPluginInfo in t:
+            p = t[JavaPluginInfo].plugins
             if p.processor_jars:
                 plugins.append(p)
         elif JavaInfo in t:
@@ -50,13 +50,13 @@ def _targets_to_ksp_annotation_processors(targets):
     return depset(plugins)
 
 def _targets_to_annotation_processors_java_plugin_info(targets):
-    return [t[_JavaPluginInfo] for t in targets if _JavaPluginInfo in t]
+    return [t[JavaPluginInfo] for t in targets if JavaPluginInfo in t]
 
 def _targets_to_transitive_runtime_jars(targets):
     transitive = []
     for t in targets:
-        if _JavaPluginInfo in t:
-            transitive.append(t[_JavaPluginInfo].plugins.processor_jars)
+        if JavaPluginInfo in t:
+            transitive.append(t[JavaPluginInfo].plugins.processor_jars)
         elif JavaInfo in t:
             transitive.append(t[JavaInfo].plugins.processor_jars)
         elif _KspPluginInfo in t:

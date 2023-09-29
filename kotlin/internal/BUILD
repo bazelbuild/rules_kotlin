@@ -45,5 +45,6 @@ bzl_library(
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",
         "//src/main/starlark",
+        "@rules_java//java:rules",
     ],
 )

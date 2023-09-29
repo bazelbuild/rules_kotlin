@@ -92,6 +92,7 @@ kt_jvm_binary(
 ```
 """
 
+load("@rules_java//java:defs.bzl", "JavaInfo")
 load(
     "//kotlin/internal:defs.bzl",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",

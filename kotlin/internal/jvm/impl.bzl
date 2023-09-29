@@ -1,6 +1,6 @@
+load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
-    _JavaPluginInfo = "JavaPluginInfo",
     _KspPluginInfo = "KspPluginInfo",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
@@ -422,15 +422,13 @@ def kt_compiler_plugin_impl(ctx):
     ]
 
 def kt_ksp_plugin_impl(ctx):
-    _JavaPluginInfo = getattr(java_common, "JavaPluginInfo")
-
     info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
     return [
         DefaultInfo(files = classpath),
         _KspPluginInfo(plugins = [
-            _JavaPluginInfo(
+            JavaPluginInfo(
                 runtime_deps = [
                     info,
                 ],
