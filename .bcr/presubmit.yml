@@ -1,0 +1,26 @@
+matrix:
+  platform: [ "macos", "ubuntu2004" ]
+
+tasks:
+  verify_targets_workspace:
+    name: "Verify build targets"
+    platform: ${{ platform }}
+    build_flags:
+      - "--enable_bzlmod=false"
+    test_flags:
+      - "--enable_bzlmod=false"
+    test_targets:
+      - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
+  verify_targets_bzlmod:
+    name: "Verify build targets"
+    platform: ${{ platform }}
+    build_flags:
+      - "--enable_bzlmod=true"
+    test_flags:
+      - "--enable_bzlmod=true"
+    test_targets:
+      - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
