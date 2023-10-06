@@ -1262,10 +1262,6 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       )
       c.addDirectDependencies(depWithFunction)
       c.addTransitiveDependencies(depWithReturnType)
-      //TODO: Adding a dep on depWithReturnTypesSuperType "fixes" this test which started failing after this jdeps bugfix
-      //      Instead, should our jdeps bug fix only be enabled when "-Xextended-compiler-checks" is set, such that this test would continue passing
-      //      And then we'd add another test which sets "-Xextended-compiler-checks" and has the proper transitive dependency on "depWithReturnTypesSuperType"?
-      //      For more info on "-Xextended-compiler-checks" see: https://youtrack.jetbrains.com/issue/KT-44583
       c.addTransitiveDependencies(depWithReturnTypesSuperType)
       c.setLabel("dependingTarget")
     }
