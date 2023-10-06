@@ -145,7 +145,7 @@ class JdepsGenExtension(
           )?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is FunctionDescriptor -> {
-          resultingDescriptor.returnType?.let { collectTypeReferences(it, isExplicit = false) }
+          resultingDescriptor.returnType?.let { collectTypeReferences(it, isExplicit = false, collectTypeArguments = false) }
           resultingDescriptor.valueParameters.forEach { valueParameter ->
             collectTypeReferences(valueParameter.type, isExplicit = false)
           }
@@ -236,6 +236,7 @@ class JdepsGenExtension(
     private fun collectTypeReferences(
       kotlinType: KotlinType,
       isExplicit: Boolean = true,
+      collectTypeArguments: Boolean = true
     ) {
       if (isExplicit) {
         addExplicitDep(kotlinType)
@@ -247,7 +248,9 @@ class JdepsGenExtension(
         addImplicitDep(it)
       }
 
-      collectTypeArguments(kotlinType, isExplicit)
+      if (collectTypeArguments) {
+        collectTypeArguments(kotlinType, isExplicit)
+      }
     }
 
     private fun collectTypeArguments(
