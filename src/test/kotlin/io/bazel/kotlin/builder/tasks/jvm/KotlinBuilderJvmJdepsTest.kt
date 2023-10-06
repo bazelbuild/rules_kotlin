@@ -988,7 +988,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
-  fun `function call on a 'LazyClassDescriptor' class should collect indirect super class of that class as an implicit dependency`() {
+  fun `function call on a class should collect indirect super class of that class as an implicit dependency`() {
     val implicitSuperClassDep = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
         "Base.kt",
