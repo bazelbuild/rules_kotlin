@@ -988,6 +988,61 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
+  fun `function call on a 'LazyClassDescriptor' class should collect indirect super class of that class as an implicit dependency`() {
+    val implicitSuperClassDep = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Base.kt",
+        """
+            package something
+
+            open class Base
+            """
+      )
+    }
+
+    val explicitSuperClassDep = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Derived.kt",
+        """
+            package something
+
+            class Derived : Base() {
+              fun hi(): String {
+                return "Hello"
+              }
+            }
+            """
+      )
+      c.addDirectDependencies(implicitSuperClassDep)
+    }
+
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "ReferencesClassWithSuperClass.kt",
+        """
+            package something
+
+            class ReferencesClassWithSuperClass {
+                fun stuff(): String {
+                    return Derived().hi()
+                }
+            }
+          """
+      )
+      c.addDirectDependencies(explicitSuperClassDep)
+      c.addTransitiveDependencies(implicitSuperClassDep)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).containsExactly(explicitSuperClassDep.singleCompileJar())
+    assertImplicit(jdeps).containsExactly(implicitSuperClassDep.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `class declaration all super class references should be an implicit dependency`() {
     val implicitSuperClassDep = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
