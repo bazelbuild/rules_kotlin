@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassConstructorDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.typeUtil.supertypes
@@ -145,7 +146,7 @@ class JdepsGenExtension(
           )?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is FunctionDescriptor -> {
-          resultingDescriptor.returnType?.let { addImplicitDep(it) }
+          resultingDescriptor.returnType?.let { collectTypeReferences(it, isExplicit = false) }
           resultingDescriptor.valueParameters.forEach { valueParameter ->
             collectTypeReferences(valueParameter.type, isExplicit = false)
           }
