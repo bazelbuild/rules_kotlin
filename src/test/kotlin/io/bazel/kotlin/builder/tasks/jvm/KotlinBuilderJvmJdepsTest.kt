@@ -445,6 +445,62 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
+  fun `kotlin indirect property reference on object 2`() {
+    val transitivePropertyTarget = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Bar.kt",
+        """
+            package something
+
+            class Bar {
+              fun helloWorld() {}
+            }
+            """
+      )
+    }
+
+    val dependentTarget = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Foo.kt",
+        """
+            package something
+
+            class Foo {
+              val bar = Bar()
+            }
+            """
+      )
+      c.addDirectDependencies(transitivePropertyTarget)
+    }
+
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "HasPropertyDependency.kt",
+        """
+            package something
+            
+            class HasPropertyDependency {
+              fun something(): Any {
+                val foo = Foo()
+                return foo.bar
+              }
+            }
+          """
+      )
+      c.addDirectDependencies(dependentTarget)
+      c.addTransitiveDependencies(transitivePropertyTarget)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+    assertThat(jdeps.dependencyCount).named("jdeps.dependencyCount").isEqualTo(2)
+    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
+    assertImplicit(jdeps).contains(transitivePropertyTarget.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `kotlin extension property reference`() {
     val dependentTarget = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
