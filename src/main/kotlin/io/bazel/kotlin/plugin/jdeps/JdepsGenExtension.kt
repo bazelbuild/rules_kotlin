@@ -175,7 +175,7 @@ class JdepsGenExtension(
               explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
             }
           }
-          addImplicitDep(resultingDescriptor.type)
+          collectTypeReferences(resultingDescriptor.type, isExplicit = false)
         }
         else -> return
       }
