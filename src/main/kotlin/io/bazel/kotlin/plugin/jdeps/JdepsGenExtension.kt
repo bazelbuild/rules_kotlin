@@ -128,63 +128,72 @@ class JdepsGenExtension(
   ) : CallChecker, DeclarationChecker {
 
     override fun check(
-      resolvedCall: ResolvedCall<*>,
-      reportOn: PsiElement,
-      context: CallCheckerContext,
+        resolvedCall: ResolvedCall<*>,
+        reportOn: PsiElement,
+        context: CallCheckerContext,
     ) {
       when (val resultingDescriptor = resolvedCall.resultingDescriptor) {
         is FunctionImportedFromObject -> {
           collectTypeReferences(resultingDescriptor.containingObject.defaultType)
         }
+
         is PropertyImportedFromObject -> {
           collectTypeReferences(resultingDescriptor.containingObject.defaultType)
         }
+
         is JavaMethodDescriptor -> {
           getClassCanonicalPath(
-            (resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor,
+              (resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor,
           )?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is FunctionDescriptor -> {
-          resultingDescriptor.returnType?.let { addImplicitDep(it) }
+          resultingDescriptor.returnType?.let { collectTypeReferences(it, isExplicit = false, collectTypeArguments = false) }
           resultingDescriptor.valueParameters.forEach { valueParameter ->
             collectTypeReferences(valueParameter.type, isExplicit = false)
           }
           val virtualFileClass =
-            resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
-              ?: return
+              resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
+                  ?: return
           explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
         }
+
         is ParameterDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is FakeCallableDescriptorForObject -> {
           collectTypeReferences(resultingDescriptor.type)
         }
+
         is JavaPropertyDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is PropertyDescriptor -> {
           when (resultingDescriptor.containingDeclaration) {
             is ClassDescriptor -> collectTypeReferences(
-              (resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType,
+                (resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType,
             )
+
             else -> {
               val virtualFileClass =
-                (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
-                  ?: return
+                  (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
+                      ?: return
               explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
             }
           }
-          addImplicitDep(resultingDescriptor.type)
+          collectTypeReferences(resultingDescriptor.type, isExplicit = false)
         }
+
         else -> return
       }
     }
 
     override fun check(
-      declaration: KtDeclaration,
-      descriptor: DeclarationDescriptor,
-      context: DeclarationCheckerContext,
+        declaration: KtDeclaration,
+        descriptor: DeclarationDescriptor,
+        context: DeclarationCheckerContext,
     ) {
       when (descriptor) {
         is ClassDescriptor -> {
@@ -192,6 +201,7 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is FunctionDescriptor -> {
           descriptor.returnType?.let { collectTypeReferences(it) }
           descriptor.valueParameters.forEach { valueParameter ->
@@ -204,6 +214,7 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
           descriptor.annotations.forEach { annotation ->
@@ -213,6 +224,7 @@ class JdepsGenExtension(
             collectTypeReferences(annotation.type)
           }
         }
+
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)
         }
@@ -234,37 +246,29 @@ class JdepsGenExtension(
      * types.
      */
     private fun collectTypeReferences(
-      kotlinType: KotlinType,
-      isExplicit: Boolean = true,
+        kotlinType: KotlinType,
+        isExplicit: Boolean = true,
+        collectTypeArguments: Boolean = true,
+        visitedKotlinTypes: MutableSet<Pair<KotlinType, Boolean>> = mutableSetOf()
     ) {
-      if (isExplicit) {
-        addExplicitDep(kotlinType)
-      } else {
-        addImplicitDep(kotlinType)
-      }
+      val kotlintTypeAndIsExplicit = Pair(kotlinType, isExplicit)
+      if (!visitedKotlinTypes.contains(kotlintTypeAndIsExplicit)) {
+        visitedKotlinTypes.add(kotlintTypeAndIsExplicit)
 
-      kotlinType.supertypes().forEach {
-        addImplicitDep(it)
-      }
-
-      collectTypeArguments(kotlinType, isExplicit)
-    }
-
-    private fun collectTypeArguments(
-      kotlinType: KotlinType,
-      isExplicit: Boolean,
-      visitedKotlinTypes: MutableSet<KotlinType> = mutableSetOf(),
-    ) {
-      visitedKotlinTypes.add(kotlinType)
-      kotlinType.arguments.map { it.type }.forEach { typeArgument ->
         if (isExplicit) {
-          addExplicitDep(typeArgument)
+          getClassCanonicalPath(kotlinType.constructor)?.let { explicitClassesCanonicalPaths.add(it) }
         } else {
-          addImplicitDep(typeArgument)
+          getClassCanonicalPath(kotlinType.constructor)?.let { implicitClassesCanonicalPaths.add(it) }
         }
-        typeArgument.supertypes().forEach { addImplicitDep(it) }
-        if (!visitedKotlinTypes.contains(typeArgument)) {
-          collectTypeArguments(typeArgument, isExplicit, visitedKotlinTypes)
+
+        kotlinType.supertypes().forEach { supertype ->
+          collectTypeReferences(supertype, isExplicit = false, collectTypeArguments = collectTypeArguments, visitedKotlinTypes)
+        }
+
+        if (collectTypeArguments) {
+          kotlinType.arguments.map { it.type }.forEach { typeArgument ->
+            collectTypeReferences(typeArgument, isExplicit = isExplicit, collectTypeArguments = true, visitedKotlinTypes = visitedKotlinTypes)
+          }
         }
       }
     }
@@ -302,6 +306,12 @@ class JdepsGenExtension(
     return jarsToClasses
   }
 
+  //TODO
+  private fun allowedJdepJar(jarPath: String): Boolean {
+    return true;
+    //return !jarPath.startsWith("/")
+  }
+
   private fun doWriteJdeps(
     directDeps: MutableList<String>,
     targetLabel: String,
@@ -318,24 +328,30 @@ class JdepsGenExtension(
 
     val unusedDeps = directDeps.subtract(explicitDeps.keys)
     unusedDeps.forEach { jarPath ->
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.UNUSED
-      dependency.path = jarPath
-      rootBuilder.addDependency(dependency)
+      if (allowedJdepJar(jarPath)) {
+        val dependency = Deps.Dependency.newBuilder()
+        dependency.kind = Deps.Dependency.Kind.UNUSED
+        dependency.path = jarPath
+        rootBuilder.addDependency(dependency)
+      }
     }
 
     explicitDeps.forEach { (jarPath, _) ->
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.EXPLICIT
-      dependency.path = jarPath
-      rootBuilder.addDependency(dependency)
+      if (allowedJdepJar(jarPath)) {
+        val dependency = Deps.Dependency.newBuilder()
+        dependency.kind = Deps.Dependency.Kind.EXPLICIT
+        dependency.path = jarPath
+        rootBuilder.addDependency(dependency)
+      }
     }
 
     implicitDeps.keys.subtract(explicitDeps.keys).forEach {
-      val dependency = Deps.Dependency.newBuilder()
-      dependency.kind = Deps.Dependency.Kind.IMPLICIT
-      dependency.path = it
-      rootBuilder.addDependency(dependency)
+      if (allowedJdepJar(it)) {
+        val dependency = Deps.Dependency.newBuilder()
+        dependency.kind = Deps.Dependency.Kind.IMPLICIT
+        dependency.path = it
+        rootBuilder.addDependency(dependency)
+      }
     }
 
     BufferedOutputStream(File(jdepsOutput).outputStream()).use {
