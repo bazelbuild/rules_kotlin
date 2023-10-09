@@ -36,6 +36,8 @@ KtJvmInfo = provider(
         "transitive_compile_time_jars": "Returns the transitive set of Jars required to build the target. [intellij-aspect]",
         "transitive_source_jars": "Returns the Jars containing source files of the current target and all of its transitive dependencies. [intellij-aspect]",
         "annotation_processing": "Generated annotation processing jars. [intellij-aspect]",
+        "additional_generated_source_jars": "Returns additional Jars containing generated source files from kapt, ksp, etc. [bazel-bsp-aspect]",
+        "all_output_jars": "Returns all the output Jars produced by this rule. [bazel-bsp-aspect]",
     },
 )
 
