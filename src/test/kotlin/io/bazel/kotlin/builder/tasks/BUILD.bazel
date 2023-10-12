@@ -93,5 +93,16 @@ kt_rules_test(
 )
 
 test_suite(
-    name = "tasks",
+    name = "tasks_tests",
+    tests = [
+        ":JdepsMergerTest",
+        ":JdepsParserTest",
+        ":KotlinBuilderJsTest",
+        ":KotlinBuilderJvmAbiTest",
+        ":KotlinBuilderJvmBasicTest",
+        ":KotlinBuilderJvmCoverageTest",
+        ":KotlinBuilderJvmJdepsTest",
+        ":KotlinBuilderJvmKaptTest",
+        ":KotlinBuilderJvmStrictDepsTest",
+    ],
 )

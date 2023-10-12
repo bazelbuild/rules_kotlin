@@ -71,3 +71,21 @@ kt_jvm_test(
         "@kotlin_rules_maven//:com_google_truth_truth",
     ],
 )
+
+test_suite(
+    name = "worker_tests",
+    tests = [
+        ":IOTest",
+        ":InvocationWorkerTest",
+        ":JavaPersistentWorkerTest",
+        ":WorkerContextTest",
+        ":WorkerEnvironmentTest",
+    ],
+)
+
+test_suite(
+    name = "local_worker_tests",
+    tests = [
+        ":worker_tests",
+    ],
+)

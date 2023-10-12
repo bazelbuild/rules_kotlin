@@ -48,5 +48,10 @@ kt_jvm_test(
 )
 
 test_suite(
-    name = "utils",
+    name = "utils_tests",
+    tests = [
+        ":ArgMapTest",
+        ":JarCreatorTest",
+        ":SourceJarCreatorTest",
+    ],
 )
