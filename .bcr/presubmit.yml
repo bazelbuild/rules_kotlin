@@ -6,21 +6,13 @@ tasks:
     name: "Verify build targets"
     platform: ${{ platform }}
     build_flags:
-      - "--enable_bzlmod=false"
-    test_flags:
-      - "--enable_bzlmod=false"
-    test_targets:
-      - "//:all_tests"
+      - "--enable_bzlmod=true"
     build_targets:
-      - "//:rules_kotlin_release"
+      - "@rules_kotlin//..."
   verify_targets_bzlmod:
     name: "Verify build targets"
     platform: ${{ platform }}
     build_flags:
       - "--enable_bzlmod=true"
-    test_flags:
-      - "--enable_bzlmod=true"
-    test_targets:
-      - "//:all_tests"
     build_targets:
-      - "//:rules_kotlin_release"
+      - "@rules_kotlin//..."
