@@ -41,6 +41,6 @@ maven_install(
     ],
 )
 
-load("@build_bazel_rules_android//android:rules.bzl", "android_sdk_repository")
+load("@rules_android//android:rules.bzl", "android_sdk_repository")
 
 android_sdk_repository(name = "androidsdk")
