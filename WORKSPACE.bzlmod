@@ -1,0 +1,7 @@
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("@rules_android//android:rules.bzl", "android_sdk_repository")
+
+maybe(
+    android_sdk_repository,
+    name = "androidsdk",
+)
