@@ -13,7 +13,7 @@
 # limitations under the License.
 workspace(name = "rules_kotlin")
 
-load("//src/main/starlark/core/repositories:download.bzl", "kt_download_local_dev_dependencies")
+load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
