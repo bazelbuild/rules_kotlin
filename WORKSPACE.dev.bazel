@@ -13,7 +13,7 @@
 # limitations under the License.
 workspace(name = "rules_kotlin")
 
-load("//src/main/starlark/core/repositories:download.bzl", "kt_download_local_dev_dependencies")
+load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
@@ -22,3 +22,11 @@ load("//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories()
 
 register_toolchains("@rules_kotlin//kotlin/internal:default_toolchain")
+
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("@rules_android//android:rules.bzl", "android_sdk_repository")
+
+maybe(
+    android_sdk_repository,
+    name = "androidsdk",
+)
