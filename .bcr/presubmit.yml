@@ -6,7 +6,7 @@ tasks:
     name: "Verify build targets"
     platform: ${{ platform }}
     build_flags:
-      - "--enable_bzlmod=true"
+      - "--enable_bzlmod=false"
     build_targets:
       - "@rules_kotlin//..."
   verify_targets_bzlmod:
