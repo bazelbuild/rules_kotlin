@@ -88,3 +88,5 @@ http_archive(
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 
 robolectric_repositories()
+
+android_ndk_repository(name = "androidndk")

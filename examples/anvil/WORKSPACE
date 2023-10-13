@@ -28,6 +28,8 @@ load("@rules_android//android:rules.bzl", "android_sdk_repository")
 
 android_sdk_repository(name = "androidsdk")
 
+android_ndk_repository(name = "androidndk")
+
 # Skylib, for build_test, so don't bother initializing the unit test infrastructure.
 http_archive(
     name = "bazel_skylib",

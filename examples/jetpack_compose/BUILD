@@ -25,3 +25,11 @@ kt_compiler_plugin(
         "@maven//:androidx_compose_compiler_compiler",
     ],
 )
+
+platform(
+    name = "arm64-v8a",
+    constraint_values = [
+        "@platforms//cpu:arm64",
+        "@platforms//os:android",
+    ],
+)
