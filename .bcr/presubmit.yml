@@ -8,4 +8,6 @@ tasks:
     build_flags:
       - "--enable_bzlmod=true"
     build_targets:
-      - "@rules_kotlin//..."
+      - "@rules_kotlin//kotlin/..."
+      - "@rules_kotlin//src/..."
+      - "@rules_kotlin//third_party/..."
