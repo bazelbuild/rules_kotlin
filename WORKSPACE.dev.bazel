@@ -23,10 +23,6 @@ kotlin_repositories()
 
 register_toolchains("@rules_kotlin//kotlin/internal:default_toolchain")
 
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("@rules_android//android:rules.bzl", "android_sdk_repository")
+android_sdk_repository(name = "androidsdk")
 
-maybe(
-    android_sdk_repository,
-    name = "androidsdk",
-)
+android_ndk_repository(name = "androidndk")
