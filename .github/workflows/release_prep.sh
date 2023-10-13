@@ -9,7 +9,7 @@ TAG=${GITHUB_REF_NAME}
 PREFIX="rules_kotlin-${TAG:1}"
 ARCHIVE="rules_kotlin-$TAG.tar.gz"
 bazelisk build //:rules_kotlin_release
-cp bazel-bin/rules_kotlin_release.tgz > $ARCHIVE
+cp bazel-bin/rules_kotlin_release.tgz $ARCHIVE
 SHA=$(shasum -a 256 $ARCHIVE | awk '{print $1}')
 
 cat << EOF
