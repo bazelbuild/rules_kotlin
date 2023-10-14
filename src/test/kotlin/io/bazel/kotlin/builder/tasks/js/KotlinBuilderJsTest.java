@@ -1,12 +1,12 @@
 package io.bazel.kotlin.builder.tasks.js;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.KotlinJsTestBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(JUnit4.class)
 public class KotlinBuilderJsTest {
@@ -62,9 +62,12 @@ public class KotlinBuilderJsTest {
     builder.runFailingCompileTaskAndValidateOutput(
         () ->
             builder.runCompilationTask(
-                it -> it.addSource("AClass.kt", "package something", "class AClass{")),
+                it -> {
+                    it.addSource("AClass.kt", "package something", "class AClass{");
+                    it.addDependency(stdLib.singleCompileJar());
+                }),
         lines ->
             assertThat(lines)
-                .contains(builder.toPlatform("sources/AClass.kt:2:14: error: missing '}")));
+                .contains("sources/AClass.kt:2:14: error: missing '}"));
   }
 }

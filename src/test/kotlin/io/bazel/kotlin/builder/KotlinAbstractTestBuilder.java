@@ -49,8 +49,7 @@ abstract class KotlinAbstractTestBuilder<T> {
             FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"));
 
     private static final AtomicInteger counter = new AtomicInteger(0);
-    private final CompilationTaskInfo.Builder infoBuilder = CompilationTaskInfo.newBuilder()
-        .addDebug("trace");
+    private final CompilationTaskInfo.Builder infoBuilder = CompilationTaskInfo.newBuilder();
     private Path instanceRoot = null;
     private String label = null;
     private List<String> outLines = null;

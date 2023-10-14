@@ -44,7 +44,6 @@ public final class KotlinJsTestBuilder extends KotlinAbstractTestBuilder<JsCompi
     taskBuilder.clear().setInfo(infoBuilder);
     DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
     taskBuilder.addAllPassThroughFlags(PASSTHROUGH_FLAGS);
-    infoBuilder.addDebug("trace");
     try {
       taskBuilder.getDirectoriesBuilder().setTemp(
           Files.createDirectories(directory(DirectoryType.TEMP).resolve("working")).toString());
