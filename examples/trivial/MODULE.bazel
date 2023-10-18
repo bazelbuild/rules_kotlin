@@ -2,6 +2,7 @@ module(name = "trival-example")
 
 bazel_dep(name = "rules_java", version = "6.4.0")
 bazel_dep(name = "rules_kotlin")
+
 local_path_override(
     module_name = "rules_kotlin",
     path = "../..",
@@ -10,6 +11,7 @@ local_path_override(
 bazel_dep(name = "rules_jvm_external", version = "5.3")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+
 maven.install(
     artifacts = [
         "com.expedia:graphql-kotlin:1.0.0-RC5",
@@ -28,4 +30,5 @@ maven.install(
         "https://repo1.maven.org/maven2",
     ],
 )
+
 use_repo(maven, "maven")
