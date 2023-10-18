@@ -17,59 +17,81 @@ package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JsCompilationTask;
-
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Consumer;
 
 public final class KotlinJsTestBuilder extends KotlinAbstractTestBuilder<JsCompilationTask> {
-    private static final List<String> PASSTHROUGH_FLAGS =
-            Arrays.asList("-source-map", "-meta-info", "-module-kind", "commonjs", "-target", "v5");
-    private static final JsCompilationTask.Builder taskBuilder = JsCompilationTask.newBuilder();
-    private static final KotlinBuilderComponent component =
-            DaggerKotlinBuilderComponent.builder().toolchain(toolchainForTest()).build();
-    private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
-            EnumSet.of(DirectoryType.SOURCES);
-    private final TaskBuilder taskBuilderInstance = new TaskBuilder();
+  private static final List<String> PASSTHROUGH_FLAGS =
+      Arrays.asList("-source-map", "-module-kind", "commonjs", "-target", "v5",  "-Xir-produce-klib-dir");
+  private static final JsCompilationTask.Builder taskBuilder = JsCompilationTask.newBuilder();
+  private static final KotlinBuilderComponent component =
+      DaggerKotlinBuilderComponent.builder().toolchain(toolchainForTest()).build();
+  private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
+      EnumSet.allOf(DirectoryType.class);
+  private final TaskBuilder taskBuilderInstance = new TaskBuilder();
 
-    @Override
-    JsCompilationTask buildTask() {
-        return taskBuilder.build();
+  @Override
+  JsCompilationTask buildTask() {
+    return taskBuilder.build();
+  }
+
+  @Override
+  void setupForNext(CompilationTaskInfo.Builder infoBuilder) {
+    taskBuilder.clear().setInfo(infoBuilder);
+    DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
+    taskBuilder.addAllPassThroughFlags(PASSTHROUGH_FLAGS);
+    try {
+      taskBuilder.getDirectoriesBuilder().setTemp(
+          Files.createDirectories(directory(DirectoryType.TEMP).resolve("working")).toString());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    taskBuilder
+        .getOutputsBuilder()
+        .setJar(directory(DirectoryType.TEMP).resolve(label() + ".jar").toAbsolutePath().toString())
+        .setSrcjar(directory(DirectoryType.TEMP).resolve(label() + "-sources.jar").toAbsolutePath().toString())
+        .setJs(directory(DirectoryType.TEMP).resolve(label() + ".js").toAbsolutePath().toString());
+  }
+
+  public String runCompilationTask(Consumer<TaskBuilder> setup, Consumer<List<String>> outlines) {
+    resetForNext();
+    setup.accept(taskBuilderInstance);
+    try {
+    return runCompileTask(
+        (taskContext, task) -> {
+          component.jsTaskExecutor().execute(taskContext, task);
+          String jsFile = task.getOutputs().getJs();
+          assertFilesExist(
+              jsFile,
+              jsFile + ".map",
+              task.getOutputs().getJar(),
+              task.getOutputs().getSrcjar());
+          return task.getOutputs().getJar();
+        });
+    } finally{
+      outlines.accept(outLines());
+    }
+  }
+
+  public void runCompilationTask(Consumer<TaskBuilder> setup) {
+    runCompilationTask(setup, l -> {});
+  }
+
+  public final class TaskBuilder {
+    public void addSource(String filename, String... lines) {
+      taskBuilder.getInputsBuilder().addKotlinSources(writeSourceFile(filename, lines).toString());
     }
 
-    @Override
-    void setupForNext(CompilationTaskInfo.Builder infoBuilder) {
-        taskBuilder.clear().setInfo(infoBuilder);
-        DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
-        taskBuilder.addAllPassThroughFlags(PASSTHROUGH_FLAGS);
-        taskBuilder
-                .getOutputsBuilder()
-                .setJar(instanceRoot().resolve(label() + ".jar").toAbsolutePath().toString())
-                .setSrcjar(instanceRoot().resolve(label() + "-sources.jar").toAbsolutePath().toString())
-                .setJs(instanceRoot().resolve(label() + ".js").toAbsolutePath().toString());
+    public void addDependency(String filename) {
+      taskBuilder.getInputsBuilder().addLibraries(filename);
     }
 
-    public void runCompilationTask(Consumer<TaskBuilder> setup) {
-        resetForNext();
-        setup.accept(taskBuilderInstance);
-        runCompileTask(
-                (taskContext, task) -> {
-                    component.jsTaskExecutor().execute(taskContext, task);
-                    String jsFile = task.getOutputs().getJs();
-                    assertFilesExist(
-                            jsFile,
-                            jsFile + ".map",
-                            jsFile.substring(0, jsFile.length() - 3) + ".meta.js",
-                            task.getOutputs().getJar(),
-                            task.getOutputs().getSrcjar());
-                    return null;
-                });
+    public void addArg(String flag) {
+      taskBuilder.addPassThroughFlags(flag );
     }
-
-    public final class TaskBuilder {
-        public void addSource(String filename, String... lines) {
-            taskBuilder.getInputsBuilder().addKotlinSources(writeSourceFile(filename, lines).toString());
-        }
-    }
+  }
 }

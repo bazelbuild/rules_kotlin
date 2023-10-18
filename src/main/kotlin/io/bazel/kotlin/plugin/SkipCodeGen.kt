@@ -17,10 +17,9 @@
 package io.bazel.kotlin.plugin
 
 import com.google.common.base.Preconditions
-import com.intellij.mock.MockProject
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.context.ProjectContext
@@ -33,20 +32,17 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
  *  SkipCodeGen registers an extension to skip code generation. Must be the last compiler plugin.
  */
 @OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
-class SkipCodeGen : ComponentRegistrar {
+class SkipCodeGen : CompilerPluginRegistrar() {
+
+  override val supportsK2: Boolean
+    get() = false
+
+  override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+    AnalysisHandlerExtension.registerExtension(SkipCodeGen)
+  }
 
   companion object {
     val COMPILER_PLUGIN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"
-  }
-
-  override fun registerProjectComponents(
-    project: MockProject,
-    configuration: CompilerConfiguration,
-  ) {
-    AnalysisHandlerExtension.registerExtension(
-      project,
-      SkipCodeGen,
-    )
   }
 
   /**
@@ -71,7 +67,7 @@ class SkipCodeGen : ComponentRegistrar {
       module: ModuleDescriptor,
       bindingTrace: BindingTrace,
       files: Collection<KtFile>,
-    ): AnalysisResult? {
+    ): AnalysisResult {
       // Ensure this is the last plugin, as it will short circuit any other plugin analysisCompleted
       // calls.
       Preconditions.checkState(

@@ -30,6 +30,10 @@ kt_js_library(
 kt_js_library(
     name = "app",
     srcs = [":App.kt"],
+    tags = [
+        "timings",
+        "trace",
+    ],
     deps = [
         ":acme-routes",
         "//:kotlinx-coroutines-core",

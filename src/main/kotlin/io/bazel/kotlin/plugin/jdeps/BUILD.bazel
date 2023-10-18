@@ -33,7 +33,7 @@ kt_bootstrap_library(
 generate_jvm_service(
     name = "jdeps-gen-services",
     services = {
-        "io.bazel.kotlin.plugin.jdeps.JdepsGenComponentRegistrar": "org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar",
+        "io.bazel.kotlin.plugin.jdeps.JdepsGenComponentRegistrar": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",
         "io.bazel.kotlin.plugin.jdeps.JdepsGenCommandLineProcessor": "org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor",
     },
 )

@@ -59,26 +59,26 @@ public class KotlinBuilderJvmBasicTest {
     public void testSimpleMixedModeCompile() {
         ctx.runCompileTask(
                 c -> {
-          c.compileKotlin();
-          c.addSource(
-              "AClass.kt",
-              "package something;" + "class AClass{}"
-          );
-          c.outputJar();
-          c.outputJdeps();
-        });
+                    c.compileKotlin();
+                    c.addSource(
+                            "AClass.kt",
+                            "package something;" + "class AClass{}"
+                    );
+                    c.outputJar();
+                    c.outputJdeps();
+                });
         ctx.assertFilesExist(DirectoryType.CLASSES, "something/AClass.class");
     }
 
     @Test
     public void testGeneratesJDeps() {
-    ctx.runCompileTask(
-        c -> {
-          c.addSource("AClass.kt", "package something;" + "class AClass{}");
-          // declaring outputJdeps also asserts existance after compile.
-          c.outputJar().outputJdeps().compileKotlin();
-        });
-  }
+        ctx.runCompileTask(
+                c -> {
+                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                    // declaring outputJdeps also asserts existance after compile.
+                    c.outputJar().outputJdeps().compileKotlin();
+                });
+    }
 
     @Test
     public void testKotlinErrorRendering() {
