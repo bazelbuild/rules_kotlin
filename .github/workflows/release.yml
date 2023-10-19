@@ -10,9 +10,6 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: android-actions/setup-android@v3
-      - uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v4
-        with:
-          release_files: rules_kotlin-*.tar.gz
+    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v4
+    with:
+      release_files: rules_kotlin-*.tar.gz
