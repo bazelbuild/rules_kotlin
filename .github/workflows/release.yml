@@ -29,7 +29,7 @@ jobs:
         env:
           # Bazelisk will download bazel to here.
           XDG_CACHE_HOME: ~/.cache/bazel-repo
-        run: .github/workflows/release_prep.sh ${{ env.GITHUB_REF_NAME }} > release_notes.txt
+        run: .github/workflows/release_prep.sh ${{ env.GITHUB_REF_NAME }}
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
