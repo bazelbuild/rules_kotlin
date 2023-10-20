@@ -8,7 +8,7 @@ TAG=${GITHUB_REF_NAME}
 # The prefix is chosen to match what GitHub generates for source archives
 PREFIX="rules_kotlin-${TAG:1}"
 ARCHIVE="rules_kotlin-$TAG.tar.gz"
-bazelisk build //:rules_kotlin_release
+bazel --bazelrc=.github/workflows/ci.bazelrc --bazelrc=.bazelrc build //:rules_kotlin_release
 cp bazel-bin/rules_kotlin_release.tgz $ARCHIVE
 SHA=$(shasum -a 256 $ARCHIVE | awk '{print $1}')
 
