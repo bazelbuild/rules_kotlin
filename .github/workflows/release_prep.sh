@@ -12,7 +12,9 @@ bazel --bazelrc=.github/workflows/ci.bazelrc --bazelrc=.bazelrc build //:rules_k
 cp bazel-bin/rules_kotlin_release.tgz $ARCHIVE
 SHA=$(shasum -a 256 $ARCHIVE | awk '{print $1}')
 
-cat << EOF
+# Write the release notes to release_notes.txt
+cat > release_notes.txt << EOF
+# Release notes for $TAG
 ## Using Bzlmod with Bazel 6
 
 1. Enable with \`common --enable_bzlmod\` in \`.bazelrc\`.
@@ -24,7 +26,7 @@ bazel_dep(name = "rules_kotlin", version = "${TAG:1}")
 
 ## Using WORKSPACE
 
-Paste this snippet into your `WORKSPACE.bazel` file:
+Paste this snippet into your \`WORKSPACE.bazel\` file:
 
 \`\`\`starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -35,5 +37,3 @@ http_archive(
     url = "https://github.com/buildfoundation/rules_kotlin/releases/download/${TAG}/${ARCHIVE}",
 )
 EOF
-
-echo "\`\`\`"
