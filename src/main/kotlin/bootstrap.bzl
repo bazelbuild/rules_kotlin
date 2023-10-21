@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
-load("//third_party:jarjar.bzl", "jar_jar")
 load("//kotlin:jvm.bzl", _for_ide = "kt_jvm_library")
 load("//kotlin:lint.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
+load("//third_party:jarjar.bzl", "jar_jar")
 
 _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
 
@@ -64,8 +64,8 @@ CP="%s"
 ARGS="%s"
 
 CMD="$(JAVA) -Xmx256M -Xms32M -noverify \
-      -cp $(location @com_github_jetbrains_kotlin//:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
-      -cp $(location @com_github_jetbrains_kotlin//:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
+      -cp $(location //kotlin/compiler:kotlin-preloader) org.jetbrains.kotlin.preloading.Preloader \
+      -cp $(location //kotlin/compiler:kotlin-compiler) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
       $$CP -d $(@D)/$${NAME}_temp.jar $${ARGS} $(SRCS)"
 
 $$CMD
@@ -91,8 +91,8 @@ rm $(@D)/$${NAME}_temp.jar
         name = jar_label,
         tools = [
             "@com_github_jetbrains_kotlin//:home",
-            "@com_github_jetbrains_kotlin//:kotlin-preloader",
-            "@com_github_jetbrains_kotlin//:kotlin-compiler",
+            "//kotlin/compiler:kotlin-preloader",
+            "//kotlin/compiler:kotlin-compiler",
             "@bazel_tools//tools/jdk:singlejar",
             dep_label,
         ],

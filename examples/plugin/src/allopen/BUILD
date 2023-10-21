@@ -1,5 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_compiler_plugin(
     name = "open_for_testing_plugin",
@@ -10,7 +10,7 @@ kt_compiler_plugin(
     },
     stubs_phase = True,
     deps = [
-        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        "@rules_kotlin//kotlin/compiler:allopen-compiler-plugin",
     ],
 )
 

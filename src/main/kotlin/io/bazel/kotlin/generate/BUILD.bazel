@@ -4,8 +4,8 @@ kt_jvm_library(
     name = "kotlin_release_options_lib",
     srcs = glob(["**/*.kt"]),
     deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
-        "@com_github_jetbrains_kotlin//:kotlin-reflect",
+        "//kotlin/compiler:kotlin-compiler",
+        "//kotlin/compiler:kotlin-reflect",
     ],
 )
 

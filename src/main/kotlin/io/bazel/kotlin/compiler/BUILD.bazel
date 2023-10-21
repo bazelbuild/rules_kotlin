@@ -20,9 +20,9 @@ kt_bootstrap_library(
     name = "compiler",
     srcs = glob(["*.kt"]),
     neverlink_deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
-        "@com_github_jetbrains_kotlin//:kotlin-annotation-processing",
-        "@com_github_jetbrains_kotlin//:kotlin-script-runtime",
+        "//kotlin/compiler:kotlin-compiler",
+        "//kotlin/compiler:kotlin-annotation-processing",
+        "//kotlin/compiler:kotlin-script-runtime",
     ],
     visibility = ["//src:__subpackages__"],
 )

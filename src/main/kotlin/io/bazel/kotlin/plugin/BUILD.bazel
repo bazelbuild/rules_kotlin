@@ -13,8 +13,8 @@
 # limitations under the License.
 
 load("@rules_java//java:defs.bzl", "java_binary")
-load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 load("//kotlin/internal/utils:generate_jvm_service.bzl", "generate_jvm_service")
+load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
 # The compiler binary, this is co-located in the kotlin compiler classloader.
 kt_bootstrap_library(
@@ -22,7 +22,7 @@ kt_bootstrap_library(
     srcs = glob(["*.kt"]),
     visibility = ["//src:__subpackages__"],
     deps = [
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
+        "//kotlin/compiler:kotlin-compiler",
     ],
 )
 
@@ -30,7 +30,7 @@ kt_bootstrap_library(
 generate_jvm_service(
     name = "skip-code-gen-services",
     services = {
-        "io.bazel.kotlin.plugin.SkipCodeGen": "org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar",
+        "io.bazel.kotlin.plugin.SkipCodeGen": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",
     },
 )
 

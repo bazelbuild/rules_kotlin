@@ -1,3 +1,12 @@
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KtJsInfo = "KtJsInfo",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +27,6 @@ load(
     "kt_javac_options",
     "kt_kotlinc_options",
 )
-load(
-    "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-    _KtJsInfo = "KtJsInfo",
-    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
-)
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 """Kotlin Toolchains
 
@@ -35,7 +37,7 @@ This file contains macros for defining and registering specific toolchains.
 To override a tool chain use the appropriate macro in a `BUILD` file to declare the toolchain:
 
 ```bzl
-load("@io_bazel_rules_kotlin//kotlin:toolchains.bzl", "define_kt_toolchain")
+load("@rules_kotlin//kotlin:toolchains.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name= "custom_toolchain",
@@ -90,6 +92,7 @@ def _kotlin_toolchain_impl(ctx):
         empty_jar = ctx.file._empty_jar,
         empty_jdeps = ctx.file._empty_jdeps,
         jacocorunner = ctx.attr.jacocorunner,
+        experimental_prune_transitive_deps = ctx.attr._experimental_prune_transitive_deps[BuildSettingInfo].value,
     )
 
     return [
@@ -131,6 +134,7 @@ _kt_toolchain = rule(
                 "1.6",
                 "1.7",
                 "1.8",
+                "1.9",
             ],
         ),
         "api_version": attr.string(
@@ -145,6 +149,7 @@ _kt_toolchain = rule(
                 "1.6",
                 "1.7",
                 "1.8",
+                "1.9",
             ],
         ),
         "debug": attr.string_list(
@@ -157,7 +162,7 @@ _kt_toolchain = rule(
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
             default = [
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
+                Label("//kotlin/compiler:kotlin-stdlib"),
             ],
             providers = [JavaInfo],
             cfg = "target",
@@ -165,12 +170,12 @@ _kt_toolchain = rule(
         "jvm_stdlibs": attr.label_list(
             doc = "The jvm stdlibs. This is internal.",
             default = [
-                Label("@" + _KT_COMPILER_REPO + "//:annotations"),
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib"),
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk7"),
+                Label("//kotlin/compiler:annotations"),
+                Label("//kotlin/compiler:kotlin-stdlib"),
+                Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
                 # JDK8 is being added blindly but I think we will probably not support bytecode levels 1.6 when the
                 # repo stabelizes so this should be fine.
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-jdk8"),
+                Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
             ],
             providers = [JavaInfo],
             cfg = "target",
@@ -197,7 +202,7 @@ _kt_toolchain = rule(
         ),
         "js_stdlibs": attr.label_list(
             default = [
-                Label("@" + _KT_COMPILER_REPO + "//:kotlin-stdlib-js"),
+                Label("//kotlin/compiler:kotlin-stdlib-js"),
             ],
             providers = [_KtJsInfo],
         ),
@@ -258,6 +263,12 @@ _kt_toolchain = rule(
         ),
         "jacocorunner": attr.label(
             default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
+        ),
+        "_experimental_prune_transitive_deps": attr.label(
+            doc = """If enabled, compilation is performed against only direct dependencies.
+            Transitive deps required for compilation must be explicitly added. Using
+            kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
+            default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
         ),
         "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),
     },

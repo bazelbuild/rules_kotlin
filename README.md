@@ -59,15 +59,15 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 rules_kotlin_version = "1.8"
 rules_kotlin_sha = "01293740a16e474669aba5b5a1fe3d368de5832442f164e4fbfc566815a8bc3a"
 http_archive(
-    name = "io_bazel_rules_kotlin",
+    name = "rules_kotlin",
     urls = ["https://github.com/bazelbuild/rules_kotlin/releases/download/v%s/rules_kotlin_release.tgz" % rules_kotlin_version],
     sha256 = rules_kotlin_sha,
 )
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
 
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
 
@@ -76,7 +76,7 @@ kt_register_toolchains() # to use the default toolchain, otherwise see toolchain
 In your project's `BUILD` files, load the Kotlin rules and use them like so:
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_jvm_library(
     name = "package_name",
@@ -93,13 +93,13 @@ To enable a custom toolchain (to configure language level, etc.)
 do the following.  In a `<workspace>/BUILD.bazel` file define the following:
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", "1.4", "1.5" "1.6", or "1.7"
+    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", "1.4", "1.5" "1.6", "1.7", "1.8", or "1.9"
     jvm_target = JAVA_LANGUAGE_LEVEL, # "1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", or "17"
-    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", "1.4", "1.5" "1.6", or "1.7"
+    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", "1.4", "1.5" "1.6", "1.7", "1.8", or "1.9"
 )
 ```
 
@@ -115,7 +115,7 @@ To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), d
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version")
 
 kotlin_repositories(
     compiler_release = kotlinc_version(
@@ -141,19 +141,19 @@ In the project's `WORKSPACE`, change the setup:
 
 # Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
 local_repository(
-    name = "io_bazel_rules_kotlin",
+    name = "rules_kotlin",
     path = "../path/to/rules_kotlin_clone/",
 )
 
-load("@io_bazel_rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+load("@rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
 
 kt_download_local_dev_dependencies()
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 kotlin_repositories()
 
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
 kt_register_toolchains()
 ```
@@ -164,16 +164,16 @@ rules to this:
 ```python
 # Download master or specific revisions
 http_archive(
-    name = "io_bazel_rules_kotlin",
+    name = "rules_kotlin",
     strip_prefix = "rules_kotlin-master",
     urls = ["https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip"],
 )
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
 kt_register_toolchains()
 ```
@@ -185,10 +185,10 @@ To attach debugger and step through native action code when using local checkout
 1. Open `rules_kotlin` project in Android Studio, using existing `.bazelproject` file as project view.
 2. In terminal, build the kotlin target you want to debug, using the subcommand option, ex: `bazel build //lib/mylib:main_kt -s`. You can also use `bazel aquery` to get this info.
 3. Locate the subcommand for the kotlin action you want to debug, let's say `KotlinCompile`. Note: If you don't see it, target rebuild may have been skipped (in this case `touch` one of the source .kt file to trigger rebuild).
-4. Export `REPOSITORY_NAME` as specified in action env, ex : `export REPOSITORY_NAME=io_bazel_rules_kotlin`
-5. Copy the command line, ex : `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/io_bazel_rules_kotlin/src/main/kotlin/build '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`
+4. Export `REPOSITORY_NAME` as specified in action env, ex : `export REPOSITORY_NAME=rules_kotlin`
+5. Copy the command line, ex : `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/rules_kotlin/src/main/kotlin/build '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`
 6. Change directory into the [execRoot](https://bazel.build/remote/output-directories#layout-diagram), normally `bazel-MYPROJECT`, available via `bazel info | grep execution_root`.
-7. Add `--debug=5005` to command line to make the action wait for a debugger to attach, ex: `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/io_bazel_rules_kotlin/src/main/kotlin/build --debug=5005 '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`. Note: if command invokes `java` toolchain directly, use `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` instead.
+7. Add `--debug=5005` to command line to make the action wait for a debugger to attach, ex: `bazel-out/darwin_arm64-opt-exec-2B5CBBC6/bin/external/rules_kotlin/src/main/kotlin/build --debug=5005 '--flagfile=bazel-out/darwin_arm64-fastbuild/bin/lib/mylib/main_kt-kt.jar-0.params'`. Note: if command invokes `java` toolchain directly, use `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` instead.
 8. You should see in output that action is waiting for debugger. Use a default `Remote JVM Debug` configuration in Android Studio, set breakpoint in kotlin action java/kt code, and attach debugger. Breakpoints should be hit.
 
 # Kotlin and Java compiler flags
@@ -199,7 +199,7 @@ Note: Not all compiler flags are supported in all language versions. When this h
 
 For example you can define global compiler flags by doing: 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
+load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options", "define_kt_toolchain")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
@@ -225,8 +225,8 @@ Compiler flags that are passed to the rule definitions will be taken over the to
 
 Example:
 ```python
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options")
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
@@ -270,8 +270,8 @@ A few things to note:
   ```
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_ksp_plugin(
     name = "moshi-kotlin-codegen",
@@ -294,7 +294,7 @@ To choose a different `ksp_version` distribution,
 do the following in your `WORKSPACE` file (or import from a `.bzl` file):
 
 ```python
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "ksp_version")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "ksp_version")
 
 kotlin_repositories(
     ksp_compiler_release = ksp_version(
@@ -310,8 +310,8 @@ The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no
 
 For example, you can add allopen to your project like this:
 ```python
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_compiler_plugin(
     name = "open_for_testing_plugin",
@@ -320,7 +320,7 @@ kt_compiler_plugin(
         "annotation": "plugin.allopen.OpenForTesting",
     },
     deps = [
-        "@com_github_jetbrains_kotlin//:allopen-compiler-plugin",
+        "//kotlin/compiler:allopen-compiler-plugin",
     ],
 )
 

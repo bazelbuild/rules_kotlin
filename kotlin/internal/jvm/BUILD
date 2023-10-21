@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files(["jetbrains-deshade.jarjar"])
 
@@ -31,6 +32,5 @@ bzl_library(
     deps = [
         "//third_party:bzl",
         "@bazel_skylib//rules:common_settings",
-        "@build_bazel_rules_android//android",
     ],
 )

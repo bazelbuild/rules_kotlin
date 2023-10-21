@@ -1,7 +1,6 @@
 package io.bazel.kotlin.plugin.jdeps
 
 import com.google.devtools.build.lib.view.proto.Deps
-import com.intellij.mock.MockProject
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import io.bazel.kotlin.builder.utils.jars.JarOwner
@@ -65,7 +64,6 @@ import java.nio.file.Paths
  * @param configuration the current compilation configuration
  */
 class JdepsGenExtension(
-  val project: MockProject,
   val configuration: CompilerConfiguration,
 ) :
   AnalysisHandlerExtension, StorageComponentContainerContributor {

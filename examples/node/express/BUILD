@@ -1,3 +1,5 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,8 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@io_bazel_rules_kotlin//kotlin:js.bzl", "kt_js_library")
-load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("@rules_kotlin//kotlin:js.bzl", "kt_js_library")
 
 # routes and auth have acme prepended to the rule name as these are the names of the resulting jars. The name of the
 # jar is the name of the module, and thus the name of the require statements.
@@ -29,6 +30,10 @@ kt_js_library(
 kt_js_library(
     name = "app",
     srcs = [":App.kt"],
+    tags = [
+        "timings",
+        "trace",
+    ],
     deps = [
         ":acme-routes",
         "//:kotlinx-coroutines-core",

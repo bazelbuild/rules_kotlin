@@ -31,8 +31,8 @@ versions = struct(
     # 1. Download archive
     # 2. Download dependencies and Configure rules
     # --> 3. Configure dependencies <--
-    SKYLIB_VERSION = "1.2.1",
-    SKYLIB_SHA = "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728",
+    SKYLIB_VERSION = "1.4.2",
+    SKYLIB_SHA = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
     PROTOBUF_VERSION = "3.11.3",
     PROTOBUF_SHA = "cf754718b0aa945b00550ed7962ddc167167bd922b842199eeb6505e6f344852",
     RULES_JVM_EXTERNAL_TAG = "5.3",
@@ -54,6 +54,7 @@ versions = struct(
         ],
     ),
     BAZEL_JAVA_LAUNCHER_VERSION = "6.2.1",
+    BAZEL_JAVA_LAUNCHER_SHA = "78e29525872594ffc783c825f428b3e61d4f3e632f46eaa64f004b2814c4a612",
     PINTEREST_KTLINT = version(
         version = "0.49.1",
         url_templates = [
@@ -62,18 +63,18 @@ versions = struct(
         sha256 = "2b3f6f674a944d25bb8d283c3539947bbe86074793012909a55de4b771f74bcc",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.8.21",
+        version = "1.9.10",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "6e43c5569ad067492d04d92c28cdf8095673699d81ce460bd7270443297e8fd7",
+        sha256 = "7d74863deecf8e0f28ea54c3735feab003d0eac67e8d3a791254b16889c20342",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "1.8.21-1.0.11",
+        version = "1.9.10-1.0.13",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "81a609b48fddd4431bac2abe3570e36f79b1266672be30b581a0595c3fb2e615",
+        sha256 = "5b0b1179e8af40877d9d5929ec0260afb104956eabf2f23bb5568cfd6c20b37b",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
@@ -95,12 +96,12 @@ versions = struct(
     ),
     # needed for rules_pkg and java
     RULES_PYTHON = version(
-        version = "0.20.0",
+        version = "0.23.1",
         strip_prefix_template = "rules_python-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_python/archive/refs/tags/{version}.tar.gz",
         ],
-        sha256 = "a644da969b6824cc87f8fe7b18101a8a6c57da5db39caa6566ec6109f37d2141",
+        sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
     ),
     # needed for rules_pkg and java
     RULES_JAVA = version(

@@ -1,6 +1,6 @@
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_compiler_plugin(
     name = "sam_with_receiver_plugin",
@@ -11,7 +11,7 @@ kt_compiler_plugin(
     },
     stubs_phase = True,
     deps = [
-        "@com_github_jetbrains_kotlin//:sam-with-receiver-compiler-plugin",
+        "@rules_kotlin//kotlin/compiler:sam-with-receiver-compiler-plugin",
     ],
 )
 

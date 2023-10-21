@@ -2,19 +2,34 @@
 validate_config: 1
 bazel: 6.3.2
 buildifier:
-  version: 6.1.0
+  version: 6.3.3
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
   ubuntu1804:
+    name: "Tests without Bzlmod (Ubuntu 18.04)"
+    build_flags:
+      - "--enable_bzlmod=false"
+    test_flags:
+      - "--enable_bzlmod=false"
+    test_targets:
+      - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
+  ubuntu2004_bzlmod:
+    name: "Tests (Ubuntu 20.04)"
+    platform: ubuntu2004
     test_targets:
       - "//:all_tests"
     build_targets:
       - "//:rules_kotlin_release"
   macos:
+    name: "Tests (Latest Macos)"
     test_targets:
       - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
   rbe_ubuntu1604:
     test_targets:
       - "--"
@@ -31,8 +46,24 @@ tasks:
     name: "Example - Android"
     platform: ubuntu1804
     working_directory: examples/android
+    bazel: last_green
+    test_flags:
+      - "--incompatible_enable_android_toolchain_resolution"
+      - "--android_platforms=//:arm64-v8a"
+      - "--enable_bzlmod=false"
     test_targets:
-      - //...
+      - //app:all
+  example-bzlmod-android:
+    name: "Example Bzlmod - Android"
+    platform: ubuntu1804
+    working_directory: examples/android
+    bazel: last_green
+    test_flags:
+      - "--incompatible_enable_android_toolchain_resolution"
+      - "--android_platforms=//:arm64-v8a"
+      - "--enable_bzlmod=true"
+    test_targets:
+      - //app:all
   example-ksp:
     name: "Example - Android KSP"
     platform: ubuntu1804
@@ -49,18 +80,53 @@ tasks:
     name: "Example - Anvil"
     platform: ubuntu1804
     working_directory: examples/anvil
+    bazel: last_green
+    test_flags:
+      - "--incompatible_enable_android_toolchain_resolution"
+      - "--android_platforms=//:arm64-v8a"
     test_targets:
-      - //...
+      - //app:all
   example-plugins:
     name: "Example - Plugins"
     platform: ubuntu1804
     working_directory: examples/plugin
     test_targets:
       - //...
+  example-multiplex:
+    name: "Example - Multiplex"
+    platform: ubuntu1804
+    working_directory: examples/multiplex
+    build_flags:
+      - "--enable_bzlmod=false"
+    build_targets:
+      - //...
+  example-bzlmod-multiplex:
+    name: "Example Bzlmod - Multiplex"
+    platform: ubuntu1804
+    working_directory: examples/multiplex
+    build_flags:
+      - "--enable_bzlmod=true"
+    build_targets:
+      - //...
   examples-trivial-ubuntu1804:
     name: "Example - Trivial (Ubuntu 18.04)"
     platform: ubuntu1804
     working_directory: examples/trivial
+    include_json_profile:
+      - build
+      - test
+    build_targets:
+      - //...
+    test_targets:
+      - //...
+  examples-trivial-bzlmod-ubuntu1804:
+    name: "Example - Trivial Bzlmod (Ubuntu 18.04)"
+    platform: ubuntu1804
+    working_directory: examples/trivial
+    build_flags:
+      - "--enable_bzlmod=true"
+    test_flags:
+      - "--enable_bzlmod=true"
     include_json_profile:
       - build
       - test
@@ -90,22 +156,26 @@ tasks:
       - test
     build_targets:
       - //...
-  examples-nodejs:
-    name: Example - Node
-    platform: ubuntu1804
-    working_directory: examples/node
-    include_json_profile:
-      - build
-      - test
-    build_targets:
-      - //coroutines-helloworld/...
-      - //express/...
+#  examples-nodejs:
+#    name: Example - Node
+#    platform: ubuntu1804
+#    working_directory: examples/node
+#    include_json_profile:
+#      - build
+#      - test
+#    build_targets:
+#      - //coroutines-helloworld/...
+#      - //express/...
   example-jetpack-compose:
     name: "Example - Jetpack Compose"
     platform: ubuntu1804
     working_directory: examples/jetpack_compose
+    bazel: last_green
+    test_flags:
+      - "--incompatible_enable_android_toolchain_resolution"
+      - "--android_platforms=//:arm64-v8a"
     test_targets:
-      - //...
+      - //app:all
   stardoc:
     name: Stardoc api documentation
     platform: ubuntu1804

@@ -11,9 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# io_bazel_rules_kotlin
-load("@{{.KotlinRulesRepository}}//kotlin:jvm.bzl", "kt_jvm_import")
-
 package(default_visibility = ["//visibility:public"])
 
 # KSP filegroup containing everything that might be needed
@@ -21,16 +18,3 @@ filegroup(
     name = "ksp",
     srcs = glob(["**"]),
 )
-
-# Create imports for all of the jars
-[
-    kt_jvm_import(
-        name = "%s" % jar,
-        jar = "%s.jar" % jar,
-    )
-    for jar in [
-        "symbol-processing",
-        "symbol-processing-api",
-        "symbol-processing-cmdline",
-    ]
-]

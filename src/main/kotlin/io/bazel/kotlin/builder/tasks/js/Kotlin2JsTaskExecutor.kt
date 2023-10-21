@@ -6,16 +6,17 @@ import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.SourceJarCreator
-import io.bazel.kotlin.builder.utils.resolveTwinVerified
 import io.bazel.kotlin.model.JsCompilationTask
-import java.io.FileOutputStream
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
+import java.util.stream.Collectors
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.io.path.absolute
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.nameWithoutExtension
 
 @Singleton
 class Kotlin2JsTaskExecutor @Inject constructor(
@@ -28,64 +29,64 @@ class Kotlin2JsTaskExecutor @Inject constructor(
     context: CompilationTaskContext,
     task: JsCompilationTask,
   ) {
-    task.compile(context)
-
-    val jsPath = fileSystem.getPath(task.outputs.js)
-    val jsMetaFile = jsPath.resolveTwinVerified(".meta.js")
-    val jsDirectory = Files.createDirectories(
-      fileSystem.getPath(task.directories.temp)
-        .resolve(jsPath.toFile().nameWithoutExtension),
-    )
-    task.createJar(
-      jsDirectory,
-      listOf(jsPath, jsPath.resolveTwinVerified(".js.map"), jsMetaFile),
-    )
-    // this mutates the jsPath file , so do it after creating the jar.
-    appendMetaToPrimary(jsPath, jsMetaFile)
+    val outputDirectory = task.compile(context)
+    task.createJar(outputDirectory)
     task.createSourceJar()
   }
 
-  private fun JsCompilationTask.compile(context: CompilationTaskContext) {
-    val args = mutableListOf<String>().also {
-      it.addAll(passThroughFlagsList)
-      it.addAll("-libraries", inputs.librariesList.joinToString(":"))
-      it.addAll("-output", outputs.js)
-      it.addAll("-Xuse-deprecated-legacy-compiler")
-      it.addAll(inputs.kotlinSourcesList)
+  private fun JsCompilationTask.compile(context: CompilationTaskContext): Path {
+    val jsOut = fileSystem.getPath(outputs.js)
+    val outputDirectory = jsOut.parent
+    val baseName = jsOut.fileName.nameWithoutExtension
+    val mapOut = outputDirectory.resolve("$baseName.js.map")
+    val workingDirectory = fileSystem.getPath(directories.temp)
+
+    val execRoot = fileSystem.getPath(".").absolute()
+
+    val args = mutableListOf<String>().apply {
+      addAll(passThroughFlagsList)
+      add("-Xdisable-default-scripting-plugin")
+      add("-Xir-produce-js")
+      add("-progressive")
+      add("-Xoptimize-generated-js=false")
+      addAll(
+        "-libraries",
+        inputs.librariesList.map { execRoot.resolve(it).absolutePathString() }.joinToString(":"),
+      )
+      addAll("-ir-output-name", baseName)
+      addAll("-ir-output-dir", workingDirectory.toString())
+      addAll("-Xir-module-name=${info.moduleName}")
+      addAll(inputs.kotlinSourcesList.map { execRoot.resolve(it).absolutePathString() })
     }
+
     context.whenTracing { printLines("js compile args", args) }
     context.executeCompilerTask(args, invoker::compile)
+    context.whenTracing {
+      printLines(
+        "outputs",
+        Files.walk(outputDirectory).map { p -> p.toString() }.collect(Collectors.toList()),
+      )
+    }
+    Files.copy(workingDirectory.resolve(jsOut.fileName), jsOut)
+    Files.copy(workingDirectory.resolve(mapOut.fileName), mapOut)
+
+    return workingDirectory
   }
 
   private fun JsCompilationTask.createSourceJar() {
     try {
-      SourceJarCreator(Paths.get(outputs.srcjar), false).also { creator ->
-        creator.addSources(inputs.kotlinSourcesList.map { Paths.get(it) }.stream())
+      SourceJarCreator(fileSystem.getPath(outputs.srcjar), false).also { creator ->
+        creator.addSources(inputs.kotlinSourcesList.map { fileSystem.getPath(it) }.stream())
       }.execute()
     } catch (ex: Throwable) {
       throw CompilationException("could not create source jar", ex)
     }
   }
 
-  /**
-   * Append the meta file to the JS file. This is an accepted pattern, and it allows us to not have to export the
-   * meta.js file with the js.
-   */
-  private fun appendMetaToPrimary(jsPath: Path, jsMetaFile: Path) {
+  private fun JsCompilationTask.createJar(jsDirectoryPath: Path) {
     try {
-      FileOutputStream(jsPath.toFile(), true).use { Files.copy(jsMetaFile, it) }
-    } catch (ex: Throwable) {
-      throw CompilationException("could not normalize js file", ex)
-    }
-  }
-
-  private fun JsCompilationTask.createJar(jsDirectoryPath: Path, rootEntries: List<Path>) {
-    try {
-      val outputJarPath = Paths.get(outputs.jar)
-
-      JarCreator(outputJarPath).also { creator ->
+      JarCreator(fileSystem.getPath(outputs.jar)).use { creator ->
         creator.addDirectory(jsDirectoryPath)
-        creator.addRootEntries(rootEntries.map { it.toString() })
         creator.execute()
       }
     } catch (ex: Throwable) {

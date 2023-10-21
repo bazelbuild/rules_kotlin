@@ -1,5 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 
 kt_compiler_plugin(
     name = "serialization_plugin",
@@ -7,7 +7,7 @@ kt_compiler_plugin(
     id = "org.jetbrains.kotlin.serialization",
     stubs_phase = True,
     deps = [
-        "@com_github_jetbrains_kotlin//:kotlinx-serialization-compiler-plugin",
+        "@rules_kotlin//kotlin/compiler:kotlinx-serialization-compiler-plugin",
     ],
 )
 

@@ -14,13 +14,13 @@
 """This file contains the Kotlin compiler repository definitions. It should not be loaded directly by client workspaces.
 """
 
-load(":setup.bzl", "kt_configure")
 load(
     ":initialize.release.bzl",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",
     _release_kotlin_repositories = "kotlin_repositories",
 )
+load(":setup.bzl", "kt_configure")
 load(":versions.bzl", _versions = "versions")
 
 #exports
@@ -29,6 +29,7 @@ kotlinc_version = _kotlinc_version
 ksp_version = _ksp_version
 
 def kotlin_repositories(
+        is_bzlmod = False,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -37,5 +38,9 @@ def kotlin_repositories(
         compiler_release: (internal) version provider from versions.bzl.
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
-    _release_kotlin_repositories(compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
+    _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
+
+    # When Bzlmod is enabled skip over the toolchain setup entirely
+    if is_bzlmod:
+        return
     kt_configure()

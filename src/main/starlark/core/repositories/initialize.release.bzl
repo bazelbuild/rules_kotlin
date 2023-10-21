@@ -15,17 +15,17 @@
 """
 
 load(
-    "//kotlin/internal:defs.bzl",
-    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-)
-load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
     "http_file",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("//src/main/starlark/core/repositories/kotlin:compiler.bzl", "kotlin_compiler_repository")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+)
+load(":compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
@@ -34,6 +34,7 @@ versions = _versions
 RULES_KOTLIN = Label("//:all")
 
 def kotlin_repositories(
+        is_bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
@@ -52,7 +53,6 @@ def kotlin_repositories(
         name = compiler_repository_name,
         urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
         sha256 = compiler_release.sha256,
-        kotlin_rules = RULES_KOTLIN.workspace_name,
         compiler_version = compiler_release.version,
     )
 
@@ -61,7 +61,6 @@ def kotlin_repositories(
         urls = [url.format(version = ksp_compiler_release.version) for url in ksp_compiler_release.url_templates],
         sha256 = ksp_compiler_release.sha256,
         strip_version = ksp_compiler_release.version,
-        kotlin_rules = RULES_KOTLIN.workspace_name,
     )
 
     http_file(
@@ -70,7 +69,7 @@ def kotlin_repositories(
                  versions.BAZEL_JAVA_LAUNCHER_VERSION +
                  "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
                  "java_stub_template.txt")],
-        sha256 = "78e29525872594ffc783c825f428b3e61d4f3e632f46eaa64f004b2814c4a612",
+        sha256 = versions.BAZEL_JAVA_LAUNCHER_SHA,
     )
 
     maybe(
@@ -83,11 +82,14 @@ def kotlin_repositories(
 
     maybe(
         http_archive,
-        name = "build_bazel_rules_android",
+        name = "rules_android",
         sha256 = versions.ANDROID.SHA,
         strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
         urls = versions.ANDROID.URLS,
     )
+
+    if is_bzlmod:
+        return
 
     versions.use_repository(
         name = "rules_python",

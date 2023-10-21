@@ -1,5 +1,5 @@
-load("@io_bazel_rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_compiler_plugin")
 load("@bazel_tools//tools/jdk:default_java_toolchain.bzl", "default_java_toolchain")
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_compiler_plugin")
 
 # Java Toolchain
 
@@ -23,5 +23,13 @@ kt_compiler_plugin(
     visibility = ["//visibility:public"],
     deps = [
         "@maven//:androidx_compose_compiler_compiler",
+    ],
+)
+
+platform(
+    name = "arm64-v8a",
+    constraint_values = [
+        "@platforms//cpu:arm64",
+        "@platforms//os:android",
     ],
 )

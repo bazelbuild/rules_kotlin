@@ -1,3 +1,9 @@
+load(
+    "@bazel_tools//tools/jdk:toolchain_utils.bzl",
+    "find_java_runtime_toolchain",
+    "find_java_toolchain",
+)
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,15 +17,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
-)
-load(
-    "//kotlin/internal/jvm:plugins.bzl",
-    _plugin_mappers = "mappers",
 )
 load(
     "//kotlin/internal:opts.bzl",
@@ -33,17 +36,16 @@ load(
     _associate_utils = "associate_utils",
 )
 load(
-    "//kotlin/internal/utils:utils.bzl",
-    _utils = "utils",
+    "//kotlin/internal/jvm:plugins.bzl",
+    _plugin_mappers = "mappers",
 )
 load(
     "//kotlin/internal/utils:sets.bzl",
     _sets = "sets",
 )
 load(
-    "@bazel_tools//tools/jdk:toolchain_utils.bzl",
-    "find_java_runtime_toolchain",
-    "find_java_toolchain",
+    "//kotlin/internal/utils:utils.bzl",
+    _utils = "utils",
 )
 
 # UTILITY ##############################################################################################################
@@ -89,7 +91,7 @@ def _compiler_toolchains(ctx):
         java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
     )
 
-def _jvm_deps(toolchains, associated_targets, deps, runtime_deps = []):
+def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
     diff = _sets.intersection(
         _sets.copy_of([x.label for x in associated_targets]),
@@ -101,16 +103,27 @@ def _jvm_deps(toolchains, associated_targets, deps, runtime_deps = []):
             ",\n ".join(["    %s" % x for x in list(diff)]),
         )
     dep_infos = [_java_info(d) for d in associated_targets + deps] + [toolchains.kt.jvm_stdlibs]
+
+    # Reduced classpath, exclude transitive deps from compilation
+    if (toolchains.kt.experimental_prune_transitive_deps and
+        not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
+        transitive = [
+            d.compile_jars
+            for d in dep_infos
+        ]
+    else:
+        transitive = [
+            d.compile_jars
+            for d in dep_infos
+        ] + [
+            d.transitive_compile_time_jars
+            for d in dep_infos
+        ]
+
     return struct(
         deps = dep_infos,
         compile_jars = depset(
-            transitive = [
-                d.compile_jars
-                for d in dep_infos
-            ] + [
-                d.transitive_compile_time_jars
-                for d in dep_infos
-            ],
+            transitive = transitive,
         ),
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
@@ -514,6 +527,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     srcs = _partitioned_srcs(ctx.files.srcs)
     associates = _associate_utils.get_associates(ctx)
     compile_deps = _jvm_deps(
+        ctx,
         toolchains,
         associates.targets,
         deps = ctx.attr.deps,
@@ -619,6 +633,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
             transitive_compile_time_jars = java_info.transitive_compile_time_jars,
             transitive_source_jars = java_info.transitive_source_jars,
             annotation_processing = annotation_processing,
+            additional_generated_source_jars = generated_src_jars,
+            all_output_jars = output_jars,
         ),
     )
 

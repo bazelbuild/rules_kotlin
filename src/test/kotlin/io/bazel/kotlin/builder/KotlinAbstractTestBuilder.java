@@ -96,7 +96,7 @@ abstract class KotlinAbstractTestBuilder<T> {
 
     public final void resetForNext() {
         outLines = null;
-        label = "a_test_" + counter.incrementAndGet();
+        label = "a-test-" + counter.incrementAndGet();
         infoBuilder
                 .setLabel("//some/bogus:" + label())
                 .setModuleName("some_bogus_module")
@@ -106,9 +106,9 @@ abstract class KotlinAbstractTestBuilder<T> {
                         KotlinToolchainInfo.newBuilder()
                                 .setCommon(
                                         KotlinToolchainInfo.Common.newBuilder()
-                                                .setApiVersion("1.6")
+                                                .setApiVersion("1.8")
                                                 .setCoroutines("enabled")
-                                                .setLanguageVersion("1.6"))
+                                                .setLanguageVersion("1.8"))
                                 .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
         try {
             this.instanceRoot = Files.createTempDirectory(BAZEL_TEST_DIR, label);
@@ -129,6 +129,11 @@ abstract class KotlinAbstractTestBuilder<T> {
 
     final Path writeFile(DirectoryType dirType, String filename, String[] lines) {
         Path path = directory(dirType).resolve(filename).toAbsolutePath();
+        try {
+            Files.createDirectories(path.getParent());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
             fos.write(String.join("\n", lines).getBytes(UTF_8));
         } catch (IOException e) {
@@ -136,6 +141,8 @@ abstract class KotlinAbstractTestBuilder<T> {
         }
         return path;
     }
+
+
 
     public final Path writeSourceFile(String filename, String[] lines) {
         return writeFile(DirectoryType.SOURCES, filename, lines);
@@ -162,7 +169,6 @@ abstract class KotlinAbstractTestBuilder<T> {
                             .lines()
                             .collect(toList()));
         }
-
     }
 
     public final void assertFilesExist(DirectoryType dir, String... paths) {
@@ -229,14 +235,14 @@ abstract class KotlinAbstractTestBuilder<T> {
         }
         return KotlinToolchain.createToolchain(
                 javaHome,
-                new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-compiler").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:jvm-abi-gen").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@com_github_jetbrains_kotlin//:kotlin-annotation-processing").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@com_github_google_ksp//:symbol-processing-api").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@com_github_google_ksp//:symbol-processing-cmdline").singleCompileJar())
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:symbol-processing-api").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:symbol-processing-cmdline").singleCompileJar())
         );
     }
 }

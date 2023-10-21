@@ -1,3 +1,5 @@
+load("//kotlin:lint.bzl", "ktlint_config")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("//kotlin:lint.bzl", "ktlint_config")
 
 exports_files([
     "scripts/noop.sh",
@@ -54,6 +55,10 @@ test_suite(
 # Release target.
 release_archive(
     name = "rules_kotlin_release",
+    srcs = [
+        "MODULE.bazel",
+        "WORKSPACE.bzlmod",
+    ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
         "WORKSPACE.release.bazel": "WORKSPACE",

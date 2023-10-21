@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//src/main/starlark/core/options:convert.bzl", "convert")
 load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
+load("//src/main/starlark/core/options:convert.bzl", "convert")
 
 def _map_optin_class_to_flag(values):
     return ["-opt-in=%s" % v for v in values]
@@ -305,6 +305,16 @@ _KOPTS_ALL = {
         type = attr.bool,
         value_to_flag = {
             True: ["-Xuse-fir-lt"],
+        },
+    ),
+    "x_no_source_debug_extension": struct(
+        args = dict(
+            default = False,
+            doc = "Do not generate @kotlin.jvm.internal.SourceDebugExtension annotation on a class with the copy of SMAP",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            False: ["-Xno-source-debug-extension"],
         },
     ),
     "jvm_target": struct(

@@ -1,5 +1,5 @@
-load("//third_party:jarjar.bzl", "jar_jar")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
+load("//third_party:jarjar.bzl", "jar_jar")
 
 exports_files(
     ["shade.jarjar"],
