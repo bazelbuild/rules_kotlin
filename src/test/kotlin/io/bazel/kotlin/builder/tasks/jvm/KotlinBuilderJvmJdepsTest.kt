@@ -1115,7 +1115,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
           "Derived.kt",
           """
             package something
-            import io.bazel.kotlin.builder.tasks.testFixtures.JavaBaseWithTypeParam
+            import something.JavaBaseWithTypeParam
 
             class Derived : JavaBaseWithTypeParam<BaseGenericType>() {
               fun hi(): String {
