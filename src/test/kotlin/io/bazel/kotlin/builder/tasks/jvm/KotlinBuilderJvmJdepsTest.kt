@@ -390,7 +390,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
-  fun `kotlin indirect property reference on object`() {
+  fun `kotlin indirect property reference on object calling helloWorld function`() {
     val transitivePropertyTarget = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
         "Bar.kt",
@@ -444,7 +444,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
-  fun `kotlin indirect property reference on object 2`() {
+  fun `kotlin indirect property reference on object without calling helloWorld function`() {
     val transitivePropertyTarget = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
         "Bar.kt",
@@ -947,49 +947,49 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
 
   @Test
   fun `indirect super class reference should be an implicit dependency`() {
-      val implicitSuperClassDep = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
-          c.addSource(
-                  "Base.kt",
-                  """
+    val implicitSuperClassDep = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Base.kt",
+        """
             package something
 
             open class Base(p: Int)
             """
-          )
-      }
+      )
+    }
 
-      val explicitSuperClassDep = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
-          c.addSource(
-                  "Derived.kt",
-                  """
+    val explicitSuperClassDep = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Derived.kt",
+        """
             package something
 
             class Derived(p: Int) : Base(p)
             """
-          )
-          c.addDirectDependencies(implicitSuperClassDep)
-      }
+      )
+      c.addDirectDependencies(implicitSuperClassDep)
+    }
 
-      val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
-          c.addSource(
-                  "ReferencesClassWithSuperClass.kt",
-                  """
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "ReferencesClassWithSuperClass.kt",
+        """
             package something
 
             val classRef = Derived(42)
           """
-          )
-          c.addDirectDependencies(explicitSuperClassDep)
-          c.addTransitiveDependencies(implicitSuperClassDep)
-      }
-      val jdeps = depsProto(dependingTarget)
+      )
+      c.addDirectDependencies(explicitSuperClassDep)
+      c.addTransitiveDependencies(implicitSuperClassDep)
+    }
+    val jdeps = depsProto(dependingTarget)
 
-      assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
 
-      assertExplicit(jdeps).containsExactly(explicitSuperClassDep.singleCompileJar())
-      assertImplicit(jdeps).containsExactly(implicitSuperClassDep.singleCompileJar())
-      assertUnused(jdeps).isEmpty()
-      assertIncomplete(jdeps).isEmpty()
+    assertExplicit(jdeps).containsExactly(explicitSuperClassDep.singleCompileJar())
+    assertImplicit(jdeps).containsExactly(implicitSuperClassDep.singleCompileJar())
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
   }
 
   @Test
