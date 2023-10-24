@@ -143,7 +143,9 @@ class JdepsGenExtension(
           )?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is FunctionDescriptor -> {
-          resultingDescriptor.returnType?.let { addImplicitDep(it) }
+          resultingDescriptor.returnType?.let {
+            collectTypeReferences(it, isExplicit = false, collectTypeArguments = false)
+          }
           resultingDescriptor.valueParameters.forEach { valueParameter ->
             collectTypeReferences(valueParameter.type, isExplicit = false)
           }
@@ -173,7 +175,7 @@ class JdepsGenExtension(
               explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
             }
           }
-          addImplicitDep(resultingDescriptor.type)
+          collectTypeReferences(resultingDescriptor.type, isExplicit = false)
         }
         else -> return
       }
@@ -217,14 +219,6 @@ class JdepsGenExtension(
       }
     }
 
-    private fun addImplicitDep(it: KotlinType) {
-      getClassCanonicalPath(it.constructor)?.let { implicitClassesCanonicalPaths.add(it) }
-    }
-
-    private fun addExplicitDep(it: KotlinType) {
-      getClassCanonicalPath(it.constructor)?.let { explicitClassesCanonicalPaths.add(it) }
-    }
-
     /**
      * Records direct and indirect references for a given type. Direct references are explicitly
      * used in the code, e.g: a type declaration or a generic type declaration. Indirect references
@@ -234,35 +228,41 @@ class JdepsGenExtension(
     private fun collectTypeReferences(
       kotlinType: KotlinType,
       isExplicit: Boolean = true,
+      collectTypeArguments: Boolean = true,
+      visitedKotlinTypes: MutableSet<Pair<KotlinType, Boolean>> = mutableSetOf(),
     ) {
-      if (isExplicit) {
-        addExplicitDep(kotlinType)
-      } else {
-        addImplicitDep(kotlinType)
-      }
+      val kotlintTypeAndIsExplicit = Pair(kotlinType, isExplicit)
+      if (!visitedKotlinTypes.contains(kotlintTypeAndIsExplicit)) {
+        visitedKotlinTypes.add(kotlintTypeAndIsExplicit)
 
-      kotlinType.supertypes().forEach {
-        addImplicitDep(it)
-      }
-
-      collectTypeArguments(kotlinType, isExplicit)
-    }
-
-    private fun collectTypeArguments(
-      kotlinType: KotlinType,
-      isExplicit: Boolean,
-      visitedKotlinTypes: MutableSet<KotlinType> = mutableSetOf(),
-    ) {
-      visitedKotlinTypes.add(kotlinType)
-      kotlinType.arguments.map { it.type }.forEach { typeArgument ->
         if (isExplicit) {
-          addExplicitDep(typeArgument)
+          getClassCanonicalPath(kotlinType.constructor)?.let {
+            explicitClassesCanonicalPaths.add(it)
+          }
         } else {
-          addImplicitDep(typeArgument)
+          getClassCanonicalPath(kotlinType.constructor)?.let {
+            implicitClassesCanonicalPaths.add(it)
+          }
         }
-        typeArgument.supertypes().forEach { addImplicitDep(it) }
-        if (!visitedKotlinTypes.contains(typeArgument)) {
-          collectTypeArguments(typeArgument, isExplicit, visitedKotlinTypes)
+
+        kotlinType.supertypes().forEach { supertype ->
+          collectTypeReferences(
+            supertype,
+            isExplicit = false,
+            collectTypeArguments = collectTypeArguments,
+            visitedKotlinTypes,
+          )
+        }
+
+        if (collectTypeArguments) {
+          kotlinType.arguments.map { it.type }.forEach { typeArgument ->
+            collectTypeReferences(
+              typeArgument,
+              isExplicit = isExplicit,
+              collectTypeArguments = true,
+              visitedKotlinTypes = visitedKotlinTypes,
+            )
+          }
         }
       }
     }
