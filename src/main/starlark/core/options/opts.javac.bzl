@@ -29,6 +29,21 @@ _JOPTS = {
             "report": None,
         },
     ),
+    "release": struct(
+        args = dict(
+            default = "default",
+            doc = "Compile for the specified Java SE release",
+            values = ["default", "8", "11", "17", "21"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "8": ["--release 8"],
+            "11": ["--release 11"],
+            "17": ["--release 17"],
+            "21": ["--release 21"],
+            "default": None,
+        },
+    ),
     "x_ep_disable_all_checks": struct(
         args = dict(
             default = False,
