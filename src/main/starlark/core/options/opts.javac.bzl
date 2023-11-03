@@ -87,6 +87,16 @@ _JOPTS = {
             "strict": ["-Xexplicit-api=strict"],
         },
     ),
+    "add_exports": struct(
+        args = dict(
+            default = [],
+            doc = "Export internal jdk apis ",
+        ),
+        type = attr.string_list,
+        value_to_flag = {
+            derive.info: derive.repeated_values_for("--add-exports="),
+        },
+    ),
 }
 
 def _javac_options_impl(ctx):
