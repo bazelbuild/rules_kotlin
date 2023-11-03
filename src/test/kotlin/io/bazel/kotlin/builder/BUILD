@@ -60,8 +60,8 @@ java_library(
 test_suite(
     name = "builder_tests",
     tests = [
-        "//src/test/kotlin/io/bazel/kotlin/builder/tasks",
-        "//src/test/kotlin/io/bazel/kotlin/builder/utils",
+        "//src/test/kotlin/io/bazel/kotlin/builder/tasks:tasks_tests",
+        "//src/test/kotlin/io/bazel/kotlin/builder/utils:utils_tests",
     ],
     visibility = ["//visibility:public"],
 )

@@ -35,3 +35,18 @@ kt_jvm_test(
         "@kotlin_rules_maven//:junit_junit",
     ],
 )
+
+test_suite(
+    name = "integration_tests",
+    tests = [
+        ":WriteWorkspaceTest",
+    ],
+)
+
+test_suite(
+    name = "local_integration_tests",
+    tests = [
+        ":MixedSourceCompileTest",
+        ":integration_tests",
+    ],
+)

@@ -25,6 +25,30 @@ import org.junit.Test
 class WorkerEnvironmentTest {
 
   @Test
+  fun sendOne() {
+    val give = WorkRequest.newBuilder().setRequestId(1).addArguments("foo").build()
+    val got = WorkerEnvironment.inProcess {
+      task { stdIn, stdOut ->
+        generateSequence {
+          WorkRequest.parseDelimitedFrom(stdIn).also { println("got $it") }
+        }.forEach { req ->
+          WorkerProtocol.WorkResponse.newBuilder().setRequestId(req.requestId).build()
+            .also { println("sent $it") }
+            .writeDelimitedTo(stdOut)
+        }
+      }
+
+      writeStdIn(give)
+      closeStdIn()
+
+      return@inProcess readStdOut()
+    }
+
+    assertThat(got)
+      .isEqualTo(WorkerProtocol.WorkResponse.newBuilder().setRequestId(1).build())
+  }
+
+  @Test
   fun send() {
     val give = (1..5).map { WorkRequest.newBuilder().setRequestId(it).addArguments("foo").build() }
     val got = WorkerEnvironment.inProcess {
@@ -48,29 +72,5 @@ class WorkerEnvironmentTest {
         WorkerProtocol.WorkResponse.newBuilder().setRequestId(id).build()
       }
     )
-  }
-
-  @Test
-  fun sendOne() {
-    val give = WorkRequest.newBuilder().setRequestId(1).addArguments("foo").build()
-    val got = WorkerEnvironment.inProcess {
-      task { stdIn, stdOut ->
-        generateSequence {
-          WorkRequest.parseDelimitedFrom(stdIn).also { println("got $it") }
-        }.forEach { req ->
-          WorkerProtocol.WorkResponse.newBuilder().setRequestId(req.requestId).build()
-            .also { println("sent $it") }
-            .writeDelimitedTo(stdOut)
-        }
-      }
-
-      writeStdIn(give)
-      closeStdIn()
-
-      return@inProcess readStdOut()
-    }
-
-    assertThat(got)
-      .isEqualTo(WorkerProtocol.WorkResponse.newBuilder().setRequestId(1).build())
   }
 }
