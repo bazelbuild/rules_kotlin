@@ -170,6 +170,7 @@ def kt_bootstrap_binary(
             "-XX:+IgnoreUnrecognizedVMOptions",
             "--add-opens=java.base/java.nio=ALL-UNNAMED",
             "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
             "--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED",
         ],
         main_class = main_class,
