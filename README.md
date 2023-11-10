@@ -203,13 +203,13 @@ load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "kt_javac_options",
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
-    kotlinc_opts = ["-Xno-param-assertions"],
+    x_no_param_assertions = True,
     jvm_target = "1.8",
 )
 
 kt_javac_options(
     name = "kt_javac_options",
-    javac_opts = ["-nowarn"],
+    warn = "off",
 )
 
 define_kt_toolchain(
@@ -230,16 +230,16 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
-    kotlinc_opts = [
-     "-Xno-param-assertions",
-     "-Xopt-in=kotlin.Experimental",
-     "-Xopt-in=kotlin.ExperimentalStdlibApi",
+    x_no_param_assertions = True,
+    x_optin = [
+        "kotlin.Experimental",
+        "kotlin.ExperimentalStdlibApi",
     ],
 )
 
 kt_javac_options(
     name = "kt_javac_options_for_package_name",
-    javac_opts = ["-nowarn"],
+    warn = "off"
 )
 
 kt_jvm_library(
