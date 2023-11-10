@@ -48,8 +48,8 @@ kt_js_library(<a href="#kt_js_library-name">name</a>, <a href="#kt_js_library-kw
 
 ## kt_javac_options
 
-kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-release">release</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>, <a href="#kt_javac_options-x_explicit_api_mode">x_explicit_api_mode</a>, <a href="#kt_javac_options-x_lint">x_lint</a>,
-                 <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
+kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-add_exports">add_exports</a>, <a href="#kt_javac_options-release">release</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>, <a href="#kt_javac_options-x_explicit_api_mode">x_explicit_api_mode</a>,
+                 <a href="#kt_javac_options-x_lint">x_lint</a>, <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
 
                                                                                                 
     Define java compiler options for `kt_jvm_*` rules with java sources.
@@ -61,6 +61,7 @@ kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_o
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 |<a id="kt_javac_options-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+|<a id="kt_javac_options-add_exports"></a>add_exports |  Export internal jdk apis   | List of strings | optional | [] |
 |<a id="kt_javac_options-release"></a>release |  Compile for the specified Java SE release   | String | optional | "default" |
 |<a id="kt_javac_options-warn"></a>warn |  Control warning behaviour.   | String | optional | "report" |
 |<a id="kt_javac_options-x_ep_disable_all_checks"></a>x_ep_disable_all_checks |  See javac -XepDisableAllChecks documentation   | Boolean | optional | False |
@@ -369,8 +370,8 @@ kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_com
 
 ## kt_javac_options
 
-kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-release">release</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>, <a href="#kt_javac_options-x_explicit_api_mode">x_explicit_api_mode</a>, <a href="#kt_javac_options-x_lint">x_lint</a>,
-                 <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
+kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-add_exports">add_exports</a>, <a href="#kt_javac_options-release">release</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>, <a href="#kt_javac_options-x_explicit_api_mode">x_explicit_api_mode</a>,
+                 <a href="#kt_javac_options-x_lint">x_lint</a>, <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
 
                                                                                                 
     Define java compiler options for `kt_jvm_*` rules with java sources.
@@ -382,6 +383,7 @@ kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_o
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 |<a id="kt_javac_options-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+|<a id="kt_javac_options-add_exports"></a>add_exports |  Export internal jdk apis   | List of strings | optional | [] |
 |<a id="kt_javac_options-release"></a>release |  Compile for the specified Java SE release   | String | optional | "default" |
 |<a id="kt_javac_options-warn"></a>warn |  Control warning behaviour.   | String | optional | "report" |
 |<a id="kt_javac_options-x_ep_disable_all_checks"></a>x_ep_disable_all_checks |  See javac -XepDisableAllChecks documentation   | Boolean | optional | False |
