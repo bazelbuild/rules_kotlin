@@ -33,7 +33,6 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "rules_kotlin",
     sha256 = "${SHA}",
-    strip_prefix = "${PREFIX}",
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/${TAG}/${ARCHIVE}",
 )
 EOF
