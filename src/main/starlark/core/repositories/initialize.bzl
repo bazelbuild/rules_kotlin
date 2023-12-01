@@ -15,6 +15,10 @@
 """
 
 load(
+    "@bazel_tools//tools/build_defs/repo:http.bzl",
+    "http_archive",
+)
+load(
     ":initialize.release.bzl",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",
@@ -39,6 +43,12 @@ def kotlin_repositories(
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
     _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
+
+    versions.use_repository(
+        name = "released_rules_kotlin",
+        rule = http_archive,
+        version = versions.RULES_KOTLIN,
+    )
 
     # When Bzlmod is enabled skip over the toolchain setup entirely
     if is_bzlmod:
