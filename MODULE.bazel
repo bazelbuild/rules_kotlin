@@ -18,7 +18,6 @@ use_repo(
     "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
     "com_github_pinterest_ktlint",
-    "kt_java_stub_template",
     "rules_android",
 )
 
