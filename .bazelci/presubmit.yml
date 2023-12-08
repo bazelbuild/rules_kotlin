@@ -75,6 +75,8 @@ tasks:
     platform: ubuntu1804
     working_directory: examples/android
     bazel: last_green
+    shell_commands:
+      - bazel clean --expunge --async && bazel shutdown
     test_flags:
       - "--incompatible_enable_android_toolchain_resolution"
       - "--android_platforms=//:arm64-v8a"
@@ -140,6 +142,7 @@ tasks:
     name: "Example - Trivial Bzlmod (Ubuntu 18.04)"
     platform: ubuntu1804
     working_directory: examples/trivial
+      - bazel clean --expunge --async && bazel shutdown
     build_flags:
       - "--enable_bzlmod=true"
     test_flags:
