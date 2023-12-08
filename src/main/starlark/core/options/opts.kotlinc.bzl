@@ -314,7 +314,7 @@ _KOPTS_ALL = {
         ),
         type = attr.bool,
         value_to_flag = {
-            False: ["-Xno-source-debug-extension"],
+            True: ["-Xno-source-debug-extension"],
         },
     ),
     "jvm_target": struct(
