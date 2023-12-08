@@ -42,6 +42,23 @@ tasks:
       # Override the default worker strategy for remote builds (worker strategy
       # cannot be used with remote builds)
       - "--strategy=KotlinCompile=remote"
+# TODO: Enable these tests once this example is building against the release rules_kotlin binary
+#  example-android-5.x:
+#    name: "Example - Android using Bazel 5.x"
+#    platform: ubuntu1804
+#    working_directory: examples/android
+#    bazel: 5.4.1
+#    test_targets:
+#      - //app:all
+  example-android-6.x:
+    name: "Example - Android using Bazel 6.x"
+    platform: ubuntu1804
+    working_directory: examples/android
+    bazel: 6.4.0
+    test_flags:
+      - "--enable_bzlmod=false"
+    test_targets:
+      - //app:all
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
