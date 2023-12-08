@@ -90,8 +90,6 @@ kt_rules_test(
 kt_rules_test(
     name = "KotlinBuilderJsTest",
     srcs = ["js/KotlinBuilderJsTest.java"],
-    args = [
-    ],
     data = [
         "@com_github_jetbrains_kotlin//:lib/kotlin-stdlib-js.jar",
     ],

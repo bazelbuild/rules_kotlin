@@ -43,6 +43,7 @@ def kt_rules_test(name, **kwargs):
         "//kotlin/compiler:kotlin-stdlib-jdk7",
         "//kotlin/compiler:kotlin-stdlib-jdk8",
         "//kotlin/compiler:kotlin-annotation-processing",
+        "@rules_kotlin//kotlin/compiler:kotlin-reflect",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

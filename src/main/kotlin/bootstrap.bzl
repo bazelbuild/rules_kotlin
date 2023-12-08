@@ -21,12 +21,8 @@ def kt_bootstrap_library(name, deps = [], neverlink_deps = [], **kwargs):
     """
     Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
 
-    The target is tagged `"no-ide"` as intellij can't compile it. A seperate private target is created which is suffixed
-    with `_for_ide`. If the dep is under the package `//src/main/kotlin/io/bazel/kotlin/builder/...` then it will be
-    added to the `_for_ide` target by adding a `_for_ide` prefix.
-
     deps: the dependenices, the are setup as runtime_deps of the library.
-    neverlink_deps: deps that won't be linked. These deps are added to the `"for_ide"` target.
+    neverlink_deps: deps that won't be linked.
     """
     kt_jvm_library(
         name = "%s_neverlink" % name,
