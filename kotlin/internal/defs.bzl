@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.#
+load("//src/main/starlark/core/plugins:providers.bzl", _KspPluginInfo = "KspPluginInfo", _KtCompilerPluginInfo = "KtCompilerPluginInfo")
 
 # The Kotlin Toolchain type.
 TOOLCHAIN_TYPE = "%s" % Label("//kotlin/internal:kt_toolchain_type")
@@ -50,18 +51,6 @@ KtJsInfo = provider(
     },
 )
 
-KtCompilerPluginInfo = provider(
-    fields = {
-        "plugin_jars": "List of plugin jars.",
-        "classpath": "The kotlin compiler plugin classpath.",
-        "stubs": "Run this plugin during kapt stub generation.",
-        "compile": "Run this plugin during koltinc compilation.",
-        "options": "List of plugin options, represented as structs with an id and a value field, to be passed to the compiler",
-    },
-)
+KtCompilerPluginInfo = _KtCompilerPluginInfo
 
-KspPluginInfo = provider(
-    fields = {
-        "plugins": "List of JavaPLuginInfo providers for the plugins to run with KSP",
-    },
-)
+KspPluginInfo = _KspPluginInfo
