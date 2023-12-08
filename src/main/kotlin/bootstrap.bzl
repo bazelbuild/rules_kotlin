@@ -15,8 +15,6 @@ load("@released_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("//third_party:jarjar.bzl", "jar_jar")
 
-_BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]
-
 def kt_bootstrap_library(name, deps = [], neverlink_deps = [], **kwargs):
     """
     Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
