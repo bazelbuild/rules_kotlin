@@ -63,15 +63,6 @@ def kotlin_repositories(
         strip_version = ksp_compiler_release.version,
     )
 
-    http_file(
-        name = "kt_java_stub_template",
-        urls = [("https://raw.githubusercontent.com/bazelbuild/bazel/" +
-                 versions.BAZEL_JAVA_LAUNCHER_VERSION +
-                 "/src/main/java/com/google/devtools/build/lib/bazel/rules/java/" +
-                 "java_stub_template.txt")],
-        sha256 = versions.BAZEL_JAVA_LAUNCHER_SHA,
-    )
-
     maybe(
         http_file,
         name = "com_github_pinterest_ktlint",

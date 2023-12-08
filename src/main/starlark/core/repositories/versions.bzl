@@ -53,8 +53,6 @@ versions = struct(
             "https://github.com/bazelbuild/stardoc/releases/download/{version}/stardoc-{version}.tar.gz",
         ],
     ),
-    BAZEL_JAVA_LAUNCHER_VERSION = "6.2.1",
-    BAZEL_JAVA_LAUNCHER_SHA = "78e29525872594ffc783c825f428b3e61d4f3e632f46eaa64f004b2814c4a612",
     PINTEREST_KTLINT = version(
         version = "0.49.1",
         url_templates = [
