@@ -24,13 +24,13 @@ import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
 import java.io.PrintStream
+import java.lang.ClassLoader
 import java.lang.reflect.Method
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
-import java.lang.ClassLoader
 
 class KotlinToolchain private constructor(
   private val baseJars: List<File>,
@@ -175,7 +175,6 @@ class KotlinToolchain private constructor(
     }
   }
 
-
   private fun createClassLoader(
     javaHome: Path,
     baseJars: List<File>,
@@ -196,7 +195,6 @@ class KotlinToolchain private constructor(
     }.onFailure {
       throw RuntimeException("$javaHome, $baseJars", it)
     }.getOrThrow()
-
 
   val classLoader by lazy {
     createClassLoader(
