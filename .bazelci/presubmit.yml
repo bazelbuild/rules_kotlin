@@ -42,6 +42,28 @@ tasks:
       # Override the default worker strategy for remote builds (worker strategy
       # cannot be used with remote builds)
       - "--strategy=KotlinCompile=remote"
+  example-android-5.x:
+    name: "Example - Android using Bazel 5.x"
+    platform: ubuntu1804
+    working_directory: examples/android
+    bazel: 5.4.1
+    test_flags:
+      - "--incompatible_enable_android_toolchain_resolution"
+      - "--android_platforms=//:arm64-v8a"
+      - "--enable_bzlmod=false"
+    test_targets:
+      - //app:all
+  example-android-6.x:
+    name: "Example - Android using Bazel 6.x"
+    platform: ubuntu1804
+    working_directory: examples/android
+    bazel: 6.4.0
+    test_flags:
+      - "--incompatible_enable_android_toolchain_resolution"
+      - "--android_platforms=//:arm64-v8a"
+      - "--enable_bzlmod=false"
+    test_targets:
+      - //app:all
   example-android:
     name: "Example - Android"
     platform: ubuntu1804
