@@ -142,7 +142,6 @@ tasks:
     name: "Example - Trivial Bzlmod (Ubuntu 18.04)"
     platform: ubuntu1804
     working_directory: examples/trivial
-      - bazel clean --expunge --async && bazel shutdown
     build_flags:
       - "--enable_bzlmod=true"
     test_flags:

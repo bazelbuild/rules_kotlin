@@ -13,9 +13,10 @@
 # limitations under the License.
 load("@released_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_binary")
+load("//kotlin:lint.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
 load("//third_party:jarjar.bzl", "jar_jar")
 
-def kt_bootstrap_library(name, deps = [], neverlink_deps = [], **kwargs):
+def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibility = [], **kwargs):
     """
     Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
 
@@ -30,7 +31,26 @@ def kt_bootstrap_library(name, deps = [], neverlink_deps = [], **kwargs):
 
     kt_jvm_library(
         name = name,
+        srcs = srcs,
+        visibility = visibility,
         deps = deps + ["%s_neverlink" % name],
+        **kwargs
+    )
+
+    _ktlint_test(
+        name = "%s_ktlint_test" % name,
+        srcs = srcs,
+        visibility = ["//visibility:private"],
+        config = "//:ktlint_editorconfig",
+        tags = ["no-ide", "ktlint"],
+    )
+
+    _ktlint_fix(
+        name = "%s_ktlint_fix" % name,
+        srcs = srcs,
+        visibility = ["//visibility:private"],
+        config = "//:ktlint_editorconfig",
+        tags = ["no-ide", "ktlint"],
         **kwargs
     )
 
