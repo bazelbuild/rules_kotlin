@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@released_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
-load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//third_party:jarjar.bzl", "jar_jar")
 
 _BOOTSTRAP_LIB_ARGS = ["-jvm-target", "1.8"]

@@ -21,6 +21,8 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
 
+    native.register_toolchains("@released_rules_kotlin//kotlin/internal:default_toolchain")
+
     maven_install(
         name = "kotlin_rules_maven",
         fetch_sources = True,
