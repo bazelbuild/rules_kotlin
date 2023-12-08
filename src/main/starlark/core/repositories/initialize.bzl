@@ -27,13 +27,12 @@ load(
 load(":setup.bzl", "kt_configure")
 load(":versions.bzl", _versions = "versions")
 
-#exports
+# exports
 versions = _versions
 kotlinc_version = _kotlinc_version
 ksp_version = _ksp_version
 
 def kotlin_repositories(
-        is_bzlmod = False,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -43,14 +42,7 @@ def kotlin_repositories(
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
     _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
-
-    versions.use_repository(
-        name = "released_rules_kotlin",
-        rule = http_archive,
-        version = versions.RULES_KOTLIN,
-    )
-
-    # When Bzlmod is enabled skip over the toolchain setup entirely
-    if is_bzlmod:
-        return
     kt_configure()
+
+def _http_archive(rctx):
+    rctx.down
