@@ -47,10 +47,6 @@ tasks:
     platform: ubuntu1804
     working_directory: examples/android
     bazel: 5.4.1
-    test_flags:
-      - "--incompatible_enable_android_toolchain_resolution"
-      - "--android_platforms=//:arm64-v8a"
-      - "--enable_bzlmod=false"
     test_targets:
       - //app:all
   example-android-6.x:
@@ -59,8 +55,6 @@ tasks:
     working_directory: examples/android
     bazel: 6.4.0
     test_flags:
-      - "--incompatible_enable_android_toolchain_resolution"
-      - "--android_platforms=//:arm64-v8a"
       - "--enable_bzlmod=false"
     test_targets:
       - //app:all
