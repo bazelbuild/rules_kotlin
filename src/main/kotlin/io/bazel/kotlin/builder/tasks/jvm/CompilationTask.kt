@@ -472,7 +472,7 @@ private val Directories.incrementalData
  * Create a new [JvmCompilationTask] with sources found in the generatedSources directory. This should be run after
  * annotation processors have been run.
  */
-internal fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
+fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
   expandWithSources(
     Stream.of(directories.generatedSources, directories.generatedJavaSources)
       .map { s -> Paths.get(s) }
