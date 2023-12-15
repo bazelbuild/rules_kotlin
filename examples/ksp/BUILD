@@ -93,6 +93,10 @@ kt_jvm_library(
         ":tea_lib_src",
         ":chai_lib_src",
     ],
+    ksp_opts = {
+        "arg1": "value1",
+        "arg2": "value2",
+    },
     plugins = [
         "//third_party:dagger_ksp_plugin",
         "//third_party:moshi-kotlin-codegen",

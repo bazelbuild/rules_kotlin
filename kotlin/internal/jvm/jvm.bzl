@@ -253,6 +253,11 @@ _common_attr = utils.add_dicts(
             Transitive deps required for compilation must be explicitly added""",
             default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
         ),
+        "ksp_opts": attr.string_dict(
+            doc = """KSP processor options to be used when compiling this target.""",
+            default = {},
+            mandatory = False,
+        ),
         "_use_auto_exec_groups": attr.bool(default = False),
     },
 )
