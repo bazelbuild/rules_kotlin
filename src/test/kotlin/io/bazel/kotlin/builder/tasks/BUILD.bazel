@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@rules_java//java:defs.bzl", "java_library")
-load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
+load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_e2e_test", "kt_rules_test")
 
 java_library(
     name = "JdepsParserTestFixtures",
@@ -107,6 +107,12 @@ kt_rules_test(
     ],
 )
 
+kt_rules_e2e_test(
+    name = "KotlinKSPMetaFilesCopyTest",
+    srcs = ["jvm/KotlinKSPMetaFilesCopyTest.kt"],
+    data = ["//src/test/data/jvm/ksp"],
+)
+
 test_suite(
     name = "tasks_tests",
     tests = [
@@ -120,5 +126,6 @@ test_suite(
         ":KotlinBuilderJvmKaptTest",
         ":KotlinBuilderJvmStrictDepsTest",
         ":KotlinJvmTaskExecutorTest",
+        ":KotlinKSPMetaFilesCopyTest",
     ],
 )
