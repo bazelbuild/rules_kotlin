@@ -11,14 +11,30 @@ class KotlinKSPMetaFilesCopyTest: KotlinAssertionTestCase("src/test/data/jvm/ksp
     @Test
     fun testKSPCopiesAllFilesFromMetaINF() {
         jarTestCase("coffee_lib.jar", description = "Generated jar with ksp plugin contains meta-inf contents") {
-            assertContainsEntries("META-INF/", "META-INF/MAIFEST.MF")
+            assertContainsExactEntries(
+                "src/",
+                "src/test/",
+                "src/test/data/",
+                "src/test/data/jvm/",
+                "src/test/data/jvm/ksp/",
+                "src/test/data/jvm/ksp/CoffeeAppService.class",
+                "META-INF/",
+                "META-INF/MANIFEST.MF"
+            )
         }
     }
 
     @Test
     fun testKSPCopiesAllFilesFromMetaINFInMoshiLib() {
         jarTestCase("moshi_lib.jar", description = "Generated jar with ksp plugin contains meta-inf contents") {
-            assertContainsEntries(
+            assertContainsExactEntries(
+                "src/",
+                "src/test/",
+                "src/test/data/",
+                "src/test/data/jvm/",
+                "src/test/data/jvm/ksp/",
+                "src/test/data/jvm/ksp/CoffeeAppModel.class",
+                "src/test/data/jvm/ksp/CoffeeAppModelJsonAdapter.class",
                 "META-INF/",
                 "META-INF/MANIFEST.MF",
                 "META-INF/proguard/",
