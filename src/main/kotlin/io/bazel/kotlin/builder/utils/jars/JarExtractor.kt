@@ -17,6 +17,7 @@ package io.bazel.kotlin.builder.utils.jars
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.util.jar.JarFile
 
 open class JarExtractor protected constructor(
@@ -42,7 +43,7 @@ open class JarExtractor protected constructor(
                     Files.createDirectories(target)
                   else -> jar.getInputStream(entry).use {
                     Files.createDirectories(target.parent)
-                    Files.copy(it, target)
+                    Files.copy(it, target, StandardCopyOption.REPLACE_EXISTING)
                   }
                 }
               }
