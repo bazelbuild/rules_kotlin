@@ -12,4 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 exports_files(["jetbrains-deshade.jarjar"])
+
+bzl_library(
+    name = "jvm",
+    srcs = glob(
+        ["*.bzl"],
+        exclude = ["android.bzl"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//third_party:bzl",
+        "@bazel_skylib//rules:common_settings",
+    ],
+)
