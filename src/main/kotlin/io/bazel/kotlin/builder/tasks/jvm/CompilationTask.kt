@@ -509,22 +509,24 @@ private fun JvmCompilationTask.updateBuilder(
 /**
  * Copy generated manifest files from KSP task into generated folder
  */
-internal fun Iterator<String>.copyManifestFilesToGeneratedClasses(directories: Directories): Iterator<String> {
+internal fun Iterator<String>.copyManifestFilesToGeneratedClasses(
+  directories: Directories,
+): Iterator<String> {
   val result = mutableSetOf<String>()
-    this.forEach {
-      if ("/$MANIFEST_DIR" in it) {
-        val path = Paths.get(it)
-        val srcJarsPath = Paths.get(directories.temp, SOURCE_JARS_DIR)
-        if (srcJarsPath.exists()) {
-          val relativePath = srcJarsPath.relativize(path)
-          val destPath = Paths.get(directories.generatedClasses).resolve(relativePath)
-          destPath.parent.toFile().mkdirs()
-          Files.copy(path, destPath, StandardCopyOption.REPLACE_EXISTING)
-        }
+  this.forEach {
+    if ("/$MANIFEST_DIR" in it) {
+      val path = Paths.get(it)
+      val srcJarsPath = Paths.get(directories.temp, SOURCE_JARS_DIR)
+      if (srcJarsPath.exists()) {
+        val relativePath = srcJarsPath.relativize(path)
+        val destPath = Paths.get(directories.generatedClasses).resolve(relativePath)
+        destPath.parent.toFile().mkdirs()
+        Files.copy(path, destPath, StandardCopyOption.REPLACE_EXISTING)
       }
-      result.add(it)
     }
-    return result.iterator()
+    result.add(it)
+  }
+  return result.iterator()
 }
 
 /**
