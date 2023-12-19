@@ -109,7 +109,7 @@ kt_rules_test(
 
 kt_rules_e2e_test(
     name = "KotlinKSPMetaFilesCopyTest",
-    srcs = ["jvm/KotlinKSPMetaFilesCopyTest.kt"],
+    srcs = ["jvm/KotlinBuilderJvmKspTest.kt"],
     data = ["//src/test/data/jvm/ksp"],
 )
 
