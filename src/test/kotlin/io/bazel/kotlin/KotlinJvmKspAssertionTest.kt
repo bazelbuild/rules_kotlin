@@ -1,12 +1,11 @@
-package io.bazel.kotlin.builder.tasks.jvm
+package io.bazel.kotlin
 
-import io.bazel.kotlin.KotlinAssertionTestCase
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class KotlinBuilderJvmKspTest: KotlinAssertionTestCase("src/test/data/jvm/ksp") {
+class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp") {
 
     @Test
     fun testKSPCopiesAllFilesFromMetaINF() {
