@@ -110,7 +110,7 @@ def kt_download_local_dev_dependencies():
         version = versions.RULES_KOTLIN,
         patch_cmds = [
             # without repo mapping, force remap the internal dependencies to use the correct version of kotlin
-            "grep -rl '\"@*{repo}' src kotlin | xargs -I F sed -E -i '.bak' 's/\"(@*)({repo})/\"\\1released_\\2/g' F".format(
+            "grep -rl '\"@*{repo}' src kotlin | xargs -I F sed -i 'bak' -E 's/\"(@*)({repo})/\"\\1released_\\2/g' F".format(
                 repo = repo,
             )
             for repo in ["com_github_jetbrains_kotlin", "com_github_google_ksp"]
