@@ -29,6 +29,7 @@ kotlinc_version = _kotlinc_version
 ksp_version = _ksp_version
 
 def kotlin_repositories(
+        is_bzlmod = False,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.

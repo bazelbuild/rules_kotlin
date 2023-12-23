@@ -56,7 +56,7 @@ def _rules_kotlin_extensions_impl(mctx):
         version = _versions.RULES_KOTLIN,
         patch_cmds = [
             # without repo mapping, force remap the internal dependencies to use the correct version of kotlin
-            "grep -rl '\"@*{repo}' src kotlin | xargs sed -E -i '' 's/\"(@*)({repo})/\"\\1released_\\2/g'".format(
+            "grep -rl '\"@*{repo}' src kotlin | xargs -I {} sed -E -i '.bak' 's/\"(@*)({repo})/\"\\1released_\\2/g' {}".format(
                 repo = repo,
             )
             for repo in ["com_github_jetbrains_kotlin", "com_github_google_ksp"]
