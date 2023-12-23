@@ -6,7 +6,7 @@ module(
 
 bazel_dep(
     name = "platforms",
-    version = "0.0.6",
+    version = "0.0.7",
 )
 bazel_dep(
     name = "bazel_skylib",
@@ -22,7 +22,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_cc",
-    version = "0.0.8",
+    version = "0.0.9",
 )
 
 rules_kotlin_extensions = use_extension(

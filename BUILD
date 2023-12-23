@@ -61,7 +61,6 @@ test_suite(
 release_archive(
     name = "rules_kotlin_release",
     srcs = [
-        "MODULE.bazel",
         "WORKSPACE.bzlmod",
     ],
     src_map = {
