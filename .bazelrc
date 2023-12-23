@@ -1,6 +1,10 @@
 common --enable_bzlmod=true
 
+common:rbe --java_runtime_version=rbe_jdk
+common:rbe --tool_java_runtime_version=rbe_jdk
+
 build --strategy=KotlinCompile=worker
 build --test_output=all
 build --verbose_failures
+
 
