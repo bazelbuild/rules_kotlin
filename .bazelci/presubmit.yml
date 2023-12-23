@@ -34,6 +34,8 @@ tasks:
     build_flags:
       - "--enable_bzlmod=false"
       - "--config=rbe"
+      - "--host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
+      - "--java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
     test_targets:
       - "--"
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
