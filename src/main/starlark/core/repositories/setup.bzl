@@ -14,9 +14,9 @@
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
+load("@released_rules_kotlin//src/main/starlark/core/repositories:initialize.bzl", release_kotlin_repositories = "kotlin_repositories")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
-load("@released_rules_kotlin//src/main/starlark/core/repositories:initialize.bzl", release_kotlin_repositories = "kotlin_repositories")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 
 def kt_configure():
