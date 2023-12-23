@@ -15,10 +15,6 @@
 """
 
 load(
-    "@bazel_tools//tools/build_defs/repo:http.bzl",
-    "http_archive",
-)
-load(
     ":initialize.release.bzl",
     _kotlinc_version = "kotlinc_version",
     _ksp_version = "ksp_version",
@@ -43,6 +39,3 @@ def kotlin_repositories(
     """
     _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
     kt_configure()
-
-def _http_archive(rctx):
-    rctx.down

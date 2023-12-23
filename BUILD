@@ -67,6 +67,7 @@ release_archive(
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
         "WORKSPACE.release.bazel": "WORKSPACE",
+        "MODULE.release.bazel": "MODULE.bazel",
     },
     deps = [
         "//kotlin:pkg",
