@@ -8,10 +8,11 @@ KtCompilerPluginInfo = provider(
     },
 )
 
-KtCompilerPluginOptions = provider(
+KtPluginConfiguration = provider(
     fields = {
-        "plugin": "Provider of the plugin. Maybe KspPluginInfo or a JavaPluginInfo",
+        "plugin": "Provider of the plugin. Must be KspPluginInfo, JavaPluginInfo, or a KtCompilerPluginInfo",
         "options": "List of plugin options, represented as structs with an id and a value field",
+        "deps": "Depset of providers to supply additional dependencies to a compiler plugin",
     },
 )
 

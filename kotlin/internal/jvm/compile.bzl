@@ -47,6 +47,12 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
+load(
+    "//src/main/starlark/core/plugins:providers.bzl",
+    "KspPluginInfo",
+    "KtCompilerPluginInfo",
+    "KtPluginConfiguration",
+)
 
 # UTILITY ##############################################################################################################
 
@@ -431,10 +437,21 @@ def _run_kt_builder_action(
         if _KtCompilerPluginInfo in p and p[_KtCompilerPluginInfo]
     ]
 
+    compiler_plugin_configurations = {
+        p[KtPluginConfiguration].plugin: p[KtPluginConfiguration]
+        for p in plugins
+        if KtPluginConfiguration in p and p[KtPluginConfiguration]
+    }
+
     stubs_compiler_plugins = [
         kcp
         for kcp in compiler_plugins
         if kcp.stubs
+    ]
+
+    stubs_compiler_configurations = [
+        compiler_plugin_configurations[kcp]
+        for kcp in stubs_compiler_plugins
     ]
 
     compiler_compiler_plugins = [
@@ -442,9 +459,13 @@ def _run_kt_builder_action(
         for ccp in compiler_plugins
         if ccp.compile
     ]
+    compiler_compiler_configurations = [
+        compiler_plugin_configurations[kcp]
+        for kcp in compiler_compiler_plugins
+    ]
 
     if compiler_plugins and not (stubs_compiler_plugins or compiler_compiler_plugins):
-        fail("plugins but no phase plugins: %s" % compiler_plugins)
+        fail("has plugins without a phase: %s" % compiler_plugins)
 
     args.add_all(
         "--stubs_plugin_classpath",
@@ -454,20 +475,20 @@ def _run_kt_builder_action(
 
     args.add_all(
         "--stubs_plugin_options",
-        [p.options for p in stubs_compiler_plugins],
+        [p.options for p in stubs_compiler_plugins] + [p.options for p in stubs_compiler_configurations],
         map_each = _format_compile_plugin_options,
         omit_if_empty = True,
     )
 
     args.add_all(
         "--compiler_plugin_classpath",
-        depset(transitive = [p.classpath for p in compiler_compiler_plugins]),
+        depset(transitive = [p.classpath for p in compiler_compiler_plugins] + [p.deps for p in compiler_compiler_configurations]),
         omit_if_empty = True,
     )
 
     args.add_all(
         "--compiler_plugin_options",
-        [p.options for p in compiler_compiler_plugins],
+        [p.options for p in compiler_compiler_plugins] + [p.options for p in compiler_compiler_configurations],
         map_each = _format_compile_plugin_options,
         omit_if_empty = True,
     )
