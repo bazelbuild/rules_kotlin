@@ -317,6 +317,7 @@ def _run_kapt_builder_actions(
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
+        ksp_options = [],
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         outputs = {
@@ -343,6 +344,7 @@ def _run_ksp_builder_actions(
         compile_deps,
         deps_artifacts,
         annotation_processors,
+        options,
         transitive_runtime_jars,
         plugins):
     """Runs KSP using the KotlinBuilder tool
@@ -362,6 +364,7 @@ def _run_ksp_builder_actions(
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
+        ksp_options = options,
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         outputs = {
@@ -383,6 +386,7 @@ def _run_kt_builder_action(
         compile_deps,
         deps_artifacts,
         annotation_processors,
+        ksp_options,
         transitive_runtime_jars,
         plugins,
         outputs,
@@ -408,6 +412,7 @@ def _run_kt_builder_action(
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
     args.add_all("--kotlin_friend_paths", associates.jars, map_each = _associate_utils.flatten_jars)
     args.add("--instrument_coverage", ctx.coverage_instrumented())
+    args.add_all("--ksp_options", ksp_options, omit_if_empty = True)
 
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(
@@ -535,6 +540,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     )
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
+    ksp_options = _plugin_mappers.targets_to_ksp_options(ctx.attr.plugins + ctx.attr.deps).to_list()
+
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
     deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + associates.targets)
@@ -558,6 +565,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
         ksp_annotation_processors = ksp_annotation_processors,
+        ksp_options = ksp_options,
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         compile_jar = compile_jar,
@@ -650,6 +658,7 @@ def _run_kt_java_builder_actions(
         deps_artifacts,
         annotation_processors,
         ksp_annotation_processors,
+        ksp_options,
         transitive_runtime_jars,
         plugins,
         compile_jar,
@@ -699,6 +708,7 @@ def _run_kt_java_builder_actions(
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = ksp_annotation_processors,
+            options = ksp_options,
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
         )
@@ -736,6 +746,7 @@ def _run_kt_java_builder_actions(
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = [],
+            ksp_options = [],
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = outputs,

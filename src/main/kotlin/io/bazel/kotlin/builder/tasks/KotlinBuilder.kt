@@ -87,6 +87,7 @@ class KotlinBuilder @Inject internal constructor(
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
       KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
+      KSP_OPTIONS("--ksp_options"),
     }
   }
 
@@ -294,6 +295,9 @@ class KotlinBuilder @Inject internal constructor(
         )
         addAllCompilerPluginClasspath(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
+        )
+        addAllKspOptions(
+          argMap.optional(KotlinBuilderFlags.KSP_OPTIONS) ?: emptyList(),
         )
 
         argMap.optional(KotlinBuilderFlags.SOURCES)

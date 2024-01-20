@@ -424,6 +424,11 @@ def kt_compiler_plugin_impl(ctx):
 def kt_ksp_plugin_impl(ctx):
     info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
+    options = []
+    for (k, v) in ctx.attr.options.items():
+        if "=" in k:
+            fail("kt_compiler_plugin options keys cannot contain the = symbol")
+        options.append("%s=%s" % (k, v))
 
     return [
         DefaultInfo(files = classpath),
@@ -437,5 +442,5 @@ def kt_ksp_plugin_impl(ctx):
                 # processors out of the public ABI.
                 generates_api = True,
             ),
-        ]),
+        ], options = options),
     ]

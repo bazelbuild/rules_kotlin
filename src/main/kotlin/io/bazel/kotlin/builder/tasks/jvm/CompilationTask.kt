@@ -208,6 +208,10 @@ internal fun JvmCompilationTask.kspArgs(
           flag(pair.first, value)
         }
       }
+
+      inputs.kspOptionsList.forEach { option ->
+        flag("apoption", option)
+      }
     }
   }
 }
@@ -281,6 +285,9 @@ private fun JvmCompilationTask.runKspPlugin(
       .flag("-d", directories.generatedClasses)
       .values(inputs.kotlinSourcesList)
       .values(inputs.javaSourcesList).list().let { args ->
+        context.whenTracing {
+          printLines("Ksp args:", args)
+        }
         context.executeCompilerTask(
           args,
           compiler::compile,
