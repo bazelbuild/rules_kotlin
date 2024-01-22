@@ -11,7 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.#
-load("//src/main/starlark/core/plugins:providers.bzl", _KspPluginInfo = "KspPluginInfo", _KtCompilerPluginInfo = "KtCompilerPluginInfo")
+load(
+    "//src/main/starlark/core/plugin:providers.bzl",
+    _KspPluginInfo = "KspPluginInfo",
+    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
+    _KtCompilerPluginOption = "KtCompilerPluginOption",
+    _KtPluginConfiguration = "KtPluginConfiguration",
+)
 
 # The Kotlin Toolchain type.
 TOOLCHAIN_TYPE = "%s" % Label("//kotlin/internal:kt_toolchain_type")
@@ -54,3 +60,7 @@ KtJsInfo = provider(
 KtCompilerPluginInfo = _KtCompilerPluginInfo
 
 KspPluginInfo = _KspPluginInfo
+
+KtCompilerPluginOption = _KtCompilerPluginOption
+
+KtPluginConfiguration = _KtPluginConfiguration

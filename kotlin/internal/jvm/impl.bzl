@@ -1,12 +1,3 @@
-load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
-load(
-    "//kotlin/internal:defs.bzl",
-    _KspPluginInfo = "KspPluginInfo",
-    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
-    _KtJvmInfo = "KtJvmInfo",
-    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
-)
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +11,17 @@ load(
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
+load(
+    "//kotlin/internal:defs.bzl",
+    "KtCompilerPluginOption",
+    "KtPluginConfiguration",
+    _KspPluginInfo = "KspPluginInfo",
+    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
+    _KtJvmInfo = "KtJvmInfo",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
 load(
     "//kotlin/internal/jvm:compile.bzl",
     "export_only_providers",
@@ -383,16 +385,40 @@ def _deshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         ],
     )
 
-def kt_compiler_plugin_impl(ctx):
-    plugin_id = ctx.attr.id
+def _resolve_plugin_options(id, string_dict):
+    """
+    Resolves plugin options from a string dict to a dict of strings.
+
+    Args:
+        id: the plugin id
+        string_dict: a dict of strings
+    Returns:
+        a dict of strings
+    """
     options = []
-    for (k, v) in ctx.attr.options.items():
+    for (k, v) in string_dict.items():
         if "=" in k:
             fail("kt_compiler_plugin options keys cannot contain the = symbol")
-        options.append(struct(id = plugin_id, value = "%s=%s" % (k, v)))
+        options.append(KtCompilerPluginOption(id = id, value = k + "=" + v))
+    return options
 
-    if not (ctx.attr.compile_phase or ctx.attr.stubs_phase):
-        fail("Plugin must execute during in one or more phases: stubs_phase, compile_phase")
+# This is naive reference implementation for resolving configurations.
+# A more complicated plugin will need to provide its own implementation.
+def _resolve_plugin_cfg(info, options, deps):
+    classpath = []
+    for dep in deps:
+        if JavaInfo in dep:
+            classpath.append(dep[JavaInfo].compile_jars)
+    return KtPluginConfiguration(
+        id = info.id,
+        options = _resolve_plugin_options(info.id, options),
+        classpath = depset(transitive = classpath),
+        data = depset(),
+    )
+
+def kt_compiler_plugin_impl(ctx):
+    plugin_id = ctx.attr.id
+    options = _resolve_plugin_options(plugin_id, ctx.attr.options)
 
     deps = ctx.attr.deps
     info = None
@@ -414,12 +440,18 @@ def kt_compiler_plugin_impl(ctx):
     return [
         DefaultInfo(files = classpath),
         _KtCompilerPluginInfo(
+            id = plugin_id,
             classpath = classpath,
             options = options,
             stubs = ctx.attr.stubs_phase,
             compile = ctx.attr.compile_phase,
+            resolve_cfg = _resolve_plugin_cfg,
         ),
     ]
+
+def kt_plugin_cfg_impl(ctx):
+    plugin = ctx.attr.plugin[_KtCompilerPluginInfo]
+    return plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps)
 
 def kt_ksp_plugin_impl(ctx):
     info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])
