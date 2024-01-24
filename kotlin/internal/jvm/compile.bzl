@@ -829,6 +829,7 @@ def _run_kt_java_builder_actions(
     output_jars = []
     kt_stubs_for_java = []
     has_kt_sources = srcs.kt or srcs.src_jars
+    ap_generated_src_jar = None
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
