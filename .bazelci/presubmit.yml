@@ -61,11 +61,8 @@ tasks:
     platform: ubuntu1804
     working_directory: examples/android
     bazel: 6.4.0
-#    shell_commands:
-#      - cd ../..; export USE_BAZEL_VERSION=7.0.0; bazelisk build //:rules_kotlin_release && rm -rf /tmp/rules_kotlin_release && mkdir -p /tmp/rules_kotlin_release && tar -C /tmp/rules_kotlin_release -xvf bazel-bin/rules_kotlin_release.tgz)
     test_flags:
       - "--enable_bzlmod=false"
-#      - "--override_repository=io_bazel_rules_kotlin=/tmp/rules_kotlin_release"
     test_targets:
       - //app:all
   example-android:
