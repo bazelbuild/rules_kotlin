@@ -67,9 +67,7 @@ class JdepsGenExtension(
   val configuration: CompilerConfiguration,
 ) :
   AnalysisHandlerExtension, StorageComponentContainerContributor {
-
   companion object {
-
     /**
      * Returns the path of the jar archive file corresponding to the provided descriptor.
      *
@@ -124,7 +122,6 @@ class JdepsGenExtension(
     private val explicitClassesCanonicalPaths: MutableSet<String>,
     private val implicitClassesCanonicalPaths: MutableSet<String>,
   ) : CallChecker, DeclarationChecker {
-
     override fun check(
       resolvedCall: ResolvedCall<*>,
       reportOn: PsiElement,
@@ -165,9 +162,10 @@ class JdepsGenExtension(
         }
         is PropertyDescriptor -> {
           when (resultingDescriptor.containingDeclaration) {
-            is ClassDescriptor -> collectTypeReferences(
-              (resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType,
-            )
+            is ClassDescriptor ->
+              collectTypeReferences(
+                (resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType,
+              )
             else -> {
               val virtualFileClass =
                 (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
@@ -367,9 +365,10 @@ class JdepsGenExtension(
     directDeps: List<String>,
     targetLabel: String,
   ): Boolean {
-    val missingStrictDeps = result.keys
-      .filter { !directDeps.contains(it) }
-      .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)) }
+    val missingStrictDeps =
+      result.keys
+        .filter { !directDeps.contains(it) }
+        .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)) }
 
     if (missingStrictDeps.isNotEmpty()) {
       val missingStrictLabels = missingStrictDeps.mapNotNull { it.label }

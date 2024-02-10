@@ -43,7 +43,6 @@ class PersistentWorker(
   private val executor: ExecutorService,
   private val cpuTimeBasedGcScheduler: GcScheduler,
 ) : Worker {
-
   constructor(
     executor: ExecutorService,
     captureIO: () -> IO,
@@ -59,39 +58,42 @@ class PersistentWorker(
     CpuTimeBasedGcScheduler(Duration.ofSeconds(10)),
   )
 
-  override fun start(execute: Work) = WorkerContext.run {
-    captureIO().use { io ->
-      val running = AtomicLong(0)
-      val completion = ExecutorCompletionService<WorkResponse>(executor)
-      val producer = executor.submit {
-        io.input.readRequestAnd { request ->
-          running.incrementAndGet()
-          completion.submit {
-            doTask(
-              name = "request ${request.requestId}",
-              task = request.workTo(execute),
-            ).asResponseTo(request.requestId, io)
+  override fun start(execute: Work) =
+    WorkerContext.run {
+      captureIO().use { io ->
+        val running = AtomicLong(0)
+        val completion = ExecutorCompletionService<WorkResponse>(executor)
+        val producer =
+          executor.submit {
+            io.input.readRequestAnd { request ->
+              running.incrementAndGet()
+              completion.submit {
+                doTask(
+                  name = "request ${request.requestId}",
+                  task = request.workTo(execute),
+                ).asResponseTo(request.requestId, io)
+              }
+            }
           }
-        }
-      }
-      val consumer = executor.submit {
-        while (!producer.isDone || running.get() > 0) {
-          // poll time is how long before checking producer liveliness. Too long, worker hangs
-          // when being shutdown -- too short, and it starves the process.
-          completion.poll(1, TimeUnit.SECONDS)?.run {
-            running.decrementAndGet()
-            get().writeDelimitedTo(io.output)
-            io.output.flush()
+        val consumer =
+          executor.submit {
+            while (!producer.isDone || running.get() > 0) {
+              // poll time is how long before checking producer liveliness. Too long, worker hangs
+              // when being shutdown -- too short, and it starves the process.
+              completion.poll(1, TimeUnit.SECONDS)?.run {
+                running.decrementAndGet()
+                get().writeDelimitedTo(io.output)
+                io.output.flush()
+              }
+              cpuTimeBasedGcScheduler.maybePerformGc()
+            }
           }
-          cpuTimeBasedGcScheduler.maybePerformGc()
-        }
+        producer.get()
+        consumer.get()
+        io.output.close()
       }
-      producer.get()
-      consumer.get()
-      io.output.close()
+      return@run 0
     }
-    return@run 0
-  }
 
   private fun WorkRequest.workTo(execute: Work): (sub: WorkerContext.TaskContext) -> Status {
     return { ctx -> execute(ctx, argumentsList.toList()) }
@@ -105,15 +107,19 @@ class PersistentWorker(
     }
   }
 
-  private fun TaskResult.asResponseTo(id: Int, io: IO): WorkResponse {
+  private fun TaskResult.asResponseTo(
+    id: Int,
+    io: IO,
+  ): WorkResponse {
     return WorkResponse.newBuilder()
       .apply {
         val cap = io.readCapturedAsUtf8String()
         // append whatever falls through standard out.
-        output = listOf(
-          log.out.toString(),
-          cap,
-        ).joinToString("\n").trim()
+        output =
+          listOf(
+            log.out.toString(),
+            cap,
+          ).joinToString("\n").trim()
         exitCode = status.exit
         requestId = id
       }

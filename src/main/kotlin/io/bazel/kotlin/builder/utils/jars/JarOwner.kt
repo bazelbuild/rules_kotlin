@@ -14,8 +14,9 @@ data class JarOwner(val jar: Path, val label: String? = null, val aspect: String
         JarFile(jarPath.toFile()).use { jarFile ->
           val manifest = jarFile.manifest ?: return JarOwner(jarPath)
           val attributes = manifest.mainAttributes
-          val label = attributes[TARGET_LABEL] as String?
-            ?: return JarOwner(jarPath)
+          val label =
+            attributes[TARGET_LABEL] as String?
+              ?: return JarOwner(jarPath)
           val injectingRuleKind = attributes[INJECTING_RULE_KIND] as String?
           return JarOwner(jarPath, label, injectingRuleKind)
         }

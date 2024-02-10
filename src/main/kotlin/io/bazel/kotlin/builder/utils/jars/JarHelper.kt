@@ -97,7 +97,11 @@ open class JarHelper internal constructor(
    * '/'.
    */
   @Throws(IOException::class)
-  private fun writeEntry(out: JarOutputStream, name: String, content: ByteArray) {
+  private fun writeEntry(
+    out: JarOutputStream,
+    name: String,
+    content: ByteArray,
+  ) {
     if (names.add(name)) {
       // Create a new entry
       val entry = JarEntry(name)
@@ -130,7 +134,10 @@ open class JarHelper internal constructor(
    * @throws IOException
    */
   @Throws(IOException::class)
-  protected fun writeManifestEntry(out: JarOutputStream, content: ByteArray) {
+  protected fun writeManifestEntry(
+    out: JarOutputStream,
+    content: ByteArray,
+  ) {
     val oldStorageMethod = storageMethod
     // Do not compress small manifest files, the compressed one is frequently
     // larger than the original. The threshold of 256 bytes is somewhat arbitrary.
@@ -150,7 +157,10 @@ open class JarHelper internal constructor(
    * detected and their names automatically '/' suffixed.
    */
   @Throws(IOException::class)
-  protected fun JarOutputStream.copyEntry(name: String, path: Path) {
+  protected fun JarOutputStream.copyEntry(
+    name: String,
+    path: Path,
+  ) {
     var normalizedName = name
     if (!names.contains(normalizedName)) {
       if (!Files.exists(path)) {
@@ -217,10 +227,11 @@ open class JarHelper internal constructor(
     data: ByteArray = EMPTY_BYTEARRAY,
   ) {
     val outEntry = JarEntry(name)
-    outEntry.time = when {
-      normalize -> normalizedTimestamp(name)
-      else -> Files.getLastModifiedTime(checkNotNull(path)).toMillis()
-    }
+    outEntry.time =
+      when {
+        normalize -> normalizedTimestamp(name)
+        else -> Files.getLastModifiedTime(checkNotNull(path)).toMillis()
+      }
     outEntry.size = data.size.toLong()
 
     if (data.isEmpty()) {

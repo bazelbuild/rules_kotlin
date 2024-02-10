@@ -32,7 +32,6 @@ class IO(
   private val captured: CapturingOutputStream,
   private val restore: () -> Unit = {},
 ) : Closeable {
-
   /**
    * Reads the captured std out and err as a UTF-8 string and then resets the
    * captured ByteArrayOutputStream.
@@ -70,9 +69,10 @@ class IO(
   }
 
   class CapturingOutputStream : OutputStream() {
-    private val backing = object : ThreadLocal<ByteArrayOutputStream>() {
-      override fun initialValue(): ByteArrayOutputStream = ByteArrayOutputStream()
-    }
+    private val backing =
+      object : ThreadLocal<ByteArrayOutputStream>() {
+        override fun initialValue(): ByteArrayOutputStream = ByteArrayOutputStream()
+      }
 
     override fun write(b: Int) {
       backing.get().write(b)

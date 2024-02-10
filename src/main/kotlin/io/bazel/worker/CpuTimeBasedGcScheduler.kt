@@ -14,7 +14,6 @@ class CpuTimeBasedGcScheduler(
    */
   private val cpuUsageBeforeGc: Duration,
 ) : GcScheduler {
-
   /** The total process CPU time at the last GC run (or from the start of the worker).  */
   private val cpuTime: Duration
     get() = if (cpuUsageBeforeGc.isZero) Duration.ZERO else Duration.ofNanos(bean.processCpuTime)

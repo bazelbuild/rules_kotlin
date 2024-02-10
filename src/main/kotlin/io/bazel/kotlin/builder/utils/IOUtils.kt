@@ -29,7 +29,10 @@ import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-private fun executeAwait(timeoutSeconds: Int, process: Process): Int {
+private fun executeAwait(
+  timeoutSeconds: Int,
+  process: Process,
+): Int {
   try {
     if (!process.waitFor(timeoutSeconds.toLong(), TimeUnit.SECONDS)) {
       throw TimeoutException()
@@ -42,13 +45,18 @@ private fun executeAwait(timeoutSeconds: Int, process: Process): Int {
   }
 }
 
-fun executeAndAwait(timeoutSeconds: Int, directory: File? = null, args: List<String>): Int {
-  val process = ProcessBuilder(*args.toTypedArray()).let { pb ->
-    pb.redirectError(ProcessBuilder.Redirect.PIPE)
-    pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
-    directory?.also { pb.directory(it) }
-    pb.start()
-  }
+fun executeAndAwait(
+  timeoutSeconds: Int,
+  directory: File? = null,
+  args: List<String>,
+): Int {
+  val process =
+    ProcessBuilder(*args.toTypedArray()).let { pb ->
+      pb.redirectError(ProcessBuilder.Redirect.PIPE)
+      pb.redirectOutput(ProcessBuilder.Redirect.PIPE)
+      directory?.also { pb.directory(it) }
+      pb.start()
+    }
 
   var isr: BufferedReader? = null
   var esr: BufferedReader? = null
@@ -64,7 +72,8 @@ fun executeAndAwait(timeoutSeconds: Int, directory: File? = null, args: List<Str
 }
 
 private fun BufferedReader.drainTo(pw: PrintStream) {
-  lines().forEach(pw::println); close()
+  lines().forEach(pw::println)
+  close()
 }
 
 fun Path.resolveTwinVerified(extension: String): Path =
@@ -72,9 +81,10 @@ fun Path.resolveTwinVerified(extension: String): Path =
     "${toFile().nameWithoutExtension}${if (extension.startsWith(".")) "" else "."}$extension",
   ).verified().toPath()
 
-fun Path.resolveNewDirectories(vararg parts: String) = Files.createDirectories(
-  parts.fold(this, Path::resolve),
-)
+fun Path.resolveNewDirectories(vararg parts: String) =
+  Files.createDirectories(
+    parts.fold(this, Path::resolve),
+  )
 
 fun Path.resolveVerified(vararg parts: String): File =
   resolve(Paths.get(parts[0], *Arrays.copyOfRange(parts, 1, parts.size))).verified()
@@ -82,11 +92,13 @@ fun Path.resolveVerified(vararg parts: String): File =
 fun Path.resolveVerifiedToAbsoluteString(vararg parts: String): String =
   resolveVerified(*parts).absolutePath.toString()
 
-fun Path.verified(): File = this.toFile()
-  .also { check(it.exists()) { "file did not exist: $this" } }
+fun Path.verified(): File =
+  this.toFile()
+    .also { check(it.exists()) { "file did not exist: $this" } }
 
-fun Path.verifiedPath(): Path = this.toFile()
-  .also { check(it.exists()) { "file did not exist: $this" } }.toPath()
+fun Path.verifiedPath(): Path =
+  this.toFile()
+    .also { check(it.exists()) { "file did not exist: $this" } }.toPath()
 
 val Throwable.rootCause: Throwable
   get() {

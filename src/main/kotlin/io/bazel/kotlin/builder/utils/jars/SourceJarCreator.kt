@@ -75,7 +75,10 @@ class SourceJarCreator(
      * Files like `package-info.java` could end up getting deferred if they have an annotation embedded on the same
      * line or files that have entries such as `/* weird comment */package lala`
      */
-    fun getFilenameOrDefer(sourceFile: Path, body: ByteArray): String? =
+    fun getFilenameOrDefer(
+      sourceFile: Path,
+      body: ByteArray,
+    ): String? =
       directoryToPackageMap[sourceFile.parent] ?: locatePackagePathOrDefer(sourceFile, body)?.let {
         "$it/${sourceFile.fileName}"
       }
@@ -91,7 +94,10 @@ class SourceJarCreator(
       }
     }
 
-    private fun locatePackagePathOrDefer(sourceFile: Path, body: ByteArray): String? =
+    private fun locatePackagePathOrDefer(
+      sourceFile: Path,
+      body: ByteArray,
+    ): String? =
       body.inputStream().bufferedReader().useLines {
         it.mapNotNull(::extractPackage).firstOrNull()?.replace('.', '/')
       }.also {
@@ -182,7 +188,11 @@ class SourceJarCreator(
     }
   }
 
-  private fun addEntry(name: String, path: Path, bytes: ByteArray) {
+  private fun addEntry(
+    name: String,
+    path: Path,
+    bytes: ByteArray,
+  ) {
     name.split("/").also {
       if (it.size >= 2) {
         for (i in ((it.size - 1) downTo 1)) {

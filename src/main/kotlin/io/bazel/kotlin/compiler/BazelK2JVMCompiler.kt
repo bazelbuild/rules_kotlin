@@ -23,7 +23,10 @@ import org.jetbrains.kotlin.config.Services
 
 @Suppress("unused")
 class BazelK2JVMCompiler {
-  fun exec(errStream: java.io.PrintStream, vararg args: String): ExitCode {
+  fun exec(
+    errStream: java.io.PrintStream,
+    vararg args: String,
+  ): ExitCode {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
     val delegate: K2JVMCompiler = K2JVMCompiler()
     val arguments = delegate.createArguments().also { delegate.parseArguments(args, it) }

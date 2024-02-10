@@ -57,7 +57,10 @@ class JarCreator(
    * @param path the path of the input for the entry
    * @return true iff a new entry was added
    */
-  private fun addEntry(entryName: String, path: Path): Boolean {
+  private fun addEntry(
+    entryName: String,
+    path: Path,
+  ): Boolean {
     var normalizedEntryName = entryName
     if (normalizedEntryName.startsWith("/")) {
       normalizedEntryName = normalizedEntryName.substring(1)
@@ -82,7 +85,10 @@ class JarCreator(
    * @param fileName the name of the input file for the entry
    * @return true iff a new entry was added
    */
-  fun addEntry(entryName: String, fileName: String): Boolean {
+  fun addEntry(
+    entryName: String,
+    fileName: String,
+  ): Boolean {
     return addEntry(entryName, get(fileName))
   }
 
@@ -100,9 +106,11 @@ class JarCreator(
       Files.walkFileTree(
         directory,
         object : SimpleFileVisitor<Path>() {
-
           @Throws(IOException::class)
-          override fun preVisitDirectory(path: Path, attrs: BasicFileAttributes): FileVisitResult {
+          override fun preVisitDirectory(
+            path: Path,
+            attrs: BasicFileAttributes,
+          ): FileVisitResult {
             if (path != directory) {
               // For consistency with legacy behaviour, include entries for directories except for
               // the root.
@@ -112,12 +120,18 @@ class JarCreator(
           }
 
           @Throws(IOException::class)
-          override fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
+          override fun visitFile(
+            path: Path,
+            attrs: BasicFileAttributes,
+          ): FileVisitResult {
             addEntry(path, isDirectory = false)
             return FileVisitResult.CONTINUE
           }
 
-          fun addEntry(path: Path, isDirectory: Boolean) {
+          fun addEntry(
+            path: Path,
+            isDirectory: Boolean,
+          ) {
             val sb = StringBuilder()
             var first = true
             for (entry in directory.relativize(path)) {
@@ -165,7 +179,10 @@ class JarCreator(
     this.mainClass = mainClass
   }
 
-  fun setJarOwner(targetLabel: String, injectingRuleKind: String) {
+  fun setJarOwner(
+    targetLabel: String,
+    injectingRuleKind: String,
+  ) {
     this.targetLabel = targetLabel
     this.injectingRuleKind = injectingRuleKind
   }

@@ -21,7 +21,6 @@ import java.io.FileNotFoundException
 
 /** Utility class for getting runfiles on windows and *nix.  */
 object BazelRunFiles {
-
   private val runfiles by lazy {
     Runfiles.preload().unmapped()
   }

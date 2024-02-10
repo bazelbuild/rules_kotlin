@@ -23,13 +23,15 @@ import java.util.jar.JarFile
 open class JarExtractor protected constructor(
   protected var destDir: Path,
 ) {
-
   /**
    * @param isDirectory is the target a directory.
    * @param target path the operation will apply to.
    * @return weather the operation should be applied or not.
    */
-  internal open fun preWrite(isDirectory: Boolean, target: Path): Boolean = true
+  internal open fun preWrite(
+    isDirectory: Boolean,
+    target: Path,
+  ): Boolean = true
 
   protected fun extract(jarFile: Path) {
     JarFile(jarFile.toFile()).use { jar ->
@@ -41,10 +43,11 @@ open class JarExtractor protected constructor(
                 when {
                   entry.isDirectory ->
                     Files.createDirectories(target)
-                  else -> jar.getInputStream(entry).use {
-                    Files.createDirectories(target.parent)
-                    Files.copy(it, target, StandardCopyOption.REPLACE_EXISTING)
-                  }
+                  else ->
+                    jar.getInputStream(entry).use {
+                      Files.createDirectories(target.parent)
+                      Files.copy(it, target, StandardCopyOption.REPLACE_EXISTING)
+                    }
                 }
               }
             }

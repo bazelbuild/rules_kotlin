@@ -23,7 +23,10 @@ class SourceJarExtractor(destDir: Path, val fileMatcher: Predicate<String> = Pre
   val jarFiles = mutableListOf<Path>()
   val sourcesList = mutableListOf<String>()
 
-  override fun preWrite(isDirectory: Boolean, target: Path): Boolean {
+  override fun preWrite(
+    isDirectory: Boolean,
+    target: Path,
+  ): Boolean {
     if (isDirectory) {
       return true
     }

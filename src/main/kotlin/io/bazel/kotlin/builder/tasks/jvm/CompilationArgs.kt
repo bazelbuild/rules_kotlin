@@ -32,7 +32,6 @@ class CompilationArgs(
   val args: MutableList<String> = mutableListOf(),
   private val dfs: FileSystem = FileSystems.getDefault(),
 ) {
-
   class StringConditional(
     val value: String,
     val parent: CompilationArgs,
@@ -95,9 +94,10 @@ class CompilationArgs(
     return StringConditional(value, this)
   }
 
-  operator fun plus(other: CompilationArgs): CompilationArgs = CompilationArgs(
-    (args.asSequence() + other.args.asSequence()).toMutableList(),
-  )
+  operator fun plus(other: CompilationArgs): CompilationArgs =
+    CompilationArgs(
+      (args.asSequence() + other.args.asSequence()).toMutableList(),
+    )
 
   fun absolutePaths(
     paths: Collection<String>,

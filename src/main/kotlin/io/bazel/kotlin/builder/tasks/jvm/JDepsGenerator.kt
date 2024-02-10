@@ -21,7 +21,10 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 object JDepsGenerator {
-  internal fun writeJdeps(path: String, jdepsContent: Deps.Dependencies) {
+  internal fun writeJdeps(
+    path: String,
+    jdepsContent: Deps.Dependencies,
+  ) {
     Paths.get(path).also {
       Files.deleteIfExists(it)
       FileOutputStream(Files.createFile(it).toFile()).use(jdepsContent::writeTo)

@@ -43,7 +43,10 @@ class ArgMap(private val map: Map<String, List<String>>) {
       }
     }
 
-  private fun optionalSingleIf(key: String, condition: () -> Boolean): String? {
+  private fun optionalSingleIf(
+    key: String,
+    condition: () -> Boolean,
+  ): String? {
     return if (condition()) {
       optionalSingle(key)
     } else {
@@ -59,22 +62,31 @@ class ArgMap(private val map: Map<String, List<String>>) {
     return keys.any { optional(it)?.isNotEmpty() ?: false }
   }
 
-  private fun mandatory(key: String): List<String> = optional(key)
-    ?: throw IllegalArgumentException(
-      "$key is not optional",
-    )
+  private fun mandatory(key: String): List<String> =
+    optional(key)
+      ?: throw IllegalArgumentException(
+        "$key is not optional",
+      )
 
   private fun optional(key: String): List<String>? = map[key]
 
   fun mandatorySingle(key: Flag) = mandatorySingle(key.flag)
+
   fun optionalSingle(key: Flag) = optionalSingle(key.flag)
-  fun optionalSingleIf(key: Flag, condition: () -> Boolean) =
-    optionalSingleIf(key.flag, condition)
+
+  fun optionalSingleIf(
+    key: Flag,
+    condition: () -> Boolean,
+  ) = optionalSingleIf(key.flag, condition)
 
   fun hasAll(vararg keys: Flag) = hasAll(keys.map(Flag::flag).toTypedArray())
+
   fun hasAny(vararg keys: Flag) = hasAny(keys.map(Flag::flag).toTypedArray())
+
   fun mandatory(key: Flag) = mandatory(key.flag)
+
   fun optional(key: Flag) = optional(key.flag)
+
   fun labelDepMap(key: Flag) = labelDepMap(key.flag)
 }
 

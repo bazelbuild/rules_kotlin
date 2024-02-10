@@ -48,31 +48,33 @@ import kotlin.io.path.exists
 
 private const val SOURCE_JARS_DIR = "_srcjars"
 
-fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
-  .absolutePaths(info.friendPathsList) {
-    "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
-  }
-  .flag("-d", directories.classes)
-  .values(info.passthroughFlagsList)
+fun JvmCompilationTask.codeGenArgs(): CompilationArgs =
+  CompilationArgs()
+    .absolutePaths(info.friendPathsList) {
+      "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
+    }
+    .flag("-d", directories.classes)
+    .values(info.passthroughFlagsList)
 
 fun JvmCompilationTask.baseArgs(): CompilationArgs {
-  val classpath = when (info.reducedClasspathMode) {
-    "KOTLINBUILDER_REDUCED" -> {
-      val transitiveDepsForCompile = mutableSetOf<String>()
-      inputs.depsArtifactsList.forEach { jdepsPath ->
-        BufferedInputStream(Paths.get(jdepsPath).toFile().inputStream()).use {
-          val deps = Deps.Dependencies.parseFrom(it)
-          deps.dependencyList.forEach { dep ->
-            if (dep.kind == Deps.Dependency.Kind.EXPLICIT) {
-              transitiveDepsForCompile.add(dep.path)
+  val classpath =
+    when (info.reducedClasspathMode) {
+      "KOTLINBUILDER_REDUCED" -> {
+        val transitiveDepsForCompile = mutableSetOf<String>()
+        inputs.depsArtifactsList.forEach { jdepsPath ->
+          BufferedInputStream(Paths.get(jdepsPath).toFile().inputStream()).use {
+            val deps = Deps.Dependencies.parseFrom(it)
+            deps.dependencyList.forEach { dep ->
+              if (dep.kind == Deps.Dependency.Kind.EXPLICIT) {
+                transitiveDepsForCompile.add(dep.path)
+              }
             }
           }
         }
+        inputs.directDependenciesList + transitiveDepsForCompile
       }
-      inputs.directDependenciesList + transitiveDepsForCompile
-    }
-    else -> inputs.classpathList
-  } as List<String>
+      else -> inputs.classpathList
+    } as List<String>
 
   return CompilationArgs()
     .flag("-cp")
@@ -97,15 +99,17 @@ internal fun JvmCompilationTask.plugins(
       xFlag("plugin", it)
     }
 
-    val dirTokens = mapOf(
-      "{generatedClasses}" to directories.generatedClasses,
-      "{stubs}" to directories.stubs,
-      "{generatedSources}" to directories.generatedSources,
-    )
+    val dirTokens =
+      mapOf(
+        "{generatedClasses}" to directories.generatedClasses,
+        "{stubs}" to directories.stubs,
+        "{generatedSources}" to directories.generatedSources,
+      )
     options.forEach { opt ->
-      val formatted = dirTokens.entries.fold(opt) { formatting, (token, value) ->
-        formatting.replace(token, value)
-      }
+      val formatted =
+        dirTokens.entries.fold(opt) { formatting, (token, value) ->
+          formatting.replace(token, value)
+        }
       flag("-P", "plugin:$formatted")
     }
   }
@@ -136,77 +140,80 @@ internal fun JvmCompilationTask.kaptArgs(
   plugins: InternalCompilerPlugins,
   aptMode: String,
 ): CompilationArgs {
-  val javacArgs = mapOf<String, String>(
-    "-target" to info.toolchainInfo.jvm.jvmTarget,
-    "-source" to info.toolchainInfo.jvm.jvmTarget,
-  )
+  val javacArgs =
+    mapOf<String, String>(
+      "-target" to info.toolchainInfo.jvm.jvmTarget,
+      "-source" to info.toolchainInfo.jvm.jvmTarget,
+    )
   return CompilationArgs().apply {
     xFlag("plugin", plugins.kapt.jarPath)
 
-    val values = arrayOf(
-      "sources" to listOf(directories.generatedJavaSources),
-      "classes" to listOf(directories.generatedClasses),
-      "stubs" to listOf(directories.stubs),
-      "incrementalData" to listOf(directories.incrementalData),
-      "javacArguments" to listOf(javacArgs.let(::encodeMap)),
-      "correctErrorTypes" to listOf("false"),
-      "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
-      "apclasspath" to inputs.processorpathsList,
-      "aptMode" to listOf(aptMode),
-    )
+    val values =
+      arrayOf(
+        "sources" to listOf(directories.generatedJavaSources),
+        "classes" to listOf(directories.generatedClasses),
+        "stubs" to listOf(directories.stubs),
+        "incrementalData" to listOf(directories.incrementalData),
+        "javacArguments" to listOf(javacArgs.let(::encodeMap)),
+        "correctErrorTypes" to listOf("false"),
+        "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
+        "apclasspath" to inputs.processorpathsList,
+        "aptMode" to listOf(aptMode),
+      )
     val version = info.toolchainInfo.common.apiVersion.toFloat()
     when {
-      version < 1.5 -> base64Encode(
-        "-P",
-        *values + ("processors" to inputs.processorsList).asKeyToCommaList(),
-      ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
-      else -> repeatFlag(
-        "-P",
-        *values + ("processors" to inputs.processorsList),
-      ) { option, value ->
-        "plugin:${plugins.kapt.id}:$option=$value"
-      }
+      version < 1.5 ->
+        base64Encode(
+          "-P",
+          *values + ("processors" to inputs.processorsList).asKeyToCommaList(),
+        ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
+      else ->
+        repeatFlag(
+          "-P",
+          *values + ("processors" to inputs.processorsList),
+        ) { option, value ->
+          "plugin:${plugins.kapt.id}:$option=$value"
+        }
     }
   }
 }
 
-internal fun JvmCompilationTask.kspArgs(
-  plugins: InternalCompilerPlugins,
-): CompilationArgs {
+internal fun JvmCompilationTask.kspArgs(plugins: InternalCompilerPlugins): CompilationArgs {
   return CompilationArgs().apply {
     plugin(plugins.kspSymbolProcessingCommandLine)
     plugin(plugins.kspSymbolProcessingApi) {
       flag("-Xallow-no-source-files")
 
-      val values = arrayOf(
-        "apclasspath" to listOf(inputs.processorpathsList.joinToString(File.pathSeparator)),
-        // projectBaseDir shouldn't matter because incremental is disabled
-        "projectBaseDir" to listOf(directories.incrementalData),
-        // Disable incremental mode
-        "incremental" to listOf("false"),
-        // Directory where class files are written to. Files written to this directory are class
-        // files being written directly from the annotation processor, not Kotlinc
-        "classOutputDir" to listOf(directories.generatedClasses),
-        // Directory where generated Java sources files are written to
-        "javaOutputDir" to listOf(directories.generatedJavaSources),
-        // Directory where generated Kotlin sources files are written to
-        "kotlinOutputDir" to listOf(directories.generatedSources),
-        // Directory where META-INF data is written to. This might not be the most ideal place to
-        // write this. Maybe just directly to the classes directory?
-        "resourceOutputDir" to listOf(directories.generatedSources),
-        // TODO(bencodes) Not sure what this directory is yet.
-        "kspOutputDir" to listOf(directories.incrementalData),
-        // Directory to write KSP caches. Shouldn't matter because incremental is disabled
-        "cachesDir" to listOf(directories.incrementalData),
-        // Set withCompilation to false because we run this as part of the standard kotlinc pass
-        // If we ever want to flip this to true, we probably want to integrate this directly
-        // into the KotlinCompile action.
-        "withCompilation" to listOf("false"),
-        // Set returnOkOnError to false because we want to fail the build if there are any errors
-        "returnOkOnError" to listOf("false"),
-        // TODO(bencodes) This should probably be enabled via some KSP options
-        "allWarningsAsErrors" to listOf("false"),
-      )
+      val values =
+        arrayOf(
+          "apclasspath" to listOf(inputs.processorpathsList.joinToString(File.pathSeparator)),
+          // projectBaseDir shouldn't matter because incremental is disabled
+          "projectBaseDir" to listOf(directories.incrementalData),
+          // Disable incremental mode
+          "incremental" to listOf("false"),
+          // Directory where class files are written to. Files written to this directory are class
+          // files being written directly from the annotation processor, not Kotlinc
+          "classOutputDir" to listOf(directories.generatedClasses),
+          // Directory where generated Java sources files are written to
+          "javaOutputDir" to listOf(directories.generatedJavaSources),
+          // Directory where generated Kotlin sources files are written to
+          "kotlinOutputDir" to listOf(directories.generatedSources),
+          // Directory where META-INF data is written to. This might not be the most ideal place to
+          // write this. Maybe just directly to the classes directory?
+          "resourceOutputDir" to listOf(directories.generatedSources),
+          // TODO(bencodes) Not sure what this directory is yet.
+          "kspOutputDir" to listOf(directories.incrementalData),
+          // Directory to write KSP caches. Shouldn't matter because incremental is disabled
+          "cachesDir" to listOf(directories.incrementalData),
+          // Set withCompilation to false because we run this as part of the standard kotlinc pass
+          // If we ever want to flip this to true, we probably want to integrate this directly
+          // into the KotlinCompile action.
+          "withCompilation" to listOf("false"),
+          // Set returnOkOnError to false because we want to fail the build if there are any errors
+          "returnOkOnError" to listOf("false"),
+          // TODO(bencodes) This should probably be enabled via some KSP options
+          "allWarningsAsErrors" to listOf("false"),
+        )
 
       values.forEach { pair ->
         pair.second.forEach { value ->
@@ -229,7 +236,7 @@ internal fun JvmCompilationTask.runPlugins(
     (
       inputs.processorsList.isEmpty() &&
         inputs.stubsPluginClasspathList.isEmpty()
-      ) ||
+    ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this
@@ -404,11 +411,12 @@ fun JvmCompilationTask.compileKotlin(
     return emptyList()
   } else {
     return (
-      args + plugins(
-        options = inputs.compilerPluginOptionsList,
-        classpath = inputs.compilerPluginClasspathList,
-      )
-      )
+      args +
+        plugins(
+          options = inputs.compilerPluginOptionsList,
+          classpath = inputs.compilerPluginClasspathList,
+        )
+    )
       .values(inputs.javaSourcesList)
       .values(inputs.kotlinSourcesList)
       .flag("-d", directories.classes)
@@ -461,17 +469,19 @@ internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask
   }
 
 private val Directories.stubs
-  get() = Files.createDirectories(
-    Paths.get(temp)
-      .resolve("stubs"),
-  )
-    .toString()
+  get() =
+    Files.createDirectories(
+      Paths.get(temp)
+        .resolve("stubs"),
+    )
+      .toString()
 private val Directories.incrementalData
-  get() = Files.createDirectories(
-    Paths.get(temp)
-      .resolve("incrementalData"),
-  )
-    .toString()
+  get() =
+    Files.createDirectories(
+      Paths.get(temp)
+        .resolve("incrementalData"),
+    )
+      .toString()
 
 /**
  * Create a new [JvmCompilationTask] with sources found in the generatedSources directory. This should be run after

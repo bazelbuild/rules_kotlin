@@ -36,7 +36,6 @@ class WorkerContext private constructor(
   private val name: String = Companion::class.java.canonicalName,
   private val verbose: Granularity = INFO,
 ) : Closeable, ScopeLogging by ContextLogger(name, verbose.level, null) {
-
   companion object {
     fun <T : Any?> run(
       named: String = "worker",
@@ -57,7 +56,6 @@ class WorkerContext private constructor(
     val level: Level,
     val propagateTo: ContextLogger? = null,
   ) : ScopeLogging {
-
     private val profiles = mutableListOf<String>()
 
     private val out by lazy {

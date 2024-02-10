@@ -26,9 +26,10 @@ internal fun JvmCompilationTask.createCoverageInstrumentedJar() {
     Paths.get(directories.generatedClasses),
   )
 
-  val pathsForCoverage = instrumentedClassesDirectory.resolve(
-    "${Paths.get(outputs.jar).fileName}-paths-for-coverage.txt",
-  )
+  val pathsForCoverage =
+    instrumentedClassesDirectory.resolve(
+      "${Paths.get(outputs.jar).fileName}-paths-for-coverage.txt",
+    )
   Files.write(
     pathsForCoverage,
     inputs.javaSourcesList + inputs.kotlinSourcesList,
@@ -48,27 +49,35 @@ internal fun JvmCompilationTask.createCoverageInstrumentedJar() {
   }
 }
 
-private fun instrumentRecursively(instr: Instrumenter, metadataDir: Path, root: Path) {
-  val visitor = object : SimpleFileVisitor<Path>() {
-    override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-      if (file.toFile().extension != "class") {
+private fun instrumentRecursively(
+  instr: Instrumenter,
+  metadataDir: Path,
+  root: Path,
+) {
+  val visitor =
+    object : SimpleFileVisitor<Path>() {
+      override fun visitFile(
+        file: Path,
+        attrs: BasicFileAttributes,
+      ): FileVisitResult {
+        if (file.toFile().extension != "class") {
+          return FileVisitResult.CONTINUE
+        }
+
+        val absoluteUninstrumentedCopy = Paths.get("$file.uninstrumented")
+        val uninstrumentedCopy = metadataDir.resolve(root.relativize(absoluteUninstrumentedCopy))
+
+        Files.createDirectories(uninstrumentedCopy.parent)
+        Files.move(file, uninstrumentedCopy)
+
+        Files.newInputStream(uninstrumentedCopy).buffered().use { input ->
+          Files.newOutputStream(file).buffered().use { output ->
+            instr.instrument(input, output, file.toString())
+          }
+        }
+
         return FileVisitResult.CONTINUE
       }
-
-      val absoluteUninstrumentedCopy = Paths.get("$file.uninstrumented")
-      val uninstrumentedCopy = metadataDir.resolve(root.relativize(absoluteUninstrumentedCopy))
-
-      Files.createDirectories(uninstrumentedCopy.parent)
-      Files.move(file, uninstrumentedCopy)
-
-      Files.newInputStream(uninstrumentedCopy).buffered().use { input ->
-        Files.newOutputStream(file).buffered().use { output ->
-          instr.instrument(input, output, file.toString())
-        }
-      }
-
-      return FileVisitResult.CONTINUE
     }
-  }
   Files.walkFileTree(root, visitor)
 }
