@@ -68,11 +68,11 @@ versions = struct(
         sha256 = "88b39213506532c816ff56348c07bbeefe0c8d18943bffbad11063cf97cac3e6",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "1.9.20-1.0.13",
+        version = "1.9.20-1.0.17",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "eddac6a5a5ec53c74babab77a1e36933d13fbdb7682fe9c205979197e19c169f",
+        sha256 = "b39b373e09e5edefe700fef628572f71be7d49e6396dec0ea52eb10c16ead39e",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
