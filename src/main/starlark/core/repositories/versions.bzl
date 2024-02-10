@@ -68,7 +68,7 @@ versions = struct(
         sha256 = "88b39213506532c816ff56348c07bbeefe0c8d18943bffbad11063cf97cac3e6",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "1.9.20-1.0.17",
+        version = "1.9.22-1.0.17",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
