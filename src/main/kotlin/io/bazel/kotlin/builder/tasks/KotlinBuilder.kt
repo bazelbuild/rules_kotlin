@@ -20,11 +20,11 @@ import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
-import io.bazel.kotlin.builder.utils.ArgMap
-import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.builder.utils.partitionJvmSources
+import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.JsCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask
