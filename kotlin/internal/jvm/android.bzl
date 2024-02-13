@@ -63,7 +63,7 @@ def _kt_android_artifact(
             **kwargs
         )
         exported_target_labels.append(base_name)
-    elif resource_files or manifest:
+    elif resource_files or manifest or assets:
         # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
         # buildifier: disable=native-android
         # Do not export deps to avoid all upstream targets to be invalidated when ABI changes.
