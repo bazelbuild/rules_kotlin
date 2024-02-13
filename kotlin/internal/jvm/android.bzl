@@ -73,7 +73,6 @@ def _kt_android_artifact(
             name = base_name,
             resource_files = resource_files,
             deps = deps,
-            custom_package = kwargs.get("custom_package", default = None),
             enable_data_binding = enable_data_binding,
             tags = tags,
             visibility = ["//visibility:private"],
