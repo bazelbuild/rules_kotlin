@@ -67,6 +67,7 @@ def _kt_android_artifact(
         # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
         # buildifier: disable=native-android
         # Do not export deps to avoid all upstream targets to be invalidated when ABI changes.
+        kwargs.pop("exports", None)
         _android_library(
             name = base_name,
             resource_files = resource_files,
