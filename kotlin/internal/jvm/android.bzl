@@ -76,6 +76,7 @@ def _kt_android_artifact(
             enable_data_binding = enable_data_binding,
             tags = tags,
             visibility = ["//visibility:private"],
+            **kwargs
         )
         exported_target_labels.append(base_name)
     else:
