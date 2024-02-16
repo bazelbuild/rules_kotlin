@@ -37,6 +37,8 @@ def _kt_android_artifact(
         tags = [],
         exec_properties = None,
         resource_files = None,
+        assets = None,
+        assets_dir = None,
         **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
     Kotlin srcs. Returns a sequence of labels that a wrapping macro should export.
@@ -46,11 +48,10 @@ def _kt_android_artifact(
 
     # TODO(bazelbuild/rules_kotlin/issues/273): This should be retrieved from a provider.
     base_deps = [_ANDROID_SDK_JAR] + deps
+    manifest_only = not resource_files and not assets
 
-    exported_target_labels = [kt_name]
-    manifest = kwargs.get("manifest", default = None)
-    if "kt_prune_transitive_deps_incompatible" in tags:
-        # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
+    if 'kt_prune_transitive_deps_incompatible' in tags or manifest_only:
+        # TODO(bazelbuild/rules_kotlin/issues/556): replace with starlark
         # buildifier: disable=native-android
         _android_library(
             name = base_name,
@@ -59,34 +60,23 @@ def _kt_android_artifact(
             deps = deps if enable_data_binding else [],
             enable_data_binding = enable_data_binding,
             tags = tags,
+            assets = assets,
+            assets_dir = assets_dir,
             visibility = ["//visibility:private"],
             **kwargs
         )
-        exported_target_labels.append(base_name)
-    elif resource_files or manifest:
-        # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
-        # buildifier: disable=native-android
-        # Do not export deps to avoid all upstream targets to be invalidated when ABI changes.
+    else:
         _android_library(
             name = base_name,
             resource_files = resource_files,
             deps = deps,
             custom_package = kwargs.get("custom_package", default = None),
-            manifest = manifest,
+            manifest = kwargs.get("manifest", default = None),
+            assets = assets,
+            assets_dir = assets_dir,
             enable_data_binding = enable_data_binding,
             tags = tags,
             visibility = ["//visibility:private"],
-        )
-        exported_target_labels.append(base_name)
-    else:
-        # No need to export this target, as it's used exclusively internally
-        _android_library(
-            name = base_name,
-            exports = deps,
-            enable_data_binding = enable_data_binding,
-            tags = tags,
-            visibility = ["//visibility:private"],
-            **kwargs
         )
 
     _kt_jvm_library(
@@ -146,7 +136,7 @@ def kt_android_local_test(
 
     _android_local_test(
         name = name,
-        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, testonly = testonly, exec_properties = exec_properties, **kwargs),
+        deps = kwargs.get("deps", []) + _kt_android_artifact(name = name, manifest = manifest, testonly = testonly, exec_properties = exec_properties, **kwargs),
         jvm_flags = jvm_flags,
         test_class = test_class,
         visibility = visibility,
