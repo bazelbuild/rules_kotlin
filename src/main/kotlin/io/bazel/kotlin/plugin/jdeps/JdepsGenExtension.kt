@@ -280,9 +280,6 @@ class JdepsGenExtension(
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)
         }
-        else -> {
-          System.err.println("$declaration")
-        }
       }
     }
 
