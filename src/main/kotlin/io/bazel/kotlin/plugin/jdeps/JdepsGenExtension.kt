@@ -249,9 +249,6 @@ class JdepsGenExtension(
           descriptor.typeConstructor.supertypes.forEach {
             collectTypeReferences(it)
           }
-          descriptor.annotations.forEach { annotation ->
-            collectTypeReferences(annotation.type)
-          }
         }
 
         is FunctionDescriptor -> {
