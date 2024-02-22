@@ -191,6 +191,9 @@ class JdepsGenExtension(
           descriptor.typeConstructor.supertypes.forEach {
             collectTypeReferences(it)
           }
+          descriptor.annotations.forEach { annotation ->
+            collectTypeReferences(annotation.type)
+          }
         }
         is FunctionDescriptor -> {
           descriptor.returnType?.let { collectTypeReferences(it) }
@@ -215,6 +218,9 @@ class JdepsGenExtension(
         }
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)
+        }
+        else -> {
+          System.err.println("$declaration")
         }
       }
     }

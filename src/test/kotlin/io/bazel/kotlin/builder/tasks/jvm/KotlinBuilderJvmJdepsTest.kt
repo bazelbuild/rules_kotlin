@@ -222,6 +222,87 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
+  fun `java annotation on class is an explict dep`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClass.kt",
+        """
+          package something
+
+          @JavaAnnotation
+          class AnotherClass {
+          }
+        """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `java sealed classes`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClass.kt",
+        """
+          package something
+
+          import pkg.assertion.ExampleException
+
+          sealed class SomeClass {
+              companion object {
+                  fun mapExceptions(exception: Exception) = when (exception) {
+                      is ExampleException -> exception
+                      else                -> exception
+                  }
+              }
+          }
+        """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
+  fun `java classes with inheritance`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClass.kt",
+        """
+          package something
+
+          class SomeClass : SomeClassWithInheritance.BaseClassCallback {
+          }
+        """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+
+    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
+
+    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
+    assertImplicit(jdeps).isEmpty()
+    assertUnused(jdeps).isEmpty()
+    assertIncomplete(jdeps).isEmpty()
+  }
+
+  @Test
   fun `java annotation on property is an explict dep`() {
     val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
