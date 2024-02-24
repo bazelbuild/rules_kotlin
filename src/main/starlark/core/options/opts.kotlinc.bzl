@@ -66,6 +66,17 @@ _KOPTS_ALL = {
             True: ["-Xskip-prerelease-check"],
         },
     ),
+    "x_context_receivers": struct(
+        flag = "-Xcontext-receivers",
+        args = dict(
+            default = False,
+            doc = "Enable experimental context receivers.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xcontext-receivers"],
+        },
+    ),
     "x_inline_classes": struct(
         flag = "-Xinline-classes",
         args = dict(
