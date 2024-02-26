@@ -88,10 +88,11 @@ class JdepsGenExtension(
       val sourceElement = if (descriptor.source != SourceElement.NO_SOURCE) {
         descriptor.source
       } else {
-        when(val declarationDescriptor = descriptor.getImportableDescriptor()) {
+        when (val declarationDescriptor = descriptor.getImportableDescriptor()) {
           is DeserializedTypeAliasDescriptor -> {
             declarationDescriptor.containerSource
           }
+
           else -> {
             null
           }
@@ -113,11 +114,14 @@ class JdepsGenExtension(
             // Ignore Java source local to this module.
             null
           }
+
         is KotlinJvmBinarySourceElement ->
           (sourceElement.binaryClass as VirtualFileKotlinClass).file.canonicalPath
+
         is JvmPackagePartSource -> { // This case is needed to collect type aliases
           ((sourceElement.knownJvmBinaryClass) as VirtualFileKotlinClass).file.canonicalPath
         }
+
         else -> {
           null
         }
@@ -251,8 +255,9 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is FunctionDescriptor -> {
-          descriptor.returnType?.let { collectTypeReferences(it, collectTypeArguments = false ) }
+          descriptor.returnType?.let { collectTypeReferences(it, collectTypeArguments = false) }
           descriptor.valueParameters.forEach { valueParameter ->
             collectTypeReferences(valueParameter.type)
           }
@@ -263,6 +268,7 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
           descriptor.annotations.forEach { annotation ->
@@ -272,6 +278,7 @@ class JdepsGenExtension(
             collectTypeReferences(annotation.type)
           }
         }
+
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)
         }
