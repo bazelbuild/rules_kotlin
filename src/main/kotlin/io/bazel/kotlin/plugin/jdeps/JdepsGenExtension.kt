@@ -8,15 +8,15 @@ import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
-import org.jetbrains.kotlin.descriptors.ValueDescriptor
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
@@ -172,7 +172,11 @@ class JdepsGenExtension(
       collectExplicitTypes(resultingDescriptor)
 
       val isExplicitReturnType = resultingDescriptor is JavaClassConstructorDescriptor
-      collectTypeReferences(resolvedCall.getReturnType(), isExplicit = isExplicitReturnType, collectTypeArguments = false)
+      collectTypeReferences(
+        resolvedCall.getReturnType(),
+        isExplicit = isExplicitReturnType,
+        collectTypeArguments = false,
+      )
       resultingDescriptor.returnType?.let {
         collectTypeReferences(it, isExplicit = isExplicitReturnType, collectTypeArguments = false)
       }
@@ -190,8 +194,10 @@ class JdepsGenExtension(
         }
 
         if (resultingDescriptor is PropertyDescriptor) {
-          (resultingDescriptor.getter
-            ?.correspondingProperty as? SyntheticJavaPropertyDescriptor)
+          (
+            resultingDescriptor.getter
+              ?.correspondingProperty as? SyntheticJavaPropertyDescriptor
+            )
             ?.let { syntheticJavaPropertyDescriptor ->
               collectTypeReferences(syntheticJavaPropertyDescriptor.type, isExplicit = false)
 
