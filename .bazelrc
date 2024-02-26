@@ -3,4 +3,4 @@ common --enable_bzlmod=true
 build --strategy=KotlinCompile=worker
 build --test_output=all
 build --verbose_failures
-common --jvmopt=-Djava.security.manager=allow
+
