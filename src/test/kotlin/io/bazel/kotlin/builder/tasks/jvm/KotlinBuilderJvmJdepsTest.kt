@@ -420,7 +420,6 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       )
     }
 
-    println("=====================================")
     val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource(
         "PatternMatchException.kt",
