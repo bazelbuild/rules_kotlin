@@ -4,6 +4,7 @@ import com.google.devtools.build.lib.view.proto.Deps
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import io.bazel.kotlin.builder.utils.jars.JarOwner
+import io.bazel.kotlin.builder.utils.relativizeToPwd
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.StorageComponentContainer
@@ -92,8 +93,10 @@ class JdepsGenExtension(
             // Ignore Java source local to this module.
             null
           }
+
         is KotlinJvmBinarySourceElement ->
           (sourceElement.binaryClass as VirtualFileKotlinClass).file.canonicalPath
+
         else -> null
       }
     }
@@ -134,14 +137,17 @@ class JdepsGenExtension(
         is FunctionImportedFromObject -> {
           collectTypeReferences(resultingDescriptor.containingObject.defaultType)
         }
+
         is PropertyImportedFromObject -> {
           collectTypeReferences(resultingDescriptor.containingObject.defaultType)
         }
+
         is JavaMethodDescriptor -> {
           getClassCanonicalPath(
             (resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor,
           )?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is FunctionDescriptor -> {
           resultingDescriptor.returnType?.let {
             collectTypeReferences(it, isExplicit = false, collectTypeArguments = false)
@@ -154,20 +160,25 @@ class JdepsGenExtension(
               ?: return
           explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
         }
+
         is ParameterDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is FakeCallableDescriptorForObject -> {
           collectTypeReferences(resultingDescriptor.type)
         }
+
         is JavaPropertyDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
+
         is PropertyDescriptor -> {
           when (resultingDescriptor.containingDeclaration) {
             is ClassDescriptor -> collectTypeReferences(
               (resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType,
             )
+
             else -> {
               val virtualFileClass =
                 (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
@@ -177,6 +188,7 @@ class JdepsGenExtension(
           }
           collectTypeReferences(resultingDescriptor.type, isExplicit = false)
         }
+
         else -> return
       }
     }
@@ -192,6 +204,7 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is FunctionDescriptor -> {
           descriptor.returnType?.let { collectTypeReferences(it) }
           descriptor.valueParameters.forEach { valueParameter ->
@@ -204,6 +217,7 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
           descriptor.annotations.forEach { annotation ->
@@ -213,6 +227,7 @@ class JdepsGenExtension(
             collectTypeReferences(annotation.type)
           }
         }
+
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)
         }
@@ -318,21 +333,21 @@ class JdepsGenExtension(
     unusedDeps.forEach { jarPath ->
       val dependency = Deps.Dependency.newBuilder()
       dependency.kind = Deps.Dependency.Kind.UNUSED
-      dependency.path = jarPath
+      dependency.path = jarPath.relativizeToPwd()
       rootBuilder.addDependency(dependency)
     }
 
     explicitDeps.forEach { (jarPath, _) ->
       val dependency = Deps.Dependency.newBuilder()
       dependency.kind = Deps.Dependency.Kind.EXPLICIT
-      dependency.path = jarPath
+      dependency.path = jarPath.relativizeToPwd()
       rootBuilder.addDependency(dependency)
     }
 
-    implicitDeps.keys.subtract(explicitDeps.keys).forEach {
+    implicitDeps.keys.subtract(explicitDeps.keys).forEach { jarPath ->
       val dependency = Deps.Dependency.newBuilder()
       dependency.kind = Deps.Dependency.Kind.IMPLICIT
-      dependency.path = it
+      dependency.path = jarPath.relativizeToPwd()
       rootBuilder.addDependency(dependency)
     }
 
