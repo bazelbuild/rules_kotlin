@@ -31,6 +31,11 @@ tasks:
     build_targets:
       - "//:rules_kotlin_release"
   rbe_ubuntu1604:
+    build_flags:
+      - "--enable_bzlmod=false"
+      - "--config=rbe"
+      - "--host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
+      - "--java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
     test_targets:
       - "--"
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
@@ -42,6 +47,7 @@ tasks:
       # Override the default worker strategy for remote builds (worker strategy
       # cannot be used with remote builds)
       - "--strategy=KotlinCompile=remote"
+      - "--config=rbe"
 # TODO: Enable these tests once this example is building against the release rules_kotlin binary
 #  example-android-5.x:
 #    name: "Example - Android using Bazel 5.x"

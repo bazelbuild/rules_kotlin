@@ -76,12 +76,18 @@ def archive_repository_implementation(repository_ctx):
             "Building %s in %s... (may take a while.)" % (target, workspace.basename),
         )
 
+        bazel = repository_ctx.which("bazel") or repository_ctx.which("bazelisk")
+        if not bazel:
+            fail("bazel or bazelisk not found in PATH. Good trick.")
         result = repository_ctx.execute(
             [
-                "bazel",
+                bazel,
                 "build",
                 target,
             ],
+            environment = {
+                "USE_BAZEL_VERSION": attr.bazel_version,
+            },
             working_directory = str(workspace),
             timeout = 1200,  # builds can take a minute. Or ten.
         )
@@ -125,6 +131,10 @@ _archive_repository = repository_rule(
     local = True,
     configure = True,
     attrs = {
+        "bazel_version": attr.string(
+            doc = "Bazel version to use for building the release archive",
+            default = "7.0.0",
+        ),
         "_remote_urls": attr.string_list(
             doc = "A list of urls for the archive",
             default = versions.RULES_KOTLIN.urls,

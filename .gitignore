@@ -6,3 +6,4 @@
 **/.DS_Store
 trace.profile.gz
 .idea
+MODULE.bazel.lock

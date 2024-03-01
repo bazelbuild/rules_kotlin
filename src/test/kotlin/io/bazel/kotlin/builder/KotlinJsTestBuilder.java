@@ -15,8 +15,11 @@
  */
 package io.bazel.kotlin.builder;
 
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JsCompilationTask;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -29,10 +32,16 @@ public final class KotlinJsTestBuilder extends KotlinAbstractTestBuilder<JsCompi
       Arrays.asList("-source-map", "-module-kind", "commonjs", "-target", "v5",  "-Xir-produce-klib-dir");
   private static final JsCompilationTask.Builder taskBuilder = JsCompilationTask.newBuilder();
   private static final KotlinBuilderComponent component =
-      DaggerKotlinBuilderComponent.builder().toolchain(toolchainForTest()).build();
+      DaggerKotlinBuilderComponent.builder().toolchain(withReflect(toolchainForTest())).build();
   private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
       EnumSet.allOf(DirectoryType.class);
   private final TaskBuilder taskBuilderInstance = new TaskBuilder();
+
+  private static KotlinToolchain withReflect(KotlinToolchain toolchain) {
+    return toolchain.toolchainWithReflect(
+            new File(Deps.Dep.fromLabel("@rules_kotlin//kotlin/compiler:kotlin-reflect").singleCompileJar())
+    );
+  }
 
   @Override
   JsCompilationTask buildTask() {

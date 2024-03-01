@@ -93,6 +93,14 @@ versions = struct(
         sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
     ),
     # needed for rules_pkg and java
+    RULES_KOTLIN = version(
+        version = "1.9.0",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_kotlin/releases/download/v{version}/rules_kotlin-v{version}.tar.gz",
+        ],
+        sha256 = "5766f1e599acf551aa56f49dab9ab9108269b03c557496c54acaf41f98e2b8d6",
+    ),
+    # needed for rules_pkg and java
     RULES_PYTHON = version(
         version = "0.23.1",
         strip_prefix_template = "rules_python-{version}",

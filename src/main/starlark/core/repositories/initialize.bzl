@@ -23,7 +23,7 @@ load(
 load(":setup.bzl", "kt_configure")
 load(":versions.bzl", _versions = "versions")
 
-#exports
+# exports
 versions = _versions
 kotlinc_version = _kotlinc_version
 ksp_version = _ksp_version
@@ -39,8 +39,4 @@ def kotlin_repositories(
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
     _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
-
-    # When Bzlmod is enabled skip over the toolchain setup entirely
-    if is_bzlmod:
-        return
     kt_configure()
