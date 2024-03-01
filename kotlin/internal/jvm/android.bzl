@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load(
-    "//kotlin/internal/jvm:jvm.bzl",
-    _kt_jvm_library = "kt_jvm_library",
-)
-load(
     "@rules_android//android:rules.bzl",
     _android_library = "android_library",
     _android_local_test = "android_local_test",
+)
+load(
+    "//kotlin/internal/jvm:jvm.bzl",
+    _kt_jvm_library = "kt_jvm_library",
 )
 
 _ANDROID_SDK_JAR = "%s" % Label("//third_party:android_sdk")
