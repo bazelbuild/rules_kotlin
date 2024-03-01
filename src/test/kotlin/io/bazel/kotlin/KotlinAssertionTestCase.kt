@@ -78,6 +78,15 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
     }
   }
 
+  protected fun JarFile.assertContainsExactEntries(vararg want: String) {
+    val got = this.entries().asSequence().map { it.name }.toSet()
+    val missing = want.toSet() - got
+    val extra = got - want.toSet()
+    check(missing.isEmpty() && extra.isEmpty()) {
+      "Entries Missing: $missing \nFrom: $got \nEntries Extra: $extra \nFrom: $got"
+    }
+  }
+
   /**
    * Validated the entry is compressed and has the DOS epoch for it's timestamp.
    */

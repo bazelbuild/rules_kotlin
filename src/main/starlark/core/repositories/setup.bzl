@@ -51,6 +51,11 @@ def kt_configure():
             "org.pantsbuild:jarjar:1.7.2",
             "org.jetbrains.kotlinx:atomicfu-js:0.15.2",
             "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
+            "dev.zacsweers.autoservice:auto-service-ksp:jar:1.1.0",
+            "com.squareup.moshi:moshi:1.15.0",
+            "com.squareup.moshi:moshi-kotlin:1.15.0",
+            "com.squareup.moshi:moshi-kotlin-codegen:1.15.0",
+            "com.google.auto.service:auto-service-annotations:jar:1.1.1",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",
