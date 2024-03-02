@@ -160,8 +160,8 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
     val expected = Deps.Dependencies.newBuilder()
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
-      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .build()
     assertThat(jdeps).isEqualTo(expected)
   }
@@ -209,13 +209,14 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       c.addTransitiveDependencies(baseExceptionTarget)
     }
     val jdeps = depsProto(dependingTarget)
-
-    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
-
-    assertExplicit(jdeps).contains(exceptionTarget.singleCompileJar())
-    assertImplicit(jdeps).contains(baseExceptionTarget.singleCompileJar())
-    assertUnused(jdeps).isEmpty()
-    assertIncomplete(jdeps).isEmpty()
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(exceptionTarget.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addImplicitDep(baseExceptionTarget.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
   }
 
   @Test
@@ -452,12 +453,13 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       c.addDirectDependencies(connectionNotFoundExceptionDep)
     }
     val jdeps = depsProto(dependingTarget)
-
-    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
-    assertExplicit(jdeps).contains(connectionNotFoundExceptionDep.singleCompileJar())
-    assertImplicit(jdeps).isEmpty()
-    assertUnused(jdeps).isEmpty()
-    assertIncomplete(jdeps).isEmpty()
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(connectionNotFoundExceptionDep.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
   }
 
   @Test
@@ -766,13 +768,12 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       c.addDirectDependencies(TEST_FIXTURES_DEP)
     }
     val jdeps = depsProto(dependingTarget)
-
-    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
-
-    assertExplicit(jdeps).containsExactly(TEST_FIXTURES_DEP.singleCompileJar())
-    assertImplicit(jdeps).isEmpty()
-    assertUnused(jdeps).isEmpty()
-    assertIncomplete(jdeps).isEmpty()
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
   }
 
   @Test
@@ -794,13 +795,14 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       c.addTransitiveDependencies(TEST_FIXTURES2_DEP)
     }
     val jdeps = depsProto(dependingTarget)
-
-    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
-
-    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
-    assertImplicit(jdeps).contains(TEST_FIXTURES2_DEP.singleCompileJar())
-    assertUnused(jdeps).isEmpty()
-    assertIncomplete(jdeps).isEmpty()
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addImplicitDep(TEST_FIXTURES2_DEP.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
   }
 
   @Test
@@ -821,8 +823,13 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
     }
 
     val jdeps = depsProto(dependingTarget)
-    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
-    assertExplicit(jdeps).contains(TEST_FIXTURES2_DEP.singleCompileJar())
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .addExplicitDep(TEST_FIXTURES2_DEP.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
   }
 
   @Test
@@ -982,9 +989,14 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
     }
 
     val jdeps = depsProto(dependingTarget)
-    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
-    assertExplicit(jdeps).contains(dependentTarget.singleCompileJar())
-    assertImplicit(jdeps).contains(objectMapperTarget.singleCompileJar())
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(dependentTarget.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addImplicitDep(objectMapperTarget.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
   }
 
   @Test
@@ -1983,9 +1995,13 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       c.setLabel("dependingTarget")
     }
     val jdeps = depsProto(dependingTarget)
-
-    assertThat(jdeps.ruleLabel).isEqualTo(dependingTarget.label())
-    assertExplicit(jdeps).contains(TEST_FIXTURES_DEP.singleCompileJar())
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
   }
 
   private fun depsProto(jdeps: Dep) =
