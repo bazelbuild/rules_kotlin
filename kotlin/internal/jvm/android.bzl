@@ -1,9 +1,3 @@
-load(
-    "@rules_android//android:rules.bzl",
-    _android_library = "android_library",
-    _android_local_test = "android_local_test",
-)
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +11,11 @@ load(
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load(
+    "@rules_android//android:rules.bzl",
+    _android_library = "android_library",
+    _android_local_test = "android_local_test",
+)
 load(
     "//kotlin/internal/jvm:jvm.bzl",
     _kt_jvm_library = "kt_jvm_library",
@@ -36,7 +35,6 @@ def _kt_android_artifact(
         enable_data_binding = False,
         tags = [],
         exec_properties = None,
-        resource_files = None,
         **kwargs):
     """Delegates Android related build attributes to the native rules but uses the Kotlin builder to compile Java and
     Kotlin srcs. Returns a sequence of labels that a wrapping macro should export.
@@ -47,48 +45,16 @@ def _kt_android_artifact(
     # TODO(bazelbuild/rules_kotlin/issues/273): This should be retrieved from a provider.
     base_deps = [_ANDROID_SDK_JAR] + deps
 
-    exported_target_labels = [kt_name]
-    manifest = kwargs.get("manifest", default = None)
-    if "kt_prune_transitive_deps_incompatible" in tags:
-        # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
-        # buildifier: disable=native-android
-        _android_library(
-            name = base_name,
-            resource_files = resource_files,
-            exports = base_deps,
-            deps = deps if enable_data_binding else [],
-            enable_data_binding = enable_data_binding,
-            tags = tags,
-            visibility = ["//visibility:private"],
-            **kwargs
-        )
-        exported_target_labels.append(base_name)
-    elif resource_files or manifest:
-        # TODO(https://github.com/bazelbuild/rules_kotlin/issues/556): replace with starlark
-        # buildifier: disable=native-android
-        # Do not export deps to avoid all upstream targets to be invalidated when ABI changes.
-        _android_library(
-            name = base_name,
-            resource_files = resource_files,
-            deps = deps,
-            custom_package = kwargs.get("custom_package", default = None),
-            manifest = manifest,
-            enable_data_binding = enable_data_binding,
-            tags = tags,
-            visibility = ["//visibility:private"],
-        )
-        exported_target_labels.append(base_name)
-    else:
-        # No need to export this target, as it's used exclusively internally
-        _android_library(
-            name = base_name,
-            exports = deps,
-            enable_data_binding = enable_data_binding,
-            tags = tags,
-            visibility = ["//visibility:private"],
-            **kwargs
-        )
-
+    _android_library(
+        name = base_name,
+        visibility = ["//visibility:private"],
+        exports = base_deps,
+        deps = deps if enable_data_binding else [],
+        enable_data_binding = enable_data_binding,
+        tags = tags,
+        exec_properties = exec_properties,
+        **kwargs
+    )
     _kt_jvm_library(
         name = kt_name,
         srcs = srcs,

@@ -26,6 +26,7 @@ import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
 import io.bazel.kotlin.builder.utils.jars.JarCreator
+import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.MANIFEST_DIR
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.model.JvmCompilationTask
@@ -39,9 +40,13 @@ import java.nio.file.Files.isDirectory
 import java.nio.file.Files.walk
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.Base64
 import java.util.stream.Collectors.toList
 import java.util.stream.Stream
+import kotlin.io.path.exists
+
+private const val SOURCE_JARS_DIR = "_srcjars"
 
 fun JvmCompilationTask.codeGenArgs(): CompilationArgs = CompilationArgs()
   .absolutePaths(info.friendPathsList) {
@@ -438,7 +443,7 @@ fun JvmCompilationTask.compileKotlin(
 
 /**
  * If any srcjars were provided expand the jars sources and create a new [JvmCompilationTask] with the
- * Java and Kotlin sources merged in.
+ * Java, Kotlin sources and META folder merged in.
  */
 internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask =
   if (inputs.sourceJarsList.isEmpty()) {
@@ -446,8 +451,8 @@ internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask
   } else {
     expandWithSources(
       SourceJarExtractor(
-        destDir = Paths.get(directories.temp).resolve("_srcjars"),
-        fileMatcher = IS_JVM_SOURCE_FILE,
+        destDir = Paths.get(directories.temp).resolve(SOURCE_JARS_DIR),
+        fileMatcher = { str: String -> IS_JVM_SOURCE_FILE.test(str) || "/$MANIFEST_DIR" in str },
       ).also {
         it.jarFiles.addAll(inputs.sourceJarsList.map { p -> Paths.get(p) })
         it.execute()
@@ -485,10 +490,12 @@ fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
 
 private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
   updateBuilder { builder ->
-    sources.filterOutNonCompilableSources().partitionJvmSources(
-      { builder.inputsBuilder.addKotlinSources(it) },
-      { builder.inputsBuilder.addJavaSources(it) },
-    )
+    sources.copyManifestFilesToGeneratedClasses(directories)
+      .filterOutNonCompilableSources()
+      .partitionJvmSources(
+        { builder.inputsBuilder.addKotlinSources(it) },
+        { builder.inputsBuilder.addJavaSources(it) },
+      )
   }
 
 private fun JvmCompilationTask.updateBuilder(
@@ -498,6 +505,29 @@ private fun JvmCompilationTask.updateBuilder(
     block(it)
     it.build()
   }
+
+/**
+ * Copy generated manifest files from KSP task into generated folder
+ */
+internal fun Iterator<String>.copyManifestFilesToGeneratedClasses(
+  directories: Directories,
+): Iterator<String> {
+  val result = mutableSetOf<String>()
+  this.forEach {
+    if ("/$MANIFEST_DIR" in it) {
+      val path = Paths.get(it)
+      val srcJarsPath = Paths.get(directories.temp, SOURCE_JARS_DIR)
+      if (srcJarsPath.exists()) {
+        val relativePath = srcJarsPath.relativize(path)
+        val destPath = Paths.get(directories.generatedClasses).resolve(relativePath)
+        destPath.parent.toFile().mkdirs()
+        Files.copy(path, destPath, StandardCopyOption.REPLACE_EXISTING)
+      }
+    }
+    result.add(it)
+  }
+  return result.iterator()
+}
 
 /**
  * Only keep java and kotlin files for the iterator. Filter our all other non-compilable files.

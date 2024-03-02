@@ -12,6 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
 
 kt_configure_toolchains()
+
+bzl_library(
+    name = "internal",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//kotlin/internal/js",
+        "//kotlin/internal/jvm",
+        "//kotlin/internal/lint",
+        "//kotlin/internal/utils",
+        "//src/main/starlark",
+    ],
+)

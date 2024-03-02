@@ -63,11 +63,11 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
-        "com.google.dagger:dagger:2.45",
-        "com.google.dagger:dagger-compiler:2.45",
-        "com.google.dagger:dagger-producers:2.45",
-        "com.squareup.anvil:compiler:2.4.5",
-        "com.squareup.anvil:annotations:2.4.5",
+        "com.google.dagger:dagger:2.50",
+        "com.google.dagger:dagger-compiler:2.50",
+        "com.google.dagger:dagger-producers:2.50",
+        "com.squareup.anvil:compiler:2.4.9",
+        "com.squareup.anvil:annotations:2.4.9",
         "androidx.activity:activity:1.0.0",
         "androidx.annotation:annotation:1.1.0",
         "androidx.appcompat:appcompat-resources:1.1.0",

@@ -38,6 +38,15 @@ kt_ksp_plugin(
     ],
 )
 
+kt_ksp_plugin(
+    name = "autoservice",
+    processor_class = "dev.zacsweers.autoservice.ksp.AutoServiceSymbolProcessor$Provider",
+    deps = [
+        "@maven//:com_google_auto_service_auto_service_annotations",
+        "@maven//:dev_zacsweers_autoservice_auto_service_ksp",
+    ],
+)
+
 kt_jvm_library(
     name = "coffee_lib",
     srcs = glob([
@@ -47,8 +56,10 @@ kt_jvm_library(
     plugins = [
         "//:moshi-kotlin-codegen",
         "//:autovalue",
+        "//:autoservice",
     ],
     deps = [
+        "@maven//:com_google_auto_service_auto_service_annotations",
         "@maven//:com_google_auto_value_auto_value_annotations",
         "@maven//:com_squareup_moshi_moshi",
         "@maven//:com_squareup_moshi_moshi_kotlin",

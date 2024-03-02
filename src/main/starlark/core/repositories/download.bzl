@@ -103,3 +103,16 @@ def kt_download_local_dev_dependencies():
             "proto/private",
         ],
     )
+
+    versions.use_repository(
+        name = "released_rules_kotlin",
+        rule = http_archive,
+        version = versions.RULES_KOTLIN,
+        patch_cmds = [
+            # without repo mapping, force remap the internal dependencies to use the correct version of kotlin
+            "for f in $(grep -rl '\"@*{repo}' src kotlin); do perl -i -pe 's/\"(@?)({repo})/\"\\1released_\\2/g' $f; done".format(
+                repo = repo,
+            )
+            for repo in ["com_github_jetbrains_kotlin", "com_github_google_ksp"]
+        ],
+    )

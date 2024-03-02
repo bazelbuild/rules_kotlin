@@ -31,7 +31,7 @@ release_archive(
     name = "pkg",
     package_dir = "io/bazel/kotlin/compiler",
     src_map = {
-        ":compiler": "compiler.jar",
+        ":compiler.jar": "compiler.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
 )

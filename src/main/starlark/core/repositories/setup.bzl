@@ -14,12 +14,20 @@
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
+load("@released_rules_kotlin//src/main/starlark/core/repositories:initialize.bzl", release_kotlin_repositories = "kotlin_repositories")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
+    release_kotlin_repositories(
+        is_bzlmod = True,
+        compiler_repository_name = "released_com_github_jetbrains_kotlin",
+        ksp_repository_name = "released_com_github_google_ksp",
+    )
+
+    native.register_toolchains("@released_rules_kotlin//kotlin/internal:default_toolchain")
 
     maven_install(
         name = "kotlin_rules_maven",
@@ -43,6 +51,11 @@ def kt_configure():
             "org.pantsbuild:jarjar:1.7.2",
             "org.jetbrains.kotlinx:atomicfu-js:0.15.2",
             "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
+            "dev.zacsweers.autoservice:auto-service-ksp:jar:1.1.0",
+            "com.squareup.moshi:moshi:1.15.0",
+            "com.squareup.moshi:moshi-kotlin:1.15.0",
+            "com.squareup.moshi:moshi-kotlin-codegen:1.15.0",
+            "com.google.auto.service:auto-service-annotations:jar:1.1.1",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",
