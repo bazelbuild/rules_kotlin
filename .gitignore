@@ -7,3 +7,4 @@
 trace.profile.gz
 .idea
 MODULE.bazel.lock
+user.bazelrc
