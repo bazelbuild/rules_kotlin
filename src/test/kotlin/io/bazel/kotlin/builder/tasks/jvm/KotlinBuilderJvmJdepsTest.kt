@@ -1993,6 +1993,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       c.addDirectDependencies(TEST_FIXTURES_DEP)
       c.setLabel("dependingTarget")
     }
+
     val jdeps = depsProto(dependingTarget)
     val expected = Deps.Dependencies.newBuilder()
       .setRuleLabel(dependingTarget.label())
