@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.load.java.descriptors.JavaMethodDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
+import org.jetbrains.kotlin.load.java.lazy.descriptors.LazyJavaClassDescriptor
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
 import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaClass
 import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaField
@@ -45,6 +46,7 @@ import org.jetbrains.kotlin.types.typeUtil.supertypes
 import java.io.BufferedOutputStream
 import java.io.File
 import java.nio.file.Paths
+import java.util.*
 
 /**
  * Kotlin compiler extension that tracks classes (and corresponding classpath jars) needed to
@@ -105,6 +107,18 @@ class JdepsGenExtension(
         )
       }
     }
+
+    fun getResourceName(descriptor: DeclarationDescriptorWithSource): String? {
+      if (descriptor.containingDeclaration is LazyJavaClassDescriptor) {
+        val fqName: String? = (descriptor.containingDeclaration as LazyJavaClassDescriptor)?.jClass?.fqName?.asString()
+        if (fqName != null) {
+          if (fqName.indexOf(".R.") > 0 || fqName.indexOf("R.") == 0) {
+            return fqName + "." + descriptor.name.asString()
+          }
+        }
+      }
+      return null
+    }
   }
 
   private val explicitClassesCanonicalPaths = mutableSetOf<String>()
@@ -143,8 +157,9 @@ class JdepsGenExtension(
           )?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is FunctionDescriptor -> {
+          resultingDescriptor.returnType?.let { addImplicitDep(it) }
           resultingDescriptor.returnType?.let {
-            collectTypeReferences(it, isExplicit = false, collectTypeArguments = false)
+            collectTypeReferences(it, isExplicit = false)
           }
           resultingDescriptor.valueParameters.forEach { valueParameter ->
             collectTypeReferences(valueParameter.type, isExplicit = false)
@@ -162,6 +177,7 @@ class JdepsGenExtension(
         }
         is JavaPropertyDescriptor -> {
           getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
+          getResourceName(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
         }
         is PropertyDescriptor -> {
           when (resultingDescriptor.containingDeclaration) {
@@ -175,7 +191,7 @@ class JdepsGenExtension(
               explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
             }
           }
-          collectTypeReferences(resultingDescriptor.type, isExplicit = false)
+          addImplicitDep(resultingDescriptor.type)
         }
         else -> return
       }
@@ -190,6 +206,9 @@ class JdepsGenExtension(
         is ClassDescriptor -> {
           descriptor.typeConstructor.supertypes.forEach {
             collectTypeReferences(it)
+          }
+          descriptor.annotations.forEach { annotation ->
+            collectTypeReferences(annotation.type)
           }
         }
         is FunctionDescriptor -> {
@@ -219,6 +238,14 @@ class JdepsGenExtension(
       }
     }
 
+    private fun addImplicitDep(it: KotlinType) {
+      getClassCanonicalPath(it.constructor)?.let { implicitClassesCanonicalPaths.add(it) }
+    }
+
+    private fun addExplicitDep(it: KotlinType) {
+      getClassCanonicalPath(it.constructor)?.let { explicitClassesCanonicalPaths.add(it) }
+    }
+
     /**
      * Records direct and indirect references for a given type. Direct references are explicitly
      * used in the code, e.g: a type declaration or a generic type declaration. Indirect references
@@ -228,41 +255,35 @@ class JdepsGenExtension(
     private fun collectTypeReferences(
       kotlinType: KotlinType,
       isExplicit: Boolean = true,
-      collectTypeArguments: Boolean = true,
-      visitedKotlinTypes: MutableSet<Pair<KotlinType, Boolean>> = mutableSetOf(),
     ) {
-      val kotlintTypeAndIsExplicit = Pair(kotlinType, isExplicit)
-      if (!visitedKotlinTypes.contains(kotlintTypeAndIsExplicit)) {
-        visitedKotlinTypes.add(kotlintTypeAndIsExplicit)
+      if (isExplicit) {
+        addExplicitDep(kotlinType)
+      } else {
+        addImplicitDep(kotlinType)
+      }
 
+      kotlinType.supertypes().forEach {
+        addImplicitDep(it)
+      }
+
+      collectTypeArguments(kotlinType, isExplicit)
+    }
+
+    private fun collectTypeArguments(
+      kotlinType: KotlinType,
+      isExplicit: Boolean,
+      visitedKotlinTypes: MutableSet<KotlinType> = mutableSetOf(),
+    ) {
+      visitedKotlinTypes.add(kotlinType)
+      kotlinType.arguments.map { it.type }.forEach { typeArgument ->
         if (isExplicit) {
-          getClassCanonicalPath(kotlinType.constructor)?.let {
-            explicitClassesCanonicalPaths.add(it)
-          }
+          addExplicitDep(typeArgument)
         } else {
-          getClassCanonicalPath(kotlinType.constructor)?.let {
-            implicitClassesCanonicalPaths.add(it)
-          }
+          addImplicitDep(typeArgument)
         }
-
-        kotlinType.supertypes().forEach { supertype ->
-          collectTypeReferences(
-            supertype,
-            isExplicit = false,
-            collectTypeArguments = collectTypeArguments,
-            visitedKotlinTypes,
-          )
-        }
-
-        if (collectTypeArguments) {
-          kotlinType.arguments.map { it.type }.forEach { typeArgument ->
-            collectTypeReferences(
-              typeArgument,
-              isExplicit = isExplicit,
-              collectTypeArguments = true,
-              visitedKotlinTypes = visitedKotlinTypes,
-            )
-          }
+        typeArgument.supertypes().forEach { addImplicitDep(it) }
+        if (!visitedKotlinTypes.contains(typeArgument)) {
+          collectTypeArguments(typeArgument, isExplicit, visitedKotlinTypes)
         }
       }
     }
