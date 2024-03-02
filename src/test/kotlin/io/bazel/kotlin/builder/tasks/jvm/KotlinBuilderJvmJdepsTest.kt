@@ -25,6 +25,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.BufferedInputStream
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.Consumer
 
@@ -1723,6 +1724,43 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addImplicitDep(depWithReturnTypesSuperType.singleCompileJar())
       .build()
     assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `assert jdeps path are relative`() {
+    val foo = runCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Foo.kt",
+        """
+            package something
+
+            open class Foo { }
+            """,
+      )
+    }
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "FunctionUsingStdlib.kt",
+        """
+            package something
+            
+            class Bar: Foo()
+            
+            fun main(param: List<Unit>) {
+                val foo = Foo()
+            }
+          """,
+      )
+      c.addDirectDependencies(foo)
+    }
+    assertThat(
+      depsProto(dependingTarget)
+        .dependencyList
+        .asSequence()
+        .filter { it.kind == Deps.Dependency.Kind.EXPLICIT }
+        .map { Paths.get(it.path) }
+        .none(Path::isAbsolute),
+    ).isTrue()
   }
 
   private fun depsProto(jdeps: Dep) =

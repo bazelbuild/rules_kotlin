@@ -32,7 +32,7 @@ object BazelRunFiles {
   @JvmStatic
   fun resolveVerifiedFromProperty(key: String) =
     System.getProperty(key)
-      ?.let { path -> runfiles.rlocation(path) }
+      ?.let { path -> runfiles.rlocation(path).relativizeToPwd() }
       ?.let { File(it) }
       ?.also {
         if (!it.exists()) {

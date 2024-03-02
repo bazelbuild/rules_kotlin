@@ -16,13 +16,11 @@
  */
 package io.bazel.kotlin.builder;
 
+import static java.util.stream.Collectors.collectingAndThen;
+import static io.bazel.kotlin.builder.utils.PathUtilsKt.relativizeToPwd;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
-import io.bazel.kotlin.builder.Deps.Dep;
-import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
-import io.bazel.kotlin.model.CompilationTaskInfo;
-import io.bazel.kotlin.model.JvmCompilationTask;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -30,6 +28,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
+import io.bazel.kotlin.builder.Deps.Dep;
+import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
+import io.bazel.kotlin.builder.utils.PathUtilsKt;
+import io.bazel.kotlin.model.CompilationTaskInfo;
+import io.bazel.kotlin.model.JvmCompilationTask;
 
 public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCompilationTask> {
 
@@ -114,15 +119,19 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                                     .filter(p -> !p.isEmpty())
                                     .toArray(String[]::new)
                     );
+                    final String compileJar = relativizeToPwd(outputs.getAbijar().isEmpty()
+                            ? outputs.getJar() : outputs.getAbijar());
 
                     return Dep.builder()
                             .label(taskBuilder.getInfo().getLabel())
-                            .compileJars(ImmutableList.of(
-                                    outputs.getAbijar().isEmpty() ? outputs.getJar() : outputs.getAbijar()
-                            ))
-                            .jdeps(outputs.getJdeps())
-                            .runtimeDeps(ImmutableList.copyOf(taskBuilder.getInputs().getClasspathList()))
-                            .sourceJar(taskBuilder.getOutputs().getSrcjar())
+                            .compileJars(ImmutableList.of(compileJar))
+                            .jdeps(relativizeToPwd(outputs.getJdeps()))
+                            .runtimeDeps(taskBuilder.getInputs()
+                                    .getClasspathList()
+                                    .stream()
+                                    .map(PathUtilsKt::relativizeToPwd)
+                                    .collect(collectingAndThen(Collectors.toList(), ImmutableList::copyOf)))
+                            .sourceJar(relativizeToPwd(taskBuilder.getOutputs().getSrcjar()))
                             .build();
                 });
     }
