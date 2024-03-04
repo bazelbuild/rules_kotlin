@@ -172,11 +172,6 @@ class JdepsGenExtension(
       collectExplicitTypes(resultingDescriptor)
 
       val isExplicitReturnType = resultingDescriptor is JavaClassConstructorDescriptor
-      collectTypeReferences(
-        resolvedCall.getReturnType(),
-        isExplicit = isExplicitReturnType,
-        collectTypeArguments = false,
-      )
       resultingDescriptor.returnType?.let {
         collectTypeReferences(it, isExplicit = isExplicitReturnType, collectTypeArguments = false)
       }
