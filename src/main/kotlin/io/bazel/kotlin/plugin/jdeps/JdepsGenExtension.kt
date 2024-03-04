@@ -8,21 +8,22 @@ import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
-import org.jetbrains.kotlin.load.java.descriptors.JavaMethodDescriptor
-import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
+import org.jetbrains.kotlin.load.java.descriptors.JavaClassConstructorDescriptor
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
 import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaClass
 import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaField
+import org.jetbrains.kotlin.load.kotlin.JvmPackagePartSource
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.load.kotlin.VirtualFileKotlinClass
 import org.jetbrains.kotlin.load.kotlin.getContainingKotlinJvmBinaryClass
@@ -30,17 +31,22 @@ import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.FunctionImportedFromObject
-import org.jetbrains.kotlin.resolve.PropertyImportedFromObject
+import org.jetbrains.kotlin.resolve.ImportedFromObjectCallableDescriptor
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
+import org.jetbrains.kotlin.resolve.calls.model.ExpressionKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
+import org.jetbrains.kotlin.resolve.calls.tower.NewAbstractResolvedCall
+import org.jetbrains.kotlin.resolve.calls.tower.PSIKotlinCallArgument
 import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
+import org.jetbrains.kotlin.resolve.descriptorUtil.getImportableDescriptor
 import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedTypeAliasDescriptor
+import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
+import org.jetbrains.kotlin.types.getAbbreviation
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import java.io.BufferedOutputStream
 import java.io.File
@@ -77,7 +83,22 @@ class JdepsGenExtension(
      * @return the path corresponding to the JAR where this class was loaded from, or null.
      */
     fun getClassCanonicalPath(descriptor: DeclarationDescriptorWithSource): String? {
-      return when (val sourceElement: SourceElement = descriptor.source) {
+      // Get the descriptor's source element which may be a type alias
+      val sourceElement = if (descriptor.source != SourceElement.NO_SOURCE) {
+        descriptor.source
+      } else {
+        when (val declarationDescriptor = descriptor.getImportableDescriptor()) {
+          is DeserializedTypeAliasDescriptor -> {
+            declarationDescriptor.containerSource
+          }
+
+          else -> {
+            null
+          }
+        }
+      }
+
+      return when (sourceElement) {
         is JavaSourceElement ->
           if (sourceElement.javaElement is BinaryJavaClass) {
             (sourceElement.javaElement as BinaryJavaClass).virtualFile.canonicalPath
@@ -92,13 +113,21 @@ class JdepsGenExtension(
             // Ignore Java source local to this module.
             null
           }
+
         is KotlinJvmBinarySourceElement ->
           (sourceElement.binaryClass as VirtualFileKotlinClass).file.canonicalPath
-        else -> null
+
+        is JvmPackagePartSource -> { // This case is needed to collect type aliases
+          ((sourceElement.knownJvmBinaryClass) as VirtualFileKotlinClass).file.canonicalPath
+        }
+
+        else -> {
+          null
+        }
       }
     }
 
-    fun getClassCanonicalPath(typeConstructor: TypeConstructor): String? {
+    private fun getClassCanonicalPath(typeConstructor: TypeConstructor): String? {
       return (typeConstructor.declarationDescriptor as? DeclarationDescriptorWithSource)?.let {
         getClassCanonicalPath(
           it,
@@ -130,54 +159,88 @@ class JdepsGenExtension(
       reportOn: PsiElement,
       context: CallCheckerContext,
     ) {
-      when (val resultingDescriptor = resolvedCall.resultingDescriptor) {
-        is FunctionImportedFromObject -> {
-          collectTypeReferences(resultingDescriptor.containingObject.defaultType)
+      // First collect type from the Resolved Call
+      collectExplicitTypes(resolvedCall)
+
+      resolvedCall.valueArguments.keys.forEach { valueArgument ->
+        collectTypeReferences(valueArgument.type, isExplicit = false)
+      }
+
+      // And then collect types from any ResultingDescriptor
+      val resultingDescriptor = resolvedCall.resultingDescriptor
+      collectExplicitTypes(resultingDescriptor)
+
+      val isExplicitReturnType = resultingDescriptor is JavaClassConstructorDescriptor
+      resultingDescriptor.returnType?.let {
+        collectTypeReferences(it, isExplicit = isExplicitReturnType, collectTypeArguments = false)
+      }
+
+      resultingDescriptor.valueParameters.forEach { valueParameter ->
+        collectTypeReferences(valueParameter.type, isExplicit = false)
+      }
+
+      // Finally, collect types that depend on the type of the ResultingDescriptor and note that
+      // these descriptors may be composed of multiple classes that we need to extract types from
+      if (resultingDescriptor is DeclarationDescriptor) {
+        val containingDeclaration = resultingDescriptor.containingDeclaration
+        if (containingDeclaration is ClassDescriptor) {
+          collectTypeReferences(containingDeclaration.defaultType)
         }
-        is PropertyImportedFromObject -> {
-          collectTypeReferences(resultingDescriptor.containingObject.defaultType)
-        }
-        is JavaMethodDescriptor -> {
-          getClassCanonicalPath(
-            (resultingDescriptor.containingDeclaration as ClassDescriptor).typeConstructor,
-          )?.let { explicitClassesCanonicalPaths.add(it) }
-        }
-        is FunctionDescriptor -> {
-          resultingDescriptor.returnType?.let {
-            collectTypeReferences(it, isExplicit = false, collectTypeArguments = false)
-          }
-          resultingDescriptor.valueParameters.forEach { valueParameter ->
-            collectTypeReferences(valueParameter.type, isExplicit = false)
-          }
-          val virtualFileClass =
-            resultingDescriptor.getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
-              ?: return
-          explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
-        }
-        is ParameterDescriptor -> {
-          getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
-        }
-        is FakeCallableDescriptorForObject -> {
-          collectTypeReferences(resultingDescriptor.type)
-        }
-        is JavaPropertyDescriptor -> {
-          getClassCanonicalPath(resultingDescriptor)?.let { explicitClassesCanonicalPaths.add(it) }
-        }
-        is PropertyDescriptor -> {
-          when (resultingDescriptor.containingDeclaration) {
-            is ClassDescriptor -> collectTypeReferences(
-              (resultingDescriptor.containingDeclaration as ClassDescriptor).defaultType,
+
+        if (resultingDescriptor is PropertyDescriptor) {
+          (
+            resultingDescriptor.getter
+              ?.correspondingProperty as? SyntheticJavaPropertyDescriptor
             )
-            else -> {
-              val virtualFileClass =
-                (resultingDescriptor).getContainingKotlinJvmBinaryClass() as? VirtualFileKotlinClass
-                  ?: return
-              explicitClassesCanonicalPaths.add(virtualFileClass.file.path)
+            ?.let { syntheticJavaPropertyDescriptor ->
+              collectTypeReferences(syntheticJavaPropertyDescriptor.type, isExplicit = false)
+
+              val functionDescriptor = syntheticJavaPropertyDescriptor.getMethod
+              functionDescriptor.dispatchReceiverParameter?.type?.let { dispatchReceiverType ->
+                collectTypeReferences(dispatchReceiverType, isExplicit = false)
+              }
+            }
+        }
+      }
+
+      if (resultingDescriptor is ImportedFromObjectCallableDescriptor<*>) {
+        collectTypeReferences(resultingDescriptor.containingObject.defaultType, isExplicit = false)
+      }
+
+      if (resultingDescriptor is ValueDescriptor) {
+        collectTypeReferences(resultingDescriptor.type, isExplicit = false)
+      }
+    }
+
+    private fun collectExplicitTypes(resultingDescriptor: CallableDescriptor) {
+      val kotlinJvmBinaryClass = resultingDescriptor.getContainingKotlinJvmBinaryClass()
+      if (kotlinJvmBinaryClass is VirtualFileKotlinClass) {
+        explicitClassesCanonicalPaths.add(kotlinJvmBinaryClass.file.path)
+      }
+    }
+
+    private fun collectExplicitTypes(resolvedCall: ResolvedCall<*>) {
+      val kotlinCallArguments = (resolvedCall as? NewAbstractResolvedCall)
+        ?.resolvedCallAtom?.atom?.argumentsInParenthesis
+
+      // note that callArgument can be both a PSIKotlinCallArgument and an ExpressionKotlinCallArgument
+      kotlinCallArguments?.forEach { callArgument ->
+        if (callArgument is PSIKotlinCallArgument) {
+          val dataFlowInfos = listOf(callArgument.dataFlowInfoBeforeThisArgument) +
+            callArgument.dataFlowInfoAfterThisArgument
+
+          dataFlowInfos.forEach { dataFlowInfo ->
+            dataFlowInfo.completeTypeInfo.values().flatten().forEach { kotlinType ->
+              collectTypeReferences(kotlinType, isExplicit = true)
             }
           }
-          collectTypeReferences(resultingDescriptor.type, isExplicit = false)
         }
-        else -> return
+
+        if (callArgument is ExpressionKotlinCallArgument) {
+          callArgument.receiver.allOriginalTypes.forEach { kotlinType ->
+            collectTypeReferences(kotlinType, isExplicit = true)
+          }
+        }
       }
     }
 
@@ -192,8 +255,9 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is FunctionDescriptor -> {
-          descriptor.returnType?.let { collectTypeReferences(it) }
+          descriptor.returnType?.let { collectTypeReferences(it, collectTypeArguments = false) }
           descriptor.valueParameters.forEach { valueParameter ->
             collectTypeReferences(valueParameter.type)
           }
@@ -204,6 +268,7 @@ class JdepsGenExtension(
             collectTypeReferences(it)
           }
         }
+
         is PropertyDescriptor -> {
           collectTypeReferences(descriptor.type)
           descriptor.annotations.forEach { annotation ->
@@ -213,6 +278,7 @@ class JdepsGenExtension(
             collectTypeReferences(annotation.type)
           }
         }
+
         is LocalVariableDescriptor -> {
           collectTypeReferences(descriptor.type)
         }
@@ -243,6 +309,17 @@ class JdepsGenExtension(
           getClassCanonicalPath(kotlinType.constructor)?.let {
             implicitClassesCanonicalPaths.add(it)
           }
+        }
+
+        // Collect type aliases aka abbreviations
+        // See: https://github.com/Kotlin/KEEP/blob/master/proposals/type-aliases.md#type-alias-expansion
+        kotlinType.getAbbreviation()?.let { abbreviationType ->
+          collectTypeReferences(
+            abbreviationType,
+            isExplicit = isExplicit,
+            collectTypeArguments = collectTypeArguments,
+            visitedKotlinTypes = visitedKotlinTypes,
+          )
         }
 
         kotlinType.supertypes().forEach { supertype ->

@@ -19,6 +19,15 @@ java_library(
     name = "JdepsParserTestFixtures",
     testonly = True,
     srcs = glob(["testFixtures/*.java"]),
+    deps = [
+        ":JdepsParserTestFixtures2",
+    ],
+)
+
+java_library(
+    name = "JdepsParserTestFixtures2",
+    testonly = True,
+    srcs = glob(["testFixtures2/*.java"]),
 )
 
 kt_rules_test(
@@ -44,7 +53,10 @@ kt_rules_test(
     name = "KotlinBuilderJvmJdepsTest",
     size = "large",
     srcs = ["jvm/KotlinBuilderJvmJdepsTest.kt"],
-    data = [":JdepsParserTestFixtures"],
+    data = [
+        ":JdepsParserTestFixtures",
+        ":JdepsParserTestFixtures2",
+    ],
 )
 
 kt_rules_test(

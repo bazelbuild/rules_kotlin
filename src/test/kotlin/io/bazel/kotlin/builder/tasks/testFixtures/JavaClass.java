@@ -8,4 +8,8 @@ public class JavaClass {
     public static boolean staticMethod() {
         return true;
     }
+
+    public static boolean staticMethod2() {
+        return true;
+    }
 }

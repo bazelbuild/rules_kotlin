@@ -46,6 +46,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   val ctx = KotlinJvmTestBuilder()
 
   val TEST_FIXTURES_DEP = Dep.fromLabel(":JdepsParserTestFixtures")
+  val TEST_FIXTURES2_DEP = Dep.fromLabel(":JdepsParserTestFixtures2")
   val KOTLIN_STDLIB_DEP = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib")
 
   @Test
@@ -159,12 +160,64 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
     val expected = Deps.Dependencies.newBuilder()
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
-      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .build()
     assertThat(jdeps).isEqualTo(expected)
   }
 
+  @Test
+  fun `find explicit exception and its supertypes from throws annotation`() {
+    val baseExceptionTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "BaseException.kt",
+        """
+          package something
+          
+          open class BaseException : Exception()
+        """
+      )
+    }
+
+    val exceptionTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "MyException.kt",
+        """
+          package something
+          
+          class MyException : something.BaseException()
+        """
+      )
+      c.addDirectDependencies(baseExceptionTarget)
+    }
+
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AnotherClass.kt",
+        """
+          package something
+          
+          import something.MyException
+ 
+          class AnotherClass {
+            @Throws(MyException::class)
+            fun hasAnnotation() {}
+          }
+        """
+      )
+      c.addDirectDependencies(exceptionTarget)
+      c.addTransitiveDependencies(baseExceptionTarget)
+    }
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(exceptionTarget.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addImplicitDep(baseExceptionTarget.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
+  }
 
   @Test
   fun `annotation on class is an explict dep`() {
@@ -364,6 +417,46 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addUnusedDep(dependentTarget.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `pattern match exception`() {
+    val connectionNotFoundExceptionDep = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "ConnectionNotFoundException.kt",
+        """
+          package something2
+          
+          class ConnectionNotFoundException : Exception()
+        """
+      )
+    }
+
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "PatternMatchException.kt",
+        """
+          package something
+          import something2.ConnectionNotFoundException
+          
+          fun isRetryable(e: Exception): Boolean {
+            return when (e) {
+              is ConnectionNotFoundException -> false
+              else -> true
+            }
+          }
+        """
+      )
+      c.addDirectDependencies(connectionNotFoundExceptionDep)
+    }
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(connectionNotFoundExceptionDep.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .build()
     assertThat(jdeps).isEqualTo(expected)
   }
@@ -654,6 +747,91 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   }
 
   @Test
+  fun `java static repro`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "HasPropertyDefinition.kt",
+        """
+            package something
+            
+            class HasPropertyDefinition {
+              fun provideMyHttpClient(): MyHttpClient {
+                  return MyHttpClient.builder()
+                      .name("ApiClient")
+                      .circuitBreakerStrategy(CircuitBreakerStrategies.alwaysClosed())
+                      .build()
+              }
+            }
+          """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `java static repro 2`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "Repro.kt",
+        """
+            package something
+            
+            class Repro {
+              fun hi() {
+                  (GlobalTracer.get()?.activeSpan() as? MySpan)?.report(RuntimeException(), false)
+              }
+            }
+          """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+      c.addTransitiveDependencies(TEST_FIXTURES2_DEP)
+    }
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addImplicitDep(TEST_FIXTURES2_DEP.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `test client1 and client2 are explicit jdeps`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "AClass.kt",
+        """
+            package something
+            import something.JavaBaseWithTypeParam
+
+            class AClass: JavaBaseWithTypeParam<String>() {
+                val client1Instance = JavaWidgetFactory.create(client1, client2)
+            }
+            """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP, TEST_FIXTURES2_DEP)
+    }
+
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
+      .addExplicitDep(TEST_FIXTURES2_DEP.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
   fun `java enum reference`() {
     val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.setLabel("//:dependingTarget")
@@ -747,6 +925,75 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addExplicitDep(dependentTarget.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `inline reified test`() {
+    val objectMapperTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "ObjectMapper.kt",
+        """
+            package something
+
+            class ObjectMapper {
+            }
+
+            object Mappers {
+                val TEST_MAPPER = ObjectMapper() 
+            } 
+          """
+      )
+    }
+
+    val dependentTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "ArgumentMatchers.kt",
+        """
+            package something
+            import something.Mappers.TEST_MAPPER
+
+            object ArgumentMatchers {
+                inline fun <reified T : Any> argThatMatchesJson(
+                    expected: String,
+                    policies: List<String> = listOf(),
+                    mapper: ObjectMapper = TEST_MAPPER
+                ): T = T::class.java.newInstance() 
+            }
+          """
+      )
+      c.addDirectDependencies(objectMapperTarget)
+    }
+
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "HasGenericTypeDependency.kt",
+        """
+            package something
+            
+            import something.ArgumentMatchers.argThatMatchesJson
+            
+            fun hi(msg: String): String {
+                return msg
+            }
+            
+            fun something() {
+                hi(argThatMatchesJson(""${'"'}{"userIds": [123]}""${'"'}))
+            }
+            """
+      )
+      c.addDirectDependencies(dependentTarget)
+      c.addTransitiveDependencies(objectMapperTarget)
+    }
+
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(dependentTarget.singleCompileJar())
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addImplicitDep(objectMapperTarget.singleCompileJar())
       .build()
     assertThat(jdeps).isEqualTo(expected)
   }
@@ -1721,6 +1968,38 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(depWithReturnType.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addImplicitDep(depWithReturnTypesSuperType.singleCompileJar())
+      .build()
+    assertThat(jdeps).isEqualTo(expected)
+  }
+
+  @Test
+  fun `string interpolation`() {
+    val dependingTarget = runJdepsCompileTask { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "ReferencesConsumerConfig.kt",
+        """
+            package something
+
+            private val log = Log()
+            fun doit(consumerConfig: ConsumerConfig?) {
+              log.info("busConfig: ${'$'}{consumerConfig?.busConfig}")
+            }
+  
+            class Log {
+              fun info(message: String) {}
+            }
+          """
+      )
+      c.addDirectDependencies(TEST_FIXTURES_DEP)
+      c.setLabel("dependingTarget")
+    }
+
+    val jdeps = depsProto(dependingTarget)
+    val expected = Deps.Dependencies.newBuilder()
+      .setRuleLabel(dependingTarget.label())
+      .setSuccess(true)
+      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+      .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
       .build()
     assertThat(jdeps).isEqualTo(expected)
   }
