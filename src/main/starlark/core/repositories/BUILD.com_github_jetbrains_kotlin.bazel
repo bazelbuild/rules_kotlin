@@ -16,6 +16,14 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 package(default_visibility = ["//visibility:public"])
 
 # Kotlin home filegroup containing everything that is needed.
+[
+    filegroup(
+        name = name.replace(".", "_"),
+        srcs = glob(["" + name]),
+    )
+    for name in glob(["lib/**"])
+]
+
 filegroup(
     name = "home",
     srcs = glob(["**"]),
