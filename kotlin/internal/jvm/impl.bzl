@@ -385,40 +385,39 @@ def _deshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         ],
     )
 
-def _resolve_plugin_options(id, string_dict):
+def _resolve_plugin_options(id, string_list_dict, expand_location):
     """
     Resolves plugin options from a string dict to a dict of strings.
 
     Args:
         id: the plugin id
-        string_dict: a dict of strings
+        string_list_dict: a dict of list[string].
     Returns:
         a dict of strings
     """
     options = []
-    for (k, v) in string_dict.items():
-        if "=" in k:
-            fail("kt_compiler_plugin options keys cannot contain the = symbol")
-        options.append(KtCompilerPluginOption(id = id, value = k + "=" + v))
+    for (k, vs) in string_list_dict.items():
+        for v in vs:
+            if "=" in k:
+                fail("kotlin compiler option keys cannot contain the = symbol")
+            value = k + "=" + expand_location(v) if v else k
+            options.append(KtCompilerPluginOption(id = id, value = value))
     return options
 
 # This is naive reference implementation for resolving configurations.
 # A more complicated plugin will need to provide its own implementation.
-def _resolve_plugin_cfg(info, options, deps):
-    classpath = []
-    for dep in deps:
-        if JavaInfo in dep:
-            classpath.append(dep[JavaInfo].compile_jars)
+def _resolve_plugin_cfg(info, options, deps, expand_location):
+    ji = java_common.merge([dep[JavaInfo] for dep in deps if JavaInfo in dep])
+    classpath = depset(ji.runtime_output_jars, transitive = [ji.transitive_runtime_jars])
     return KtPluginConfiguration(
         id = info.id,
-        options = _resolve_plugin_options(info.id, options),
-        classpath = depset(transitive = classpath),
+        options = _resolve_plugin_options(info.id, options, expand_location),
+        classpath = classpath,
         data = depset(),
     )
 
 def kt_compiler_plugin_impl(ctx):
     plugin_id = ctx.attr.id
-    options = _resolve_plugin_options(plugin_id, ctx.attr.options)
 
     deps = ctx.attr.deps
     info = None
@@ -437,6 +436,9 @@ def kt_compiler_plugin_impl(ctx):
 
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
+    # TODO(1035): Migrate kt_compiler_plugin.options to string_list_dict
+    options = _resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, ctx.expand_location)
+
     return [
         DefaultInfo(files = classpath),
         _KtCompilerPluginInfo(
@@ -451,7 +453,7 @@ def kt_compiler_plugin_impl(ctx):
 
 def kt_plugin_cfg_impl(ctx):
     plugin = ctx.attr.plugin[_KtCompilerPluginInfo]
-    return plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps)
+    return plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, ctx.expand_location)
 
 def kt_ksp_plugin_impl(ctx):
     info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])

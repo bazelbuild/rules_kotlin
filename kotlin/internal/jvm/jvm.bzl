@@ -541,6 +541,7 @@ Supports the following template values:
 - `{generatedClasses}`: directory for generated class output
 - `{temp}`: temporary directory, discarded between invocations
 - `{generatedSources}`:  directory for generated source output
+- `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.
 """,
             default = {},
         ),
@@ -622,9 +623,10 @@ kt_plugin_cfg = rule(
         "plugin": attr.label(
             doc = "The plugin to associate with this configuration",
             providers = [_KtCompilerPluginInfo],
+            mandatory = True,
         ),
-        "options": attr.string_dict(
-            doc = "A list of plugin configuration options.",
+        "options": attr.string_list_dict(
+            doc = "A dictionary of flag to values to be used as plugin configuration options.",
         ),
         "deps": attr.label_list(
             doc = "Dependencies for this configuration.",

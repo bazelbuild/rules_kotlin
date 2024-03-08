@@ -13,7 +13,8 @@ KtCompilerPluginInfo = provider(
         "stubs": "Run this plugin during kapt stub generation.",
         "compile": "Run this plugin during koltinc compilation.",
         "options": "List of plugin options, represented as KtCompilerPluginOption, to be passed to the compiler",
-        "resolve_cfg": """"A Callable[[KtCompilerPluginInfo, Dict[str,str], List[Target], KtPluginConfiguration] that resolves an associated plugin configuration.""",
+        "resolve_cfg": "A Callable[[KtCompilerPluginInfo, Dict[str,str], List[Target], KtPluginConfiguration]" +
+                       " that resolves an associated plugin configuration.",
     },
 )
 
