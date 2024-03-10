@@ -95,6 +95,7 @@ kt_jvm_binary(
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load(
     "//kotlin/internal:defs.bzl",
+    "KtPluginConfiguration",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
     _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
     _KspPluginInfo = "KspPluginInfo",
@@ -109,6 +110,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:impl.bzl",
+    "kt_plugin_cfg_impl",
     _kt_compiler_deps_aspect_impl = "kt_compiler_deps_aspect_impl",
     _kt_compiler_plugin_impl = "kt_compiler_plugin_impl",
     _kt_jvm_binary_impl = "kt_jvm_binary_impl",
@@ -172,6 +174,7 @@ _common_attr = utils.add_dicts(
         [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
             providers = [
                 [JavaInfo],
+                [_KtJvmInfo],
             ],
             allow_files = False,
         ),
@@ -211,6 +214,12 @@ _common_attr = utils.add_dicts(
         "plugins": attr.label_list(
             default = [],
             cfg = "exec",
+            providers = [
+                [JavaPluginInfo],
+                [_KtJvmInfo],
+                [KtPluginConfiguration],
+                [_KtCompilerPluginInfo],
+            ],
         ),
         "module_name": attr.string(
             doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
@@ -253,7 +262,7 @@ Compiler plugins listed here will be treated as if they were added in the plugin
 of any targets that directly depend on this target. Unlike `java_plugin`s exported_plugins,
 this is not transitive""",
         default = [],
-        providers = [_KtCompilerPluginInfo],
+        providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration]],
     ),
     "neverlink": attr.bool(
         doc = """If true only use this library for compilation and not at runtime.""",
@@ -452,7 +461,7 @@ Compiler plugins listed here will be treated as if they were added in the plugin
 attribute of any targets that directly depend on this target. Unlike java_plugins'
 exported_plugins, this is not transitive""",
             default = [],
-            providers = [_KtCompilerPluginInfo],
+            providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration]],
         ),
         "neverlink": attr.bool(
             doc = """If true only use this library for compilation and not at runtime.""",
@@ -532,6 +541,7 @@ Supports the following template values:
 - `{generatedClasses}`: directory for generated class output
 - `{temp}`: temporary directory, discarded between invocations
 - `{generatedSources}`:  directory for generated source output
+- `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.
 """,
             default = {},
         ),
@@ -600,4 +610,31 @@ kt_jvm_library(
     },
     implementation = _kt_ksp_plugin_impl,
     provides = [_KspPluginInfo],
+)
+
+kt_plugin_cfg = rule(
+    implementation = kt_plugin_cfg_impl,
+    doc = """
+    Configurations for kt_compiler_plugin, ksp_plugin, and java_plugin.
+
+    This allows setting options and dependencies independently from the initial plugin definition.
+    """,
+    attrs = {
+        "plugin": attr.label(
+            doc = "The plugin to associate with this configuration",
+            providers = [_KtCompilerPluginInfo],
+            mandatory = True,
+        ),
+        "options": attr.string_list_dict(
+            doc = "A dictionary of flag to values to be used as plugin configuration options.",
+        ),
+        "deps": attr.label_list(
+            doc = "Dependencies for this configuration.",
+            providers = [
+                [_KspPluginInfo],
+                [JavaInfo],
+                [JavaPluginInfo],
+            ],
+        ),
+    },
 )

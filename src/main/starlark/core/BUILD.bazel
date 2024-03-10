@@ -11,6 +11,7 @@ release_archive(
     },
     deps = [
         "//src/main/starlark/core/options:pkg",
+        "//src/main/starlark/core/plugin:pkg",
         "//src/main/starlark/core/repositories:pkg",
     ],
 )
@@ -20,7 +21,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
-        "//src/main/starlark/core/options",
+        "//src/main/starlark/core/plugin",
         "//src/main/starlark/core/repositories",
     ],
 )

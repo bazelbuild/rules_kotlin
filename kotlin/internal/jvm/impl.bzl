@@ -1,12 +1,3 @@
-load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
-load(
-    "//kotlin/internal:defs.bzl",
-    _KspPluginInfo = "KspPluginInfo",
-    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
-    _KtJvmInfo = "KtJvmInfo",
-    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
-)
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +11,17 @@ load(
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
+load(
+    "//kotlin/internal:defs.bzl",
+    "KtCompilerPluginOption",
+    "KtPluginConfiguration",
+    _KspPluginInfo = "KspPluginInfo",
+    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
+    _KtJvmInfo = "KtJvmInfo",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
 load(
     "//kotlin/internal/jvm:compile.bzl",
     "export_only_providers",
@@ -383,16 +385,39 @@ def _deshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         ],
     )
 
+def _resolve_plugin_options(id, string_list_dict, expand_location):
+    """
+    Resolves plugin options from a string dict to a dict of strings.
+
+    Args:
+        id: the plugin id
+        string_list_dict: a dict of list[string].
+    Returns:
+        a dict of strings
+    """
+    options = []
+    for (k, vs) in string_list_dict.items():
+        for v in vs:
+            if "=" in k:
+                fail("kotlin compiler option keys cannot contain the = symbol")
+            value = k + "=" + expand_location(v) if v else k
+            options.append(KtCompilerPluginOption(id = id, value = value))
+    return options
+
+# This is naive reference implementation for resolving configurations.
+# A more complicated plugin will need to provide its own implementation.
+def _resolve_plugin_cfg(info, options, deps, expand_location):
+    ji = java_common.merge([dep[JavaInfo] for dep in deps if JavaInfo in dep])
+    classpath = depset(ji.runtime_output_jars, transitive = [ji.transitive_runtime_jars])
+    return KtPluginConfiguration(
+        id = info.id,
+        options = _resolve_plugin_options(info.id, options, expand_location),
+        classpath = classpath,
+        data = depset(),
+    )
+
 def kt_compiler_plugin_impl(ctx):
     plugin_id = ctx.attr.id
-    options = []
-    for (k, v) in ctx.attr.options.items():
-        if "=" in k:
-            fail("kt_compiler_plugin options keys cannot contain the = symbol")
-        options.append(struct(id = plugin_id, value = "%s=%s" % (k, v)))
-
-    if not (ctx.attr.compile_phase or ctx.attr.stubs_phase):
-        fail("Plugin must execute during in one or more phases: stubs_phase, compile_phase")
 
     deps = ctx.attr.deps
     info = None
@@ -411,15 +436,24 @@ def kt_compiler_plugin_impl(ctx):
 
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
+    # TODO(1035): Migrate kt_compiler_plugin.options to string_list_dict
+    options = _resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, ctx.expand_location)
+
     return [
         DefaultInfo(files = classpath),
         _KtCompilerPluginInfo(
+            id = plugin_id,
             classpath = classpath,
             options = options,
             stubs = ctx.attr.stubs_phase,
             compile = ctx.attr.compile_phase,
+            resolve_cfg = _resolve_plugin_cfg,
         ),
     ]
+
+def kt_plugin_cfg_impl(ctx):
+    plugin = ctx.attr.plugin[_KtCompilerPluginInfo]
+    return plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, ctx.expand_location)
 
 def kt_ksp_plugin_impl(ctx):
     info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])

@@ -97,13 +97,15 @@ internal fun JvmCompilationTask.plugins(
       xFlag("plugin", it)
     }
 
-    val dirTokens = mapOf(
+    val optionTokens = mapOf(
       "{generatedClasses}" to directories.generatedClasses,
       "{stubs}" to directories.stubs,
+      "{temp}" to directories.temp,
       "{generatedSources}" to directories.generatedSources,
+      "{classpath}" to classpath.joinToString(File.pathSeparator)
     )
     options.forEach { opt ->
-      val formatted = dirTokens.entries.fold(opt) { formatting, (token, value) ->
+      val formatted = optionTokens.entries.fold(opt) { formatting, (token, value) ->
         formatting.replace(token, value)
       }
       flag("-P", "plugin:$formatted")
