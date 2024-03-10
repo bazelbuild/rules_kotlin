@@ -1,4 +1,5 @@
-load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("//kotlin:jvm.bzl", "kt_jvm_library")
+load("//src/test/kotlin:kt_junit5_test.bzl", "kt_jvm_test")
 
 kt_jvm_library(
     name = "lib",

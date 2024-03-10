@@ -20,7 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.Deps.*
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.BufferedInputStream

@@ -2,7 +2,7 @@ package io.bazel.kotlin.builder.utils.jars
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.testing.Temporary
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 import java.util.zip.ZipFile
 
 class JarCreatorTest {

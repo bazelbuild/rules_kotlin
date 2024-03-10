@@ -344,6 +344,10 @@ Setup a simple kotlin_test.
             default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
             allow_files = True,
         ),
+        "use_testrunner": attr.bool(
+            doc = "Use bazel test runner",
+            default = True,
+        ),
         "test_class": attr.string(
             doc = "The Java class to be loaded by the test runner.",
             default = "",

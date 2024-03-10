@@ -16,7 +16,7 @@
 package io.bazel.kotlin.builder.utils.jars;
 
 import com.google.common.truth.StandardSubjectBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;

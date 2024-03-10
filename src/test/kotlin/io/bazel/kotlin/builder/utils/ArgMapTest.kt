@@ -19,7 +19,7 @@ package io.bazel.kotlin.builder.utils
 
 import com.google.common.truth.Truth
 import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 

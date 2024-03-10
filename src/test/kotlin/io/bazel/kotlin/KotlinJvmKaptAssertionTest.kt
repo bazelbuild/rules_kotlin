@@ -15,7 +15,7 @@
  */
 package io.bazel.kotlin
 
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 
 class KotlinJvmKaptAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/kapt") {
   @Test

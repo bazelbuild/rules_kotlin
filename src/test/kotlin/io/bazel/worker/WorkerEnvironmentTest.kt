@@ -20,7 +20,7 @@ package io.bazel.worker
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.worker.WorkerProtocol
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 
 class WorkerEnvironmentTest {
 
