@@ -20,7 +20,7 @@ release_archive(
     srcs = [
         "BUILD.com_github_google_ksp.bazel",
         "BUILD.com_github_jetbrains_kotlin.bazel",
-        "bzlmod_setup.bzl",
+        "bzlmod_impl.bzl",
         "compiler.bzl",
         "ksp.bzl",
         "versions.bzl",
@@ -28,6 +28,7 @@ release_archive(
     src_map = {
         "initialize.release.bzl": "initialize.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
+        "bzlmod_setup.release.bzl": "bzlmod_setup.bzl",
     },
     deps = [
         "//src/main/starlark/core/repositories/kotlin:pkg",
