@@ -296,7 +296,7 @@ def kt_jvm_junit_test_impl(ctx):
         main_class = ctx.attr.main_class,
         jvm_flags = [
             "-ea",
-            "-Djava.security.manager=allow",
+            "-Djava.security.manager",
             "-Dbazel.test_suite=%s" % test_class,
         ] + jvm_flags,
     )
