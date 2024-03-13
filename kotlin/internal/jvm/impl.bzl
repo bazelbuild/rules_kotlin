@@ -71,7 +71,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     """
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
-    java_bin_path = ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path
+    java_bin_path = ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_runfiles_path
 
     if ctx.configuration.coverage_enabled:
         jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
