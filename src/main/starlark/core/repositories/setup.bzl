@@ -66,7 +66,6 @@ def kt_configure():
             "https://maven-central.storage.googleapis.com/repos/central/data/",
             "https://maven.google.com",
             "https://repo1.maven.org/maven2",
-            "https://jcenter.bintray.com",
         ],
     )
 
