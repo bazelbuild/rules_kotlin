@@ -1,3 +1,9 @@
+load(
+    "@bazel_tools//tools/jdk:toolchain_utils.bzl",
+    "find_java_runtime_toolchain",
+    "find_java_toolchain",
+)
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,21 +17,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load(
-    "@bazel_tools//tools/jdk:toolchain_utils.bzl",
-    "find_java_runtime_toolchain",
-    "find_java_toolchain",
-)
-load(
-    "@rules_java//java:defs.bzl",
-    "JavaInfo",
-    "java_common",
-)
+load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
-    _KtPluginConfiguration = "KtPluginConfiguration",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
@@ -182,83 +178,9 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def _format_compile_plugin_options(o):
-    """Format compiler option into id:value for cmd line."""
-    return [
-        "%s:%s" % (o.id, o.value),
-    ]
-
-def _new_plugins_from(targets):
-    """Returns a struct containing the plugin metadata for the given targets.
-
-    Args:
-        targets: A list of targets.
-    Returns:
-        A struct containing the plugins for the given targets in the format:
-        {
-            stubs_phase = {
-                classpath = depset,
-                options= List[KtCompilerPluginOption],
-            ),
-            compile = {
-                classpath = depset,
-                options = List[KtCompilerPluginOption],
-            },
-        }
-    """
-
-    all_plugins = {}
-    plugins_without_phase = []
-    for t in targets:
-        if _KtCompilerPluginInfo not in t:
-            continue
-        plugin = t[_KtCompilerPluginInfo]
-        if not (plugin.stubs or plugin.compile):
-            plugins_without_phase.append("%s: %s" % (t.label, plugin.id))
-        if plugin.id in all_plugins:
-            # This need a more robust error messaging.
-            fail("has multiple plugins with the same id: %s." % plugin.id)
-        all_plugins[plugin.id] = plugin
-
-    if plugins_without_phase:
-        fail("has plugin without a phase defined: %s" % cfgs_without_plugin)
-
-    all_plugin_cfgs = {}
-    cfgs_without_plugin = []
-    for t in targets:
-        if _KtPluginConfiguration not in t:
-            continue
-        cfg = t[_KtPluginConfiguration]
-        if cfg.id not in all_plugins:
-            cfgs_without_plugin.append("%s: %s" % (t.label, cfg.id))
-        all_plugin_cfgs[cfg.id] = cfg
-
-    if cfgs_without_plugin:
-        fail("has plugin configurations without corresponding plugins: %s" % cfgs_without_plugin)
-
-    return struct(
-        stubs_phase = _new_plugin_from(all_plugin_cfgs, [p for p in all_plugins.values() if p.stubs]),
-        compile_phase = _new_plugin_from(all_plugin_cfgs, [p for p in all_plugins.values() if p.compile]),
-    )
-
-def _new_plugin_from(all_cfgs, plugins_for_phase):
-    classpath = []
-    data = []
-    options = []
-    for p in plugins_for_phase:
-        classpath.append(p.classpath)
-        options.extend(p.options)
-        if p.id in all_cfgs:
-            cfg = all_cfgs[p.id]
-            classpath.append(cfg.classpath)
-            data.append(cfg.data)
-            options.extend(cfg.options)
-
-    return struct(
-        classpath = depset(transitive = classpath),
-        data = depset(transitive = data),
-        options = options,
-    )
+def _format_compile_plugin_options(options):
+    """Format options into id:value for cmd line."""
+    return ["%s:%s" % (o.id, o.value) for o in options]
 
 # INTERNAL ACTIONS #####################################################################################################
 def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action_type = ""):
@@ -503,28 +425,49 @@ def _run_kt_builder_action(
         uniquify = True,
     )
 
+    compiler_plugins = [
+        p[_KtCompilerPluginInfo]
+        for p in plugins
+        if _KtCompilerPluginInfo in p and p[_KtCompilerPluginInfo]
+    ]
+
+    stubs_compiler_plugins = [
+        kcp
+        for kcp in compiler_plugins
+        if kcp.stubs
+    ]
+
+    compiler_compiler_plugins = [
+        ccp
+        for ccp in compiler_plugins
+        if ccp.compile
+    ]
+
+    if compiler_plugins and not (stubs_compiler_plugins or compiler_compiler_plugins):
+        fail("plugins but no phase plugins: %s" % compiler_plugins)
+
     args.add_all(
         "--stubs_plugin_classpath",
-        plugins.stubs_phase.classpath,
+        depset(transitive = [p.classpath for p in stubs_compiler_plugins]),
         omit_if_empty = True,
     )
 
     args.add_all(
         "--stubs_plugin_options",
-        plugins.stubs_phase.options,
+        [p.options for p in stubs_compiler_plugins],
         map_each = _format_compile_plugin_options,
         omit_if_empty = True,
     )
 
     args.add_all(
         "--compiler_plugin_classpath",
-        plugins.compile_phase.classpath,
+        depset(transitive = [p.classpath for p in compiler_compiler_plugins]),
         omit_if_empty = True,
     )
 
     args.add_all(
         "--compiler_plugin_options",
-        plugins.compile_phase.options,
+        [p.options for p in compiler_compiler_plugins],
         map_each = _format_compile_plugin_options,
         omit_if_empty = True,
     )
@@ -550,13 +493,7 @@ def _run_kt_builder_action(
         mnemonic = mnemonic,
         inputs = depset(
             srcs.all_srcs + srcs.src_jars + generated_src_jars,
-            transitive = [
-                compile_deps.compile_jars,
-                transitive_runtime_jars,
-                deps_artifacts,
-                plugins.stubs_phase.classpath,
-                plugins.compile_phase.classpath,
-            ],
+            transitive = [compile_deps.compile_jars, transitive_runtime_jars, deps_artifacts] + [p.classpath for p in compiler_plugins],
         ),
         tools = tools,
         input_manifests = input_manifests,
@@ -596,12 +533,10 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         deps = ctx.attr.deps,
         runtime_deps = ctx.attr.runtime_deps,
     )
-
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
-    plugins = _new_plugins_from(ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps))
-
+    plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
     deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + associates.targets)
 
     generated_src_jars = []
