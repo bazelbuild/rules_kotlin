@@ -28,6 +28,7 @@ def kt_rules_test(name, **kwargs):
     args.setdefault("data", [])
     args.setdefault("jvm_flags", [])
 
+    args["jvm_flags"].append("-Djava.security.manager=allow")
     args["deps"] = args.setdefault("deps", []) + ["//src/test/kotlin/io/bazel/kotlin/builder:test_lib"]
     for dep in [
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
