@@ -294,8 +294,9 @@ def kt_jvm_junit_test_impl(ctx):
     java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain)
 
     # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
-    # Enable the
+    # Enable the security manager past deprecation.
     if java_toolchain.java_runtime.version >= 17:
+        print("Adding security amanager")
         jvm_flags.append("-Djava.security.manager=allow")
 
     jvm_flags.extend(ctx.attr.jvm_flags)
