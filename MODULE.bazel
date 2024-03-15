@@ -5,11 +5,11 @@ module(
     repo_name = "rules_kotlin",
 )
 
-bazel_dep(name = "platforms", version = "0.0.6")
+bazel_dep(name = "platforms", version = "0.0.8")
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
-bazel_dep(name = "rules_java", version = "7.2.0")
+bazel_dep(name = "rules_java", version = "7.3.2")
 bazel_dep(name = "rules_python", version = "0.23.1")
-bazel_dep(name = "rules_cc", version = "0.0.8")
+bazel_dep(name = "rules_cc", version = "0.0.9")
 
 rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
 use_repo(
@@ -47,7 +47,7 @@ use_repo(remote_android_extensions, "android_gmaven_r8", "android_tools")
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
 # we need to sort out a few cases around how these rules are consumed in various ways.
 
-bazel_dep(name = "rules_jvm_external", version = "5.3")
+bazel_dep(name = "rules_jvm_external", version = "6.0")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
@@ -82,7 +82,9 @@ maven.install(
         "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
         "org.pantsbuild:jarjar:1.7.2",
     ],
+    fail_if_repin_required = True,
     fetch_sources = True,
+    lock_file = "//:kotlin_rules_maven_install.json",
     repositories = [
         "https://maven-central.storage.googleapis.com/repos/central/data/",
         "https://maven.google.com",
