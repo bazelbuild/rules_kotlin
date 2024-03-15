@@ -6,7 +6,7 @@ if which brew; then
   brew install --cask android-commandlinetools
   sudo mkdir /usr/local/android-sdk
   sudo chown "$USER" /usr/local/android-sdk
-  sdkmanager --sdk_root=/usr/local/android-sdk "platform-tools" "platforms;android-33" "platforms;android-31" "build-tools;33.0.0" "emulator" "build-tools;30.0.3"
+  sdkmanager --sdk_root=/usr/local/android-sdk "platform-tools" "platforms;android-33" "platforms;android-31" "build-tools;33.0.0" "emulator" "build-tools;30.0.3" "ndk-bundle"
 else
   echo "home brew not installed, unsupported. Here is a chance to improve the script!"
 fi

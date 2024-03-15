@@ -216,8 +216,9 @@ _common_attr = utils.add_dicts(
             cfg = "exec",
             providers = [
                 [JavaPluginInfo],
-                [_KtJvmInfo],
                 [KtPluginConfiguration],
+                [_KspPluginInfo],
+                [_KtCompilerPluginInfo],
                 [_KtCompilerPluginInfo],
             ],
         ),
@@ -461,7 +462,7 @@ Compiler plugins listed here will be treated as if they were added in the plugin
 attribute of any targets that directly depend on this target. Unlike java_plugins'
 exported_plugins, this is not transitive""",
             default = [],
-            providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration]],
+            providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration], [_KspPluginInfo]],
         ),
         "neverlink": attr.bool(
             doc = """If true only use this library for compilation and not at runtime.""",

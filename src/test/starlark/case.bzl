@@ -1,5 +1,4 @@
 load("@rules_testing//lib:util.bzl", "util")
-load("@rules_testing//lib:test_suite.bzl", "test_suite")
 
 def _prepend(rule, name, **kwargs):
     util.helper_target(

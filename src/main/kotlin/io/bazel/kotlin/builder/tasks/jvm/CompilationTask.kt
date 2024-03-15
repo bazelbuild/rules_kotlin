@@ -102,7 +102,7 @@ internal fun JvmCompilationTask.plugins(
       "{stubs}" to directories.stubs,
       "{temp}" to directories.temp,
       "{generatedSources}" to directories.generatedSources,
-      "{classpath}" to classpath.joinToString(File.pathSeparator)
+      "{classpath}" to classpath.joinToString(File.pathSeparator),
     )
     options.forEach { opt ->
       val formatted = optionTokens.entries.fold(opt) { formatting, (token, value) ->

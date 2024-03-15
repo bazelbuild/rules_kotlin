@@ -47,6 +47,11 @@ if test ! -d examples; then
   fail "unable to find example directory: $PWD"
 fi
 
+# generate stardoc
+bazel build //kotlin:stardoc || fail "docs did not generate"
+
+cp -f bazel-bin/kotlin/kotlin.md docs/ || fail "couldn't copy"
+
 bazel test //...:all || fail "tests failed"
 
 # build release
@@ -74,10 +79,6 @@ done
 # clean up
 rm -rf $ARCHIVE_DIR
 
-# generate stardoc
-bazel build //kotlin:stardoc || fail "docs did not generate"
-
-cp -f bazel-bin/kotlin/kotlin.md docs/ || fail "couldn't copy"
 
 echo "Release artifact is good:"
 echo "    bazel-bin/rules_kotlin_release.tgz"

@@ -1,9 +1,7 @@
-load("//src/main/starlark/core/plugin:providers.bzl", "KspPluginInfo", "KtCompilerPluginInfo", "KtPluginConfiguration")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
-load("@rules_testing//lib:util.bzl", "util")
 load("//kotlin:core.bzl", "kt_compiler_plugin", "kt_plugin_cfg")
 load("//kotlin:jvm.bzl", "kt_jvm_import", "kt_jvm_library")
-load("@rules_testing//lib:truth.bzl", "subjects")
+load("//src/main/starlark/core/plugin:providers.bzl", "KtCompilerPluginInfo", "KtPluginConfiguration")
 load("//src/test/starlark:case.bzl", "suite")
 load("//src/test/starlark:truth.bzl", "fail_messages_in", "flags_and_values_of")
 load(":subjects.bzl", "plugin_configuration_subject_factory")
@@ -83,7 +81,7 @@ def _test_kt_plugin_cfg(test):
         name = "got",
         plugin = plugin,
         options = {
-            "extra": "annotation",
+            "extra": ["annotation"],
         },
         deps = [
             cfg_dep,
@@ -140,7 +138,7 @@ def _test_compile_configuration(test):
         name = "cfg",
         plugin = plugin,
         options = {
-            "-Dop": "koo",
+            "-Dop": ["koo"],
         },
         deps = [
             test.have(
@@ -211,7 +209,7 @@ def _test_compile_configuration_single_phase(test):
         name = "stub_cfg",
         plugin = stub,
         options = {
-            "-Dop": "stub_only",
+            "-Dop": ["stub_only"],
         },
     )
 
@@ -220,7 +218,7 @@ def _test_compile_configuration_single_phase(test):
         name = "compile_cfg",
         plugin = compile,
         options = {
-            "-Dop": "compile_only",
+            "-Dop": ["compile_only"],
         },
     )
 
@@ -339,7 +337,7 @@ def _test_cfg_without_plugin(test):
         name = "adee_cfg",
         plugin = adee,
         options = {
-            "-Dop": "compile_only",
+            "-Dop": ["compile_only"],
         },
     )
 
