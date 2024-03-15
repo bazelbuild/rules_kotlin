@@ -2,7 +2,7 @@ package io.bazel.kotlin.builder.tasks.js;
 
 import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.KotlinJsTestBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 

@@ -11,7 +11,7 @@ import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.worker.Status
 import io.bazel.worker.Status.SUCCESS
 import io.bazel.worker.WorkerContext
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.*

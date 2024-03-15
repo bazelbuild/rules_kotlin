@@ -1,4 +1,4 @@
-load("//kotlin:jvm.bzl", "kt_jvm_test")
+load("//src/test/kotlin:kt_junit5_test.bzl", "kt_jvm_test")
 load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 # Copyright 2020 The Bazel Authors. All rights reserved.

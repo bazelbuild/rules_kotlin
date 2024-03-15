@@ -3,7 +3,7 @@ package io.bazel.kotlin.integration
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertWithMessage
 import io.bazel.kotlin.integration.RulesKotlinWorkspace.Companion.build
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 import java.nio.file.Files
 
 class MixedSourceCompileTest {

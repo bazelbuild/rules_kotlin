@@ -56,6 +56,11 @@ def kt_configure():
             "com.squareup.moshi:moshi-kotlin:1.15.0",
             "com.squareup.moshi:moshi-kotlin-codegen:1.15.0",
             "com.google.auto.service:auto-service-annotations:jar:1.1.1",
+            "commons-lang:commons-lang:2.6",
+            "org.junit.jupiter:junit-jupiter-api:5.4.2",
+            "org.junit.jupiter:junit-jupiter-params:5.4.2",
+            "org.junit.jupiter:junit-jupiter-engine:5.4.2",
+            "org.junit.platform:junit-platform-console:1.4.2",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",

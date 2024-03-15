@@ -20,7 +20,7 @@ package io.bazel.worker
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
 import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.Executors
 

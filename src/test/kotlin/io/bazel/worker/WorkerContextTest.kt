@@ -20,7 +20,7 @@ package io.bazel.worker
 import com.google.common.truth.Truth.assertThat
 import io.bazel.worker.ContextLog.Granularity.DEBUG
 import io.bazel.worker.Status.SUCCESS
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 
 class WorkerContextTest {
   @Test

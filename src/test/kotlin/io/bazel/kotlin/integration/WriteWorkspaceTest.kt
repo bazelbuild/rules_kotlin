@@ -3,7 +3,7 @@ package io.bazel.kotlin.integration
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.integration.WriteWorkspace.Indenting
 import io.bazel.kotlin.integration.WriteWorkspace.Text
-import org.junit.Test
+import org.junit.jupiter.api.Test;
 import java.nio.file.Files.exists
 
 class WriteWorkspaceTest {
