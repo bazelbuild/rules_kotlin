@@ -322,14 +322,14 @@ def kt_jvm_junit_test_impl(ctx):
 
 _KtCompilerPluginClasspathInfo = provider(
     fields = {
-        "deshaded_infos": "list deshaded JavaInfos of a compiler library",
+        "reshaded_infos": "list reshaded JavaInfos of a compiler library",
         "infos": "list JavaInfos of a compiler library",
     },
 )
 
 def kt_compiler_deps_aspect_impl(target, ctx):
     """
-    Collects and deshades (if necessary) all jars in the plugin transitive closure.
+    Collects and reshades (if necessary) all jars in the plugin transitive closure.
 
     Args:
         target: Target of the rule being inspected
@@ -343,7 +343,7 @@ def kt_compiler_deps_aspect_impl(target, ctx):
         for t in getattr(ctx.rule.attr, d, [])
         if _KtCompilerPluginClasspathInfo in t
     ]
-    deshaded_infos = []
+    reshaded_infos = []
     infos = [
         i
         for t in transitive_infos
@@ -352,35 +352,35 @@ def kt_compiler_deps_aspect_impl(target, ctx):
     if JavaInfo in target:
         ji = target[JavaInfo]
         infos.append(ji)
-        deshaded_infos.append(
-            _deshade_embedded_kotlinc_jars(
+        reshaded_infos.append(
+            _reshade_embedded_kotlinc_jars(
                 target = target,
                 ctx = ctx,
                 jars = ji.runtime_output_jars,
                 deps = [
                     i
                     for t in transitive_infos
-                    for i in t.deshaded_infos
+                    for i in t.reshaded_infos
                 ],
             ),
         )
 
     return [
         _KtCompilerPluginClasspathInfo(
-            deshaded_infos = deshaded_infos,
+            reshaded_infos = reshaded_infos,
             infos = [java_common.merge(infos)],
         ),
     ]
 
-def _deshade_embedded_kotlinc_jars(target, ctx, jars, deps):
-    deshaded = [
+def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
+    reshaded = [
         jarjar_action(
             actions = ctx.actions,
             jarjar = ctx.executable._jarjar,
-            rules = ctx.file._jetbrains_deshade_rules,
+            rules = ctx.file._kotlin_compiler_reshade_rules,
             input = jar,
             output = ctx.actions.declare_file(
-                "%s_deshaded_%s" % (target.label.name, jar.basename),
+                "%s_reshaded_%s" % (target.label.name, jar.basename),
             ),
         )
         for jar in jars
@@ -390,7 +390,7 @@ def _deshade_embedded_kotlinc_jars(target, ctx, jars, deps):
     return java_common.merge(
         [
             JavaInfo(output_jar = jar, compile_jar = jar, deps = deps)
-            for jar in deshaded
+            for jar in reshaded
         ],
     )
 
@@ -434,7 +434,7 @@ def kt_compiler_plugin_impl(ctx):
         info = java_common.merge([
             i
             for d in deps
-            for i in d[_KtCompilerPluginClasspathInfo].deshaded_infos
+            for i in d[_KtCompilerPluginClasspathInfo].reshaded_infos
         ])
     else:
         info = java_common.merge([
@@ -465,7 +465,16 @@ def kt_plugin_cfg_impl(ctx):
     return plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, ctx.expand_location)
 
 def kt_ksp_plugin_impl(ctx):
-    info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])
+    deps = ctx.attr.deps
+    if ctx.attr.target_embedded_compiler:
+        info = java_common.merge([
+            i
+            for d in deps
+            for i in d[_KtCompilerPluginClasspathInfo].reshaded_infos
+        ])
+    else:
+        info = java_common.merge([dep[JavaInfo] for dep in deps])
+
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
     return [

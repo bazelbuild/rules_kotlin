@@ -477,8 +477,8 @@ _kt_compiler_deps_aspect = aspect(
     implementation = _kt_compiler_deps_aspect_impl,
     attr_aspects = ["deps", "runtime_deps", "exports"],
     attrs = {
-        "_jetbrains_deshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:jetbrains-deshade.jarjar"),
+        "_kotlin_compiler_reshade_rules": attr.label(
+            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
             allow_single_file = True,
         ),
         "_jarjar": attr.label(
@@ -559,8 +559,8 @@ Supports the following template values:
             dependencies, and will fail when running against a non-embeddable compiler.""",
             default = False,
         ),
-        "_jetbrains_deshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:jetbrains-deshade.jarjar"),
+        "_kotlin_compiler_reshade_rules": attr.label(
+            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
             allow_single_file = True,
         ),
         "_jarjar": attr.label(
@@ -607,6 +607,15 @@ kt_jvm_library(
         "processor_class": attr.string(
             doc = " The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.",
             mandatory = True,
+        ),
+        "target_embedded_compiler": attr.bool(
+            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
+            dependencies, and will fail when running against a non-embeddable compiler.""",
+            default = False,
+        ),
+        "_kotlin_compiler_reshade_rules": attr.label(
+            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
+            allow_single_file = True,
         ),
     },
     implementation = _kt_ksp_plugin_impl,

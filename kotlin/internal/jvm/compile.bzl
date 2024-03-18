@@ -813,9 +813,9 @@ def _run_kt_java_builder_actions(
         java_infos.append(kt_java_info)
 
     # Build Java
-    # If there is Java source or KAPT generated Java source compile that Java and fold it into
+    # If there is Java source or KAPT/KSP generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
-    if srcs.java or generated_kapt_src_jars or srcs.src_jars:
+    if srcs.java or generated_kapt_src_jars or srcs.src_jars or generated_ksp_src_jars:
         javac_opts = javac_options_to_flags(ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options)
 
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
@@ -825,7 +825,7 @@ def _run_kt_java_builder_actions(
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
-            source_jars = generated_kapt_src_jars + srcs.src_jars,
+            source_jars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars,
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
             deps = compile_deps.deps + kt_stubs_for_java,
             java_toolchain = toolchains.java,
