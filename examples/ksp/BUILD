@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_java//java:defs.bzl", "java_binary", "java_plugin")
+load("@rules_java//java:defs.bzl", "java_binary")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
@@ -14,37 +14,73 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_plugin")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_compiler_plugin", "kt_ksp_plugin", "kt_plugin_cfg")
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//visibility:public"])
 
 define_kt_toolchain(name = "kotlin_toolchain")
 
-java_plugin(
-    name = "autovalue",
-    generates_api = True,
-    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
-    deps = ["@maven//:com_google_auto_value_auto_value"],
+# Generate a srcjar to validate intellij plugin correctly attaches it.
+genrule(
+    name = "tea_lib_src",
+    outs = ["tea_lib_src.srcjar"],
+    cmd = """
+cat << EOF > TeaPot.kt
+package tea
+object TeaPot {
+    fun isEmpty() = true
+}
+EOF
+$(JAVABASE)/bin/jar -cf $@ TeaPot.kt
+rm TeaPot.kt
+""",
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
 )
 
-kt_ksp_plugin(
-    name = "moshi-kotlin-codegen",
-    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
-    deps = [
-        "@maven//:com_squareup_moshi_moshi",
-        "@maven//:com_squareup_moshi_moshi_kotlin",
-        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
-    ],
+genrule(
+    name = "chai_lib_src",
+    outs = ["chai_lib_src.srcjar"],
+    cmd = """
+cat << EOF > ChaiCup.kt
+package chai
+object ChaiCup {
+    fun isEmpty() = true
+}
+EOF
+$(JAVABASE)/bin/jar -cf $@ ChaiCup.kt
+rm ChaiCup.kt
+""",
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
 )
 
-kt_ksp_plugin(
-    name = "autoservice",
-    processor_class = "dev.zacsweers.autoservice.ksp.AutoServiceSymbolProcessor$Provider",
-    deps = [
-        "@maven//:com_google_auto_service_auto_service_annotations",
-        "@maven//:dev_zacsweers_autoservice_auto_service_ksp",
-    ],
+genrule(
+    name = "genereated_module_src",
+    outs = ["genarated_module_src.srcjar"],
+    cmd = """
+cat << EOF > GeneratedModule.kt
+package generated
+
+import dagger.Provides
+import dagger.Module
+
+@Module
+object GeneratedModule {
+    @Provides
+    fun provideString() = "Hello Coffee"
+}
+EOF
+$(JAVABASE)/bin/jar -cf $@ GeneratedModule.kt
+rm GeneratedModule.kt
+""",
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
+)
+
+kt_jvm_library(
+    name = "generated_lib",
+    srcs = [":genereated_module_src"],
+    plugins = ["//third_party:dagger_ksp_plugin"],
+    deps = ["@maven//:com_google_dagger_dagger"],
 )
 
 kt_jvm_library(
@@ -52,17 +88,25 @@ kt_jvm_library(
     srcs = glob([
         "*.kt",
         "*.java",
-    ]),
+    ]) + [
+        # Adding a file ending with .srcjar is how code generation patterns are implemented.
+        ":tea_lib_src",
+        ":chai_lib_src",
+    ],
     plugins = [
-        "//:moshi-kotlin-codegen",
-        "//:autovalue",
-        "//:autoservice",
+        "//third_party:dagger_ksp_plugin",
+        "//third_party:moshi-kotlin-codegen",
+        "//third_party:autovalue",
+        "//third_party:autoservice",
     ],
     deps = [
+        ":generated_lib",
         "@maven//:com_google_auto_service_auto_service_annotations",
         "@maven//:com_google_auto_value_auto_value_annotations",
+        "@maven//:com_google_dagger_dagger",
         "@maven//:com_squareup_moshi_moshi",
         "@maven//:com_squareup_moshi_moshi_kotlin",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
@@ -82,60 +126,12 @@ build_test(
     ],
 )
 
-kt_compiler_plugin(
-    name = "ksp",
-    compile_phase = True,
-    id = "com.google.devtools.ksp.symbol-processing",
-    options = {
-        "apclasspath": "{classpath}",
-        # projectBaseDir shouldn't matter because incremental is disabled
-        "projectBaseDir": "{temp}",
-        # Disable incremental mode
-        "incremental": "false",
-        # Directory where class files are written to. Files written to this directory are class
-        # files being written directly from the annotation processor, not Kotlinc
-        "classOutputDir": "{generatedClasses}",
-        # Directory where generated Java sources files are written to
-        "javaOutputDir": "{generatedSources}",
-        # Directory where generated Kotlin sources files are written to
-        "kotlinOutputDir": "{generatedSources}",
-        # Directory where META-INF data is written to. This might not be the most ideal place to
-        # write this. Maybe just directly to the classes directory?
-        "resourceOutputDir": "{generatedSources}",
-        # TODO(bencodes) Not sure what this directory is yet.
-        "kspOutputDir": "{temp}",
-        # Directory to write KSP caches. Shouldn't matter because incremental is disabled
-        "cachesDir": "{temp}",
-        # Include in compilation as an example. This should be processed in the stubs phase.
-        "withCompilation": "true",
-        # Set returnOkOnError to false because we want to fail the build if there are any errors
-        "returnOkOnError": "false",
-        "allWarningsAsErrors": "false",
-    },
-    deps = [
-        "@rules_kotlin//kotlin/compiler:symbol-processing-api",
-        "@rules_kotlin//kotlin/compiler:symbol-processing-cmdline",
-    ],
-)
-
-kt_plugin_cfg(
-    name = "ksp_moshi",
-    options = {
-    },
-    plugin = ":ksp",
-    deps = [
-        "@maven//:com_squareup_moshi_moshi",
-        "@maven//:com_squareup_moshi_moshi_kotlin",
-        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
-    ],
-)
-
 kt_jvm_library(
     name = "raw_ksp_coffee_app_lib",
     srcs = ["CoffeeAppModel.kt"],
     plugins = [
-        "//:ksp",
-        "//:ksp_moshi",
+        "//third_party:ksp",
+        "//third_party:ksp_moshi",
     ],
     deps = [
         "@maven//:com_google_auto_service_auto_service_annotations",
