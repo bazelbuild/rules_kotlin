@@ -1,0 +1,39 @@
+load("@rules_java//java:defs.bzl", "java_plugin")
+load("@rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
+
+java_plugin(
+    name = "autovalue",
+    generates_api = True,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    visibility = ["//visibility:public"],
+    deps = ["@maven//:com_google_auto_value_auto_value"],
+)
+
+kt_ksp_plugin(
+    name = "dagger_ksp_plugin",
+    processor_class = "dagger.internal.codegen.KspComponentProcessor",
+    target_embedded_compiler = True,
+    visibility = ["//visibility:public"],
+    deps = ["@maven//:com_google_dagger_dagger_compiler"],
+)
+
+kt_ksp_plugin(
+    name = "moshi-kotlin-codegen",
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:com_squareup_moshi_moshi",
+        "@maven//:com_squareup_moshi_moshi_kotlin",
+        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+kt_ksp_plugin(
+    name = "autoservice",
+    processor_class = "dev.zacsweers.autoservice.ksp.AutoServiceSymbolProcessor$Provider",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:com_google_auto_service_auto_service_annotations",
+        "@maven//:dev_zacsweers_autoservice_auto_service_ksp",
+    ],
+)
