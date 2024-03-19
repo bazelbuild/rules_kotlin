@@ -617,6 +617,10 @@ kt_jvm_library(
             default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
             allow_single_file = True,
         ),
+        "generates_java": attr.bool(
+            doc = """Runs Java compilation action for plugin generating Java output.""",
+            default = False,
+        ),
     },
     implementation = _kt_ksp_plugin_impl,
     provides = [_KspPluginInfo],

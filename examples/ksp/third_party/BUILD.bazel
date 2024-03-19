@@ -72,6 +72,7 @@ kt_ksp_plugin(
 
 kt_ksp_plugin(
     name = "dagger_ksp_plugin",
+    generates_java = True,
     processor_class = "dagger.internal.codegen.KspComponentProcessor",
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],

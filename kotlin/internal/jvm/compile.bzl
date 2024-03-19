@@ -41,6 +41,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:plugins.bzl",
+    "is_ksp_processor_generating_java",
     _plugin_mappers = "mappers",
 )
 load(
@@ -815,7 +816,8 @@ def _run_kt_java_builder_actions(
     # Build Java
     # If there is Java source or KAPT/KSP generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
-    if srcs.java or generated_kapt_src_jars or srcs.src_jars or generated_ksp_src_jars:
+    ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(ctx.attr.plugins)
+    if srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars:
         javac_opts = javac_options_to_flags(ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options)
 
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"

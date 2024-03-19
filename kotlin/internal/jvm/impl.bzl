@@ -479,15 +479,18 @@ def kt_ksp_plugin_impl(ctx):
 
     return [
         DefaultInfo(files = classpath),
-        _KspPluginInfo(plugins = [
-            JavaPluginInfo(
-                runtime_deps = [
-                    info,
-                ],
-                processor_class = ctx.attr.processor_class,
-                # rules_kotlin doesn't support stripping non-api generating annotation
-                # processors out of the public ABI.
-                generates_api = True,
-            ),
-        ]),
+        _KspPluginInfo(
+            plugins = [
+                JavaPluginInfo(
+                    runtime_deps = [
+                        info,
+                    ],
+                    processor_class = ctx.attr.processor_class,
+                    # rules_kotlin doesn't support stripping non-api generating annotation
+                    # processors out of the public ABI.
+                    generates_api = True,
+                ),
+            ],
+            generates_java = ctx.attr.generates_java,
+        ),
     ]
