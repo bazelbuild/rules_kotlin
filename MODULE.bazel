@@ -82,14 +82,16 @@ maven.install(
         "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
         "org.pantsbuild:jarjar:1.7.2",
     ],
+    fail_if_repin_required = True,
     fetch_sources = True,
+    lock_file = "//:kotlin_rules_maven_install.json",
     repositories = [
         "https://maven-central.storage.googleapis.com/repos/central/data/",
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
 )
-use_repo(maven, "kotlin_rules_maven")
+use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 
 bazel_dep(name = "rules_pkg", version = "0.7.0")
 bazel_dep(name = "stardoc", version = "0.5.6", repo_name = "io_bazel_stardoc")
