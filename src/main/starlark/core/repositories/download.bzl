@@ -58,12 +58,6 @@ def kt_download_local_dev_dependencies():
         url = "https://github.com/bazelbuild/rules_nodejs/releases/download/{0}/rules_nodejs-{0}.tar.gz".format(versions.RULES_NODEJS_VERSION),
     )
 
-    versions.use_repository(
-        name = "rules_java",
-        rule = http_archive,
-        version = versions.RULES_JAVA,
-    )
-
     maybe(
         http_archive,
         name = "rules_jvm_external",
