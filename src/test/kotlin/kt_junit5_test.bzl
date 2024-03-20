@@ -1,7 +1,7 @@
 load("//kotlin:jvm.bzl", _kt_jvm_test = "kt_jvm_test")
 
 def kt_jvm_test(name, args = [], deps = [], runtime_deps = [], **kwargs):
-    test_package = native.package_name().replace("src/test/kotlin", "").replace("/", ".")
+    test_package = native.package_name().replace("src/test/kotlin/", "").replace("/", ".")
 
     _kt_jvm_test(
         name = name,
