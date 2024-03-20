@@ -14,9 +14,7 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
                 "src/",
                 "src/test/",
                 "src/test/data/",
-                "src/test/data/jvm/",
-                "src/test/data/jvm/ksp/",
-                "src/test/data/jvm/ksp/CoffeeAppService.class",
+                "ThisShouldNotPass",
                 "META-INF/",
                 "META-INF/MANIFEST.MF"
             )
@@ -25,6 +23,7 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
 
     @Test
     fun testKSPCopiesAllFilesFromMetaINFInMoshiLib() {
+        throw NullPointerException()
         jarTestCase("moshi_lib.jar", description = "Generated jar with ksp plugin contains meta-inf contents") {
             assertContainsExactEntries(
                 "src/",
