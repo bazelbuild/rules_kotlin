@@ -602,6 +602,12 @@ kt_jvm_library(
             doc = " The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.",
             mandatory = True,
         ),
+        "options": attr.string_dict(
+            doc = """\
+Dictionary of options to be passed to the ksp plugin.
+""",
+            default = {},
+        ),
     },
     implementation = _kt_ksp_plugin_impl,
     provides = [_KspPluginInfo],
