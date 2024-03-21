@@ -7,7 +7,7 @@ import org.junit.runners.JUnit4;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(JUnit4.class)
+
 public class KotlinBuilderJsTest {
     private static final KotlinJsTestBuilder builder = new KotlinJsTestBuilder();
 

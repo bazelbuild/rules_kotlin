@@ -18,19 +18,15 @@ package io.bazel.kotlin.builder.tasks.jvm;
 
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.view.proto.Deps
-import io.bazel.kotlin.builder.Deps.*
+import io.bazel.kotlin.builder.Deps.Dep
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.io.BufferedInputStream
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.function.Consumer
 
-@RunWith(JUnit4::class)
 class KotlinBuilderJvmJdepsTest {
   val ctx = KotlinJvmTestBuilder()
 

@@ -18,12 +18,9 @@ package io.bazel.kotlin.builder.tasks.jvm;
 
 import io.bazel.kotlin.builder.Deps;
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder;
-import java.util.function.Consumer;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
+
 public class KotlinBuilderJvmAbiTest {
   private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
 

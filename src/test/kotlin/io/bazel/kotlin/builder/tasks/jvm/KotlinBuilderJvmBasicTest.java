@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(JUnit4.class)
+
 public class KotlinBuilderJvmBasicTest {
     private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
 

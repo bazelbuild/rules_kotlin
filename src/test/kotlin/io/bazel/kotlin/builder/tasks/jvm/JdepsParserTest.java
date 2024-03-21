@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings({"KotlinInternalInJava", "SpellCheckingInspection"})
-@RunWith(JUnit4.class)
+
 public class JdepsParserTest {
   private static final List<String> JDEPS_OUTPUT_FIXTURE =
           toPlatformPaths(

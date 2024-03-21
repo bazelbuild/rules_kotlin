@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_ANNOTATIONS;
 import static io.bazel.kotlin.builder.KotlinJvmTestBuilder.KOTLIN_STDLIB;
 
-@RunWith(JUnit4.class)
+
 public class KotlinBuilderJvmKaptTest {
     private static final Dep AUTO_VALUE_ANNOTATIONS =
             Dep.importJar(
