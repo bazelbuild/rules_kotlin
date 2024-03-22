@@ -116,6 +116,35 @@ internal fun JvmCompilationTask.preProcessingSteps(
   return context.execute("expand sources") { expandWithSourceJarSources() }
 }
 
+internal fun parseJavacArgsToMap(args: List<String>): Map<String, String> {
+  val optionsMap = mutableMapOf<String, String>()
+  var i = 0
+
+  while (i < args.size) {
+    val arg = args[i]
+
+    // map option arguments as key value pairs e.g. --source 8 => ("--source", "8")
+    // map flag arguments as key with value = "true" e.g. map -nowarn => ("-nowarn", "true")
+    if (arg.startsWith("-")) {
+      val hasNext = i + 1 < args.size
+      val nextArg = if (hasNext) args[i + 1] else null
+
+      if (hasNext && !nextArg!!.startsWith("-")) {
+        optionsMap[arg] = nextArg
+        i += 2
+      } else {
+        optionsMap[arg] = "true"
+        i++
+      }
+    } else {
+      // Ignore non-option arguments
+      i++
+    }
+  }
+
+  return optionsMap
+}
+
 internal fun encodeMap(options: Map<String, String>): String {
   val os = ByteArrayOutputStream()
   val oos = ObjectOutputStream(os)
@@ -136,10 +165,15 @@ internal fun JvmCompilationTask.kaptArgs(
   plugins: InternalCompilerPlugins,
   aptMode: String,
 ): CompilationArgs {
-  val javacArgs = mapOf<String, String>(
-    "-target" to info.toolchainInfo.jvm.jvmTarget,
-    "-source" to info.toolchainInfo.jvm.jvmTarget,
+  val javacArgs = parseJavacArgsToMap(
+    listOf(
+      "-target",
+      info.toolchainInfo.jvm.jvmTarget,
+      "-source",
+      info.toolchainInfo.jvm.jvmTarget,
+    ).plus(inputs.javacFlagsList),
   )
+
   return CompilationArgs().apply {
     xFlag("plugin", plugins.kapt.jarPath)
 

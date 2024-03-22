@@ -52,6 +52,7 @@ class KotlinBuilder @Inject internal constructor(
     enum class KotlinBuilderFlags(override val flag: String) : Flag {
       TARGET_LABEL("--target_label"),
       CLASSPATH("--classpath"),
+      JAVAC_OPTS("--javacopts"),
       DIRECT_DEPENDENCIES("--direct_dependencies"),
       DEPS_ARTIFACTS("--deps_artifacts"),
       SOURCES("--sources"),
@@ -306,6 +307,8 @@ class KotlinBuilder @Inject internal constructor(
           ?.also {
             addAllSourceJars(it)
           }
+
+        addAllJavacFlags(argMap.optional(KotlinBuilderFlags.JAVAC_OPTS) ?: emptyList())
       }
 
       with(root.infoBuilder) {
