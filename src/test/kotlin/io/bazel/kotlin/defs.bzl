@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//src/test/kotlin:kt_junit5_test.bzl", "kt_jvm_test")
+load("@rules_java//java:defs.bzl", "java_test")
+load("//kotlin:jvm.bzl", "kt_jvm_test")
 
 def _get_class_name(kwargs):
     if len(kwargs.get("srcs", [])) == 1:
@@ -49,7 +50,11 @@ def kt_rules_test(name, **kwargs):
         args["jvm_flags"].append("-D%s=$(rlocationpath %s)" % (dep.replace("/", ".").replace(":", "."), dep))
 
     args.setdefault("test_class", _get_class_name(kwargs))
-    kt_jvm_test(name = name, **args)
+    for f in args.get("srcs"):
+        if f.endswith(".kt"):
+            kt_jvm_test(name = name, **args)
+            return
+    java_test(name = name, **args)
 
 def kt_rules_e2e_test(name, **kwargs):
     kwargs.setdefault("size", "small")

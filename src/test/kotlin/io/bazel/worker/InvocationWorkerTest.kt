@@ -18,7 +18,7 @@
 package io.bazel.worker
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.jupiter.api.Test;
+import org.junit.Test
 
 class InvocationWorkerTest {
   @Test

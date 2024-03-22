@@ -1,6 +1,6 @@
 package io.bazel.kotlin
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test
 
 class KotlinJvm13Test {
   @Test

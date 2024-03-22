@@ -1,6 +1,5 @@
 package io.bazel.kotlin
 
-import org.junit.jupiter.api.Test
 import test.DEFAULT_FRIEND
 import test.Service
 
@@ -11,7 +10,7 @@ import test.Service
 class KotlinJvmAssociatesBasicVisibilityTest {
   val service: Service = Service()
 
-  @Test
+  @org.junit.Test
   fun testCanAccessFriendMembers() {
     println(service.value)
     println(service.iSayHolla(DEFAULT_FRIEND))
