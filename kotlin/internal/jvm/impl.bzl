@@ -1,4 +1,3 @@
-load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_runtime_toolchain")
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
@@ -70,7 +69,14 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     """
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
-    java_bin_path = ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path
+
+    java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
+    java_bin_path = java_runtime.java_executable_exec_path
+
+    # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
+    # Enable the security manager past deprecation.
+    if java_runtime.version >= 17:
+        jvm_flags = jvm_flags + " -Djava.security.manager=allow"
 
     if ctx.configuration.coverage_enabled:
         jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
@@ -109,6 +115,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     classpath = ctx.configuration.host_path_separator.join(
         ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
     )
+
     ctx.actions.expand_template(
         template = template,
         output = ctx.outputs.executable,
@@ -264,10 +271,7 @@ _SPLIT_STRINGS = [
 
 def kt_jvm_junit_test_impl(ctx):
     providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_test")
-    runtime_jars = depset(
-        ctx.files._bazel_test_runner if ctx.attr.use_testrunner else [],
-        transitive = [providers.java.transitive_runtime_jars],
-    )
+    runtime_jars = depset(ctx.files._bazel_test_runner, transitive = [providers.java.transitive_runtime_jars])
 
     coverage_runfiles = []
     if ctx.configuration.coverage_enabled:
@@ -290,13 +294,6 @@ def kt_jvm_junit_test_impl(ctx):
     jvm_flags = []
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
         jvm_flags = ctx.fragments.java.default_jvm_opts
-
-    java_runtime_toolchain = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase)
-
-    # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
-    # Enable the security manager past deprecation.
-    if java_runtime_toolchain.version >= 17:
-        jvm_flags.append("-Djava.security.manager=allow")
 
     jvm_flags.extend(ctx.attr.jvm_flags)
     coverage_metadata = _write_launcher_action(

@@ -16,7 +16,7 @@
 package io.bazel.kotlin
 
 import org.junit.Ignore
-import org.junit.jupiter.api.Test;
+import org.junit.Test
 
 class KotlinNormalizationAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/basic") {
   /*
