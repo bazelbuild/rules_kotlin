@@ -70,7 +70,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     """
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
-    java_bin_path = ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path
+    java_bin_path = find_java_runtime_toolchain(ctx, ctx.attr._java_runtime).java_executable_exec_path
 
     if ctx.configuration.coverage_enabled:
         jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
@@ -290,11 +290,9 @@ def kt_jvm_junit_test_impl(ctx):
 
     java_runtime_toolchain = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase)
 
-    print("java runtime toolchain %s" % java_runtime_toolchain)
 
     java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain)
 
-    print("java toolchaing %s" % java_toolchain)
 
     # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
     # Enable the security manager past deprecation.
