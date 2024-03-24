@@ -1,3 +1,4 @@
+load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_runtime_toolchain")
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
@@ -289,6 +290,14 @@ def kt_jvm_junit_test_impl(ctx):
     jvm_flags = []
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
         jvm_flags = ctx.fragments.java.default_jvm_opts
+
+    java_runtime_toolchain = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase)
+
+    # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
+    # Enable the security manager past deprecation.
+    if java_runtime_toolchain.version >= 17:
+        jvm_flags.append("-Djava.security.manager=allow")
+
     jvm_flags.extend(ctx.attr.jvm_flags)
     coverage_metadata = _write_launcher_action(
         ctx,
