@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_runtime_toolchain")
+load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_runtime_toolchain", "find_java_toolchain")
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
@@ -290,7 +290,11 @@ def kt_jvm_junit_test_impl(ctx):
 
     java_runtime_toolchain = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase)
 
-    print("java runtime tool version %s" % java_runtime_toolchain.version)
+    print("java runtime toolchain %s" % java_runtime_toolchain)
+
+    java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain)
+
+    print("java toolchaing %s" % java_toolchain)
 
     # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
     # Enable the security manager past deprecation.
