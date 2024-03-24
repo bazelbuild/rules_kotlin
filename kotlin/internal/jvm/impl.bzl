@@ -70,7 +70,15 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     """
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
     template = ctx.attr._java_stub_template.files.to_list()[0]
-    java_bin_path = find_java_runtime_toolchain(ctx, ctx.attr._java_runtime).java_executable_exec_path
+
+    java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
+
+    java_bin_path = java_runtime.java_executable_exec_path
+
+    print("version %s, java_bin %s" % (java_runtime.version, java_bin_path))
+
+    if java_runtime.version >= 17:
+        jvm_flags = jvm_flags + " -Djava.security.manager=allow"
 
     if ctx.configuration.coverage_enabled:
         jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
@@ -109,8 +117,6 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     classpath = ctx.configuration.host_path_separator.join(
         ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
     )
-
-    print("java_bin %s" % java_bin_path)
 
     ctx.actions.expand_template(
         template = template,
