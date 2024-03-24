@@ -109,6 +109,9 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     classpath = ctx.configuration.host_path_separator.join(
         ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
     )
+
+    print("java_bin %s" % java_bin_path)
+
     ctx.actions.expand_template(
         template = template,
         output = ctx.outputs.executable,
@@ -290,9 +293,7 @@ def kt_jvm_junit_test_impl(ctx):
 
     java_runtime_toolchain = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase)
 
-
     java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain)
-
 
     # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
     # Enable the security manager past deprecation.
