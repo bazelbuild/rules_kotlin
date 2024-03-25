@@ -15,18 +15,34 @@
  */
 package src.test.data.jvm.ksp
 
-import dagger.Component
+import dagger.Module
+import dagger.Provides
 import javax.inject.Singleton
 
-class CoffeeApp {
-
+@Module
+internal class DripCoffeeModule {
+  @Provides
   @Singleton
-  @Component(modules = [DripCoffeeModule::class])
-  interface CoffeeShop {
-    fun maker(): CoffeeMaker
+  fun provideHeater(): Heater {
+    return ElectricHeater()
+  }
+}
+
+internal interface Heater {
+  val isHot: Boolean
+  fun on()
+  fun off()
+}
+
+internal class ElectricHeater : Heater {
+  override var isHot: Boolean = false
+
+  override fun on() {
+    println("~ ~ ~ heating ~ ~ ~")
+    this.isHot = true
   }
 
-  companion object {
-    private val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
+  override fun off() {
+    this.isHot = false
   }
 }

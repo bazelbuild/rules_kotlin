@@ -15,18 +15,16 @@
  */
 package src.test.data.jvm.ksp
 
-import dagger.Component
-import javax.inject.Singleton
+import dagger.Lazy
+import javax.inject.Inject
 
-class CoffeeApp {
+class CoffeeMaker @Inject internal constructor(
+  private val heater: Lazy<Heater>,
+) {
 
-  @Singleton
-  @Component(modules = [DripCoffeeModule::class])
-  interface CoffeeShop {
-    fun maker(): CoffeeMaker
-  }
-
-  companion object {
-    private val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
-  }
+  fun brew() {
+      heater.get().on()
+      println(" [_]P coffee! [_]P ")
+      heater.get().off()
+    }
 }
