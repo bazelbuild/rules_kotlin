@@ -77,7 +77,7 @@ _KOPTS_ALL = {
             True: ["-Xcontext-receivers"],
         },
     ),
-    "x_context_receivers": struct(
+    "x_suppress_version_warnings": struct(
         flag = "-Xsuppress-version-warnings",
         args = dict(
             default = False,
