@@ -267,20 +267,13 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
         len(jdeps),
     )
 
-    tools, input_manifests = ctx.resolve_tools(
-        tools = [
-            toolchains.kt.jdeps_merger,
-        ],
-    )
-
     # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs
     inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_compile_time_jars for dep in deps])])
 
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = inputs,
-        tools = tools,
-        input_manifests = input_manifests,
+        tools = [toolchains.kt.jdeps_merger.files_to_run],
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.jdeps_merger.files_to_run.executable,
         execution_requirements = toolchains.kt.execution_requirements,
@@ -482,21 +475,16 @@ def _run_kt_builder_action(
         ctx.var.get("TARGET_CPU", "UNKNOWN CPU"),
     )
 
-    tools, input_manifests = ctx.resolve_tools(
-        tools = [
-            toolchains.kt.kotlinbuilder,
-            toolchains.kt.kotlin_home,
-        ],
-    )
-
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
             srcs.all_srcs + srcs.src_jars + generated_src_jars,
             transitive = [compile_deps.compile_jars, transitive_runtime_jars, deps_artifacts] + [p.classpath for p in compiler_plugins],
         ),
-        tools = tools,
-        input_manifests = input_manifests,
+        tools = [
+            toolchains.kt.kotlinbuilder.files_to_run,
+            toolchains.kt.kotlin_home.files_to_run,
+        ],
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
         execution_requirements = _utils.add_dicts(
