@@ -13,20 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package src.test.data.jvm.ksp
+package coffee
 
-import dagger.Component
-import javax.inject.Singleton
+import dagger.Lazy
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class CoffeeApp {
+class CoffeeMaker @Inject internal constructor(
+  // Create a possibly costly heater only when we use it.
+  private val heater: Lazy<Heater>,
+  private val pump: Pump,
+  private val string: String
+) {
 
-  @Singleton
-  @Component(modules = [DripCoffeeModule::class])
-  interface CoffeeShop {
-    fun maker(): CoffeeMaker
-  }
-
-  companion object {
-    private val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
+  suspend fun brew() {
+    // this function is async to verify intellij support for coroutines.
+    withContext(Dispatchers.Default) {
+      heater.get().on()
+      pump.pump()
+      println(" [_]P coffee! [_]P ")
+      println(string)
+      heater.get().off()
+    }
   }
 }

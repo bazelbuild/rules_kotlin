@@ -17,6 +17,13 @@ load(
     _KspPluginInfo = "KspPluginInfo",
 )
 
+def is_ksp_processor_generating_java(targets):
+    for t in targets:
+        if _KspPluginInfo in t:
+            if t[_KspPluginInfo].generates_java:
+                return True
+    return False
+
 # Mapping functions for args.add_all.
 # These preserve the transitive depsets until needed.
 def _kt_plugin_to_processor(processor):

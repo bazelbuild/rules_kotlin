@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package src.test.data.jvm.ksp
+package coffee
 
-import dagger.Component
-import javax.inject.Singleton
+internal class ElectricHeater : Heater {
+  override var isHot: Boolean = false
 
-class CoffeeApp {
-
-  @Singleton
-  @Component(modules = [DripCoffeeModule::class])
-  interface CoffeeShop {
-    fun maker(): CoffeeMaker
+  override fun on() {
+    println("~ ~ ~ heating ~ ~ ~")
+    this.isHot = true
   }
 
-  companion object {
-    private val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
+  override fun off() {
+    this.isHot = false
   }
 }

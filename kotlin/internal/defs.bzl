@@ -63,5 +63,6 @@ KtCompilerPluginInfo = provider(
 KspPluginInfo = provider(
     fields = {
         "plugins": "List of JavaPLuginInfo providers for the plugins to run with KSP",
+        "generates_java": "Runs Java compilation action for this plugin",
     },
 )

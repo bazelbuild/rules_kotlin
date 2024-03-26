@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package src.test.data.jvm.ksp
+package coffee
 
-import dagger.Component
+import dagger.Module
+import dagger.Provides
 import javax.inject.Singleton
 
-class CoffeeApp {
-
+@Module(includes = arrayOf(PumpModule::class))
+internal class DripCoffeeModule {
+  @Provides
   @Singleton
-  @Component(modules = [DripCoffeeModule::class])
-  interface CoffeeShop {
-    fun maker(): CoffeeMaker
-  }
-
-  companion object {
-    private val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
+  fun provideHeater(): Heater {
+    return ElectricHeater()
   }
 }
