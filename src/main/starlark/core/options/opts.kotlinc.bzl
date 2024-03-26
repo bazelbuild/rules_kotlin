@@ -77,6 +77,17 @@ _KOPTS_ALL = {
             True: ["-Xcontext-receivers"],
         },
     ),
+    "x_context_receivers": struct(
+        flag = "-Xsuppress-version-warnings",
+        args = dict(
+            default = False,
+            doc = "Suppress warnings about outdated, inconsistent, or experimental language or API versions.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xsuppress-version-warnings"],
+        },
+    ),
     "x_inline_classes": struct(
         flag = "-Xinline-classes",
         args = dict(
