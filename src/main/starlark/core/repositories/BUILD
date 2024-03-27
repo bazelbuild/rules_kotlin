@@ -1,5 +1,3 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +11,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 release_archive(
@@ -20,6 +19,7 @@ release_archive(
     srcs = [
         "BUILD.com_github_google_ksp.bazel",
         "BUILD.com_github_jetbrains_kotlin.bazel",
+        "BUILD.kotlin_capabilities.bazel",
         "bzlmod_impl.bzl",
         "compiler.bzl",
         "ksp.bzl",
