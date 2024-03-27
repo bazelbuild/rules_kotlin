@@ -462,6 +462,7 @@ def _run_kt_builder_action(
     """Creates a KotlinBuilder action invocation."""
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    ksp_opts = ctx.attr.ksp_opts if ctx.attr.ksp_opts else None
     args = _utils.init_args(ctx, rule_kind, associates.module_name, kotlinc_options)
 
     for f, path in outputs.items():
@@ -521,6 +522,12 @@ def _run_kt_builder_action(
         map_each = _format_compile_plugin_options,
         omit_if_empty = True,
     )
+
+    if ksp_opts:
+        args.add_all(
+            "--ksp_opts",
+            _utils.dic_to_option_list(ksp_opts),
+        )
 
     args.add("--build_kotlin", build_kotlin)
 

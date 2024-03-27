@@ -75,10 +75,18 @@ def _builder_workspace_name(ctx):
         lbl = ctx.workspace_name
     return lbl.replace("external/", "")
 
+def _dic_to_option_list(dic):
+    """Converts a dictionary to a list of options in the form of `key=value`"""
+    options = []
+    for key, value in dic.items():
+        options.append(key + "=" + value)
+    return options
+
 utils = struct(
     add_dicts = _add_dicts,
     init_args = _init_builder_args,
     restore_label = _restore_label,
     derive_module_name = _derive_module_name,
     builder_workspace_name = _builder_workspace_name,
+    dic_to_option_list = _dic_to_option_list,
 )
