@@ -48,14 +48,14 @@ tasks:
       # cannot be used with remote builds)
       - "--strategy=KotlinCompile=remote"
       - "--config=rbe"
-# TODO: Enable these tests once this example is building against the release rules_kotlin binary
-#  example-android-5.x:
-#    name: "Example - Android using Bazel 5.x"
-#    platform: ubuntu1804
-#    working_directory: examples/android
-#    bazel: 5.4.1
-#    test_targets:
-#      - //app:all
+  # TODO: Enable these tests once this example is building against the release rules_kotlin binary
+  example-android-5.x:
+    name: "Example - Android using Bazel 5.x"
+    platform: ubuntu1804
+    working_directory: examples/android
+    bazel: 5.4.1
+    test_targets:
+      - //app:all
   example-android-6.x:
     name: "Example - Android using Bazel 6.x"
     platform: ubuntu1804
