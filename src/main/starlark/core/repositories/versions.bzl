@@ -125,5 +125,12 @@ versions = struct(
         ],
         sha256 = None,
     ),
+    RULES_TESTING = version(
+        version = "0.5.0",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_testing/releases/download/v{version}/rules_testing-v{version}.tar.gz",
+        ],
+        sha256 = "b84ed8546f1969d700ead4546de9f7637e0f058d835e47e865dcbb13c4210aed",
+    ),
     use_repository = _use_repository,
 )

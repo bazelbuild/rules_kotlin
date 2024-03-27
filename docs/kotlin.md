@@ -361,7 +361,7 @@ kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_com
 |<a id="kt_compiler_plugin-compile_phase"></a>compile_phase |  Runs the compiler plugin during kotlin compilation. Known examples: <code>allopen</code>, <code>sam_with_reciever</code>   | Boolean | optional | True |
 |<a id="kt_compiler_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 |<a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | required |  |
-|<a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Supports the following template values:<br><br>- <code>{generatedClasses}</code>: directory for generated class output - <code>{temp}</code>: temporary directory, discarded between invocations - <code>{generatedSources}</code>:  directory for generated source output   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
+|<a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Supports the following template values:<br><br>- <code>{generatedClasses}</code>: directory for generated class output - <code>{temp}</code>: temporary directory, discarded between invocations - <code>{generatedSources}</code>:  directory for generated source output - <code>{classpath}</code> : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 |<a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin in kapt stub generation.   | Boolean | optional | True |
 |<a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc             dependencies, and will fail when running against a non-embeddable compiler.   | Boolean | optional | False |
 
@@ -480,6 +480,31 @@ kt_ksp_plugin(<a href="#kt_ksp_plugin-name">name</a>, <a href="#kt_ksp_plugin-de
 |<a id="kt_ksp_plugin-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 |<a id="kt_ksp_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 |<a id="kt_ksp_plugin-processor_class"></a>processor_class |  The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.   | String | required |  |
+
+
+<a id="#kt_plugin_cfg"></a>
+
+## kt_plugin_cfg
+
+kt_plugin_cfg(<a href="#kt_plugin_cfg-name">name</a>, <a href="#kt_plugin_cfg-deps">deps</a>, <a href="#kt_plugin_cfg-options">options</a>, <a href="#kt_plugin_cfg-plugin">plugin</a>)
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            
+        Configurations for kt_compiler_plugin, ksp_plugin, and java_plugin.
+                
+        This allows setting options and dependencies independently from the initial plugin definition.
+        
+    
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+|<a id="kt_plugin_cfg-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+|<a id="kt_plugin_cfg-deps"></a>deps |  Dependencies for this configuration.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
+|<a id="kt_plugin_cfg-options"></a>options |  A dictionary of flag to values to be used as plugin configuration options.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> List of strings</a> | optional | {} |
+|<a id="kt_plugin_cfg-plugin"></a>plugin |  The plugin to associate with this configuration   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
 
 <a id="define_kt_toolchain"></a>
