@@ -1,5 +1,3 @@
-common --enable_bzlmod=true
-
 common:rbe --java_runtime_version=11
 common:rbe --tool_java_runtime_version=11
 
