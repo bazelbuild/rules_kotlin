@@ -2,7 +2,7 @@
   "name": "node_packages",
   "version": "1.0.0",
   "dependencies": {
-    "express": "^4.17.3"
+    "express": "^4.19.2"
   },
   "devDependencies": {
     "source-map-support": "^0.5.6"
