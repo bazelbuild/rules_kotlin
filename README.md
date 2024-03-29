@@ -11,7 +11,7 @@
 For more information about release and changelogs please see [Changelog](CHANGELOG.md) or refer to the [Github Releases](https://github.com/bazelbuild/rules_kotlin/releases) page.
 
 # `rules_kotlin` Bazel Compatibility
-- HEAD: `5`, `6`
+- HEAD: `5`, `6`, `7`
 - [Release 1.7](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.7.1): `4`, `5`, `6`
 
 # Overview 
