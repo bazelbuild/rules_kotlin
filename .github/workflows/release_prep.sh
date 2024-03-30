@@ -15,7 +15,7 @@ SHA=$(shasum -a 256 $ARCHIVE | awk '{print $1}')
 # Write the release notes to release_notes.txt
 cat > release_notes.txt << EOF
 # Release notes for $TAG
-## Using Bzlmod with Bazel 6
+## Using Bzlmod with Bazel 7
 
 1. Enable with \`common --enable_bzlmod\` in \`.bazelrc\`.
 2. Add to your \`MODULE.bazel\` file:
