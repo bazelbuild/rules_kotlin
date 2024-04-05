@@ -46,22 +46,20 @@ def _generate_jvm_service_impl(ctx):
         arguments = [zipper_args],
         progress_message = "JVM service info jar for %%{label}",
     )
-    return struct(
-        providers = [
-            JavaInfo(
-                output_jar = jar,
-                compile_jar = jar,
-                source_jar = jar,
-                runtime_deps = [],
-                exports = [],
-                neverlink = False,
-            ),
-            DefaultInfo(
-                files = depset([jar]),
-                runfiles = ctx.runfiles(files = [jar]),
-            ),
-        ],
-    )
+    return [
+        JavaInfo(
+            output_jar = jar,
+            compile_jar = jar,
+            source_jar = jar,
+            runtime_deps = [],
+            exports = [],
+            neverlink = False,
+        ),
+        DefaultInfo(
+            files = depset([jar]),
+            runfiles = ctx.runfiles(files = [jar]),
+        ),
+    ]
 
 def _write_service_file(ctx, srv, impls):
     f = ctx.actions.declare_file(ctx.label.name + "/" + srv)

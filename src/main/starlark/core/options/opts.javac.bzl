@@ -100,11 +100,7 @@ _JOPTS = {
 }
 
 def _javac_options_impl(ctx):
-    return struct(
-        providers = [
-            JavacOptions(**{n: getattr(ctx.attr, n, None) for n in _JOPTS}),
-        ],
-    )
+    return [JavacOptions(**{n: getattr(ctx.attr, n, None) for n in _JOPTS})]
 
 JavacOptions = provider(
     fields = {
