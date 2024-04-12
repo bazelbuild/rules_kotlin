@@ -112,16 +112,16 @@ def kt_configure_compiler():
         ]
     ]
 
-    #  The Kotlin JS standard libraries. These should be setup in a Toolchain.
-    [
-        kt_js_import(
-            name = "kotlin-%s" % art,
-            jars = [_KT_COMPILER_REPO_PREFIX + "lib/kotlin-%s.jar" % art],
-            srcjar = _KT_COMPILER_REPO_PREFIX + "lib/kotlin-%s-sources.jar" % art,
-            visibility = ["//visibility:public"],
-        )
-        for art in [
-            "test-js",
-            "stdlib-js",
-        ]
-    ]
+#    #  The Kotlin JS standard libraries. These should be setup in a Toolchain.
+#    [
+#        kt_js_import(
+#            name = "kotlin-%s" % art,
+#            jars = [_KT_COMPILER_REPO_PREFIX + "lib/kotlin-%s.jar" % art],
+#            srcjar = _KT_COMPILER_REPO_PREFIX + "lib/kotlin-%s-sources.jar" % art,
+#            visibility = ["//visibility:public"],
+#        )
+#        for art in [
+#            "test-js",
+#            "stdlib-js",
+#        ]
+#    ]
