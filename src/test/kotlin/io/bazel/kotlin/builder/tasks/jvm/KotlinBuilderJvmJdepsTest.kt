@@ -66,7 +66,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
     val jdeps = depsProto(deps)
     val expected = Deps.Dependencies.newBuilder()
       .setRuleLabel("//deps")
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -80,7 +80,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
     val jdeps = depsProto(deps)
     val expected = Deps.Dependencies.newBuilder()
       .setRuleLabel("//deps")
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -104,7 +104,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//dependingTarget")
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -132,7 +132,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -162,7 +162,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -215,7 +215,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(exceptionTarget.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addImplicitDep(baseExceptionTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -254,7 +254,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -282,7 +282,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -308,7 +308,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -340,7 +340,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -373,7 +373,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addUnusedDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -417,7 +417,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addUnusedDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -457,7 +457,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(connectionNotFoundExceptionDep.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -491,7 +491,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -547,7 +547,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(dependentTarget.singleCompileJar())
       .addExplicitDep(transitivePropertyTarget.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -605,7 +605,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
       .addImplicitDep(transitivePropertyTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -640,7 +640,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -679,7 +679,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -716,7 +716,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -742,7 +742,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -771,7 +771,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel(dependingTarget.label())
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -800,7 +800,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addImplicitDep(TEST_FIXTURES2_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -827,7 +827,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
       .addExplicitDep(TEST_FIXTURES2_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -853,7 +853,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -890,7 +890,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -925,7 +925,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -994,7 +994,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(dependentTarget.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addImplicitDep(objectMapperTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1030,7 +1030,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1065,7 +1065,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1102,7 +1102,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1127,7 +1127,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1162,7 +1162,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel("//:dependingTarget")
       .setSuccess(true)
       .addExplicitDep(dependentTarget.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1213,7 +1213,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(directInterfaceDef.singleCompileJar())
       .addImplicitDep(indirectInterfaceDef.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1263,7 +1263,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(explicitSuperClassDep.singleCompileJar())
       .addImplicitDep(implicitSuperClassDep.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1314,7 +1314,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(explicitSuperClassDep.singleCompileJar())
       .addImplicitDep(implicitSuperClassDep.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1370,7 +1370,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(explicitSuperClassDep.singleCompileJar())
       .addImplicitDep(implicitSuperClassDep.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1433,7 +1433,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(explicitClassWithTypeParamJavaSuperclassDep.singleCompileJar())
       .addImplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
       .addImplicitDep(implicitSuperClassGenericTypeParamDep.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1489,7 +1489,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(explicitSuperClassDep.singleCompileJar())
       .addImplicitDep(implicitSuperClassDep.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1544,7 +1544,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
       .addExplicitDep(explicitSuperClassDep.singleCompileJar())
       .addImplicitDep(implicitSuperClassDep.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1608,7 +1608,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addExplicitDep(explicitSuperClassDep.singleCompileJar())
       .addImplicitDep(implicitSuperClassDep.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1674,7 +1674,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addImplicitDep(depWithReturnType.singleCompileJar())
       .addImplicitDep(depWithReturnTypesSuperType.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1743,7 +1743,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addImplicitDep(depWithReceiverType.singleCompileJar())
       .addImplicitDep(depWithReceiverTypeSuperType.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1793,7 +1793,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(barDep.singleCompileJar())
       .addImplicitDep(fooDep.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1846,7 +1846,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(depWithFunction.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1898,7 +1898,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addExplicitDep(bar.singleCompileJar())
       .addExplicitDep(foo.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -1968,7 +1968,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .addExplicitDep(depWithReturnType.singleCompileJar())
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addImplicitDep(depWithReturnTypesSuperType.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -2000,7 +2000,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setSuccess(true)
       .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
       .addExplicitDep(TEST_FIXTURES_DEP.singleCompileJar())
-      .build()
+      .buildSorted()
     assertThat(jdeps).isEqualTo(expected)
   }
 
@@ -2035,5 +2035,13 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
   private fun Deps.Dependencies.Builder.addUnusedDep(depPath: String): Deps.Dependencies.Builder {
     addDependency(Deps.Dependency.newBuilder().setPath(depPath).setKind(Deps.Dependency.Kind.UNUSED))
     return this
+  }
+
+  private fun Deps.Dependencies.Builder.buildSorted(): Deps.Dependencies {
+    val sortedDeps = dependencyList.sortedBy { it.path }
+    sortedDeps.forEachIndexed { index, dep ->
+      setDependency(index, dep)
+    }
+    return build()
   }
 }

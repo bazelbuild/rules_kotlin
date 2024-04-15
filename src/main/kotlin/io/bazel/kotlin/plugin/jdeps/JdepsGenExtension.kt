@@ -414,7 +414,7 @@ class JdepsGenExtension(
     }
 
     BufferedOutputStream(File(jdepsOutput).outputStream()).use {
-      it.write(rootBuilder.build().toByteArray())
+      it.write(rootBuilder.buildSorted().toByteArray())
     }
   }
 
@@ -475,4 +475,12 @@ class JdepsGenExtension(
     }
     return false
   }
+}
+
+private fun Deps.Dependencies.Builder.buildSorted(): Deps.Dependencies {
+  val sortedDeps = dependencyList.sortedBy { it.path }
+  sortedDeps.forEachIndexed { index, dep ->
+    setDependency(index, dep)
+  }
+  return build()
 }
