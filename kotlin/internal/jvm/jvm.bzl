@@ -242,6 +242,11 @@ _common_attr = utils.add_dicts(
             providers = [_JavacOptions],
             mandatory = False,
         ),
+        "ksp_opts": attr.string_dict(
+            doc = """KSP processor options to be used when compiling this target.""",
+            default = {},
+            mandatory = False,
+        ),
     },
 )
 
