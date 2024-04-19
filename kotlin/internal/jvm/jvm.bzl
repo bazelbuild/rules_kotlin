@@ -140,9 +140,9 @@ _implicit_deps = {
         allow_single_file = True,
     ),
     "_toolchain": attr.label(
-        doc = """The Kotlin JVM Runtime. it's only purpose is to enable the Android native rules to discover the Kotlin
-        runtime for dexing""",
-        default = Label("//kotlin/compiler:kotlin-stdlib"),
+        doc = """The Kotlin toolchain. it's only purpose is to enable the Intellij
+        to discover Kotlin language version""",
+        default = Label("//kotlin/internal:default_toolchain_impl"),
         cfg = "target",
     ),
     "_java_toolchain": attr.label(
