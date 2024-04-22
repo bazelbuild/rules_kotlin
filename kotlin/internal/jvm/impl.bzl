@@ -53,10 +53,10 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
                     # explicitly include data files, otherwise they appear to be missing
                     files = ctx.files.data,
                     transitive_files = transitive_files,
-                    # continue to use collect_default until proper transitive data collecting is
-                    # implmented.
-                    collect_default = True,
-                ),
+                ).merge_all([
+                    target[DefaultInfo].default_runfiles
+                    for target in ctx.attr.runtime_deps
+                ]),
             ),
         ] + list(additional_providers),
     )
