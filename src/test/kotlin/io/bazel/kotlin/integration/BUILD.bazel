@@ -21,6 +21,24 @@ kt_jvm_test(
 )
 
 kt_jvm_test(
+    name = "KspCompileTest",
+    srcs = [
+        "KspCompileTest.kt",
+    ],
+    resources = [
+        "//:rules_kotlin_release.tgz",
+    ],
+    test_class = "io.bazel.kotlin.integration.KspCompileTest",
+    deps = [
+        ":lib",
+        "//kotlin/compiler:kotlin-test",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+        "@kotlin_rules_maven//:org_apache_commons_commons_compress",
+    ],
+)
+
+kt_jvm_test(
     name = "MixedSourceCompileTest",
     srcs = ["MixedSourceCompileTest.kt"],
     resources = [

@@ -22,7 +22,7 @@ use_repo(
     "rules_android",
 )
 
-# Once the released rules_koltin is defined, configure it.
+# Once the released rules_kotlin is defined, configure it.
 rules_kotlin_bootstrap_extensions = use_extension(
     "//src/main/starlark/core/repositories:bzlmod_bootstrap.bzl",
     "rules_kotlin_bootstrap_extensions",
@@ -76,6 +76,7 @@ maven.install(
         "com.squareup.moshi:moshi-kotlin:1.15.0",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.0",
         "com.google.auto.service:auto-service-annotations:jar:1.1.1",
+        "org.apache.commons:commons-compress:1.26.1",
     ],
     fail_if_repin_required = True,
     fetch_sources = True,

@@ -19,8 +19,9 @@ object WriteWorkspace {
   }
 
   inline fun <reified CLASS> using(noinline contents: Workspace.() -> Unit): Path = using(
-    CLASS::class.run { qualifiedName ?: simpleName ?: error("Cannot use unnamed class") }, contents
+    CLASS::class.run { qualifiedName ?: simpleName ?: error("Cannot use unnamed class") }, contents,
   )
+
 
   /**
    * [open] the [root] of an existing [Workspace] and apply [contents]
@@ -99,7 +100,7 @@ object WriteWorkspace {
     fun Array<out CharSequence>.render(
       separator: String = " ",
       prefix: String = "",
-      postfix: String = ""
+      postfix: String = "",
     ): CharSequence = Rendered(joinToString(separator, prefix, postfix) { it.render() })
 
     operator fun CharSequence.not(): CharSequence = Rendered(this)
@@ -128,7 +129,7 @@ object WriteWorkspace {
     operator fun CharSequence.invoke(
       argument: CharSequence,
       vararg arguments: CharSequence,
-      contents: Define<T>.() -> Unit
+      contents: Define<T>.() -> Unit,
     ) {
       define(this, *(arrayOf(argument) + arguments), contents = contents)
     }
@@ -167,8 +168,15 @@ object WriteWorkspace {
       call(toString(), *arguments)
     }
 
-    fun CharSequence.list(vararg elements:Any?) : Pair<CharSequence, CharSequence> {
-      return this to !"[${elements.joinToString(","){ it.render() }}]"
+    fun CharSequence.`= list`(vararg elements: Any?): Pair<CharSequence, CharSequence> {
+      return list(*elements)
+    }
+
+    infix fun CharSequence.`=`(element: Any?): Pair<CharSequence, CharSequence> {
+      return this to element.render()
+    }
+    fun CharSequence.list(vararg elements: Any?): Pair<CharSequence, CharSequence> {
+      return this to !"[${elements.joinToString(",") { it.render() }}]"
     }
   }
 
@@ -205,9 +213,12 @@ object WriteWorkspace {
     fun local_repository(name: CharSequence, location: Path) {
       "local_repository"(
         "name" to name,
-        "path" to location.toString()
+        "path" to location.toString(),
       )
     }
+  }
+
+  interface BzlModule : Starlark<BzlModule> {
   }
 
   interface Bzl : Starlark<Bzl>, Define<Bzl> {
@@ -215,7 +226,7 @@ object WriteWorkspace {
     override fun define(
       name: CharSequence,
       vararg arguments: CharSequence,
-      contents: Define<Bzl>.() -> Unit
+      contents: Define<Bzl>.() -> Unit,
     ) {
       block(arguments.render(prefix = "$name(", separator = ", ", postfix = ")")) {
         contents()
@@ -225,7 +236,7 @@ object WriteWorkspace {
     fun rule(
       name: String,
       implementation: CharSequence,
-      vararg attributes: Pair<CharSequence, CharSequence>
+      vararg attributes: Pair<CharSequence, CharSequence>,
     ) {
       +"$name = rule("
       indent {
@@ -251,7 +262,7 @@ object WriteWorkspace {
     override fun define(
       name: CharSequence,
       vararg arguments: CharSequence,
-      contents: Define<T>.() -> Unit
+      contents: Define<T>.() -> Unit,
     ) {
       block(arguments.render(separator = ", ", prefix = "$name(", postfix = ")")) {
         contents()
@@ -325,6 +336,7 @@ object WriteWorkspace {
             .sorted()
             .reversed()
             .forEach(Files::deleteIfExists)
+
           else -> Files.deleteIfExists(location)
         }
       }
@@ -372,6 +384,12 @@ object WriteWorkspace {
       }
     }
 
+    fun module(contents: BzlModule.() -> Unit) {
+      new("MODULE.bazel") {
+        object : BzlModule, Text by this {}.apply(contents)
+      }
+    }
+
     override fun close() {
       if (!exists(resolve("WORKSPACE"))) {
         workspace {
@@ -408,7 +426,7 @@ object WriteWorkspace {
     override fun write(
       path: String,
       contents: ByteArray,
-      vararg options: StandardOpenOption
+      vararg options: StandardOpenOption,
     ): Path {
       Files.deleteIfExists(resolve(path))
       return super.write(path, contents, *options)
@@ -439,7 +457,7 @@ object WriteWorkspace {
 
   private class CreateWorkspace(
     root: Path,
-    write: WriteStructure = WriteStructure(root, root)
+    write: WriteStructure = WriteStructure(root, root),
   ) : Workspace, WritePackage, Structure by write {
     override fun close() {
       super<WritePackage>.close()
@@ -449,7 +467,7 @@ object WriteWorkspace {
 
   private class ModifyWorkspace(
     root: Path,
-    val replace: ReplaceStructure = ReplaceStructure(root, root)
+    val replace: ReplaceStructure = ReplaceStructure(root, root),
   ) : ChangePackage, Structure by replace {
     override fun resolve(path: String): Path {
       check(!path.endsWith("WORKSPACE")) {
