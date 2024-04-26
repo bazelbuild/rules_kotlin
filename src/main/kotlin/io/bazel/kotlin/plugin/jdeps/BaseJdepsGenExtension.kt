@@ -10,7 +10,6 @@ import java.nio.file.Paths
 abstract class BaseJdepsGenExtension(
   protected val configuration: CompilerConfiguration,
 ) {
-
   protected fun onAnalysisCompleted(
     explicitClassesCanonicalPaths: Set<String>,
     implicitClassesCanonicalPaths: Set<String>,
@@ -107,9 +106,10 @@ abstract class BaseJdepsGenExtension(
     directDeps: List<String>,
     targetLabel: String,
   ): Boolean {
-    val missingStrictDeps = result.keys
-      .filter { !directDeps.contains(it) }
-      .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)) }
+    val missingStrictDeps =
+      result.keys
+        .filter { !directDeps.contains(it) }
+        .map { JarOwner.readJarOwnerFromManifest(Paths.get(it)) }
 
     if (missingStrictDeps.isNotEmpty()) {
       val missingStrictLabels = missingStrictDeps.mapNotNull { it.label }

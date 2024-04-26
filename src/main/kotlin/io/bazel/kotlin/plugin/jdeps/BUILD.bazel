@@ -19,7 +19,12 @@ load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 # The compiler binary, this is co-located in the kotlin compiler classloader.
 kt_bootstrap_library(
     name = "jdeps-gen-lib",
-    srcs = glob(["*.kt"]),
+    srcs = glob([
+        "*.kt",
+        "k2/*.kt",
+        "k2/checker/declaration/*.kt",
+        "k2/checker/expression/*.kt",
+    ]),
     visibility = ["//src:__subpackages__"],
     deps = [
         "//kotlin/compiler:kotlin-compiler",
