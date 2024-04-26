@@ -23,6 +23,7 @@ import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
+import io.bazel.kotlin.model.KotlinToolchainInfo;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -155,7 +156,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public TaskBuilder compileKotlin() {
-            taskBuilder.setInfo(CompilationTaskInfo.newBuilder().addDebug("trace").addDebug("timings"));
+            taskBuilder.getInfoBuilder().addDebug("trace").addDebug("timings");
             taskBuilder.setCompileKotlin(true);
             return this;
         }
@@ -241,7 +242,10 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public TaskBuilder useK2() {
-            taskBuilder.getInfoBuilder().addPassthroughFlags("-Xuse-k2");
+            taskBuilder.getInfoBuilder()
+                    .getToolchainInfoBuilder()
+                    .getCommonBuilder()
+                    .setLanguageVersion("2.0");
             return this;
         }
     }
