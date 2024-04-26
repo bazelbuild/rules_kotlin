@@ -35,4 +35,5 @@ http_archive(
     sha256 = "${SHA}",
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/${TAG}/${ARCHIVE}",
 )
+\`\`\`
 EOF
