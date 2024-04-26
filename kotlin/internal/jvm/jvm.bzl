@@ -145,6 +145,12 @@ _implicit_deps = {
         default = Label("//kotlin/compiler:kotlin-stdlib"),
         cfg = "target",
     ),
+    "_kt_toolchain": attr.label(
+        doc = """The Kotlin toolchain. it's only purpose is to enable the Intellij
+        to discover Kotlin language version""",
+        default = Label("//kotlin/internal:default_toolchain_impl"),
+        cfg = "target",
+    ),
     "_java_toolchain": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
     ),

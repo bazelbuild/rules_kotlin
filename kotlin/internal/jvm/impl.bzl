@@ -41,25 +41,22 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
     files = [ctx.outputs.jar]
     if providers.java.outputs.jdeps:
         files.append(providers.java.outputs.jdeps)
-    return struct(
-        kt = providers.kt,
-        providers = [
-            providers.java,
-            providers.kt,
-            providers.instrumented_files,
-            DefaultInfo(
-                files = depset(files),
-                runfiles = ctx.runfiles(
-                    # explicitly include data files, otherwise they appear to be missing
-                    files = ctx.files.data,
-                    transitive_files = transitive_files,
-                    # continue to use collect_default until proper transitive data collecting is
-                    # implmented.
-                    collect_default = True,
-                ),
+    return [
+        providers.java,
+        providers.kt,
+        providers.instrumented_files,
+        DefaultInfo(
+            files = depset(files),
+            runfiles = ctx.runfiles(
+                # explicitly include data files, otherwise they appear to be missing
+                files = ctx.files.data,
+                transitive_files = transitive_files,
+                # continue to use collect_default until proper transitive data collecting is
+                # implmented.
+                collect_default = True,
             ),
-        ] + list(additional_providers),
-    )
+        ),
+    ] + list(additional_providers)
 
 def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     """Macro that writes out a launcher script shell script.
@@ -193,28 +190,25 @@ def kt_jvm_import_impl(ctx):
         ),
     )
 
-    return struct(
-        kt = kt_info,
-        providers = [
-            DefaultInfo(
-                files = depset(direct = [artifact.class_jar]),
-                runfiles = ctx.runfiles(
-                    # Append class jar with the optional sources jar
-                    files = [artifact.class_jar] + [artifact.source_jar] if artifact.source_jar else [],
-                ).merge_all([d[DefaultInfo].default_runfiles for d in ctx.attr.deps]),
-            ),
-            JavaInfo(
-                output_jar = artifact.class_jar,
-                compile_jar = artifact.class_jar,
-                source_jar = artifact.source_jar,
-                runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps if JavaInfo in dep],
-                deps = [dep[JavaInfo] for dep in ctx.attr.deps if JavaInfo in dep],
-                exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
-                neverlink = getattr(ctx.attr, "neverlink", False),
-            ),
-            kt_info,
-        ],
-    )
+    return [
+        DefaultInfo(
+            files = depset(direct = [artifact.class_jar]),
+            runfiles = ctx.runfiles(
+                # Append class jar with the optional sources jar
+                files = [artifact.class_jar] + [artifact.source_jar] if artifact.source_jar else [],
+            ).merge_all([d[DefaultInfo].default_runfiles for d in ctx.attr.deps]),
+        ),
+        JavaInfo(
+            output_jar = artifact.class_jar,
+            compile_jar = artifact.class_jar,
+            source_jar = artifact.source_jar,
+            runtime_deps = [dep[JavaInfo] for dep in ctx.attr.runtime_deps if JavaInfo in dep],
+            deps = [dep[JavaInfo] for dep in ctx.attr.deps if JavaInfo in dep],
+            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
+            neverlink = getattr(ctx.attr, "neverlink", False),
+        ),
+        kt_info,
+    ]
 
 def kt_jvm_library_impl(ctx):
     if ctx.attr.neverlink and ctx.attr.runtime_deps:

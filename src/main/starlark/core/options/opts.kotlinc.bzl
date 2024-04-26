@@ -362,11 +362,7 @@ KotlincOptions = provider(
 )
 
 def _kotlinc_options_impl(ctx):
-    return struct(
-        providers = [
-            KotlincOptions(**{n: getattr(ctx.attr, n, None) for n in _KOPTS}),
-        ],
-    )
+    return [KotlincOptions(**{n: getattr(ctx.attr, n, None) for n in _KOPTS})]
 
 kt_kotlinc_options = rule(
     implementation = _kotlinc_options_impl,
