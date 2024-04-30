@@ -387,6 +387,7 @@ internal fun JvmCompilationTask.createGeneratedKspKotlinSrcJar() {
     verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.generatedSources))
+    it.addDirectory(Paths.get(directories.generatedJavaSources))
     it.setJarOwner(info.label, info.bazelRuleKind)
     it.execute()
   }

@@ -16,8 +16,20 @@
 package coffee
 
 import com.squareup.moshi.Moshi
+import generated.GeneratedModule
+import dagger.Component
+import kotlinx.coroutines.runBlocking
+import tea.TeaPot
+import chai.ChaiCup
+import javax.inject.Singleton
 
 class CoffeeApp {
+
+  @Singleton
+  @Component(modules = [DripCoffeeModule::class, GeneratedModule::class])
+  interface CoffeeShop {
+    fun maker(): CoffeeMaker
+  }
 
   companion object {
 
@@ -28,9 +40,14 @@ class CoffeeApp {
 
     @JvmStatic
     fun main(args: Array<String>) {
-      println(
-        adapter.toJson(d.coffeeAppModel())
-      )
+      println("Coffee model: ${adapter.toJson(d.coffeeAppModel())}")
+
+      if (TeaPot.isEmpty() && ChaiCup.isEmpty()) {
+        val coffeeShop = DaggerCoffeeApp_CoffeeShop.builder().build()
+        runBlocking {
+          coffeeShop.maker().brew()
+        }
+      }
     }
   }
 }
