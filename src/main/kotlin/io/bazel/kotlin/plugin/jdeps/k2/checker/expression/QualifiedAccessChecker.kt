@@ -1,9 +1,7 @@
 package io.bazel.kotlin.plugin.jdeps.k2.checker.expression
 
+import io.bazel.kotlin.plugin.jdeps.k2.ClassUsageRecorder
 import io.bazel.kotlin.plugin.jdeps.k2.binaryClass
-import io.bazel.kotlin.plugin.jdeps.k2.recordClassBinaryPath
-import io.bazel.kotlin.plugin.jdeps.k2.recordConeType
-import io.bazel.kotlin.plugin.jdeps.k2.recordTypeRef
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
@@ -18,8 +16,9 @@ import org.jetbrains.kotlin.fir.types.isExtensionFunctionType
 import org.jetbrains.kotlin.fir.types.isUnit
 import org.jetbrains.kotlin.fir.types.resolvedType
 
-internal object QualifiedAccessChecker :
-  FirQualifiedAccessExpressionChecker(MppCheckerKind.Common) {
+internal class QualifiedAccessChecker(
+  private val classUsageRecorder: ClassUsageRecorder,
+) : FirQualifiedAccessExpressionChecker(MppCheckerKind.Common) {
   override fun check(
     expression: FirQualifiedAccessExpression,
     context: CheckerContext,
@@ -27,33 +26,43 @@ internal object QualifiedAccessChecker :
   ) {
     // track function's owning class
     val resolvedCallableSymbol = expression.toResolvedCallableSymbol()
-    resolvedCallableSymbol?.containerSource?.binaryClass()?.recordClassBinaryPath()
+    resolvedCallableSymbol?.containerSource?.binaryClass()?.let {
+      classUsageRecorder.recordClass(it)
+    }
 
     // track return type
     val isExplicitReturnType: Boolean = expression is FirConstructor
-    resolvedCallableSymbol?.resolvedReturnTypeRef
-      ?.recordTypeRef(context, isExplicit = isExplicitReturnType, collectTypeArguments = false)
+    resolvedCallableSymbol?.resolvedReturnTypeRef?.let {
+      classUsageRecorder.recordTypeRef(
+        it,
+        context,
+        isExplicit = isExplicitReturnType,
+        collectTypeArguments = false,
+      )
+    }
 
     // type arguments
     resolvedCallableSymbol?.typeParameterSymbols?.forEach { typeParam ->
-      typeParam.resolvedBounds.forEach { it.recordTypeRef(context) }
+      typeParam.resolvedBounds.forEach { classUsageRecorder.recordTypeRef(it, context) }
     }
 
     // track fun parameter types based on referenced function
     expression.calleeReference.toResolvedFunctionSymbol()
       ?.valueParameterSymbols
-      ?.forEach {
-        it.resolvedReturnTypeRef.recordTypeRef(context, isExplicit = false)
+      ?.forEach { valueParam ->
+        valueParam.resolvedReturnTypeRef.let {
+          classUsageRecorder.recordTypeRef(it, context, isExplicit = false)
+        }
       }
     // track fun arguments actually passed
     (expression as? FirFunctionCall)?.arguments?.map { it.resolvedType }?.forEach {
-      it.recordConeType(context, isExplicit = !it.isExtensionFunctionType)
+      classUsageRecorder.recordConeType(it, context, isExplicit = !it.isExtensionFunctionType)
     }
 
     // track dispatch receiver
     expression.dispatchReceiver?.resolvedType?.let {
       if (!it.isUnit) {
-        it.recordConeType(context, isExplicit = false)
+        classUsageRecorder.recordConeType(it, context, isExplicit = false)
       }
     }
   }

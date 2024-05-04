@@ -34,9 +34,9 @@ class JdepsGenComponentRegistrar : CompilerPluginRegistrar() {
 
   private fun ExtensionStorage.registerForK2(configuration: CompilerConfiguration) {
     val projectRoot = Paths.get("").toAbsolutePath().toString() + "/"
-    ClassUsageRecorder.init(projectRoot)
-    JdepsGenExtension2(configuration).run {
-      FirExtensionRegistrarAdapter.registerExtension(JdepsFirExtensions())
+    val classUsageRecorder = ClassUsageRecorder(rootPath = projectRoot)
+    JdepsGenExtension2(classUsageRecorder, configuration).run {
+      FirExtensionRegistrarAdapter.registerExtension(JdepsFirExtensions(classUsageRecorder))
       ClassFileFactoryFinalizerExtension.registerExtension(this)
     }
   }

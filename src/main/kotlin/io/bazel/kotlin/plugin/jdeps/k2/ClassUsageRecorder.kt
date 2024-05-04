@@ -17,26 +17,14 @@ import java.util.SortedSet
 private const val JAR_FILE_SEPARATOR = "!/"
 private const val ANONYMOUS = "<anonymous>"
 
-internal object ClassUsageRecorder {
-  private val explicitClassesCanonicalPaths = mutableSetOf<String>()
-  private val implicitClassesCanonicalPaths = mutableSetOf<String>()
-
-  private val results by lazy { sortedMapOf<String, SortedSet<String>>() }
-  private val seen = mutableSetOf<ClassId>()
+class ClassUsageRecorder(
+  internal val explicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
+  internal val implicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
+  private val seen: MutableSet<ClassId> = mutableSetOf(),
+  private val results: MutableMap<String, SortedSet<String>> = sortedMapOf(),
+  private val rootPath: String = Paths.get("").toAbsolutePath().toString() + "/",
+) {
   private val javaHome: String by lazy { System.getenv()["JAVA_HOME"] ?: "<not set>" }
-  private var rootPath: String = Paths.get("").toAbsolutePath().toString() + "/"
-
-  fun init(rootPath: String) {
-    this.rootPath = rootPath
-    results.clear()
-    explicitClassesCanonicalPaths.clear()
-    implicitClassesCanonicalPaths.clear()
-    seen.clear()
-  }
-
-  fun getExplicitClassesCanonicalPaths(): Set<String> = explicitClassesCanonicalPaths
-
-  fun getImplicitClassesCanonicalPaths(): Set<String> = implicitClassesCanonicalPaths
 
   internal fun recordTypeRef(
     typeRef: FirTypeRef,
@@ -61,12 +49,14 @@ internal object ClassUsageRecorder {
         if (ANONYMOUS in classId.toString()) return@forEachType
         context.session.symbolProvider
           .getClassLikeSymbolByClassId(classId)
-          ?.recordClass(context, isExplicit, collectTypeArguments, visited)
+          ?.let { recordClass(it, context, isExplicit, collectTypeArguments, visited) }
       }
     } else {
       coneKotlinType.classId?.let { classId ->
-        context.session.symbolProvider.getClassLikeSymbolByClassId(classId)
-          ?.recordClass(context, isExplicit, collectTypeArguments, visited)
+        if (!classId.isLocal) {
+          context.session.symbolProvider.getClassLikeSymbolByClassId(classId)
+            ?.let { recordClass(it, context, isExplicit, collectTypeArguments, visited) }
+        }
       }
     }
   }
@@ -74,7 +64,7 @@ internal object ClassUsageRecorder {
   internal fun recordClass(
     firClass: FirClassLikeSymbol<*>,
     context: CheckerContext,
-    isExplicit: Boolean,
+    isExplicit: Boolean = true,
     collectTypeArguments: Boolean = true,
     visited: MutableSet<Pair<ClassId, Boolean>> = mutableSetOf(),
   ) {

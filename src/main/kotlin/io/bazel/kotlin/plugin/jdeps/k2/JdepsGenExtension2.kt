@@ -6,12 +6,13 @@ import org.jetbrains.kotlin.codegen.extensions.ClassFileFactoryFinalizerExtensio
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
 internal class JdepsGenExtension2(
+  private val classUsageRecorder: ClassUsageRecorder,
   configuration: CompilerConfiguration,
 ) : BaseJdepsGenExtension(configuration), ClassFileFactoryFinalizerExtension {
   override fun finalizeClassFactory(factory: ClassFileFactory) {
     onAnalysisCompleted(
-      ClassUsageRecorder.getExplicitClassesCanonicalPaths(),
-      ClassUsageRecorder.getImplicitClassesCanonicalPaths(),
+      classUsageRecorder.explicitClassesCanonicalPaths,
+      classUsageRecorder.implicitClassesCanonicalPaths,
     )
   }
 }

@@ -2,7 +2,6 @@ package io.bazel.kotlin.plugin.jdeps.k2.checker.declaration
 
 import io.bazel.kotlin.plugin.jdeps.k2.ClassUsageRecorder
 import io.bazel.kotlin.plugin.jdeps.k2.binaryClass
-import io.bazel.kotlin.plugin.jdeps.k2.recordClass
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
@@ -18,7 +17,9 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.name.ClassId
 
-internal object FileChecker : FirFileChecker(MppCheckerKind.Common) {
+internal class FileChecker(
+  private val classUsageRecorder: ClassUsageRecorder,
+) : FirFileChecker(MppCheckerKind.Common) {
   override fun check(
     declaration: FirFile,
     context: CheckerContext,
@@ -27,15 +28,19 @@ internal object FileChecker : FirFileChecker(MppCheckerKind.Common) {
     declaration.imports.filterIsInstance<FirResolvedImport>().forEach { import ->
       // check for classlike import (class, interface, object, enum, annotation, etc)
       if (import.resolvesToClass(context)) {
-        import.classId()?.resolveToClass(context)?.recordClass(context)
+        import.classId()?.resolveToClass(context)?.let {
+          classUsageRecorder.recordClass(it, context)
+        }
       } else {
         // check for function import
         val callableBinaryClass = import.resolveToFun(context)?.containerSource?.binaryClass()
         if (callableBinaryClass != null) {
-          ClassUsageRecorder.recordClass(callableBinaryClass)
+          classUsageRecorder.recordClass(callableBinaryClass)
         } else {
           // for other symbols, track the parent class
-          import.resolvedParentClassId?.resolveToClass(context)?.recordClass(context)
+          import.resolvedParentClassId?.resolveToClass(context)?.let {
+            classUsageRecorder.recordClass(it, context)
+          }
         }
       }
     }

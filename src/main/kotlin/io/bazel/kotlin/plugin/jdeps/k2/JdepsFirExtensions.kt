@@ -20,35 +20,40 @@ import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirResolvedQualifie
 import org.jetbrains.kotlin.fir.analysis.extensions.FirAdditionalCheckersExtension
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
 
-internal class JdepsFirExtensions : FirExtensionRegistrar() {
+internal class JdepsFirExtensions(
+  private val classUsageRecorder: ClassUsageRecorder,
+) : FirExtensionRegistrar() {
   override fun ExtensionRegistrarContext.configurePlugin() {
     +::JdepsFirCheckersExtension
   }
-}
 
-internal class JdepsFirCheckersExtension(session: FirSession) :
-  FirAdditionalCheckersExtension(session) {
-  override val declarationCheckers: DeclarationCheckers =
-    object : DeclarationCheckers() {
-      override val basicDeclarationCheckers: Set<FirBasicDeclarationChecker> =
-        setOf(BasicDeclarationChecker)
+  internal inner class JdepsFirCheckersExtension(session: FirSession) :
+    FirAdditionalCheckersExtension(session) {
+    override val declarationCheckers: DeclarationCheckers =
+      object : DeclarationCheckers() {
+        override val basicDeclarationCheckers: Set<FirBasicDeclarationChecker> =
+          setOf(BasicDeclarationChecker(classUsageRecorder))
 
-      override val fileCheckers: Set<FirFileChecker> = setOf(FileChecker)
+        override val fileCheckers: Set<FirFileChecker> =
+          setOf(FileChecker(classUsageRecorder))
 
-      override val classLikeCheckers: Set<FirClassLikeChecker> = setOf(ClassLikeChecker)
+        override val classLikeCheckers: Set<FirClassLikeChecker> =
+          setOf(ClassLikeChecker(classUsageRecorder))
 
-      override val functionCheckers: Set<FirFunctionChecker> = setOf(FunctionChecker)
+        override val functionCheckers: Set<FirFunctionChecker> =
+          setOf(FunctionChecker(classUsageRecorder))
 
-      override val callableDeclarationCheckers: Set<FirCallableDeclarationChecker> =
-        setOf(CallableChecker)
-    }
+        override val callableDeclarationCheckers: Set<FirCallableDeclarationChecker> =
+          setOf(CallableChecker(classUsageRecorder))
+      }
 
-  override val expressionCheckers: ExpressionCheckers =
-    object : ExpressionCheckers() {
-      override val qualifiedAccessExpressionCheckers: Set<FirQualifiedAccessExpressionChecker> =
-        setOf(QualifiedAccessChecker)
+    override val expressionCheckers: ExpressionCheckers =
+      object : ExpressionCheckers() {
+        override val qualifiedAccessExpressionCheckers: Set<FirQualifiedAccessExpressionChecker> =
+          setOf(QualifiedAccessChecker(classUsageRecorder))
 
-      override val resolvedQualifierCheckers: Set<FirResolvedQualifierChecker> =
-        setOf(ResolvedQualifierChecker)
-    }
+        override val resolvedQualifierCheckers: Set<FirResolvedQualifierChecker> =
+          setOf(ResolvedQualifierChecker(classUsageRecorder))
+      }
+  }
 }

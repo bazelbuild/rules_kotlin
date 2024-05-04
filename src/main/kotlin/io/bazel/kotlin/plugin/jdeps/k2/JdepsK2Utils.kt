@@ -1,11 +1,7 @@
 package io.bazel.kotlin.plugin.jdeps.k2
 
 import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.java.JavaBinarySourceElement
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
-import org.jetbrains.kotlin.fir.types.ConeKotlinType
-import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.load.kotlin.JvmPackagePartSource
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.name.ClassId
@@ -45,36 +41,4 @@ internal fun DeserializedContainerSource.binaryClass(): String? {
     is KotlinJvmBinarySourceElement -> binaryClass.location
     else -> null
   }
-}
-
-// Extension functions to clean up checker logic
-
-internal fun FirClassLikeSymbol<*>.recordClass(
-  context: CheckerContext,
-  isExplicit: Boolean = true,
-  collectTypeArguments: Boolean = true,
-  visited: MutableSet<Pair<ClassId, Boolean>> = mutableSetOf(),
-) {
-  ClassUsageRecorder.recordClass(this, context, isExplicit, collectTypeArguments, visited)
-}
-
-internal fun FirTypeRef.recordTypeRef(
-  context: CheckerContext,
-  isExplicit: Boolean = true,
-  collectTypeArguments: Boolean = true,
-  visited: MutableSet<Pair<ClassId, Boolean>> = mutableSetOf(),
-) {
-  ClassUsageRecorder.recordTypeRef(this, context, isExplicit, collectTypeArguments, visited)
-}
-
-internal fun ConeKotlinType.recordConeType(
-  context: CheckerContext,
-  isExplicit: Boolean = true,
-  collectTypeArguments: Boolean = true,
-) {
-  ClassUsageRecorder.recordConeType(this, context, isExplicit, collectTypeArguments)
-}
-
-internal fun String.recordClassBinaryPath(isExplicit: Boolean = true) {
-  ClassUsageRecorder.recordClass(this, isExplicit)
 }
