@@ -339,6 +339,59 @@ _KOPTS_ALL = {
             True: ["-Xno-source-debug-extension"],
         },
     ),
+    "x_type_enhancement_improvements_strict_mode": struct(
+        args = dict(
+            default = False,
+            doc = "Enables strict mode for type enhancement improvements, enforcing stricter type checking and enhancements.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xtype-enhancement-improvements-strict-mode"],
+        },
+    ),
+    "x_jsr_305": struct(
+        args = dict(
+            default = "",
+            doc = "Specifies how to handle JSR-305 annotations in Kotlin code. Options are 'default', 'ignore', 'warn', and 'strict'.",
+            values = ["default", "ignore", "warn", "strict"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "default": None,
+            "ignore": ["-Xjsr305=ignore"],
+            "warn": ["-Xjsr305=warn"],
+            "strict": ["-Xjsr305=strict"],
+        },
+        map_value_to_flag = None,
+    ),
+    "x_assertions": struct(
+        args = dict(
+            default = "",
+            doc = "Configures how assertions are handled. The 'jvm' option enables assertions in JVM code.",
+            values = ["jvm"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "default": None,
+            "jvm": ["-Xassertions=jvm"],
+        },
+        map_value_to_flag = None,
+    ),
+    "x_jspecify_annotations": struct(
+        args = dict(
+            default = "",
+            doc = "Controls how JSpecify annotations are treated. Options are 'default', 'ignore', 'warn', and 'strict'.",
+            values = ["default", "ignore", "warn", "strict"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "default": None,
+            "ignore": ["-Xjspecify-annotations=ignore"],
+            "warn": ["-Xjspecify-annotations=warn"],
+            "strict": ["-Xjspecify-annotations=strict"],
+        },
+        map_value_to_flag = None,
+    ),
     "jvm_target": struct(
         args = dict(
             default = "",
