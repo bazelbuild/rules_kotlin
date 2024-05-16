@@ -1,5 +1,6 @@
 """Definitions for bzlmod module extensions."""
 
+load("@bazel_skylib//lib:modules.bzl", "modules")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load(
     "//src/main/starlark/core/repositories:initialize.release.bzl",
@@ -37,6 +38,8 @@ def _rules_kotlin_extensions_impl(mctx):
         name = "buildkite_config",
         urls = _versions.RBE.URLS,
     )
+
+    return modules.use_all_repos(mctx, reproducible = True)
 
 rules_kotlin_extensions = module_extension(
     implementation = _rules_kotlin_extensions_impl,
