@@ -69,7 +69,7 @@ tasks:
     name: "Example - Android"
     platform: ubuntu1804
     working_directory: examples/android
-    bazel: last_green
+    bazel: 8.0.0-pre.20240206.3
     test_flags:
       - "--incompatible_enable_android_toolchain_resolution"
       - "--android_platforms=//:arm64-v8a"
@@ -80,7 +80,7 @@ tasks:
     name: "Example Bzlmod - Android"
     platform: ubuntu1804
     working_directory: examples/android
-    bazel: last_green
+    bazel: 8.0.0-pre.20240206.3
     test_flags:
       - "--incompatible_enable_android_toolchain_resolution"
       - "--android_platforms=//:arm64-v8a"
@@ -103,7 +103,7 @@ tasks:
     name: "Example - Anvil"
     platform: ubuntu1804
     working_directory: examples/anvil
-    bazel: last_green
+    bazel: 8.0.0-pre.20240206.3
     test_flags:
       - "--incompatible_enable_android_toolchain_resolution"
       - "--android_platforms=//:arm64-v8a"
@@ -193,7 +193,7 @@ tasks:
     name: "Example - Jetpack Compose"
     platform: ubuntu1804
     working_directory: examples/jetpack_compose
-    bazel: last_green
+    bazel: 8.0.0-pre.20240206.3
     test_flags:
       - "--incompatible_enable_android_toolchain_resolution"
       - "--android_platforms=//:arm64-v8a"
