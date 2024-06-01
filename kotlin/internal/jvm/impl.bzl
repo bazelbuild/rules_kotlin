@@ -167,7 +167,7 @@ def _unify_jars(ctx):
                     elif file.basename.endswith(".jar"):
                         jars.append(file)
                     else:
-                        fail("a jar pointing to a filegroup must either end with -sources.jar or .jar")
+                        fail("a jar pointing to a filegroup must either end with -sources.jar or .jar: %s", file)
 
         if len(jars) > 1:
             fail("Got more than one jar, this is an error create an issue: %s" % jars)
