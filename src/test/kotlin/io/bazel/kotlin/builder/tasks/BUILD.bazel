@@ -100,14 +100,6 @@ kt_rules_test(
 )
 
 kt_rules_test(
-    name = "KotlinBuilderJsTest",
-    srcs = ["js/KotlinBuilderJsTest.java"],
-    data = [
-        "//kotlin/compiler:kotlin-stdlib-js-klib",
-    ],
-)
-
-kt_rules_test(
     name = "KotlinJvmTaskExecutorTest",
     srcs = ["jvm/KotlinJvmTaskExecutorTest.kt"],
     deps = [
@@ -122,7 +114,6 @@ test_suite(
     tests = [
         ":JdepsMergerTest",
         ":JdepsParserTest",
-        ":KotlinBuilderJsTest",
         ":KotlinBuilderJvmAbiTest",
         ":KotlinBuilderJvmBasicTest",
         ":KotlinBuilderJvmCoverageTest",

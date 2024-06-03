@@ -274,14 +274,4 @@ class KotlinToolchain private constructor(
         toolchain.toolchainWithReflect(),
         "io.bazel.kotlin.compiler.BazelK2JVMCompiler",
       )
-
-  @Singleton
-  class K2JSCompilerInvoker
-    @Inject
-    constructor(
-      toolchain: KotlinToolchain,
-    ) : KotlinCliToolInvoker(
-        toolchain.toolchainWithReflect(),
-        "org.jetbrains.kotlin.cli.js.K2JsIrCompiler",
-      )
 }

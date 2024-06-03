@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS")
-load("//kotlin:js.bzl", "kt_js_import")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
@@ -53,6 +52,5 @@ def kt_configure_compiler():
     if native.package_name() != "kotlin/compiler":
         fail("kt_configure_compiler must be called in kotlin/compiler not %s" % native.package_name())
 
-    _import_artifacts(KOTLINC_ARTIFACTS.js, kt_js_import)
     _import_artifacts(KOTLINC_ARTIFACTS.jvm, kt_jvm_import)
     _import_artifacts(KOTLINC_ARTIFACTS.core, kt_jvm_import)

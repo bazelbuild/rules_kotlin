@@ -25,11 +25,6 @@ load(
     _kt_register_toolchains = "kt_register_toolchains",
 )
 load(
-    ":js.bzl",
-    _kt_js_import = "kt_js_import",
-    _kt_js_library = "kt_js_library",
-)
-load(
     ":jvm.bzl",
     _kt_jvm_binary = "kt_jvm_binary",
     _kt_jvm_import = "kt_jvm_import",
@@ -55,26 +50,6 @@ def kt_kotlinc_options(**kwargs):
 # buildifier: disable=unused-variable Will be removed in a future release
 def kt_javac_options(**kwargs):
     fail("use load('//kotlin:core.bzl', kt_javac_options)")
-
-def kt_js_library(**kwargs):
-    """
-    Forwarding macro for kt_js_library
-
-    Deprecated:
-        kt_js_library should be loaded from //kotlin:js.bzl
-    """
-    print("kt_js_library should be loaded from //kotlin:js.bzl")
-    _kt_js_library(**kwargs)
-
-def kt_js_import(**kwargs):
-    """
-     Forwarding macro for kt_js_import
-
-     Deprecated:
-        kt_js_import should be loaded from //kotlin:js.bzl
-    """
-    print("kt_js_import should be loaded from //kotlin:js.bzl")
-    _kt_js_import(**kwargs)
 
 def kt_jvm_binary(**kwargs):
     """
