@@ -16,7 +16,6 @@
  */
 package io.bazel.kotlin.builder.tasks
 
-import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
@@ -26,7 +25,6 @@ import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.model.CompilationTaskInfo
-import io.bazel.kotlin.model.JsCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
@@ -45,7 +43,6 @@ class KotlinBuilder
   @Inject
   internal constructor(
     private val jvmTaskExecutor: KotlinJvmTaskExecutor,
-    private val jsTaskExecutor: Kotlin2JsTaskExecutor,
   ) {
     companion object {
       @JvmStatic
@@ -77,9 +74,6 @@ class KotlinBuilder
         GENERATED_CLASSDIR("--kotlin_generated_classdir"),
         FRIEND_PATHS("--kotlin_friend_paths"),
         OUTPUT_JDEPS("--kotlin_output_jdeps"),
-        OUTPUT_JS_JAR("--kotlin_output_js_jar"),
-        JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
-        JS_LIBRARIES("--kotlin_js_libraries"),
         DEBUG("--kotlin_debug_tags"),
         TASK_ID("--kotlin_task_id"),
         ABI_JAR("--abi_jar"),
@@ -105,7 +99,6 @@ class KotlinBuilder
         @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
         when (compileContext.info.platform) {
           Platform.JVM -> executeJvmTask(compileContext, taskContext.directory, argMap)
-          Platform.JS -> executeJsTask(compileContext, taskContext.directory, argMap)
           Platform.UNRECOGNIZED -> throw IllegalStateException(
             "unrecognized platform: ${compileContext.info}",
           )
@@ -169,40 +162,6 @@ class KotlinBuilder
         strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
         reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
         this
-      }
-
-    private fun executeJsTask(
-      context: CompilationTaskContext,
-      workingDir: Path,
-      argMap: ArgMap,
-    ) = buildJsTask(context.info, workingDir, argMap).let { jsTask ->
-      context.whenTracing { printProto("js task input", jsTask) }
-      jsTaskExecutor.execute(context, jsTask)
-    }
-
-    private fun buildJsTask(
-      info: CompilationTaskInfo,
-      workingDir: Path,
-      argMap: ArgMap,
-    ): JsCompilationTask =
-      with(JsCompilationTask.newBuilder()) {
-        this.info = info
-
-        with(directoriesBuilder) {
-          temp = workingDir.toString()
-        }
-
-        with(inputsBuilder) {
-          addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_LIBRARIES))
-          addAllKotlinSources(argMap.mandatory(KotlinBuilderFlags.SOURCES))
-        }
-        with(outputsBuilder) {
-          js = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT)
-          jar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_JS_JAR)
-          srcjar = argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_SRCJAR)
-        }
-        addAllPassThroughFlags(argMap.mandatory(KotlinBuilderFlags.JS_PASSTHROUGH_FLAGS))
-        build()
       }
 
     private fun executeJvmTask(

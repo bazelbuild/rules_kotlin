@@ -36,7 +36,6 @@ java_library(
         "JdepsMergerTestComponent.java",
         "KotlinAbstractTestBuilder.java",
         "KotlinBuilderTestComponent.java",
-        "KotlinJsTestBuilder.java",
         "KotlinJvmTestBuilder.java",
     ],
     data = [

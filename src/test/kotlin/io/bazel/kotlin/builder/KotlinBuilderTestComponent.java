@@ -20,7 +20,6 @@ package io.bazel.kotlin.builder;
 import dagger.BindsInstance;
 import dagger.Component;
 import io.bazel.kotlin.builder.tasks.KotlinBuilder;
-import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 
@@ -35,8 +34,6 @@ public interface KotlinBuilderTestComponent {
     KotlinToolchain toolchain();
 
     KotlinJvmTaskExecutor jvmTaskExecutor();
-
-    Kotlin2JsTaskExecutor jsTaskExecutor();
 
     @Component.Builder
     interface Builder {

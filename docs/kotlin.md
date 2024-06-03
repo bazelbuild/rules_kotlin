@@ -2,48 +2,6 @@
 
 
 
-<a id="kt_js_import"></a>
-
-## kt_js_import
-
-<pre>
-kt_js_import(<a href="#kt_js_import-name">name</a>, <a href="#kt_js_import-kwargs">kwargs</a>)
-</pre>
-
-
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="kt_js_import-name"></a>name |  <p align="center"> - </p>   |  none |
-| <a id="kt_js_import-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
-
-
-<a id="kt_js_library"></a>
-
-## kt_js_library
-
-<pre>
-kt_js_library(<a href="#kt_js_library-name">name</a>, <a href="#kt_js_library-kwargs">kwargs</a>)
-</pre>
-
-
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="kt_js_library-name"></a>name |  <p align="center"> - </p>   |  none |
-| <a id="kt_js_library-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
-
-
-<!-- Generated with Stardoc: http://skydoc.bazel.build -->
-
-
-
 <a id="#kt_javac_options"></a>
 
 ## kt_javac_options

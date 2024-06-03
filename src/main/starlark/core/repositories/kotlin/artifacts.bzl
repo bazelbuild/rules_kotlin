@@ -1,17 +1,6 @@
 """A map of label to artifacts made available by the kotlinc github repo"""
 
 KOTLINC_ARTIFACTS = struct(
-    js = struct(
-        plugin = {},
-        runtime = {
-            "kotlin-stdlib-js": "lib/kotlin-stdlib-js.jar",
-            "kotlin-stdlib-js-klib": "lib/kotlin-stdlib-js.klib",
-            "kotlin-stdlib-js-sources": "lib/kotlin-stdlib-js-sources.jar",
-            "kotlin-test-js": "lib/kotlin-test-js.jar",
-            "kotlin-test-js-sources": "lib/kotlin-test-js-sources.jar",
-        },
-        compile = {},
-    ),
     jvm = struct(
         plugin = {
             "allopen-compiler-plugin": "lib/allopen-compiler-plugin.jar",
@@ -57,7 +46,6 @@ KOTLINC_ARTIFACTS = struct(
             "android-extensions-compiler": "lib/android-extensions-compiler.jar",
             "android-extensions-runtime": "lib/android-extensions-runtime.jar",
             "annotations": "lib/annotations-13_0.jar",
-            "js_engines": "lib/js_engines.jar",
             "kotlin-annotation-processing": "lib/kotlin-annotation-processing.jar",
             "kotlin-annotation-processing-cli": "lib/kotlin-annotation-processing-cli.jar",
             "kotlin-annotation-processing-compiler": "lib/kotlin-annotation-processing-compiler.jar",
@@ -83,7 +71,7 @@ KOTLINC_ARTIFACTS = struct(
 
 KOTLINC_ARTIFACT_LIST = {
     label: file
-    for lang in ["js", "jvm", "core"]
+    for lang in ["jvm", "core"]
     for type in ["compile", "plugin", "runtime"]
     for (label, file) in getattr(getattr(KOTLINC_ARTIFACTS, lang), type).items()
 }

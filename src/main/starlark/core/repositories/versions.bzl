@@ -20,8 +20,6 @@ def _use_repository(name, version, rule, **kwargs):
     maybe(rule, name = name, **http_archive_arguments)
 
 versions = struct(
-    RULES_NODEJS_VERSION = "5.5.3",
-    RULES_NODEJS_SHA = "f10a3a12894fc3c9bf578ee5a5691769f6805c4be84359681a785a0c12e8d2b6",
     BAZEL_TOOLCHAINS_VERSION = "4.1.0",
     BAZEL_TOOLCHAINS_SHA = "179ec02f809e86abf56356d8898c8bd74069f1bd7c56044050c2cd3d79d0e024",
     # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
