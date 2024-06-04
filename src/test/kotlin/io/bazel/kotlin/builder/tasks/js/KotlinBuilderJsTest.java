@@ -12,7 +12,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class KotlinBuilderJsTest {
   private static final KotlinJsTestBuilder builder = new KotlinJsTestBuilder();
 
-  private Dep stdLib = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-js-klib");
+  private Dep stdLib = Dep.fromLabel("@com_github_jetbrains_kotlin//:lib/kotlin-stdlib-js.jar");
 
   @Test
   public void testSimpleJsCompile() {
