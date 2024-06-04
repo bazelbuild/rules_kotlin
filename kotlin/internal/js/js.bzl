@@ -152,10 +152,6 @@ kt_js_import = rule(
             cfg = "exec",
         ),
     },
-    outputs = dict(
-        js = "%{module_name}.js",
-        js_map = "%{module_name}.js.map",
-    ),
     implementation = _kt_js_import_impl,
     provides = [_KtJsInfo],
 )
