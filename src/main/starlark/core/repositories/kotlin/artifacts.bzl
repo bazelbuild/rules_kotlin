@@ -5,6 +5,7 @@ KOTLINC_ARTIFACTS = struct(
         plugin = {},
         runtime = {
             "kotlin-stdlib-js": "lib/kotlin-stdlib-js.jar",
+            "kotlin-stdlib-js-klib": "lib/kotlin-stdlib-js.klib",
             "kotlin-stdlib-js-sources": "lib/kotlin-stdlib-js-sources.jar",
             "kotlin-test-js": "lib/kotlin-test-js.jar",
             "kotlin-test-js-sources": "lib/kotlin-test-js-sources.jar",

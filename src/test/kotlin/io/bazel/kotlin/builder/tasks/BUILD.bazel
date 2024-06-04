@@ -103,7 +103,7 @@ kt_rules_test(
     name = "KotlinBuilderJsTest",
     srcs = ["js/KotlinBuilderJsTest.java"],
     data = [
-        "//kotlin/compiler:kotlin-stdlib-js.js",
+        "//kotlin/compiler:kotlin-stdlib-js-klib",
     ],
 )
 

@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
 import java.io.PrintStream
-import java.lang.ClassLoader
 import java.lang.reflect.Method
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -259,6 +258,6 @@ class KotlinToolchain private constructor(
     toolchain: KotlinToolchain,
   ) : KotlinCliToolInvoker(
     toolchain.toolchainWithReflect(),
-    "org.jetbrains.kotlin.cli.js.K2JSCompiler",
+    "org.jetbrains.kotlin.cli.js.K2JsIrCompiler",
   )
 }
