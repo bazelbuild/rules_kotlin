@@ -1,35 +1,41 @@
 ---
+matrix:
+  unittest_platform:
+    - ubuntu2004
+    - ubuntu1804
+  integration_platform:
+    - ubuntu2004
+    - ubuntu1804
+    - macos
+    # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
+    # C:\b\ufjgchrk\execroot\_main\bazel-out\x64_windows-fastbuild\bin\examples\android_test_bazel_6_4_0: line 68: /c/b/ufjgchrk/execroot/_main/bazel-out/x64_windows-fastbuild/bin/examples/android_test_bazel_6_4_0.exe.runfiles/_main/src/main/kotlin/io/bazel/kotlin/test/BazelIntegrationTestRunner: No such file or directory
+  test_flags:
+    - ["--enable_bzlmod=true"]
+    - ["--enable_bzlmod=false"]
 validate_config: 1
-bazel: 880c17c67a9b4e17e9753a5c6e2a759bff5a2cfe
+bazel: 7.1.1
 buildifier:
   version: 7.1.1
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
-  ubuntu1804:
-    name: "Tests without Bzlmod (Ubuntu 18.04)"
-    build_flags:
-      - "--enable_bzlmod=false"
+  unittests:
+    name: "Unittests ${{ test_flags }}"
+    platform: ${{ unittest_platform }}
+    build_flags: ${{ test_flags }}
+    test_flags: ${{ test_flags }}
+    test_targets:
+      - "//:all_tests"
+    build_targets:
+      - "//:rules_kotlin_release"
+  bazel_integration_tests:
+    name: "Integration Tests"
+    platform: ${{ integration_platform }}
     test_flags:
-      - "--enable_bzlmod=false"
+      - "--enable_bzlmod=true"
     test_targets:
-      - "//:all_tests"
-    build_targets:
-      - "//:rules_kotlin_release"
-  ubuntu2004_bzlmod:
-    name: "Tests (Ubuntu 20.04)"
-    platform: ubuntu2004
-    test_targets:
-      - "//:all_tests"
-    build_targets:
-      - "//:rules_kotlin_release"
-  macos:
-    name: "Tests (Latest Macos)"
-    test_targets:
-      - "//:all_tests"
-    build_targets:
-      - "//:rules_kotlin_release"
+      - //examples:all
   rbe_ubuntu1604:
     build_flags:
       - "--enable_bzlmod=false"
@@ -48,147 +54,6 @@ tasks:
       # cannot be used with remote builds)
       - "--strategy=KotlinCompile=remote"
       - "--config=rbe"
-# TODO: Enable these tests once this example is building against the release rules_kotlin binary
-#  example-android-5.x:
-#    name: "Example - Android using Bazel 5.x"
-#    platform: ubuntu1804
-#    working_directory: examples/android
-#    bazel: 5.4.1
-#    test_targets:
-#      - //app:all
-  example-android-6.x:
-    name: "Example - Android using Bazel 6.x"
-    platform: ubuntu1804
-    working_directory: examples/android
-    bazel: 6.4.0
-    test_flags:
-      - "--enable_bzlmod=false"
-    test_targets:
-      - //app:all
-  example-android:
-    name: "Example - Android"
-    platform: ubuntu1804
-    working_directory: examples/android
-    bazel: 8.0.0-pre.20240206.3
-    test_flags:
-      - "--incompatible_enable_android_toolchain_resolution"
-      - "--android_platforms=//:arm64-v8a"
-      - "--enable_bzlmod=false"
-    test_targets:
-      - //app:all
-  example-bzlmod-android:
-    name: "Example Bzlmod - Android"
-    platform: ubuntu1804
-    working_directory: examples/android
-    bazel: 8.0.0-pre.20240206.3
-    test_flags:
-      - "--incompatible_enable_android_toolchain_resolution"
-      - "--android_platforms=//:arm64-v8a"
-      - "--enable_bzlmod=true"
-    test_targets:
-      - //app:all
-  example-ksp:
-    name: "Example - Android KSP"
-    platform: ubuntu1804
-    working_directory: examples/ksp
-    test_targets:
-      - //...
-  example-associates:
-    name: "Example - Associates"
-    platform: ubuntu1804
-    working_directory: examples/associates
-    test_targets:
-      - //...
-  example-anvil:
-    name: "Example - Anvil"
-    platform: ubuntu1804
-    working_directory: examples/anvil
-    bazel: 8.0.0-pre.20240206.3
-    test_flags:
-      - "--incompatible_enable_android_toolchain_resolution"
-      - "--android_platforms=//:arm64-v8a"
-    test_targets:
-      - //app:all
-  example-plugins:
-    name: "Example - Plugins"
-    platform: ubuntu1804
-    working_directory: examples/plugin
-    test_targets:
-      - //...
-  example-multiplex:
-    name: "Example - Multiplex"
-    platform: ubuntu1804
-    working_directory: examples/multiplex
-    build_flags:
-      - "--enable_bzlmod=false"
-    build_targets:
-      - //...
-  example-bzlmod-multiplex:
-    name: "Example Bzlmod - Multiplex"
-    platform: ubuntu1804
-    working_directory: examples/multiplex
-    build_flags:
-      - "--enable_bzlmod=true"
-    build_targets:
-      - //...
-  examples-trivial-ubuntu1804:
-    name: "Example - Trivial (Ubuntu 18.04)"
-    platform: ubuntu1804
-    working_directory: examples/trivial
-    include_json_profile:
-      - build
-      - test
-    build_targets:
-      - //...
-    test_targets:
-      - //...
-  examples-trivial-bzlmod-ubuntu1804:
-    name: "Example - Trivial Bzlmod (Ubuntu 18.04)"
-    platform: ubuntu1804
-    working_directory: examples/trivial
-    build_flags:
-      - "--enable_bzlmod=true"
-    test_flags:
-      - "--enable_bzlmod=true"
-    include_json_profile:
-      - build
-      - test
-    build_targets:
-      - //...
-    test_targets:
-      - //...
-  examples-trivial-windows:
-    name: "Example - Trivial (Windows)"
-    platform: windows
-    working_directory: examples/trivial
-    include_json_profile:
-      - build
-      - test
-    build_targets:
-      - //...
-    test_flags:
-      - "--enable_runfiles"
-    test_targets:
-      - //...
-  examples-dagger:
-    name: "Example - Dagger"
-    platform: ubuntu1804
-    working_directory: examples/dagger
-    include_json_profile:
-      - build
-      - test
-    build_targets:
-      - //...
-  example-jetpack-compose:
-    name: "Example - Jetpack Compose"
-    platform: ubuntu1804
-    working_directory: examples/jetpack_compose
-    bazel: 8.0.0-pre.20240206.3
-    test_flags:
-      - "--incompatible_enable_android_toolchain_resolution"
-      - "--android_platforms=//:arm64-v8a"
-    test_targets:
-      - //app:all
   stardoc:
     name: Stardoc api documentation
     platform: ubuntu1804

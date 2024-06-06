@@ -75,3 +75,13 @@ release_archive(
         "//third_party:pkg",
     ],
 )
+
+# This target collects all of the parent workspace files needed by the child workspaces.
+filegroup(
+    name = "release_repositories",
+    # Include every package that is required by the child workspaces.
+    srcs = [
+        ":rules_kotlin_release",
+    ],
+    visibility = ["//:__subpackages__"],
+)

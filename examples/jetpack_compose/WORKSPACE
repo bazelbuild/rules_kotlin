@@ -9,16 +9,10 @@ _KOTLIN_COMPILER_VERSION = "1.9.22"
 _KOTLIN_COMPILER_SHA = "88b39213506532c816ff56348c07bbeefe0c8d18943bffbad11063cf97cac3e6"
 
 # Setup Kotlin
-
-local_repository(
-    name = "release_archive",
-    path = "../../src/main/starlark/release_archive",
-)
-
-load("@release_archive//:repository.bzl", "archive_repository")
-
-archive_repository(
+http_archive(
     name = "rules_kotlin",
+    sha256 = "34e8c0351764b71d78f76c8746e98063979ce08dcf1a91666f3f3bc2949a533d",
+    url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
 load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
@@ -30,7 +24,9 @@ kotlin_repositories(
     ),
 )
 
-register_toolchains("//:kotlin_toolchain")
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+
+kt_register_toolchains()
 
 ## JVM External
 
