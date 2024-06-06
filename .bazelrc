@@ -7,5 +7,7 @@ build --strategy=KotlinCompile=worker
 build --test_output=all
 build --verbose_failures
 
+try-import %workspace%/bit-ignore.bazelrc
+
 # User-specific .bazelrc
 try-import %workspace%/user.bazelrc
