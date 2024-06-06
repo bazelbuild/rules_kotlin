@@ -6,4 +6,4 @@ To compile a given library type :
 - `bazel build libKt1:src_main` for regular kotlin jvm lib
 - `bazel build libKtAndroid1:src_main libKtAndroid1:src_main_kt` for android kotlin lib
 
-For convinience, a simple script 'run.sh' is also provided, wich performs an incremental build on all library type after applying an ABI change to all leaves, and output the # of targets that got rebuilt for each library type. This currently output a value of 4 for all types, while we ideally want a value of 2.
+For convenience, a simple script 'run.sh' is also provided, which performs an incremental build on all library type after applying an ABI change to all leaves, and output the # of targets that got rebuilt for each library type. This currently output a value of 4 for all types, while we ideally want a value of 2.
