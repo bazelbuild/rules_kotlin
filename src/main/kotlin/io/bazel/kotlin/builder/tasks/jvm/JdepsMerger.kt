@@ -25,14 +25,15 @@ import java.util.jar.JarFile
  */
 class JdepsMerger {
   companion object {
-
     @JvmStatic
     private val FLAGFILE_RE = Regex("""^--flagfile=((.*)-(\d+).params)$""")
 
     /**
      * Declares the flags used by the java builder.
      */
-    enum class JdepsMergerFlags(override val flag: String) : Flag {
+    enum class JdepsMergerFlags(
+      override val flag: String,
+    ) : Flag {
       INPUTS("--inputs"),
       OUTPUT("--output"),
       TARGET_LABEL("--target_label"),
@@ -44,8 +45,9 @@ class JdepsMerger {
         JarFile(jarPath.toFile()).use { jarFile ->
           val manifest = jarFile.manifest ?: return JarOwner(jarPath)
           val attributes = manifest.mainAttributes
-          val label = attributes[TARGET_LABEL] as String?
-            ?: return JarOwner(jarPath)
+          val label =
+            attributes[TARGET_LABEL] as String?
+              ?: return JarOwner(jarPath)
           val injectingRuleKind = attributes[INJECTING_RULE_KIND] as String?
           return JarOwner(jarPath, label, injectingRuleKind)
         }
@@ -107,10 +109,11 @@ class JdepsMerger {
           }
         }
 
-        val unusedLabels = kindMap.entries
-          .filter { it.value == Deps.Dependency.Kind.UNUSED }
-          .map { it.key }
-          .filter { it != label }
+        val unusedLabels =
+          kindMap.entries
+            .filter { it.value == Deps.Dependency.Kind.UNUSED }
+            .map { it.key }
+            .filter { it != label }
 
         if (unusedLabels.isNotEmpty()) {
           ctx.info {
@@ -132,18 +135,26 @@ class JdepsMerger {
     }
   }
 
-  private data class JarOwner(val jar: Path, val label: String? = null, val aspect: String? = null)
+  private data class JarOwner(
+    val jar: Path,
+    val label: String? = null,
+    val aspect: String? = null,
+  )
 
   private fun getArgs(args: List<String>): ArgMap {
     check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
-    val lines = FLAGFILE_RE.matchEntire(args[0])?.groups?.get(1)?.let {
-      Files.readAllLines(FileSystems.getDefault().getPath(it.value), StandardCharsets.UTF_8)
-    } ?: args
+    val lines =
+      FLAGFILE_RE.matchEntire(args[0])?.groups?.get(1)?.let {
+        Files.readAllLines(FileSystems.getDefault().getPath(it.value), StandardCharsets.UTF_8)
+      } ?: args
 
     return ArgMaps.from(lines)
   }
 
-  fun execute(ctx: WorkerContext.TaskContext, args: List<String>): Int {
+  fun execute(
+    ctx: WorkerContext.TaskContext,
+    args: List<String>,
+  ): Int {
     val argMap = getArgs(args)
     val inputs = argMap.mandatory(JdepsMergerFlags.INPUTS)
     val output = argMap.mandatorySingle(JdepsMergerFlags.OUTPUT)

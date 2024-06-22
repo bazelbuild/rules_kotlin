@@ -27,7 +27,6 @@ object MergeJdeps {
     Worker
       .from(args.toList()) {
         start(DaggerJdepsMergerComponent.builder().build().work())
-      }
-      .run(::exitProcess)
+      }.run(::exitProcess)
   }
 }

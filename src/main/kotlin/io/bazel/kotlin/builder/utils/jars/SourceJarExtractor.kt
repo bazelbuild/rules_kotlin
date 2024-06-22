@@ -18,12 +18,17 @@ package io.bazel.kotlin.builder.utils.jars
 import java.nio.file.Path
 import java.util.function.Predicate
 
-class SourceJarExtractor(destDir: Path, val fileMatcher: Predicate<String> = Predicate { true }) :
-  JarExtractor(destDir) {
+class SourceJarExtractor(
+  destDir: Path,
+  val fileMatcher: Predicate<String> = Predicate { true },
+) : JarExtractor(destDir) {
   val jarFiles = mutableListOf<Path>()
   val sourcesList = mutableListOf<String>()
 
-  override fun preWrite(isDirectory: Boolean, target: Path): Boolean {
+  override fun preWrite(
+    isDirectory: Boolean,
+    target: Path,
+  ): Boolean {
     if (isDirectory) {
       return true
     }

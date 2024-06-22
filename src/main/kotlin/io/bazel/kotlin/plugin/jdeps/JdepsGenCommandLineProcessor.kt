@@ -31,12 +31,13 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
   override val pluginId: String
     get() = COMPILER_PLUGIN_ID
   override val pluginOptions: Collection<AbstractCliOption>
-    get() = listOf(
-      OUTPUT_JDEPS_FILE_OPTION,
-      TARGET_LABEL_OPTION,
-      DIRECT_DEPENDENCIES_OPTION,
-      STRICT_KOTLIN_DEPS_OPTION,
-    )
+    get() =
+      listOf(
+        OUTPUT_JDEPS_FILE_OPTION,
+        TARGET_LABEL_OPTION,
+        DIRECT_DEPENDENCIES_OPTION,
+        STRICT_KOTLIN_DEPS_OPTION,
+      )
 
   override fun processOption(
     option: AbstractCliOption,
@@ -46,14 +47,16 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
     when (option) {
       OUTPUT_JDEPS_FILE_OPTION -> configuration.put(JdepsGenConfigurationKeys.OUTPUT_JDEPS, value)
       TARGET_LABEL_OPTION -> configuration.put(JdepsGenConfigurationKeys.TARGET_LABEL, value)
-      DIRECT_DEPENDENCIES_OPTION -> configuration.appendList(
-        JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
-        value,
-      )
-      STRICT_KOTLIN_DEPS_OPTION -> configuration.put(
-        JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
-        value,
-      )
+      DIRECT_DEPENDENCIES_OPTION ->
+        configuration.appendList(
+          JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
+          value,
+        )
+      STRICT_KOTLIN_DEPS_OPTION ->
+        configuration.put(
+          JdepsGenConfigurationKeys.STRICT_KOTLIN_DEPS,
+          value,
+        )
       else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
     }
   }

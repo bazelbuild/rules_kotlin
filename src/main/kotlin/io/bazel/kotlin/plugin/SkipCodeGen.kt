@@ -33,7 +33,6 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
  */
 @OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 class SkipCodeGen : CompilerPluginRegistrar() {
-
   override val supportsK2: Boolean
     get() = false
 
@@ -49,7 +48,6 @@ class SkipCodeGen : CompilerPluginRegistrar() {
    * SkipCodeGen ends the compilation
    */
   private object SkipCodeGen : AnalysisHandlerExtension {
-
     override fun doAnalysis(
       project: Project,
       module: ModuleDescriptor,
@@ -57,9 +55,7 @@ class SkipCodeGen : CompilerPluginRegistrar() {
       files: Collection<KtFile>,
       bindingTrace: BindingTrace,
       componentProvider: ComponentProvider,
-    ): AnalysisResult? {
-      return null
-    }
+    ): AnalysisResult? = null
 
     // analysisCompleted generates the module jvm abi and requests code generation to be skipped.
     override fun analysisCompleted(

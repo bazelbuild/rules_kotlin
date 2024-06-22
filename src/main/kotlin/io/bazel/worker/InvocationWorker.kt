@@ -18,7 +18,9 @@
 package io.bazel.worker
 
 /** InvocationWorker executes a single unit of work. */
-class InvocationWorker(private val arguments: Iterable<String>) : Worker {
+class InvocationWorker(
+  private val arguments: Iterable<String>,
+) : Worker {
   override fun start(execute: Work): Int =
     runCatching {
       WorkerContext.run {

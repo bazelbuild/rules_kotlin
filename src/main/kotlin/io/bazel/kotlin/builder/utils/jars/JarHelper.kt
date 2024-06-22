@@ -73,13 +73,12 @@ open class JarHelper internal constructor(
    * @param name The name of the file for which we should return the normalized timestamp.
    * @return the time for a new Jar file entry in milliseconds since the epoch.
    */
-  private fun normalizedTimestamp(name: String): Long {
-    return if (name.endsWith(".class")) {
+  private fun normalizedTimestamp(name: String): Long =
+    if (name.endsWith(".class")) {
       DEFAULT_TIMESTAMP + MINIMUM_TIMESTAMP_INCREMENT
     } else {
       DEFAULT_TIMESTAMP
     }
-  }
 
   /**
    * Returns the time for a new Jar file entry in milliseconds since the epoch. Uses JarCreator.DEFAULT_TIMESTAMP]
@@ -88,16 +87,19 @@ open class JarHelper internal constructor(
    * @param filename The name of the file for which we are entering the time
    * @return the time for a new Jar file entry in milliseconds since the epoch.
    */
-  private fun newEntryTimeMillis(filename: String): Long {
-    return if (normalize) normalizedTimestamp(filename) else System.currentTimeMillis()
-  }
+  private fun newEntryTimeMillis(filename: String): Long =
+    if (normalize) normalizedTimestamp(filename) else System.currentTimeMillis()
 
   /**
    * Writes an entry with specific contents to the jar. Directory entries must include the trailing
    * '/'.
    */
   @Throws(IOException::class)
-  private fun writeEntry(out: JarOutputStream, name: String, content: ByteArray) {
+  private fun writeEntry(
+    out: JarOutputStream,
+    name: String,
+    content: ByteArray,
+  ) {
     if (names.add(name)) {
       // Create a new entry
       val entry = JarEntry(name)
@@ -130,7 +132,10 @@ open class JarHelper internal constructor(
    * @throws IOException
    */
   @Throws(IOException::class)
-  protected fun writeManifestEntry(out: JarOutputStream, content: ByteArray) {
+  protected fun writeManifestEntry(
+    out: JarOutputStream,
+    content: ByteArray,
+  ) {
     val oldStorageMethod = storageMethod
     // Do not compress small manifest files, the compressed one is frequently
     // larger than the original. The threshold of 256 bytes is somewhat arbitrary.
@@ -150,7 +155,10 @@ open class JarHelper internal constructor(
    * detected and their names automatically '/' suffixed.
    */
   @Throws(IOException::class)
-  protected fun JarOutputStream.copyEntry(name: String, path: Path) {
+  protected fun JarOutputStream.copyEntry(
+    name: String,
+    path: Path,
+  ) {
     var normalizedName = name
     if (!names.contains(normalizedName)) {
       if (!Files.exists(path)) {
@@ -171,7 +179,8 @@ open class JarHelper internal constructor(
           if (normalize) {
             normalizedTimestamp(normalizedName)
           } else {
-            Files.getLastModifiedTime(path)
+            Files
+              .getLastModifiedTime(path)
               .toMillis()
           }
         outEntry.time = newtime
@@ -217,10 +226,11 @@ open class JarHelper internal constructor(
     data: ByteArray = EMPTY_BYTEARRAY,
   ) {
     val outEntry = JarEntry(name)
-    outEntry.time = when {
-      normalize -> normalizedTimestamp(name)
-      else -> Files.getLastModifiedTime(checkNotNull(path)).toMillis()
-    }
+    outEntry.time =
+      when {
+        normalize -> normalizedTimestamp(name)
+        else -> Files.getLastModifiedTime(checkNotNull(path)).toMillis()
+      }
     outEntry.size = data.size.toLong()
 
     if (data.isEmpty()) {
