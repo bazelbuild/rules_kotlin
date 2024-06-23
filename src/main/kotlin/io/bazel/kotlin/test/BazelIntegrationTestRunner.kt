@@ -18,7 +18,7 @@ object BazelIntegrationTestRunner {
     val fs = FileSystems.getDefault()
     val bazel = fs.getPath(System.getenv("BIT_BAZEL_BINARY"))
     val workspace = fs.getPath(System.getenv("BIT_WORKSPACE_DIR"))
-    val unpack = Files.createTempDirectory("rules_kotlin")
+    val unpack = fs.getPath(System.getenv("TEST_TMPDIR")).resolve("rules_kotlin")
     val release = BazelRunFiles.resolveVerifiedFromProperty(
       fs,
       "@rules_kotlin...rules_kotlin_release",

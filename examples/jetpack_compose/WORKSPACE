@@ -15,9 +15,14 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
 
-kotlin_repositories()
+kotlin_repositories(
+    compiler_release = kotlinc_version(
+        release = _KOTLIN_COMPILER_VERSION,
+        sha256 = _KOTLIN_COMPILER_SHA,
+    ),
+)
 
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 

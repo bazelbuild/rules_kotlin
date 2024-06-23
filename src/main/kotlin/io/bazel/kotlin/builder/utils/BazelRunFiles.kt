@@ -28,6 +28,7 @@ object BazelRunFiles {
     Runfiles.preload().unmapped()
   }
 
+  /** Resolve as path in FileSystem. */
   @JvmStatic
   fun resolveVerifiedFromProperty(fileSystem: FileSystem, key: String) =
     System.getProperty(key)
@@ -63,5 +64,3 @@ object BazelRunFiles {
         throw FileNotFoundException("no reference for $key in ${System.getProperties()}")
       }
 }
-
-
