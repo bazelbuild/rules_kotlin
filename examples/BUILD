@@ -29,7 +29,7 @@ genrule(
             "ANDROID_NDK_HOME",
         ],
         bazel_versions = [version for version in bazel_binaries.versions.all if version not in metadata["exclude"]],
-        tags = ["exclusive"] + metadata["exclude"],
+        tags = [],
         test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",
         workspace_files = glob(["%s/**/*" % example]),
         workspace_path = example,
