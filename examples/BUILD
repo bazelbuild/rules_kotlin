@@ -28,19 +28,40 @@ genrule(
 [
     bazel_integration_tests(
         name = "%s_test" % example,
-        bazel_versions = bazel_binaries.versions.all,
-        tags = ["exclusive"],
+        additional_env_inherit = ["ANDROID_HOME","ANDROID_NDK_HOME"],
+        bazel_versions = [version for version in bazel_binaries.versions.all if version not in metadata["exclude"]],
+        tags = ["exclusive"] + metadata["exclude"],
         test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",
         workspace_files = glob(["%s/**/*" % example]),
         workspace_path = example,
     )
-    for example in {
-        file.partition("/")[0]: True
-        for file in glob(
-            ["**/*"],
-            exclude = ["*"],
-        )
-    }
+    for (example, metadata) in {
+        example: {
+            "exclude": [
+                # Cut to the file name, and use it as an excluded bazel version. For exclusion to work
+                # the file name in the `exclude` directory must match the bazel version in `bazel_binaries.versions.all`.
+                # This is done as a secondary loop for readability and avoiding over-globbing.
+                version.rpartition["/"][2]
+                for version in glob(
+                    ["examples/%s/exclude/*" % example],
+                    allow_empty = True,
+                )
+            ],
+        }
+        for example in {
+            # Cut to the directory.
+            file.partition("/")[0]: True
+            for file in glob(
+                ["**/*"],
+                # Exclude files in `examples`.
+                exclude = [
+                    "*",
+                    # Node is currently broken.
+                    "examples/node/**",
+                ],
+            )
+        }
+    }.items()
 ]
 
 # By default, the integration test targets are tagged as `manual`. This
