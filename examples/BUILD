@@ -40,9 +40,9 @@ genrule(
                 # Cut to the file name, and use it as an excluded bazel version. For exclusion to work
                 # the file name in the `exclude` directory must match the bazel version in `bazel_binaries.versions.all`.
                 # This is done as a secondary loop for readability and avoiding over-globbing.
-                version.rpartition["/"][2]
+                version.rpartition("/")[2]
                 for version in glob(
-                    ["examples/%s/exclude/*" % example],
+                    ["%s/exclude/*" % example],
                     allow_empty = True,
                 )
             ],
@@ -56,7 +56,7 @@ genrule(
                 exclude = [
                     "*",
                     # Node is currently broken.
-                    "examples/node/**",
+                    "node/**",
                 ],
             )
         }
