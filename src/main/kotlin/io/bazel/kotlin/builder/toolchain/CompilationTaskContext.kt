@@ -28,8 +28,12 @@ import java.nio.file.FileSystems
 class CompilationTaskContext(
   val info: CompilationTaskInfo,
   private val out: PrintStream,
-  private val executionRoot: String = FileSystems.getDefault().getPath("").toAbsolutePath()
-    .toString() + File.separator,
+  private val executionRoot: String =
+    FileSystems
+      .getDefault()
+      .getPath("")
+      .toAbsolutePath()
+      .toString() + File.separator,
 ) {
   private val start = System.currentTimeMillis()
   private var timings: MutableList<String>?
@@ -75,18 +79,20 @@ class CompilationTaskContext(
     out.println()
   }
 
-  fun <T> whenTracing(block: CompilationTaskContext.() -> T): T? {
-    return if (isTracing) {
+  fun <T> whenTracing(block: CompilationTaskContext.() -> T): T? =
+    if (isTracing) {
       block()
     } else {
       null
     }
-  }
 
   /**
    * Print a proto message if debugging is enabled for the task.
    */
-  fun printProto(header: String, msg: MessageOrBuilder) {
+  fun printProto(
+    header: String,
+    msg: MessageOrBuilder,
+  ) {
     printLines(header, TextFormat.printToString(msg).split("\n"), filterEmpty = true)
   }
 
@@ -124,9 +130,10 @@ class CompilationTaskContext(
     val outputStream = ByteArrayOutputStream()
     val ps = PrintStream(outputStream)
     val result = compile(args.toTypedArray(), ps)
-    val output = ByteArrayInputStream(outputStream.toByteArray())
-      .bufferedReader()
-      .readLines()
+    val output =
+      ByteArrayInputStream(outputStream.toByteArray())
+        .bufferedReader()
+        .readLines()
     if (result != 0) {
       if (printOnFail) {
         printCompilerOutput(output)
@@ -142,21 +149,29 @@ class CompilationTaskContext(
   /**
    * Runs a task and records the timings.
    */
-  fun <T> execute(name: String, task: () -> T): T = execute({ name }, task)
+  fun <T> execute(
+    name: String,
+    task: () -> T,
+  ): T = execute({ name }, task)
 
   /**
    * Runs a task and records the timings.
    */
   @Suppress("MemberVisibilityCanBePrivate")
-  fun <T> execute(name: () -> String, task: () -> T): T {
-    return if (timings == null) {
+  fun <T> execute(
+    name: () -> String,
+    task: () -> T,
+  ): T =
+    if (timings == null) {
       task()
     } else {
       pushTimedTask(name(), task)
     }
-  }
 
-  private inline fun <T> pushTimedTask(name: String, task: () -> T): T {
+  private inline fun <T> pushTimedTask(
+    name: String,
+    task: () -> T,
+  ): T {
     level += 1
     val previousTimings = timings
     timings = mutableListOf()

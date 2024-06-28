@@ -32,7 +32,6 @@ class CompilationArgs(
   val args: MutableList<String> = mutableListOf(),
   private val dfs: FileSystem = FileSystems.getDefault(),
 ) {
-
   class StringConditional(
     val value: String,
     val parent: CompilationArgs,
@@ -59,9 +58,7 @@ class CompilationArgs(
     ): SetFlag
   }
 
-  fun plugin(p: KotlinToolchain.CompilerPlugin): CompilationArgs {
-    return plugin(p) {}
-  }
+  fun plugin(p: KotlinToolchain.CompilerPlugin): CompilationArgs = plugin(p) {}
 
   fun plugin(
     p: KotlinToolchain.CompilerPlugin,
@@ -91,13 +88,12 @@ class CompilationArgs(
     return this
   }
 
-  fun given(value: String): StringConditional {
-    return StringConditional(value, this)
-  }
+  fun given(value: String): StringConditional = StringConditional(value, this)
 
-  operator fun plus(other: CompilationArgs): CompilationArgs = CompilationArgs(
-    (args.asSequence() + other.args.asSequence()).toMutableList(),
-  )
+  operator fun plus(other: CompilationArgs): CompilationArgs =
+    CompilationArgs(
+      (args.asSequence() + other.args.asSequence()).toMutableList(),
+    )
 
   fun absolutePaths(
     paths: Collection<String>,
@@ -108,7 +104,8 @@ class CompilationArgs(
     }
     return value(
       toArgs(
-        paths.asSequence()
+        paths
+          .asSequence()
           .map { dfs.getPath(it) }
           .map(Path::toAbsolutePath),
       ),
@@ -124,7 +121,8 @@ class CompilationArgs(
     }
     return value(
       toArgs(
-        paths.asSequence()
+        paths
+          .asSequence()
           .map { dfs.getPath(it) },
       ),
     )

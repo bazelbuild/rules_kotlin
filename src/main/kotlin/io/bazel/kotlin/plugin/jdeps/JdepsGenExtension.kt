@@ -69,9 +69,7 @@ class JdepsGenExtension(
 ) : BaseJdepsGenExtension(configuration),
   AnalysisHandlerExtension,
   StorageComponentContainerContributor {
-
   companion object {
-
     /**
      * Returns the path of the jar archive file corresponding to the provided descriptor.
      *
@@ -80,19 +78,20 @@ class JdepsGenExtension(
      */
     fun getClassCanonicalPath(descriptor: DeclarationDescriptorWithSource): String? {
       // Get the descriptor's source element which may be a type alias
-      val sourceElement = if (descriptor.source != SourceElement.NO_SOURCE) {
-        descriptor.source
-      } else {
-        when (val declarationDescriptor = descriptor.getImportableDescriptor()) {
-          is DeserializedTypeAliasDescriptor -> {
-            declarationDescriptor.containerSource
-          }
+      val sourceElement =
+        if (descriptor.source != SourceElement.NO_SOURCE) {
+          descriptor.source
+        } else {
+          when (val declarationDescriptor = descriptor.getImportableDescriptor()) {
+            is DeserializedTypeAliasDescriptor -> {
+              declarationDescriptor.containerSource
+            }
 
-          else -> {
-            null
+            else -> {
+              null
+            }
           }
         }
-      }
 
       return when (sourceElement) {
         is JavaSourceElement ->
@@ -123,13 +122,12 @@ class JdepsGenExtension(
       }
     }
 
-    private fun getClassCanonicalPath(typeConstructor: TypeConstructor): String? {
-      return (typeConstructor.declarationDescriptor as? DeclarationDescriptorWithSource)?.let {
+    private fun getClassCanonicalPath(typeConstructor: TypeConstructor): String? =
+      (typeConstructor.declarationDescriptor as? DeclarationDescriptorWithSource)?.let {
         getClassCanonicalPath(
           it,
         )
       }
-    }
   }
 
   private val explicitClassesCanonicalPaths = mutableSetOf<String>()
@@ -148,8 +146,8 @@ class JdepsGenExtension(
   class ClasspathCollectingChecker(
     private val explicitClassesCanonicalPaths: MutableSet<String>,
     private val implicitClassesCanonicalPaths: MutableSet<String>,
-  ) : CallChecker, DeclarationChecker {
-
+  ) : CallChecker,
+    DeclarationChecker {
     override fun check(
       resolvedCall: ResolvedCall<*>,
       reportOn: PsiElement,
@@ -187,15 +185,14 @@ class JdepsGenExtension(
           (
             resultingDescriptor.getter
               ?.correspondingProperty as? SyntheticJavaPropertyDescriptor
-            )
-            ?.let { syntheticJavaPropertyDescriptor ->
-              collectTypeReferences(syntheticJavaPropertyDescriptor.type, isExplicit = false)
+          )?.let { syntheticJavaPropertyDescriptor ->
+            collectTypeReferences(syntheticJavaPropertyDescriptor.type, isExplicit = false)
 
-              val functionDescriptor = syntheticJavaPropertyDescriptor.getMethod
-              functionDescriptor.dispatchReceiverParameter?.type?.let { dispatchReceiverType ->
-                collectTypeReferences(dispatchReceiverType, isExplicit = false)
-              }
+            val functionDescriptor = syntheticJavaPropertyDescriptor.getMethod
+            functionDescriptor.dispatchReceiverParameter?.type?.let { dispatchReceiverType ->
+              collectTypeReferences(dispatchReceiverType, isExplicit = false)
             }
+          }
         }
       }
 
@@ -216,14 +213,18 @@ class JdepsGenExtension(
     }
 
     private fun collectExplicitTypes(resolvedCall: ResolvedCall<*>) {
-      val kotlinCallArguments = (resolvedCall as? NewAbstractResolvedCall)
-        ?.resolvedCallAtom?.atom?.argumentsInParenthesis
+      val kotlinCallArguments =
+        (resolvedCall as? NewAbstractResolvedCall)
+          ?.resolvedCallAtom
+          ?.atom
+          ?.argumentsInParenthesis
 
       // note that callArgument can be both a PSIKotlinCallArgument and an ExpressionKotlinCallArgument
       kotlinCallArguments?.forEach { callArgument ->
         if (callArgument is PSIKotlinCallArgument) {
-          val dataFlowInfos = listOf(callArgument.dataFlowInfoBeforeThisArgument) +
-            callArgument.dataFlowInfoAfterThisArgument
+          val dataFlowInfos =
+            listOf(callArgument.dataFlowInfoBeforeThisArgument) +
+              callArgument.dataFlowInfoAfterThisArgument
 
           dataFlowInfos.forEach { dataFlowInfo ->
             dataFlowInfo.completeTypeInfo.values().flatten().forEach { kotlinType ->

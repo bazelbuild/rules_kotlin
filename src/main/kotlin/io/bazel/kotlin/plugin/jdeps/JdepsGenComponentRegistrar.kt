@@ -7,7 +7,6 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
 
 @OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 class JdepsGenComponentRegistrar : CompilerPluginRegistrar() {
-
   override val supportsK2: Boolean
     get() = false
 

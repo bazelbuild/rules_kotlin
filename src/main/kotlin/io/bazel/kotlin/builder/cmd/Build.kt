@@ -34,7 +34,6 @@ object Build {
             .build()
             .work(),
         )
-      }
-      .run(::exitProcess)
+      }.run(::exitProcess)
   }
 }

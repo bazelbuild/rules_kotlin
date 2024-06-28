@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:lint.bzl", "ktlint_config")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -12,4 +13,17 @@ java_library(
         "@maven//:org_apiguardian_apiguardian_api",
         "@maven//:org_opentest4j_opentest4j",
     ],
+)
+
+filegroup(
+    name = "editorconfig",
+    srcs = [".editorconfig"],
+)
+
+ktlint_config(
+    name = "ktlint_editorconfig",
+    android_rules_enabled = False,
+    editorconfig = "//:editorconfig",
+    experimental_rules_enabled = False,
+    visibility = ["//visibility:public"],
 )

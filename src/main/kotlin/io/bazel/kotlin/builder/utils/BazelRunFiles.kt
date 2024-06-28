@@ -21,7 +21,6 @@ import java.io.FileNotFoundException
 
 /** Utility class for getting runfiles on windows and *nix.  */
 object BazelRunFiles {
-
   private val runfiles by lazy {
     Runfiles.preload().unmapped()
   }
@@ -31,7 +30,8 @@ object BazelRunFiles {
    */
   @JvmStatic
   fun resolveVerifiedFromProperty(key: String) =
-    System.getProperty(key)
+    System
+      .getProperty(key)
       ?.let { path -> runfiles.rlocation(path) }
       ?.let { File(it) }
       ?.also {

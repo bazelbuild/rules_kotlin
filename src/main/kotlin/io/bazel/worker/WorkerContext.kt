@@ -35,21 +35,20 @@ import java.util.logging.StreamHandler
 class WorkerContext private constructor(
   private val name: String = Companion::class.java.canonicalName,
   private val verbose: Granularity = INFO,
-) : Closeable, ScopeLogging by ContextLogger(name, verbose.level, null) {
-
+) : Closeable,
+  ScopeLogging by ContextLogger(name, verbose.level, null) {
   companion object {
     fun <T : Any?> run(
       named: String = "worker",
       verbose: Granularity = INFO,
       report: (ContextLog) -> Unit = {},
       work: WorkerContext.() -> T,
-    ): T {
-      return WorkerContext(verbose = verbose, name = named).run {
+    ): T =
+      WorkerContext(verbose = verbose, name = named).run {
         use(work).also {
           report(contents())
         }
       }
-    }
   }
 
   private class ContextLogger(
@@ -57,7 +56,6 @@ class WorkerContext private constructor(
     val level: Level,
     val propagateTo: ContextLogger? = null,
   ) : ScopeLogging {
-
     private val profiles = mutableListOf<String>()
 
     private val out by lazy {
@@ -101,9 +99,7 @@ class WorkerContext private constructor(
       logger.logp(Level.FINE, sourceName, name, msg)
     }
 
-    override fun narrowTo(name: String): ScopeLogging {
-      return ContextLogger(name, level, this)
-    }
+    override fun narrowTo(name: String): ScopeLogging = ContextLogger(name, level, this)
 
     override fun contents() = handler.flush().run { ContextLog(out.toByteArray(), profiles) }
 
@@ -117,9 +113,7 @@ class WorkerContext private constructor(
     fun <T> subTask(
       name: String = javaClass.canonicalName,
       task: (sub: TaskContext) -> T,
-    ): T {
-      return task(TaskContext(directory, logging = narrowTo(name)))
-    }
+    ): T = task(TaskContext(directory, logging = narrowTo(name)))
 
     /** resultOf a status supplier that includes information collected in the Context. */
     fun resultOf(executeTaskIn: (TaskContext) -> Status): TaskResult {
@@ -152,11 +146,12 @@ class WorkerContext private constructor(
     task: (sub: TaskContext) -> Status,
   ): TaskResult {
     info { "start task $name" }
-    return WorkingDirectoryContext.use {
-      TaskContext(dir, logging = narrowTo(name)).resultOf(task)
-    }.also {
-      info { "end task $name: ${it.status}" }
-    }
+    return WorkingDirectoryContext
+      .use {
+        TaskContext(dir, logging = narrowTo(name)).resultOf(task)
+      }.also {
+        info { "end task $name: ${it.status}" }
+      }
   }
 
   override fun close() {

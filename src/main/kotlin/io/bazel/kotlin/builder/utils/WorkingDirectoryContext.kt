@@ -22,11 +22,14 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /** WorkingDirectoryContext provides a consistent base directory that is removed on close. */
-class WorkingDirectoryContext(val dir: Path) : Closeable {
+class WorkingDirectoryContext(
+  val dir: Path,
+) : Closeable {
   companion object {
-    fun newContext(): WorkingDirectoryContext = WorkingDirectoryContext(
-      Files.createTempDirectory("working"),
-    )
+    fun newContext(): WorkingDirectoryContext =
+      WorkingDirectoryContext(
+        Files.createTempDirectory("working"),
+      )
   }
 
   override fun close() {

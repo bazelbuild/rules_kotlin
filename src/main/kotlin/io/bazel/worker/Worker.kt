@@ -24,10 +24,11 @@ interface Worker {
       args: Iterable<String>,
       then: Worker.(Iterable<String>) -> Int,
     ): Int {
-      val worker = when {
-        "--persistent_worker" in args -> PersistentWorker()
-        else -> InvocationWorker(args)
-      }
+      val worker =
+        when {
+          "--persistent_worker" in args -> PersistentWorker()
+          else -> InvocationWorker(args)
+        }
       return worker.then(args.filter { it != "--persistent_worker" })
     }
   }
