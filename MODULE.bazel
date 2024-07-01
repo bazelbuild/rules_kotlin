@@ -5,7 +5,7 @@ module(
     repo_name = "rules_kotlin",
 )
 
-bazel_dep(name = "platforms", version = "0.0.6")
+bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_java", version = "7.2.0")
 bazel_dep(name = "rules_python", version = "0.23.1")
