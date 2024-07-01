@@ -3,7 +3,6 @@ load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-    _KtJsInfo = "KtJsInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 
@@ -78,7 +77,6 @@ def _kotlin_toolchain_impl(ctx):
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
-        js_stdlibs = ctx.attr.js_stdlibs,
         execution_requirements = {
             "supports-workers": "1",
             "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
@@ -201,16 +199,6 @@ _kt_toolchain = rule(
                 "20",
                 "21",
             ],
-        ),
-        "js_target": attr.string(
-            default = "v5",
-            values = ["v5"],
-        ),
-        "js_stdlibs": attr.label_list(
-            default = [
-                Label("//kotlin/compiler:kotlin-stdlib-js"),
-            ],
-            providers = [_KtJsInfo],
         ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",

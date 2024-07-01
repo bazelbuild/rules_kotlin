@@ -22,7 +22,6 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//kotlin/internal/js",
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",

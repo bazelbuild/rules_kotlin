@@ -53,13 +53,6 @@ def kt_download_local_dev_dependencies():
 
     maybe(
         http_archive,
-        name = "build_bazel_rules_nodejs",
-        sha256 = versions.RULES_NODEJS_SHA,
-        url = "https://github.com/bazelbuild/rules_nodejs/releases/download/{0}/rules_nodejs-{0}.tar.gz".format(versions.RULES_NODEJS_VERSION),
-    )
-
-    maybe(
-        http_archive,
         name = "rules_jvm_external",
         sha256 = versions.RULES_JVM_EXTERNAL_SHA,
         strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
