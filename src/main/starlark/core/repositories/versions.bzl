@@ -31,8 +31,8 @@ versions = struct(
     # 1. Download archive
     # 2. Download dependencies and Configure rules
     # --> 3. Configure dependencies <--
-    SKYLIB_VERSION = "1.6.1",
-    SKYLIB_SHA = "9f38886a40548c6e96c106b752f242130ee11aaa068a56ba7e56f4511f33e4f2",
+    SKYLIB_VERSION = "1.7.1",
+    SKYLIB_SHA = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
     PROTOBUF_VERSION = "3.11.3",
     PROTOBUF_SHA = "cf754718b0aa945b00550ed7962ddc167167bd922b842199eeb6505e6f344852",
     RULES_JVM_EXTERNAL_TAG = "5.3",
