@@ -1,6 +1,6 @@
 ---
 validate_config: 1
-bazel: 7.1.1
+bazel: 7.2.1
 buildifier:
   version: 7.1.1
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
