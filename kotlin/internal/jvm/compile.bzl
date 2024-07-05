@@ -12,17 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load(
-    "@bazel_tools//tools/jdk:toolchain_utils.bzl",
-    "find_java_runtime_toolchain",
-    "find_java_toolchain",
-)
-load(
     "@rules_java//java:defs.bzl",
     "JavaInfo",
     "java_common",
 )
 load(
     "//kotlin/internal:defs.bzl",
+    _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
+    _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _KtPluginConfiguration = "KtPluginConfiguration",
@@ -54,6 +51,15 @@ load(
 )
 
 # UTILITY ##############################################################################################################
+def find_java_toolchain(ctx, target):
+    if _JAVA_TOOLCHAIN_TYPE in ctx.toolchains:
+        return ctx.toolchains[_JAVA_TOOLCHAIN_TYPE].java
+    return target[java_common.JavaToolchainInfo]
+
+def find_java_runtime_toolchain(ctx, target):
+    if _JAVA_RUNTIME_TOOLCHAIN_TYPE in ctx.toolchains:
+        return ctx.toolchains[_JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime
+    return target[java_common.JavaRuntimeInfo]
 
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
