@@ -340,6 +340,15 @@ kt_jvm_library(
 
 Full examples of using compiler plugins can be found [here](examples/plugin).
 
+## Cutting Rule Releases
+
+When a git tag is pushed using the format `v.X.X`, there are CI jobs that will spin up, build a new release, and submit it to both the BCR and Github Releases
+
+```
+git tag v1.9.6
+git push origin v1.9.6
+```
+
 ## Examples
 
 Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, Kotlin compiler plugins, etc.
