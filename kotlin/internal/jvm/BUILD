@@ -32,5 +32,6 @@ bzl_library(
     deps = [
         "//third_party:bzl",
         "@bazel_skylib//rules:common_settings",
+        "@rules_java//java:rules",
     ],
 )
