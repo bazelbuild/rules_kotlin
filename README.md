@@ -340,6 +340,19 @@ kt_jvm_library(
 
 Full examples of using compiler plugins can be found [here](examples/plugin).
 
+## Creating Rule Releases
+
+A new release can be published by just pushing a tag.
+
+Once the tag is pushed, GitHub Actions will build, test, and publish a release to both GitHub releases and the BCR.
+
+A tag can be created and pushed by doing the following:
+```
+git tag v4.13
+git push origin v4.13
+```
+
+
 ## Examples
 
 Examples can be found in the [examples directory](https://github.com/bazelbuild/rules_kotlin/tree/master/examples), including usage with Android, Dagger, Node-JS, Kotlin compiler plugins, etc.
