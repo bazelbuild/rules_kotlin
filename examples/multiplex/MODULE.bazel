@@ -3,7 +3,7 @@ module(name = "multiplex-example")
 remote_android_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "remote_android_tools_extensions")
 use_repo(remote_android_extensions, "android_gmaven_r8", "android_tools")
 
-bazel_dep(name = "rules_java", version = "6.4.0")
+bazel_dep(name = "rules_java", version = "7.7.2")
 bazel_dep(name = "rules_kotlin")
 local_path_override(
     module_name = "rules_kotlin",

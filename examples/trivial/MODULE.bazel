@@ -1,6 +1,6 @@
 module(name = "trival-example")
 
-bazel_dep(name = "rules_java", version = "6.4.0")
+bazel_dep(name = "rules_java", version = "7.7.2")
 bazel_dep(name = "rules_kotlin")
 local_path_override(
     module_name = "rules_kotlin",
