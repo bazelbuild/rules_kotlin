@@ -10,6 +10,7 @@ bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_java", version = "7.2.0")
 bazel_dep(name = "rules_python", version = "0.23.1")
 bazel_dep(name = "rules_cc", version = "0.0.8")
+bazel_dep(name = "rules_android", version = "0.1.1")
 
 rules_kotlin_extensions = use_extension(
     "//src/main/starlark/core/repositories:bzlmod_setup.bzl",
@@ -20,7 +21,6 @@ use_repo(
     "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
     "com_github_pinterest_ktlint",
-    "rules_android",
 )
 
 register_toolchains("//kotlin/internal:default_toolchain")
