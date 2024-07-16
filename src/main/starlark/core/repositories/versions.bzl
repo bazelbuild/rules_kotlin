@@ -109,11 +109,11 @@ versions = struct(
     ),
     # needed for rules_pkg and java
     RULES_JAVA = version(
-        version = "7.2.0",
+        version = "7.7.2",
         url_templates = [
             "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
         ],
-        sha256 = "eb7db63ed826567b2ceb1ec53d6b729e01636f72c9f5dfb6d2dfe55ad69d1d2a",
+        sha256 = "3471c79b7fd6f657da8ead0e847b38cdf4a3f16d4ffd9fecbd1ae536eaca0187",
     ),
     RULES_LICENSE = version(
         version = "0.0.3",
