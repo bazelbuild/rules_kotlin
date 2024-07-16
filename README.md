@@ -20,7 +20,7 @@ For more information about release and changelogs please see [Changelog](CHANGEL
 
 **rules_kotlin** supports the basic paradigm of `*_binary`, `*_library`, `*_test` of other Bazel 
 language rules. It also supports `jvm`, `android`, and `js` flavors, with the prefix `kt_jvm`
-and `kt_js`, and `kt_android` typically applied to the rules.
+and `kt_android` typically applied to the rules.
 
 Support for kotlin's -Xfriend-paths via the `associates=` attribute in the jvm allow access to
 `internal` members.

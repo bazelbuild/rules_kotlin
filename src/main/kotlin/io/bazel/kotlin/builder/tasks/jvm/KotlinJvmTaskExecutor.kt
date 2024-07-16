@@ -25,7 +25,7 @@ import javax.inject.Singleton
 
 /**
  * Due to an inconsistency in the handling of -Xfriends-path, jvm uses a comma (property list
- * separator), js uses the system path separator.
+ * separator)
  */
 const val X_FRIENDS_PATH_SEPARATOR = ","
 

@@ -1,1 +1,0 @@
-This example workspace demonstrates the JS support.

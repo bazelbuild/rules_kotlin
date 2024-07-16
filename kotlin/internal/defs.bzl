@@ -48,15 +48,6 @@ KtJvmInfo = provider(
     },
 )
 
-KtJsInfo = provider(
-    fields = {
-        "js": "The primary output of the library",
-        "js_map": "The map file for the library",
-        "jar": "A jar of the library.",
-        "srcjar": "The jar containing the sources of the library",
-    },
-)
-
 KtCompilerPluginInfo = _KtCompilerPluginInfo
 
 KspPluginInfo = _KspPluginInfo
