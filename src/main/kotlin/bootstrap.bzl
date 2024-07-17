@@ -57,7 +57,7 @@ def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibi
 def kt_bootstrap_binary(
         name,
         main_class,
-        runtime_library,
+        runtime_deps,
         shade_rules,
         jvm_flags = [],
         data = [],
@@ -68,7 +68,7 @@ def kt_bootstrap_binary(
     java_binary(
         name = raw,
         create_executable = False,
-        runtime_deps = [runtime_library],
+        runtime_deps = runtime_deps,
     )
 
     # Shaded to ensure that libraries it uses are not leaked to
