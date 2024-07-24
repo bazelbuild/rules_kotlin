@@ -23,6 +23,11 @@ def _map_backend_threads_to_flag(n):
         return None
     return ["-Xbackend-threads=%d" % n]
 
+def _map_jvm_target_to_flag(version):
+    if not version:
+        return None
+    return ["-jvm-target=%s" % version]
+
 def _map_jdk_release_to_flag(version):
     if not version:
         return None
