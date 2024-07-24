@@ -23,10 +23,10 @@ def _map_backend_threads_to_flag(n):
         return None
     return ["-Xbackend-threads=%d" % n]
 
-def _map_jvm_target_to_flag(version):
+def _map_jdk_release_to_flag(version):
     if not version:
         return None
-    return ["-jvm-target=%s" % version]
+    return ["-Xjdk-release=%s" % version]
 
 _KOPTS_ALL = {
     "warn": struct(
@@ -401,6 +401,16 @@ _KOPTS_ALL = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_jvm_target_to_flag,
+    ),
+    "x_jdk_release": struct(
+        args = dict(
+            default = "",
+            doc = "The -jvm_target flag. This is only tested at 1.8.",
+            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_jdk_release_to_flag,
     ),
 }
 
