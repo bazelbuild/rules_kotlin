@@ -369,6 +369,9 @@ Setup a simple kotlin_test.
             doc = "Specifies additional environment variables to set when the target is executed by bazel test.",
             default = {},
         ),
+        "env_inherit": attr.string_list(
+            doc = "Environment variables to inherit from the external environment.",
+        ),
         "_lcov_merger": attr.label(
             default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),
         ),
