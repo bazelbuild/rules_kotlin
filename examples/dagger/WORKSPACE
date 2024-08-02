@@ -1,21 +1,30 @@
-local_repository(
-    name = "release_archive",
-    path = "../../src/main/starlark/release_archive",
-)
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-load("@release_archive//:repository.bzl", "archive_repository")
-
-archive_repository(
+http_archive(
     name = "rules_kotlin",
+    sha256 = "34e8c0351764b71d78f76c8746e98063979ce08dcf1a91666f3f3bc2949a533d",
+    url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
 load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
+versions.use_repository(
+    name = "rules_java",
+    rule = http_archive,
+    version = versions.RULES_JAVA,
+)
+
+load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
+
+rules_java_dependencies()
+
+rules_java_toolchains()
+
 kotlin_repositories()
 
-register_toolchains("//:kotlin_toolchain")
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+kt_register_toolchains()
 
 http_archive(
     name = "rules_jvm_external",
@@ -31,9 +40,9 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
-        "com.google.dagger:dagger:2.45",
-        "com.google.dagger:dagger-compiler:2.45",
-        "com.google.dagger:dagger-producers:2.45",
+        "com.google.dagger:dagger:2.51.1",
+        "com.google.dagger:dagger-compiler:2.51.1",
+        "com.google.dagger:dagger-producers:2.51.1",
         "javax.inject:javax.inject:1",
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],

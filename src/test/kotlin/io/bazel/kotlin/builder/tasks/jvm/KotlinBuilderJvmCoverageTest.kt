@@ -29,7 +29,7 @@ class KotlinBuilderJvmCoverageTest {
 
   @Test
   fun `generates coverage metadata`() {
-    val deps = ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+    ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
       c.addSource("KotlinClass.kt",
         """
             package something
