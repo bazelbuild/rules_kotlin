@@ -10,17 +10,17 @@ def _ksp_compiler_plugin_repository_impl(repository_ctx):
     repository_ctx.download_and_extract(
         attr.urls,
         sha256 = attr.sha256,
+        # Move the jars to the top level and remove verison information.
+        rename_files = {
+            "com/google/devtools/ksp/{jar}/{version}/{jar}-{version}.jar".format(
+                jar = jar,
+                version = attr.strip_version,
+            ): "{jar}.jar".format(jar = jar)
+            for jar in _JARS_INSIDE_REPO
+        },
     )
 
-    # Move the jars that we need into the root of the workspace and strip the
-    # version specific information out of the file name.
-    for jar in _JARS_INSIDE_REPO:
-        args = [
-            "mv",
-            "com/google/devtools/ksp/{jar}/{version}/{jar}-{version}.jar".format(jar = jar, version = attr.strip_version),
-            "{jar}.jar".format(jar = jar),
-        ]
-        repository_ctx.execute(args, quiet = False)
+    # Remove unused .pom and checksum files files.
     repository_ctx.delete("com")
 
     repository_ctx.file(
