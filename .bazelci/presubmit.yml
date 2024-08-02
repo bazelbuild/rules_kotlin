@@ -8,7 +8,6 @@ matrix:
     - ubuntu1804
     - macos
     # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
-    # C:\b\ufjgchrk\execroot\_main\bazel-out\x64_windows-fastbuild\bin\examples\android_test_bazel_6_4_0: line 68: /c/b/ufjgchrk/execroot/_main/bazel-out/x64_windows-fastbuild/bin/examples/android_test_bazel_6_4_0.exe.runfiles/_main/src/main/kotlin/io/bazel/kotlin/test/BazelIntegrationTestRunner: No such file or directory
   test_flags:
     - ["--enable_bzlmod=true"]
     - ["--enable_bzlmod=false"]
@@ -21,7 +20,7 @@ buildifier:
   warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
   unittests:
-    name: "Unittests ${{ test_flags }}"
+    name: "Unit Tests"
     platform: ${{ unittest_platform }}
     build_flags: ${{ test_flags }}
     test_flags: ${{ test_flags }}
@@ -29,7 +28,7 @@ tasks:
       - "//:all_tests"
     build_targets:
       - "//:rules_kotlin_release"
-  bazel_integration_tests:
+  integration_tests:
     name: "Integration Tests"
     platform: ${{ integration_platform }}
     test_flags:

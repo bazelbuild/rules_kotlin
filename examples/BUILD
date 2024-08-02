@@ -32,7 +32,7 @@ genrule(
         tags = [],
         test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",
         workspace_files = glob(
-            ["%s/**/*" % example],
+            ["%s/**/**" % example],
             # exclude any bazel directories if existing
             exclude = ["%s/bazel-*/**" % example],
         ),
