@@ -12,6 +12,7 @@ KOTLINC_ARTIFACTS = struct(
             "mutability-annotations-compat": "lib/mutability-annotations-compat.jar",
             "noarg-compiler-plugin": "lib/noarg-compiler-plugin.jar",
             "sam-with-receiver-compiler-plugin": "lib/sam-with-receiver-compiler-plugin.jar",
+            "parcelize-compiler-plugin": "lib/parcelize-compiler-plugin.jar",
         },
         runtime = {
             "jvm-abi-gen": "lib/jvm-abi-gen.jar",

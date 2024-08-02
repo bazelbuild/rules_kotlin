@@ -7,6 +7,10 @@ build --strategy=KotlinCompile=worker
 build --test_output=all
 build --verbose_failures
 
+# Required for windows ci
+startup --windows_enable_symlinks
+common --enable_runfiles
+
 try-import %workspace%/bit-ignore.bazelrc
 
 # User-specific .bazelrc

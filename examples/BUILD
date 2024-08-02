@@ -26,6 +26,7 @@ genrule(
         name = "%s_test" % example,
         additional_env_inherit = [
             "ANDROID_HOME",
+            "ANDROID_SDK_ROOT",
             "ANDROID_NDK_HOME",
         ],
         bazel_versions = [version for version in bazel_binaries.versions.all if version not in metadata["exclude"]],
