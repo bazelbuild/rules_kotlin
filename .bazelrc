@@ -3,6 +3,9 @@ common --enable_bzlmod=true
 common:rbe --java_runtime_version=11
 common:rbe --tool_java_runtime_version=11
 
+common --experimental_google_legacy_api
+common --experimental_enable_android_migration_apis
+
 build --strategy=KotlinCompile=worker
 build --test_output=all
 build --verbose_failures
