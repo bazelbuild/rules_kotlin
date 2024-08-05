@@ -47,6 +47,8 @@ import java.util.stream.Stream
 import kotlin.io.path.exists
 
 private const val SOURCE_JARS_DIR = "_srcjars"
+private const val API_VERSION_ARG = "-api-version"
+private const val LANGUAGE_VERSION_ARG = "-language-version"
 
 fun JvmCompilationTask.codeGenArgs(): CompilationArgs =
   CompilationArgs()
@@ -55,7 +57,7 @@ fun JvmCompilationTask.codeGenArgs(): CompilationArgs =
     }.flag("-d", directories.classes)
     .values(info.passthroughFlagsList)
 
-fun JvmCompilationTask.baseArgs(): CompilationArgs {
+fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): CompilationArgs {
   val classpath =
     when (info.reducedClasspathMode) {
       "KOTLINBUILDER_REDUCED" -> {
@@ -83,8 +85,11 @@ fun JvmCompilationTask.baseArgs(): CompilationArgs {
       it
         .map(Path::toString)
         .joinToString(File.pathSeparator)
-    }.flag("-api-version", info.toolchainInfo.common.apiVersion)
-    .flag("-language-version", info.toolchainInfo.common.languageVersion)
+    }.flag(API_VERSION_ARG, overrides[API_VERSION_ARG] ?: info.toolchainInfo.common.apiVersion)
+    .flag(
+      LANGUAGE_VERSION_ARG,
+      overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
+    )
     .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
     .flag("-module-name", info.moduleName)
 }
@@ -237,7 +242,7 @@ internal fun JvmCompilationTask.runPlugins(
     (
       inputs.processorsList.isEmpty() &&
         inputs.stubsPluginClasspathList.isEmpty()
-    ) ||
+      ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this
@@ -293,7 +298,15 @@ private fun JvmCompilationTask.runKspPlugin(
   compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
   return context.execute("Ksp (${inputs.processorsList.joinToString(", ")})") {
-    baseArgs()
+    val overrides =
+      mutableMapOf(
+        API_VERSION_ARG to kspKotlinToolchainVersion(info.toolchainInfo.common.apiVersion),
+        LANGUAGE_VERSION_ARG to
+          kspKotlinToolchainVersion(
+            info.toolchainInfo.common.languageVersion,
+          ),
+      )
+    baseArgs(overrides)
       .plus(kspArgs(plugins))
       .flag("-d", directories.generatedClasses)
       .values(inputs.kotlinSourcesList)
@@ -314,6 +327,11 @@ private fun JvmCompilationTask.runKspPlugin(
         return@let expandWithGeneratedSources()
       }
   }
+}
+
+private fun kspKotlinToolchainVersion(version: String): String {
+  // KSP doesn't support Kotlin 2.0 yet, so we need to use 1.9
+  return if (version.toFloat() >= 2.0) "1.9" else version
 }
 
 /**
@@ -424,7 +442,7 @@ fun JvmCompilationTask.compileKotlin(
           options = inputs.compilerPluginOptionsList,
           classpath = inputs.compilerPluginClasspathList,
         )
-    ).values(inputs.javaSourcesList)
+      ).values(inputs.javaSourcesList)
       .values(inputs.kotlinSourcesList)
       .flag("-d", directories.classes)
       .list()

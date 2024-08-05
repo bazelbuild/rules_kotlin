@@ -20,6 +20,8 @@ def _use_repository(name, version, rule, **kwargs):
     maybe(rule, name = name, **http_archive_arguments)
 
 versions = struct(
+    RULES_NODEJS_VERSION = "5.5.3",
+    RULES_NODEJS_SHA = "f10a3a12894fc3c9bf578ee5a5691769f6805c4be84359681a785a0c12e8d2b6",
     BAZEL_TOOLCHAINS_VERSION = "4.1.0",
     BAZEL_TOOLCHAINS_SHA = "179ec02f809e86abf56356d8898c8bd74069f1bd7c56044050c2cd3d79d0e024",
     # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
@@ -29,8 +31,8 @@ versions = struct(
     # 1. Download archive
     # 2. Download dependencies and Configure rules
     # --> 3. Configure dependencies <--
-    SKYLIB_VERSION = "1.7.1",
-    SKYLIB_SHA = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
+    SKYLIB_VERSION = "1.4.2",
+    SKYLIB_SHA = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
     PROTOBUF_VERSION = "3.11.3",
     PROTOBUF_SHA = "cf754718b0aa945b00550ed7962ddc167167bd922b842199eeb6505e6f344852",
     RULES_JVM_EXTERNAL_TAG = "5.3",
@@ -52,25 +54,25 @@ versions = struct(
         ],
     ),
     PINTEREST_KTLINT = version(
-        version = "1.3.0",
+        version = "0.49.1",
         url_templates = [
             "https://github.com/pinterest/ktlint/releases/download/{version}/ktlint",
         ],
-        sha256 = "01b2e0ef893383a50dbeb13970fe7fa3be36ca3e83259e01649945b09d736985",
+        sha256 = "2b3f6f674a944d25bb8d283c3539947bbe86074793012909a55de4b771f74bcc",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "1.9.23",
+        version = "2.0.0",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "93137d3aab9afa9b27cb06a824c2324195c6b6f6179d8a8653f440f5bd58be88",
+        sha256 = "ef578730976154fd2c5968d75af8c2703b3de84a78dffe913f670326e149da3b",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "1.9.23-1.0.20",
+        version = "2.0.0-1.0.21",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "ee0618755913ef7fd6511288a232e8fad24838b9af6ea73972a76e81053c8c2d",
+        sha256 = "84100aed5b63effa992ce6574b3ba47d2dbb78529752daa4c181e203117ba7de",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
