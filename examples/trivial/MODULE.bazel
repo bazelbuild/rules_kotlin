@@ -1,17 +1,8 @@
 module(name = "trival-example")
 
-bazel_dep(
-    name = "rules_java",
-    version = "6.4.0",
-)
-bazel_dep(
-    name = "rules_kotlin",
-    version = "1.9.5",
-)
-bazel_dep(
-    name = "rules_jvm_external",
-    version = "5.3",
-)
+bazel_dep(name = "rules_java", version = "6.4.0")
+bazel_dep(name = "rules_kotlin", version = "1.9.5")
+bazel_dep(name = "rules_jvm_external", version = "6.2")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
