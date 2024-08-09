@@ -74,10 +74,12 @@ versions = struct(
         ],
         sha256 = "84100aed5b63effa992ce6574b3ba47d2dbb78529752daa4c181e203117ba7de",
     ),
-    ANDROID = struct(
-        VERSION = "0.1.1",
-        SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
-        URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
+    ANDROID = version(
+        version = "0.5.1",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_android/releases/download/v{}/rules_android-v{}.tar.gz",
+        ],
+        sha256 = "ee0618755913ef7fd6511288a232e8fad24838b9af6ea73972a76e81053c8c2d",
     ),
     # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
     RBE = struct(
