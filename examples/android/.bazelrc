@@ -1,2 +1,3 @@
 common --lockfile_mode=off
+common --experimental_google_legacy_api
 test --test_output=all

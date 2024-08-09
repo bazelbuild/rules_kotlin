@@ -80,8 +80,8 @@ def kt_download_local_dev_dependencies():
     rules_stardoc_repository(
         name = "rules_android",
         sha256 = versions.ANDROID.sha256,
-        strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
-        urls = [url.format(version = versions.ANDROIDANDROID.version) for url in versions.ANDROID.url_templates],
+        strip_prefix = "rules_android-%s" % versions.ANDROID.version,
+        urls = [url.format(version = versions.ANDROID.version) for url in versions.ANDROID.url_templates],
         starlark_packages = [
             "android",
         ],
