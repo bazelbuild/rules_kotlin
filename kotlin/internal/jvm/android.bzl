@@ -21,7 +21,7 @@ load(
     _kt_jvm_library = "kt_jvm_library",
 )
 
-_ANDROID_SDK_JAR = "%s" % Label("@rules_android//third_party:android_sdk")
+_ANDROID_SDK_JAR = "%s" % Label("//third_party:android_sdk")
 
 def _kt_android_artifact(
         name,
