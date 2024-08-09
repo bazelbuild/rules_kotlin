@@ -77,7 +77,7 @@ versions = struct(
     ANDROID = version(
         version = "0.5.1",
         url_templates = [
-            "https://github.com/bazelbuild/rules_android/releases/download/v{}/rules_android-v{}.tar.gz",
+            "https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz",
         ],
         sha256 = "ee0618755913ef7fd6511288a232e8fad24838b9af6ea73972a76e81053c8c2d",
     ),
