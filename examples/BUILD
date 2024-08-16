@@ -62,6 +62,8 @@ genrule(
                     "*",
                     # Node is currently broken.
                     "node/**",
+                    # Jetpack compose is in an ambigious state due to the android rules migration
+                    "jetpack_compose/**",
                 ],
             )
         }

@@ -13,7 +13,8 @@ if which brew; then
     "build-tools;33.0.0" \
     "emulator" \
     "build-tools;30.0.3" \
-    "ndk;27.0.12077973"
+    "ndk;27.0.12077973" \
+    "ndk;24.0.8215888"
 else
   echo "home brew not installed, unsupported. Here is a chance to improve the script!"
 fi
