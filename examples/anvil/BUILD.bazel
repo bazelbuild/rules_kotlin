@@ -3,11 +3,3 @@ load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 define_kt_toolchain(
     name = "kotlin_toolchain",
 )
-
-platform(
-    name = "arm64-v8a",
-    constraint_values = [
-        "@platforms//cpu:arm64",
-        "@platforms//os:android",
-    ],
-)

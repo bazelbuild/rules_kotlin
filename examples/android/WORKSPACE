@@ -1,20 +1,24 @@
 workspace(name = "android_example")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "rules_kotlin",
-    sha256 = "34e8c0351764b71d78f76c8746e98063979ce08dcf1a91666f3f3bc2949a533d",
-    url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
+local_repository(
+    name = "release_archive",
+    path = "../../src/main/starlark/release_archive",
 )
 
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@release_archive//:repository.bzl", "archive_repository")
+
+archive_repository(
+    name = "rules_kotlin",
+    local_path = "../..",
+)
+
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 kotlin_repositories()
 
 register_toolchains("//bzl:experimental_toolchain")
 
-load("@rules_kotlin//src/main/starlark/core/repositories:versions.bzl", "versions")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_skylib",
@@ -84,14 +88,5 @@ http_archive(
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 
 robolectric_repositories()
-
-http_archive(
-    name = "rules_android_ndk",
-    sha256 = "65aedff0cd728bee394f6fb8e65ba39c4c5efb11b29b766356922d4a74c623f5",
-    strip_prefix = "rules_android_ndk-0.1.2",
-    url = "https://github.com/bazelbuild/rules_android_ndk/releases/download/v0.1.2/rules_android_ndk-v0.1.2.tar.gz",
-)
-
-load("@rules_android_ndk//:rules.bzl", "android_ndk_repository")
 
 android_ndk_repository(name = "androidndk")

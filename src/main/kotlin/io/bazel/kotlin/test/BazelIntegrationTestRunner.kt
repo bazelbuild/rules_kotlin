@@ -42,6 +42,8 @@ object BazelIntegrationTestRunner {
       }
     }
 
+    unpack.resolve("MODULE.bazel")
+
     val version = bazel.run(workspace, "--version").parseVersion()
 
     val bazelrc = version.resolveBazelRc(workspace)
