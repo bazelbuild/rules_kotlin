@@ -9,7 +9,6 @@ bazel_dep(name = "rules_robolectric", version = "4.10.3", repo_name = "robolectr
 bazel_dep(name = "rules_java", version = "6.4.0")
 bazel_dep(name = "platforms", version = "0.0.7")
 bazel_dep(name = "rules_kotlin", version = "1.9.5")
-
 bazel_dep(name = "rules_jvm_external", version = "5.3")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
