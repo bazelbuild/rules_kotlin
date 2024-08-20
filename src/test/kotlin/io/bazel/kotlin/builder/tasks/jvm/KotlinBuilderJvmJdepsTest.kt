@@ -36,8 +36,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
     @Parameterized.Parameters(name = "enableK2Compiler={0}")
     fun data(): Collection<Array<Any>> {
       return listOf(
-        // TODO: Enable k2 for tests
-//        arrayOf(true),
+        arrayOf(true),
         arrayOf(false),
       )
     }
