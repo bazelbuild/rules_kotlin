@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -163,9 +164,10 @@ object BazelIntegrationTestRunner {
     .directory(inDirectory.toFile())
     .start()
     .let { process ->
-      if (process.waitFor() == 0) {
+      if (process.waitFor(10, TimeUnit.MINUTES) && process.exitValue() == 0) {
         return Result.success(process)
       }
+      process.destroyForcibly()
       return Result.failure(
         AssertionError(
           """
