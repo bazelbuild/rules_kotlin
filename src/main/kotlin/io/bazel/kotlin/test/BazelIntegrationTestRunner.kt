@@ -164,18 +164,20 @@ object BazelIntegrationTestRunner {
     .directory(inDirectory.toFile())
     .start()
     .let { process ->
-      if (process.waitFor(10, TimeUnit.MINUTES) && process.exitValue() == 0) {
+      if (process.waitFor(800, TimeUnit.SECONDS) && process.exitValue() == 0) {
         return Result.success(process)
       }
+      val out = process.inputStream.readAllBytes().toString(UTF_8)
+      val err = process.errorStream.readAllBytes().toString(UTF_8)
       process.destroyForcibly()
       return Result.failure(
         AssertionError(
           """
             $this ${args.joinToString(" ")} exited ${process.exitValue()}:
             stdout:
-            ${process.inputStream.readAllBytes().toString(UTF_8)}
+            $out
             stderr:
-            ${process.errorStream.readAllBytes().toString(UTF_8)}
+            $err
           """.trimIndent(),
         ),
       )
