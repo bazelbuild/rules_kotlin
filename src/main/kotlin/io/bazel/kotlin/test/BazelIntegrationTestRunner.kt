@@ -3,10 +3,16 @@ package io.bazel.kotlin.test
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import kotlin.io.path.createDirectories
@@ -54,6 +60,7 @@ object BazelIntegrationTestRunner {
         bzlmod && workspace.hasModule() || !bzlmod && workspace.hasWorkspace()
       }
       .forEach { bzlmod ->
+        println("Starting bzlmod $bzlmod test")
         bazel.run(
           workspace,
           "--bazelrc=$bazelrc",
@@ -77,7 +84,7 @@ object BazelIntegrationTestRunner {
           "--override_repository=rules_kotlin=$unpack",
           "kind(\".*_test\", \"//...\")",
         ).ok { process ->
-          if (process.inputStream.readAllBytes().isNotEmpty()) {
+          if (process.stdOut.isNotEmpty()) {
             bazel.run(
               workspace,
               "--bazelrc=$bazelrc",
@@ -132,54 +139,92 @@ object BazelIntegrationTestRunner {
     }
   }
 
-  private fun Result<Process>.parseVersion(): Version {
-    ok { process ->
-      process.inputStream.bufferedReader(UTF_8).use { reader ->
-        generateSequence(reader::readLine)
-          // first not empty should have the version
-          .find(String::isNotEmpty)
-          ?.let { line ->
-            if ("no_version" in line) {
-              return Version.Head()
-            }
-            val parts = line.split(" ")[1].split(".")
-            return Version.Known(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+  private fun Result<ProcessResult>.parseVersion(): Version {
+    ok { result ->
+      result.stdOut.toString(UTF_8).split("\n")
+        // first not empty should have the version
+        .find(String::isNotEmpty)
+        ?.let { line ->
+          if ("no_version" in line) {
+            return Version.Head()
           }
-        throw IllegalStateException("Bazel version not available")
-      }
+          val parts = line.split(" ")[1].split(".")
+          return Version.Known(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+        }
+      throw IllegalStateException("Bazel version not available")
     }
   }
 
-  private fun Result<Process>.onFailThrow() = onFailure {
+  data class ProcessResult(
+    val exit: Int,
+    val stdOut: ByteArray,
+    val stdErr: ByteArray,
+  )
+
+  private fun Result<ProcessResult>.onFailThrow() = onFailure {
     throw it
   }
 
-  private inline fun <R> Result<Process>.ok(action: (Process) -> R) = fold(
+  private inline fun <R> Result<ProcessResult>.ok(action: (ProcessResult) -> R) = fold(
     onSuccess = action,
     onFailure = { err -> throw err },
   )
 
-  fun Path.run(inDirectory: Path, vararg args: String): Result<Process> = ProcessBuilder()
+  fun Path.run(inDirectory: Path, vararg args: String): Result<ProcessResult> = ProcessBuilder()
     .command(this.toString(), *args)
     .directory(inDirectory.toFile())
     .start()
     .let { process ->
-      if (process.waitFor(800, TimeUnit.SECONDS) && process.exitValue() == 0) {
-        return Result.success(process)
-      }
-      val out = process.inputStream.readAllBytes().toString(UTF_8)
-      val err = process.errorStream.readAllBytes().toString(UTF_8)
-      process.destroyForcibly()
-      return Result.failure(
-        AssertionError(
-          """
+      println("Running ${args.joinToString(" ")}...")
+      val executor = Executors.newCachedThreadPool();
+      try {
+        val stdOut = executor.submit(process.inputStream.streamTo(System.out))
+        val stdErr = executor.submit(process.errorStream.streamTo(System.out))
+        if (process.waitFor(300, TimeUnit.SECONDS) && process.exitValue() == 0) {
+          return Result.success(
+            ProcessResult(
+              exit = 0,
+              stdErr = stdErr.get(),
+              stdOut = stdOut.get(),
+            ),
+          )
+        }
+        process.destroyForcibly()
+        return Result.failure(
+          AssertionError(
+            """
             $this ${args.joinToString(" ")} exited ${process.exitValue()}:
             stdout:
-            $out
+            ${stdOut.get().toString(UTF_8)}
             stderr:
-            $err
+            ${stdErr.get().toString(UTF_8)}
           """.trimIndent(),
-        ),
-      )
+          ),
+        )
+      } finally {
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
+      }
     }
+
+  private fun InputStream.streamTo(out: OutputStream): Callable<ByteArray> {
+    return Callable {
+      val result = ByteArrayOutputStream();
+      BufferedInputStream(this).apply {
+        val buffer = ByteArray(4096)
+        var read = 0
+        do {
+          if (Thread.currentThread().isInterrupted) {
+            out.flush()
+            break
+          }
+          result.write(buffer, 0, read);
+          out.write(buffer, 0, read)
+          read = read(buffer)
+        } while (read != -1)
+      }
+      return@Callable result.toByteArray()
+    }
+  }
 }
+

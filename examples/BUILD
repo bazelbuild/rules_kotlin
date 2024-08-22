@@ -24,6 +24,7 @@ genrule(
 [
     bazel_integration_tests(
         name = "%s_test" % example,
+        timeout = "eternal",
         additional_env_inherit = [
             "ANDROID_HOME",
             "ANDROID_SDK_ROOT",
