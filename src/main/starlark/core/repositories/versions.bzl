@@ -72,7 +72,7 @@ versions = struct(
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "d0f05819c027a36a068c5ccf028dff6d2510922b22c7587ab2a544cf41cbdb4a",
+        sha256 = "831e83824c3a0bc5786d6aaf462ad29e0fc1a708e4fc314035f8444d850206d2",
     ),
     ANDROID = struct(
         VERSION = "0.1.1",
