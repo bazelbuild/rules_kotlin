@@ -13,32 +13,28 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
  * @param className the class name of the class
  * @return whether class is provided by JSM runtime or not
  */
-internal fun isJvmClass(className: String): Boolean {
-  return className.startsWith("java") ||
+internal fun isJvmClass(className: String): Boolean =
+  className.startsWith("java") ||
     className.startsWith("modules/java.base/java/")
-}
 
-internal fun DeserializedContainerSource.classId(): ClassId? {
-  return when (this) {
+internal fun DeserializedContainerSource.classId(): ClassId? =
+  when (this) {
     is JvmPackagePartSource -> classId
     is KotlinJvmBinarySourceElement -> binaryClass.classId
     else -> null
   }
-}
 
-internal fun SourceElement.binaryClass(): String? {
-  return when (this) {
+internal fun SourceElement.binaryClass(): String? =
+  when (this) {
     is KotlinJvmBinarySourceElement -> binaryClass.location
     is JvmPackagePartSource -> this.knownJvmBinaryClass?.location
     is JavaBinarySourceElement -> this.javaClass.virtualFile.path
     else -> null
   }
-}
 
-internal fun DeserializedContainerSource.binaryClass(): String? {
-  return when (this) {
+internal fun DeserializedContainerSource.binaryClass(): String? =
+  when (this) {
     is JvmPackagePartSource -> this.knownJvmBinaryClass?.location
     is KotlinJvmBinarySourceElement -> binaryClass.location
     else -> null
   }
-}

@@ -54,7 +54,8 @@ class ClassUsageRecorder(
     } else {
       coneKotlinType.classId?.let { classId ->
         if (!classId.isLocal) {
-          context.session.symbolProvider.getClassLikeSymbolByClassId(classId)
+          context.session.symbolProvider
+            .getClassLikeSymbolByClassId(classId)
             ?.let { recordClass(it, context, isExplicit, collectTypeArguments, visited) }
         }
       }
@@ -82,7 +83,8 @@ class ClassUsageRecorder(
         recordTypeRef(it, context, false, collectTypeArguments, visited)
       }
       if (collectTypeArguments) {
-        firClass.typeParameterSymbols.flatMap { it.resolvedBounds }
+        firClass.typeParameterSymbols
+          .flatMap { it.resolvedBounds }
           .forEach { recordTypeRef(it, context, isExplicit, collectTypeArguments, visited) }
       }
     }

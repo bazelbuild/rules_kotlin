@@ -24,17 +24,17 @@ import io.bazel.worker.WorkerContext
 import javax.inject.Inject
 
 class MergeJdeps
-@Inject
-constructor(
-  private val merger: JdepsMerger,
-) : Work {
-  override fun invoke(
-    ctx: WorkerContext.TaskContext,
-    args: Iterable<String>,
-  ): Status {
-    if (merger.execute(ctx, args.toList()) != 0) {
-      return Status.ERROR
+  @Inject
+  constructor(
+    private val merger: JdepsMerger,
+  ) : Work {
+    override fun invoke(
+      ctx: WorkerContext.TaskContext,
+      args: Iterable<String>,
+    ): Status {
+      if (merger.execute(ctx, args.toList()) != 0) {
+        return Status.ERROR
+      }
+      return Status.SUCCESS
     }
-    return Status.SUCCESS
   }
-}
