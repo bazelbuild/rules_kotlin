@@ -65,14 +65,14 @@ object BazelIntegrationTestRunner {
           workspace,
           "--bazelrc=$bazelrc",
           "info",
-          "--enable_bzlmod=$bzlmod",
+          bzlmod.asFlag(),
           "--override_repository=rules_kotlin=$unpack",
         ).onFailThrow()
         bazel.run(
           workspace,
           "--bazelrc=$bazelrc",
           "build",
-          "--enable_bzlmod=$bzlmod",
+          bzlmod.asFlag(),
           "--override_repository=rules_kotlin=$unpack",
           "//...",
         ).onFailThrow()
@@ -80,7 +80,7 @@ object BazelIntegrationTestRunner {
           workspace,
           "--bazelrc=$bazelrc",
           "query",
-          "--enable_bzlmod=$bzlmod",
+          bzlmod.asFlag(),
           "--override_repository=rules_kotlin=$unpack",
           "kind(\".*_test\", \"//...\")",
         ).ok { process ->
@@ -89,7 +89,7 @@ object BazelIntegrationTestRunner {
               workspace,
               "--bazelrc=$bazelrc",
               "test",
-              "--enable_bzlmod=$bzlmod",
+              bzlmod.asFlag(),
               "--override_repository=rules_kotlin=$unpack",
               "//...",
             ).onFailThrow()
@@ -97,6 +97,12 @@ object BazelIntegrationTestRunner {
         }
       }
   }
+
+  fun workspaceConfiguration(enableBzlMod:Boolean) {
+
+  }
+
+  private fun Boolean.asFlag() : String = if (this) { "--enable_bzlmod=true" } else {  "--enable_workspace=true" }
 
   private fun Path.hasModule() = resolve("MODULE").exists() || resolve("MODULE.bazel").exists()
   private fun Path.hasWorkspace() = resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
