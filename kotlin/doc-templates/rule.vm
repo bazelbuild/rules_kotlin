@@ -6,7 +6,10 @@ ${util.ruleSummary($ruleName, $ruleInfo)}
 
 ## find common nonzero indent
 #set($chomp=0)
-#foreach ($ln in $ruleInfo.docString.split("\n"))
+## > Stardoc 6.0.0 The Markdown renderer now uses Google EscapeVelocity instead of Apache Velocity for templating.
+## No more \n in templating rules. :/
+#foreach ($ln in $ruleInfo.docString.split("
+"))
     #if ($ln.length() > 0)
         #foreach ($c in [0..$ln.length()])
             #if (!$ln.substring(0, $c).trim().isEmpty())
@@ -22,7 +25,10 @@ ${util.ruleSummary($ruleName, $ruleInfo)}
 #end
 
 ## print lines, removing common indent.
-#foreach ($ln in $ruleInfo.docString.split("\n"))
+## > Stardoc 6.0.0 The Markdown renderer now uses Google EscapeVelocity instead of Apache Velocity for templating.
+## No more \n in templating rules. :/
+#foreach ($ln in $ruleInfo.docString.split("
+"))
     #if ($ln.length() >= $chomp && $ln.substring(0, $chomp).trim().isEmpty())
 ${ln.substring($chomp)}
     #else
