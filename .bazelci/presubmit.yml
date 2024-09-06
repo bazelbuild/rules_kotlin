@@ -26,6 +26,7 @@ tasks:
     test_flags: ${{ test_flags }}
     test_targets:
       - "//:all_tests"
+      - "//docs:are_docs_up_to_date_test"
     build_targets:
       - "//:rules_kotlin_release"
   integration_tests:
@@ -56,6 +57,8 @@ tasks:
   stardoc:
     name: Stardoc api documentation
     platform: ubuntu1804
+    build_flags:
+      - "--enable_bzlmod=true"
     build_targets:
       - //kotlin:stardoc
     test_targets:

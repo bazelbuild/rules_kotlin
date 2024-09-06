@@ -36,7 +36,6 @@ ktlint_config(
 test_suite(
     name = "all_tests",
     tests = [
-        "//docs:are_docs_up_to_date_test",
         "//src/test/kotlin/io/bazel/kotlin:assertion_tests",
         "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
         "//src/test/kotlin/io/bazel/kotlin/integration:integration_tests",
