@@ -44,6 +44,7 @@ object BazelIntegrationTestRunner {
             destination.apply { parent.createDirectories() },
             stream.readBytes(),
           )
+
           else -> throw NotImplementedError(entry.toString())
         }
       }
@@ -55,61 +56,56 @@ object BazelIntegrationTestRunner {
 
     val bazelrc = version.resolveBazelRc(workspace)
 
-    listOf(true, false)
-      .filter { bzlmod ->
-        bzlmod && workspace.hasModule() || !bzlmod && workspace.hasWorkspace()
-      }
-      .forEach { bzlmod ->
-        println("Starting bzlmod $bzlmod test")
-        bazel.run(
-          workspace,
-          "--bazelrc=$bazelrc",
-          "info",
-          bzlmod.asFlag(),
-          "--override_repository=rules_kotlin=$unpack",
-        ).onFailThrow()
-        bazel.run(
-          workspace,
-          "--bazelrc=$bazelrc",
-          "build",
-          bzlmod.asFlag(),
-          "--override_repository=rules_kotlin=$unpack",
-          "//...",
-        ).onFailThrow()
-        bazel.run(
-          workspace,
-          "--bazelrc=$bazelrc",
-          "query",
-          bzlmod.asFlag(),
-          "--override_repository=rules_kotlin=$unpack",
-          "kind(\".*_test\", \"//...\")",
-        ).ok { process ->
-          if (process.stdOut.isNotEmpty()) {
-            bazel.run(
-              workspace,
-              "--bazelrc=$bazelrc",
-              "test",
-              bzlmod.asFlag(),
-              "--override_repository=rules_kotlin=$unpack",
-              "//...",
-            ).onFailThrow()
-          }
+    listOf(true, false).filter { bzlmod ->
+      bzlmod && workspace.hasModule() || !bzlmod && workspace.hasWorkspace()
+    }.forEach { bzlmod ->
+      println("Starting bzlmod $bzlmod test")
+      bazel.run(
+        workspace,
+        "--bazelrc=$bazelrc",
+        "info",
+        version.workspaceFlag(bzlmod),
+        "--override_repository=rules_kotlin=$unpack",
+      ).onFailThrow()
+      bazel.run(
+        workspace,
+        "--bazelrc=$bazelrc",
+        "build",
+        version.workspaceFlag(bzlmod),
+        "--override_repository=rules_kotlin=$unpack",
+        "//...",
+      ).onFailThrow()
+      bazel.run(
+        workspace,
+        "--bazelrc=$bazelrc",
+        "query",
+        version.workspaceFlag(bzlmod),
+        "--override_repository=rules_kotlin=$unpack",
+        "kind(\".*_test\", \"//...\")",
+      ).ok { process ->
+        if (process.stdOut.isNotEmpty()) {
+          bazel.run(
+            workspace,
+            "--bazelrc=$bazelrc",
+            "test",
+            version.workspaceFlag(bzlmod),
+            "--override_repository=rules_kotlin=$unpack",
+            "//...",
+          ).onFailThrow()
         }
       }
+    }
   }
 
-  fun workspaceConfiguration(enableBzlMod:Boolean) {
+  fun Path.hasModule() = resolve("MODULE").exists() || resolve("MODULE.bazel").exists()
+  private fun Path.hasWorkspace() =
+    resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
 
-  }
-
-  private fun Boolean.asFlag() : String = if (this) { "--enable_bzlmod=true" } else {  "--enable_workspace=true" }
-
-  private fun Path.hasModule() = resolve("MODULE").exists() || resolve("MODULE.bazel").exists()
-  private fun Path.hasWorkspace() = resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
-  
-  sealed class Version{
+  sealed class Version {
     abstract fun resolveBazelRc(workspace: Path): Path;
-    
+
+    abstract fun workspaceFlag(isBzlMod: Boolean): String
+
     class Head : Version() {
       override fun resolveBazelRc(workspace: Path): Path {
         workspace.resolve(".bazelrc.head").takeIf(Path::exists)?.let {
@@ -120,42 +116,59 @@ object BazelIntegrationTestRunner {
         }
         return workspace.resolve("/dev/null")
       }
+
+      override fun workspaceFlag(isBzlMod: Boolean): String = if (isBzlMod) {
+        "--enable_bzlmod=true"
+      } else {
+        "--enable_workspace=true"
+      }
     }
-    
-    class Known(private val major: Int, private val minor: Int, private val patch: Int) : Version() {
+
+    class Known(private val major: Int, private val minor: Int, private val patch: Int) :
+      Version() {
       override fun resolveBazelRc(workspace: Path): Path {
-        workspace.resolve(".bazelrc.${major}-${minor}-${patch}")
-          .takeIf(Path::exists)?.let {
-            return it
+        sequence {
+          val parts = mutableListOf(major, minor, patch)
+          (parts.size downTo 0).forEach { index ->
+            yield("." + parts.subList(0, index).joinToString("-"))
           }
-        workspace.resolve(".bazelrc.${major}-${minor}").takeIf(Path::exists)?.let {
-          return it
         }
-        workspace.resolve(".bazelrc.${major}").takeIf(Path::exists)?.let {
-          return it
-        }
-        workspace.resolve(".bazelrc.${major}").takeIf(Path::exists)?.let {
-          return it
-        }
-        workspace.resolve(".bazelrc").takeIf(Path::exists)?.let {
-          return it
-        }
+          .map { suffix -> workspace.resolve(".bazelrc${suffix}") }
+          .find(Path::exists)
+          ?.let { bazelrc ->
+            return bazelrc
+          }
         return workspace.resolve("/dev/null")
+      }
+
+      override fun workspaceFlag(isBzlMod: Boolean): String = if (isBzlMod) {
+        "--enable_bzlmod=true"
+      } else if (major >= 7) {
+        "--enable_workspace=true"
+      } else {
+        "--enable_bzlmod=false"
       }
     }
   }
+
+  private val VERSION_REGEX = Regex("(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)([^.]*)")
 
   private fun Result<ProcessResult>.parseVersion(): Version {
     ok { result ->
       result.stdOut.toString(UTF_8).split("\n")
         // first not empty should have the version
-        .find(String::isNotEmpty)
-        ?.let { line ->
+        .find(String::isNotEmpty)?.let { line ->
           if ("no_version" in line) {
             return Version.Head()
           }
-          val parts = line.split(" ")[1].split(".")
-          return Version.Known(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+          VERSION_REGEX.find(line.trim())?.let { result ->
+            return Version.Known(
+              major = result.groups["major"]?.value?.toInt() ?: 0,
+              minor = result.groups["minor"]?.value?.toInt() ?: 0,
+              patch = result.groups["patch"]?.value?.toInt() ?: 0,
+            )
+          }
+
         }
       throw IllegalStateException("Bazel version not available")
     }
@@ -176,42 +189,40 @@ object BazelIntegrationTestRunner {
     onFailure = { err -> throw err },
   )
 
-  fun Path.run(inDirectory: Path, vararg args: String): Result<ProcessResult> = ProcessBuilder()
-    .command(this.toString(), *args)
-    .directory(inDirectory.toFile())
-    .start()
-    .let { process ->
-      println("Running ${args.joinToString(" ")}...")
-      val executor = Executors.newCachedThreadPool();
-      try {
-        val stdOut = executor.submit(process.inputStream.streamTo(System.out))
-        val stdErr = executor.submit(process.errorStream.streamTo(System.out))
-        if (process.waitFor(300, TimeUnit.SECONDS) && process.exitValue() == 0) {
-          return Result.success(
-            ProcessResult(
-              exit = 0,
-              stdErr = stdErr.get(),
-              stdOut = stdOut.get(),
-            ),
-          )
-        }
-        process.destroyForcibly()
-        return Result.failure(
-          AssertionError(
-            """
+  fun Path.run(inDirectory: Path, vararg args: String): Result<ProcessResult> =
+    ProcessBuilder().command(this.toString(), *args).directory(inDirectory.toFile()).start()
+      .let { process ->
+        println("Running ${args.joinToString(" ")}...")
+        val executor = Executors.newCachedThreadPool();
+        try {
+          val stdOut = executor.submit(process.inputStream.streamTo(System.out))
+          val stdErr = executor.submit(process.errorStream.streamTo(System.out))
+          if (process.waitFor(300, TimeUnit.SECONDS) && process.exitValue() == 0) {
+            return Result.success(
+              ProcessResult(
+                exit = 0,
+                stdErr = stdErr.get(),
+                stdOut = stdOut.get(),
+              ),
+            )
+          }
+          process.destroyForcibly()
+          return Result.failure(
+            AssertionError(
+              """
             $this ${args.joinToString(" ")} exited ${process.exitValue()}:
             stdout:
             ${stdOut.get().toString(UTF_8)}
             stderr:
             ${stdErr.get().toString(UTF_8)}
           """.trimIndent(),
-          ),
-        )
-      } finally {
-        executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.SECONDS);
+            ),
+          )
+        } finally {
+          executor.shutdown();
+          executor.awaitTermination(1, TimeUnit.SECONDS);
+        }
       }
-    }
 
   private fun InputStream.streamTo(out: OutputStream): Callable<ByteArray> {
     return Callable {
