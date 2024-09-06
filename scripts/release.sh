@@ -48,9 +48,7 @@ if test ! -d examples; then
 fi
 
 # generate stardoc
-bazel build //kotlin:stardoc || fail "docs did not generate"
-
-cp -f bazel-bin/kotlin/kotlin.md docs/ || fail "couldn't copy"
+source scripts/generate_docs
 
 bazel test //...:all || fail "tests failed"
 

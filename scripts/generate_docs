@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+bazel build //kotlin:stardoc || fail "docs did not generate"
+
+cp -f bazel-bin/kotlin/kotlin.md docs/ || fail "couldn't copy"

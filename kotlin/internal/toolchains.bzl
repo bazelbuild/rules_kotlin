@@ -301,7 +301,10 @@ def define_kt_toolchain(
         experimental_multiplex_workers = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
-        jacocorunner = None):
+        jacocorunner = None,
+        exec_compatible_with = None,
+        target_compatible_with = None,
+        target_settings = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
 
@@ -330,6 +333,9 @@ def define_kt_toolchain(
         toolchain_type = _TOOLCHAIN_TYPE,
         toolchain = impl_name,
         visibility = ["//visibility:public"],
+        exec_compatible_with = exec_compatible_with or [],
+        target_compatible_with = target_compatible_with or [],
+        target_settings = target_settings or [],
     )
 
 def kt_configure_toolchains():
