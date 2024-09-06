@@ -30,7 +30,11 @@ genrule(
             "ANDROID_SDK_ROOT",
             "ANDROID_NDK_HOME",
         ],
-        bazel_versions = [version for version in bazel_binaries.versions.all if version not in metadata["exclude"]],
+        bazel_versions = [
+            version
+            for version in bazel_binaries.versions.all
+            if version in metadata["only"] or (not metadata["only"] and version not in metadata["exclude"])
+        ],
         tags = [],
         test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",
         workspace_files = glob(
@@ -52,6 +56,16 @@ genrule(
                     allow_empty = True,
                 )
             ],
+            "only": [
+                # Cut to the file name, and use it as an only bazel version. For exclusion to work
+                # the file name in the `only` directory must match the bazel version in `bazel_binaries.versions.all`.
+                # This is done as a secondary loop for readability and avoiding over-globbing.
+                version.rpartition("/")[2]
+                for version in glob(
+                    ["%s/only/*" % example],
+                    allow_empty = True,
+                )
+            ],
         }
         for example in {
             # Cut to the directory.
@@ -64,7 +78,7 @@ genrule(
                     # Node is currently broken.
                     "node/**",
                     # Jetpack compose is in an ambigious state due to the android rules migration
-                    "jetpack_compose/**",
+                    #"jetpack_compose/**",
                 ],
             )
         }
