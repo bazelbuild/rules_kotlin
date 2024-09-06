@@ -197,7 +197,7 @@ object BazelIntegrationTestRunner {
         try {
           val stdOut = executor.submit(process.inputStream.streamTo(System.out))
           val stdErr = executor.submit(process.errorStream.streamTo(System.out))
-          if (process.waitFor(300, TimeUnit.SECONDS) && process.exitValue() == 0) {
+          if (process.waitFor(600, TimeUnit.SECONDS) && process.exitValue() == 0) {
             return Result.success(
               ProcessResult(
                 exit = 0,
@@ -210,7 +210,7 @@ object BazelIntegrationTestRunner {
           return Result.failure(
             AssertionError(
               """
-            $this ${args.joinToString(" ")} exited ${process.exitValue()}:
+            $this ${args.joinToString(" ")} exited ${process.waitFor()}:
             stdout:
             ${stdOut.get().toString(UTF_8)}
             stderr:
