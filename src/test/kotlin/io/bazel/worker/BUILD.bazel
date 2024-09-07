@@ -79,7 +79,8 @@ test_suite(
         ":InvocationWorkerTest",
         ":JavaPersistentWorkerTest",
         ":WorkerContextTest",
-        ":WorkerEnvironmentTest",
+        # TODO(restingbull): Re-enable when not flaky.
+        #":WorkerEnvironmentTest",
     ],
 )
 

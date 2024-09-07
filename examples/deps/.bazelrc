@@ -1,0 +1,2 @@
+common --incompatible_enable_android_toolchain_resolution
+common --android_platforms=//:arm64-v8a
