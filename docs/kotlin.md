@@ -483,7 +483,8 @@ kt_plugin_cfg(<a href="#kt_plugin_cfg-name">name</a>, <a href="#kt_plugin_cfg-de
 define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#define_kt_toolchain-language_version">language_version</a>, <a href="#define_kt_toolchain-api_version">api_version</a>, <a href="#define_kt_toolchain-jvm_target">jvm_target</a>, <a href="#define_kt_toolchain-experimental_use_abi_jars">experimental_use_abi_jars</a>,
                     <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>, <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>,
                     <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>, <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>,
-                    <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>)
+                    <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>,
+                    <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -505,6 +506,9 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-javac_options"></a>javac_options |  <p align="center"> - </p>   |  <code>Label("//kotlin/internal:default_javac_options")</code> |
 | <a id="define_kt_toolchain-kotlinc_options"></a>kotlinc_options |  <p align="center"> - </p>   |  <code>Label("//kotlin/internal:default_kotlinc_options")</code> |
 | <a id="define_kt_toolchain-jacocorunner"></a>jacocorunner |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="define_kt_toolchain-exec_compatible_with"></a>exec_compatible_with |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="define_kt_toolchain-target_compatible_with"></a>target_compatible_with |  <p align="center"> - </p>   |  <code>None</code> |
+| <a id="define_kt_toolchain-target_settings"></a>target_settings |  <p align="center"> - </p>   |  <code>None</code> |
 
 
 <a id="kt_register_toolchains"></a>
