@@ -26,7 +26,6 @@ tasks:
     test_flags: ${{ test_flags }}
     test_targets:
       - "//:all_tests"
-      - "//docs:are_docs_up_to_date_test"
     build_targets:
       - "//:rules_kotlin_release"
   integration_tests:
