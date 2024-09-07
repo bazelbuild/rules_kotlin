@@ -40,7 +40,6 @@ release_archive(
         name = doc,
         out = "%s.md" % doc,
         input = "%s.bzl" % doc,
-        rule_template = "//kotlin:doc-templates/rule.vm",
         deps = [
             "//kotlin/internal",
         ],
