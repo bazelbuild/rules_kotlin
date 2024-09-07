@@ -27,8 +27,9 @@ internal class JdepsFirExtensions(
     +::JdepsFirCheckersExtension
   }
 
-  internal inner class JdepsFirCheckersExtension(session: FirSession) :
-    FirAdditionalCheckersExtension(session) {
+  internal inner class JdepsFirCheckersExtension(
+    session: FirSession,
+  ) : FirAdditionalCheckersExtension(session) {
     override val declarationCheckers: DeclarationCheckers =
       object : DeclarationCheckers() {
         override val basicDeclarationCheckers: Set<FirBasicDeclarationChecker> =

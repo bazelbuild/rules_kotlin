@@ -54,11 +54,11 @@ versions = struct(
         ],
     ),
     PINTEREST_KTLINT = version(
-        version = "0.49.1",
+        version = "1.3.1",
         url_templates = [
             "https://github.com/pinterest/ktlint/releases/download/{version}/ktlint",
         ],
-        sha256 = "2b3f6f674a944d25bb8d283c3539947bbe86074793012909a55de4b771f74bcc",
+        sha256 = "a9f923be58fbd32670a17f0b729b1df804af882fa57402165741cb26e5440ca1",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
         version = "2.0.0",

@@ -8,7 +8,8 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 internal class JdepsGenExtension2(
   private val classUsageRecorder: ClassUsageRecorder,
   configuration: CompilerConfiguration,
-) : BaseJdepsGenExtension(configuration), ClassFileFactoryFinalizerExtension {
+) : BaseJdepsGenExtension(configuration),
+  ClassFileFactoryFinalizerExtension {
   override fun finalizeClassFactory(factory: ClassFileFactory) {
     onAnalysisCompleted(
       classUsageRecorder.explicitClassesCanonicalPaths,

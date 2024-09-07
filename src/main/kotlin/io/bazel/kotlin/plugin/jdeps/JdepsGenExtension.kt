@@ -185,7 +185,7 @@ class JdepsGenExtension(
           (
             resultingDescriptor.getter
               ?.correspondingProperty as? SyntheticJavaPropertyDescriptor
-            )?.let { syntheticJavaPropertyDescriptor ->
+          )?.let { syntheticJavaPropertyDescriptor ->
             collectTypeReferences(syntheticJavaPropertyDescriptor.type, isExplicit = false)
 
             val functionDescriptor = syntheticJavaPropertyDescriptor.getMethod

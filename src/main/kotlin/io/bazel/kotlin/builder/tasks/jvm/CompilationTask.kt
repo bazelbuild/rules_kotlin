@@ -89,8 +89,7 @@ fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): Co
     .flag(
       LANGUAGE_VERSION_ARG,
       overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
-    )
-    .flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
+    ).flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
     .flag("-module-name", info.moduleName)
 }
 
@@ -242,7 +241,7 @@ internal fun JvmCompilationTask.runPlugins(
     (
       inputs.processorsList.isEmpty() &&
         inputs.stubsPluginClasspathList.isEmpty()
-      ) ||
+    ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this
@@ -442,7 +441,7 @@ fun JvmCompilationTask.compileKotlin(
           options = inputs.compilerPluginOptionsList,
           classpath = inputs.compilerPluginClasspathList,
         )
-      ).values(inputs.javaSourcesList)
+    ).values(inputs.javaSourcesList)
       .values(inputs.kotlinSourcesList)
       .flag("-d", directories.classes)
       .list()

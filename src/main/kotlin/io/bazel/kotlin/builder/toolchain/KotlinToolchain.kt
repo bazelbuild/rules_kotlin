@@ -157,35 +157,35 @@ class KotlinToolchain private constructor(
           kspSymbolProcessingCommandLine,
         ),
         jvmAbiGen =
-        CompilerPlugin(
-          jvmAbiGenFile.path,
-          "org.jetbrains.kotlin.jvm.abi",
-        ),
+          CompilerPlugin(
+            jvmAbiGenFile.path,
+            "org.jetbrains.kotlin.jvm.abi",
+          ),
         skipCodeGen =
-        CompilerPlugin(
-          skipCodeGenFile.path,
-          "io.bazel.kotlin.plugin.SkipCodeGen",
-        ),
+          CompilerPlugin(
+            skipCodeGenFile.path,
+            "io.bazel.kotlin.plugin.SkipCodeGen",
+          ),
         jdepsGen =
-        CompilerPlugin(
-          jdepsGenFile.path,
-          "io.bazel.kotlin.plugin.jdeps.JDepsGen",
-        ),
+          CompilerPlugin(
+            jdepsGenFile.path,
+            "io.bazel.kotlin.plugin.jdeps.JDepsGen",
+          ),
         kapt3Plugin =
-        CompilerPlugin(
-          kaptFile.path,
-          "org.jetbrains.kotlin.kapt3",
-        ),
+          CompilerPlugin(
+            kaptFile.path,
+            "org.jetbrains.kotlin.kapt3",
+          ),
         kspSymbolProcessingApi =
-        CompilerPlugin(
-          kspSymbolProcessingApi.absolutePath,
-          "com.google.devtools.ksp.symbol-processing",
-        ),
+          CompilerPlugin(
+            kspSymbolProcessingApi.absolutePath,
+            "com.google.devtools.ksp.symbol-processing",
+          ),
         kspSymbolProcessingCommandLine =
-        CompilerPlugin(
-          kspSymbolProcessingCommandLine.absolutePath,
-          "com.google.devtools.ksp.symbol-processing",
-        ),
+          CompilerPlugin(
+            kspSymbolProcessingCommandLine.absolutePath,
+            "com.google.devtools.ksp.symbol-processing",
+          ),
       )
   }
 
@@ -267,11 +267,11 @@ class KotlinToolchain private constructor(
 
   @Singleton
   class KotlincInvoker
-  @Inject
-  constructor(
-    toolchain: KotlinToolchain,
-  ) : KotlinCliToolInvoker(
-    toolchain.toolchainWithReflect(),
-    "io.bazel.kotlin.compiler.BazelK2JVMCompiler",
-  )
+    @Inject
+    constructor(
+      toolchain: KotlinToolchain,
+    ) : KotlinCliToolInvoker(
+        toolchain.toolchainWithReflect(),
+        "io.bazel.kotlin.compiler.BazelK2JVMCompiler",
+      )
 }

@@ -47,7 +47,8 @@ internal class QualifiedAccessChecker(
     }
 
     // track fun parameter types based on referenced function
-    expression.calleeReference.toResolvedFunctionSymbol()
+    expression.calleeReference
+      .toResolvedFunctionSymbol()
       ?.valueParameterSymbols
       ?.forEach { valueParam ->
         valueParam.resolvedReturnTypeRef.let {
