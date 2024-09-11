@@ -9,4 +9,5 @@ sh_test(
         "kotlin.md",
         "//kotlin:stardoc",
     ],
+    tags = ["manual"],
 )
