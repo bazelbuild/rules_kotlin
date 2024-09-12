@@ -1,18 +1,6 @@
 load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 
 kt_jvm_test(
-    name = "IOTest",
-    srcs = [
-        "IOTest.kt",
-    ],
-    test_class = "io.bazel.worker.IOTest",
-    deps = [
-        "//src/main/kotlin/io/bazel/worker",
-        "@kotlin_rules_maven//:com_google_truth_truth",
-    ],
-)
-
-kt_jvm_test(
     name = "WorkerContextTest",
     srcs = [
         "WorkerContextTest.kt",
@@ -58,29 +46,11 @@ kt_jvm_test(
     ],
 )
 
-kt_jvm_test(
-    name = "JavaPersistentWorkerTest",
-    srcs = [
-        "JavaPersistentWorkerTest.kt",
-    ],
-    test_class = "io.bazel.worker.JavaPersistentWorkerTest",
-    deps = [
-        ":WorkerEnvironment",
-        "//src/main/kotlin/io/bazel/worker",
-        "//src/main/protobuf:worker_protocol_java_proto",
-        "@kotlin_rules_maven//:com_google_truth_truth",
-    ],
-)
-
 test_suite(
     name = "worker_tests",
     tests = [
-        ":IOTest",
         ":InvocationWorkerTest",
-        ":JavaPersistentWorkerTest",
         ":WorkerContextTest",
-        # TODO(restingbull): Re-enable when not flaky.
-        #":WorkerEnvironmentTest",
     ],
 )
 

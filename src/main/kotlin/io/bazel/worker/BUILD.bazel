@@ -21,5 +21,6 @@ kt_bootstrap_library(
     ],
     deps = [
         ":worker_proto",
+        "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
     ],
 )
