@@ -27,9 +27,6 @@ kt_jvm_test(
 kt_jvm_library(
     name = "WorkerEnvironment",
     srcs = ["WorkerEnvironment.kt"],
-    deps = [
-        "//src/main/protobuf:worker_protocol_java_proto",
-    ],
 )
 
 kt_jvm_test(
@@ -41,7 +38,6 @@ kt_jvm_test(
     deps = [
         ":WorkerEnvironment",
         "//src/main/kotlin/io/bazel/worker",
-        "//src/main/protobuf:worker_protocol_java_proto",
         "@kotlin_rules_maven//:com_google_truth_truth",
     ],
 )
