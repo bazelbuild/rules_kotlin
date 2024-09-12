@@ -1,5 +1,3 @@
-load("@rules_java//java:defs.bzl", "java_binary", "java_import")
-
 # General purpose Bazel worker implemented Kotlin. Best suited for jvm based tools.
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 
