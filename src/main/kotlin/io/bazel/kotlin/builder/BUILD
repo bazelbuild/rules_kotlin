@@ -17,13 +17,11 @@ java_library(
     name = "builder",
     srcs = glob(["*.java"]),
     visibility = ["//src:__subpackages__"],
-    runtime_deps = [
-        "//kotlin/compiler:kotlin-stdlib-jdk7",
-        "//kotlin/compiler:kotlin-stdlib-jdk8",
-    ],
     deps = [
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:kotlin-stdlib",
+        "//kotlin/compiler:kotlin-stdlib-jdk7",
+        "//kotlin/compiler:kotlin-stdlib-jdk8",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
         "//src/main/kotlin/io/bazel/kotlin/builder/utils",
