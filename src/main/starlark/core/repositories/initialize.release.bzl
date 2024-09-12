@@ -18,6 +18,7 @@ load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
     "http_file",
+    "http_jar",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(
@@ -69,6 +70,27 @@ def kotlin_repositories(
         sha256 = versions.PINTEREST_KTLINT.sha256,
         urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],
         executable = True,
+    )
+
+    maybe(
+        http_jar,
+        name = "kotlinx_serialization_core_jvm",
+        sha256 = versions.KOTLINX_SERIALIZATION_CORE_JVM.sha256,
+        urls = [url.format(version = versions.KOTLINX_SERIALIZATION_CORE_JVM.version) for url in versions.KOTLINX_SERIALIZATION_CORE_JVM.url_templates],
+    )
+
+    maybe(
+        http_jar,
+        name = "kotlinx_serialization_json",
+        sha256 = versions.KOTLINX_SERIALIZATION_JSON.sha256,
+        urls = [url.format(version = versions.KOTLINX_SERIALIZATION_JSON.version) for url in versions.KOTLINX_SERIALIZATION_JSON.url_templates],
+    )
+
+    maybe(
+        http_jar,
+        name = "kotlinx_serialization_json_jvm",
+        sha256 = versions.KOTLINX_SERIALIZATION_JSON_JVM.sha256,
+        urls = [url.format(version = versions.KOTLINX_SERIALIZATION_JSON_JVM.version) for url in versions.KOTLINX_SERIALIZATION_JSON_JVM.url_templates],
     )
 
     if is_bzlmod:

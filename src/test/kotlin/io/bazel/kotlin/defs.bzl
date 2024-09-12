@@ -44,6 +44,9 @@ def kt_rules_test(name, **kwargs):
         "//kotlin/compiler:kotlin-stdlib-jdk8",
         "//kotlin/compiler:kotlin-annotation-processing",
         "@rules_kotlin//kotlin/compiler:kotlin-reflect",
+        "@kotlinx_serialization_core_jvm//jar",
+        "@kotlinx_serialization_json//jar",
+        "@kotlinx_serialization_json_jvm//jar",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

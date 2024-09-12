@@ -143,7 +143,6 @@ abstract class KotlinAbstractTestBuilder<T> {
     }
 
 
-
     public final Path writeSourceFile(String filename, String[] lines) {
         return writeFile(DirectoryType.SOURCES, filename, lines);
     }
@@ -242,7 +241,10 @@ abstract class KotlinAbstractTestBuilder<T> {
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:symbol-processing-api").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:symbol-processing-cmdline").singleCompileJar())
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:symbol-processing-cmdline").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//jar").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//jar").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//jar").singleCompileJar())
         );
     }
 }
