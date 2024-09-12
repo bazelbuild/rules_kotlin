@@ -104,6 +104,27 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlinx...serialization-core-jvm",
+        ).toPath()
+    }
+
+    private val KOTLINX_SERIALIZATION_JSON by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlinx...serialization-json",
+        ).toPath()
+    }
+
+    private val KOTLINX_SERIALIZATION_JSON_JVM by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlinx...serialization-json-jvm",
+        ).toPath()
+    }
+
     private val JAVA_HOME by lazy {
       FileSystems
         .getDefault()
@@ -129,6 +150,9 @@ class KotlinToolchain private constructor(
         KAPT_PLUGIN.verified().absoluteFile,
         KSP_SYMBOL_PROCESSING_API.toFile(),
         KSP_SYMBOL_PROCESSING_CMDLINE.toFile(),
+        KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
+        KOTLINX_SERIALIZATION_JSON.toFile(),
+        KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
       )
 
     @JvmStatic
@@ -142,6 +166,9 @@ class KotlinToolchain private constructor(
       kaptFile: File,
       kspSymbolProcessingApi: File,
       kspSymbolProcessingCommandLine: File,
+      kotlinxSerializationCoreJvm: File,
+      kotlinxSerializationJson: File,
+      kotlinxSerializationJsonJvm: File,
     ): KotlinToolchain =
       KotlinToolchain(
         listOf(
@@ -155,6 +182,9 @@ class KotlinToolchain private constructor(
           jdepsGenFile,
           kspSymbolProcessingApi,
           kspSymbolProcessingCommandLine,
+          kotlinxSerializationCoreJvm,
+          kotlinxSerializationJson,
+          kotlinxSerializationJsonJvm,
         ),
         jvmAbiGen =
           CompilerPlugin(

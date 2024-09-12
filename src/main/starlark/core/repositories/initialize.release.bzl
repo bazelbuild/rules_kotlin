@@ -18,6 +18,7 @@ load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
     "http_file",
+    "http_jar",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(
@@ -69,6 +70,27 @@ def kotlin_repositories(
         sha256 = versions.PINTEREST_KTLINT.sha256,
         urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],
         executable = True,
+    )
+
+    maybe(
+        http_jar,
+        name = "kotlinx_serialization_core_jvm",
+        url = "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.6.3/kotlinx-serialization-core-jvm-1.6.3.jar",
+        sha256 = "29c821a8d4e25cbfe4f2ce96cdd4526f61f8f4e69a135f9612a34a81d93b65f1",
+    )
+
+    maybe(
+        http_jar,
+        name = "kotlinx_serialization_json",
+        url = "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.6.3/kotlinx-serialization-json-1.6.3.jar",
+        sha256 = "8c0016890a79ab5980dd520a5ab1a6738023c29aa3b6437c482e0e5fdc06dab1",
+    )
+
+    maybe(
+        http_jar,
+        name = "kotlinx_serialization_json_jvm",
+        url = "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.6.3/kotlinx-serialization-json-jvm-1.6.3.jar",
+        sha256 = "d3234179bcff1886d53d67c11eca47f7f3cf7b63c349d16965f6db51b7f3dd9a",
     )
 
     if is_bzlmod:

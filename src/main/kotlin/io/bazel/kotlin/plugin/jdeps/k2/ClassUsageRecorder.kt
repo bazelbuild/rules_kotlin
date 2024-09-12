@@ -44,13 +44,15 @@ class ClassUsageRecorder(
     visited: MutableSet<Pair<ClassId, Boolean>> = mutableSetOf(),
   ) {
     if (collectTypeArguments) {
-      coneKotlinType.forEachType { coneType ->
-        val classId = coneType.classId ?: return@forEachType
-        if (ANONYMOUS in classId.toString()) return@forEachType
-        context.session.symbolProvider
-          .getClassLikeSymbolByClassId(classId)
-          ?.let { recordClass(it, context, isExplicit, collectTypeArguments, visited) }
-      }
+      coneKotlinType.forEachType(
+        action = { coneType ->
+          val classId = coneType.classId ?: return@forEachType
+          if (ANONYMOUS in classId.toString()) return@forEachType
+          context.session.symbolProvider
+            .getClassLikeSymbolByClassId(classId)
+            ?.let { recordClass(it, context, isExplicit, collectTypeArguments, visited) }
+        },
+      )
     } else {
       coneKotlinType.classId?.let { classId ->
         if (!classId.isLocal) {
