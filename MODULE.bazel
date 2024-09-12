@@ -33,7 +33,6 @@ rules_kotlin_bootstrap_extensions = use_extension(
 )
 use_repo(
     rules_kotlin_bootstrap_extensions,
-    "kt_java_stub_template",
     "released_com_github_google_ksp",
     "released_com_github_jetbrains_kotlin",
 )
