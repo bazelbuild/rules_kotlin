@@ -132,5 +132,26 @@ versions = struct(
         ],
         sha256 = "b84ed8546f1969d700ead4546de9f7637e0f058d835e47e865dcbb13c4210aed",
     ),
+    KOTLINX_SERIALIZATION_CORE_JVM = version(
+        version = "1.6.3",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/{version}/kotlinx-serialization-core-jvm-{version}.jar",
+        ],
+        sha256 = "29c821a8d4e25cbfe4f2ce96cdd4526f61f8f4e69a135f9612a34a81d93b65f1",
+    ),
+    KOTLINX_SERIALIZATION_JSON = version(
+        version = "1.6.3",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/{version}/kotlinx-serialization-json-{version}.jar",
+        ],
+        sha256 = "8c0016890a79ab5980dd520a5ab1a6738023c29aa3b6437c482e0e5fdc06dab1",
+    ),
+    KOTLINX_SERIALIZATION_JSON_JVM = version(
+        version = "1.6.3",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/{version}/kotlinx-serialization-json-jvm-{version}.jar",
+        ],
+        sha256 = "d3234179bcff1886d53d67c11eca47f7f3cf7b63c349d16965f6db51b7f3dd9a",
+    ),
     use_repository = _use_repository,
 )
