@@ -73,12 +73,10 @@ maven.install(
         "javax.inject:javax.inject:1",
         "org.apache.commons:commons-compress:1.26.2",
         "org.pantsbuild:jarjar:1.7.2",
-        "org.jetbrains.kotlinx:atomicfu-js:0.15.2",
-        "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
-        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.1.0",
-        "com.squareup.moshi:moshi:1.15.0",
-        "com.squareup.moshi:moshi-kotlin:1.15.0",
-        "com.squareup.moshi:moshi-kotlin-codegen:1.15.0",
+        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
+        "com.squareup.moshi:moshi:1.15.1",
+        "com.squareup.moshi:moshi-kotlin:1.15.1",
+        "com.squareup.moshi:moshi-kotlin-codegen:1.15.1",
     ],
     fail_if_repin_required = True,
     fetch_sources = True,
@@ -88,6 +86,21 @@ maven.install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+)
+maven.override(
+    name = "override_target_in_deps_kotlin_stdlib",
+    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib",
+    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib",
+)
+maven.override(
+    name = "override_target_in_deps_kotlin_stdlib_jdk7",
+    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk7",
+    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk7",
+)
+maven.override(
+    name = "override_target_in_deps_kotlin_stdlib_jdk8",
+    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk8",
+    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
 )
 use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 
