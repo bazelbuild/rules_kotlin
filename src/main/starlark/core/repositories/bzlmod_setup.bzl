@@ -29,6 +29,9 @@ def _rules_kotlin_extensions_impl(mctx):
                 repo = repo,
             )
             for repo in ["com_github_jetbrains_kotlin", "com_github_google_ksp"]
+        ] + [
+            # remove js stdlib from toolchain..
+            "perl -i -pe 's/Label\\(\"\\/\\/kotlin\\/compiler:kotlin-stdlib-js\"\\),//g' kotlin/internal/toolchains.bzl",
         ],
     )
 
