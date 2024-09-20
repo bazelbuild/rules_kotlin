@@ -465,6 +465,7 @@ def _run_kt_builder_action(
     """Creates a KotlinBuilder action invocation."""
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+
     args = _utils.init_args(ctx, rule_kind, associates.module_name, kotlinc_options)
 
     for f, path in outputs.items():
@@ -491,6 +492,7 @@ def _run_kt_builder_action(
         omit_if_empty = True,
         uniquify = True,
     )
+
     args.add_all(
         "--processorpath",
         annotation_processors,
@@ -557,7 +559,7 @@ def _run_kt_builder_action(
             toolchains.kt.execution_requirements,
             {"worker-key-mnemonic": mnemonic},
         ),
-        arguments = [args],
+        arguments = [ctx.actions.args().add_all(toolchains.kt.builder_args), args],
         progress_message = progress_message,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files

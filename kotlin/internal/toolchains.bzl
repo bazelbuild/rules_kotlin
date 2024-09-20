@@ -1,12 +1,3 @@
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
-load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
-load(
-    "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-    _KtJsInfo = "KtJsInfo",
-    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
-)
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +11,14 @@ load(
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KtJsInfo = "KtJsInfo",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
 load(
     "//kotlin/internal:opts.bzl",
     "JavacOptions",
@@ -74,6 +73,11 @@ def _kotlin_toolchain_impl(ctx):
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
+        builder_args = [
+            "--wrapper_script_flag=--main_advice_classpath=%s" % (
+                ":".join([f.path for f in ctx.files.jvm_stdlibs])
+            ),
+        ],
         jdeps_merger = ctx.attr.jdeps_merger,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
@@ -325,16 +329,16 @@ def define_kt_toolchain(
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
         jacocorunner = jacocorunner,
-        jvm_stdlibs = jvm_stdlibs or [
+        jvm_stdlibs = jvm_stdlibs if jvm_stdlibs != None else [
             Label("//kotlin/compiler:annotations"),
             Label("//kotlin/compiler:kotlin-stdlib"),
             Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
             Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
         ],
-        jvm_runtime = jvm_runtime or [
+        jvm_runtime = jvm_runtime if jvm_runtime != None else [
             Label("//kotlin/compiler:kotlin-stdlib"),
         ],
-        js_stdlibs = js_stdlibs or [
+        js_stdlibs = js_stdlibs if js_stdlibs != None else [
             Label("//kotlin/compiler:kotlin-stdlib-js"),
         ],
     )
