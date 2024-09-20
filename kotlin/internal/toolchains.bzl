@@ -163,22 +163,11 @@ _kt_toolchain = rule(
         ),
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
-            default = [
-                Label("//kotlin/compiler:kotlin-stdlib"),
-            ],
             providers = [JavaInfo],
             cfg = "target",
         ),
         "jvm_stdlibs": attr.label_list(
             doc = "The jvm stdlibs. This is internal.",
-            default = [
-                Label("//kotlin/compiler:annotations"),
-                Label("//kotlin/compiler:kotlin-stdlib"),
-                Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
-                # JDK8 is being added blindly but I think we will probably not support bytecode levels 1.6 when the
-                # repo stabelizes so this should be fine.
-                Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
-            ],
             providers = [JavaInfo],
             cfg = "target",
         ),
@@ -207,9 +196,6 @@ _kt_toolchain = rule(
             values = ["v5"],
         ),
         "js_stdlibs": attr.label_list(
-            default = [
-                Label("//kotlin/compiler:kotlin-stdlib-js"),
-            ],
             providers = [_KtJsInfo],
         ),
         "experimental_multiplex_workers": attr.bool(
@@ -313,6 +299,9 @@ def define_kt_toolchain(
         experimental_multiplex_workers = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
+        jvm_stdlibs = None,
+        jvm_runtime = None,
+        js_stdlibs = None,
         jacocorunner = None):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
@@ -336,6 +325,18 @@ def define_kt_toolchain(
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
         jacocorunner = jacocorunner,
+        jvm_stdlibs = jvm_stdlibs or [
+            Label("//kotlin/compiler:annotations"),
+            Label("//kotlin/compiler:kotlin-stdlib"),
+            Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
+            Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
+        ],
+        jvm_runtime = jvm_runtime or [
+            Label("//kotlin/compiler:kotlin-stdlib"),
+        ],
+        js_stdlibs = js_stdlibs or [
+            Label("//kotlin/compiler:kotlin-stdlib-js"),
+        ],
     )
     native.toolchain(
         name = name,
