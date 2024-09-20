@@ -64,6 +64,9 @@ java_binary(
     visibility = ["//visibility:public"],
     runtime_deps = [
         ":worker",
+        "//kotlin/compiler:kotlin-stdlib",
+        "//kotlin/compiler:kotlin-stdlib-jdk7",
+        "//kotlin/compiler:kotlin-stdlib-jdk8",
         "@bazel_tools//tools/jdk:JacocoCoverage",
     ],
 )
