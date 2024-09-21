@@ -84,7 +84,7 @@ def _kotlin_toolchain_impl(ctx):
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         js_stdlibs = ctx.attr.js_stdlibs,
         execution_requirements = {
-            "supports-workers": "1",
+            "supports-workers": "1" if ctx.attr.persistent_workers else "0",
             "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
         },
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
@@ -211,6 +211,10 @@ _kt_toolchain = rule(
             `kt_abi_plugin_incompatible`""",
             default = False,
         ),
+        "persistent_workers": attr.bool(
+            doc = """Compile using persistent workers.""",
+            default = True,
+        ),
         "experimental_strict_kotlin_deps": attr.string(
             doc = "Report strict deps violations",
             default = "off",
@@ -306,7 +310,8 @@ def define_kt_toolchain(
         jvm_stdlibs = None,
         jvm_runtime = None,
         js_stdlibs = None,
-        jacocorunner = None):
+        jacocorunner = None,
+        persistent_workers = True):
     """Define the Kotlin toolchain."""
     impl_name = name + "_impl"
 
@@ -341,6 +346,7 @@ def define_kt_toolchain(
         js_stdlibs = js_stdlibs if js_stdlibs != None else [
             Label("//kotlin/compiler:kotlin-stdlib-js"),
         ],
+        persistent_workers = persistent_workers,
     )
     native.toolchain(
         name = name,
