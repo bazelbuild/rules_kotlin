@@ -91,6 +91,8 @@ fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): Co
       overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
     ).flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
     .flag("-module-name", info.moduleName)
+    .flag("-no-stdlib")
+    .flag("-no-reflect")
 }
 
 internal fun JvmCompilationTask.plugins(
