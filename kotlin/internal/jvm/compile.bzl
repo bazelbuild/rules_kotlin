@@ -364,7 +364,10 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.jdeps_merger.files_to_run.executable,
         execution_requirements = toolchains.kt.execution_requirements,
-        arguments = [args],
+        arguments = [
+            ctx.actions.args().add_all(toolchains.kt.builder_args),
+            args,
+        ],
         progress_message = progress_message,
     )
 
