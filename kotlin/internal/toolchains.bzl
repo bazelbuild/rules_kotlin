@@ -16,7 +16,6 @@ load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-    _KtJsInfo = "KtJsInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
@@ -198,9 +197,6 @@ _kt_toolchain = rule(
             default = "v5",
             values = ["v5"],
         ),
-        "js_stdlibs": attr.label_list(
-            providers = [_KtJsInfo],
-        ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",
             default = False,
@@ -304,7 +300,6 @@ def define_kt_toolchain(
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
         jvm_stdlibs = None,
         jvm_runtime = None,
-        js_stdlibs = None,
         jacocorunner = None,
         exec_compatible_with = None,
         target_compatible_with = None,
@@ -339,9 +334,6 @@ def define_kt_toolchain(
         ],
         jvm_runtime = jvm_runtime if jvm_runtime != None else [
             Label("//kotlin/compiler:kotlin-stdlib"),
-        ],
-        js_stdlibs = js_stdlibs if js_stdlibs != None else [
-            Label("//kotlin/compiler:kotlin-stdlib-js"),
         ],
     )
     native.toolchain(
