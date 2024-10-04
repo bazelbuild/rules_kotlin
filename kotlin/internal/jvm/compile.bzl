@@ -653,6 +653,13 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         java_toolchain = toolchains.java,
     )
 
+    generated_source_jar = java_common.pack_sources(
+        ctx.actions,
+        output_source_jar = ctx.actions.declare_file(ctx.label.name + "-gensrc.jar"),
+        source_jars = generated_src_jars,
+        java_toolchain = toolchains.java,
+    ) if generated_src_jars else None
+
     java_info = JavaInfo(
         output_jar = output_jar,
         compile_jar = compile_jar,
@@ -662,6 +669,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         runtime_deps = [_java_info(d) for d in ctx.attr.runtime_deps],
         exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
         neverlink = getattr(ctx.attr, "neverlink", False),
+        generated_source_jar = generated_source_jar,
     )
 
     instrumented_files = coverage_common.instrumented_files_info(
