@@ -32,10 +32,11 @@ sh_test(
     name = "test_execution",
     srcs = ["test_execution.sh"],
     args = [
-        "$(execpath //app:myapp)",
+        "$(location //app:myapp)",
     ],
     data = [
         "//app:myapp",
+        "@bazel_tools//tools/bash/runfiles",
     ],
     deps = [],
 )

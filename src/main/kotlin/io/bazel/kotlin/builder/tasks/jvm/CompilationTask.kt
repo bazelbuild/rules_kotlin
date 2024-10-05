@@ -31,7 +31,6 @@ import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask.Directories
-import io.bazel.kotlin.model.RuleKind
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -92,9 +91,6 @@ fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): Co
       overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
     ).flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
     .flag("-module-name", info.moduleName)
-    .given(info.ruleKind in setOf(RuleKind.IMPORT, RuleKind.LIBRARY)) {
-      flag("-no-stdlib").flag("-no-reflect")
-    }
 }
 
 internal fun JvmCompilationTask.plugins(

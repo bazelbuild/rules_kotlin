@@ -25,5 +25,8 @@ ktlint_fix(
 java_binary(
     name = "myapp",
     main_class = "app.MyApp",
+    visibility = [
+        "//visibility:public",
+    ],
     runtime_deps = [":app_lib"],
 )
