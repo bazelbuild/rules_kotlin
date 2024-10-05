@@ -360,7 +360,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = inputs,
-        tools = [toolchains.kt.jdeps_merger.files_to_run],
+        tools = [toolchains.kt.jdeps_merger.files_to_run, toolchains.kt.jvm_stdlibs.compile_jars],
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.jdeps_merger.files_to_run.executable,
         execution_requirements = toolchains.kt.execution_requirements,
