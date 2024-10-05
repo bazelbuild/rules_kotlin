@@ -27,3 +27,15 @@ ktlint_config(
     experimental_rules_enabled = False,
     visibility = ["//visibility:public"],
 )
+
+sh_test(
+    name = "test_execution",
+    srcs = ["test_execution.sh"],
+    args = [
+        "$(execpath //app:myapp)",
+    ],
+    data = [
+        "//app:myapp",
+    ],
+    deps = [],
+)

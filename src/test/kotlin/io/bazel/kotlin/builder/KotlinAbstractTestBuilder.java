@@ -161,7 +161,7 @@ abstract class KotlinAbstractTestBuilder<T> {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (PrintStream outputStream = new PrintStream(out)) {
             return operation.apply(new CompilationTaskContext(info, outputStream,
-                    instanceRoot().toAbsolutePath().toString() + File.separator), task);
+                    instanceRoot().toAbsolutePath() + File.separator), task);
         } finally {
             outLines = unmodifiableList(
                     new BufferedReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())))

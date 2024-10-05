@@ -193,10 +193,6 @@ _kt_toolchain = rule(
                 "21",
             ],
         ),
-        "js_target": attr.string(
-            default = "v5",
-            values = ["v5"],
-        ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",
             default = False,

@@ -55,7 +55,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     DirectoryType.TEMP,
                     DirectoryType.COVERAGE_METADATA);
 
-    private TaskBuilder taskBuilderInstance = new TaskBuilder();
+    private final TaskBuilder taskBuilderInstance = new TaskBuilder();
     private static KotlinBuilderTestComponent component;
 
     @Override
@@ -63,6 +63,11 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         taskBuilder.clear().setInfo(taskInfo);
 
         DirectoryType.createAll(instanceRoot(), ALL_DIRECTORY_TYPES);
+
+        taskBuilder.getInputsBuilder()
+            .addClasspath(KOTLIN_STDLIB.singleCompileJar())
+            .addClasspath(KOTLIN_STDLIB_JDK7.singleCompileJar())
+            .addClasspath(KOTLIN_STDLIB_JDK8.singleCompileJar());
 
         taskBuilder
                 .getDirectoriesBuilder()
