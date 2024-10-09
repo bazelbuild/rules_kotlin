@@ -90,6 +90,7 @@ object BazelIntegrationTestRunner {
             "test",
             version.workspaceFlag(bzlmod),
             "--override_repository=rules_kotlin=$unpack",
+            "--test_output=all",
             "//...",
           ).onFailThrow()
         }

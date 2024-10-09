@@ -1,11 +1,3 @@
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
-load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
-load(
-    "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
-)
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +11,13 @@ load(
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
+)
 load(
     "//kotlin/internal:opts.bzl",
     "JavacOptions",
@@ -73,6 +72,11 @@ def _kotlin_toolchain_impl(ctx):
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
+        builder_args = [
+            "--wrapper_script_flag=--main_advice_classpath=%s" % (
+                ":".join([f.path for f in ctx.files.jvm_stdlibs])
+            ),
+        ],
         jdeps_merger = ctx.attr.jdeps_merger,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
@@ -122,7 +126,7 @@ _kt_toolchain = rule(
         ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
-            default = "2.0",
+            default = "1.9",
             values = [
                 "1.1",
                 "1.2",
@@ -138,7 +142,7 @@ _kt_toolchain = rule(
         ),
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
-            default = "2.0",
+            default = "1.9",
             values = [
                 "1.1",
                 "1.2",
@@ -161,22 +165,11 @@ _kt_toolchain = rule(
         ),
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
-            default = [
-                Label("//kotlin/compiler:kotlin-stdlib"),
-            ],
             providers = [JavaInfo],
             cfg = "target",
         ),
         "jvm_stdlibs": attr.label_list(
             doc = "The jvm stdlibs. This is internal.",
-            default = [
-                Label("//kotlin/compiler:annotations"),
-                Label("//kotlin/compiler:kotlin-stdlib"),
-                Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
-                # JDK8 is being added blindly but I think we will probably not support bytecode levels 1.6 when the
-                # repo stabelizes so this should be fine.
-                Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
-            ],
             providers = [JavaInfo],
             cfg = "target",
         ),
@@ -301,6 +294,8 @@ def define_kt_toolchain(
         experimental_multiplex_workers = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
+        jvm_stdlibs = None,
+        jvm_runtime = None,
         jacocorunner = None,
         exec_compatible_with = None,
         target_compatible_with = None,
@@ -327,6 +322,15 @@ def define_kt_toolchain(
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
         jacocorunner = jacocorunner,
+        jvm_stdlibs = jvm_stdlibs if jvm_stdlibs != None else [
+            Label("//kotlin/compiler:annotations"),
+            Label("//kotlin/compiler:kotlin-stdlib"),
+            Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
+            Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
+        ],
+        jvm_runtime = jvm_runtime if jvm_runtime != None else [
+            Label("//kotlin/compiler:kotlin-stdlib"),
+        ],
     )
     native.toolchain(
         name = name,

@@ -36,11 +36,13 @@ class KotlinJvmTaskExecutorTest {
     )
     val compileTask = ctx.buildTask()
 
-    assertFalse(compileTask.hasInputs())
+    assertTrue(compileTask.inputs.javaSourcesList.isEmpty())
+    assertTrue(compileTask.inputs.kotlinSourcesList.isEmpty())
 
     val expandedCompileTask = compileTask.expandWithGeneratedSources()
 
-    assertFalse(compileTask.hasInputs())
+    assertTrue(compileTask.inputs.javaSourcesList.isEmpty())
+    assertTrue(compileTask.inputs.kotlinSourcesList.isEmpty())
 
     assertTrue(expandedCompileTask.hasInputs())
     assertNotNull(expandedCompileTask.inputs.javaSourcesList.find { path ->
