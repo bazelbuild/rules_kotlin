@@ -28,7 +28,6 @@ java_library(
         "//src/main/kotlin/io/bazel/worker",
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",
-        "//src/main/protobuf:worker_protocol_java_proto",
         "//third_party:dagger",
         "@kotlin_rules_maven//:javax_annotation_javax_annotation_api",
         "@kotlin_rules_maven//:javax_inject_javax_inject",

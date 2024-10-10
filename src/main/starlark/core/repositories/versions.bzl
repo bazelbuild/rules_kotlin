@@ -153,5 +153,12 @@ versions = struct(
         ],
         sha256 = "d3234179bcff1886d53d67c11eca47f7f3cf7b63c349d16965f6db51b7f3dd9a",
     ),
+    BAZEL_WORKER_JAVA = version(
+        version = "0.0.1",
+        url_templates = [
+            "https://github.com/bazelbuild/bazel-worker-api/releases/download/v{version}/bazel-worker-api-v{version}.tar.gz",
+        ],
+        sha256 = "b341e3fba0a3dd0ab7bfdc7e256fad711a1f9e9255563a74c305676046b5a184",
+    ),
     use_repository = _use_repository,
 )

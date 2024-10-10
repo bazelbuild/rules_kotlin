@@ -1,17 +1,5 @@
-load("@rules_java//java:defs.bzl", "java_binary", "java_import")
-
 # General purpose Bazel worker implemented Kotlin. Best suited for jvm based tools.
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
-
-java_binary(
-    name = "worker_proto_bundle_bin",
-    runtime_deps = ["//src/main/protobuf:worker_protocol_java_proto"],
-)
-
-java_import(
-    name = "worker_proto",
-    jars = [":worker_proto_bundle_bin_deploy.jar"],
-)
 
 kt_bootstrap_library(
     name = "worker",
@@ -20,6 +8,6 @@ kt_bootstrap_library(
         "//:__subpackages__",
     ],
     deps = [
-        ":worker_proto",
+        "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
     ],
 )
