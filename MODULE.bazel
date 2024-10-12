@@ -11,6 +11,14 @@ bazel_dep(name = "rules_java", version = "7.2.0")
 bazel_dep(name = "rules_python", version = "0.23.1")
 bazel_dep(name = "rules_cc", version = "0.0.9")
 bazel_dep(name = "rules_android", version = "0.1.1")
+archive_override(
+    module_name = "rules_android",
+    integrity = "sha256-bYPUqD0GhAD9gOG2Pi2MGwcJtGyVEi4vlSrgElw+9eE=",
+    strip_prefix = "rules_android-9356a1dd5cbe84ca9247d24bcdb39ae0c4a7b4ab",
+    urls = [
+        "https://github.com/bazelbuild/rules_android/archive/9356a1dd5cbe84ca9247d24bcdb39ae0c4a7b4ab.tar.gz",
+    ],
+)
 
 rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
 use_repo(
