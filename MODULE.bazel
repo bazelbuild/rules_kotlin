@@ -50,7 +50,7 @@ use_repo(remote_android_extensions, "android_gmaven_r8", "android_tools")
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
 # we need to sort out a few cases around how these rules are consumed in various ways.
 
-bazel_dep(name = "rules_jvm_external", version = "5.3")
+bazel_dep(name = "rules_jvm_external", version = "6.4")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
