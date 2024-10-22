@@ -118,12 +118,12 @@ versions = struct(
         sha256 = "eb7db63ed826567b2ceb1ec53d6b729e01636f72c9f5dfb6d2dfe55ad69d1d2a",
     ),
     RULES_LICENSE = version(
-        version = "0.0.3",
+        version = "1.0.0",
         url_templates = [
             "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
             "https://github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
         ],
-        sha256 = None,
+        sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
     ),
     RULES_TESTING = version(
         version = "0.5.0",
