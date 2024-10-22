@@ -23,7 +23,7 @@ def kt_download_local_dev_dependencies():
     Must be called before setup_dependencies in the versions.WORKSPACE.
     """
 
-    # bazel_skylib is initialized twice during developement. This is intentional, as development
+    # bazel_skylib is initialized twice during development. This is intentional, as development
     # needs to be able to run the starlark unittests, while production does not.
     maybe(
         http_archive,
@@ -49,6 +49,18 @@ def kt_download_local_dev_dependencies():
         http_archive,
         name = "buildkite_config",
         urls = versions.RBE.URLS,
+    )
+
+    versions.use_repository(
+        name = "rules_python",
+        rule = http_archive,
+        version = versions.RULES_PYTHON,
+    )
+
+    versions.use_repository(
+        name = "rules_java",
+        rule = http_archive,
+        version = versions.RULES_JAVA,
     )
 
     maybe(
@@ -95,6 +107,13 @@ def kt_download_local_dev_dependencies():
             "proto",
             "proto/private",
         ],
+    )
+
+    versions.use_repository(
+        name = "rules_testing",
+        rule = http_archive,
+        version = versions.RULES_TESTING,
+        strip_prefix = "rules_testing-%s" % versions.RULES_TESTING.version,
     )
 
     versions.use_repository(

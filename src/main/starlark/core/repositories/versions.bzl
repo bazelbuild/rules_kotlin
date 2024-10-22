@@ -126,11 +126,11 @@ versions = struct(
         sha256 = None,
     ),
     RULES_TESTING = version(
-        version = "0.5.0",
+        version = "0.6.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_testing/releases/download/v{version}/rules_testing-v{version}.tar.gz",
         ],
-        sha256 = "b84ed8546f1969d700ead4546de9f7637e0f058d835e47e865dcbb13c4210aed",
+        sha256 = "02c62574631876a4e3b02a1820cb51167bb9cdcdea2381b2fa9d9b8b11c407c4",
     ),
     KOTLINX_SERIALIZATION_CORE_JVM = version(
         version = "1.6.3",
