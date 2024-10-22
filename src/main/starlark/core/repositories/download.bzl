@@ -59,6 +59,22 @@ def kt_download_local_dev_dependencies():
         url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (versions.RULES_JVM_EXTERNAL_TAG, versions.RULES_JVM_EXTERNAL_TAG),
     )
 
+    maybe(
+        http_archive,
+        name = "bazel_worker_java",
+        sha256 = versions.BAZEL_WORKER_JAVA.sha256,
+        strip_prefix = "bazel-worker-api-{version}/java/".format(version = versions.BAZEL_WORKER_JAVA.version),
+        urls = [url.format(version = versions.BAZEL_WORKER_JAVA.version) for url in versions.BAZEL_WORKER_JAVA.url_templates],
+    )
+
+    maybe(
+        http_archive,
+        name = "bazel_worker_api",
+        sha256 = versions.BAZEL_WORKER_JAVA.sha256,
+        strip_prefix = "bazel-worker-api-{version}/proto/".format(version = versions.BAZEL_WORKER_JAVA.version),
+        urls = [url.format(version = versions.BAZEL_WORKER_JAVA.version) for url in versions.BAZEL_WORKER_JAVA.url_templates],
+    )
+
     versions.use_repository(
         name = "rules_license",
         rule = http_archive,
