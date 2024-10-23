@@ -287,6 +287,8 @@ def define_kt_toolchain(
         language_version = None,
         api_version = None,
         jvm_target = None,
+        jvm_runtime = None,
+        jvm_stdlibs = None,
         experimental_use_abi_jars = False,
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
@@ -308,6 +310,8 @@ def define_kt_toolchain(
         language_version = language_version,
         api_version = api_version,
         jvm_target = jvm_target,
+        jvm_runtime = jvm_runtime,
+        jvm_stdlibs = jvm_stdlibs,
         debug = _DEBUG_SELECT,
         experimental_use_abi_jars = select({
             _EXPERIMENTAL_USE_ABI_JARS: True,
