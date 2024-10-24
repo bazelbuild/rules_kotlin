@@ -86,11 +86,11 @@ versions = struct(
         URLS = ["https://storage.googleapis.com/rbe-toolchain/bazel-configs/rbe-ubuntu1604/latest/rbe_default.tar"],
     ),
     PKG = version(
-        version = "0.7.0",
+        version = "1.0.1",
         url_templates = [
             "https://github.com/bazelbuild/rules_pkg/releases/download/{version}/rules_pkg-{version}.tar.gz",
         ],
-        sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
+        sha256 = "d20c951960ed77cb7b341c2a59488534e494d5ad1d30c4818c736d57772a9fef",
     ),
     # needed for rules_pkg and java
     RULES_KOTLIN = version(
@@ -152,6 +152,20 @@ versions = struct(
             "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/{version}/kotlinx-serialization-json-jvm-{version}.jar",
         ],
         sha256 = "d3234179bcff1886d53d67c11eca47f7f3cf7b63c349d16965f6db51b7f3dd9a",
+    ),
+    RULES_BAZEL_INTEGRATION_TEST = version(
+        version = "0.26.0",
+        url_templates = [
+            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v{version}/rules_bazel_integration_test.v{version}.tar.gz",
+        ],
+        sha256 = "ab56cdd55a28781287242c7124ce9ff791ae8318ed641057f10edd98c55d7ed5",
+    ),
+    CGRINDEL_BAZEL_STARLIB = version(
+        version = "0.21.0",
+        sha256 = "43e375213dabe0c3928e65412ea7ec16850db93285c8c6f8b0eaa41cacd0f882",
+        url_templates = [
+            "https://github.com/cgrindel/bazel-starlib/releases/download/v{version}/bazel-starlib.v{version}.tar.gz",
+        ],
     ),
     use_repository = _use_repository,
 )

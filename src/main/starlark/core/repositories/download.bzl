@@ -117,6 +117,18 @@ def kt_download_local_dev_dependencies():
     )
 
     versions.use_repository(
+        name = "rules_bazel_integration_test",
+        rule = http_archive,
+        version = versions.RULES_BAZEL_INTEGRATION_TEST,
+    )
+
+    versions.use_repository(
+        name = "cgrindel_bazel_starlib",
+        rule = http_archive,
+        version = versions.CGRINDEL_BAZEL_STARLIB,
+    )
+
+    versions.use_repository(
         name = "released_rules_kotlin",
         rule = http_archive,
         version = versions.RULES_KOTLIN,
