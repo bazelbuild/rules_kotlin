@@ -105,12 +105,6 @@ def kotlin_repositories(
     )
 
     versions.use_repository(
-        name = "rules_python",
-        rule = http_archive,
-        version = versions.RULES_PYTHON,
-    )
-
-    versions.use_repository(
         name = "rules_java",
         rule = http_archive,
         version = versions.RULES_JAVA,
