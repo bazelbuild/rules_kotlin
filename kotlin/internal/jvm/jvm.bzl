@@ -266,7 +266,7 @@ these deps. This is not true for regular (non-exported) deps.""",
 Exported compiler plugins.
 
 Compiler plugins listed here will be treated as if they were added in the plugins attribute
-of any targets that directly depend on this target. Unlike `java_plugin`s exported_plugins,
+of any targets that directly depend on this target. Like `java_plugin`s exported_plugins,
 this is not transitive""",
         default = [],
         providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration]],
@@ -465,7 +465,7 @@ these deps. This is not true for regular (non-exported) deps.""",
 Exported compiler plugins.
 
 Compiler plugins listed here will be treated as if they were added in the plugins
-attribute of any targets that directly depend on this target. Unlike java_plugins'
+attribute of any targets that directly depend on this target. Like java_plugins'
 exported_plugins, this is not transitive""",
             default = [],
             providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration], [_KspPluginInfo]],
