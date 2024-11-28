@@ -38,8 +38,8 @@ versions = struct(
     RULES_JVM_EXTERNAL_TAG = "5.3",
     RULES_JVM_EXTERNAL_SHA = "d31e369b854322ca5098ea12c69d7175ded971435e55c18dd9dd5f29cc5249ac",
     RULES_PROTO = version(
-        version = "5.3.0-21.7",
-        sha256 = "dc3fb206a2cb3441b485eb1e423165b231235a1ea9b031b4433cf7bc1fa460dd",
+        version = "7.0.2",
+        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
         strip_prefix_template = "rules_proto-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_proto/archive/refs/tags/{version}.tar.gz",
@@ -166,6 +166,12 @@ versions = struct(
         url_templates = [
             "https://github.com/cgrindel/bazel-starlib/releases/download/v{version}/bazel-starlib.v{version}.tar.gz",
         ],
+    ),
+    RULES_CC = version(
+        version = "0.0.15",
+        url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
+        sha256 = "f4aadd8387f381033a9ad0500443a52a0cea5f8ad1ede4369d3c614eb7b2682e",
+        strip_prefix_template = "rules_cc-{version}",
     ),
     use_repository = _use_repository,
 )

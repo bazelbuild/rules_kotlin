@@ -23,6 +23,22 @@ def kt_download_local_dev_dependencies():
     Must be called before setup_dependencies in the versions.WORKSPACE.
     """
 
+    versions.use_repository(
+        name = "rules_proto",
+        version = versions.RULES_PROTO,
+        rule = rules_stardoc_repository,
+        starlark_packages = [
+            "proto",
+            "proto/private",
+        ],
+    )
+
+    versions.use_repository(
+        rule = http_archive,
+        name = "rules_cc",
+        version = versions.RULES_CC,
+    )
+
     # bazel_skylib is initialized twice during development. This is intentional, as development
     # needs to be able to run the starlark unittests, while production does not.
     maybe(
@@ -96,16 +112,6 @@ def kt_download_local_dev_dependencies():
         urls = versions.ANDROID.URLS,
         starlark_packages = [
             "android",
-        ],
-    )
-
-    versions.use_repository(
-        name = "rules_proto",
-        version = versions.RULES_PROTO,
-        rule = rules_stardoc_repository,
-        starlark_packages = [
-            "proto",
-            "proto/private",
         ],
     )
 
