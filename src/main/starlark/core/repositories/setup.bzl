@@ -20,7 +20,7 @@ load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_in
 load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
@@ -71,7 +71,7 @@ def kt_configure():
     rules_cc_dependencies()
     rules_cc_toolchains()
 
-    rules_proto_toolchains()
+    rules_proto_dependencies()
 
     rules_pkg_dependencies()
 

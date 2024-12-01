@@ -32,12 +32,12 @@ def _rules_kotlin_extensions_impl(mctx):
         ],
     )
 
-    # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
-    # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
-    http_archive(
-        name = "buildkite_config",
-        urls = _versions.RBE.URLS,
-    )
+    #    # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
+    #    # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
+    #    http_archive(
+    #        name = "buildkite_config",
+    #        urls = _versions.RBE.URLS,
+    #    )
 
     return modules.use_all_repos(mctx, reproducible = True)
 
