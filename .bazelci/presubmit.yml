@@ -36,11 +36,6 @@ tasks:
     test_targets:
       - //examples:all
   rbe_ubuntu1604:
-    build_flags:
-      - "--config=rbe"
-      - "--enable_bzlmod=false"
-      - "--host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
-      - "--java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
     test_targets:
       - "--"
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
@@ -51,8 +46,8 @@ tasks:
     test_flags:
       # Override the default worker strategy for remote builds (worker strategy
       # cannot be used with remote builds)
-      - "--strategy=KotlinCompile=remote"
       - "--config=rbe"
+      - "--strategy=KotlinCompile=remote"
   stardoc:
     name: Stardoc api documentation
     platform: ubuntu1804
