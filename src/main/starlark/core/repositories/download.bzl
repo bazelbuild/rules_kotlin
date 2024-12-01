@@ -48,24 +48,16 @@ def kt_download_local_dev_dependencies():
         sha256 = versions.SKYLIB_SHA,
     )
 
-    #    maybe(
-    #        http_archive,
-    #        name = "bazel_toolchains",
-    #        sha256 = versions.BAZEL_TOOLCHAINS_SHA,
-    #        strip_prefix = "bazel-toolchains-%s" % versions.BAZEL_TOOLCHAINS_VERSION,
-    #        urls = [
-    #            "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/{0}/bazel-toolchains-{0}.tar.gz".format(versions.BAZEL_TOOLCHAINS_VERSION),
-    #            "https://github.com/bazelbuild/bazel-toolchains/releases/download/{0}/bazel-toolchains-{0}.tar.gz".format(versions.BAZEL_TOOLCHAINS_VERSION),
-    #        ],
-    #    )
-
-    # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
-    # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
-    #    maybe(
-    #        http_archive,
-    #        name = "buildkite_config",
-    #        urls = versions.RBE.URLS,
-    #    )
+    maybe(
+        http_archive,
+        name = "bazel_toolchains",
+        sha256 = versions.BAZEL_TOOLCHAINS_SHA,
+        strip_prefix = "bazel-toolchains-%s" % versions.BAZEL_TOOLCHAINS_VERSION,
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/{0}/bazel-toolchains-{0}.tar.gz".format(versions.BAZEL_TOOLCHAINS_VERSION),
+            "https://github.com/bazelbuild/bazel-toolchains/releases/download/{0}/bazel-toolchains-{0}.tar.gz".format(versions.BAZEL_TOOLCHAINS_VERSION),
+        ],
+    )
 
     versions.use_repository(
         name = "rules_python",

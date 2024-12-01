@@ -37,8 +37,8 @@ tasks:
       - //examples:all
   rbe_ubuntu1604:
     build_flags:
-      - "--enable_bzlmod=false"
       - "--config=rbe"
+      - "--enable_bzlmod=false"
       - "--host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
       - "--java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
     test_targets:

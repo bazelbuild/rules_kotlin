@@ -80,10 +80,12 @@ versions = struct(
         URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
     ),
     # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
-    RBE = struct(
+    BAZELCI_RULES = struct(
+        version = "1.0.0",
+        sha256 = "eca21884e6f66a88c358e580fd67a6b148d30ab57b1680f62a96c00f9bc6a07e",
         # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
         # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
-        URLS = ["https://storage.googleapis.com/rbe-toolchain/bazel-configs/rbe-ubuntu1604/latest/rbe_default.tar"],
+        URLS = ["https://github.com/bazelbuild/continuous-integration/releases/download/rules-{version}/bazelci_rules-{version}.tar.gz"],
     ),
     PKG = version(
         version = "1.0.1",
