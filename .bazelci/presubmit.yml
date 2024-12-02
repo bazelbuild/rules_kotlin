@@ -32,7 +32,7 @@ tasks:
     name: "Integration Tests"
     platform: ${{ integration_platform }}
     test_flags:
-      - "--enable_bzlmod=true"
+      - "--config=rbe"
     test_targets:
       - //examples:all
   rbe_ubuntu1604:

@@ -34,8 +34,8 @@ def kt_configure():
 
     native.register_toolchains("@released_rules_kotlin//kotlin/internal:default_toolchain")
 
-    protobuf_deps()
     rules_proto_dependencies()
+    protobuf_deps()
 
     rules_java_dependencies()
     rules_java_toolchains()
