@@ -15,6 +15,7 @@
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@hermetic_cc_toolchain//toolchain:defs.bzl", zig_toolchains = "toolchains")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 load("@released_rules_kotlin//src/main/starlark/core/repositories:initialize.bzl", release_kotlin_repositories = "kotlin_repositories")
 load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
@@ -81,6 +82,8 @@ def kt_configure():
 
     rules_cc_dependencies()
     rules_cc_toolchains()
+    zig_toolchains()
+    native.register_toolchains("@zig_sdk//toolchain:all")
 
     rules_pkg_dependencies()
 

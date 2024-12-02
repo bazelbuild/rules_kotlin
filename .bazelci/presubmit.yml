@@ -10,7 +10,7 @@ matrix:
     # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
   test_flags:
     - ["--enable_bzlmod=true", "--toolchain_resolution_debug=.*"]
-    - ["--enable_bzlmod=false", "--enable_workspace=true",  "--toolchain_resolution_debug=.*"]
+    - ["--config=workspace", ""]
 validate_config: 1
 bazel: 7.3.0
 buildifier:

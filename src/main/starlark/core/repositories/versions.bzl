@@ -183,5 +183,13 @@ versions = struct(
             "https://github.com/protocolbuffers/protobuf/archive/v{version}.tar.gz",
         ],
     ),
+    HERMETIC_CC_TOOLCHAIN = version(
+        version = "v3.1.1",
+        sha256 = "907745bf91555f77e8234c0b953371e6cac5ba715d1cf12ff641496dd1bce9d1",
+        url_templates = [
+            "https://mirror.bazel.build/github.com/uber/hermetic_cc_toolchain/releases/download/{version}/hermetic_cc_toolchain-{version}.tar.gz",
+            "https://github.com/uber/hermetic_cc_toolchain/releases/download/{version}/hermetic_cc_toolchain-{version}.tar.gz",
+        ],
+    ),
     use_repository = _use_repository,
 )

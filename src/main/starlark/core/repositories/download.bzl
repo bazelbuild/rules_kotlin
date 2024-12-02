@@ -45,6 +45,12 @@ def kt_download_local_dev_dependencies():
         version = versions.RULES_CC,
     )
 
+    versions.use_repository(
+        rule = http_archive,
+        name = "hermetic_cc_toolchain",
+        version = versions.HERMETIC_CC_TOOLCHAIN,
+    )
+
     # bazel_skylib is initialized twice during development. This is intentional, as development
     # needs to be able to run the starlark unittests, while production does not.
     maybe(
