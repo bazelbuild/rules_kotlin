@@ -35,7 +35,6 @@ def kt_configure():
     native.register_toolchains("@released_rules_kotlin//kotlin/internal:default_toolchain")
 
     rules_cc_dependencies()
-
     rules_cc_toolchains()
 
     rules_proto_dependencies()
