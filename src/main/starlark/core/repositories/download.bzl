@@ -20,8 +20,14 @@ def kt_download_local_dev_dependencies():
     """
     Downloads all necessary http_* artifacts for rules_kotlin dev configuration.
 
-    Must be called before setup_dependencies in the versions.WORKSPACE.
+    Must be called before setup_dependencies in the WORKSPACE.
     """
+
+    versions.use_repository(
+        name = "com_google_protobuf",
+        rule = http_archive,
+        version = versions.COM_GOOGLE_PROTOBUF,
+    )
 
     versions.use_repository(
         name = "rules_proto",

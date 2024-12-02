@@ -14,10 +14,12 @@
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 load("@released_rules_kotlin//src/main/starlark/core/repositories:initialize.bzl", release_kotlin_repositories = "kotlin_repositories")
 load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
 load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
+load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
@@ -31,6 +33,12 @@ def kt_configure():
     )
 
     native.register_toolchains("@released_rules_kotlin//kotlin/internal:default_toolchain")
+
+    protobuf_deps()
+    rules_proto_dependencies()
+
+    rules_java_dependencies()
+    rules_java_toolchains()
 
     maven_install(
         name = "kotlin_rules_maven",
@@ -70,8 +78,6 @@ def kt_configure():
 
     rules_cc_dependencies()
     rules_cc_toolchains()
-
-    rules_proto_dependencies()
 
     rules_pkg_dependencies()
 

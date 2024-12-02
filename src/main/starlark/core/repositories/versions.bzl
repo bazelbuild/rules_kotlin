@@ -175,5 +175,13 @@ versions = struct(
         sha256 = "f4aadd8387f381033a9ad0500443a52a0cea5f8ad1ede4369d3c614eb7b2682e",
         strip_prefix_template = "rules_cc-{version}",
     ),
+    COM_GOOGLE_PROTOBUF = version(
+        version = "27.1",
+        sha256 = "6fbe2e6f703bcd3a246529c2cab586ca12a98c4e641f5f71d51fde09eb48e9e7",
+        strip_prefix_template = "protobuf-{version}",
+        url_templates = [
+            "https://github.com/protocolbuffers/protobuf/archive/v{version}.tar.gz",
+        ],
+    ),
     use_repository = _use_repository,
 )
