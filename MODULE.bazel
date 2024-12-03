@@ -117,6 +117,3 @@ use_repo(
     "build_bazel_bazel_6_4_0",
     "build_bazel_bazel_8_0_0-pre_20240206_3",
 )
-
-#bazel_dep(name = "buildkite_config")
-#local_path_override(module_name = "buildkite_config", path = "third_party/buildkite_config")

@@ -22,13 +22,6 @@ def kt_download_local_dev_dependencies():
 
     Must be called before setup_dependencies in the WORKSPACE.
     """
-
-    versions.use_repository(
-        name = "com_google_protobuf",
-        rule = http_archive,
-        version = versions.COM_GOOGLE_PROTOBUF,
-    )
-
     versions.use_repository(
         name = "rules_proto",
         version = versions.RULES_PROTO,
@@ -43,12 +36,6 @@ def kt_download_local_dev_dependencies():
         rule = http_archive,
         name = "rules_cc",
         version = versions.RULES_CC,
-    )
-
-    versions.use_repository(
-        rule = http_archive,
-        name = "hermetic_cc_toolchain",
-        version = versions.HERMETIC_CC_TOOLCHAIN,
     )
 
     # bazel_skylib is initialized twice during development. This is intentional, as development

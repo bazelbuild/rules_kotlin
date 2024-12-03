@@ -4,8 +4,8 @@ common:rbe --java_runtime_version=11
 common:rbe --tool_java_runtime_version=11
 
 common:workspace --enable_bzlmod=false --enable_workspace=true
-common:workspace --enable_platform_specific_config
-common:workspace --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --sandbox_add_mount_pair=/tmp
+#common:workspace --enable_platform_specific_config
+#common:workspace --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 --sandbox_add_mount_pair=/tmp
 
 build --strategy=KotlinCompile=worker
 build --test_output=all
@@ -19,7 +19,3 @@ try-import %workspace%/bit-ignore.bazelrc
 
 # User-specific .bazelrc
 try-import %workspace%/user.bazelrc
-
-build:linux --sandbox_add_mount_pair=/tmp
-build:macos --sandbox_add_mount_pair=/var/tmp
-build:windows --sandbox_add_mount_pair=C:\Temp

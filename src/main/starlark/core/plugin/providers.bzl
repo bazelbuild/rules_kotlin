@@ -15,7 +15,6 @@ KtCompilerPluginInfo = provider(
         "options": "List of plugin options, represented as KtCompilerPluginOption, to be passed to the compiler",
         "resolve_cfg": "A Callable[[KtCompilerPluginInfo, Dict[str,str], List[Target], KtPluginConfiguration]" +
                        " that resolves an associated plugin configuration.",
-        "required_plugins": "Depset of plugins that must be executed before this plugin.",
     },
 )
 
