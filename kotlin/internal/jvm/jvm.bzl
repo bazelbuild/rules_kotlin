@@ -148,7 +148,7 @@ _implicit_deps = {
     "_kt_toolchain": attr.label(
         doc = """The Kotlin toolchain. it's only purpose is to enable the Intellij
         to discover Kotlin language version""",
-        default = Label("//kotlin/internal:default_toolchain_impl"),
+        default = Label("//kotlin/internal:current_toolchain"),
         cfg = "target",
     ),
     "_java_toolchain": attr.label(

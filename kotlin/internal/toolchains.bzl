@@ -342,6 +342,18 @@ def define_kt_toolchain(
         target_settings = target_settings or [],
     )
 
+def _kt_toolchain_alias_impl(ctx):
+    toolchain_info = ctx.toolchains[_TOOLCHAIN_TYPE]
+
+    return [
+        toolchain_info,
+    ]
+
+_kt_toolchain_alias = rule(
+    implementation = _kt_toolchain_alias_impl,
+    toolchains = [_TOOLCHAIN_TYPE],
+)
+
 def kt_configure_toolchains():
     """
     Defines the toolchain_type and default toolchain for kotlin compilation.
@@ -397,4 +409,9 @@ def kt_configure_toolchains():
 
     define_kt_toolchain(
         name = "default_toolchain",
+    )
+
+    _kt_toolchain_alias(
+        name = "current_toolchain",
+        visibility = ["//visibility:public"],
     )
