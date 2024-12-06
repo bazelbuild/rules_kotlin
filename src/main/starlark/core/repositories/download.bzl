@@ -20,10 +20,25 @@ def kt_download_local_dev_dependencies():
     """
     Downloads all necessary http_* artifacts for rules_kotlin dev configuration.
 
-    Must be called before setup_dependencies in the versions.WORKSPACE.
+    Must be called before setup_dependencies in the WORKSPACE.
     """
+    versions.use_repository(
+        name = "rules_proto",
+        version = versions.RULES_PROTO,
+        rule = rules_stardoc_repository,
+        starlark_packages = [
+            "proto",
+            "proto/private",
+        ],
+    )
 
-    # bazel_skylib is initialized twice during developement. This is intentional, as development
+    versions.use_repository(
+        rule = http_archive,
+        name = "rules_cc",
+        version = versions.RULES_CC,
+    )
+
+    # bazel_skylib is initialized twice during development. This is intentional, as development
     # needs to be able to run the starlark unittests, while production does not.
     maybe(
         http_archive,
@@ -43,12 +58,16 @@ def kt_download_local_dev_dependencies():
         ],
     )
 
-    # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
-    # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
-    maybe(
-        http_archive,
-        name = "buildkite_config",
-        urls = versions.RBE.URLS,
+    versions.use_repository(
+        name = "rules_python",
+        rule = http_archive,
+        version = versions.RULES_PYTHON,
+    )
+
+    versions.use_repository(
+        name = "rules_java",
+        rule = http_archive,
+        version = versions.RULES_JAVA,
     )
 
     maybe(
@@ -88,13 +107,22 @@ def kt_download_local_dev_dependencies():
     )
 
     versions.use_repository(
-        name = "rules_proto",
-        version = versions.RULES_PROTO,
-        rule = rules_stardoc_repository,
-        starlark_packages = [
-            "proto",
-            "proto/private",
-        ],
+        name = "rules_testing",
+        rule = http_archive,
+        version = versions.RULES_TESTING,
+        strip_prefix = "rules_testing-%s" % versions.RULES_TESTING.version,
+    )
+
+    versions.use_repository(
+        name = "rules_bazel_integration_test",
+        rule = http_archive,
+        version = versions.RULES_BAZEL_INTEGRATION_TEST,
+    )
+
+    versions.use_repository(
+        name = "cgrindel_bazel_starlib",
+        rule = http_archive,
+        version = versions.CGRINDEL_BAZEL_STARLIB,
     )
 
     versions.use_repository(

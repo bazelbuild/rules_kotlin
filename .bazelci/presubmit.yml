@@ -10,9 +10,9 @@ matrix:
     # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
   test_flags:
     - ["--enable_bzlmod=true"]
-    - ["--enable_bzlmod=false"]
+    - ["--config=workspace"]
 validate_config: 1
-bazel: 7.1.1
+bazel: 7.3.0
 buildifier:
   version: 7.1.1
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
@@ -25,22 +25,17 @@ tasks:
     build_flags: ${{ test_flags }}
     test_flags: ${{ test_flags }}
     test_targets:
-      - "//:all_tests"
+      - "//src/..."
     build_targets:
-      - "//:rules_kotlin_release"
+      - "//src/..."
   integration_tests:
     name: "Integration Tests"
     platform: ${{ integration_platform }}
     test_flags:
-      - "--enable_bzlmod=true"
+      - "--config=rbe"
     test_targets:
       - //examples:all
   rbe_ubuntu1604:
-    build_flags:
-      - "--enable_bzlmod=false"
-      - "--config=rbe"
-      - "--host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
-      - "--java_toolchain=@bazel_tools//tools/jdk:toolchain_java11"
     test_targets:
       - "--"
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
@@ -51,8 +46,8 @@ tasks:
     test_flags:
       # Override the default worker strategy for remote builds (worker strategy
       # cannot be used with remote builds)
-      - "--strategy=KotlinCompile=remote"
       - "--config=rbe"
+      - "--strategy=KotlinCompile=remote"
   stardoc:
     name: Stardoc api documentation
     platform: ubuntu1804
