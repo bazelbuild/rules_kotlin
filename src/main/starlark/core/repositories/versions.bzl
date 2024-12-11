@@ -20,8 +20,6 @@ def _use_repository(name, version, rule, **kwargs):
     maybe(rule, name = name, **http_archive_arguments)
 
 versions = struct(
-    RULES_NODEJS_VERSION = "5.5.3",
-    RULES_NODEJS_SHA = "f10a3a12894fc3c9bf578ee5a5691769f6805c4be84359681a785a0c12e8d2b6",
     BAZEL_TOOLCHAINS_VERSION = "4.1.0",
     BAZEL_TOOLCHAINS_SHA = "179ec02f809e86abf56356d8898c8bd74069f1bd7c56044050c2cd3d79d0e024",
     # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
@@ -33,8 +31,6 @@ versions = struct(
     # --> 3. Configure dependencies <--
     SKYLIB_VERSION = "1.4.2",
     SKYLIB_SHA = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
-    PROTOBUF_VERSION = "3.11.3",
-    PROTOBUF_SHA = "cf754718b0aa945b00550ed7962ddc167167bd922b842199eeb6505e6f344852",
     RULES_JVM_EXTERNAL_TAG = "5.3",
     RULES_JVM_EXTERNAL_SHA = "d31e369b854322ca5098ea12c69d7175ded971435e55c18dd9dd5f29cc5249ac",
     RULES_PROTO = version(
@@ -80,17 +76,19 @@ versions = struct(
         URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
     ),
     # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
-    RBE = struct(
+    BAZELCI_RULES = struct(
+        version = "1.0.0",
+        sha256 = "eca21884e6f66a88c358e580fd67a6b148d30ab57b1680f62a96c00f9bc6a07e",
         # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
         # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
-        URLS = ["https://storage.googleapis.com/rbe-toolchain/bazel-configs/rbe-ubuntu1604/latest/rbe_default.tar"],
+        URLS = ["https://github.com/bazelbuild/continuous-integration/releases/download/rules-{version}/bazelci_rules-{version}.tar.gz"],
     ),
     PKG = version(
-        version = "0.7.0",
+        version = "1.0.1",
         url_templates = [
             "https://github.com/bazelbuild/rules_pkg/releases/download/{version}/rules_pkg-{version}.tar.gz",
         ],
-        sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
+        sha256 = "d20c951960ed77cb7b341c2a59488534e494d5ad1d30c4818c736d57772a9fef",
     ),
     # needed for rules_pkg and java
     RULES_KOTLIN = version(
@@ -126,11 +124,11 @@ versions = struct(
         sha256 = None,
     ),
     RULES_TESTING = version(
-        version = "0.5.0",
+        version = "0.6.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_testing/releases/download/v{version}/rules_testing-v{version}.tar.gz",
         ],
-        sha256 = "b84ed8546f1969d700ead4546de9f7637e0f058d835e47e865dcbb13c4210aed",
+        sha256 = "02c62574631876a4e3b02a1820cb51167bb9cdcdea2381b2fa9d9b8b11c407c4",
     ),
     KOTLINX_SERIALIZATION_CORE_JVM = version(
         version = "1.6.3",
@@ -152,6 +150,26 @@ versions = struct(
             "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/{version}/kotlinx-serialization-json-jvm-{version}.jar",
         ],
         sha256 = "d3234179bcff1886d53d67c11eca47f7f3cf7b63c349d16965f6db51b7f3dd9a",
+    ),
+    RULES_BAZEL_INTEGRATION_TEST = version(
+        version = "0.26.0",
+        url_templates = [
+            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v{version}/rules_bazel_integration_test.v{version}.tar.gz",
+        ],
+        sha256 = "ab56cdd55a28781287242c7124ce9ff791ae8318ed641057f10edd98c55d7ed5",
+    ),
+    CGRINDEL_BAZEL_STARLIB = version(
+        version = "0.21.0",
+        sha256 = "43e375213dabe0c3928e65412ea7ec16850db93285c8c6f8b0eaa41cacd0f882",
+        url_templates = [
+            "https://github.com/cgrindel/bazel-starlib/releases/download/v{version}/bazel-starlib.v{version}.tar.gz",
+        ],
+    ),
+    RULES_CC = version(
+        version = "0.0.9",
+        url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
+        sha256 = "2037875b9a4456dce4a79d112a8ae885bbc4aad968e6587dca6e64f3a0900cdf",
+        strip_prefix_template = "rules_cc-{version}",
     ),
     use_repository = _use_repository,
 )
