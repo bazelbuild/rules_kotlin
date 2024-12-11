@@ -70,7 +70,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     template = ctx.attr._java_stub_template.files.to_list()[0]
 
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
-    java_bin_path = java_runtime.java_executable_exec_path
+    java_bin_path = java_runtime.java_executable_runfiles_path
 
     # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
     # Enable the security manager past deprecation.
