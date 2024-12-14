@@ -1,0 +1,41 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_binary")
+
+want = "Hello From Koltinc"
+
+write_file(
+    name = "write_hello.kt",
+    out = "hello.kt",
+    content = [
+        "class Hello {",
+        "  companion object {",
+        "    @JvmStatic",
+        "    fun main(args: Array<String>){",
+        "      println(\"%s\")" % want,
+        "    }",
+        "  }",
+        "}",
+    ],
+)
+
+core_kt_jvm_binary(
+    name = "hello",
+    srcs = [
+        ":write_hello.kt",
+    ],
+    main_class = "Hello",
+)
+
+sh_test(
+    name = "test_execution",
+    srcs = ["test_execution.sh"],
+    args = [
+        "$(location :hello)",
+        "'%s'" % want,
+    ],
+    data = [
+        ":hello",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    deps = [],
+)

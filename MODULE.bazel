@@ -36,7 +36,9 @@ use_repo(
     "released_com_github_jetbrains_kotlin",
 )
 
-register_toolchains("@released_rules_kotlin//kotlin/internal:default_toolchain")
+# Register bootstrap toolchain
+register_toolchains("//src/main/kotlin:bootstrap_toolchain")
+register_toolchains("//src/main/starlark/core/compile/...")
 
 # Back to the regularly scheduled configuration.
 register_toolchains("//kotlin/internal:default_toolchain")

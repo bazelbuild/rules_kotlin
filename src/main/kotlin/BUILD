@@ -1,3 +1,4 @@
+load("@released_rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load("//third_party:jarjar.bzl", "jar_jar")
 
@@ -47,4 +48,11 @@ release_archive(
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/compiler:pkg",
     ],
+)
+
+define_kt_toolchain(
+    name = "bootstrap_toolchain",
+    api_version = "2.0",
+    jvm_target = "11",
+    language_version = "2.0",
 )
