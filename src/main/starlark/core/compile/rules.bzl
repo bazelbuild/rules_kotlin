@@ -24,7 +24,7 @@ _COMMON_ATTRS = {
     Deps listed here will be made available to other rules, as if the parents explicitly depended on
     these deps. This is not true for regular (non-exported) deps.""",
         default = [],
-        providers = [JavaInfo, KtJvmInfo],
+        providers = [[JavaInfo], [JavaInfo, KtJvmInfo]],
     ),
     "neverlink": attr.bool(
         doc = """If true only use this library for compilation and not at runtime.""",
@@ -100,6 +100,7 @@ def _kt_jvm_library_impl(ctx):
             annotation_processing = None,
             additional_generated_source_jars = [],
             all_output_jars = [class_jar, source_jar],
+            exported_compiler_plugins = depset(),
         ),
         java_info,
         DefaultInfo(
@@ -127,8 +128,8 @@ _kt_jvm_library = rule(
 def core_kt_jvm_library(name, **kwargs):
     _kt_jvm_library(
         name = name,
-        class_jar = "%slib.jar" % name,
-        source_jar = "%slib.srcjar" % name,
+        class_jar = "%s.jar" % name,
+        source_jar = "%s.srcjar" % name,
         **kwargs
     )
 
@@ -191,8 +192,8 @@ _kt_jvm_binary = rule(
 def core_kt_jvm_binary(name, **kwargs):
     _kt_jvm_binary(
         name = name,
-        class_jar = "%slib.jar" % name,
-        source_jar = "%slib.srcjar" % name,
+        class_jar = "%s.jar" % name,
+        source_jar = "%s.srcjar" % name,
         deploy_jar = "%s_deploy.jar" % name,
         **kwargs
     )

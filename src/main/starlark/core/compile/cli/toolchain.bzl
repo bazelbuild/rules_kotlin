@@ -18,6 +18,7 @@ KotlincJvmCompileInfo = provider(
         "java_stub_template": "Launcher template for running kotlin jars",
         "java_runtime": "Current kotlin java runtime",
         "kotlin_stdlib": "Koltin standard libs",
+        "empty_jar": "Symlinked when compilation is not possible.",
     },
 )
 
@@ -26,7 +27,7 @@ def _cli_toolchain(ctx):
     java_toolchain = ctx.toolchains[JAVA_TOOLCHAIN_TYPE].java
 
     toolchain_info = KotlincJvmCompileInfo(
-        jvm_target = getattr(java_runtime, "version", 11),  # default to 11 on old bazel. If it even works.
+        jvm_target = ctx.attr.jvm_target,
         api_version = ".".join(ctx.attr.api_version.split(".")[:2]),
         language_version = ".".join(ctx.attr.api_version.split(".")[:2]),
         executable_zip = ctx.attr.zip[DefaultInfo].files_to_run,
@@ -36,6 +37,7 @@ def _cli_toolchain(ctx):
         java_stub_template = ctx.files.java_stub_template[0],
         java_runtime = java_runtime,
         kotlin_stdlib = java_common.merge([j[JavaInfo] for j in ctx.attr.kotlin_stdlibs]),
+        empty_jar = ctx.files._empty_jar[0],
     )
     return [
         platform_common.ToolchainInfo(
@@ -56,6 +58,9 @@ cli_toolchain = rule(
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
         ),
+        "jvm_target": attr.string(
+            doc = "target jvm version",
+        ),
         "zip": attr.label(
             executable = True,
             cfg = "exec",
@@ -71,6 +76,11 @@ cli_toolchain = rule(
         "java_stub_template": attr.label(
             cfg = "exec",
             default = Label("@bazel_tools//tools/java:java_stub_template.txt"),
+            allow_single_file = True,
+        ),
+        "_empty_jar": attr.label(
+            cfg = "exec",
+            default = Label("//third_party:empty"),
             allow_single_file = True,
         ),
     },

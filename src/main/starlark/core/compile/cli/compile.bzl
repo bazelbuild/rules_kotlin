@@ -11,21 +11,14 @@ def compile_kotlin_for_jvm(
         kotlinc_opts,
         output_srcjar = None):
     if not srcs:
-        actions.run(
-            outputs = [output_srcjar],
-            executable = toolchain_info.executable_zip,
-            inputs = srcs,
-            arguments = [actions.args().add("c").add(output_srcjar)],
-            mnemonic = "EmptyJar",
-            toolchain = TYPE,
+        # still gotta create the jars for keep bazel haps.
+        actions.symlink(
+            output = output_srcjar,
+            target_file = toolchain_info.empty_jar,
         )
-        actions.run(
-            outputs = [class_jar],
-            executable = toolchain_info.executable_zip,
-            inputs = srcs,
-            arguments = [actions.args().add("c").add(output_srcjar)],
-            mnemonic = "EmptyJar",
-            toolchain = TYPE,
+        actions.symlink(
+            output = class_jar,
+            target_file = toolchain_info.empty_jar,
         )
         return
 

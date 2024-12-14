@@ -19,6 +19,7 @@ java_binary(
 cli_toolchain(
     name = "cli_toolchain",
     api_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
+    jvm_target = "11",
     kotlin_stdlibs = [
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:kotlin-stdlib",

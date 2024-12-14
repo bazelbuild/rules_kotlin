@@ -6,15 +6,17 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirFileChecker
+import org.jetbrains.kotlin.fir.scopes.getFunctions
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
 import org.jetbrains.kotlin.fir.declarations.fullyExpandedClass
-import org.jetbrains.kotlin.fir.resolve.providers.getClassDeclaredFunctionSymbols
+import org.jetbrains.kotlin.fir.scopes.impl.declaredMemberScope
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
+import org.jetbrains.kotlin.fir.scopes.FirContainingNamesAwareScope
 import org.jetbrains.kotlin.name.ClassId
 
 internal class FileChecker(
@@ -48,6 +50,7 @@ internal class FileChecker(
 }
 
 @Suppress("ReturnCount")
+@OptIn(org.jetbrains.kotlin.fir.symbols.SymbolInternals::class)
 private fun FirResolvedImport.resolveToFun(context: CheckerContext): FirCallableSymbol<*>? {
   val funName = this.importedName ?: return null
   val topLevelFun =
@@ -57,9 +60,13 @@ private fun FirResolvedImport.resolveToFun(context: CheckerContext): FirCallable
   if (topLevelFun != null) return topLevelFun
 
   val parentClassId = resolvedParentClassId ?: return null
-  return context.session.symbolProvider
-    .getClassDeclaredFunctionSymbols(parentClassId, funName)
-    .firstOrNull()
+
+  val classSymbol = context.session.symbolProvider
+    .getClassLikeSymbolByClassId(parentClassId) as? FirRegularClassSymbol ?: return null
+
+  val classMemberScope:FirContainingNamesAwareScope = context.session.declaredMemberScope(classSymbol.fir, memberRequiredPhase = null)
+
+  return classMemberScope?.getFunctions(funName)?.orEmpty()?.firstOrNull()
 }
 
 private fun FirResolvedImport.classId(): ClassId? {

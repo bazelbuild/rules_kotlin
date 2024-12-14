@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@released_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("//kotlin:lint.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
+load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_library")
 load("//third_party:jarjar.bzl", "jar_jar")
 
 def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibility = [], **kwargs):
@@ -23,13 +23,13 @@ def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibi
     deps: the dependenices, the are setup as runtime_deps of the library.
     neverlink_deps: deps that won't be linked.
     """
-    kt_jvm_library(
+    core_kt_jvm_library(
         name = "%s_neverlink" % name,
         exports = neverlink_deps,
         neverlink = True,
     )
 
-    kt_jvm_library(
+    core_kt_jvm_library(
         name = name,
         srcs = srcs,
         visibility = visibility,
