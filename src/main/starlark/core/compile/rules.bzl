@@ -17,6 +17,19 @@ _COMMON_ATTRS = {
         ],
         allow_files = False,
     ),
+    "exports": attr.label_list(
+        doc = """\
+    Exported libraries.
+
+    Deps listed here will be made available to other rules, as if the parents explicitly depended on
+    these deps. This is not true for regular (non-exported) deps.""",
+        default = [],
+        providers = [JavaInfo, KtJvmInfo],
+    ),
+    "neverlink": attr.bool(
+        doc = """If true only use this library for compilation and not at runtime.""",
+        default = False,
+    ),
     "runtime_deps": attr.label_list(
         doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
                        appear on the runtime classpath, but unlike them, not on the compile-time classpath.""",
@@ -66,6 +79,8 @@ def _kt_jvm_library_impl(ctx):
         output_jar = class_jar,
         source_jar = source_jar,
         deps = java_info_deps,
+        neverlink = ctx.attr.neverlink,
+        exports = [e[JavaInfo] for e in ctx.attr.exports],
     )
     return [
         KtJvmInfo(

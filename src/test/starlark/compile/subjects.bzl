@@ -8,5 +8,6 @@ def java_info_subject_factory(value, meta):
             "java_outputs": subjects.collection,
             "source_jars": subjects.collection,
             "transitive_compile_time_jars": subjects.depset_file,
+            "transitive_runtime_jars": subjects.depset_file,
         },
     )
