@@ -21,6 +21,8 @@ load("//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 
+register_toolchains("//src/main/starlark/core/compile/...")
+
 register_toolchains("@rules_kotlin//kotlin/internal:default_toolchain")
 
 android_sdk_repository(name = "androidsdk")
