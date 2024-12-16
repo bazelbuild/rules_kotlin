@@ -38,6 +38,7 @@ use_repo(
 
 # Register bootstrap toolchain
 register_toolchains("//src/main/kotlin:bootstrap_toolchain")
+
 register_toolchains("//src/main/starlark/core/compile/...")
 
 # Back to the regularly scheduled configuration.
