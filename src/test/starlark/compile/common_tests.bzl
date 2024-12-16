@@ -69,15 +69,15 @@ def _test_neverlink_deps(test, rule_under_test, **kwargs):
         wants = {
             "class_jar": Want(
                 attr = attr.label(allow_single_file = True),
-                value = got + "lib.jar",
+                value = got + ".jar",
             ),
             "source_jar": Want(
                 attr = attr.label(allow_single_file = True),
-                value = got + "lib.srcjar",
+                value = got + ".srcjar",
             ),
             "inputs": Want(
                 attr = attr.label_list(allow_empty = True, allow_files = True),
-                value = [got_src, have + "lib.jar"],
+                value = [got_src, have + ".jar"],
             ),
             "transitive_compile_deps": Want(
                 attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
@@ -119,15 +119,15 @@ def _test_deps_core(test, rule_under_test, **kwargs):
         wants = {
             "class_jar": Want(
                 attr = attr.label(allow_single_file = True),
-                value = got + "lib.jar",
+                value = got + ".jar",
             ),
             "source_jar": Want(
                 attr = attr.label(allow_single_file = True),
-                value = got + "lib.srcjar",
+                value = got + ".srcjar",
             ),
             "inputs": Want(
                 attr = attr.label_list(allow_empty = True, allow_files = True),
-                value = [have + "lib.jar"],
+                value = [have + ".jar"],
             ),
             "transitive_compile_deps": Want(
                 attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
@@ -161,11 +161,11 @@ def test_no_deps_core(test, rule_under_test, **kwargs):
         wants = {
             "class_jar": Want(
                 attr = attr.label(allow_single_file = True),
-                value = got + "lib.jar",
+                value = got + ".jar",
             ),
             "source_jar": Want(
                 attr = attr.label(allow_single_file = True),
-                value = got + "lib.srcjar",
+                value = got + ".srcjar",
             ),
             "transitive_compile_deps": Want(
                 attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
