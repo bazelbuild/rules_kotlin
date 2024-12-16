@@ -1,8 +1,4 @@
 load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE", "JAVA_TOOLCHAIN_TYPE")
-load(
-    "//src/main/starlark/core/options:opts.kotlinc.bzl",
-    "KotlincOptions",
-)
 load(":compile.bzl", "build_deploy_jar", "compile_kotlin_for_jvm", "write_jvm_launcher")
 
 KotlincJvmCompileInfo = provider(

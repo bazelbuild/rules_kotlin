@@ -6,17 +6,17 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirFileChecker
-import org.jetbrains.kotlin.fir.scopes.getFunctions
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
 import org.jetbrains.kotlin.fir.declarations.fullyExpandedClass
-import org.jetbrains.kotlin.fir.scopes.impl.declaredMemberScope
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
+import org.jetbrains.kotlin.fir.scopes.FirContainingNamesAwareScope
+import org.jetbrains.kotlin.fir.scopes.getFunctions
+import org.jetbrains.kotlin.fir.scopes.impl.declaredMemberScope
 import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
-import org.jetbrains.kotlin.fir.scopes.FirContainingNamesAwareScope
 import org.jetbrains.kotlin.name.ClassId
 
 internal class FileChecker(
@@ -61,10 +61,15 @@ private fun FirResolvedImport.resolveToFun(context: CheckerContext): FirCallable
 
   val parentClassId = resolvedParentClassId ?: return null
 
-  val classSymbol = context.session.symbolProvider
-    .getClassLikeSymbolByClassId(parentClassId) as? FirRegularClassSymbol ?: return null
+  val classSymbol =
+    context.session.symbolProvider
+      .getClassLikeSymbolByClassId(parentClassId) as? FirRegularClassSymbol ?: return null
 
-  val classMemberScope:FirContainingNamesAwareScope = context.session.declaredMemberScope(classSymbol.fir, memberRequiredPhase = null)
+  val classMemberScope: FirContainingNamesAwareScope =
+    context.session.declaredMemberScope(
+      classSymbol.fir,
+      memberRequiredPhase = null,
+    )
 
   return classMemberScope?.getFunctions(funName)?.orEmpty()?.firstOrNull()
 }
