@@ -38,7 +38,7 @@ def _outputs(env, got):
     got_java_info.source_jars().contains(env.ctx.file.source_jar)
 
     # get actions
-    source = got_target.action_generating(env.ctx.file.source_jar.short_path)
+    got_target.action_generating(env.ctx.file.source_jar.short_path)
 
     compile = got_target.action_generating(env.ctx.file.class_jar.short_path)
     compile.contains_at_least_inputs(
