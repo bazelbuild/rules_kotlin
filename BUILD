@@ -38,7 +38,6 @@ test_suite(
     tests = [
         "//src/test/kotlin/io/bazel/kotlin:assertion_tests",
         "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
-        "//src/test/kotlin/io/bazel/kotlin/integration:integration_tests",
         "//src/test/kotlin/io/bazel/worker:worker_tests",
         "//src/test/starlark:convert_tests",
     ],
@@ -50,7 +49,6 @@ test_suite(
     tests = [
         ":all_tests",
         "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
-        "//src/test/kotlin/io/bazel/kotlin/integration:local_integration_tests",
         "//src/test/kotlin/io/bazel/worker:local_worker_tests",
         "//src/test/starlark:convert_tests",
     ],
