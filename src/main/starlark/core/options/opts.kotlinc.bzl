@@ -397,6 +397,16 @@ _KOPTS_ALL = {
         },
         map_value_to_flag = None,
     ),
+    "x_consistent_data_class_copy_visibility": struct(
+        args = dict(
+            default = False,
+            doc = "The effect of this compiler flag is the same as applying @ConsistentCopyVisibility annotation to all data classes in the module. See https://youtrack.jetbrains.com/issue/KT-11914",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xconsistent-data-class-copy-visibility"],
+        },
+    ),
     "jvm_target": struct(
         args = dict(
             default = "",
