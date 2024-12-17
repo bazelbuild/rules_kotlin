@@ -22,26 +22,10 @@ use_repo(
     "kotlinx_serialization_core_jvm",
     "kotlinx_serialization_json",
     "kotlinx_serialization_json_jvm",
-    "released_rules_kotlin",
 )
 
-# Once the released rules_koltin is defined, configure it.
-rules_kotlin_bootstrap_extensions = use_extension(
-    "//src/main/starlark/core/repositories:bzlmod_bootstrap.bzl",
-    "rules_kotlin_bootstrap_extensions",
-)
-use_repo(
-    rules_kotlin_bootstrap_extensions,
-    "released_com_github_google_ksp",
-    "released_com_github_jetbrains_kotlin",
-)
+register_toolchains("//src/main/starlark/core/compile/cli")
 
-# Register bootstrap toolchain
-register_toolchains("//src/main/kotlin:bootstrap_toolchain")
-
-register_toolchains("//src/main/starlark/core/compile/...")
-
-# Back to the regularly scheduled configuration.
 register_toolchains("//kotlin/internal:default_toolchain")
 
 # TODO(bencodes) We should be able to remove this once rules_android has rolled out official Bzlmod support
