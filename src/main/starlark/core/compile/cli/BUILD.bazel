@@ -25,6 +25,7 @@ cli_toolchain(
         "//kotlin/compiler:kotlin-stdlib",
         "//kotlin/compiler:kotlin-stdlib-jdk7",
         "//kotlin/compiler:kotlin-stdlib-jdk8",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
     kotlinc = ":kotlinc",
     language_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
