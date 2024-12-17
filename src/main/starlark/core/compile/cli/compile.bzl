@@ -29,7 +29,11 @@ def compile_kotlin_for_jvm(
         ],
     )
 
-    args = actions.args().add("-d", class_jar)
+    # Set the stdlib for the compiler to run on.
+    args = actions.args().add("--wrapper_script_flag=--main_advice_classpath=%s" % (
+        ":".join([f.path for f in toolchain_info.kotlin_stdlib.transitive_compile_time_jars.to_list()])
+    ))
+    args.add("-d", class_jar)
     args.add("-jdk-home", toolchain_info.java_runtime.java_home)
     args.add("-jvm-target", toolchain_info.jvm_target)
     args.add("-no-stdlib")
