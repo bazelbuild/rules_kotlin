@@ -228,6 +228,11 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder publicOnlyAbiJar() {
+            taskBuilder.getInfoBuilder().setIncludePublicOnlyInAbiJar(true);
+            return this;
+        }
+
         public TaskBuilder generatedSourceJar() {
             taskBuilder.getOutputsBuilder()
                     .setGeneratedJavaSrcJar(instanceRoot().resolve("gen-src.jar").toAbsolutePath().toString());

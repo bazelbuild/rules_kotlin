@@ -77,6 +77,7 @@ class KotlinBuilder
         DEBUG("--kotlin_debug_tags"),
         TASK_ID("--kotlin_task_id"),
         ABI_JAR("--abi_jar"),
+        PUBLIC_ABI_JAR("--public_only_in_abi_jar"),
         GENERATED_JAVA_SRC_JAR("--generated_java_srcjar"),
         GENERATED_JAVA_STUB_JAR("--kapt_generated_stub_jar"),
         GENERATED_CLASS_JAR("--kapt_generated_class_jar"),
@@ -161,6 +162,9 @@ class KotlinBuilder
           argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
         strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
         reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
+        argMap.optionalSingle(KotlinBuilderFlags.PUBLIC_ABI_JAR)?.let { includePublicOnlyInAbiJar =
+          it == "true"
+        }
         this
       }
 

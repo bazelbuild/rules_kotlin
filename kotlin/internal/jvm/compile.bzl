@@ -536,6 +536,9 @@ def _run_kt_builder_action(
         omit_if_empty = True,
     )
 
+    if toolchains.kt.experimental_use_public_only_abi_jars == True:
+        args.add("--public_only_in_abi_jar", "true")
+
     args.add("--build_kotlin", build_kotlin)
 
     progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
