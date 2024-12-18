@@ -60,6 +60,7 @@ object BazelIntegrationTestRunner {
       bzlmod && workspace.hasModule() || !bzlmod && workspace.hasWorkspace()
     }.forEach { bzlmod ->
       println("Starting bzlmod $bzlmod test")
+      val overrideFlag = if (bzlmod) "--override_module=rules_kotlin=$unpack" else "--override_repository=rules_kotlin=$unpack"
       bazel.run(
         workspace,
         "--bazelrc=$bazelrc",
@@ -77,13 +78,13 @@ object BazelIntegrationTestRunner {
         "--bazelrc=$bazelrc",
         "info",
         *version.workspaceFlag(bzlmod),
-        "--override_repository=rules_kotlin=$unpack",
+        overrideFlag
       ).onFailThrow()
       bazel.run(
         workspace,
         "--bazelrc=$bazelrc",
         "build",
-        "--override_repository=rules_kotlin=$unpack",
+        overrideFlag,
         "//...",
         *version.workspaceFlag(bzlmod)
       ).onFailThrow()
@@ -92,7 +93,7 @@ object BazelIntegrationTestRunner {
         "--bazelrc=$bazelrc",
         "query",
         *version.workspaceFlag(bzlmod),
-        "--override_repository=rules_kotlin=$unpack",
+        overrideFlag,
         "kind(\".*_test\", \"//...\")",
       ).ok { process ->
         if (process.stdOut.isNotEmpty()) {
@@ -101,7 +102,7 @@ object BazelIntegrationTestRunner {
             "--bazelrc=$bazelrc",
             "test",
             *version.workspaceFlag(bzlmod),
-            "--override_repository=rules_kotlin=$unpack",
+            overrideFlag,
             "--test_output=all",
             "//...",
           ).onFailThrow()
