@@ -162,8 +162,8 @@ class KotlinBuilder
           argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
         strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
         reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
-        argMap.optionalSingle(KotlinBuilderFlags.PUBLIC_ABI_JAR)?.let { includePublicOnlyInAbiJar =
-          it == "true"
+        argMap.optionalSingle(KotlinBuilderFlags.PUBLIC_ABI_JAR)?.let {
+          includePublicOnlyInAbiJar = it == "true"
         }
         this
       }

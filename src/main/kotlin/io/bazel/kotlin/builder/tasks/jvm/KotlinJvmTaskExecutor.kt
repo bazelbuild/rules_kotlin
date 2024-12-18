@@ -87,7 +87,7 @@ class KotlinJvmTaskExecutor
                         .notEmpty {
                           plugin(plugins.jvmAbiGen) {
                             flag("outputDir", directories.abiClasses)
-                            if(info.includePublicOnlyInAbiJar) {
+                            if (info.includePublicOnlyInAbiJar) {
                               flag("removePrivateClasses", "true")
                               flag("treatInternalAsPrivate", "true")
                             }
