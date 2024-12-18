@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,18 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-workspace(name = "rules_kotlin")
 
-load("//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-kt_download_local_dev_dependencies()
-
-load("//kotlin:repositories.bzl", "kotlin_repositories")
-
-kotlin_repositories()
-
-register_toolchains("//src/main/starlark/core/compile/cli")
-
-register_toolchains("@rules_kotlin//kotlin/internal:default_toolchain")
-
-android_sdk_repository(name = "androidsdk")
+bzl_library(
+    name = "compile",
+    srcs = [
+        "common.bzl",
+    ],
+    visiblity = [
+        "//visibility:public",
+    ],
+)

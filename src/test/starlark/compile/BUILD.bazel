@@ -1,0 +1,5 @@
+load(":common_tests.bzl", "test_suite")
+
+test_suite(
+    name = "common_tests",
+)

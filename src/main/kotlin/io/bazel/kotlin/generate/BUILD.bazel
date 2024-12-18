@@ -1,10 +1,19 @@
 load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
 
+# Work around neverlink.
+java_import(
+    name = "kotlinc_jar",
+    jars = [
+        "@com_github_jetbrains_kotlin//:kotlin-compiler",
+    ],
+    deps = [],
+)
+
 kt_jvm_library(
     name = "kotlin_release_options_lib",
     srcs = glob(["**/*.kt"]),
     deps = [
-        "//kotlin/compiler:kotlin-compiler",
+        ":kotlinc_jar",
         "//kotlin/compiler:kotlin-reflect",
     ],
 )

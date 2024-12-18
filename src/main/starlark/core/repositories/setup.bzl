@@ -15,7 +15,6 @@
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
-load("@released_rules_kotlin//src/main/starlark/core/repositories:initialize.bzl", release_kotlin_repositories = "kotlin_repositories")
 load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
 load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
 load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
@@ -25,14 +24,6 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
-    release_kotlin_repositories(
-        is_bzlmod = True,
-        compiler_repository_name = "released_com_github_jetbrains_kotlin",
-        ksp_repository_name = "released_com_github_google_ksp",
-    )
-
-    native.register_toolchains("@released_rules_kotlin//kotlin/internal:default_toolchain")
-
     rules_cc_dependencies()
     rules_cc_toolchains()
 
@@ -54,22 +45,19 @@ def kt_configure():
             "com.google.truth:truth:0.45",
             "com.google.auto.service:auto-service:1.1.1",
             "com.google.auto.service:auto-service-annotations:1.1.1",
-            "com.google.auto.service:auto-service-annotations:jar:1.1.1",
             "com.google.auto.value:auto-value:1.10.1",
             "com.google.auto.value:auto-value-annotations:1.10.1",
-            "org.apache.commons:commons-compress:1.26.2",
-            "com.google.dagger:dagger:2.51",
-            "com.google.dagger:dagger-compiler:2.51",
-            "com.google.dagger:dagger-producers:2.51",
+            "com.google.dagger:dagger:2.53.1",
+            "com.google.dagger:dagger-compiler:2.53.1",
+            "com.google.dagger:dagger-producers:2.53.1",
             "javax.annotation:javax.annotation-api:1.3.2",
             "javax.inject:javax.inject:1",
+            "org.apache.commons:commons-compress:1.26.2",
             "org.pantsbuild:jarjar:1.7.2",
-            "org.jetbrains.kotlinx:atomicfu-js:0.15.2",
-            "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
-            "dev.zacsweers.autoservice:auto-service-ksp:jar:1.1.0",
-            "com.squareup.moshi:moshi:1.15.0",
-            "com.squareup.moshi:moshi-kotlin:1.15.0",
-            "com.squareup.moshi:moshi-kotlin-codegen:1.15.0",
+            "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
+            "com.squareup.moshi:moshi:1.15.1",
+            "com.squareup.moshi:moshi-kotlin:1.15.1",
+            "com.squareup.moshi:moshi-kotlin-codegen:1.15.1",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",

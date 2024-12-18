@@ -66,6 +66,7 @@ genrule(
       cat "$$md" >> $@
     done
     """,
+    executable = True,
     visibility = [
         "//visibility:public",
     ],
