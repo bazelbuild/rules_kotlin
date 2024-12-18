@@ -63,6 +63,18 @@ object BazelIntegrationTestRunner {
       bazel.run(
         workspace,
         "--bazelrc=$bazelrc",
+        "clean",
+        "--expunge",
+        "--async"
+      ).onFailThrow()
+      bazel.run(
+        workspace,
+        "--bazelrc=$bazelrc",
+        "shutdown",
+      ).onFailThrow()
+      bazel.run(
+        workspace,
+        "--bazelrc=$bazelrc",
         "info",
         *version.workspaceFlag(bzlmod),
         "--override_repository=rules_kotlin=$unpack",
