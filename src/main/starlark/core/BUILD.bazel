@@ -10,6 +10,7 @@ release_archive(
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
+        "//src/main/starlark/core/compile:pkg",
         "//src/main/starlark/core/options:pkg",
         "//src/main/starlark/core/plugin:pkg",
         "//src/main/starlark/core/repositories:pkg",
@@ -21,6 +22,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
+        "//src/main/starlark/core/compile",
         "//src/main/starlark/core/plugin",
         "//src/main/starlark/core/repositories",
     ],
