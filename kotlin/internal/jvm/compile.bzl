@@ -294,6 +294,7 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
             "" if not action_type else " (%s)" % action_type,
             len(input_jars),
         ),
+        toolchain = _TOOLCHAIN_TYPE,
     )
 
 def _resourcejar_args_action(ctx):
@@ -369,6 +370,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
             args,
         ],
         progress_message = progress_message,
+        toolchain = _TOOLCHAIN_TYPE,
     )
 
 def _run_kapt_builder_actions(
@@ -574,6 +576,7 @@ def _run_kt_builder_action(
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
             "REPOSITORY_NAME": _utils.builder_workspace_name(ctx),
         },
+        toolchain = _TOOLCHAIN_TYPE,
     )
 
 # MAIN ACTIONS #########################################################################################################
