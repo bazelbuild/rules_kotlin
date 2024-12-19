@@ -1,14 +1,6 @@
 workspace(name = "android_example")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
-load(
-    "@rules_android//android:rules.bzl",
-    "android_sdk_repository",
-)
-load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 http_archive(
     name = "rules_kotlin",
@@ -16,7 +8,11 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+
 kotlin_repositories()
+
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
 kt_register_toolchains()
 
@@ -38,6 +34,8 @@ http_archive(
         versions.RULES_JVM_EXTERNAL_TAG,
     ),
 )
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
@@ -69,6 +67,11 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % versions.ANDROID.VERSION],
 )
 
+load(
+    "@rules_android//android:rules.bzl",
+    "android_sdk_repository",
+)
+
 android_sdk_repository(name = "androidsdk")
 
 http_archive(
@@ -77,6 +80,8 @@ http_archive(
     strip_prefix = "robolectric-bazel-4.10.3",
     urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.10.3.tar.gz"],
 )
+
+load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 
 robolectric_repositories()
 

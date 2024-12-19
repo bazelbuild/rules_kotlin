@@ -1,21 +1,4 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load(
-    "@rules_android//android:rules.bzl",
-    "android_sdk_repository",
-)
-load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-load("@rules_kotlin//src/main/starlark/core/repositories:versions.bzl", "versions")
-
-http_archive(
-    name = "rules_kotlin",
-    sha256 = "34e8c0351764b71d78f76c8746e98063979ce08dcf1a91666f3f3bc2949a533d",
-    url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
-)
-
-kotlin_repositories()
-
-register_toolchains("//bzl:experimental_toolchain")
 
 http_archive(
     name = "bazel_skylib",
@@ -27,6 +10,19 @@ http_archive(
 )
 
 http_archive(
+    name = "rules_kotlin",
+    sha256 = "34e8c0351764b71d78f76c8746e98063979ce08dcf1a91666f3f3bc2949a533d",
+    url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
+)
+
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+load("@rules_kotlin//src/main/starlark/core/repositories:versions.bzl", "versions")
+
+kotlin_repositories()
+
+register_toolchains("//bzl:experimental_toolchain")
+
+http_archive(
     name = "rules_jvm_external",
     sha256 = versions.RULES_JVM_EXTERNAL_SHA,
     strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
@@ -35,6 +31,8 @@ http_archive(
         versions.RULES_JVM_EXTERNAL_TAG,
     ),
 )
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
@@ -52,6 +50,11 @@ http_archive(
     sha256 = versions.ANDROID.SHA,
     strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
     urls = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % versions.ANDROID.VERSION],
+)
+
+load(
+    "@rules_android//android:rules.bzl",
+    "android_sdk_repository",
 )
 
 android_sdk_repository(
