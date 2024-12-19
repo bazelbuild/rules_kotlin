@@ -81,6 +81,8 @@ message CompilationTaskInfo {
     string strict_kotlin_deps = 10;
     // Optimize classpath by removing dependencies not required for compilation
     string reduced_classpath_mode = 11;
+    // Include only public symbols in abi.jar
+    bool include_public_only_in_abi_jar = 12;
 }
 
 // Nested messages not marked with stable could be refactored.
