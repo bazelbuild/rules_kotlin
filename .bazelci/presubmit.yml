@@ -31,8 +31,8 @@ tasks:
   integration_tests:
     name: "Integration Tests"
     platform: ${{ integration_platform }}
-    test_flags:
-      - "--config=rbe"
+#    test_flags:
+#      - "--config=rbe"
     test_targets:
       - //examples:all
   rbe_ubuntu1604:
