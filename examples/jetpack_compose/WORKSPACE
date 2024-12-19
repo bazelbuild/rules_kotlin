@@ -1,13 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-_COMPOSE_VERSION = "1.2.1"
-
-_KOTLIN_COMPILER_VERSION = "2.0.0"
-
-_KOTLIN_COMPILER_SHA = "ef578730976154fd2c5968d75af8c2703b3de84a78dffe913f670326e149da3b"
-
 # Setup Kotlin
-
 http_archive(
     name = "rules_kotlin",
     sha256 = "34e8c0351764b71d78f76c8746e98063979ce08dcf1a91666f3f3bc2949a533d",
@@ -16,12 +9,7 @@ http_archive(
 
 load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
 
-kotlin_repositories(
-    compiler_release = kotlinc_version(
-        release = _KOTLIN_COMPILER_VERSION,
-        sha256 = _KOTLIN_COMPILER_SHA,
-    ),
-)
+kotlin_repositories()
 
 register_toolchains("//:kotlin_toolchain")
 
@@ -41,15 +29,15 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
     artifacts = [
-        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:{}".format(_KOTLIN_COMPILER_VERSION),
-        "org.jetbrains.kotlin:kotlin-stdlib:{}".format(_KOTLIN_COMPILER_VERSION),
+        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:{}".format(versions.KOTLIN_CURRENT_COMPILER_RELEASE.version),
+        "org.jetbrains.kotlin:kotlin-stdlib:{}".format(versions.KOTLIN_CURRENT_COMPILER_RELEASE.version),
         "androidx.core:core-ktx:1.7.0",
         "androidx.appcompat:appcompat:1.4.1",
         "androidx.activity:activity-compose:1.4.0",
-        "androidx.compose.material:material:{}".format(_COMPOSE_VERSION),
-        "androidx.compose.ui:ui:{}".format(_COMPOSE_VERSION),
-        "androidx.compose.ui:ui-tooling:{}".format(_COMPOSE_VERSION),
-        "androidx.compose.runtime:runtime:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.material:material:{}".format(versions.KOTLIN_CURRENT_COMPILER_RELEASE.version),
+        "androidx.compose.ui:ui:{}".format(versions.KOTLIN_CURRENT_COMPILER_RELEASE.version),
+        "androidx.compose.ui:ui-tooling:{}".format(versions.KOTLIN_CURRENT_COMPILER_RELEASE.version),
+        "androidx.compose.runtime:runtime:{}".format(versions.KOTLIN_CURRENT_COMPILER_RELEASE.version),
     ],
     repositories = [
         "https://maven.google.com",
