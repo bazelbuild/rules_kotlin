@@ -1,15 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
-    name = "bazel_skylib",
-    sha256 = versions.SKYLIB_SHA,
-    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (
-        versions.SKYLIB_VERSION,
-        versions.SKYLIB_VERSION,
-    )],
-)
-
-http_archive(
     name = "rules_kotlin",
     sha256 = "34e8c0351764b71d78f76c8746e98063979ce08dcf1a91666f3f3bc2949a533d",
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
@@ -20,7 +11,14 @@ load("@rules_kotlin//src/main/starlark/core/repositories:versions.bzl", "version
 
 kotlin_repositories()
 
-register_toolchains("//bzl:experimental_toolchain")
+http_archive(
+    name = "bazel_skylib",
+    sha256 = versions.SKYLIB_SHA,
+    urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (
+        versions.SKYLIB_VERSION,
+        versions.SKYLIB_VERSION,
+    )],
+)
 
 http_archive(
     name = "rules_jvm_external",
@@ -44,6 +42,8 @@ maven_install(
         "https://repo1.maven.org/maven2",
     ],
 )
+
+register_toolchains("//bzl:experimental_toolchain")
 
 http_archive(
     name = "rules_android",
