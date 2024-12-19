@@ -13,7 +13,7 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 kotlin_repositories()
 
@@ -37,9 +37,10 @@ maven_install(
     artifacts = [
         "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:{}".format(versions.KOTLIN_CURRENT_COMPILER_RELEASE.version),
         "org.jetbrains.kotlin:kotlin-stdlib:{}".format(versions.KOTLIN_CURRENT_COMPILER_RELEASE.version),
-        "androidx.core:core-ktx:1.7.0",
-        "androidx.appcompat:appcompat:1.4.1",
-        "androidx.activity:activity-compose:1.4.0",
+        "androidx.core:core-ktx:1.15.0",
+        "androidx.appcompat:appcompat:1.7.0",
+        "androidx.activity:activity-compose:1.9.3",
+        "androidx.collection:collection:1.0.0",
         "androidx.compose.material:material:{}".format(KOTLIN_TO_COMPOSE[versions.KOTLIN_CURRENT_COMPILER_RELEASE.version]),
         "androidx.compose.ui:ui:{}".format(KOTLIN_TO_COMPOSE[versions.KOTLIN_CURRENT_COMPILER_RELEASE.version]),
         "androidx.compose.ui:ui-tooling:{}".format(KOTLIN_TO_COMPOSE[versions.KOTLIN_CURRENT_COMPILER_RELEASE.version]),
