@@ -205,11 +205,11 @@ _kt_toolchain = rule(
         ),
         "experimental_use_public_only_abi_jars": attr.bool(
             doc = """Compile using public only abi jars.
-            This effectively applies the following two compiler plugin options.
-            plugin:org.jetbrains.kotlin.jvm.abi:treatInternalAsPrivate=true
-            plugin:org.jetbrains.kotlin.jvm.abi:removePrivateClasses=true
+            This effectively applies the following two compiler plugin options:
+              plugin:org.jetbrains.kotlin.jvm.abi:treatInternalAsPrivate=true
+              plugin:org.jetbrains.kotlin.jvm.abi:removePrivateClasses=true
             Can be disabled for an individual target using the tag.
-            `kt_abi_plugin_incompatible`""",
+            `kt_public_only_in_abi_plugin_incompatible`""",
             default = False,
         ),
         "experimental_strict_kotlin_deps": attr.string(
