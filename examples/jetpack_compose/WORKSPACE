@@ -81,7 +81,9 @@ KOTLIN_TO_COMPOSE = {
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
+    name = "maven",
     artifacts = KOTLIN_TO_COMPOSE[KOTLINC_RELEASE.version],
+    fetch_sources = True,
     maven_install_json = "//:maven_install-%s.json" % KOTLINC_RELEASE.version,
     repositories = [
         "https://maven.google.com",
