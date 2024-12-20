@@ -90,6 +90,10 @@ maven_install(
     resolver = "coursier" if KOTLINC_RELEASE.version == "1.9.22" else "maven",
 )
 
+load("@maven//:defs.bzl", "pinned_maven_install")
+
+pinned_maven_install()
+
 http_archive(
     name = "bazel_skylib",
     sha256 = versions.SKYLIB_SHA,

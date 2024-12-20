@@ -4,3 +4,5 @@ build --define=android_dexmerger_tool=d8_dexmerger
 # Flags for the D8 dexer
 build --define=android_incremental_dexing_tool=d8_dexbuilder
 build --define=android_standalone_dexing_tool=d8_compat_dx
+
+common --enable_workspace=true --enable_bzlmod=false
