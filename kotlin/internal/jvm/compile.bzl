@@ -706,6 +706,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
                 )],
             ),
             transitive_compile_time_jars = java_info.transitive_compile_time_jars,
+            transitive_runtime_jars = java_info.transitive_runtime_jars,
             transitive_source_jars = java_info.transitive_source_jars,
             annotation_processing = annotation_processing,
             additional_generated_source_jars = generated_src_jars,
