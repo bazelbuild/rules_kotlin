@@ -1,5 +1,4 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//src/main/starlark/core/compile:common.bzl", "TOOLCHAIN")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 release_archive(

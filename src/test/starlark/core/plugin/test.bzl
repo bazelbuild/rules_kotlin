@@ -1,8 +1,10 @@
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("//kotlin:core.bzl", "kt_compiler_plugin", "kt_plugin_cfg")
 load("//kotlin:jvm.bzl", "kt_jvm_import", "kt_jvm_library")
+load("//src/main/starlark/core:functional.bzl", "partial")
+load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_library")
 load("//src/main/starlark/core/plugin:providers.bzl", "KtCompilerPluginInfo", "KtPluginConfiguration")
-load("//src/test/starlark:case.bzl", "suite")
+load("//src/test/starlark:case.bzl", "Want", "suite")
 load("//src/test/starlark:truth.bzl", "fail_messages_in", "flags_and_values_of")
 load(":subjects.bzl", "plugin_configuration_subject_factory")
 
@@ -46,7 +48,7 @@ def plugin_for(test, name, deps = [], id = None, **kwargs):
     )
     return (plugin, plugin_jar)
 
-def _test_kt_plugin_cfg(test):
+def _test_kt_plugin_cfg(test, kt_library_rule_under_test):
     plugin = test.have(
         kt_compiler_plugin,
         name = "plugin",
@@ -56,7 +58,7 @@ def _test_kt_plugin_cfg(test):
         },
         deps = [
             test.have(
-                kt_jvm_library,
+                kt_library_rule_under_test,
                 name = "plugin_dep",
                 srcs = [
                     test.artifact(
@@ -67,7 +69,7 @@ def _test_kt_plugin_cfg(test):
         ],
     )
     cfg_dep = test.have(
-        kt_jvm_library,
+        kt_library_rule_under_test,
         name = "cfg_dep",
         srcs = [
             test.artifact(
@@ -260,9 +262,50 @@ def _test_compile_configuration_single_phase(test):
         },
     )
 
-def _test_library_multiple_plugins_with_same_id(test):
+def _test_export_plugins(test, kt_library_rule_under_test):
+    plugin, plugin_jar = plugin_for(
+        test,
+        name = "compile",
+        id = "plugin.compile",
+        stubs_phase = False,
+        compile_phase = True,
+    )
+    plugin_support = test.have(
+        kt_library_rule_under_test,
+        srcs = [
+            test.artifact(name = "plugin_support.kt"),
+        ],
+    )
     got = test.got(
-        kt_jvm_library,
+        kt_library_rule_under_test,
+        exported_compiler_plugins = [plugin],
+        exports = [
+            plugin_support,
+        ],
+    )
+    test.claim(
+        got = got,
+        what = _provider_test_impl,
+        wants = {
+           attr_values = {
+                     "want_plugin": plugin,
+                     "want_deps": [cfg_dep],
+                     "want_options": [
+                         "extra=annotation",
+                     ],
+                 },
+                 attrs = {
+                     "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
+                     "want_options": attr.string_list(),
+                     "want_deps": attr.label_list(providers = [JavaInfo]),
+                 },
+
+        }
+    )
+
+def _test_library_multiple_plugins_with_same_id(test, kt_library_rule_under_test):
+    got = test.got(
+        kt_library_rule_under_test,
         name = "got_library",
         srcs = [
             test.artifact(
@@ -326,7 +369,7 @@ def _test_library_multiple_plugins_with_same_id(test):
         },
     )
 
-def _test_cfg_without_plugin(test):
+def _test_cfg_without_plugin(test, kt_library_rule_under_test):
     adee, _ = plugin_for(
         test,
         name = "Adee",
@@ -342,7 +385,7 @@ def _test_cfg_without_plugin(test):
     )
 
     got = test.got(
-        kt_jvm_library,
+        kt_library_rule_under_test,
         name = "got_library",
         srcs = [
             test.artifact(
@@ -372,9 +415,30 @@ def _test_cfg_without_plugin(test):
 def test_suite(name):
     suite(
         name,
-        _test_kt_plugin_cfg,
         _test_compile_configuration,
-        _test_library_multiple_plugins_with_same_id,
         _test_compile_configuration_single_phase,
-        _test_cfg_without_plugin,
+        _test_kt_plugin_cfg = partial(
+            _test_kt_plugin_cfg,
+            kt_library_rule_under_test = kt_jvm_library,
+        ),
+        _test_kt_plugin_cfg_core = partial(
+            _test_kt_plugin_cfg,
+            kt_library_rule_under_test = core_kt_jvm_library,
+        ),
+        _test_cfg_without_plugin = partial(
+            _test_cfg_without_plugin,
+            kt_library_rule_under_test = kt_jvm_library,
+        ),
+        _test_cfg_without_plugin_core = partial(
+            _test_cfg_without_plugin,
+            kt_library_rule_under_test = core_kt_jvm_library,
+        ),
+        _test_library_multiple_plugins_with_same_id = partial(
+            _test_library_multiple_plugins_with_same_id,
+            kt_library_rule_under_test = kt_jvm_library,
+        ),
+        _test_library_multiple_plugins_with_same_id_core = partial(
+            _test_library_multiple_plugins_with_same_id,
+            kt_library_rule_under_test = core_kt_jvm_library,
+        ),
     )

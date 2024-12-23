@@ -116,8 +116,8 @@ load(
     _kt_jvm_library_impl = "kt_jvm_library_impl",
     _kt_ksp_plugin_impl = "kt_ksp_plugin_impl",
 )
-load("//src/main/starlark/core/plugin:rules.bzl", "kt_compiler_deps_aspect")
 load("//kotlin/internal/utils:utils.bzl", "utils")
+load("//src/main/starlark/core/plugin:rules.bzl", "kt_compiler_deps_aspect")
 
 _implicit_deps = {
     "_singlejar": attr.label(

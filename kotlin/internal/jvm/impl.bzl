@@ -13,13 +13,9 @@
 # limitations under the License.
 
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
-load("//src/main/starlark/core/plugin:providers.bzl", "KtCompilerPluginClasspathInfo")
 load(
     "//kotlin/internal:defs.bzl",
-    "KtCompilerPluginOption",
-    "KtPluginConfiguration",
     _KspPluginInfo = "KspPluginInfo",
-    _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
@@ -32,6 +28,7 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
+load("//src/main/starlark/core/plugin:providers.bzl", "KtCompilerPluginClasspathInfo")
 load("//third_party:jarjar.bzl", "jarjar_action")
 
 # borrowed from skylib to avoid adding that to the release.
