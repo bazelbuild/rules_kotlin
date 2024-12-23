@@ -1,4 +1,4 @@
-load("//src/main/starlark/core/compile:common.bzl", "TYPE")
+load("//src/main/starlark/core/compile:common.bzl", "TOOLCHAIN")
 
 def compile_kotlin_for_jvm(
         actions,
@@ -9,13 +9,18 @@ def compile_kotlin_for_jvm(
         path_separator,
         toolchain_info,
         kotlinc_opts,
-        output_srcjar = None):
+        plugin_configurations = None,
+        plugin_additional_inputs = None,
+        plugin_additional_outputs = None,
+        output_srcjar = None,
+        mnemonic = "CliKotlinc"):
     if not srcs:
         # still gotta create the jars for keep bazel haps.
-        actions.symlink(
-            output = output_srcjar,
-            target_file = toolchain_info.empty_jar,
-        )
+        if output_srcjar:
+            actions.symlink(
+                output = output_srcjar,
+                target_file = toolchain_info.empty_jar,
+            )
         actions.symlink(
             output = class_jar,
             target_file = toolchain_info.empty_jar,
@@ -30,7 +35,8 @@ def compile_kotlin_for_jvm(
     )
 
     # Set the stdlib for the compiler to run on.
-    args = actions.args().add("--wrapper_script_flag=--main_advice_classpath=%s" % (
+    args = actions.args()
+    args.add("--wrapper_script_flag=--main_advice_classpath=%s" % (
         ":".join([f.path for f in toolchain_info.kotlin_stdlib.transitive_compile_time_jars.to_list()])
     ))
     args.add("-d", class_jar)
@@ -41,17 +47,31 @@ def compile_kotlin_for_jvm(
     args.add("-language-version", toolchain_info.language_version)
     args.add("-module-name", module_name)
     args.add_joined("-cp", classpath, join_with = path_separator)
+
+    for (id, options) in (plugin_configurations or {}).items():
+        for option in options:
+            args.add("-P", "plugin:%s:%s=%s" % (id, option.id, option.value))
+
+    for cp in (plugin_additional_inputs or {}).values():
+        args.add_joined("-Xplugin", cp, join_with = ",")
+
     for (k, v) in kotlinc_opts.items():
         args.add(k, v)
     args.add_all(srcs)
 
     actions.run(
-        outputs = [class_jar],
+        outputs = [class_jar] + (plugin_additional_outputs or {}).values(),
         executable = toolchain_info.kotlinc,
-        inputs = depset(direct = srcs, transitive = [classpath, toolchain_info.java_runtime.files]),
+        inputs = depset(
+            direct = srcs,
+            transitive = [
+                classpath,
+                toolchain_info.java_runtime.files,
+            ] + [pcp for pcp in (plugin_additional_inputs or {}).values()],
+        ),
         arguments = [args],
-        mnemonic = toolchain_info.compile_mnemonic,
-        toolchain = TYPE,
+        mnemonic = mnemonic,
+        toolchain = TOOLCHAIN,
     )
 
     if output_srcjar:
@@ -61,7 +81,7 @@ def compile_kotlin_for_jvm(
             inputs = srcs,
             arguments = [actions.args().add("c").add(output_srcjar).add_all(srcs)],
             mnemonic = "SourceJar",
-            toolchain = TYPE,
+            toolchain = TOOLCHAIN,
         )
 
 def write_jvm_launcher(toolchain_info, actions, path_separator, workspace_prefix, jvm_flags, runtime_jars, main_class, executable_output):
@@ -121,5 +141,5 @@ def build_deploy_jar(toolchain_info, actions, jars, output_jar):
         executable = toolchain_info.single_jar,
         mnemonic = "SingleJar",
         arguments = [args],
-        toolchain = TYPE,
+        toolchain = TOOLCHAIN,
     )

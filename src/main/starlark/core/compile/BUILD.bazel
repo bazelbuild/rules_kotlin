@@ -8,6 +8,13 @@ toolchain_type(
     ],
 )
 
+toolchain_type(
+    name = "plugin_toolchain_type",
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
 bzl_library(
     name = "compile",
     srcs = [

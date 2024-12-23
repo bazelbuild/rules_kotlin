@@ -110,15 +110,13 @@ load(
 )
 load(
     "//kotlin/internal/jvm:impl.bzl",
-    "kt_plugin_cfg_impl",
-    _kt_compiler_deps_aspect_impl = "kt_compiler_deps_aspect_impl",
-    _kt_compiler_plugin_impl = "kt_compiler_plugin_impl",
     _kt_jvm_binary_impl = "kt_jvm_binary_impl",
     _kt_jvm_import_impl = "kt_jvm_import_impl",
     _kt_jvm_junit_test_impl = "kt_jvm_junit_test_impl",
     _kt_jvm_library_impl = "kt_jvm_library_impl",
     _kt_ksp_plugin_impl = "kt_ksp_plugin_impl",
 )
+load("//src/main/starlark/core/plugin:rules.bzl", "kt_compiler_deps_aspect")
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 _implicit_deps = {
@@ -479,106 +477,6 @@ exported_plugins, this is not transitive""",
     provides = [JavaInfo, _KtJvmInfo],
 )
 
-_kt_compiler_deps_aspect = aspect(
-    implementation = _kt_compiler_deps_aspect_impl,
-    attr_aspects = ["deps", "runtime_deps", "exports"],
-    attrs = {
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
-        ),
-        "_jarjar": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//third_party:jarjar_runner"),
-        ),
-    },
-)
-
-kt_compiler_plugin = rule(
-    doc = """\
-Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
-of the `kt_jvm_*` rules.
-
-An example can be found under `//examples/plugin`:
-
-```bzl
-kt_compiler_plugin(
-    name = "open_for_testing_plugin",
-    id = "org.jetbrains.kotlin.allopen",
-    options = {
-        "annotation": "plugin.OpenForTesting",
-    },
-    deps = [
-        "//kotlin/compiler:allopen-compiler-plugin",
-    ],
-)
-
-kt_jvm_library(
-    name = "open_for_testing",
-    srcs = ["OpenForTesting.kt"],
-)
-
-kt_jvm_library(
-    name = "user",
-    srcs = ["User.kt"],
-    plugins = [":open_for_testing_plugin"],
-    deps = [
-        ":open_for_testing",
-    ],
-)
-```
-""",
-    attrs = {
-        "deps": attr.label_list(
-            doc = "The list of libraries to be added to the compiler's plugin classpath",
-            providers = [JavaInfo],
-            cfg = "exec",
-            aspects = [_kt_compiler_deps_aspect],
-        ),
-        "id": attr.string(
-            doc = "The ID of the plugin",
-            mandatory = True,
-        ),
-        "options": attr.string_dict(
-            doc = """\
-Dictionary of options to be passed to the plugin.
-Supports the following template values:
-
-- `{generatedClasses}`: directory for generated class output
-- `{temp}`: temporary directory, discarded between invocations
-- `{generatedSources}`:  directory for generated source output
-- `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.
-""",
-            default = {},
-        ),
-        "compile_phase": attr.bool(
-            doc = "Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`",
-            default = True,
-        ),
-        "stubs_phase": attr.bool(
-            doc = "Runs the compiler plugin in kapt stub generation.",
-            default = True,
-        ),
-        "target_embedded_compiler": attr.bool(
-            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
-            dependencies, and will fail when running against a non-embeddable compiler.""",
-            default = False,
-        ),
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
-        ),
-        "_jarjar": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//third_party:jarjar_runner"),
-        ),
-    },
-    implementation = _kt_compiler_plugin_impl,
-    provides = [_KtCompilerPluginInfo],
-)
-
 kt_ksp_plugin = rule(
     doc = """\
 Define a KSP plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
@@ -608,7 +506,7 @@ kt_jvm_library(
             doc = "The list of libraries to be added to the compiler's plugin classpath",
             providers = [JavaInfo],
             cfg = "exec",
-            aspects = [_kt_compiler_deps_aspect],
+            aspects = [kt_compiler_deps_aspect],
         ),
         "processor_class": attr.string(
             doc = " The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.",
@@ -630,31 +528,4 @@ kt_jvm_library(
     },
     implementation = _kt_ksp_plugin_impl,
     provides = [_KspPluginInfo],
-)
-
-kt_plugin_cfg = rule(
-    implementation = kt_plugin_cfg_impl,
-    doc = """
-    Configurations for kt_compiler_plugin, ksp_plugin, and java_plugin.
-
-    This allows setting options and dependencies independently from the initial plugin definition.
-    """,
-    attrs = {
-        "plugin": attr.label(
-            doc = "The plugin to associate with this configuration",
-            providers = [_KtCompilerPluginInfo],
-            mandatory = True,
-        ),
-        "options": attr.string_list_dict(
-            doc = "A dictionary of flag to values to be used as plugin configuration options.",
-        ),
-        "deps": attr.label_list(
-            doc = "Dependencies for this configuration.",
-            providers = [
-                [_KspPluginInfo],
-                [JavaInfo],
-                [JavaPluginInfo],
-            ],
-        ),
-    },
 )

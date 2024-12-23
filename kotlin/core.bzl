@@ -10,8 +10,11 @@ load(
 )
 load(
     "//kotlin/internal/jvm:jvm.bzl",
-    _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_ksp_plugin = "kt_ksp_plugin",
+)
+load(
+    "//src/main/starlark/core/plugin:rules.bzl",
+    _kt_compiler_plugin = "kt_compiler_plugin",
     _kt_plugin_cfg = "kt_plugin_cfg",
 )
 

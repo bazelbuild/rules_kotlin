@@ -1,4 +1,6 @@
+load("//src/main/starlark/core:functional.bzl", "partial")
 load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE", "JAVA_TOOLCHAIN_TYPE")
+load("//third_party:jarjar.bzl", "jarjar_action")
 load(":compile.bzl", "build_deploy_jar", "compile_kotlin_for_jvm", "write_jvm_launcher")
 
 KotlincJvmCompileInfo = provider(
@@ -7,7 +9,6 @@ KotlincJvmCompileInfo = provider(
         "jvm_target": "java target byte compatiblity.",
         "api_version": "kotlin api version.",
         "language_version": "Kotlin source version.",
-        "compile_mnemonic": "Mnemonic for the compile action(s).",
         "executable_zip": "Executable for creating zip files.",
         "kotlinc": "kotlinc executable",
         "single_jar": "single jar executable",
@@ -28,7 +29,6 @@ def _cli_toolchain(ctx):
         language_version = ".".join(ctx.attr.api_version.split(".")[:2]),
         executable_zip = ctx.attr.zip[DefaultInfo].files_to_run,
         kotlinc = ctx.attr.kotlinc[DefaultInfo].files_to_run,
-        compile_mnemonic = "CliKotlinc",
         single_jar = java_toolchain.single_jar,
         java_stub_template = ctx.files.java_stub_template[0],
         java_runtime = java_runtime,
@@ -37,9 +37,14 @@ def _cli_toolchain(ctx):
     )
     return [
         platform_common.ToolchainInfo(
-            compile = _partial(compile_kotlin_for_jvm, toolchain_info = toolchain_info),
-            launch = _partial(write_jvm_launcher, toolchain_info = toolchain_info),
-            deploy = _partial(build_deploy_jar, toolchain_info = toolchain_info),
+            compile = partial(compile_kotlin_for_jvm, toolchain_info = toolchain_info),
+            launch = partial(write_jvm_launcher, toolchain_info = toolchain_info),
+            deploy = partial(build_deploy_jar, toolchain_info = toolchain_info),
+            reshade = partial(
+                jarjar_action,
+                rules = ctx.files.kotlin_compiler_reshade_rules[0],
+                jarjar = ctx.executable.jarjar_runner,
+            ),
         ),
     ]
 
@@ -79,17 +84,18 @@ cli_toolchain = rule(
             default = Label("//third_party:empty"),
             allow_single_file = True,
         ),
+        "kotlin_compiler_reshade_rules": attr.label(
+            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
+            allow_single_file = True,
+        ),
+        "jarjar_runner": attr.label(
+            executable = True,
+            cfg = "exec",
+            default = Label("//third_party:jarjar_runner"),
+        ),
     },
     toolchains = [
         JAVA_RUNTIME_TOOLCHAIN_TYPE,
         JAVA_TOOLCHAIN_TYPE,
     ],
 )
-
-def _partial(function, **defaults):
-    def partial(**call):
-        resolved = dict(defaults)
-        resolved.update(call)
-        return function(**resolved)
-
-    return partial
