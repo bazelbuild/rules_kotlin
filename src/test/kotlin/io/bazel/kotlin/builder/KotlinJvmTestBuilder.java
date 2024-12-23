@@ -229,7 +229,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         }
 
         public TaskBuilder publicOnlyAbiJar() {
-            taskBuilder.getInfoBuilder().setIncludePublicOnlyInAbiJar(true);
+            taskBuilder.getInfoBuilder().setTreatInternalAsPrivateInAbiJar(true).setRemovePrivateClassesInAbiJar(true);
             return this;
         }
 
