@@ -37,7 +37,6 @@ def compile_kotlin_for_jvm(
     args.add("-jdk-home", toolchain_info.java_runtime.java_home)
     args.add("-jvm-target", toolchain_info.jvm_target)
     args.add("-no-stdlib")
-    args.add("-verbose")
     args.add("-api-version", toolchain_info.api_version)
     args.add("-language-version", toolchain_info.language_version)
     args.add("-module-name", module_name)
