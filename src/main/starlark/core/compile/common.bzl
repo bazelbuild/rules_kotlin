@@ -1,4 +1,4 @@
-TYPE = "//src/main/starlark/core/compile:toolchain_type"
+TOOLCHAIN = "//src/main/starlark/core/compile:toolchain_type"
 
 # Java toolchains
 JAVA_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:toolchain_type"

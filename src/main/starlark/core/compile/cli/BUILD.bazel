@@ -1,4 +1,4 @@
-load("//src/main/starlark/core/compile:common.bzl", "TYPE")
+load("//src/main/starlark/core/compile:common.bzl", "TOOLCHAIN")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load(":toolchain.bzl", "cli_toolchain")
 
@@ -36,5 +36,5 @@ cli_toolchain(
 toolchain(
     name = "cli",
     toolchain = ":cli_toolchain",
-    toolchain_type = TYPE,
+    toolchain_type = TOOLCHAIN,
 )

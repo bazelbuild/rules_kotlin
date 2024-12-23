@@ -93,8 +93,8 @@ java_binary(
 
 java_binary(
     name = "propagation_rt_via_export_consumer",
-    srcs = ["propagation/RuntimeDependent.java"],
-    main_class = "testing.RuntimeDependent",
+    srcs = ["propagation/ExportRuntimeDependent.java"],
+    main_class = "testing.ExportRuntimeDependent",
     deps = [":propagation_test_exporter_lib"],
 )
 

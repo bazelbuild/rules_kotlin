@@ -1,5 +1,6 @@
 load("@rules_java//java:defs.bzl", "JavaInfo")
-load(":common.bzl", "KtJvmInfo", "TYPE")
+load("//src/main/starlark/core/plugin:providers.bzl", "KtCompilerPluginInfo", "KtPluginConfiguration")
+load(":common.bzl", "KtJvmInfo", "TOOLCHAIN")
 
 _COMMON_ATTRS = {
     "srcs": attr.label_list(
@@ -16,6 +17,11 @@ _COMMON_ATTRS = {
             [KtJvmInfo],
         ],
         allow_files = False,
+    ),
+    "plugins": attr.label_list(
+        doc = "Compiler plugin and configurations.",
+        default = [],
+        providers = [[KtCompilerPluginInfo], [KtPluginConfiguration]],
     ),
     "exports": attr.label_list(
         doc = """\
@@ -58,11 +64,38 @@ _COMMON_ATTRS = {
 }
 
 def _kt_jvm_library_impl(ctx):
-    kt_tools = ctx.toolchains[TYPE]
+    kt_tools = ctx.toolchains[TOOLCHAIN]
     class_jar = ctx.outputs.class_jar
     source_jar = ctx.outputs.source_jar
     java_info_deps = [d[JavaInfo] for d in ctx.attr.deps if JavaInfo in d]
     module_name = ctx.attr.module_name or str(ctx.label).lstrip("/").replace("/", "_").replace(":", "-").replace("@", "")
+
+    plugins = {}
+    plugin_cfgs = {}
+    for p in ctx.attr.plugins:
+        if KtCompilerPluginInfo in p:
+            if p[KtCompilerPluginInfo].id in plugins and plugins[p.id] != p[KtCompilerPluginInfo]:
+                fail("Plugin id %s conflict:\n%s\n%s" % (p.id, p[KtCompilerPluginInfo], plugins[p.id]))
+            plugins[p[KtCompilerPluginInfo].id] = p[KtCompilerPluginInfo]
+        if KtPluginConfiguration in p:
+            plugin_cfgs.getdefault(p[KtPluginConfiguration].id, []).append(p[KtPluginConfiguration])
+
+    missing_plugins = {id: True for id in plugin_cfgs if id not in plugins}
+    if missing_plugins:
+        fail("kt_plugin_cfg's without plugins: %s" % missing_plugins.keys())
+
+    plugin_additional_inputs = {}
+    plugin_configurations = {}
+    for id in plugins:
+        p = plugins[id]
+        plugin_additional_inputs[id] = depset(
+            transitive = [p.classpath] + [
+                c.classpath
+                for c in plugin_cfgs.get(id, [])
+            ],
+        )
+        plugin_configurations[id] = plugins[id].options + [c.options for c in plugin_cfgs.get(id, [])]
+
     kt_tools.compile(
         actions = ctx.actions,
         srcs = ctx.files.srcs,
@@ -72,6 +105,9 @@ def _kt_jvm_library_impl(ctx):
         module_name = module_name,
         path_separator = ctx.configuration.host_path_separator,
         kotlinc_opts = ctx.attr.kotlinc_opts,
+        plugin_configurations = plugin_configurations,
+        plugin_additional_inputs = plugin_additional_inputs,
+        plugin_additional_outputs = {},
     )
 
     java_info = JavaInfo(
@@ -120,7 +156,7 @@ _kt_jvm_library = rule(
     implementation = _kt_jvm_library_impl,
     attrs = _COMMON_ATTRS,
     toolchains = [
-        TYPE,
+        TOOLCHAIN,
     ],
     provides = [JavaInfo, KtJvmInfo],
 )
@@ -134,7 +170,7 @@ def core_kt_jvm_library(name, **kwargs):
     )
 
 def _kt_jvm_binary_impl(ctx):
-    kt_tools = ctx.toolchains[TYPE]
+    kt_tools = ctx.toolchains[TOOLCHAIN]
 
     providers = _kt_jvm_library_impl(ctx)
     java_info_deps = [d[JavaInfo] for d in ctx.attr.deps if JavaInfo in d]
@@ -184,7 +220,7 @@ _kt_jvm_binary = rule(
         }.items()
     },
     toolchains = [
-        TYPE,
+        TOOLCHAIN,
     ],
     executable = True,
 )
