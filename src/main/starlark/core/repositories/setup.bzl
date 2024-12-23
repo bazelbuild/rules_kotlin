@@ -58,6 +58,7 @@ def kt_configure():
             "com.squareup.moshi:moshi:1.15.1",
             "com.squareup.moshi:moshi-kotlin:1.15.1",
             "com.squareup.moshi:moshi-kotlin-codegen:1.15.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.3",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",

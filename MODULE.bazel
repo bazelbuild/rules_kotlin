@@ -24,9 +24,10 @@ use_repo(
     "kotlinx_serialization_json_jvm",
 )
 
-register_toolchains("//src/main/starlark/core/compile/cli")
-
-register_toolchains("//kotlin/internal:default_toolchain")
+register_toolchains(
+    "//src/main/starlark/core/compile/cli",
+    "//kotlin/internal:default_toolchain",
+)
 
 # TODO(bencodes) We should be able to remove this once rules_android has rolled out official Bzlmod support
 remote_android_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "remote_android_tools_extensions")
@@ -71,6 +72,7 @@ maven.install(
         "com.squareup.moshi:moshi:1.15.1",
         "com.squareup.moshi:moshi-kotlin:1.15.1",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.1",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.3",
     ],
     fail_if_repin_required = True,
     fetch_sources = True,
