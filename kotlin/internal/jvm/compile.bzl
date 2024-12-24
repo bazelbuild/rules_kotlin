@@ -735,7 +735,7 @@ def _run_kt_java_builder_actions(
     """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 
     Returns:
-        A struct containing the a list of output_jars and a struct annotation_processing jars
+        A struct containing a list of output_jars and a struct annotation_processing jars
     """
     compile_jars = []
     output_jars = []

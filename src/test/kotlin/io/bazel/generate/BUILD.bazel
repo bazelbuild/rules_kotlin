@@ -1,0 +1,13 @@
+load("//kotlin:jvm.bzl", "kt_jvm_test")
+
+kt_jvm_test(
+    name = "WriteKotlincCapabilitiesTest",
+    srcs = [
+        "WriteKotlincCapabilitiesTest.kt",
+    ],
+    test_class = "io.bazel.generate.WriteKotlincCapabilitiesTest",
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/generate:kotlin_release_options_lib",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+    ],
+)
