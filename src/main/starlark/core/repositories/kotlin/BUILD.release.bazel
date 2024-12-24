@@ -1,0 +1,4 @@
+filegroup(
+    name = "capabilities",
+    srcs = glob(["capabilities_*.bazel"]),
+)

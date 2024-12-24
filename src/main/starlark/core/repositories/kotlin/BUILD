@@ -10,3 +10,8 @@ release_archive(
         "BUILD.release.bazel": "BUILD",
     },
 )
+
+filegroup(
+    name = "capabilities",
+    srcs = glob(["capabilities_*.bazel"]),
+)

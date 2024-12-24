@@ -35,35 +35,40 @@ def _kotlin_capabilities_impl(repository_ctx):
         attr._artifacts_template,
         executable = False,
     )
+    template = _get_capability_template(
+        attr.compiler_version,
+        repository_ctx.path(attr._capability_templates_dir).readdir(),
+    )
     repository_ctx.template(
         "capabilities.bzl",
-        _get_capability_template(attr.compiler_version, attr._capabilities_templates),
+        template,
         executable = False,
     )
 
-def _get_capability_template(compiler_version, templates):
-    for ver, template in zip(_CAPABILITIES_TEMPLATES.keys(), templates):
-        if compiler_version.startswith(ver):
-            return template
+def _parse_version(basename):
+    if "capabilities" not in basename:
+        return None
+    return basename.split(".")[0].split("_")[1]
 
-    # After latest version
-    if compiler_version > _CAPABILITIES_TEMPLATES.keys()[-1]:
-        templates[-1]
+def _get_capability_template(compiler_version, templates):
+    version_index = {}
+
+    for template in templates:
+        version = _parse_version(template.basename)
+        if not version:
+            continue
+        if compiler_version.startswith(version):
+            return template
+        version_index[version] = template
+
+    last_version = sorted(version_index.keys(), reverse = True)[0]
+
+    # After latest version, chosen by major revision
+    if int(compiler_version.split(".")[0]) >= int(last_version):
+        return version_index[last_version]
 
     # Legacy
-    return templates[0]
-
-_CAPABILITIES_TEMPLATES = {
-    "legacy": "//src/main/starlark/core/repositories/kotlin:capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel",  # keep first
-    "1.4": "//src/main/starlark/core/repositories/kotlin:capabilities_1.4.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.5": "//src/main/starlark/core/repositories/kotlin:capabilities_1.5.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.6": "//src/main/starlark/core/repositories/kotlin:capabilities_1.6.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.7": "//src/main/starlark/core/repositories/kotlin:capabilities_1.7.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.8": "//src/main/starlark/core/repositories/kotlin:capabilities_1.8.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.9": "//src/main/starlark/core/repositories/kotlin:capabilities_1.9.bzl.com_github_jetbrains_kotlin.bazel",
-    "2.0": "//src/main/starlark/core/repositories/kotlin:capabilities_2.0.bzl.com_github_jetbrains_kotlin.bazel",
-    "2.1": "//src/main/starlark/core/repositories/kotlin:capabilities_2.1.bzl.com_github_jetbrains_kotlin.bazel",
-}
+    return templates["legacy"]
 
 kotlin_capabilities_repository = repository_rule(
     implementation = _kotlin_capabilities_impl,
@@ -74,9 +79,12 @@ kotlin_capabilities_repository = repository_rule(
         "compiler_version": attr.string(
             doc = "compiler version",
         ),
-        "_capabilities_templates": attr.label_list(
-            doc = "compiler capabilities file templates",
-            default = _CAPABILITIES_TEMPLATES.values(),
+        "_capability_templates_dir": attr.label(
+            doc = "Compiler capability templates location. " +
+                  "Since repository rules do not resolve Label to a " +
+                  "Target, and glob is not available, this is a Label that " +
+                  "can be resolved to a directory via repository_ctx.path.",
+            default = "//src/main/starlark/core/repositories:kotlin",
         ),
         "_template": attr.label(
             doc = "repository build file template",
