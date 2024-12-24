@@ -60,27 +60,40 @@ object BazelIntegrationTestRunner {
       bzlmod && workspace.hasModule() || !bzlmod && workspace.hasWorkspace()
     }.forEach { bzlmod ->
       println("Starting bzlmod $bzlmod test")
+      val overrideFlag = if (bzlmod) "--override_module=rules_kotlin=$unpack" else "--override_repository=rules_kotlin=$unpack"
+      bazel.run(
+        workspace,
+        "--bazelrc=$bazelrc",
+        "clean",
+        "--expunge",
+        "--async"
+      ).onFailThrow()
+      bazel.run(
+        workspace,
+        "--bazelrc=$bazelrc",
+        "shutdown",
+      ).onFailThrow()
       bazel.run(
         workspace,
         "--bazelrc=$bazelrc",
         "info",
-        version.workspaceFlag(bzlmod),
-        "--override_repository=rules_kotlin=$unpack",
+        *version.workspaceFlag(bzlmod),
+        overrideFlag
       ).onFailThrow()
       bazel.run(
         workspace,
         "--bazelrc=$bazelrc",
         "build",
-        version.workspaceFlag(bzlmod),
-        "--override_repository=rules_kotlin=$unpack",
+        overrideFlag,
         "//...",
+        *version.workspaceFlag(bzlmod)
       ).onFailThrow()
       bazel.run(
         workspace,
         "--bazelrc=$bazelrc",
         "query",
-        version.workspaceFlag(bzlmod),
-        "--override_repository=rules_kotlin=$unpack",
+        *version.workspaceFlag(bzlmod),
+        overrideFlag,
         "kind(\".*_test\", \"//...\")",
       ).ok { process ->
         if (process.stdOut.isNotEmpty()) {
@@ -88,8 +101,8 @@ object BazelIntegrationTestRunner {
             workspace,
             "--bazelrc=$bazelrc",
             "test",
-            version.workspaceFlag(bzlmod),
-            "--override_repository=rules_kotlin=$unpack",
+            *version.workspaceFlag(bzlmod),
+            overrideFlag,
             "--test_output=all",
             "//...",
           ).onFailThrow()
@@ -105,7 +118,7 @@ object BazelIntegrationTestRunner {
   sealed class Version {
     abstract fun resolveBazelRc(workspace: Path): Path;
 
-    abstract fun workspaceFlag(isBzlMod: Boolean): String
+    abstract fun workspaceFlag(isBzlMod: Boolean): Array<String>
 
     class Head : Version() {
       override fun resolveBazelRc(workspace: Path): Path {
@@ -118,11 +131,7 @@ object BazelIntegrationTestRunner {
         return workspace.resolve("/dev/null")
       }
 
-      override fun workspaceFlag(isBzlMod: Boolean): String = if (isBzlMod) {
-        "--enable_bzlmod=true"
-      } else {
-        "--enable_workspace=true"
-      }
+      override fun workspaceFlag(isBzlMod: Boolean): Array<String> = arrayOf("--enable_bzlmod=$isBzlMod", "--enable_workspace=${!isBzlMod}")
     }
 
     class Known(private val major: Int, private val minor: Int, private val patch: Int) :
@@ -142,12 +151,12 @@ object BazelIntegrationTestRunner {
         return workspace.resolve("/dev/null")
       }
 
-      override fun workspaceFlag(isBzlMod: Boolean): String = if (isBzlMod) {
-        "--enable_bzlmod=true"
+      override fun workspaceFlag(isBzlMod: Boolean): Array<String> = if (isBzlMod) {
+        arrayOf("--enable_bzlmod=true")
       } else if (major >= 7) {
-        "--enable_workspace=true"
+        arrayOf("--enable_workspace=true", "--enable_bzlmod=false")
       } else {
-        "--enable_bzlmod=false"
+        arrayOf("--enable_bzlmod=false")
       }
     }
   }

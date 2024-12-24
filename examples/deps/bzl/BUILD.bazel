@@ -9,7 +9,7 @@ kt_javac_options(
     name = "default_javac_options",
 )
 
-KOTLIN_LANGUAGE_LEVEL = "1.6"
+KOTLIN_LANGUAGE_LEVEL = "2.1"
 
 define_kt_toolchain(
     name = "experimental_toolchain",

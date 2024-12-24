@@ -18,7 +18,7 @@ package io.bazel.kotlin.builder.tasks.jvm;
 
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.view.proto.Deps
-import io.bazel.kotlin.builder.Deps.*
+import io.bazel.kotlin.builder.Deps.Dep
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -455,8 +455,14 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel(dependingTarget.label())
       .setSuccess(true)
       .addExplicitDep(connectionNotFoundExceptionDep.singleCompileJar())
-      .addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
-      .buildSorted()
+      .apply {
+        if (!enableK2Compiler) {
+          // TODO(https://github.com/bazelbuild/rules_kotlin/issues/1246): Uncomment for 2.1.20.
+          //  See https://youtrack.jetbrains.com/issue/KTIJ-25347/K2-IDE.-Different-resolve-of-types-from-type-aliases-of-stdlib-jvm-comparing-to-K1
+          addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
+        }
+      }.buildSorted()
+
     assertThat(jdeps).isEqualTo(expected)
   }
 

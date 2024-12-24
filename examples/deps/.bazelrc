@@ -1,2 +1,5 @@
 common --incompatible_enable_android_toolchain_resolution
+common --enable_workspace=true
+common --enable_bzlmod=false
 common --android_platforms=//:arm64-v8a
+common --toolchain_resolution_debug=.*

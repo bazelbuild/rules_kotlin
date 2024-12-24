@@ -1,0 +1,10 @@
+flags:
+    # Android
+    # Mostly, native code is compiled after the android_binary rule has run a transition to compile for that platform.
+    # We just detect the transition, which sets "Android configuration distinguisher", and then translate the CPU it set.
+    --Android configuration distinguisher=android
+    --cpu=arm64-v8a
+        //:arm64-v8a
+    --Android configuration distinguisher=android
+    --cpu=x86_64
+        //:x86_64
