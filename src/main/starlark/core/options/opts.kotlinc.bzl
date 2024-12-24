@@ -410,7 +410,7 @@ _KOPTS_ALL = {
     "jvm_target": struct(
         args = dict(
             default = "",
-            doc = "The -jvm_target flag. This is only tested at 1.8.",
+            doc = "The target version of the generated JVM bytecode",
             values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
         ),
         type = attr.string,
@@ -420,7 +420,9 @@ _KOPTS_ALL = {
     "x_jdk_release": struct(
         args = dict(
             default = "",
-            doc = "The -jvm_target flag. This is only tested at 1.8.",
+            doc = """Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer.
+                     The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–21.
+                     This also sets the value of '-jvm-target' to be equal to the selected JDK version.""",
             values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
         ),
         type = attr.string,

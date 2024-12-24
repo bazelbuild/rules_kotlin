@@ -1,9 +1,12 @@
 package io.bazel.kotlin.generate
 
 import io.bazel.kotlin.generate.WriteKotlincCapabilities.KotlincCapabilities.Companion.asCapabilities
+import io.bazel.kotlin.generate.WriteKotlincCapabilities.KotlincCapability
 import org.jetbrains.kotlin.cli.common.arguments.Argument
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.load.java.JvmAbi
+import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.time.Year
@@ -77,27 +80,36 @@ object WriteKotlincCapabilities {
           Files.createDirectories(parent)
         }
         writeText(
-          K2JVMCompilerArguments::class.members.asSequence()
-            .map { member ->
-              member.annotations.find { it is Argument }?.let { argument ->
-                member to (argument as Argument)
-              }
-            }
-            .filterNotNull()
-            .map { (member, argument) ->
-                KotlincCapability(
-                  flag = argument.value,
-                  default = "${member.call(instance)}",
-                  type = member.returnType.toString(),
-                )
-            }
+          getArguments(K2JVMCompilerArguments::class.java)
             .filterNot(KotlincCapability::shouldSuppress)
-            .asCapabilities().asCapabilitiesBzl(),
+            .asCapabilities()
+            .asCapabilitiesBzl(),
+          StandardCharsets.UTF_8
         )
       }
       .let {
         println("Wrote to $it")
       }
+  }
+
+  private fun getArguments(klass: Class<*>) : Sequence<KotlincCapability> = sequence {
+    val instance = K2JVMCompilerArguments()
+    klass.superclass?.let {
+      yieldAll(getArguments(it))
+    }
+
+    for (field in klass.declaredFields) {
+      field.getAnnotation(Argument::class.java)?.let { argument ->
+        val getter = klass.getMethod(JvmAbi.getterName(field.name))
+        yield(
+          KotlincCapability(
+            flag = argument.value,
+            default = "${  getter.invoke(instance)}",
+            type = field.type.toString(),
+          )
+        )
+      }
+    }
   }
 
   private class KotlincCapabilities(capabilities: Iterable<KotlincCapability>) :
