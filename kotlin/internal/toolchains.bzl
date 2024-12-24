@@ -176,8 +176,8 @@ _kt_toolchain = rule(
             cfg = "target",
         ),
         "jvm_target": attr.string(
-            doc = "the -jvm_target flag.",
-            default = "11",
+            doc = "the -jvm_target flag. This is only tested at 1.8.",
+            default = "1.8",
             values = [
                 "1.6",
                 "1.8",

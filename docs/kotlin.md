@@ -393,13 +393,13 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="kt_kotlinc_options-include_stdlibs"></a>include_stdlibs |  Don't automatically include the Kotlin standard libraries into the classpath (stdlib and reflect).   | String | optional |  `"all"`  |
 | <a id="kt_kotlinc_options-java_parameters"></a>java_parameters |  Generate metadata for Java 1.8+ reflection on method parameters.   | Boolean | optional |  `False`  |
-| <a id="kt_kotlinc_options-jvm_target"></a>jvm_target |  The -jvm_target flag. This is only tested at 1.8.   | String | optional |  `""`  |
+| <a id="kt_kotlinc_options-jvm_target"></a>jvm_target |  The target version of the generated JVM bytecode   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-warn"></a>warn |  Control warning behaviour.   | String | optional |  `"report"`  |
 | <a id="kt_kotlinc_options-x_allow_result_return_type"></a>x_allow_result_return_type |  Enable kotlin.Result as a return type   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_assertions"></a>x_assertions |  Configures how assertions are handled. The 'jvm' option enables assertions in JVM code.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_consistent_data_class_copy_visibility"></a>x_consistent_data_class_copy_visibility |  The effect of this compiler flag is the same as applying @ConsistentCopyVisibility annotation to all data classes in the module. See https://youtrack.jetbrains.com/issue/KT-11914   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_enable_incremental_compilation"></a>x_enable_incremental_compilation |  Enable incremental compilation   | Boolean | optional |  `False`  |
-| <a id="kt_kotlinc_options-x_jdk_release"></a>x_jdk_release |  The -jvm_target flag. This is only tested at 1.8.   | String | optional |  `""`  |
+| <a id="kt_kotlinc_options-x_jdk_release"></a>x_jdk_release |  Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer. The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9â21. This also sets the value of '-jvm-target' to be equal to the selected JDK version.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jspecify_annotations"></a>x_jspecify_annotations |  Controls how JSpecify annotations are treated. Options are 'default', 'ignore', 'warn', and 'strict'.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jsr_305"></a>x_jsr_305 |  Specifies how to handle JSR-305 annotations in Kotlin code. Options are 'default', 'ignore', 'warn', and 'strict'.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jvm_default"></a>x_jvm_default |  Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.   | String | optional |  `"off"`  |
