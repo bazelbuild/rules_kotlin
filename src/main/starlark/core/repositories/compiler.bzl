@@ -2,6 +2,9 @@
 Defines kotlin compiler repositories.
 """
 
+load("@bazel_skylib//lib:versions.bzl", "versions")
+load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "TEMPLATES")
+
 def _kotlin_compiler_impl(repository_ctx):
     attr = repository_ctx.attr
     repository_ctx.download_and_extract(
@@ -37,7 +40,7 @@ def _kotlin_capabilities_impl(repository_ctx):
     )
     template = _get_capability_template(
         attr.compiler_version,
-        repository_ctx.path(attr._capability_templates_dir).readdir(),
+        [repository_ctx.path(ct) for ct in attr._capability_templates],
     )
     repository_ctx.template(
         "capabilities.bzl",
@@ -48,27 +51,31 @@ def _kotlin_capabilities_impl(repository_ctx):
 def _parse_version(basename):
     if "capabilities" not in basename:
         return None
-    return basename.split(".")[0].split("_")[1]
+    version_string = basename[len("capabilities_"):basename.find(".bzl")]
+    if version_string == "legacy":
+        return (0, 0, 0)
+    return versions.parse(version_string)
 
 def _get_capability_template(compiler_version, templates):
     version_index = {}
-
+    target = versions.parse(compiler_version)
     for template in templates:
         version = _parse_version(template.basename)
         if not version:
             continue
-        if compiler_version.startswith(version):
+
+        if target == version:
             return template
         version_index[version] = template
 
     last_version = sorted(version_index.keys(), reverse = True)[0]
 
     # After latest version, chosen by major revision
-    if int(compiler_version.split(".")[0]) >= int(last_version):
+    if target[0] >= last_version[0]:
         return version_index[last_version]
 
     # Legacy
-    return templates["legacy"]
+    return version_index[(0, 0, 0)]
 
 kotlin_capabilities_repository = repository_rule(
     implementation = _kotlin_capabilities_impl,
@@ -79,12 +86,9 @@ kotlin_capabilities_repository = repository_rule(
         "compiler_version": attr.string(
             doc = "compiler version",
         ),
-        "_capability_templates_dir": attr.label(
-            doc = "Compiler capability templates location. " +
-                  "Since repository rules do not resolve Label to a " +
-                  "Target, and glob is not available, this is a Label that " +
-                  "can be resolved to a directory via repository_ctx.path.",
-            default = "//src/main/starlark/core/repositories:kotlin",
+        "_capability_templates": attr.label_list(
+            doc = "List of compiler capability templates.",
+            default = TEMPLATES,
         ),
         "_template": attr.label(
             doc = "repository build file template",
