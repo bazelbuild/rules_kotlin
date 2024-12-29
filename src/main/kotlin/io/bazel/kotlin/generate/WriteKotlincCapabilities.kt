@@ -11,6 +11,10 @@ import java.nio.file.Files
 import java.time.Year
 import kotlin.io.path.exists
 import kotlin.io.path.writeText
+import kotlin.jvm.java
+import kotlin.math.max
+import kotlin.streams.asSequence
+import kotlin.streams.toList
 
 /**
  * Generates a list of kotlinc flags from the K2JVMCompilerArguments on the classpath.
@@ -37,25 +41,37 @@ object WriteKotlincCapabilities {
           System.getenv(it.groups[1]?.value)
         }
       }
-      ?: error("--out is required")
-
-    FileSystems.getDefault()
-      .getPath("$capabilitiesDirectory/$capabilitiesName")
-      .apply {
+      ?.run(FileSystems.getDefault()::getPath)
+      ?.apply {
         if (!parent.exists()) {
           Files.createDirectories(parent)
         }
-        writeText(
-          getArguments(K2JVMCompilerArguments::class.java)
-            .filterNot(KotlincCapability::shouldSuppress)
-            .asCapabilities()
-            .asCapabilitiesBzl().toString(),
-          StandardCharsets.UTF_8,
+      }
+      ?: error("--out is required")
+
+    capabilitiesDirectory.resolve(capabilitiesName).writeText(
+      getArguments(K2JVMCompilerArguments::class.java)
+        .filterNot(KotlincCapability::shouldSuppress)
+        .asCapabilities()
+        .asCapabilitiesBzl()
+        .toString(),
+      StandardCharsets.UTF_8,
+    )
+
+    capabilitiesDirectory.resolve("templates.bzl").writeText(
+      BzlDoc {
+        assignment(
+          "TEMPLATES",
+          list(
+            *Files.list(capabilitiesDirectory)
+              .filter { it.fileName.toString().startsWith("capabilities_") }
+              .map { "Label(${it.fileName.bzlQuote()})" }
+              .sorted()
+              .toArray(::arrayOfNulls),
+          ),
         )
-      }
-      .let {
-        println("Wrote to $it")
-      }
+      }.toString(),
+    )
   }
 
   /** Options that are either confusing, useless, or unexpected to be set outside the worker. */
@@ -125,18 +141,25 @@ object WriteKotlincCapabilities {
       contents.addAll(statements)
     }
 
+    class Indent(val spaces: Int = 0) {
+      fun increment() = Indent(spaces+2)
+      fun decrement() = Indent(max(spaces - 2, 0))
+      override fun toString() = " ".repeat(spaces)
+      operator fun plus(s:String?) = toString() + s
+    }
+
     fun interface Block {
-      fun asString(indent: String): String?
-      fun asString() = asString("")
+      fun asString(indent: Indent): String?
+      fun asString() = asString(Indent())
     }
 
     fun interface ValueBlock : Block {
-      fun asString(indent: String, map: (String) -> String): String?
-      override fun asString(indent: String) = asString(indent.increment()) { it }
+      fun asString(indent: Indent, map: (String) -> String): String?
+      override fun asString(indent: Indent) = asString(indent.increment()) { it }
     }
 
     class Comment(val contents: String) : Block {
-      override fun asString(indent: String): String? = indent + contents
+      override fun asString(indent: Indent): String? = indent + contents
     }
 
     override fun toString() = contents.mapNotNull { it.asString() }.joinToString("\n")
@@ -149,23 +172,33 @@ object WriteKotlincCapabilities {
       )
     }
 
-    fun struct(vararg properties: Pair<String, String?>) = ValueBlock { indent, map ->
+    fun struct(vararg properties: Pair<String, String?>) = ValueBlock { indent, format ->
       properties
         .mapNotNull { (key, value) ->
           value?.let { "$indent$key = $it" }
         }
         .joinToString(",\n", prefix = "struct(\n", postfix = "\n${indent.decrement()})")
-        .run(map)
+        .run(format)
     }
 
-    fun dict(vararg properties: Pair<String, ValueBlock>) = ValueBlock { indent, map ->
+    fun dict(vararg properties: Pair<String, ValueBlock>) = ValueBlock { indent, format ->
       properties
         .mapNotNull { (key, value) ->
           value.asString(indent.increment())
             ?.let { "$indent${key.bzlQuote()} : $it" }
         }
         .joinToString(",\n", prefix = "{\n", postfix = "\n${indent.decrement()}}")
-        .run(map)
+        .run(format)
+    }
+
+    fun list(vararg items: String) = ValueBlock { indent, format ->
+      items
+        .joinToString(
+            separator = ",\n",
+            prefix = "[\n",
+            postfix = "\n${indent.decrement()}]",
+        ) { "$indent$it" }
+        .run(format)
     }
   }
 
@@ -258,8 +291,9 @@ object WriteKotlincCapabilities {
     abstract fun convert(value: String?): String?
   }
 
-  private fun String.bzlQuote(): String {
-    val quote = "\"".repeat(if ("\n" in this || "\"" in this) 3 else 1)
-    return quote + this + quote
+  private fun Any.bzlQuote(): String {
+    var asString = toString()
+    val quote = "\"".repeat(if ("\n" in asString || "\"" in asString) 3 else 1)
+    return quote + asString + quote
   }
 }
