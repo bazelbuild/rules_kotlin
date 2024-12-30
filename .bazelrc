@@ -12,6 +12,8 @@ build --verbose_failures
 # Required for windows ci
 startup --windows_enable_symlinks
 common --enable_runfiles
+# Newer versions of Bazel enable this by default
+common --incompatible_disallow_empty_glob=false
 
 try-import %workspace%/bit-ignore.bazelrc
 
