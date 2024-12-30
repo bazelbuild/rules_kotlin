@@ -92,6 +92,14 @@ object BazelIntegrationTestRunner {
         workspace,
         "--bazelrc=$bazelrc",
         "query",
+        overrideFlag,
+        "//...",
+        *version.workspaceFlag(bzlmod)
+      ).onFailThrow()
+      bazel.run(
+        workspace,
+        "--bazelrc=$bazelrc",
+        "query",
         *version.workspaceFlag(bzlmod),
         overrideFlag,
         "kind(\".*_test\", \"//...\")",
