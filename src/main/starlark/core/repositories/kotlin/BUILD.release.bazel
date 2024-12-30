@@ -1,4 +1,10 @@
-filegroup(
-    name = "capabilities",
-    srcs = glob(["capabilities_*.bazel"]),
+bzl_library(
+    name = "kotlin",
+    srcs = glob([
+        "*.bzl",
+        "*.bazel",
+    ]),
+    visibility = [
+        "//visibility:public",
+    ],
 )
