@@ -19,7 +19,7 @@ bzl_library(
     srcs = [
         "common.bzl",
     ],
-    visiblity = [
+    visibility = [
         "//visibility:public",
     ],
 )
