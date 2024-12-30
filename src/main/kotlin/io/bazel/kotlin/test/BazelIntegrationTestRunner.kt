@@ -93,7 +93,7 @@ object BazelIntegrationTestRunner {
         "--bazelrc=$bazelrc",
         "query",
         overrideFlag,
-        "//...",
+        "@rules_kotlin//...",
         *version.workspaceFlag(bzlmod)
       ).onFailThrow()
       bazel.run(
