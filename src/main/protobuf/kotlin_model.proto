@@ -81,6 +81,10 @@ message CompilationTaskInfo {
     string strict_kotlin_deps = 10;
     // Optimize classpath by removing dependencies not required for compilation
     string reduced_classpath_mode = 11;
+    // Internal declarations are treaded as private for abi.jar generation
+    bool treat_internal_as_private_in_abi_jar = 12;
+    // Private classes are removed in abi.jar generation
+    bool remove_private_classes_in_abi_jar = 13;
 }
 
 // Nested messages not marked with stable could be refactored.

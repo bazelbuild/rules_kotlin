@@ -86,6 +86,8 @@ def _kotlin_toolchain_impl(ctx):
             "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
         },
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
+        experimental_treat_internal_as_private_in_abi_jars = ctx.attr.experimental_treat_internal_as_private_in_abi_jars,
+        experimental_remove_private_classes_in_abi_jars = ctx.attr.experimental_remove_private_classes_in_abi_jars,
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
@@ -204,6 +206,20 @@ _kt_toolchain = rule(
             `kt_abi_plugin_incompatible`""",
             default = False,
         ),
+        "experimental_treat_internal_as_private_in_abi_jars": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:treatInternalAsPrivate=true
+            Can be disabled for an individual target using the tag.
+            `kt_treat_internal_as_private_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
+        "experimental_remove_private_classes_in_abi_jars": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:removePrivateClasses=true
+            Can be disabled for an individual target using the tag.
+            `kt_remove_private_classes_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
         "experimental_strict_kotlin_deps": attr.string(
             doc = "Report strict deps violations",
             default = "off",
@@ -290,6 +306,8 @@ def define_kt_toolchain(
         api_version = None,
         jvm_target = None,
         experimental_use_abi_jars = False,
+        experimental_treat_internal_as_private_in_abi_jars = False,
+        experimental_remove_private_classes_in_abi_jars = False,
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
@@ -316,6 +334,8 @@ def define_kt_toolchain(
             _NOEXPERIMENTAL_USE_ABI_JARS: False,
             "//conditions:default": experimental_use_abi_jars,
         }),
+        experimental_treat_internal_as_private_in_abi_jars = experimental_treat_internal_as_private_in_abi_jars,
+        experimental_remove_private_classes_in_abi_jars = experimental_remove_private_classes_in_abi_jars,
         experimental_multiplex_workers = experimental_multiplex_workers,
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,

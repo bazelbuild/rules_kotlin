@@ -22,6 +22,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsNull.nullValue;
+
 @RunWith(JUnit4.class)
 public class KotlinBuilderJvmAbiTest {
   private static final KotlinJvmTestBuilder ctx = new KotlinJvmTestBuilder();
@@ -60,4 +69,62 @@ public class KotlinBuilderJvmAbiTest {
           c.compileKotlin();
         });
   }
+
+    @Test
+    public void testGeneratesPublicAbiOnly() throws IOException {
+        Deps.Dep d = ctx.runCompileTask(
+                c -> {
+                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                    c.addSource("AnotherClass.kt", "package something;", "", "class AnotherClass{}");
+                    c.addSource("NonPublicClass.kt", "package something;", "", "internal class NonPublicClass{}");
+                    c.outputJar();
+                    c.outputAbiJar();
+                    c.publicOnlyAbiJar();
+                    c.compileKotlin();
+                    c.outputJdeps();
+                });
+
+        String abiJarPath = d.compileJars()
+                .stream()
+                .filter( (name)->name.endsWith("abi.jar") )
+                .findFirst()
+                .orElse(null);
+
+        assertThat(abiJarPath, is(not(nullValue())));
+
+        ZipEntry entry = null;
+        try( ZipFile zipFile = new ZipFile(abiJarPath) ) {
+            entry = zipFile.getEntry("something/NonPublicClass.class");
+        }
+        assertThat(entry, is(nullValue()));
+    }
+
+
+    @Test
+    public void testGeneratesAbiIncludingInternal() throws IOException {
+        Deps.Dep d = ctx.runCompileTask(
+                c -> {
+                    c.addSource("AClass.kt", "package something;" + "class AClass{}");
+                    c.addSource("AnotherClass.kt", "package something;", "", "class AnotherClass{}");
+                    c.addSource("NonPublicClass.kt", "package something;", "", "internal class NonPublicClass{}");
+                    c.outputJar();
+                    c.outputAbiJar();
+                    c.compileKotlin();
+                    c.outputJdeps();
+                });
+
+        String abiJarPath = d.compileJars()
+                .stream()
+                .filter( (name)->name.endsWith("abi.jar") )
+                .findFirst()
+                .orElse(null);
+
+        assertThat(abiJarPath, is(not(nullValue())));
+
+        ZipEntry entry = null;
+        try( ZipFile zipFile = new ZipFile(abiJarPath) ) {
+            entry = zipFile.getEntry("something/NonPublicClass.class");
+        }
+        assertThat(entry, is(not(nullValue())));
+    }
 }
