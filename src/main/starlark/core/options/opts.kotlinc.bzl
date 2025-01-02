@@ -442,7 +442,7 @@ def _merge(key, rule_defined):
     merged["default"] = generated.default
     return struct(**merged)
 
-def _no_merge(key, definition):
+def _no_merge(_, definition):
     return definition
 
 _maybe_merge_definition = _merge if hasattr(_KOTLIN_OPTS, "get") else _no_merge

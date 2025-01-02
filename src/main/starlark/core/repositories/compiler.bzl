@@ -2,7 +2,6 @@
 Defines kotlin compiler repositories.
 """
 
-load("@bazel_skylib//lib:versions.bzl", "versions")
 load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "TEMPLATES")
 
 def _kotlin_compiler_impl(repository_ctx):
@@ -48,17 +47,29 @@ def _kotlin_capabilities_impl(repository_ctx):
         executable = False,
     )
 
+def _coerce_int(string_value):
+    digits = "".join([
+        string_value[i]
+        for i in range(len(string_value))
+        if string_value[i].isdigit()
+    ])
+    return 0 if not digits else int(digits)
+
+def _version(version_string):
+    return tuple([
+        _coerce_int(segment)
+        for segment in version_string.split(".", 3)
+    ])
+
 def _parse_version(basename):
     if "capabilities" not in basename:
         return None
     version_string = basename[len("capabilities_"):basename.find(".bzl")]
-    if version_string == "legacy":
-        return (0, 0, 0)
-    return versions.parse(version_string)
+    return _version(version_string)
 
 def _get_capability_template(compiler_version, templates):
     version_index = {}
-    target = versions.parse(compiler_version)
+    target = _version(compiler_version)
     for template in templates:
         version = _parse_version(template.basename)
         if not version:
