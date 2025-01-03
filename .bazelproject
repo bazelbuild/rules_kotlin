@@ -14,11 +14,14 @@
 directories:
   # Add the directories you want added as source here
   # By default, we've added your entire workspace ('.')
-  -examples/*
   .
+  -examples
 
 targets:
-  //...
+  //src/...
+  //kotlin/...
+  //third_party/...
+
 
 test_sources:
   src/test/*
@@ -26,7 +29,7 @@ test_sources:
 additional_languages:
   kotlin
 
-import_run_configurations:
-  src/test/Bazel_all_local_tests.xml
+#import_run_configurations:
+#  src/test/Bazel_all_local_tests.xml
 
-android_sdk_platform: android-31
+# android_sdk_platform: android-31

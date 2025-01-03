@@ -431,8 +431,28 @@ _KOPTS_ALL = {
     ),
 }
 
+def _merge(key, rule_defined):
+    """Merges rule option with compiler option."""
+    if key not in _KOTLIN_OPTS:
+        # No flag associated with option.
+        return rule_defined
+    generated = _KOTLIN_OPTS[key]
+    merged = {k: getattr(k, rule_defined) for k in dir(rule_defined)}
+    merged["doc"] = generated.doc
+    merged["default"] = generated.default
+    return struct(**merged)
+
+def _no_merge(_, definition):
+    return definition
+
+_maybe_merge_definition = _merge if hasattr(_KOTLIN_OPTS, "get") else _no_merge
+
 # Filters out options that are not available in current compiler release
-_KOPTS = {attr: defn for (attr, defn) in _KOPTS_ALL.items() if not hasattr(defn, "flag") or defn.flag in _KOTLIN_OPTS}
+_KOPTS = {
+    attr: _maybe_merge_definition(attr, defn)
+    for (attr, defn) in _KOPTS_ALL.items()
+    if not hasattr(defn, "flag") or defn.flag in _KOTLIN_OPTS
+}
 
 KotlincOptions = provider(
     fields = {

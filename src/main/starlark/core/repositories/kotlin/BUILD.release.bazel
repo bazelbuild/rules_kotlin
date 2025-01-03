@@ -1,0 +1,10 @@
+bzl_library(
+    name = "kotlin",
+    srcs = glob([
+        "*.bzl",
+        "*.bazel",
+    ]),
+    visibility = [
+        "//visibility:public",
+    ],
+)
