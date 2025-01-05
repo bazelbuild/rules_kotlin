@@ -1,6 +1,6 @@
 module(
     name = "rules_kotlin",
-    version = "1.8.1",
+    version = "2.1.0",
     compatibility_level = 1,
     repo_name = "rules_kotlin",
 )
@@ -36,7 +36,7 @@ use_repo(remote_android_extensions, "android_gmaven_r8", "android_tools")
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
 # we need to sort out a few cases around how these rules are consumed in various ways.
 
-bazel_dep(name = "rules_jvm_external", version = "5.3")
+bazel_dep(name = "rules_jvm_external", version = "6.3")
 bazel_dep(name = "bazel_ci_rules", version = "1.0.0")
 
 rbe_preconfig = use_repo_rule("@bazel_ci_rules//:rbe_repo.bzl", "rbe_preconfig")
@@ -98,8 +98,8 @@ maven.override(
 )
 use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 
-bazel_dep(name = "rules_pkg", version = "0.7.0")
-bazel_dep(name = "stardoc", version = "0.7.0", repo_name = "io_bazel_stardoc")
+bazel_dep(name = "rules_pkg", version = "1.0.1")
+bazel_dep(name = "stardoc", version = "0.7.2", repo_name = "io_bazel_stardoc")
 bazel_dep(name = "rules_proto", version = "5.3.0-21.7")
 
 bazel_dep(name = "rules_testing", version = "0.5.0", dev_dependency = True)

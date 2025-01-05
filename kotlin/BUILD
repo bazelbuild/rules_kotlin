@@ -1,5 +1,3 @@
-load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +11,7 @@ load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 release_archive(
