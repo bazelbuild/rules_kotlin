@@ -102,7 +102,7 @@ def _compiler_toolchains(ctx):
         java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
     )
 
-def _jvm_deps(ctx, toolchains, associate_deps, deps, runtime_deps = []):
+def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
     diff = _sets.intersection(
         _sets.copy_of([x.label for x in associate_deps]),
@@ -136,6 +136,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, runtime_deps = []):
     return struct(
         module_name = associates.module_name,
         deps = dep_infos,
+        exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
         compile_jars = depset(transitive = transitive),
         runtime_deps = [_java_info(d) for d in runtime_deps],
@@ -595,7 +596,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         toolchains = toolchains,
         associate_deps = ctx.attr.associates,
         deps = ctx.attr.deps,
-        runtime_deps = ctx.attr.runtime_deps,
+        exports = getattr(ctx.attr, "exports", []),
+        runtime_deps = getattr(ctx.attr, "runtime_deps", []),
     )
 
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
@@ -669,8 +671,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         source_jar = source_jar,
         jdeps = output_jdeps,
         deps = compile_deps.deps,
-        runtime_deps = [_java_info(d) for d in ctx.attr.runtime_deps],
-        exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
+        runtime_deps = compile_deps.runtime_deps,
+        exports = compile_deps.exports,
         neverlink = getattr(ctx.attr, "neverlink", False),
         generated_source_jar = generated_source_jar,
     )
@@ -822,8 +824,8 @@ def _run_kt_java_builder_actions(
             compile_jar = kt_compile_jar,
             jdeps = kt_jdeps,
             deps = compile_deps.deps,
-            runtime_deps = [d[JavaInfo] for d in ctx.attr.runtime_deps],
-            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
+            runtime_deps = compile_deps.runtime_deps,
+            exports = compile_deps.exports,
             neverlink = getattr(ctx.attr, "neverlink", False),
         )
         java_infos.append(kt_java_info)
