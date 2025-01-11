@@ -593,7 +593,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     compile_deps = _jvm_deps(
         ctx,
         toolchains = toolchains,
-        associate_deps = getattr(ctx.attr, "associates", []),
+        associate_deps = ctx.attr.associates,
         deps = ctx.attr.deps,
         runtime_deps = ctx.attr.runtime_deps,
     )
