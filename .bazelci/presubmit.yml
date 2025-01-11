@@ -33,8 +33,9 @@ tasks:
       - "--config=rbe"
     test_targets:
       - //examples:all
-  rbe:
-    platform: ${{ unittest_platform }}
+  rbe_ubuntu2004:
+    platform: ubuntu2004
+    name: "RBE"
     test_targets:
       - "--"
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
