@@ -25,10 +25,8 @@ load(
     _utils = "utils",
 )
 
-def _get_associates(ctx):
+def _get_associates(ctx, associates):
     """Creates a struct of associates meta data"""
-
-    associates = getattr(ctx.attr, "associates", [])
     if not associates:
         return struct(
             targets = [],
@@ -53,7 +51,6 @@ def _get_associates(ctx):
             # This should be impossible
             fail("Error in rules - a KtJvmInfo was found which did not have a module_name")
         return struct(
-            targets = associates,
             jars = depset(transitive = jars),
             module_name = list(module_names)[0],
         )
