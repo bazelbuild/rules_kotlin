@@ -23,7 +23,7 @@ def kt_download_local_dev_dependencies():
     Must be called before setup_dependencies in the WORKSPACE.
     """
     versions.use_repository(
-        name = "rules_proto",
+        name = "com_google_protobuf",
         version = versions.RULES_PROTO,
         rule = rules_stardoc_repository,
         starlark_packages = [
