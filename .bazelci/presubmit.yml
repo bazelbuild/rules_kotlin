@@ -2,10 +2,8 @@
 matrix:
   unittest_platform:
     - ubuntu2004
-    - ubuntu1804
   integration_platform:
     - ubuntu2004
-    - ubuntu1804
     # - macos
     # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
   test_flags:
