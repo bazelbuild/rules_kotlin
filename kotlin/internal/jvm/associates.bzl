@@ -41,7 +41,7 @@ def _get_associates(ctx, associates):
         for a in associates:
             jars.append(depset(transitive = [a[JavaInfo].compile_jars, a[_KtJvmInfo].module_jars]))
             module_names.append(a[_KtJvmInfo].module_name)
-        module_names = _sets.copy_of(module_names)
+        module_names = list(_sets.copy_of(module_names))
 
         if len(module_names) > 1:
             fail("Dependencies from several different kotlin modules cannot be associated. " +
@@ -52,7 +52,7 @@ def _get_associates(ctx, associates):
             fail("Error in rules - a KtJvmInfo was found which did not have a module_name")
         return struct(
             jars = depset(transitive = jars),
-            module_name = list(module_names)[0],
+            module_name = module_names[0],
         )
 
 associate_utils = struct(
