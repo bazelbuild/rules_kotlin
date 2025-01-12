@@ -102,10 +102,10 @@ def _compiler_toolchains(ctx):
         java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
     )
 
-def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
+def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
     diff = _sets.intersection(
-        _sets.copy_of([x.label for x in associated_targets]),
+        _sets.copy_of([x.label for x in associate_deps]),
         _sets.copy_of([x.label for x in deps]),
     )
     if diff:
@@ -113,7 +113,9 @@ def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
             "\n------\nTargets should only be put in associates= or deps=, not both:\n%s" %
             ",\n ".join(["    %s" % x for x in list(diff)]),
         )
-    dep_infos = [_java_info(d) for d in associated_targets + deps] + [toolchains.kt.jvm_stdlibs]
+    dep_infos = [_java_info(d) for d in associate_deps + deps] + [toolchains.kt.jvm_stdlibs]
+
+    associates = _associate_utils.get_associates(ctx, associates = associate_deps)
 
     # Reduced classpath, exclude transitive deps from compilation
     if (toolchains.kt.experimental_prune_transitive_deps and
@@ -132,10 +134,11 @@ def _jvm_deps(ctx, toolchains, associated_targets, deps, runtime_deps = []):
         ]
 
     return struct(
+        module_name = associates.module_name,
         deps = dep_infos,
-        compile_jars = depset(
-            transitive = transitive,
-        ),
+        exports = [_java_info(d) for d in exports],
+        associate_jars = associates.jars,
+        compile_jars = depset(transitive = transitive),
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 
@@ -378,7 +381,6 @@ def _run_kapt_builder_actions(
         rule_kind,
         toolchains,
         srcs,
-        associates,
         compile_deps,
         deps_artifacts,
         annotation_processors,
@@ -398,7 +400,6 @@ def _run_kapt_builder_actions(
         toolchains = toolchains,
         srcs = srcs,
         generated_src_jars = [],
-        associates = associates,
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
@@ -424,7 +425,6 @@ def _run_ksp_builder_actions(
         rule_kind,
         toolchains,
         srcs,
-        associates,
         compile_deps,
         deps_artifacts,
         annotation_processors,
@@ -443,7 +443,6 @@ def _run_ksp_builder_actions(
         toolchains = toolchains,
         srcs = srcs,
         generated_src_jars = [],
-        associates = associates,
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
@@ -464,7 +463,6 @@ def _run_kt_builder_action(
         toolchains,
         srcs,
         generated_src_jars,
-        associates,
         compile_deps,
         deps_artifacts,
         annotation_processors,
@@ -477,7 +475,7 @@ def _run_kt_builder_action(
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
 
-    args = _utils.init_args(ctx, rule_kind, associates.module_name, kotlinc_options)
+    args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
 
     for f, path in outputs.items():
         args.add("--" + f, path)
@@ -492,7 +490,7 @@ def _run_kt_builder_action(
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
-    args.add_all("--kotlin_friend_paths", associates.jars, map_each = _associate_utils.flatten_jars)
+    args.add_all("--kotlin_friend_paths", compile_deps.associate_jars, omit_if_empty = True)
     args.add("--instrument_coverage", ctx.coverage_instrumented())
 
     # Collect and prepare plugin descriptor for the worker.
@@ -593,13 +591,13 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     """
     toolchains = _compiler_toolchains(ctx)
     srcs = _partitioned_srcs(ctx.files.srcs)
-    associates = _associate_utils.get_associates(ctx)
     compile_deps = _jvm_deps(
         ctx,
-        toolchains,
-        associates.targets,
+        toolchains = toolchains,
+        associate_deps = ctx.attr.associates,
         deps = ctx.attr.deps,
-        runtime_deps = ctx.attr.runtime_deps,
+        exports = getattr(ctx.attr, "exports", []),
+        runtime_deps = getattr(ctx.attr, "runtime_deps", []),
     )
 
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
@@ -607,7 +605,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = _new_plugins_from(ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps))
 
-    deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + associates.targets)
+    deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + ctx.attr.associates)
 
     generated_src_jars = []
     annotation_processing = None
@@ -623,7 +621,6 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         srcs = srcs,
         generated_kapt_src_jars = [],
         generated_ksp_src_jars = [],
-        associates = associates,
         compile_deps = compile_deps,
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
@@ -674,8 +671,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         source_jar = source_jar,
         jdeps = output_jdeps,
         deps = compile_deps.deps,
-        runtime_deps = [_java_info(d) for d in ctx.attr.runtime_deps],
-        exports = [_java_info(d) for d in getattr(ctx.attr, "exports", [])],
+        runtime_deps = compile_deps.runtime_deps,
+        exports = compile_deps.exports,
         neverlink = getattr(ctx.attr, "neverlink", False),
         generated_source_jar = generated_source_jar,
     )
@@ -692,8 +689,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         instrumented_files = instrumented_files,
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
-            module_name = associates.module_name,
-            module_jars = associates.jars,
+            module_name = compile_deps.module_name,
+            module_jars = compile_deps.associate_jars,
             language_version = toolchains.kt.api_version,
             exported_compiler_plugins = _collect_plugins_for_export(
                 getattr(ctx.attr, "exported_compiler_plugins", []),
@@ -723,7 +720,6 @@ def _run_kt_java_builder_actions(
         srcs,
         generated_kapt_src_jars,
         generated_ksp_src_jars,
-        associates,
         compile_deps,
         deps_artifacts,
         annotation_processors,
@@ -749,7 +745,6 @@ def _run_kt_java_builder_actions(
             rule_kind = rule_kind,
             toolchains = toolchains,
             srcs = srcs,
-            associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = annotation_processors,
@@ -773,7 +768,6 @@ def _run_kt_java_builder_actions(
             rule_kind = rule_kind,
             toolchains = toolchains,
             srcs = srcs,
-            associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = ksp_annotation_processors,
@@ -810,7 +804,6 @@ def _run_kt_java_builder_actions(
             toolchains = toolchains,
             srcs = srcs,
             generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
-            associates = associates,
             compile_deps = compile_deps,
             deps_artifacts = deps_artifacts,
             annotation_processors = [],
@@ -831,8 +824,8 @@ def _run_kt_java_builder_actions(
             compile_jar = kt_compile_jar,
             jdeps = kt_jdeps,
             deps = compile_deps.deps,
-            runtime_deps = [d[JavaInfo] for d in ctx.attr.runtime_deps],
-            exports = [d[JavaInfo] for d in getattr(ctx.attr, "exports", [])],
+            runtime_deps = compile_deps.runtime_deps,
+            exports = compile_deps.exports,
             neverlink = getattr(ctx.attr, "neverlink", False),
         )
         java_infos.append(kt_java_info)

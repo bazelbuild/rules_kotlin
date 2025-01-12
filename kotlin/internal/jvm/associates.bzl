@@ -25,21 +25,24 @@ load(
     _utils = "utils",
 )
 
-def _get_associates(ctx):
+def _get_associates(ctx, associates):
     """Creates a struct of associates meta data"""
-
-    associates = getattr(ctx.attr, "associates", [])
-    if not bool(associates):
+    if not associates:
         return struct(
             targets = [],
             module_name = _utils.derive_module_name(ctx),
-            jars = [],
+            jars = depset(),
         )
     elif ctx.attr.module_name:
-        fail("if associates have been set then module_name cannot be provided")
+        fail("If associates have been set then module_name cannot be provided")
     else:
-        jars = [depset([a], transitive = a[_KtJvmInfo].module_jars) for a in associates]
-        module_names = _sets.copy_of([x[_KtJvmInfo].module_name for x in associates])
+        jars = []
+        module_names = []
+        for a in associates:
+            jars.append(depset(transitive = [a[JavaInfo].compile_jars, a[_KtJvmInfo].module_jars]))
+            module_names.append(a[_KtJvmInfo].module_name)
+        module_names = list(_sets.copy_of(module_names))
+
         if len(module_names) > 1:
             fail("Dependencies from several different kotlin modules cannot be associated. " +
                  "Associates can see each other's \"internal\" members, and so must only be " +
@@ -48,26 +51,10 @@ def _get_associates(ctx):
             # This should be impossible
             fail("Error in rules - a KtJvmInfo was found which did not have a module_name")
         return struct(
-            targets = associates,
-            jars = jars,
-            module_name = list(module_names)[0],
+            jars = depset(transitive = jars),
+            module_name = module_names[0],
         )
-
-def _flatten_jars(nested_jars_depset):
-    """Returns a list of strings containing the compile_jars for depset of targets.
-
-    This ends up unwinding the nesting of depsets, since compile_jars contains depsets inside
-    the nested_jars targets, which themselves are depsets.  This function is intended to be called
-    lazily form within Args.add_all(map_each) as it collapses depsets.
-    """
-    compile_jars_depsets = [
-        target[JavaInfo].compile_jars
-        for target in nested_jars_depset.to_list()
-        if target[JavaInfo].compile_jars
-    ]
-    return [file.path for file in depset(transitive = compile_jars_depsets).to_list()]
 
 associate_utils = struct(
     get_associates = _get_associates,
-    flatten_jars = _flatten_jars,
 )
