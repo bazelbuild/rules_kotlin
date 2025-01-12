@@ -95,6 +95,7 @@ def _kotlin_toolchain_impl(ctx):
         empty_jdeps = ctx.file._empty_jdeps,
         jacocorunner = ctx.attr.jacocorunner,
         experimental_prune_transitive_deps = ctx.attr._experimental_prune_transitive_deps[BuildSettingInfo].value,
+        experimental_strict_associate_dependencies = ctx.attr._experimental_strict_associate_dependencies[BuildSettingInfo].value,
     )
 
     return [
@@ -258,6 +259,14 @@ _kt_toolchain = rule(
             Transitive deps required for compilation must be explicitly added. Using
             kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
             default = Label("//kotlin/settings:experimental_prune_transitive_deps"),
+        ),
+        "_experimental_strict_associate_dependencies": attr.label(
+            doc = """
+            If enabled, only the direct compile jars will be collected for each listed associate target
+            instead of the compelte transitive set of jars. This helps prevent Kotlin internals from leaking beyond
+            their intended exposure by only exposing the direct java outputs. Using
+            kt_experimental_prune_transitive_deps_incompatible tag allows to exclude specific targets""",
+            default = Label("//kotlin/settings:experimental_strict_associate_dependencies"),
         ),
         "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),
     },
