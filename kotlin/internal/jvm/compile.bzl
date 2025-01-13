@@ -459,6 +459,7 @@ def _run_ksp_builder_actions(
 
 def _run_kt_builder_action(
         ctx,
+        mnemonic,
         rule_kind,
         toolchains,
         srcs,
@@ -469,9 +470,11 @@ def _run_kt_builder_action(
         transitive_runtime_jars,
         plugins,
         outputs,
-        build_kotlin = True,
-        mnemonic = "KotlinCompile"):
+        build_kotlin = True):
     """Creates a KotlinBuilder action invocation."""
+    if not mnemonic:
+        fail("Error: A `mnemonic` must be provided for every invocation of `_run_kt_builder_action`!")
+
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
 
