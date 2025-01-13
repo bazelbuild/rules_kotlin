@@ -16,7 +16,6 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
 load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
 load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
-load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
 load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
@@ -24,9 +23,6 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 
 def kt_configure():
     """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
-    rules_cc_dependencies()
-    rules_cc_toolchains()
-
     rules_proto_dependencies()
     rules_proto_toolchains()
 
@@ -65,9 +61,6 @@ def kt_configure():
             "https://repo1.maven.org/maven2",
         ],
     )
-
-    rules_cc_dependencies()
-    rules_cc_toolchains()
 
     rules_pkg_dependencies()
 

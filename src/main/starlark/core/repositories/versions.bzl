@@ -157,11 +157,5 @@ versions = struct(
             "https://github.com/cgrindel/bazel-starlib/releases/download/v{version}/bazel-starlib.v{version}.tar.gz",
         ],
     ),
-    RULES_CC = version(
-        version = "0.0.9",
-        url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
-        sha256 = "2037875b9a4456dce4a79d112a8ae885bbc4aad968e6587dca6e64f3a0900cdf",
-        strip_prefix_template = "rules_cc-{version}",
-    ),
     use_repository = _use_repository,
 )
