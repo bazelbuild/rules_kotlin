@@ -5,6 +5,7 @@ module(
     repo_name = "rules_kotlin",
 )
 
+bazel_dep(name = "protobuf", version = "29.0", repo_name = "com_google_protobuf")
 bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_java", version = "7.6.5")
@@ -52,8 +53,8 @@ maven.install(
     artifacts = [
         "com.google.code.findbugs:jsr305:3.0.2",
         "junit:junit:4.13-beta-3",
-        "com.google.protobuf:protobuf-java:3.6.0",
-        "com.google.protobuf:protobuf-java-util:3.6.0",
+        "com.google.protobuf:protobuf-java:4.27.2",
+        "com.google.protobuf:protobuf-java-util:4.27.2",
         "com.google.guava:guava:27.1-jre",
         "com.google.truth:truth:0.45",
         "com.google.auto.service:auto-service:1.1.1",
