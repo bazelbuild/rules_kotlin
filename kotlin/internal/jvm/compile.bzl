@@ -539,6 +539,20 @@ def _run_kt_builder_action(
         omit_if_empty = True,
     )
 
+    if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
+        args.add("--remove_private_classes_in_abi_jar", "true")
+
+    if not "kt_treat_internal_as_private_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_treat_internal_as_private_in_abi_jars == True:
+        if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
+            args.add("--treat_internal_as_private_in_abi_jar", "true")
+        else:
+            fail(
+                "experimental_treat_internal_as_private_in_abi_jars without experimental_remove_private_classes_in_abi_jars is invalid." +
+                "\nTo remove internal symbols from kotlin abi jars ensure experimental_remove_private_classes_in_abi_jars " +
+                "and experimental_treat_internal_as_private_in_abi_jars are both enabled in define_kt_toolchain." +
+                "\nAdditionally ensure the target does not contain the kt_remove_private_classes_in_abi_plugin_incompatible tag.",
+            )
+
     args.add("--build_kotlin", build_kotlin)
 
     progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
