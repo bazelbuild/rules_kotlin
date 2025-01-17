@@ -25,14 +25,20 @@ release_archive(
 # Flag that controls the emission of jdeps files during kotlin jvm compilation.
 bool_flag(
     name = "jvm_emit_jdeps",
-    build_setting_default = True,
+    build_setting_default = True,  # Upstream default behavior
     visibility = ["//visibility:public"],
 )
 
-# Kotlin strict deps can be enabled by setting the following value on the command line
 # --@rules_kotlin//kotlin/settings:experimental_prune_transitive_deps=True
 bool_flag(
     name = "experimental_prune_transitive_deps",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# --@rules_kotlin//kotlin/settings:experimental_strict_associate_dependencies=True
+bool_flag(
+    name = "experimental_strict_associate_dependencies",
     build_setting_default = False,
     visibility = ["//visibility:public"],
 )

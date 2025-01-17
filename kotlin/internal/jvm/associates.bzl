@@ -25,11 +25,28 @@ load(
     _utils = "utils",
 )
 
-def _get_associates(ctx, associates):
+def _collect_associates(ctx, toolchains, associate):
+    """Collects the associate jars from the provided dependency and returns
+    them as a depset.
+
+    There are two outcomes for this marco:
+    1. When `experimental_strict_associate_dependencies` is enabled and the tag override has not been provided, only the
+        direct java_output compile jars will be collected for each associate target.
+    2. When `experimental_strict_associate_dependencies` is disabled, the complete transitive set of compile jars will
+        be collected for each assoicate target.
+    """
+    jars_depset = None
+    if (toolchains.kt.experimental_strict_associate_dependencies and
+        "kt_experimental_strict_associate_dependencies_incompatible" not in ctx.attr.tags):
+        jars_depset = depset(direct = [a.compile_jar for a in associate[JavaInfo].java_outputs])
+    else:
+        jars_depset = depset(transitive = [associate[JavaInfo].compile_jars])
+    return jars_depset
+
+def _get_associates(ctx, toolchains, associates):
     """Creates a struct of associates meta data"""
     if not associates:
         return struct(
-            targets = [],
             module_name = _utils.derive_module_name(ctx),
             jars = depset(),
         )
@@ -39,7 +56,7 @@ def _get_associates(ctx, associates):
         jars = []
         module_names = []
         for a in associates:
-            jars.append(depset(transitive = [a[JavaInfo].compile_jars, a[_KtJvmInfo].module_jars]))
+            jars.append(_collect_associates(ctx = ctx, toolchains = toolchains, associate = a))
             module_names.append(a[_KtJvmInfo].module_name)
         module_names = list(_sets.copy_of(module_names))
 
