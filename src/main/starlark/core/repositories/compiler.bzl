@@ -2,6 +2,8 @@
 Defines kotlin compiler repositories.
 """
 
+load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "TEMPLATES")
+
 def _kotlin_compiler_impl(repository_ctx):
     attr = repository_ctx.attr
     repository_ctx.download_and_extract(
@@ -35,35 +37,56 @@ def _kotlin_capabilities_impl(repository_ctx):
         attr._artifacts_template,
         executable = False,
     )
+    template = _get_capability_template(
+        attr.compiler_version,
+        [repository_ctx.path(ct) for ct in attr._capability_templates],
+    )
     repository_ctx.template(
         "capabilities.bzl",
-        _get_capability_template(attr.compiler_version, attr._capabilities_templates),
+        template,
         executable = False,
     )
 
-def _get_capability_template(compiler_version, templates):
-    for ver, template in zip(_CAPABILITIES_TEMPLATES.keys(), templates):
-        if compiler_version.startswith(ver):
-            return template
+def _coerce_int(string_value):
+    digits = "".join([
+        string_value[i]
+        for i in range(len(string_value))
+        if string_value[i].isdigit()
+    ])
+    return 0 if not digits else int(digits)
 
-    # After latest version
-    if compiler_version > _CAPABILITIES_TEMPLATES.keys()[-1]:
-        templates[-1]
+def _version(version_string):
+    return tuple([
+        _coerce_int(segment)
+        for segment in version_string.split(".", 3)
+    ])
+
+def _parse_version(basename):
+    if "capabilities" not in basename:
+        return None
+    version_string = basename[len("capabilities_"):basename.find(".bzl")]
+    return _version(version_string)
+
+def _get_capability_template(compiler_version, templates):
+    version_index = {}
+    target = _version(compiler_version)
+    for template in templates:
+        version = _parse_version(template.basename)
+        if not version:
+            continue
+
+        if target == version:
+            return template
+        version_index[version] = template
+
+    last_version = sorted(version_index.keys(), reverse = True)[0]
+
+    # After latest version, chosen by major revision
+    if target[0] >= last_version[0]:
+        return version_index[last_version]
 
     # Legacy
-    return templates[0]
-
-_CAPABILITIES_TEMPLATES = {
-    "legacy": "//src/main/starlark/core/repositories/kotlin:capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel",  # keep first
-    "1.4": "//src/main/starlark/core/repositories/kotlin:capabilities_1.4.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.5": "//src/main/starlark/core/repositories/kotlin:capabilities_1.5.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.6": "//src/main/starlark/core/repositories/kotlin:capabilities_1.6.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.7": "//src/main/starlark/core/repositories/kotlin:capabilities_1.7.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.8": "//src/main/starlark/core/repositories/kotlin:capabilities_1.8.bzl.com_github_jetbrains_kotlin.bazel",
-    "1.9": "//src/main/starlark/core/repositories/kotlin:capabilities_1.9.bzl.com_github_jetbrains_kotlin.bazel",
-    "2.0": "//src/main/starlark/core/repositories/kotlin:capabilities_2.0.bzl.com_github_jetbrains_kotlin.bazel",
-    "2.1": "//src/main/starlark/core/repositories/kotlin:capabilities_2.1.bzl.com_github_jetbrains_kotlin.bazel",
-}
+    return version_index[(0, 0, 0)]
 
 kotlin_capabilities_repository = repository_rule(
     implementation = _kotlin_capabilities_impl,
@@ -74,9 +97,9 @@ kotlin_capabilities_repository = repository_rule(
         "compiler_version": attr.string(
             doc = "compiler version",
         ),
-        "_capabilities_templates": attr.label_list(
-            doc = "compiler capabilities file templates",
-            default = _CAPABILITIES_TEMPLATES.values(),
+        "_capability_templates": attr.label_list(
+            doc = "List of compiler capability templates.",
+            default = TEMPLATES,
         ),
         "_template": attr.label(
             doc = "repository build file template",
