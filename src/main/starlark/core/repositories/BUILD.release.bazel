@@ -19,6 +19,6 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
     deps = [
-        "@rules_proto//proto:repositories",
+        "@com_google_protobuf//proto:repositories",
     ],
 )
