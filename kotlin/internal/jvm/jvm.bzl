@@ -136,7 +136,7 @@ _implicit_deps = {
     ),
     "_java_stub_template": attr.label(
         cfg = "exec",
-        default = Label("@bazel_tools//tools/java:java_stub_template.txt"),
+        default = Label("@rules_java//java/bazel/rules:java_stub_template.txt"),
         allow_single_file = True,
     ),
     "_toolchain": attr.label(
