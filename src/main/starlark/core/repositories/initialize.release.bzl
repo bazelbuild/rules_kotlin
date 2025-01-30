@@ -32,8 +32,6 @@ load(":versions.bzl", "version", _versions = "versions")
 
 versions = _versions
 
-RULES_KOTLIN = Label("//:all")
-
 def kotlin_repositories(
         is_bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,
