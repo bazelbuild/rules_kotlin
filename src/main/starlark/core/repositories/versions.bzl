@@ -56,6 +56,13 @@ versions = struct(
         ],
         sha256 = "a9f923be58fbd32670a17f0b729b1df804af882fa57402165741cb26e5440ca1",
     ),
+    JAVA_STUB_TEMPLATE_TXT = version(
+        version = "8.8.0",
+        url_templates = [
+            "https://raw.githubusercontent.com/bazelbuild/rules_java/refs/tags/8.8.0/java/bazel/rules/java_stub_template.txt",
+        ],
+        sha256 = "289d8c13a3e2680bfbe21a2c6a57cc428ecdc6a0f2c04bda4d4dc2da40311eaa",
+    ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
         version = "2.1.0",
         url_templates = [

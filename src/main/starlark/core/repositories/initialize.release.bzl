@@ -66,6 +66,15 @@ def kotlin_repositories(
 
     maybe(
         http_file,
+        name = "java_stub_template_txt",
+        sha256 = versions.JAVA_STUB_TEMPLATE_TXT.sha256,
+        urls = [url.format(version = versions.JAVA_STUB_TEMPLATE_TXT.version) for url in versions.JAVA_STUB_TEMPLATE_TXT.url_templates],
+        downloaded_file_path = "java_stub_template.txt",
+        executable = False,
+    )
+
+    maybe(
+        http_file,
         name = "com_github_pinterest_ktlint",
         sha256 = versions.PINTEREST_KTLINT.sha256,
         urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],

@@ -71,7 +71,7 @@ cli_toolchain = rule(
         ),
         "java_stub_template": attr.label(
             cfg = "exec",
-            default = Label("@bazel_tools//tools/java:java_stub_template.txt"),
+            default = Label("@java_stub_template_txt//file"),
             allow_single_file = True,
         ),
         "_empty_jar": attr.label(
