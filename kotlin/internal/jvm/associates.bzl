@@ -57,6 +57,8 @@ def _get_associates(ctx, toolchains, associates):
         module_names = []
         for a in associates:
             jars.append(_collect_associates(ctx = ctx, toolchains = toolchains, associate = a))
+
+            #jars.append(depset([a.class_jar for a in a[JavaInfo].java_outputs], transitive = [a[_KtJvmInfo].module_jars]))
             module_names.append(a[_KtJvmInfo].module_name)
         module_names = list(_sets.copy_of(module_names))
 
