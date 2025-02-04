@@ -568,6 +568,7 @@ def _run_kt_builder_action(
         inputs = depset(
             srcs.all_srcs + srcs.src_jars + generated_src_jars,
             transitive = [
+                compile_deps.associate_jars,
                 compile_deps.compile_jars,
                 transitive_runtime_jars,
                 deps_artifacts,
