@@ -39,7 +39,7 @@ def _get_associates(ctx, associates):
         jars = []
         module_names = []
         for a in associates:
-            jars.append(depset(transitive = [a[JavaInfo].compile_jars, a[_KtJvmInfo].module_jars]))
+            jars.append(depset([a.class_jar for a in a[JavaInfo].java_outputs], transitive = [a[_KtJvmInfo].module_jars]))
             module_names.append(a[_KtJvmInfo].module_name)
         module_names = list(_sets.copy_of(module_names))
 
