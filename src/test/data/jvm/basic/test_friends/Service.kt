@@ -6,6 +6,6 @@ class Service internal constructor(
   internal val value: String = "hello world"
 ) {
   internal fun iSayHolla(friend: String) {
-    println("holla $friend")
+    println("holla $friend!")
   }
 }
