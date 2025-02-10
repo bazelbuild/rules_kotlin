@@ -779,6 +779,7 @@ def _run_kt_java_builder_actions(
         )
 
     # Run KSP
+    ksp_generated_class_jar = None
     if has_kt_sources and ksp_annotation_processors:
         ksp_outputs = _run_ksp_builder_actions(
             ctx,
@@ -791,7 +792,8 @@ def _run_kt_java_builder_actions(
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
         )
-        generated_ksp_src_jars.append(ksp_outputs.ksp_generated_class_jar)
+        ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
+        generated_ksp_src_jars.append(ksp_generated_class_jar)
 
     java_infos = []
 
@@ -912,12 +914,15 @@ def _run_kt_java_builder_actions(
             )
 
     annotation_processing = None
-    if annotation_processors:
+    if annotation_processors or ksp_annotation_processors:
+        is_ksp = (ksp_annotation_processors != None)
+        processor = ksp_annotation_processors if is_ksp else annotation_processors
+        gen_jar = ksp_generated_class_jar if is_ksp else ap_generated_src_jar
         outputs_list = [java_info.outputs for java_info in java_infos]
         annotation_processing = _create_annotation_processing(
-            annotation_processors = annotation_processors,
+            annotation_processors = processor,
             ap_class_jar = [jars.class_jar for outputs in outputs_list for jars in outputs.jars][0],
-            ap_source_jar = ap_generated_src_jar,
+            ap_source_jar = gen_jar,
         )
 
     return struct(
