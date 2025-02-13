@@ -10,24 +10,27 @@ java_import(
     deps = [],
 )
 
+_KOTLIN_STDLIBS = [
+    "//kotlin/compiler:annotations",
+    "//kotlin/compiler:kotlin-stdlib",
+    "//kotlin/compiler:kotlin-stdlib-jdk7",
+    "//kotlin/compiler:kotlin-stdlib-jdk8",
+    "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+    "//kotlin/compiler:trove4j",
+]
+
 java_binary(
     name = "kotlinc",
     main_class = "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
     runtime_deps = [":kotlinc_jar"],
+    data = _KOTLIN_STDLIBS,
 )
 
 cli_toolchain(
     name = "cli_toolchain",
     api_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
     jvm_target = "11",
-    kotlin_stdlibs = [
-        "//kotlin/compiler:annotations",
-        "//kotlin/compiler:kotlin-stdlib",
-        "//kotlin/compiler:kotlin-stdlib-jdk7",
-        "//kotlin/compiler:kotlin-stdlib-jdk8",
-        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
-        "//kotlin/compiler:trove4j",
-    ],
+    kotlin_stdlibs = _KOTLIN_STDLIBS,
     kotlinc = ":kotlinc",
     language_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
     zip = "@bazel_tools//tools/zip:zipper",
