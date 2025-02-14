@@ -21,9 +21,9 @@ _KOTLIN_STDLIBS = [
 
 java_binary(
     name = "kotlinc",
+    data = _KOTLIN_STDLIBS,
     main_class = "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
     runtime_deps = [":kotlinc_jar"],
-    data = _KOTLIN_STDLIBS,
 )
 
 cli_toolchain(
