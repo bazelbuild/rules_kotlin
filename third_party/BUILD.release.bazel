@@ -18,6 +18,7 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 exports_files([
     "empty.jar",
     "empty.jdeps",
+    "java_stub_template.txt",
 ])
 
 java_binary(
