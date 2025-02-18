@@ -134,9 +134,9 @@ _implicit_deps = {
         default = Label("@bazel_tools//tools/zip:zipper"),
         allow_files = True,
     ),
-    "_java_stub_template": attr.label(
+    "java_stub_template": attr.label(
         cfg = "exec",
-        default = Label("@bazel_tools//tools/java:java_stub_template.txt"),
+        default = Label("//third_party:java_stub_template.txt"),
         allow_single_file = True,
     ),
     "_toolchain": attr.label(

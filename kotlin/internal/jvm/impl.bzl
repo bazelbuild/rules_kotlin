@@ -67,7 +67,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
         args: Args that should be passed to the Binary.
     """
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
-    template = ctx.attr._java_stub_template.files.to_list()[0]
+    template = ctx.attr.java_stub_template.files.to_list()[0]
 
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
     java_bin_path = java_runtime.java_executable_runfiles_path

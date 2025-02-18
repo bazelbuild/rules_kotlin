@@ -19,6 +19,7 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "empty.jdeps",
+    "java_stub_template.txt",
 ])
 
 genrule(
@@ -95,6 +96,7 @@ release_archive(
         "empty.jar",
         "empty.jdeps",
         "jarjar.bzl",
+        "java_stub_template.txt",
     ],
     src_map = {
         "jarjar_runner_deploy.jar": "jarjar.jar",
