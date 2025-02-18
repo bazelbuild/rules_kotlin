@@ -1,13 +1,5 @@
+load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
-
-_KOTLIN_STDLIBS = [
-    "//kotlin/compiler:annotations",
-    "//kotlin/compiler:kotlin-stdlib",
-    "//kotlin/compiler:kotlin-stdlib-jdk7",
-    "//kotlin/compiler:kotlin-stdlib-jdk8",
-    "//kotlin/compiler:kotlinx-coroutines-core-jvm",
-    "//kotlin/compiler:trove4j",
-]
 
 kt_bootstrap_library(
     name = "build_lib",
