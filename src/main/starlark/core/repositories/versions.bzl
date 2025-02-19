@@ -158,9 +158,9 @@ versions = struct(
         ],
     ),
     RULES_CC = version(
-        version = "0.0.9",
+        version = "0.1.1",
         url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
-        sha256 = "2037875b9a4456dce4a79d112a8ae885bbc4aad968e6587dca6e64f3a0900cdf",
+        sha256 = "712d77868b3152dd618c4d64faaddefcc5965f90f5de6e6dd1d5ddcd0be82d42",
         strip_prefix_template = "rules_cc-{version}",
     ),
     use_repository = _use_repository,
