@@ -116,11 +116,11 @@ versions = struct(
         sha256 = None,
     ),
     RULES_TESTING = version(
-        version = "0.6.0",
+        version = "0.7.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_testing/releases/download/v{version}/rules_testing-v{version}.tar.gz",
         ],
-        sha256 = "02c62574631876a4e3b02a1820cb51167bb9cdcdea2381b2fa9d9b8b11c407c4",
+        sha256 = "28c2d174471b587bf0df1fd3a10313f22c8906caf4050f8b46ec4648a79f90c3",
     ),
     KOTLINX_SERIALIZATION_CORE_JVM = version(
         version = "1.6.3",
@@ -144,11 +144,11 @@ versions = struct(
         sha256 = "d3234179bcff1886d53d67c11eca47f7f3cf7b63c349d16965f6db51b7f3dd9a",
     ),
     RULES_BAZEL_INTEGRATION_TEST = version(
-        version = "0.26.0",
+        version = "0.32.0",
         url_templates = [
             "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v{version}/rules_bazel_integration_test.v{version}.tar.gz",
         ],
-        sha256 = "ab56cdd55a28781287242c7124ce9ff791ae8318ed641057f10edd98c55d7ed5",
+        sha256 = "1bcc8afebcfb650b175cbfb7bfe45cceb7cfa45defb26b30f04f96960eac3f11",
     ),
     CGRINDEL_BAZEL_STARLIB = version(
         version = "0.21.0",
