@@ -108,19 +108,19 @@ versions = struct(
         sha256 = "eb7db63ed826567b2ceb1ec53d6b729e01636f72c9f5dfb6d2dfe55ad69d1d2a",
     ),
     RULES_LICENSE = version(
-        version = "1.0.0",
+        version = "0.0.3",
         url_templates = [
             "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
             "https://github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
         ],
-        sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
+        sha256 = None,
     ),
     RULES_TESTING = version(
-        version = "0.7.0",
+        version = "0.6.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_testing/releases/download/v{version}/rules_testing-v{version}.tar.gz",
         ],
-        sha256 = "28c2d174471b587bf0df1fd3a10313f22c8906caf4050f8b46ec4648a79f90c3",
+        sha256 = "02c62574631876a4e3b02a1820cb51167bb9cdcdea2381b2fa9d9b8b11c407c4",
     ),
     KOTLINX_SERIALIZATION_CORE_JVM = version(
         version = "1.6.3",
@@ -144,11 +144,11 @@ versions = struct(
         sha256 = "d3234179bcff1886d53d67c11eca47f7f3cf7b63c349d16965f6db51b7f3dd9a",
     ),
     RULES_BAZEL_INTEGRATION_TEST = version(
-        version = "0.32.0",
+        version = "0.26.0",
         url_templates = [
             "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v{version}/rules_bazel_integration_test.v{version}.tar.gz",
         ],
-        sha256 = "3c9b9abea07acee98ee4a2ab7447784b1d6e39dff88c3eaf97ca227138349b15",
+        sha256 = "ab56cdd55a28781287242c7124ce9ff791ae8318ed641057f10edd98c55d7ed5",
     ),
     CGRINDEL_BAZEL_STARLIB = version(
         version = "0.21.0",
@@ -158,9 +158,9 @@ versions = struct(
         ],
     ),
     RULES_CC = version(
-        version = "0.1.1",
+        version = "0.0.9",
         url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
-        sha256 = "712d77868b3152dd618c4d64faaddefcc5965f90f5de6e6dd1d5ddcd0be82d42",
+        sha256 = "2037875b9a4456dce4a79d112a8ae885bbc4aad968e6587dca6e64f3a0900cdf",
         strip_prefix_template = "rules_cc-{version}",
     ),
     use_repository = _use_repository,
