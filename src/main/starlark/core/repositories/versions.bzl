@@ -148,7 +148,7 @@ versions = struct(
         url_templates = [
             "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v{version}/rules_bazel_integration_test.v{version}.tar.gz",
         ],
-        sha256 = "1bcc8afebcfb650b175cbfb7bfe45cceb7cfa45defb26b30f04f96960eac3f11",
+        sha256 = "3c9b9abea07acee98ee4a2ab7447784b1d6e39dff88c3eaf97ca227138349b15",
     ),
     CGRINDEL_BAZEL_STARLIB = version(
         version = "0.21.0",
