@@ -31,8 +31,6 @@ versions = struct(
     # --> 3. Configure dependencies <--
     SKYLIB_VERSION = "1.7.1",
     SKYLIB_SHA = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
-    RULES_JVM_EXTERNAL_TAG = "6.6",
-    RULES_JVM_EXTERNAL_SHA = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",
     RULES_JVM_EXTERNAL = version(
         version = "6.6",
         sha256 = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",

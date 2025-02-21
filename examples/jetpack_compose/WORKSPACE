@@ -16,12 +16,9 @@ http_archive(
 load("@rules_kotlin//kotlin:repositories.bzl", "versions")
 http_archive(
     name = "rules_jvm_external",
-    sha256 = versions.RULES_JVM_EXTERNAL_SHA,
-    strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL_TAG,
-    url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (
-        versions.RULES_JVM_EXTERNAL_TAG,
-        versions.RULES_JVM_EXTERNAL_TAG,
-    ),
+    sha256 = versions.RULES_JVM_EXTERNAL.sha256,
+    strip_prefix = "rules_jvm_external-%s" % versions.RULES_JVM_EXTERNAL.version,
+    urls = [url.format(version = versions.RULES_JVM_EXTERNAL.version) for url in versions.RULES_JVM_EXTERNAL.url_templates],
 )
 
 # Android rules dependencies
