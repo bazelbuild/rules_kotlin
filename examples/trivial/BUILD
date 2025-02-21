@@ -6,12 +6,12 @@ package(default_visibility = ["//visibility:public"])
 java_library(
     name = "java_deps",
     exports = [
-        "@maven//:com_expedia_graphql_kotlin",
-        "@maven//:com_expedia_graphql_kotlin_schema_generator",
-        "@maven//:com_graphql_java_graphql_java",
-        "@maven//:org_apache_logging_log4j_log4j_core",
-        "@maven//:org_apiguardian_apiguardian_api",
-        "@maven//:org_opentest4j_opentest4j",
+        "@maven_rules_kotlin_example//:com_expedia_graphql_kotlin",
+        "@maven_rules_kotlin_example//:com_expedia_graphql_kotlin_schema_generator",
+        "@maven_rules_kotlin_example//:com_graphql_java_graphql_java",
+        "@maven_rules_kotlin_example//:org_apache_logging_log4j_log4j_core",
+        "@maven_rules_kotlin_example//:org_apiguardian_apiguardian_api",
+        "@maven_rules_kotlin_example//:org_opentest4j_opentest4j",
     ],
 )
 

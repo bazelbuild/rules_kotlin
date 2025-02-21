@@ -29,16 +29,40 @@ versions = struct(
     # 1. Download archive
     # 2. Download dependencies and Configure rules
     # --> 3. Configure dependencies <--
-    SKYLIB_VERSION = "1.4.2",
-    SKYLIB_SHA = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
-    RULES_JVM_EXTERNAL_TAG = "5.3",
-    RULES_JVM_EXTERNAL_SHA = "d31e369b854322ca5098ea12c69d7175ded971435e55c18dd9dd5f29cc5249ac",
+    SKYLIB_VERSION = "1.7.1",
+    SKYLIB_SHA = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
+    RULES_JVM_EXTERNAL_TAG = "6.6",
+    RULES_JVM_EXTERNAL_SHA = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",
+    RULES_JVM_EXTERNAL = version(
+        version = "6.6",
+        sha256 = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",
+        strip_prefix_template = "rules_jvm_external-{version}",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
+        ],
+    ),
+    COM_GOOGLE_PROTOBUF = version(
+        version = "29.0",
+        sha256 = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
+        strip_prefix_template = "protobuf-{version}",
+        url_templates = [
+            "https://github.com/protocolbuffers/protobuf/releases/download/v{0}/protobuf-{0}.tar.gz",
+        ],
+    ),
     RULES_PROTO = version(
-        version = "5.3.0-21.7",
-        sha256 = "dc3fb206a2cb3441b485eb1e423165b231235a1ea9b031b4433cf7bc1fa460dd",
+        version = "7.0.2",
+        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
         strip_prefix_template = "rules_proto-{version}",
         url_templates = [
-            "https://github.com/bazelbuild/rules_proto/archive/refs/tags/{version}.tar.gz",
+            "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
+        ],
+    ),
+    BAZEL_FEATURES = version(
+        version = "1.25.0",
+        sha256 = "4fd9922d464686820ffd8fcefa28ccffa147f7cdc6b6ac0d8b07fde565c65d66",
+        strip_prefix_template = "bazel_features-{version}",
+        url_templates = [
+            "https://github.com/bazel-contrib/bazel_features/releases/download/v{version}/bazel_features-v{version}.tar.gz",
         ],
     ),
     IO_BAZEL_STARDOC = version(
@@ -70,10 +94,17 @@ versions = struct(
         ],
         sha256 = "fc27b08cadc061a4a989af01cbeccb613feef1995f4aad68f2be0f886a3ee251",
     ),
+    RULES_ANDROID = version(
+        version = "0.6.1",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz",
+        ],
+        sha256 = "7dc7a6ed0b9bf53f1f363292733e3d7164e140e96ed433a2937b19570d01d517",
+    ),
     ANDROID = struct(
-        VERSION = "0.1.1",
-        SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
-        URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
+        VERSION = "0.6.1",
+        SHA = "7dc7a6ed0b9bf53f1f363292733e3d7164e140e96ed433a2937b19570d01d517",
+        URLS = ["https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz".format(version = "0.6.1")],
     ),
     # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
     BAZELCI_RULES = struct(
@@ -101,19 +132,19 @@ versions = struct(
     ),
     # needed for rules_pkg and java
     RULES_JAVA = version(
-        version = "7.2.0",
+        version = "8.9.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
         ],
-        sha256 = "eb7db63ed826567b2ceb1ec53d6b729e01636f72c9f5dfb6d2dfe55ad69d1d2a",
+        sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
     ),
     RULES_LICENSE = version(
-        version = "0.0.3",
+        version = "1.0.0",
         url_templates = [
             "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
             "https://github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
         ],
-        sha256 = None,
+        sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
     ),
     RULES_TESTING = version(
         version = "0.6.0",

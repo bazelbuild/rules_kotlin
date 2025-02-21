@@ -35,7 +35,7 @@ kt_jvm_test(
     test_class = "plugin.noarg.UserHasNoargConstructorTest",
     deps = [
         ":user",
-        "@maven//:junit_junit",
+        "@maven_rules_kotlin_example//:junit_junit",
         "@rules_kotlin//kotlin/compiler:kotlin-reflect",
     ],
 )

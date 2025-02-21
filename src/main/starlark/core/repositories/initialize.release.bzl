@@ -98,16 +98,23 @@ def kotlin_repositories(
 
     maybe(
         http_archive,
-        name = "rules_android",
-        sha256 = versions.ANDROID.SHA,
-        strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
-        urls = versions.ANDROID.URLS,
+        name = "rules_license",
+        sha256 = versions.RULES_LICENSE.sha256,
+        urls = [url.format(version = versions.RULES_LICENSE.version) for url in versions.RULES_LICENSE.url_templates],
     )
 
-    versions.use_repository(
+    maybe(
+        http_archive,
+        name = "rules_android",
+        sha256 = versions.RULES_ANDROID.sha256,
+        urls = [url.format(version = versions.RULES_ANDROID.version) for url in versions.RULES_ANDROID.url_templates],
+    )
+
+    maybe(
+        http_archive,
         name = "rules_java",
-        rule = http_archive,
-        version = versions.RULES_JAVA,
+        sha256 = versions.RULES_JAVA.sha256,
+        urls = [url.format(version = versions.RULES_JAVA.version) for url in versions.RULES_JAVA.url_templates],
     )
 
     # See note in versions.bzl before updating bazel_skylib

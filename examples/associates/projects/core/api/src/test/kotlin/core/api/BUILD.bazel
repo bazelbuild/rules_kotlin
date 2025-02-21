@@ -5,6 +5,6 @@ kt_jvm_test(
     srcs = ["CoreApiTest.kt"],
     associates = ["//projects/core/api"],  # Deprecated - here to ensure it still works.
     deps = [
-        "@maven//:junit_junit",
+        "@maven_rules_kotlin_example//:junit_junit",
     ],
 )

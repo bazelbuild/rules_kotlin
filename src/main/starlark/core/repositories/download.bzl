@@ -34,6 +34,18 @@ def kt_download_local_dev_dependencies():
 
     versions.use_repository(
         rule = http_archive,
+        name = "bazel_features",
+        version = versions.BAZEL_FEATURES,
+    )
+
+    versions.use_repository(
+        rule = http_archive,
+        name = "com_google_protobuf",
+        version = versions.COM_GOOGLE_PROTOBUF,
+    )
+
+    versions.use_repository(
+        rule = http_archive,
         name = "rules_cc",
         version = versions.RULES_CC,
     )
