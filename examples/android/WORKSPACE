@@ -17,9 +17,9 @@ http_archive(
 
 http_archive(
     name = "robolectric",
-    sha256 = "1b199a932cbde4af728dd8275937091adbb89a4bf63d326de49e6d0a42e723bf",
-    strip_prefix = "robolectric-bazel-4.10.3",
-    urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.10.3.tar.gz"],
+    sha256 = "b2d2164bae80fcfbdd078eb2f0935ba06557402b8c814928d9e3bec7358e2b7b",
+    strip_prefix = "robolectric-bazel-4.14.1.2",
+    urls = ["https://github.com/robolectric/robolectric-bazel/releases/download/4.14.1.2/robolectric-bazel-4.14.1.2.tar.gz"],
 )
 
 # Android rules dependencies

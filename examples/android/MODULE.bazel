@@ -4,8 +4,8 @@ remote_android_extensions = use_extension("@bazel_tools//tools/android:android_e
 use_repo(remote_android_extensions, "android_gmaven_r8", "android_tools")
 
 bazel_dep(name = "rules_android", version = "0.6.1")
-bazel_dep(name = "bazel_skylib", version = "1.2.1")
-bazel_dep(name = "rules_robolectric", version = "4.10.3", repo_name = "robolectric")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_kotlin", version = "1.9.5")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
