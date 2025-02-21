@@ -143,6 +143,24 @@ def kotlin_repositories(
         sha256 = versions.SKYLIB_SHA,
     )
 
+    PROTOBUF_VERSION = "29.0"
+    PROTOBUF_HASH = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c"
+    maybe(
+        http_archive,
+        name = "com_google_protobuf",
+        sha256 = PROTOBUF_HASH,
+        strip_prefix = "protobuf-" + PROTOBUF_VERSION,
+        urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v{0}/protobuf-{0}.tar.gz".format(PROTOBUF_VERSION)],
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_proto",
+        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
+        strip_prefix = "rules_proto-7.0.2",
+        url = "https://github.com/bazelbuild/rules_proto/releases/download/7.0.2/rules_proto-7.0.2.tar.gz",
+    )
+
 def kotlinc_version(release, sha256):
     return version(
         version = release,
