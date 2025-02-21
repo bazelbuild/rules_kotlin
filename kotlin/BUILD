@@ -20,12 +20,10 @@ release_archive(
     srcs = glob(
         ["*.bzl"],
         exclude = [
-            "dependencies.bzl",
             "repositories.doc.bzl",
         ],
     ),
     src_map = {
-        "dependencies.release.bzl": "dependencies.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [

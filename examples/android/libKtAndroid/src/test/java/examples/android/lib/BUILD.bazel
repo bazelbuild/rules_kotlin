@@ -7,7 +7,7 @@ kt_android_local_test(
     custom_package = "examples.android.lib",
     manifest = "AndroidManifest.xml",
     deps = [
-        "@maven//:junit_junit",
+        "@maven_rules_kotlin_example//:junit_junit",
         "@robolectric//bazel:android-all",
     ],
 )

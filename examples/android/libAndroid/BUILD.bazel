@@ -10,7 +10,7 @@ android_library(
     visibility = ["//visibility:public"],
     deps = [
         ":util",
-        "@maven//:androidx_appcompat_appcompat",
+        "@maven_rules_kotlin_example//:androidx_appcompat_appcompat",
     ],
 )
 

@@ -3,15 +3,17 @@ module(name = "android-example")
 remote_android_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "remote_android_tools_extensions")
 use_repo(remote_android_extensions, "android_gmaven_r8", "android_tools")
 
-bazel_dep(name = "rules_android", version = "0.1.1")
-bazel_dep(name = "bazel_skylib", version = "1.2.1")
-bazel_dep(name = "rules_robolectric", version = "4.10.3", repo_name = "robolectric")
-bazel_dep(name = "rules_java", version = "6.4.0")
+bazel_dep(name = "rules_android", version = "0.6.1")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
+bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_kotlin", version = "1.9.5")
-bazel_dep(name = "rules_jvm_external", version = "5.3")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
+    name = "maven_rules_kotlin_example",
+    aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = [
         "androidx.appcompat:appcompat:1.0.0",
         "junit:junit:4.12",
@@ -32,5 +34,6 @@ maven.install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    use_starlark_android_rules = True,
 )
-use_repo(maven, "maven")
+use_repo(maven, "maven_rules_kotlin_example")

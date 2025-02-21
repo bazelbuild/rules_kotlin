@@ -98,16 +98,41 @@ def kotlin_repositories(
 
     maybe(
         http_archive,
-        name = "rules_android",
-        sha256 = versions.ANDROID.SHA,
-        strip_prefix = "rules_android-%s" % versions.ANDROID.VERSION,
-        urls = versions.ANDROID.URLS,
+        name = "py_absl",
+        sha256 = "8a3d0830e4eb4f66c4fa907c06edf6ce1c719ced811a12e26d9d3162f8471758",
+        urls = [
+            "https://github.com/abseil/abseil-py/archive/refs/tags/v2.1.0.tar.gz",
+        ],
+        strip_prefix = "abseil-py-2.1.0",
     )
 
-    versions.use_repository(
+    maybe(
+        http_archive,
+        name = "rules_cc",
+        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.16/rules_cc-0.0.16.tar.gz"],
+        sha256 = "bbf1ae2f83305b7053b11e4467d317a7ba3517a12cef608543c1b1c5bf48a4df",
+        strip_prefix = "rules_cc-0.0.16",
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_license",
+        sha256 = versions.RULES_LICENSE.sha256,
+        urls = [url.format(version = versions.RULES_LICENSE.version) for url in versions.RULES_LICENSE.url_templates],
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_android",
+        sha256 = versions.RULES_ANDROID.sha256,
+        urls = [url.format(version = versions.RULES_ANDROID.version) for url in versions.RULES_ANDROID.url_templates],
+    )
+
+    maybe(
+        http_archive,
         name = "rules_java",
-        rule = http_archive,
-        version = versions.RULES_JAVA,
+        sha256 = versions.RULES_JAVA.sha256,
+        urls = [url.format(version = versions.RULES_JAVA.version) for url in versions.RULES_JAVA.url_templates],
     )
 
     # See note in versions.bzl before updating bazel_skylib
@@ -116,6 +141,24 @@ def kotlin_repositories(
         name = "bazel_skylib",
         urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (versions.SKYLIB_VERSION, versions.SKYLIB_VERSION)],
         sha256 = versions.SKYLIB_SHA,
+    )
+
+    PROTOBUF_VERSION = "29.0"
+    PROTOBUF_HASH = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c"
+    maybe(
+        http_archive,
+        name = "com_google_protobuf",
+        sha256 = PROTOBUF_HASH,
+        strip_prefix = "protobuf-" + PROTOBUF_VERSION,
+        urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v{0}/protobuf-{0}.tar.gz".format(PROTOBUF_VERSION)],
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_proto",
+        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
+        strip_prefix = "rules_proto-7.0.2",
+        url = "https://github.com/bazelbuild/rules_proto/releases/download/7.0.2/rules_proto-7.0.2.tar.gz",
     )
 
 def kotlinc_version(release, sha256):

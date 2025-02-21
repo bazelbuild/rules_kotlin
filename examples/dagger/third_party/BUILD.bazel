@@ -4,7 +4,7 @@ java_plugin(
     processor_class = "dagger.internal.codegen.ComponentProcessor",
     visibility = ["//visibility:private"],
     deps = [
-        "@maven//:com_google_dagger_dagger_compiler",
+        "@maven_rules_kotlin_example//:com_google_dagger_dagger_compiler",
     ],
 )
 
@@ -13,7 +13,7 @@ java_library(
     exported_plugins = [":dagger_component_plugin"],
     visibility = ["//visibility:public"],
     exports = [
-        "@maven//:com_google_dagger_dagger",
-        "@maven//:javax_inject_javax_inject",
+        "@maven_rules_kotlin_example//:com_google_dagger_dagger",
+        "@maven_rules_kotlin_example//:javax_inject_javax_inject",
     ],
 )

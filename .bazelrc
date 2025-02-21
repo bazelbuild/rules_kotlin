@@ -1,9 +1,9 @@
 common --enable_bzlmod=true
+common --incompatible_use_plus_in_repo_names
+common --incompatible_disallow_empty_glob=false
 
 common:rbe --java_runtime_version=11
 common:rbe --tool_java_runtime_version=11
-
-common:workspace --enable_bzlmod=false --enable_workspace=true
 
 build --strategy=KotlinCompile=worker
 build --test_output=all
