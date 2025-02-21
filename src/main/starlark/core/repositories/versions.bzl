@@ -112,14 +112,6 @@ versions = struct(
         # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
         URLS = ["https://github.com/bazelbuild/continuous-integration/releases/download/rules-{version}/bazelci_rules-{version}.tar.gz"],
     ),
-    PKG = version(
-        version = "1.0.1",
-        url_templates = [
-            "https://github.com/bazelbuild/rules_pkg/releases/download/{version}/rules_pkg-{version}.tar.gz",
-        ],
-        sha256 = "d20c951960ed77cb7b341c2a59488534e494d5ad1d30c4818c736d57772a9fef",
-    ),
-    # needed for rules_pkg and java
     RULES_PYTHON = version(
         version = "0.23.1",
         strip_prefix_template = "rules_python-{version}",
@@ -128,7 +120,6 @@ versions = struct(
         ],
         sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
     ),
-    # needed for rules_pkg and java
     RULES_JAVA = version(
         version = "8.9.0",
         url_templates = [
