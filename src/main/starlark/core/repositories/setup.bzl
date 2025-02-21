@@ -20,7 +20,7 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
 def kt_configure():
-    """Setup dependencies. Must be called AFTER kt_download_local_dev_dependencies() """
+    """Setup dependencies."""
     protobuf_deps()
 
     bazel_skylib_workspace()

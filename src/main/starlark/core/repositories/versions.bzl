@@ -46,7 +46,7 @@ versions = struct(
         sha256 = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
         strip_prefix_template = "protobuf-{version}",
         url_templates = [
-            "https://github.com/protocolbuffers/protobuf/releases/download/v{0}/protobuf-{0}.tar.gz",
+            "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.tar.gz",
         ],
     ),
     RULES_PROTO = version(
