@@ -13,7 +13,8 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_android/releases/download/v0.6.1/rules_android-v0.6.1.tar.gz",
 )
 
-load("@rules_kotlin//kotlin:repositories.bzl", "versions")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version", "versions")
+
 http_archive(
     name = "rules_jvm_external",
     sha256 = versions.RULES_JVM_EXTERNAL.sha256,
@@ -23,31 +24,42 @@ http_archive(
 
 # Android rules dependencies
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
+
 rules_android_prereqs()
 
 ##### rules_java setup for rules_android #####
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+
 rules_java_dependencies()
+
 # note that the following line is what is minimally required from protobuf for the java rules
 # consider using the protobuf_deps() public API from @com_google_protobuf//:protobuf_deps.bzl
 load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
+
 proto_bazel_features(name = "proto_bazel_features")
+
 # register toolchains
 load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+
 rules_java_toolchains()
 
 ##### rules_jvm_external setup for rules_android #####
 load("@rules_jvm_external//:repositories.bzl", "rules_jvm_external_deps")
+
 rules_jvm_external_deps()
+
 load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
+
 rules_jvm_external_setup()
 
 ##### rules_android setup #####
 load("@rules_android//:defs.bzl", "rules_android_workspace")
+
 rules_android_workspace()
 
 # Android SDK setup
 load("@rules_android//rules:rules.bzl", "android_sdk_repository")
+
 android_sdk_repository(
     name = "androidsdk",
 )
@@ -56,8 +68,6 @@ register_toolchains(
     "@rules_android//toolchains/android:android_default_toolchain",
     "@rules_android//toolchains/android_sdk:android_sdk_tools",
 )
-
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version")
 
 KOTLINC_RELEASE = versions.KOTLIN_CURRENT_COMPILER_RELEASE
 
@@ -72,6 +82,7 @@ kotlin_repositories(
 )
 
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+
 kt_register_toolchains()
 
 register_toolchains("//:kotlin_toolchain")
@@ -101,8 +112,10 @@ KOTLIN_TO_COMPOSE = {
 }
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+
 maven_install(
     name = "maven_rules_kotlin_example",
+    aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = KOTLIN_TO_COMPOSE[KOTLINC_RELEASE.version],
     fetch_sources = True,
     maven_install_json = "//:maven_install-%s.json" % KOTLINC_RELEASE.version,
@@ -110,9 +123,8 @@ maven_install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
-    use_starlark_android_rules = True,
-    aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     resolver = "coursier" if KOTLINC_RELEASE.version == "1.9.22" else "maven",
+    use_starlark_android_rules = True,
 )
 
 load("@maven_rules_kotlin_example//:defs.bzl", "pinned_maven_install")
