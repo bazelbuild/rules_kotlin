@@ -16,6 +16,15 @@ load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
+KOTLIN_STDLIBS = [
+    "//kotlin/compiler:annotations",
+    "//kotlin/compiler:kotlin-stdlib",
+    "//kotlin/compiler:kotlin-stdlib-jdk7",
+    "//kotlin/compiler:kotlin-stdlib-jdk8",
+    "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+    "//kotlin/compiler:trove4j",
+]
+
 def _import_artifacts(artifacts, rule_kind):
     _import_labels(artifacts.plugin, rule_kind)
     _import_labels(artifacts.runtime, rule_kind)

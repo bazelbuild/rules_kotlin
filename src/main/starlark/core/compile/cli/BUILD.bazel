@@ -1,3 +1,4 @@
+load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
 load("//src/main/starlark/core/compile:common.bzl", "TYPE")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load(":toolchain.bzl", "cli_toolchain")
@@ -12,6 +13,7 @@ java_import(
 
 java_binary(
     name = "kotlinc",
+    data = _KOTLIN_STDLIBS,
     main_class = "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
     runtime_deps = [":kotlinc_jar"],
 )
@@ -20,14 +22,7 @@ cli_toolchain(
     name = "cli_toolchain",
     api_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
     jvm_target = "11",
-    kotlin_stdlibs = [
-        "//kotlin/compiler:annotations",
-        "//kotlin/compiler:kotlin-stdlib",
-        "//kotlin/compiler:kotlin-stdlib-jdk7",
-        "//kotlin/compiler:kotlin-stdlib-jdk8",
-        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
-        "//kotlin/compiler:trove4j",
-    ],
+    kotlin_stdlibs = _KOTLIN_STDLIBS,
     kotlinc = ":kotlinc",
     language_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
     zip = "@bazel_tools//tools/zip:zipper",
