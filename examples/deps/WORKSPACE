@@ -14,7 +14,7 @@ http_archive(
 )
 
 http_archive(
-    name = "py_absl",
+    name = "abseil-py",
     sha256 = "8a3d0830e4eb4f66c4fa907c06edf6ce1c719ced811a12e26d9d3162f8471758",
     urls = [
         "https://github.com/abseil/abseil-py/archive/refs/tags/v2.1.0.tar.gz",
