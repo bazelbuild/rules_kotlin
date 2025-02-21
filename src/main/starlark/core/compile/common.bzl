@@ -1,8 +1,8 @@
 TYPE = "//src/main/starlark/core/compile:toolchain_type"
 
 # Java toolchains
-JAVA_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:toolchain_type"
-JAVA_RUNTIME_TOOLCHAIN_TYPE = "@bazel_tools//tools/jdk:runtime_toolchain_type"
+JAVA_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/jdk:toolchain_type")
+JAVA_RUNTIME_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/jdk:runtime_toolchain_type")
 
 KtJvmInfo = provider(
     fields = {

@@ -27,7 +27,4 @@ kt_configure_ksp()
 bzl_library(
     name = "compiler",
     srcs = glob(["*.bzl"]),
-    deps = [
-        "@rules_proto//proto:repositories",
-    ],
 )

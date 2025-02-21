@@ -17,7 +17,6 @@
 package io.bazel.kotlin.builder.toolchain
 
 import com.google.protobuf.MessageOrBuilder
-import com.google.protobuf.TextFormat
 import io.bazel.kotlin.model.CompilationTaskInfo
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -93,7 +92,7 @@ class CompilationTaskContext(
     header: String,
     msg: MessageOrBuilder,
   ) {
-    printLines(header, TextFormat.printToString(msg).split("\n"), filterEmpty = true)
+//    printLines(header, TextFormat.printToString(msg).split("\n"), filterEmpty = true)
   }
 
   /**

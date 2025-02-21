@@ -89,7 +89,7 @@ kt_jvm_library(
     deps = [
         ":generated_lib",
         "//third_party:dagger",
-        "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@maven_rules_kotlin_example//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
