@@ -8,6 +8,15 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
+http_archive(
+    name = "py_absl",
+    sha256 = "8a3d0830e4eb4f66c4fa907c06edf6ce1c719ced811a12e26d9d3162f8471758",
+    urls = [
+        "https://github.com/abseil/abseil-py/archive/refs/tags/v2.1.0.tar.gz",
+    ],
+    strip_prefix = "abseil-py-2.1.0",
+)
+
 load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
