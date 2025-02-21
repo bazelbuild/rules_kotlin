@@ -98,6 +98,24 @@ def kotlin_repositories(
 
     maybe(
         http_archive,
+        name = "py_absl",
+        sha256 = "8a3d0830e4eb4f66c4fa907c06edf6ce1c719ced811a12e26d9d3162f8471758",
+        urls = [
+            "https://github.com/abseil/abseil-py/archive/refs/tags/v2.1.0.tar.gz",
+        ],
+        strip_prefix = "abseil-py-2.1.0",
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_cc",
+        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.16/rules_cc-0.0.16.tar.gz"],
+        sha256 = "bbf1ae2f83305b7053b11e4467d317a7ba3517a12cef608543c1b1c5bf48a4df",
+        strip_prefix = "rules_cc-0.0.16",
+    )
+
+    maybe(
+        http_archive,
         name = "rules_license",
         sha256 = versions.RULES_LICENSE.sha256,
         urls = [url.format(version = versions.RULES_LICENSE.version) for url in versions.RULES_LICENSE.url_templates],
