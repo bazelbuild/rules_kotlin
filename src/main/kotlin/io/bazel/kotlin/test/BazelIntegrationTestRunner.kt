@@ -85,6 +85,7 @@ object BazelIntegrationTestRunner {
         "--bazelrc=$bazelrc",
         "build",
         overrideFlag,
+        "--subcommands",
         "--incompatible_disallow_empty_glob=false",
         "//...",
         *version.workspaceFlag(bzlmod)
@@ -115,6 +116,7 @@ object BazelIntegrationTestRunner {
             *version.workspaceFlag(bzlmod),
             overrideFlag,
             "--test_output=all",
+            "--subcommands",
             "//...",
           ).onFailThrow()
         }
