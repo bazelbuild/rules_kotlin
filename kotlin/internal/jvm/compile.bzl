@@ -115,7 +115,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
         )
     dep_infos = [_java_info(d) for d in associate_deps + deps] + [toolchains.kt.jvm_stdlibs]
 
-    associates = _associate_utils.get_associates(ctx, associates = associate_deps)
+    associates = _associate_utils.get_associates(ctx, toolchains = toolchains, associates = associate_deps)
 
     # Reduced classpath, exclude transitive deps from compilation
     if (toolchains.kt.experimental_prune_transitive_deps and
