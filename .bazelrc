@@ -1,4 +1,5 @@
 common --enable_bzlmod=true
+common --experimental_google_legacy_api
 
 common:rbe --java_runtime_version=11
 common:rbe --tool_java_runtime_version=11
