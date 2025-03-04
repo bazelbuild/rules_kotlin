@@ -32,10 +32,6 @@ register_toolchains("//src/main/starlark/core/compile/cli")
 
 register_toolchains("//kotlin/internal:default_toolchain")
 
-# TODO(bencodes) We should be able to remove this once rules_android has rolled out official Bzlmod support
-remote_android_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "remote_android_tools_extensions")
-use_repo(remote_android_extensions, "android_gmaven_r8", "android_tools")
-
 # Development dependencies
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
 # we need to sort out a few cases around how these rules are consumed in various ways.
