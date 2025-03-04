@@ -113,7 +113,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
             "\n------\nTargets should only be put in associates= or deps=, not both:\n%s" %
             ",\n ".join(["    %s" % x for x in list(diff)]),
         )
-    dep_infos = [_java_info(d) for d in associate_deps + deps] + [toolchains.kt.jvm_stdlibs]
+    dep_infos = [_java_info(d) for d in deps] + [toolchains.kt.jvm_stdlibs]
 
     associates = _associate_utils.get_associates(ctx, toolchains = toolchains, associates = associate_deps)
 
@@ -123,6 +123,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
         transitive = [
             d.compile_jars
             for d in dep_infos
+            if d not in associates.dep_infos
         ]
     else:
         transitive = [
@@ -131,14 +132,15 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
         ] + [
             d.transitive_compile_time_jars
             for d in dep_infos
+            if d not in associates.dep_infos
         ]
 
     return struct(
         module_name = associates.module_name,
-        deps = dep_infos,
+        deps = dep_infos + associates.dep_infos,
         exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
-        compile_jars = depset(transitive = transitive),
+        compile_jars = depset(transitive = transitive + [associates.jars]),
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 

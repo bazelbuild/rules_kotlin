@@ -31,17 +31,25 @@ def _collect_associates(ctx, toolchains, associate):
 
     There are two outcomes for this marco:
     1. When `experimental_strict_associate_dependencies` is enabled and the tag override has not been provided, only the
-        direct java_output compile jars will be collected for each associate target.
+        direct java_output class jars will be collected for each associate target, especially useful when using
+        `experimental_treat_internal_as_private_in_abi_jars` and `experimental_remove_private_classes_in_abi_jars`.
     2. When `experimental_strict_associate_dependencies` is disabled, the complete transitive set of compile jars will
         be collected for each assoicate target.
     """
     jars_depset = None
     if (toolchains.kt.experimental_strict_associate_dependencies and
         "kt_experimental_strict_associate_dependencies_incompatible" not in ctx.attr.tags):
-        jars_depset = depset(direct = [a.compile_jar for a in associate[JavaInfo].java_outputs])
+        jars_depset = depset(direct = [a.class_jar for a in associate[JavaInfo].java_outputs])
     else:
-        jars_depset = depset(transitive = [associate[JavaInfo].compile_jars])
+        # need to exclude the associate compile jar but include its class_jar
+        ass_class_jars = associate[JavaInfo].compile_jars.to_list()
+        for cj in [a.compile_jar for a in associate[JavaInfo].java_outputs]:
+            ass_class_jars.remove(cj)
+        jars_depset = depset(direct = [a.class_jar for a in associate[JavaInfo].java_outputs], transitive = ass_class_jars)
     return jars_depset
+
+def _java_info(target):
+    return target[JavaInfo] if JavaInfo in target else None
 
 def _get_associates(ctx, toolchains, associates):
     """Creates a struct of associates meta data"""
@@ -49,17 +57,18 @@ def _get_associates(ctx, toolchains, associates):
         return struct(
             module_name = _utils.derive_module_name(ctx),
             jars = depset(),
+            dep_infos = [],
         )
     elif ctx.attr.module_name:
         fail("If associates have been set then module_name cannot be provided")
     else:
         jars = []
         module_names = []
+        java_infos = []
         for a in associates:
             jars.append(_collect_associates(ctx = ctx, toolchains = toolchains, associate = a))
-
-            #jars.append(depset([a.class_jar for a in a[JavaInfo].java_outputs], transitive = [a[_KtJvmInfo].module_jars]))
             module_names.append(a[_KtJvmInfo].module_name)
+            java_infos.append(_java_info(a))
         module_names = list(_sets.copy_of(module_names))
 
         if len(module_names) > 1:
@@ -72,6 +81,7 @@ def _get_associates(ctx, toolchains, associates):
         return struct(
             jars = depset(transitive = jars),
             module_name = module_names[0],
+            dep_infos = java_infos,
         )
 
 associate_utils = struct(
