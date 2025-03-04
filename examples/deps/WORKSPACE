@@ -6,7 +6,7 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
-load("@rules_kotlin//kotlin:repositories.bzl", "versions")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 http_archive(
     name = "rules_jvm_external",
@@ -74,8 +74,6 @@ register_toolchains(
     "@rules_android//toolchains/android:android_default_toolchain",
     "@rules_android//toolchains/android_sdk:android_sdk_tools",
 )
-
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 

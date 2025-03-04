@@ -6,7 +6,7 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
-load("@rules_kotlin//kotlin:repositories.bzl", "versions")
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 http_archive(
     name = "rules_jvm_external",
@@ -27,8 +27,6 @@ http_archive(
     sha256 = versions.BAZEL_SKYLIB.sha256,
     urls = [url.format(version = versions.BAZEL_SKYLIB.version) for url in versions.BAZEL_SKYLIB.url_templates],
 )
-
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 
 kotlin_repositories()
 
