@@ -234,8 +234,10 @@ class KotlinToolchain private constructor(
         },
         Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
         classLoader,
-        null,
-      )
+      ) { className ->
+        // Preload guava to avoid weird isolation issues.
+        className.startsWith("com.google.common.")
+      }
     }.onFailure {
       throw RuntimeException("$javaHome, $baseJars", it)
     }.getOrThrow()

@@ -93,7 +93,7 @@ class CompilationTaskContext(
     header: String,
     msg: MessageOrBuilder,
   ) {
-    printLines(header, TextFormat.printToString(msg).split("\n"), filterEmpty = true)
+    printLines(header, TextFormat.printer().printToString(msg).split("\n"), filterEmpty = true)
   }
 
   /**
