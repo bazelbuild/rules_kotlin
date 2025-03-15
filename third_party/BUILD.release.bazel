@@ -30,7 +30,7 @@ java_binary(
 
 java_import(
     name = "android_sdk",
-    jars = ["@bazel_tools//tools/android:android_jar"],
+    jars = ["@rules_android//tools/android:android_jar"],
     neverlink = True,
     visibility = ["//visibility:public"],
 )

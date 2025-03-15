@@ -46,5 +46,6 @@ bzl_library(
         "//src/main/starlark/core/compile",
         "//src/main/starlark/core/options",
         "@rules_java//java:rules",
+        "@rules_java//java/private:proto_support",
     ],
 )

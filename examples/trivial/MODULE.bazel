@@ -1,20 +1,13 @@
 module(name = "trival-example")
 
-bazel_dep(
-    name = "rules_java",
-    version = "6.4.0",
-)
-bazel_dep(
-    name = "rules_kotlin",
-    version = "1.9.5",
-)
-bazel_dep(
-    name = "rules_jvm_external",
-    version = "5.3",
-)
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_kotlin", version = "1.9.5")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
+bazel_dep(name = "rules_shell", version = "0.4.0")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
+    name = "maven_rules_kotlin_example",
     artifacts = [
         "com.expedia:graphql-kotlin:1.0.0-RC5",
         "com.expedia:graphql-kotlin-schema-generator:1.0.0-RC5",
@@ -32,4 +25,4 @@ maven.install(
         "https://repo1.maven.org/maven2",
     ],
 )
-use_repo(maven, "maven")
+use_repo(maven, "maven_rules_kotlin_example")

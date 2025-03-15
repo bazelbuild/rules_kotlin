@@ -19,7 +19,7 @@ kt_jvm_library(
     srcs = [],
     exported_compiler_plugins = [":serialization_plugin"],
     exports = [
-        "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+        "@maven_rules_kotlin_example//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
     ],
 )
 
@@ -37,6 +37,6 @@ kt_jvm_test(
     test_class = "plugin.serialization.SerializationTest",
     deps = [
         ":data",
-        "@maven//:junit_junit",
+        "@maven_rules_kotlin_example//:junit_junit",
     ],
 )
