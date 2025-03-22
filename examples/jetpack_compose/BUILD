@@ -22,7 +22,7 @@ kt_compiler_plugin(
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],
     deps = [
-        "@maven//:org_jetbrains_kotlin_kotlin_compose_compiler_plugin_embeddable",
+        "@maven_rules_kotlin_example//:org_jetbrains_kotlin_kotlin_compose_compiler_plugin_embeddable",
     ],
 )
 

@@ -12,8 +12,8 @@ kt_android_library(
         "//scopes",
         "//third_party:anvil",
         "//third_party:dagger",
-        "@maven//:androidx_appcompat_appcompat",
-        "@maven//:androidx_core_core",
-        "@maven//:com_google_android_material_material",
+        "@maven_rules_kotlin_example//:androidx_appcompat_appcompat",
+        "@maven_rules_kotlin_example//:androidx_core_core",
+        "@maven_rules_kotlin_example//:com_google_android_material_material",
     ],
 )

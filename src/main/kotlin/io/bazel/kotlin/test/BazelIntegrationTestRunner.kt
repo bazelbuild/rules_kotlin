@@ -85,6 +85,7 @@ object BazelIntegrationTestRunner {
         "--bazelrc=$bazelrc",
         "build",
         overrideFlag,
+        "--incompatible_disallow_empty_glob=false",
         "//...",
         *version.workspaceFlag(bzlmod)
       ).onFailThrow()
@@ -93,6 +94,7 @@ object BazelIntegrationTestRunner {
         "--bazelrc=$bazelrc",
         "query",
         overrideFlag,
+        "--incompatible_disallow_empty_glob=false",
         "@rules_kotlin//...",
         *version.workspaceFlag(bzlmod)
       ).onFailThrow()
@@ -102,6 +104,7 @@ object BazelIntegrationTestRunner {
         "query",
         *version.workspaceFlag(bzlmod),
         overrideFlag,
+        "--incompatible_disallow_empty_glob=false",
         "kind(\".*_test\", \"//...\")",
       ).ok { process ->
         if (process.stdOut.isNotEmpty()) {

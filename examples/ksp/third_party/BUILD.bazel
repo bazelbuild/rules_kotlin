@@ -6,7 +6,7 @@ java_plugin(
     generates_api = True,
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
     visibility = ["//visibility:public"],
-    deps = ["@maven//:com_google_auto_value_auto_value"],
+    deps = ["@maven_rules_kotlin_example//:com_google_auto_value_auto_value"],
 )
 
 kt_compiler_plugin(
@@ -53,9 +53,9 @@ kt_plugin_cfg(
     plugin = ":ksp",
     visibility = ["//visibility:public"],
     deps = [
-        "@maven//:com_squareup_moshi_moshi",
-        "@maven//:com_squareup_moshi_moshi_kotlin",
-        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi_kotlin",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -64,9 +64,9 @@ kt_ksp_plugin(
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     visibility = ["//visibility:public"],
     deps = [
-        "@maven//:com_squareup_moshi_moshi",
-        "@maven//:com_squareup_moshi_moshi_kotlin",
-        "@maven//:com_squareup_moshi_moshi_kotlin_codegen",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi_kotlin",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi_kotlin_codegen",
     ],
 )
 
@@ -76,7 +76,7 @@ kt_ksp_plugin(
     processor_class = "dagger.internal.codegen.KspComponentProcessor",
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],
-    deps = ["@maven//:com_google_dagger_dagger_compiler"],
+    deps = ["@maven_rules_kotlin_example//:com_google_dagger_dagger_compiler"],
 )
 
 kt_ksp_plugin(
@@ -84,7 +84,7 @@ kt_ksp_plugin(
     processor_class = "dev.zacsweers.autoservice.ksp.AutoServiceSymbolProcessor$Provider",
     visibility = ["//visibility:public"],
     deps = [
-        "@maven//:com_google_auto_service_auto_service_annotations",
-        "@maven//:dev_zacsweers_autoservice_auto_service_ksp",
+        "@maven_rules_kotlin_example//:com_google_auto_service_auto_service_annotations",
+        "@maven_rules_kotlin_example//:dev_zacsweers_autoservice_auto_service_ksp",
     ],
 )
