@@ -77,7 +77,7 @@ java_binary(
 # TODO(bazelbuild/rules_kotlin/issues/273): Remove android_sdk import.
 java_import(
     name = "android_sdk",
-    jars = ["@bazel_tools//tools/android:android_jar"],
+    jars = ["@rules_android//tools/android:android_jar"],
     neverlink = 1,
     visibility = ["//visibility:public"],
 )
