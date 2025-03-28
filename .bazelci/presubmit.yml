@@ -1,16 +1,15 @@
 ---
 matrix:
   unittest_platform:
-    - ubuntu2004
-    - ubuntu1804
+    - ubuntu2404
+    - ubuntu2204
   integration_platform:
-    - ubuntu2004
-    - ubuntu1804
+    - ubuntu2404
+    - ubuntu2204
     # - macos
     # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
   test_flags:
     - ["--enable_bzlmod=true"]
-    - ["--config=workspace"]
 validate_config: 1
 bazel: 7.3.0
 buildifier:
@@ -50,7 +49,7 @@ tasks:
       - "--strategy=KotlinCompile=remote"
   stardoc:
     name: Stardoc api documentation
-    platform: ubuntu1804
+    platform: ubuntu2404
     build_flags:
       - "--enable_bzlmod=true"
     build_targets:
@@ -59,7 +58,7 @@ tasks:
       - //docs:are_docs_up_to_date_test
   ktlint:
     name: KtLint
-    platform: ubuntu1804
+    platform: ubuntu2404
     test_targets:
       - //...
     test_flags:

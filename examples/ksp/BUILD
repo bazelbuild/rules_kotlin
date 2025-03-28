@@ -80,7 +80,7 @@ kt_jvm_library(
     name = "generated_lib",
     srcs = [":genereated_module_src"],
     plugins = ["//third_party:dagger_ksp_plugin"],
-    deps = ["@maven//:com_google_dagger_dagger"],
+    deps = ["@maven_rules_kotlin_example//:com_google_dagger_dagger"],
 )
 
 kt_jvm_library(
@@ -101,12 +101,12 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "@maven//:com_google_auto_service_auto_service_annotations",
-        "@maven//:com_google_auto_value_auto_value_annotations",
-        "@maven//:com_google_dagger_dagger",
-        "@maven//:com_squareup_moshi_moshi",
-        "@maven//:com_squareup_moshi_moshi_kotlin",
-        "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@maven_rules_kotlin_example//:com_google_auto_service_auto_service_annotations",
+        "@maven_rules_kotlin_example//:com_google_auto_value_auto_value_annotations",
+        "@maven_rules_kotlin_example//:com_google_dagger_dagger",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi_kotlin",
+        "@maven_rules_kotlin_example//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
@@ -134,10 +134,10 @@ kt_jvm_library(
         "//third_party:ksp_moshi",
     ],
     deps = [
-        "@maven//:com_google_auto_service_auto_service_annotations",
-        "@maven//:com_google_auto_value_auto_value_annotations",
-        "@maven//:com_squareup_moshi_moshi",
-        "@maven//:com_squareup_moshi_moshi_kotlin",
+        "@maven_rules_kotlin_example//:com_google_auto_service_auto_service_annotations",
+        "@maven_rules_kotlin_example//:com_google_auto_value_auto_value_annotations",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi",
+        "@maven_rules_kotlin_example//:com_squareup_moshi_moshi_kotlin",
     ],
 )
 

@@ -20,8 +20,6 @@ def _use_repository(name, version, rule, **kwargs):
     maybe(rule, name = name, **http_archive_arguments)
 
 versions = struct(
-    BAZEL_TOOLCHAINS_VERSION = "4.1.0",
-    BAZEL_TOOLCHAINS_SHA = "179ec02f809e86abf56356d8898c8bd74069f1bd7c56044050c2cd3d79d0e024",
     # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
     # This means the bazel_skylib_workspace call is skipped, as it only registers the unittest
     # toolchains. However, if a new workspace dependency is introduced, this precondition will fail.
@@ -29,24 +27,43 @@ versions = struct(
     # 1. Download archive
     # 2. Download dependencies and Configure rules
     # --> 3. Configure dependencies <--
-    SKYLIB_VERSION = "1.4.2",
-    SKYLIB_SHA = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
-    RULES_JVM_EXTERNAL_TAG = "5.3",
-    RULES_JVM_EXTERNAL_SHA = "d31e369b854322ca5098ea12c69d7175ded971435e55c18dd9dd5f29cc5249ac",
-    RULES_PROTO = version(
-        version = "5.3.0-21.7",
-        sha256 = "dc3fb206a2cb3441b485eb1e423165b231235a1ea9b031b4433cf7bc1fa460dd",
-        strip_prefix_template = "rules_proto-{version}",
+    BAZEL_SKYLIB = version(
+        version = "1.7.1",
+        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         url_templates = [
-            "https://github.com/bazelbuild/rules_proto/archive/refs/tags/{version}.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/{version}/bazel-skylib-{version}.tar.gz",
         ],
     ),
-    IO_BAZEL_STARDOC = version(
-        version = "0.5.6",
-        sha256 = "dfbc364aaec143df5e6c52faf1f1166775a5b4408243f445f44b661cfdc3134f",
+    BAZEL_FEATURES = version(
+        version = "1.25.0",
+        sha256 = "4fd9922d464686820ffd8fcefa28ccffa147f7cdc6b6ac0d8b07fde565c65d66",
+        strip_prefix_template = "bazel_features-{version}",
         url_templates = [
-            "https://mirror.bazel.build/github.com/bazelbuild/stardoc/releases/download/{version}/stardoc-{version}.tar.gz",
-            "https://github.com/bazelbuild/stardoc/releases/download/{version}/stardoc-{version}.tar.gz",
+            "https://github.com/bazel-contrib/bazel_features/releases/download/v{version}/bazel_features-v{version}.tar.gz",
+        ],
+    ),
+    RULES_JVM_EXTERNAL = version(
+        version = "6.6",
+        sha256 = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",
+        strip_prefix_template = "rules_jvm_external-{version}",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
+        ],
+    ),
+    COM_GOOGLE_PROTOBUF = version(
+        version = "29.0",
+        sha256 = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
+        strip_prefix_template = "protobuf-{version}",
+        url_templates = [
+            "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.tar.gz",
+        ],
+    ),
+    RULES_PROTO = version(
+        version = "7.0.2",
+        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
+        strip_prefix_template = "rules_proto-{version}",
+        url_templates = [
+            "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
         ],
     ),
     PINTEREST_KTLINT = version(
@@ -70,57 +87,28 @@ versions = struct(
         ],
         sha256 = "fc27b08cadc061a4a989af01cbeccb613feef1995f4aad68f2be0f886a3ee251",
     ),
-    ANDROID = struct(
-        VERSION = "0.1.1",
-        SHA = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
-        URLS = ["https://github.com/bazelbuild/rules_android/archive/v%s.zip" % "0.1.1"],
-    ),
-    # To update: https://github.com/bazelbuild/bazel-toolchains#latest-bazel-and-latest-ubuntu-1604-container
-    BAZELCI_RULES = struct(
-        version = "1.0.0",
-        sha256 = "eca21884e6f66a88c358e580fd67a6b148d30ab57b1680f62a96c00f9bc6a07e",
-        # This tarball intentionally does not have a SHA256 because the upstream URL can change without notice
-        # For more context: https://github.com/bazelbuild/bazel-toolchains/blob/0c1f7c3c5f9e63f1e0ee91738b964937eea2d3e0/WORKSPACE#L28-L32
-        URLS = ["https://github.com/bazelbuild/continuous-integration/releases/download/rules-{version}/bazelci_rules-{version}.tar.gz"],
-    ),
-    PKG = version(
-        version = "1.0.1",
+    RULES_ANDROID = version(
+        version = "0.6.1",
         url_templates = [
-            "https://github.com/bazelbuild/rules_pkg/releases/download/{version}/rules_pkg-{version}.tar.gz",
+            "https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz",
         ],
-        sha256 = "d20c951960ed77cb7b341c2a59488534e494d5ad1d30c4818c736d57772a9fef",
+        strip_prefix_template = "rules_android-{version}",
+        sha256 = "7dc7a6ed0b9bf53f1f363292733e3d7164e140e96ed433a2937b19570d01d517",
     ),
-    # needed for rules_pkg and java
-    RULES_PYTHON = version(
-        version = "0.23.1",
-        strip_prefix_template = "rules_python-{version}",
-        url_templates = [
-            "https://github.com/bazelbuild/rules_python/archive/refs/tags/{version}.tar.gz",
-        ],
-        sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
-    ),
-    # needed for rules_pkg and java
     RULES_JAVA = version(
-        version = "7.2.0",
+        version = "8.9.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
         ],
-        sha256 = "eb7db63ed826567b2ceb1ec53d6b729e01636f72c9f5dfb6d2dfe55ad69d1d2a",
+        sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
     ),
     RULES_LICENSE = version(
-        version = "0.0.3",
+        version = "1.0.0",
         url_templates = [
             "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
             "https://github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
         ],
-        sha256 = None,
-    ),
-    RULES_TESTING = version(
-        version = "0.6.0",
-        url_templates = [
-            "https://github.com/bazelbuild/rules_testing/releases/download/v{version}/rules_testing-v{version}.tar.gz",
-        ],
-        sha256 = "02c62574631876a4e3b02a1820cb51167bb9cdcdea2381b2fa9d9b8b11c407c4",
+        sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
     ),
     KOTLINX_SERIALIZATION_CORE_JVM = version(
         version = "1.6.3",
@@ -142,26 +130,6 @@ versions = struct(
             "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/{version}/kotlinx-serialization-json-jvm-{version}.jar",
         ],
         sha256 = "d3234179bcff1886d53d67c11eca47f7f3cf7b63c349d16965f6db51b7f3dd9a",
-    ),
-    RULES_BAZEL_INTEGRATION_TEST = version(
-        version = "0.26.0",
-        url_templates = [
-            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v{version}/rules_bazel_integration_test.v{version}.tar.gz",
-        ],
-        sha256 = "ab56cdd55a28781287242c7124ce9ff791ae8318ed641057f10edd98c55d7ed5",
-    ),
-    CGRINDEL_BAZEL_STARLIB = version(
-        version = "0.21.0",
-        sha256 = "43e375213dabe0c3928e65412ea7ec16850db93285c8c6f8b0eaa41cacd0f882",
-        url_templates = [
-            "https://github.com/cgrindel/bazel-starlib/releases/download/v{version}/bazel-starlib.v{version}.tar.gz",
-        ],
-    ),
-    RULES_CC = version(
-        version = "0.0.9",
-        url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
-        sha256 = "2037875b9a4456dce4a79d112a8ae885bbc4aad968e6587dca6e64f3a0900cdf",
-        strip_prefix_template = "rules_cc-{version}",
     ),
     use_repository = _use_repository,
 )

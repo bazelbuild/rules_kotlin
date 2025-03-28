@@ -147,10 +147,6 @@ local_repository(
     path = "../path/to/rules_kotlin_clone/",
 )
 
-load("@rules_kotlin//kotlin:dependencies.bzl", "kt_download_local_dev_dependencies")
-
-kt_download_local_dev_dependencies()
-
 load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
 
 kotlin_repositories()
