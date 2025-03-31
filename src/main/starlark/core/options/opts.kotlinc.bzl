@@ -115,6 +115,20 @@ _KOPTS_ALL = {
             True: ["-Xallow-result-return-type"],
         },
     ),
+    "x_annotation_default_target": struct(
+        flag = "-Xannotation-default-target",
+        args = dict(
+            default = "off",
+            doc = "TODO",
+            values = ["off", "param-property"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "off": None,
+            "param-property": ["-Xannotation-default-target=param-property"],
+            # TODO: other values
+        },
+    ),
     "x_jvm_default": struct(
         flag = "-Xjvm-default",
         args = dict(
