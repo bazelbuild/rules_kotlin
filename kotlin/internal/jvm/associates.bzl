@@ -29,23 +29,24 @@ def _collect_associates(ctx, toolchains, associate):
     """Collects the associate jars from the provided dependency and returns
     them as a depset.
 
-    There are two outcomes for this marco:
-    1. When `experimental_strict_associate_dependencies` is enabled and the tag override has not been provided, only the
-        direct java_output class jars will be collected for each associate target, especially useful when using
-        `experimental_treat_internal_as_private_in_abi_jars` and `experimental_remove_private_classes_in_abi_jars`.
-    2. When `experimental_strict_associate_dependencies` is disabled, the complete transitive set of compile jars will
+    There are three outcomes for this marco:
+    1. When `experimental_remove_private_classes_in_abi_jars` is enabled and the tag override has not been provided, only the
+        direct java_output CLASS jars will be collected for each associate target. Due to the stripping of internal and private
+        symbols from the compile jar, class jar is the only one that will contain the internal symbols an associate has access to.
+    2. When `experimental_strict_associate_dependencies` is enabled and the tag override has not been provided, only the
+        direct java_output COMPILE jars will be collected for each associate target.
+    3. When `experimental_strict_associate_dependencies` is disabled, the complete transitive set of compile jars will
         be collected for each assoicate target.
     """
     jars_depset = None
-    if (toolchains.kt.experimental_strict_associate_dependencies and
-        "kt_experimental_strict_associate_dependencies_incompatible" not in ctx.attr.tags):
+    if (not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and
+        toolchains.kt.experimental_remove_private_classes_in_abi_jars):
         jars_depset = depset(direct = [a.class_jar for a in associate[JavaInfo].java_outputs])
+    elif (toolchains.kt.experimental_strict_associate_dependencies and
+          "kt_experimental_strict_associate_dependencies_incompatible" not in ctx.attr.tags):
+        jars_depset = depset(direct = [a.compile_jar for a in associate[JavaInfo].java_outputs])
     else:
-        # need to exclude the associate compile jar but include its class_jar
-        ass_class_jars = associate[JavaInfo].compile_jars.to_list()
-        for cj in [a.compile_jar for a in associate[JavaInfo].java_outputs]:
-            ass_class_jars.remove(cj)
-        jars_depset = depset(direct = [a.class_jar for a in associate[JavaInfo].java_outputs], transitive = ass_class_jars)
+        jars_depset = depset(transitive = [associate[JavaInfo].compile_jars])
     return jars_depset
 
 def _java_info(target):
