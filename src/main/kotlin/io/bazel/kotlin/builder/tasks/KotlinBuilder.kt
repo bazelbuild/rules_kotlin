@@ -261,7 +261,6 @@ class KotlinBuilder
         }
 
         with(root.inputsBuilder) {
-          addAllClasspath(argMap.optional(KotlinBuilderFlags.FRIEND_PATHS) ?: emptyList())
           addAllClasspath(argMap.mandatory(KotlinBuilderFlags.CLASSPATH))
           addAllDepsArtifacts(
             argMap.optional(KotlinBuilderFlags.DEPS_ARTIFACTS) ?: emptyList(),
