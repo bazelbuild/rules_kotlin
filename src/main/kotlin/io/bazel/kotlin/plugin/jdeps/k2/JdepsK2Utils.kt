@@ -1,7 +1,7 @@
 package io.bazel.kotlin.plugin.jdeps.k2
 
 import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.fir.java.JavaBinarySourceElement
+import org.jetbrains.kotlin.fir.java.VirtualFileBasedSourceElement
 import org.jetbrains.kotlin.load.kotlin.JvmPackagePartSource
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.name.ClassId
@@ -28,7 +28,7 @@ internal fun SourceElement.binaryClass(): String? =
   when (this) {
     is KotlinJvmBinarySourceElement -> binaryClass.location
     is JvmPackagePartSource -> this.knownJvmBinaryClass?.location
-    is JavaBinarySourceElement -> this.javaClass.virtualFile.path
+    is VirtualFileBasedSourceElement -> this.virtualFile.path
     else -> null
   }
 
