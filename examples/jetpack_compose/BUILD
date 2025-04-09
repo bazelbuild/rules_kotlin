@@ -18,7 +18,10 @@ define_kt_toolchain(
 
 kt_compiler_plugin(
     name = "jetpack_compose_compiler_plugin",
-    id = "androidx.compose.compiler",
+    id = "androidx.compose.compiler.plugins.kotlin",
+    options = {
+        "sourceInformation": "true",  # Required for AS Layout Inspector, disable for release builds
+    },
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],
     deps = [
