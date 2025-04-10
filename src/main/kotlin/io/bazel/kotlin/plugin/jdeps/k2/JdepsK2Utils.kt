@@ -21,7 +21,6 @@ private object RefCache {
   }
 }
 
-
 /**
  * Returns whether class is coming from JVM runtime env. There is no need to track these classes.
  *
@@ -45,11 +44,9 @@ internal fun SourceElement.binaryClass(): String? =
   } else if (this is JvmPackagePartSource) {
     this.knownJvmBinaryClass?.location
   } else if (RefCache.jbseClass != null && RefCache.jbseClass!!.isInstance(this)) {
-    val jClass = RefCache.jbseGetJavaClassMethod?.invoke(this)
-    val virtualFile = jClass?.javaClass?.getMethod("getVirtualFile")?.invoke(jClass)
-    val s = virtualFile?.javaClass?.getMethod("getPath")?.invoke(virtualFile) as? String
-    require(s == (this as JavaBinarySourceElement).javaClass.virtualFile.path)
-    s
+    val jClass = RefCache.jbseGetJavaClassMethod!!.invoke(this)
+    val virtualFile = jClass!!.javaClass.getMethod("getVirtualFile").invoke(jClass)
+    virtualFile.javaClass.getMethod("getPath").invoke(virtualFile) as? String
   } else {
     null
   }
