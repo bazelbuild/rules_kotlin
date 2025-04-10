@@ -1,7 +1,6 @@
 package io.bazel.kotlin.plugin.jdeps.k2
 
 import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.fir.java.JavaBinarySourceElement
 import org.jetbrains.kotlin.load.kotlin.JvmPackagePartSource
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.name.ClassId
@@ -15,9 +14,10 @@ private object RefCache {
   }
 
   val jbseGetJavaClassMethod by lazy {
-    jbseClass?.runCatching {
-      getMethod("getJavaClass")
-    }?.getOrNull()
+    jbseClass
+      ?.runCatching {
+        getMethod("getJavaClass")
+      }?.getOrNull()
   }
 }
 
