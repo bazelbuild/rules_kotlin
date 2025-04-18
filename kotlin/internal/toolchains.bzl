@@ -268,7 +268,7 @@ _kt_toolchain = rule(
             default = Label("//third_party:empty.jdeps"),
         ),
         "jacocorunner": attr.label(
-            default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
+            default = Label("@remote_java_tools//:jacoco_coverage_runner"),
         ),
         "_experimental_prune_transitive_deps": attr.label(
             doc = """If enabled, compilation is performed against only direct dependencies.
