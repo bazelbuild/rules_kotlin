@@ -286,6 +286,7 @@ class KotlinToolchain private constructor(
       val exitCodeClass =
         toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
+      toolchain.classLoader.loadClass("org.jetbrains.kotlin.buildtools.internal.CompilationServiceProxy")
       compiler = compilerClass.getConstructor().newInstance()
       execMethod =
         compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
