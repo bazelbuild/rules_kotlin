@@ -94,8 +94,8 @@ KOTLINC_RELEASE = versions.KOTLIN_CURRENT_COMPILER_RELEASE
 
 kotlin_repositories(
     compiler_release = kotlinc_version(
-        release = "2.0.0",
-        sha256 = "ef578730976154fd2c5968d75af8c2703b3de84a78dffe913f670326e149da3b",
+        release = "2.1.20",
+        sha256 = "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a",
     ) if KOTLINC_RELEASE.version == "1.9.22" else kotlinc_version(
         release = KOTLINC_RELEASE.version,
         sha256 = KOTLINC_RELEASE.sha256,
@@ -119,8 +119,8 @@ KOTLIN_TO_COMPOSE = {
         "androidx.compose.ui:ui-tooling:1.2.1",
         "androidx.compose.runtime:runtime:1.2.1",
     ],
-    "2.1.0": [
-        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.1.0",
+    "2.1.20": [
+        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.1.20",
         "androidx.core:core-ktx:1.15.0",
         "androidx.appcompat:appcompat:1.7.0",
         "androidx.activity:activity-compose:1.7.0",
