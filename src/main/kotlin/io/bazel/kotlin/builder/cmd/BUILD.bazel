@@ -26,17 +26,20 @@ kt_bootstrap_binary(
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
         "@com_github_jetbrains_kotlin//:home",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
         "@kotlinx_serialization_core_jvm//jar",
         "@kotlinx_serialization_json//jar",
         "@kotlinx_serialization_json_jvm//jar",
     ] + _KOTLIN_STDLIBS,
     jvm_flags = [
+        "-Dsun.stdout.encoding=ignore",
         "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlinx_serialization_core_jvm//jar)",
         "-D@com_github_jetbrains_kotlinx...serialization-json=$(rlocationpath @kotlinx_serialization_json//jar)",
         "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath @kotlinx_serialization_json_jvm//jar)",
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
+        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl)",
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar)",
@@ -50,7 +53,10 @@ kt_bootstrap_binary(
     visibility = ["//src:__subpackages__"],
     runtime_deps = [
         ":build_lib",
+        "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@bazel_tools//tools/jdk:JacocoCoverage",
+        "@kotlin_rules_maven//:org/jetbrains/kotlin/kotlin-build-tools-impl/2.1.20/kotlin-build-tools-impl-2.1.20.jar",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
     ],
 )
 
