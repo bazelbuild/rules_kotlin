@@ -16,6 +16,9 @@ bazel_dep(name = "rules_python", version = "0.23.1")
 bazel_dep(name = "rules_android", version = "0.6.1")
 bazel_dep(name = "bazel_features", version = "1.25.0")
 
+rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
+use_repo(rules_java_toolchains, "remote_java_tools")
+
 rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
 use_repo(
     rules_kotlin_extensions,
