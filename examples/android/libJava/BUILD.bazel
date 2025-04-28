@@ -4,7 +4,7 @@ java_plugin(
     name = "autovalue",
     generates_api = 1,
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
-    deps = ["@maven//:com_google_auto_value_auto_value"],
+    deps = ["@maven_rules_kotlin_example//:com_google_auto_value_auto_value"],
 )
 
 java_library(
@@ -17,6 +17,6 @@ java_library(
         ":autovalue",
     ],
     deps = [
-        "@maven//:com_google_auto_value_auto_value_annotations",
+        "@maven_rules_kotlin_example//:com_google_auto_value_auto_value_annotations",
     ],
 )

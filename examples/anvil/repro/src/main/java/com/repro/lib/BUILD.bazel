@@ -6,8 +6,8 @@ kt_jvm_library(
     plugins = ["//third_party:anvil_library_plugin"],
     visibility = ["//visibility:public"],
     deps = [
-        "@maven//:com_google_dagger_dagger",
-        "@maven//:com_squareup_anvil_annotations",
-        "@maven//:javax_inject_javax_inject",
+        "@maven_rules_kotlin_example//:com_google_dagger_dagger",
+        "@maven_rules_kotlin_example//:com_squareup_anvil_annotations",
+        "@maven_rules_kotlin_example//:javax_inject_javax_inject",
     ],
 )

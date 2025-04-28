@@ -35,5 +35,11 @@ http_archive(
     sha256 = "${SHA}",
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/${TAG}/${ARCHIVE}",
 )
+
+load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
+kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
+
+load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
+kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 \`\`\`
 EOF

@@ -278,7 +278,7 @@ private fun JvmCompilationTask.runKaptPlugin(
         context.executeCompilerTask(
           args,
           compiler::compile,
-          printOnSuccess = context.whenTracing { false } ?: true,
+          printOnSuccess = context.whenTracing { true } ?: false,
         )
       }.let { outputLines ->
         // if tracing is enabled the output should be formatted in a special way, if we aren't
@@ -315,7 +315,7 @@ private fun JvmCompilationTask.runKspPlugin(
         context.executeCompilerTask(
           args,
           compiler::compile,
-          printOnSuccess = context.whenTracing { false } ?: true,
+          printOnSuccess = context.whenTracing { true } ?: false,
         )
       }.let { outputLines ->
         // if tracing is enabled the output should be formatted in a special way, if we aren't

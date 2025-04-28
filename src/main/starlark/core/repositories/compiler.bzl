@@ -70,6 +70,8 @@ def _parse_version(basename):
 def _get_capability_template(compiler_version, templates):
     version_index = {}
     target = _version(compiler_version)
+    if len(target) > 2:
+        target = target[0:2]
     for template in templates:
         version = _parse_version(template.basename)
         if not version:
