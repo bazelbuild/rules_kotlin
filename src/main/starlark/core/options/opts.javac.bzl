@@ -90,7 +90,7 @@ _JOPTS = {
     "add_exports": struct(
         args = dict(
             default = [],
-            doc = "Export internal jdk apis ",
+            doc = "Export internal jdk apis",
         ),
         type = attr.string_list,
         value_to_flag = {

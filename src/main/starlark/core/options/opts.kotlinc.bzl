@@ -14,6 +14,7 @@
 
 load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 load("//src/main/starlark/core/options:convert.bzl", "convert")
+load("//src/main/starlark/core/options:derive.bzl", "derive")
 
 def _map_optin_class_to_flag(values):
     return ["-opt-in=%s" % v for v in values]
@@ -428,6 +429,16 @@ _KOPTS_ALL = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_jdk_release_to_flag,
+    ),
+    "x_suppress_warning": struct(
+        args = dict(
+            default = [],
+            doc = "Suppress specific warnings globally",
+        ),
+        type = attr.string_list,
+        value_to_flag = {
+            derive.info: derive.repeated_values_for("-Xsuppress-warning="),
+        },
     ),
 }
 
