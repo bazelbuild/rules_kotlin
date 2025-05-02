@@ -10,6 +10,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
+import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
 
 internal fun JvmCompilationTask.createCoverageInstrumentedJar() {
@@ -68,12 +69,15 @@ private fun instrumentRecursively(
         val uninstrumentedCopy = metadataDir.resolve(root.relativize(absoluteUninstrumentedCopy))
 
         Files.createDirectories(uninstrumentedCopy.parent)
-        Files.move(file, uninstrumentedCopy)
+        Files.copy(file, uninstrumentedCopy)
 
         Files.newInputStream(uninstrumentedCopy).buffered().use { input ->
-          Files.newOutputStream(file).buffered().use { output ->
-            instr.instrument(input, output, file.toString())
-          }
+          Files
+            .newOutputStream(file, StandardOpenOption.TRUNCATE_EXISTING)
+            .buffered()
+            .use { output ->
+              instr.instrument(input, output, file.toString())
+            }
         }
 
         return FileVisitResult.CONTINUE
