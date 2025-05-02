@@ -72,9 +72,12 @@ private fun instrumentRecursively(
         Files.copy(file, uninstrumentedCopy)
 
         Files.newInputStream(uninstrumentedCopy).buffered().use { input ->
-          Files.newOutputStream(file, StandardOpenOption.TRUNCATE_EXISTING).buffered().use { output ->
-            instr.instrument(input, output, file.toString())
-          }
+          Files
+            .newOutputStream(file, StandardOpenOption.TRUNCATE_EXISTING)
+            .buffered()
+            .use { output ->
+              instr.instrument(input, output, file.toString())
+            }
         }
 
         return FileVisitResult.CONTINUE
