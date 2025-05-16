@@ -37,7 +37,7 @@ load("//third_party:jarjar.bzl", "jarjar_action")
 def _is_absolute(path):
     return path.startswith("/") or (len(path) > 2 and path[1] == ":")
 
-def _make_providers(ctx, providers, transitive_files = depset(order = "default"), *additional_providers):
+def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), *additional_providers):
     files = [ctx.outputs.jar]
     if providers.java.outputs.jdeps:
         files.append(providers.java.outputs.jdeps)
@@ -48,13 +48,13 @@ def _make_providers(ctx, providers, transitive_files = depset(order = "default")
         DefaultInfo(
             files = depset(files),
             runfiles = ctx.runfiles(
-                # explicitly include data files, otherwise they appear to be missing
                 files = ctx.files.data,
                 transitive_files = transitive_files,
-                # continue to use collect_default until proper transitive data collecting is
-                # implmented.
-                collect_default = True,
-            ),
+            ).merge_all([
+                d[DefaultInfo].default_runfiles
+                for d in runfiles_targets
+                if DefaultInfo in d and d[DefaultInfo].default_runfiles
+            ]),
         ),
     ] + list(additional_providers)
 
@@ -230,6 +230,7 @@ def kt_jvm_library_impl(ctx):
             outputs = ctx.outputs,
             attr = ctx.attr,
         ),
+        runfiles_targets = ctx.attr.deps + ctx.attr.exports,
     )
 
 def kt_jvm_binary_impl(ctx):
@@ -250,7 +251,8 @@ def kt_jvm_binary_impl(ctx):
     return _make_providers(
         ctx,
         providers,
-        depset(
+        runfiles_targets = ctx.attr.deps,
+        transitive_files = depset(
             order = "default",
             transitive = [providers.java.transitive_runtime_jars],
             direct = ctx.files._java_runtime,
@@ -306,6 +308,7 @@ def kt_jvm_junit_test_impl(ctx):
     return _make_providers(
         ctx,
         providers,
+        ctx.attr.deps,
         depset(
             order = "default",
             transitive = [runtime_jars, depset(coverage_runfiles), depset(coverage_metadata)],

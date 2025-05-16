@@ -44,11 +44,9 @@ def case(namespace):
         claim = lambda **kwargs: _claim(name = namespace, **kwargs),
     )
 
-def suite(name, *tests):
+def suite(name, **tests):
     test_targets = []
-    for test in tests:
-        test_name = str(test).split(" ")[1]
-        test_targets.append(":" + test_name)
+    for test_name, test in tests.items():
         test(case(test_name))
 
     native.test_suite(

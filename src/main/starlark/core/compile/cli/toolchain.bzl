@@ -18,6 +18,8 @@ KotlincJvmCompileInfo = provider(
     },
 )
 
+COMPILE_MNEMONIC = "CliKotlinc"
+
 def _cli_toolchain(ctx):
     java_runtime = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime
     java_toolchain = ctx.toolchains[JAVA_TOOLCHAIN_TYPE].java
@@ -28,7 +30,7 @@ def _cli_toolchain(ctx):
         language_version = ".".join(ctx.attr.api_version.split(".")[:2]),
         executable_zip = ctx.attr.zip[DefaultInfo].files_to_run,
         kotlinc = ctx.attr.kotlinc[DefaultInfo].files_to_run,
-        compile_mnemonic = "CliKotlinc",
+        compile_mnemonic = COMPILE_MNEMONIC,
         single_jar = java_toolchain.single_jar,
         java_stub_template = ctx.files.java_stub_template[0],
         java_runtime = java_runtime,

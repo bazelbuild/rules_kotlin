@@ -372,9 +372,9 @@ def _test_cfg_without_plugin(test):
 def test_suite(name):
     suite(
         name,
-        _test_kt_plugin_cfg,
-        _test_compile_configuration,
-        _test_library_multiple_plugins_with_same_id,
-        _test_compile_configuration_single_phase,
-        _test_cfg_without_plugin,
+        test_kt_plugin_cfg = _test_kt_plugin_cfg,
+        test_compile_configuration = _test_compile_configuration,
+        test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
+        test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
+        test_cfg_without_plugin = _test_cfg_without_plugin,
     )

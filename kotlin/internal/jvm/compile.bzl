@@ -878,13 +878,14 @@ def _run_kt_java_builder_actions(
             strict_deps = toolchains.kt.experimental_strict_kotlin_deps,
         )
         ap_generated_src_jar = java_info.annotation_processing.source_jar
+        java_outputs = java_info.java_outputs if hasattr(java_info, "java_outputs") else java_info.outputs.jars
         compile_jars = compile_jars + [
             jars.ijar
-            for jars in java_info.outputs.jars
+            for jars in java_outputs
         ]
         output_jars = output_jars + [
             jars.class_jar
-            for jars in java_info.outputs.jars
+            for jars in java_outputs
         ]
         java_infos.append(java_info)
 
