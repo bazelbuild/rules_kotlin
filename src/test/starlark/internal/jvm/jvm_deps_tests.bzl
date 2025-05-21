@@ -73,12 +73,15 @@ def _strict_abi_test_impl(env, target):
         deps = arrangment.direct_deps,
     )
 
-    # assert we have direct deps abi jars but full associate jars and not the associate abi jar
-    env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.direct_dep_abi_jar).short_path)
-    env.expect.that_depset_of_files(result.compile_jars).not_contains(_file(env.ctx.attr.direct_dep_jar).short_path)
+    classpath = env.expect.that_depset_of_files(result.compile_jars)
 
-    env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.associate_jar).short_path)
-    env.expect.that_depset_of_files(result.compile_jars).not_contains(_file(env.ctx.attr.associate_abi_jar).short_path)
+    # assert we have direct deps ABI jars and not the FULL FAT
+    classpath.contains(_file(env.ctx.attr.direct_dep_abi_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.direct_dep_jar).short_path)
+
+    # but FULL FAT associate jars and not the ABI associate jar
+    classpath.contains(_file(env.ctx.attr.associate_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.associate_abi_jar).short_path)
 
 def _fat_abi_test_impl(env, target):
     arrangment = _setup(env, target)
@@ -102,12 +105,15 @@ def _fat_abi_test_impl(env, target):
         deps = arrangment.direct_deps,
     )
 
-    # assert we have direct deps abi jars but full associate jars and not the associate abi jar
-    env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.direct_dep_abi_jar).short_path)
-    env.expect.that_depset_of_files(result.compile_jars).not_contains(_file(env.ctx.attr.direct_dep_jar).short_path)
+    classpath = env.expect.that_depset_of_files(result.compile_jars)
 
-    env.expect.that_depset_of_files(result.compile_jars).not_contains(_file(env.ctx.attr.associate_jar).short_path)
-    env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.associate_abi_jar).short_path)
+    # assert we have direct deps ABI jars and not the FULL FAT
+    classpath.contains(_file(env.ctx.attr.direct_dep_abi_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.direct_dep_jar).short_path)
+
+    # but ABI associate jars and not the FULL FAT associate jar
+    classpath.contains(_file(env.ctx.attr.associate_abi_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.associate_jar).short_path)
 
 def _abi_test(name, impl):
     util.helper_target(
