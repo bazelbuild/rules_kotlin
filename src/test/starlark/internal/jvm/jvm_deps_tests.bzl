@@ -66,7 +66,6 @@ def _strict_abi_test_impl(env, target):
         ),
     )
 
-    #acts = _kt_jvm_produce_jar_actions(ctx, kt_jvm_library)
     result = _jvm_deps_utils.jvm_deps(
         ctx = arrangment.fake_ctx,
         toolchains = strict_abi_configured_toolchains,
@@ -78,7 +77,6 @@ def _strict_abi_test_impl(env, target):
     env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.direct_dep_abi_jar).short_path)
     env.expect.that_depset_of_files(result.compile_jars).not_contains(_file(env.ctx.attr.direct_dep_jar).short_path)
 
-    # env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.jvm_jar))
     env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.associate_jar).short_path)
     env.expect.that_depset_of_files(result.compile_jars).not_contains(_file(env.ctx.attr.associate_abi_jar).short_path)
 
@@ -97,7 +95,6 @@ def _fat_abi_test_impl(env, target):
         ),
     )
 
-    #acts = _kt_jvm_produce_jar_actions(ctx, kt_jvm_library)
     result = _jvm_deps_utils.jvm_deps(
         ctx = arrangment.fake_ctx,
         toolchains = fat_abi_configured_toolchains,
@@ -109,7 +106,6 @@ def _fat_abi_test_impl(env, target):
     env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.direct_dep_abi_jar).short_path)
     env.expect.that_depset_of_files(result.compile_jars).not_contains(_file(env.ctx.attr.direct_dep_jar).short_path)
 
-    # env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.jvm_jar))
     env.expect.that_depset_of_files(result.compile_jars).not_contains(_file(env.ctx.attr.associate_jar).short_path)
     env.expect.that_depset_of_files(result.compile_jars).contains(_file(env.ctx.attr.associate_abi_jar).short_path)
 
