@@ -1,3 +1,4 @@
+load("@bazel_skylib//lib:structs.bzl", _structs = "structs")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
 load("@rules_testing//lib:util.bzl", "util")
@@ -45,6 +46,7 @@ def _setup(env, target):
         associate_deps = associate_deps,
         direct_deps = direct_deps,
         fake_ctx = fake_ctx,
+        associate_deps_java_info = associate_deps_java_info,
     )
 
 def _strict_abi_test_impl(env, target):
@@ -115,6 +117,53 @@ def _fat_abi_test_impl(env, target):
     classpath.contains(_file(env.ctx.attr.associate_abi_jar).short_path)
     classpath.not_contains(_file(env.ctx.attr.associate_jar).short_path)
 
+def _transitive_from_exports_test_impl(env, target):
+    arrangment_dict = _structs.to_dict(_setup(env, target))
+    arrangment_dict.update(
+        {"direct_deps": [
+            {
+                JavaInfo: JavaInfo(
+                    exports = [arrangment_dict["associate_deps_java_info"]],
+                    compile_jar = _file(env.ctx.attr.direct_dep_abi_jar),
+                    output_jar = _file(env.ctx.attr.direct_dep_jar),
+                ),
+            },
+            {
+                JavaInfo: arrangment_dict["associate_deps_java_info"],
+            },
+        ]},
+    )
+    arrangment = struct(**arrangment_dict)
+
+    strict_abi_configured_toolchains = struct(
+        kt = struct(
+            experimental_remove_private_classes_in_abi_jars = True,
+            experimental_prune_transitive_deps = True,
+            experimental_strict_associate_dependencies = True,
+            jvm_stdlibs = JavaInfo(
+                compile_jar = _file(env.ctx.attr.jvm_jar),
+                output_jar = _file(env.ctx.attr.jvm_jar),
+            ),
+        ),
+    )
+
+    result = _jvm_deps_utils.jvm_deps(
+        ctx = arrangment.fake_ctx,
+        toolchains = strict_abi_configured_toolchains,
+        associate_deps = arrangment.associate_deps,  # or None
+        deps = arrangment.direct_deps,
+    )
+
+    classpath = env.expect.that_depset_of_files(result.compile_jars)
+
+    # assert we have direct deps ABI jars and not the FULL FAT
+    classpath.contains(_file(env.ctx.attr.direct_dep_abi_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.direct_dep_jar).short_path)
+
+    # but FULL FAT associate jars and not the ABI associate jar
+    classpath.contains(_file(env.ctx.attr.associate_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.associate_abi_jar).short_path)
+
 def _abi_test(name, impl):
     util.helper_target(
         native.filegroup,
@@ -147,11 +196,15 @@ def _strict_abi_test(name):
 def _fat_abi_test(name):
     _abi_test(name, _fat_abi_test_impl)
 
+def _transitive_from_exports_test(name):
+    _abi_test(name, _transitive_from_exports_test_impl)
+
 def jvm_deps_test_suite(name):
     test_suite(
         name,
         tests = [
             _strict_abi_test,
             _fat_abi_test,
+            _transitive_from_exports_test,
         ],
     )

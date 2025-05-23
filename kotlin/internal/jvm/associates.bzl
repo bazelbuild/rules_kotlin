@@ -39,15 +39,20 @@ def _collect_associates(ctx, toolchains, associate):
         be collected for each assoicate target.
     """
     jars_depset = None
+    abi_jars_set = _sets.new()
     if (not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and
         toolchains.kt.experimental_remove_private_classes_in_abi_jars):
         jars_depset = depset(direct = [a.class_jar for a in associate[JavaInfo].java_outputs])
+        _sets.add_all(abi_jars_set, [a.compile_jar for a in associate[JavaInfo].java_outputs])
     elif (toolchains.kt.experimental_strict_associate_dependencies and
           "kt_experimental_strict_associate_dependencies_incompatible" not in ctx.attr.tags):
         jars_depset = depset(direct = [a.compile_jar for a in associate[JavaInfo].java_outputs])
     else:
         jars_depset = depset(transitive = [associate[JavaInfo].compile_jars])
-    return jars_depset
+    return struct(
+        jars = jars_depset,
+        abi_jars_set = abi_jars_set,
+    )
 
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
@@ -58,16 +63,20 @@ def _get_associates(ctx, toolchains, associates):
         return struct(
             module_name = _utils.derive_module_name(ctx),
             jars = depset(),
+            abi_jar_set = _sets.new(),
             dep_infos = [],
         )
     elif ctx.attr.module_name:
         fail("If associates have been set then module_name cannot be provided")
     else:
         jars = []
+        abi_jar_set = {}
         module_names = []
         java_infos = []
         for a in associates:
-            jars.append(_collect_associates(ctx = ctx, toolchains = toolchains, associate = a))
+            jar_bundle = _collect_associates(ctx = ctx, toolchains = toolchains, associate = a)
+            jars.append(jar_bundle.jars)
+            abi_jar_set = jar_bundle.abi_jars_set
             module_names.append(a[_KtJvmInfo].module_name)
             java_infos.append(_java_info(a))
         module_names = list(_sets.copy_of(module_names))
@@ -81,6 +90,7 @@ def _get_associates(ctx, toolchains, associates):
             fail("Error in rules - a KtJvmInfo was found which did not have a module_name")
         return struct(
             jars = depset(transitive = jars),
+            abi_jar_set = abi_jar_set,
             module_name = module_names[0],
             dep_infos = java_infos,
         )

@@ -15,10 +15,8 @@ load(
     "@rules_java//java:defs.bzl",
     "JavaInfo",
 )
-load(
-    "//kotlin/internal/jvm:associates.bzl",
-    _associate_utils = "associate_utils",
-)
+load("//kotlin/internal/jvm:associates.bzl", _associate_utils = "associate_utils")
+load("//kotlin/internal/utils:sets.bzl", _sets = "sets")
 
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
@@ -35,7 +33,6 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
         transitive = [
             d.compile_jars
             for d in dep_infos
-            if d not in associates.dep_infos
         ]
     else:
         transitive = [
@@ -44,15 +41,17 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
         ] + [
             d.transitive_compile_time_jars
             for d in dep_infos
-            if d not in associates.dep_infos
         ]
+
+    compile_depset_list = depset(transitive = transitive + [associates.jars]).to_list()
+    compile_depset_list_filtered = [jar for jar in compile_depset_list if not _sets.contains(associates.abi_jar_set, jar)]
 
     return struct(
         module_name = associates.module_name,
         deps = dep_infos + associates.dep_infos,
         exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
-        compile_jars = depset(transitive = transitive + [associates.jars]),
+        compile_jars = depset(direct = compile_depset_list_filtered),
         runtime_deps = [_java_info(d) for d in runtime_deps],
     )
 
