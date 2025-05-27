@@ -13,8 +13,16 @@
 # limitations under the License.
 package(default_visibility = ["//visibility:public"])
 
-# KSP filegroup containing everything that might be needed
+# Collect list of all KSP files that might be needed
+_KSP_FILES = glob(["**"])
+
+# KSP filegroup containing all KSP files to export
 filegroup(
     name = "ksp",
-    srcs = glob(["**"]),
+    srcs = _KSP_FILES,
 )
+
+# If the `--incompatible_no_implicit_file_export` option is enabled, then the
+# individual "srcs" from the "ksp" filegroup will not be visible, so also
+# export them with `export_files` to ensure that they are made public.
+exports_files(_KSP_FILES)
