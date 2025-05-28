@@ -35,10 +35,12 @@ class WorkerEnvironmentTest {
           WorkerProtocol.WorkResponse.newBuilder().setRequestId(req.requestId).build()
             .also { println("sent $it") }
             .writeDelimitedTo(stdOut)
+          stdOut.flush()
         }
       }
 
       writeStdIn(give)
+      Thread.sleep(10)
       closeStdIn()
 
       return@inProcess readStdOut()

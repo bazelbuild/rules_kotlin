@@ -33,8 +33,8 @@ load(
     "kotlinc_options_to_flags",
 )
 load(
-    "//kotlin/internal/jvm:associates.bzl",
-    _associate_utils = "associate_utils",
+    "//kotlin/internal/jvm:jvm_deps.bzl",
+    _jvm_deps_utils = "jvm_deps_utils",
 )
 load(
     "//kotlin/internal/jvm:plugins.bzl",
@@ -102,8 +102,8 @@ def _compiler_toolchains(ctx):
         java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
     )
 
-def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps = []):
-    """Encapsulates jvm dependency metadata."""
+def _fail_if_invalid_associate_deps(associate_deps, deps):
+    """Verifies associates not included in target deps."""
     diff = _sets.intersection(
         _sets.copy_of([x.label for x in associate_deps]),
         _sets.copy_of([x.label for x in deps]),
@@ -113,34 +113,6 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
             "\n------\nTargets should only be put in associates= or deps=, not both:\n%s" %
             ",\n ".join(["    %s" % x for x in list(diff)]),
         )
-    dep_infos = [_java_info(d) for d in associate_deps + deps] + [toolchains.kt.jvm_stdlibs]
-
-    associates = _associate_utils.get_associates(ctx, toolchains = toolchains, associates = associate_deps)
-
-    # Reduced classpath, exclude transitive deps from compilation
-    if (toolchains.kt.experimental_prune_transitive_deps and
-        not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
-        transitive = [
-            d.compile_jars
-            for d in dep_infos
-        ]
-    else:
-        transitive = [
-            d.compile_jars
-            for d in dep_infos
-        ] + [
-            d.transitive_compile_time_jars
-            for d in dep_infos
-        ]
-
-    return struct(
-        module_name = associates.module_name,
-        deps = dep_infos,
-        exports = [_java_info(d) for d in exports],
-        associate_jars = associates.jars,
-        compile_jars = depset(transitive = transitive),
-        runtime_deps = [_java_info(d) for d in runtime_deps],
-    )
 
 def _java_infos_to_compile_jars(java_infos):
     return depset(transitive = [j.compile_jars for j in java_infos])
@@ -568,6 +540,7 @@ def _run_kt_builder_action(
         inputs = depset(
             srcs.all_srcs + srcs.src_jars + generated_src_jars,
             transitive = [
+                compile_deps.associate_jars,
                 compile_deps.compile_jars,
                 transitive_runtime_jars,
                 deps_artifacts,
@@ -608,7 +581,8 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     """
     toolchains = _compiler_toolchains(ctx)
     srcs = _partitioned_srcs(ctx.files.srcs)
-    compile_deps = _jvm_deps(
+    _fail_if_invalid_associate_deps(ctx.attr.associates, ctx.attr.deps)
+    compile_deps = _jvm_deps_utils.jvm_deps(
         ctx,
         toolchains = toolchains,
         associate_deps = ctx.attr.associates,
