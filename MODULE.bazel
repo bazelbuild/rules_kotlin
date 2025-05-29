@@ -16,6 +16,8 @@ bazel_dep(name = "rules_python", version = "0.23.1")
 bazel_dep(name = "rules_android", version = "0.6.1")
 bazel_dep(name = "bazel_features", version = "1.25.0")
 
+bazel_dep(name = "buildifier_prebuilt", version = "8.0.3", dev_dependency = True)
+
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 

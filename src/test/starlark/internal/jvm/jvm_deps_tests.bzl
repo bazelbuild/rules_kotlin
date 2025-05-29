@@ -1,4 +1,5 @@
 load("@bazel_skylib//lib:structs.bzl", _structs = "structs")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
 load("@rules_testing//lib:util.bzl", "util")

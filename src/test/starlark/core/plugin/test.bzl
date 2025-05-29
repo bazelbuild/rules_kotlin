@@ -1,3 +1,4 @@
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("//kotlin:core.bzl", "kt_compiler_plugin", "kt_plugin_cfg")
 load("//kotlin:jvm.bzl", "kt_jvm_import", "kt_jvm_library")
