@@ -109,11 +109,11 @@ bazel_dep(name = "rules_bazel_integration_test", version = "0.25.0", dev_depende
 
 bazel_binaries = use_extension("@rules_bazel_integration_test//:extensions.bzl", "bazel_binaries", dev_dependency = True)
 bazel_binaries.download(version_file = "//:.bazelversion")
-bazel_binaries.download(version = "8.1.0")
+bazel_binaries.download(version = "8.2.1")
 use_repo(
     bazel_binaries,
     "bazel_binaries",
     "bazel_binaries_bazelisk",
     "build_bazel_bazel_.bazelversion",
-    "build_bazel_bazel_8_1_0",
+    "build_bazel_bazel_8_2_1",
 )
