@@ -191,6 +191,24 @@ _KOPTS_ALL = {
             "strict": ["-Xexplicit-api=strict"],
         },
     ),
+    "x_annotation_default_target": struct(
+        args = dict(
+            default = "off",
+            doc = """Change the default annotation targets for constructor properties:
+-Xannotation-default-target=first-only: use the first of the following allowed targets: '@param:', '@property:', '@field:';
+-Xannotation-default-target=first-only-warn: same as first-only, and raise warnings when both '@param:' and either '@property:' or '@field:' are allowed;
+-Xannotation-default-target=param-property: use '@param:' target if applicable, and also use the first of either '@property:' or '@field:';
+default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1 and before.""",
+            values = ["off", "first-only", "first-only-warn", "param-property"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "off": None,
+            "first-only": ["-Xannotation-default-target=first-only"],
+            "first-only-warn": ["-Xannotation-default-target=first-only-warn"],
+            "param-property": ["-Xannotation-default-target=param-property"],
+        },
+    ),
     "java_parameters": struct(
         args = dict(
             default = False,
