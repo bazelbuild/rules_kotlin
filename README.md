@@ -152,43 +152,29 @@ As of 1.5.0, to use the rules directly from the rules_kotlin workspace (i.e. not
  require the use of `release_archive` repository. This repository will build and configure the current
 workspace to use `rules_kotlin` in the same manner as the released binary artifact.
 
-In the project's `WORKSPACE`, change the setup:
+In the project's `MODULE.bazel`, change the setup:
 
 ```python
-
-# Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
-local_repository(
-    name = "rules_kotlin",
+local_path_override(
+    module_name = "rules_kotlin",
     path = "../path/to/rules_kotlin_clone/",
 )
-
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
-
-kotlin_repositories()
-
-load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-
-kt_register_toolchains()
 ```
 
 To use rules_kotlin from head without cloning the repository, (caveat emptor, of course), change the
 rules to this:
 
 ```python
-# Download master or specific revisions
-http_archive(
-    name = "rules_kotlin",
-    strip_prefix = "rules_kotlin-master",
-    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip"],
+_RULES_KOTLIN_VERSION = "b2bbb8b287a2dd5c7f8bf0af03908bcd573d176e"
+
+archive_override(
+    module_name = "rules_kotlin",
+    integrity = "sha256-0ijRsnrdfRJOs4IUnXUNKksyH/zi1um/JninjHq6Pyg=",
+    strip_prefix = "rules_kotlin-%s" % _RULES_KOTLIN_VERSION,
+    urls = [
+        "https://github.com/bazelbuild/rules_kotlin/archive/%s.tar.gz" % _RULES_KOTLIN_VERSION,
+    ],
 )
-
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-
-kotlin_repositories()
-
-load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-
-kt_register_toolchains()
 ```
 
 # Debugging native actions
