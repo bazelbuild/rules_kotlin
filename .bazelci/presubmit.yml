@@ -13,7 +13,7 @@ matrix:
 validate_config: 1
 bazel: 7.3.0
 buildifier:
-  version: 7.1.1
+  version: 8.2.0
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
