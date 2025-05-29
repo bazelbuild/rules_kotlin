@@ -35,16 +35,22 @@ class PersistentWorker : Worker {
     return WorkerContext.run {
       val realStdErr = System.err
       try {
-        val workerHandler: WorkRequestHandler = WorkRequestHandler.WorkRequestHandlerBuilder(
-          WorkRequestHandler.WorkRequestCallback { request: WorkerProtocol.WorkRequest, pw: PrintWriter ->
-            return@WorkRequestCallback doTask(
-              name = "request ${request.requestId}",
-              task = request.workTo(execute),
-            ).asResponse(pw)
-          },
-          realStdErr,
-          ProtoWorkerMessageProcessor(System.`in`, System.out),
-        ).setCpuUsageBeforeGc(Duration.ofSeconds(10)).build()
+        val workerHandler: WorkRequestHandler =
+          WorkRequestHandler
+            .WorkRequestHandlerBuilder(
+              WorkRequestHandler.WorkRequestCallback {
+                request: WorkerProtocol.WorkRequest,
+                pw: PrintWriter,
+                ->
+                return@WorkRequestCallback doTask(
+                  name = "request ${request.requestId}",
+                  task = request.workTo(execute),
+                ).asResponse(pw)
+              },
+              realStdErr,
+              ProtoWorkerMessageProcessor(System.`in`, System.out),
+            ).setCpuUsageBeforeGc(Duration.ofSeconds(10))
+            .build()
         workerHandler.processRequests()
       } catch (e: IOException) {
         this.error(e, { "Unknown IO exception" })
@@ -55,11 +61,12 @@ class PersistentWorker : Worker {
     }
   }
 
-  private fun WorkerProtocol.WorkRequest.workTo(execute: Work): (sub: WorkerContext.TaskContext) -> Status {
-    return { ctx ->
+  private fun WorkerProtocol.WorkRequest.workTo(
+    execute: Work,
+  ): (sub: WorkerContext.TaskContext) -> Status =
+    { ctx ->
       execute(ctx, argumentsList.toList())
     }
-  }
 
   private fun TaskResult.asResponse(pw: PrintWriter): Int {
     pw.print(log.out.toString())
