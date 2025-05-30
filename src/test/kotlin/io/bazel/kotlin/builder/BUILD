@@ -47,6 +47,7 @@ java_library(
         "//kotlin/compiler:kotlin-reflect",
         "//kotlin/compiler:kotlin-stdlib",
         "@bazel_tools//tools/jdk:JacocoCoverage",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_api",
     ],
     deps = _COMMON_DEPS + [
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",

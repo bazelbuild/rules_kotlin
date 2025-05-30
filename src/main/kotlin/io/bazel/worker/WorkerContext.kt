@@ -146,6 +146,7 @@ class WorkerContext private constructor(
     task: (sub: TaskContext) -> Status,
   ): TaskResult {
     info { "start task $name" }
+
     return WorkingDirectoryContext
       .use {
         TaskContext(dir, logging = narrowTo(name)).resultOf(task)
