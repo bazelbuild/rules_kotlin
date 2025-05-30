@@ -15,6 +15,9 @@
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
+load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 
 def kt_configure():
     """Setup dependencies."""
