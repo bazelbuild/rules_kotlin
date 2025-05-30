@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_binary")
 
 want = "Hello From Koltinc"

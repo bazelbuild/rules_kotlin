@@ -1,3 +1,4 @@
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("//kotlin:lint.bzl", "ktlint_config")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -80,4 +81,21 @@ filegroup(
         ":rules_kotlin_release",
     ],
     visibility = ["//:__subpackages__"],
+)
+
+buildifier(
+    name = "buildifier.check",
+    exclude_patterns = [
+        "./.git/*",
+    ],
+    lint_mode = "warn",
+    mode = "diff",
+)
+
+buildifier(
+    name = "buildifier.fix",
+    exclude_patterns = [
+        "./.git/*",
+    ],
+    lint_mode = "fix",
 )
