@@ -58,6 +58,7 @@ java_binary(
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
+        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl)",
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
