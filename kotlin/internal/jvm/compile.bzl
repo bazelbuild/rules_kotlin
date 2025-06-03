@@ -64,9 +64,18 @@ def find_java_runtime_toolchain(ctx, target):
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
-def _deps_artifacts(toolchains, targets):
+def _report_unused_deps(ctx, toolchains):
+    if "kt_experimental_report_unused_deps_off" in ctx.attr.tags:
+        return "off"
+    if "kt_experimental_report_unused_deps_warn" in ctx.attr.tags:
+        return "warn"
+    if "kt_experimental_report_unused_deps_error" in ctx.attr.tags:
+        return "error"
+    return toolchains.kt.experimental_report_unused_deps
+
+def _deps_artifacts(ctx, toolchains, targets):
     """Collect Jdeps artifacts if required."""
-    if not toolchains.kt.experimental_report_unused_deps == "off":
+    if not _report_unused_deps(ctx, toolchains) == "off":
         deps_artifacts = [t[JavaInfo].outputs.jdeps for t in targets if JavaInfo in t and t[JavaInfo].outputs.jdeps]
     else:
         deps_artifacts = []
@@ -320,7 +329,13 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
         args.add("--" + f, path)
 
     args.add_all("--inputs", jdeps, omit_if_empty = True)
-    args.add("--report_unused_deps", toolchains.kt.experimental_report_unused_deps)
+    args.add("--report_unused_deps", _report_unused_deps(ctx, toolchains))
+    unused_deps_ignored_targets = [
+        tag.split(":", 1)[1]
+        for tag in ctx.attr.tags
+        if tag.startswith("kt_experimental_unused_deps_ignored_targets:")
+    ]
+    args.add_all("--unused_deps_ignored_targets", unused_deps_ignored_targets, omit_if_empty = True)
 
     mnemonic = "JdepsMerge"
     progress_message = "%s %%{label} { jdeps: %d }" % (
@@ -329,7 +344,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     )
 
     inputs = depset(jdeps)
-    if not toolchains.kt.experimental_report_unused_deps == "off":
+    if not _report_unused_deps(ctx, toolchains) == "off":
         # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs
         inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_compile_time_jars for dep in deps])])
 
@@ -596,7 +611,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = _new_plugins_from(ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps))
 
-    deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + ctx.attr.associates)
+    deps_artifacts = _deps_artifacts(ctx, toolchains, ctx.attr.deps + ctx.attr.associates)
 
     generated_src_jars = []
     annotation_processing = None
