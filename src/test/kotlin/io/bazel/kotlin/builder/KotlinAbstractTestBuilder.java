@@ -235,7 +235,7 @@ abstract class KotlinAbstractTestBuilder<T> {
         return KotlinToolchain.createToolchain(
                 javaHome,
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//jar").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
