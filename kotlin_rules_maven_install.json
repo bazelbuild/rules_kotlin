@@ -630,11 +630,6 @@
     "org.jetbrains.kotlin:kotlin-reflect": [
       "org.jetbrains.kotlin:kotlin-stdlib"
     ],
-    "org.jetbrains.kotlin:kotlin-scripting-jvm": [
-      "org.jetbrains.kotlin:kotlin-script-runtime",
-      "org.jetbrains.kotlin:kotlin-scripting-common",
-      "org.jetbrains.kotlin:kotlin-stdlib"
-    ],
     "org.jetbrains.kotlin:kotlin-stdlib": [
       "org.jetbrains:annotations"
     ],
