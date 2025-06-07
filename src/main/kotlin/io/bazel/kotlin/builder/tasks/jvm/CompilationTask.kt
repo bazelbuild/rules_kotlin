@@ -429,7 +429,7 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
   JarCreator(
     path = Paths.get(outputs.generatedKspClassesJar),
     normalize = true,
-    verbose = false
+    verbose = false,
   ).also {
     it.addDirectory(Paths.get(directories.generatedClasses))
     it.setJarOwner(info.label, info.bazelRuleKind)
