@@ -423,7 +423,7 @@ def _run_ksp_builder_actions(
         plugins = plugins,
         outputs = {
             "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
-            "ksp_generated_classesjar": ksp_generated_classes_jar,
+            "ksp_generated_classes_jar": ksp_generated_classes_jar,
         },
         build_kotlin = False,
         mnemonic = "KotlinKsp",
