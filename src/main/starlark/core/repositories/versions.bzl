@@ -87,6 +87,13 @@ versions = struct(
         ],
         sha256 = "44e965bb067b2bb5cd9184dab2c3dea6e3eab747d341c07645bb4c88f09e49c8",
     ),
+    KOTLIN_BUILD_TOOLS_IMPL = version(
+        version = "2.1.20",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
+        ],
+        sha256 = "6e94896e321603e3bfe89fef02478e44d1d64a3d25d49d0694892ffc01c60acf",
+    ),
     RULES_ANDROID = version(
         version = "0.6.4",
         url_templates = [

@@ -87,6 +87,7 @@ class KotlinBuilder
         REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
         INSTRUMENT_COVERAGE("--instrument_coverage"),
         KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
+        BUILD_TOOLS_API("--build_tools_api"),
       }
     }
 
@@ -168,6 +169,9 @@ class KotlinBuilder
         }
         argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_PRIVATE_CLASSES)?.let {
           removePrivateClassesInAbiJar = it == "true"
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
+          buildToolsApi = it == "true"
         }
         this
       }

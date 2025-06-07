@@ -125,6 +125,13 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    private val BUILD_TOOLS_API by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin...build-tools-impl",
+        ).toPath()
+    }
+
     private val JAVA_HOME by lazy {
       FileSystems
         .getDefault()
@@ -144,6 +151,7 @@ class KotlinToolchain private constructor(
         JAVA_HOME,
         KOTLINC.verified().absoluteFile,
         COMPILER.verified().absoluteFile,
+        BUILD_TOOLS_API.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
@@ -159,6 +167,7 @@ class KotlinToolchain private constructor(
     fun createToolchain(
       javaHome: Path,
       kotlinc: File,
+      buildTools: File,
       compiler: File,
       jvmAbiGenFile: File,
       skipCodeGenFile: File,
@@ -174,6 +183,7 @@ class KotlinToolchain private constructor(
         listOf(
           kotlinc,
           compiler,
+          buildTools,
           // plugins *must* be preloaded. Not doing so causes class conflicts
           // (and a NoClassDef err) in the compiler extension interfaces.
           // This may cause issues in accepting user defined compiler plugins.
@@ -263,7 +273,7 @@ class KotlinToolchain private constructor(
     val id: String,
   )
 
-  open class KotlinCliToolInvoker internal constructor(
+  open class KotlincInvoker internal constructor(
     toolchain: KotlinToolchain,
     clazz: String,
   ) {
@@ -296,12 +306,19 @@ class KotlinToolchain private constructor(
   }
 
   @Singleton
-  class KotlincInvoker
+  class KotlincInvokerBuilder
     @Inject
     constructor(
-      toolchain: KotlinToolchain,
-    ) : KotlinCliToolInvoker(
-        toolchain.toolchainWithReflect(),
-        "io.bazel.kotlin.compiler.BazelK2JVMCompiler",
-      )
+      private val toolchain: KotlinToolchain,
+    ) {
+      fun build(useExperimentalBuildToolsAPI: Boolean): KotlincInvoker {
+        val clazz =
+          if (useExperimentalBuildToolsAPI) {
+            "io.bazel.kotlin.compiler.BuildToolsAPICompiler"
+          } else {
+            "io.bazel.kotlin.compiler.BazelK2JVMCompiler"
+          }
+        return KotlincInvoker(toolchain = toolchain, clazz = clazz)
+      }
+    }
 }
