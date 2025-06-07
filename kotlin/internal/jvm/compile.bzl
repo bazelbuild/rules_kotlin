@@ -408,6 +408,7 @@ def _run_ksp_builder_actions(
         A struct containing KSP outputs
     """
     ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-gensrc.jar")
+    ksp_generated_classes_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-genclasses.jar")
 
     _run_kt_builder_action(
         ctx = ctx,
@@ -422,12 +423,13 @@ def _run_ksp_builder_actions(
         plugins = plugins,
         outputs = {
             "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
+            "ksp_generated_classesjar": ksp_generated_classes_jar,
         },
         build_kotlin = False,
         mnemonic = "KotlinKsp",
     )
 
-    return struct(ksp_generated_class_jar = ksp_generated_java_srcjar)
+    return struct(ksp_generated_class_jar = ksp_generated_classes_jar, ksp_generated_src_jar = ksp_generated_java_srcjar)
 
 def _run_kt_builder_action(
         ctx,
@@ -759,6 +761,7 @@ def _run_kt_java_builder_actions(
 
     # Run KSP
     ksp_generated_class_jar = None
+    ksp_generated_src_jar = None
     if has_kt_sources and ksp_annotation_processors:
         ksp_outputs = _run_ksp_builder_actions(
             ctx,
@@ -772,7 +775,9 @@ def _run_kt_java_builder_actions(
             plugins = plugins,
         )
         ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
-        generated_ksp_src_jars.append(ksp_generated_class_jar)
+        output_jars.append(ksp_generated_class_jar)
+        ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
+        generated_ksp_src_jars.append(ksp_generated_src_jar)
 
     java_infos = []
 
@@ -897,7 +902,7 @@ def _run_kt_java_builder_actions(
     if annotation_processors or ksp_annotation_processors:
         is_ksp = (ksp_annotation_processors != None)
         processor = ksp_annotation_processors if is_ksp else annotation_processors
-        gen_jar = ksp_generated_class_jar if is_ksp else ap_generated_src_jar
+        gen_jar = ksp_generated_src_jar if is_ksp else ap_generated_src_jar
         outputs_list = [java_info.outputs for java_info in java_infos]
         annotation_processing = _create_annotation_processing(
             annotation_processors = processor,

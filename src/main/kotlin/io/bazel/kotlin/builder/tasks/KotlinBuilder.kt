@@ -87,6 +87,7 @@ class KotlinBuilder
         REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
         INSTRUMENT_COVERAGE("--instrument_coverage"),
         KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
+        KSP_GENERATED_CLASSESJAR("--ksp_generated_classesjar"),
       }
     }
 
@@ -216,6 +217,9 @@ class KotlinBuilder
           }
           argMap.optionalSingle(KotlinBuilderFlags.KSP_GENERATED_JAVA_SRCJAR)?.let {
             generatedKspSrcJar = it
+          }
+          argMap.optionalSingle(KotlinBuilderFlags.KSP_GENERATED_CLASSESJAR)?.let {
+            generatedKspClassesJar = it
           }
         }
 
