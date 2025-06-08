@@ -59,64 +59,69 @@ object BazelIntegrationTestRunner {
     listOf(true, false).filter { bzlmod ->
       bzlmod && workspace.hasModule() || !bzlmod && workspace.hasWorkspace()
     }.forEach { bzlmod ->
-      println("Starting bzlmod $bzlmod test")
-      val overrideFlag = if (bzlmod) "--override_module=rules_kotlin=$unpack" else "--override_repository=rules_kotlin=$unpack"
-      bazel.run(
-        workspace,
-        "--bazelrc=$bazelrc",
-        "clean",
-        "--expunge",
-        "--async"
-      ).onFailThrow()
-      bazel.run(
-        workspace,
-        "--bazelrc=$bazelrc",
-        "shutdown",
-      ).onFailThrow()
-      bazel.run(
-        workspace,
-        "--bazelrc=$bazelrc",
-        "info",
-        *version.workspaceFlag(bzlmod),
-        overrideFlag
-      ).onFailThrow()
-      bazel.run(
-        workspace,
-        "--bazelrc=$bazelrc",
-        "build",
-        overrideFlag,
-        "--incompatible_disallow_empty_glob=false",
-        "//...",
-        *version.workspaceFlag(bzlmod)
-      ).onFailThrow()
-      bazel.run(
-        workspace,
-        "--bazelrc=$bazelrc",
-        "query",
-        overrideFlag,
-        "--incompatible_disallow_empty_glob=false",
-        "@rules_kotlin//...",
-        *version.workspaceFlag(bzlmod)
-      ).onFailThrow()
-      bazel.run(
-        workspace,
-        "--bazelrc=$bazelrc",
-        "query",
-        *version.workspaceFlag(bzlmod),
-        overrideFlag,
-        "--incompatible_disallow_empty_glob=false",
-        "kind(\".*_test\", \"//...\")",
-      ).ok { process ->
-        if (process.stdOut.isNotEmpty()) {
-          bazel.run(
-            workspace,
-            "--bazelrc=$bazelrc",
-            "test",
-            *version.workspaceFlag(bzlmod),
-            overrideFlag,
-            "--test_output=all",
-            "//...",
-          ).onFailThrow()
+      listOf(true, false).forEach { buildToolsApi ->
+        println("Starting bzlmod $bzlmod test")
+        val overrideFlag =
+          if (bzlmod) "--override_module=rules_kotlin=$unpack" else "--override_repository=rules_kotlin=$unpack"
+        bazel.run(
+          workspace,
+          "--bazelrc=$bazelrc",
+          "clean",
+          "--expunge",
+          "--async",
+        ).onFailThrow()
+        bazel.run(
+          workspace,
+          "--bazelrc=$bazelrc",
+          "shutdown",
+        ).onFailThrow()
+        bazel.run(
+          workspace,
+          "--bazelrc=$bazelrc",
+          "info",
+          *version.workspaceFlag(bzlmod),
+          overrideFlag,
+        ).onFailThrow()
+        bazel.run(
+          workspace,
+          "--bazelrc=$bazelrc",
+          "build",
+          overrideFlag,
+          "--incompatible_disallow_empty_glob=false",
+          "--@rules_kotlin//kotlin/settings:experimental_build_tools_api=${buildToolsApi}",
+          "//...",
+          *version.workspaceFlag(bzlmod),
+        ).onFailThrow()
+        bazel.run(
+          workspace,
+          "--bazelrc=$bazelrc",
+          "query",
+          overrideFlag,
+          "--incompatible_disallow_empty_glob=false",
+          "@rules_kotlin//...",
+          *version.workspaceFlag(bzlmod),
+        ).onFailThrow()
+        bazel.run(
+          workspace,
+          "--bazelrc=$bazelrc",
+          "query",
+          *version.workspaceFlag(bzlmod),
+          overrideFlag,
+          "--incompatible_disallow_empty_glob=false",
+          "kind(\".*_test\", \"//...\")",
+        ).ok { process ->
+          if (process.stdOut.isNotEmpty()) {
+            bazel.run(
+              workspace,
+              "--bazelrc=$bazelrc",
+              "test",
+              *version.workspaceFlag(bzlmod),
+              overrideFlag,
+              "--@rules_kotlin//kotlin/settings:experimental_build_tools_api=${buildToolsApi}",
+              "--test_output=all",
+              "//...",
+            ).onFailThrow()
+          }
         }
       }
     }
