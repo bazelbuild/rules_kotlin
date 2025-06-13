@@ -41,6 +41,9 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
         ] + [
             d.transitive_compile_time_jars
             for d in dep_infos
+        ] + [
+            d.transitive_compile_time_jars
+            for d in associates.dep_infos
         ]
 
     compile_depset_list = depset(transitive = transitive + [associates.jars]).to_list()
