@@ -165,6 +165,69 @@ def _transitive_from_exports_test_impl(env, target):
     classpath.contains(_file(env.ctx.attr.associate_jar).short_path)
     classpath.not_contains(_file(env.ctx.attr.associate_abi_jar).short_path)
 
+def _transitive_from_associates_test_impl(env, target):
+    ##
+    # the one where target A associates with target B
+    # target B has a dependency to target C
+    # target A uses C, the world explodes
+    # what this means is the associates transitive_compile_time_jars has this
+    #            <generated file B.jar>,
+    #            <generated file C.jar>,
+    #            <source file various-sdk-libs.jar>
+    # we will use the "direct jar" as a direct dep of the associate ie C
+    ##
+    associates_direct_deps = [
+        JavaInfo(
+            compile_jar = _file(env.ctx.attr.direct_dep_jar),
+            output_jar = _file(env.ctx.attr.direct_dep_jar),
+        ),
+    ]
+
+    associate_deps = [
+        {
+            JavaInfo: JavaInfo(
+                compile_jar = _file(env.ctx.attr.associate_jar),
+                output_jar = _file(env.ctx.attr.associate_jar),
+                deps = associates_direct_deps,
+            ),
+            _KtJvmInfo: _KtJvmInfo(
+                module_name = "associate_name",
+            ),
+        },
+    ]
+
+    fake_ctx = struct(
+        label = target.label,
+        attr = struct(
+            module_name = "",
+            tags = [],
+        ),
+    )
+
+    nothing_configured_toolchains = struct(
+        kt = struct(
+            experimental_remove_private_classes_in_abi_jars = False,
+            experimental_prune_transitive_deps = False,
+            experimental_strict_associate_dependencies = False,
+            jvm_stdlibs = JavaInfo(
+                compile_jar = _file(env.ctx.attr.jvm_jar),
+                output_jar = _file(env.ctx.attr.jvm_jar),
+            ),
+        ),
+    )
+
+    result = _jvm_deps_utils.jvm_deps(
+        ctx = fake_ctx,
+        toolchains = nothing_configured_toolchains,
+        associate_deps = associate_deps,
+        deps = [],
+    )
+
+    classpath = env.expect.that_depset_of_files(result.compile_jars)
+
+    classpath.contains(_file(env.ctx.attr.direct_dep_jar).short_path)
+    classpath.contains(_file(env.ctx.attr.associate_jar).short_path)
+
 def _abi_test(name, impl):
     util.helper_target(
         native.filegroup,
@@ -200,6 +263,9 @@ def _fat_abi_test(name):
 def _transitive_from_exports_test(name):
     _abi_test(name, _transitive_from_exports_test_impl)
 
+def _transitive_from_associates_test(name):
+    _abi_test(name, _transitive_from_associates_test_impl)
+
 def jvm_deps_test_suite(name):
     test_suite(
         name,
@@ -207,5 +273,6 @@ def jvm_deps_test_suite(name):
             _strict_abi_test,
             _fat_abi_test,
             _transitive_from_exports_test,
+            _transitive_from_associates_test,
         ],
     )
