@@ -141,7 +141,7 @@ class KotlinBuilder
 
         label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
         argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).split("_").also {
-          check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
+          check((it.size == 3 || it.size == 4) && it[0] == "kt") { "invalid rule kind $it" }
           platform =
             checkNotNull(Platform.valueOf(it[1].uppercase())) {
               "unrecognized platform ${it[1]}"

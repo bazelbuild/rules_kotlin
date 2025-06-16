@@ -38,11 +38,16 @@ load(
 )
 
 _ATTRS = _utils.add_dicts(_BASE_ATTRS, _attrs.lib_common_attr, {
+    # Pass or override any attributes needed here
 })
 
 kt_android_library = _make_rule(
     implementation = _kt_android_library_impl,
     attrs = _ATTRS,
-    additional_toolchains = [_TOOLCHAIN_TYPE],
-    additional_providers = [_KtJvmInfo],
+    additional_toolchains = [
+        _TOOLCHAIN_TYPE,
+    ],
+    additional_providers = [
+        _KtJvmInfo,
+    ],
 )

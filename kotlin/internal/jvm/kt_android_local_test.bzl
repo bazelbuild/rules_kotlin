@@ -40,7 +40,9 @@ load(
 )
 
 _ATTRS = _utils.add_dicts(_BASE_ATTRS, _attrs.runnable_common_attr, {
-    "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
+    "main_class": attr.string(
+        default = "com.google.testing.junit.runner.BazelTestRunner",
+    ),
     "jacocorunner": attr.label(
         default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),
     ),
@@ -56,5 +58,8 @@ _ATTRS = _utils.add_dicts(_BASE_ATTRS, _attrs.runnable_common_attr, {
 kt_android_local_test = _make_rule(
     implementation = _kt_android_local_test_impl,
     attrs = _ATTRS,
-    additional_toolchains = [_TOOLCHAIN_TYPE, _JAVA_RUNTIME_TOOLCHAIN_TYPE],
+    additional_toolchains = [
+        _TOOLCHAIN_TYPE,
+        _JAVA_RUNTIME_TOOLCHAIN_TYPE,
+    ],
 )

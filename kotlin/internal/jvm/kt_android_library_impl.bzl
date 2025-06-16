@@ -34,11 +34,11 @@ load(
     _BASE_PROCESSORS = "PROCESSORS",
     _finalize = "finalize",
 )
-load("@rules_java//java:defs.bzl", "JavaInfo")
+load("@rules_java//java:defs.bzl", _JavaInfo = "JavaInfo")
 load(
     "//kotlin/internal/jvm:compile.bzl",
-    "export_only_providers",
     _compile = "compile",
+    _export_only_providers = "export_only_providers",
     _kt_jvm_produce_output_jar_actions = "kt_jvm_produce_output_jar_actions",
 )
 load(
@@ -51,7 +51,7 @@ def _process_jvm(ctx, resources_ctx, **unused_sub_ctxs):
     """
     r_java = resources_ctx.r_java
     outputs = struct(jar = ctx.outputs.lib_jar, srcjar = ctx.outputs.lib_src_jar, deploy_jar = None)
-    providers = kt_android_produce_jar_actions(ctx, "kt_jvm_library", outputs, r_java)
+    providers = kt_android_produce_jar_actions(ctx, "kt_android_library", outputs, r_java)
 
     return _ProviderInfo(
         name = "jvm_ctx",
@@ -89,7 +89,7 @@ def kt_android_library_impl(ctx):
 
 def _get_android_sdk_jar(ctx):
     android_jar = _get_android_sdk(ctx).android_jar
-    return JavaInfo(output_jar = android_jar, compile_jar = android_jar, neverlink = True)
+    return _JavaInfo(output_jar = android_jar, compile_jar = android_jar, neverlink = True)
 
 def _get_android_resource_class_jars(targets):
     """Encapsulates compiler dependency metadata."""
@@ -102,7 +102,7 @@ def _get_android_resource_class_jars(targets):
             jars = d[_AndroidLibraryResourceClassJarProvider].jars
             if jars:
                 android_compile_dependencies.extend([
-                    JavaInfo(output_jar = jar, compile_jar = jar, neverlink = True)
+                    _JavaInfo(output_jar = jar, compile_jar = jar, neverlink = True)
                     for jar in _utils.list_or_depset_to_list(jars)
                 ])
 
@@ -149,7 +149,7 @@ def kt_android_produce_jar_actions(
         compile_deps = compile_deps,
         outputs = outputs,
         extra_resources = extra_resources,
-    ) if ctx.attr.srcs else export_only_providers(
+    ) if ctx.attr.srcs else _export_only_providers(
         ctx = ctx,
         actions = ctx.actions,
         outputs = outputs,

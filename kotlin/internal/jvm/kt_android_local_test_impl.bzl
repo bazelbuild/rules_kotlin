@@ -17,7 +17,7 @@ load(
 )
 load(
     "@rules_android//providers:providers.bzl",
-    "AndroidFilteredJdepsInfo",
+    _AndroidFilteredJdepsInfo = "AndroidFilteredJdepsInfo",
 )
 load(
     "@rules_android//rules:attrs.bzl",
@@ -49,7 +49,7 @@ load(
     _filter_jdeps = "filter_jdeps",
     _finalize = "finalize",
 )
-load("@rules_java//java:defs.bzl", "JavaInfo")
+load("@rules_java//java:defs.bzl", _JavaInfo = "JavaInfo")
 load(
     "//kotlin/internal:defs.bzl",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
@@ -130,7 +130,7 @@ def _process_jvm(ctx, resources_ctx, **unused_sub_ctxs):
     # Setup the compile action.
     providers = _kt_jvm_produce_output_jar_actions(
         ctx,
-        rule_kind = "kt_jvm_test",
+        rule_kind = "kt_android_local_test",
         compile_deps = _jvm_deps_utils.jvm_deps(
             ctx,
             toolchains = _compile.compiler_toolchains(ctx),
@@ -138,7 +138,7 @@ def _process_jvm(ctx, resources_ctx, **unused_sub_ctxs):
             deps_java_infos = (
                 ([resources_ctx.r_java] if resources_ctx.r_java else []) +
                 [
-                    JavaInfo(
+                    _JavaInfo(
                         output_jar = _get_android_sdk(ctx).android_jar,
                         compile_jar = _get_android_sdk(ctx).android_jar,
                         # The android_jar must not be compiled into the test, it
@@ -162,7 +162,7 @@ def _process_jvm(ctx, resources_ctx, **unused_sub_ctxs):
     if java_info.outputs.jdeps != None:
         filtered_jdeps = ctx.actions.declare_file(ctx.label.name + ".filtered.jdeps")
         _filter_jdeps(ctx, java_info.outputs.jdeps, filtered_jdeps, _utils.only(resources_ctx.r_java.compile_jars.to_list()))
-        providers.append(AndroidFilteredJdepsInfo(jdeps = filtered_jdeps))
+        providers.append(_AndroidFilteredJdepsInfo(jdeps = filtered_jdeps))
         runfiles.append(filtered_jdeps)
 
     # Append the security manager override
