@@ -40,6 +40,7 @@ def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(
     files = [ctx.outputs.jar]
     if providers.java.outputs.jdeps:
         files.append(providers.java.outputs.jdeps)
+
     return [
         providers.java,
         providers.kt,

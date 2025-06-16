@@ -101,7 +101,9 @@ class KotlinBuilder
       try {
         @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
         when (compileContext.info.platform) {
-          Platform.JVM -> executeJvmTask(compileContext, taskContext.directory, argMap)
+          Platform.JVM,
+          Platform.ANDROID,
+          -> executeJvmTask(compileContext, taskContext.directory, argMap)
           Platform.UNRECOGNIZED -> throw IllegalStateException(
             "unrecognized platform: ${compileContext.info}",
           )

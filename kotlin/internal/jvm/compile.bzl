@@ -977,6 +977,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
         actions: invoking rule actions,
         attr: kt_compiler_attributes,
         outputs: kt_compiler_outputs
+
     Returns:
         kt_compiler_result
     """
