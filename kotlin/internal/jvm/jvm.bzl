@@ -661,9 +661,7 @@ kt_plugin_cfg = rule(
     },
 )
 
-#
-# Exposed for kt_android_* rules.
-#
-lib_common_attr_exposed = _lib_common_attr
-runnable_common_attr_exposed = _runnable_common_attr
-common_outputs_exposed = _common_outputs
+attrs = struct(
+    lib_common_attr = _lib_common_attr,
+    runnable_common_attr = _runnable_common_attr,
+)

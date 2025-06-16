@@ -28,8 +28,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:jvm.bzl",
-    _lib_common_attr_exposed = "lib_common_attr_exposed",
-    _runnable_common_attr_exposed = "runnable_common_attr_exposed",
+    _attrs = "attrs",
 )
 load(
     "//kotlin/internal/jvm:kt_android_local_test_impl.bzl",
@@ -40,7 +39,7 @@ load(
     _utils = "utils",
 )
 
-_ATTRS = _utils.add_dicts(_BASE_ATTRS, _runnable_common_attr_exposed, {
+_ATTRS = _utils.add_dicts(_BASE_ATTRS, _attrs.runnable_common_attr, {
     "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
     "jacocorunner": attr.label(
         default = Label("@bazel_tools//tools/jdk:JacocoCoverage"),

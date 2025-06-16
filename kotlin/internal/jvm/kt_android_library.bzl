@@ -26,7 +26,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:jvm.bzl",
-    _lib_common_attr_exposed = "lib_common_attr_exposed",
+    _attrs = "attrs",
 )
 load(
     "//kotlin/internal/jvm:kt_android_library_impl.bzl",
@@ -37,7 +37,7 @@ load(
     _utils = "utils",
 )
 
-_ATTRS = _utils.add_dicts(_BASE_ATTRS, _lib_common_attr_exposed, {
+_ATTRS = _utils.add_dicts(_BASE_ATTRS, _attrs.lib_common_attr, {
 })
 
 kt_android_library = _make_rule(
