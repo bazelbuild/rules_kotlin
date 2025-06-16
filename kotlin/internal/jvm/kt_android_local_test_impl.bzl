@@ -49,7 +49,10 @@ load(
     _filter_jdeps = "filter_jdeps",
     _finalize = "finalize",
 )
-load("@rules_java//java:defs.bzl", _JavaInfo = "JavaInfo")
+load(
+    "@rules_java//java:defs.bzl",
+    _JavaInfo = "JavaInfo",
+)
 load(
     "//kotlin/internal:defs.bzl",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
@@ -58,15 +61,13 @@ load(
 load(
     "//kotlin/internal/jvm:compile.bzl",
     _compile = "compile",
-    _export_only_providers = "export_only_providers",
-    _kt_jvm_produce_output_jar_actions = "kt_jvm_produce_output_jar_actions",
 )
 load(
     "//kotlin/internal/jvm:jvm_deps.bzl",
     _jvm_deps_utils = "jvm_deps_utils",
 )
 
-JACOCOCO_CLASS = "com.google.testing.coverage.JacocoCoverageRunner"
+_JACOCOCO_CLASS = "com.google.testing.coverage.JacocoCoverageRunner"
 
 def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
     # Note: This needs to be kept in sync with.
@@ -77,7 +78,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
     resources_ctx = _resources.package(
         ctx,
         # This entire section is being overridden so that we can pass the associates into the deps section.
-        # Without this tests won't be able to reference resources of the assocate targets
+        # Without this tests won't be able to reference resources of the associate targets
         deps = ctx.attr.associates + ctx.attr.deps,
         manifest = manifest_ctx.processed_manifest,
         manifest_values = manifest_ctx.processed_manifest_values,
@@ -91,6 +92,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         compilation_mode = _compilation_mode.get(ctx),
         java_package = java_package,
         shrink_resources = _attrs.tristate.no,
+        build_java_with_final_resources = True,
         aapt = _get_android_toolchain(ctx).aapt2.files_to_run,
         android_jar = _get_android_sdk(ctx).android_jar,
         busybox = _get_android_toolchain(ctx).android_resources_busybox.files_to_run,
@@ -105,7 +107,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         value = resources_ctx,
     )
 
-def _process_jvm(ctx, resources_ctx, **unused_sub_ctxs):
+def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
     """Custom JvmProcessor that handles Kotlin compilation
     """
     _compile.verify_associates_not_duplicated_in_deps(deps = getattr(ctx.attr, "deps", []), associate_deps = getattr(ctx.attr, "associates", []))
@@ -121,14 +123,14 @@ def _process_jvm(ctx, resources_ctx, **unused_sub_ctxs):
 
     if ctx.configuration.coverage_enabled:
         deps.append(ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner)
-        java_start_class = JACOCOCO_CLASS
+        java_start_class = _JACOCOCO_CLASS
         coverage_start_class = ctx.attr.main_class
     else:
         java_start_class = ctx.attr.main_class
         coverage_start_class = None
 
     # Setup the compile action.
-    providers = _kt_jvm_produce_output_jar_actions(
+    providers = _compile._kt_jvm_produce_output_jar_actions(
         ctx,
         rule_kind = "kt_android_local_test",
         compile_deps = _jvm_deps_utils.jvm_deps(

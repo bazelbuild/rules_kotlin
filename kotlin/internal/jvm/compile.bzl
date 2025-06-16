@@ -581,7 +581,7 @@ def _run_kt_builder_action(
 
 # MAIN ACTIONS #########################################################################################################
 
-def kt_jvm_produce_jar_actions(ctx, rule_kind, extra_resources = {}):
+def _kt_jvm_produce_jar_actions(ctx, rule_kind, extra_resources = {}):
     """Setup The actions to compile a jar and if any resources or resource_jars were provided to merge these in with the
     compilation output.
 
@@ -606,7 +606,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind, extra_resources = {}):
     )
 
     # Setup the compile action.
-    return kt_jvm_produce_output_jar_actions(
+    return _kt_jvm_produce_output_jar_actions(
         ctx,
         rule_kind = rule_kind,
         compile_deps = compile_deps,
@@ -614,7 +614,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind, extra_resources = {}):
         extra_resources = extra_resources,
     )
 
-def kt_jvm_produce_output_jar_actions(
+def _kt_jvm_produce_output_jar_actions(
         ctx,
         rule_kind,
         compile_deps,
@@ -969,7 +969,7 @@ def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source
         )
     return None
 
-def export_only_providers(ctx, actions, attr, outputs):
+def _export_only_providers(ctx, actions, attr, outputs):
     """_export_only_providers creates a series of forwarding providers without compilation overhead.
 
     Args:
@@ -1030,8 +1030,9 @@ def export_only_providers(ctx, actions, attr, outputs):
     )
 
 compile = struct(
-    jvm_deps = _jvm_deps_utils.jvm_deps,
-    java_info = _java_info,
     compiler_toolchains = _compiler_toolchains,
     verify_associates_not_duplicated_in_deps = _fail_if_invalid_associate_deps,
+    export_only_providers = _export_only_providers,
+    kt_jvm_produce_output_jar_actions = _kt_jvm_produce_output_jar_actions,
+    kt_jvm_produce_jar_actions = _kt_jvm_produce_jar_actions,
 )

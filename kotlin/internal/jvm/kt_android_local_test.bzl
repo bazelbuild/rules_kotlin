@@ -22,7 +22,6 @@ load(
 load(
     "//kotlin/internal:defs.bzl",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
-    _KtJvmInfo = "KtJvmInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(

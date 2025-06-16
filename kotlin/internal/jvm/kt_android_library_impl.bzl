@@ -34,24 +34,25 @@ load(
     _BASE_PROCESSORS = "PROCESSORS",
     _finalize = "finalize",
 )
-load("@rules_java//java:defs.bzl", _JavaInfo = "JavaInfo")
+load(
+    "@rules_java//java:defs.bzl",
+    _JavaInfo = "JavaInfo",
+)
 load(
     "//kotlin/internal/jvm:compile.bzl",
     _compile = "compile",
-    _export_only_providers = "export_only_providers",
-    _kt_jvm_produce_output_jar_actions = "kt_jvm_produce_output_jar_actions",
 )
 load(
     "//kotlin/internal/jvm:jvm_deps.bzl",
     _jvm_deps_utils = "jvm_deps_utils",
 )
 
-def _process_jvm(ctx, resources_ctx, **unused_sub_ctxs):
+def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
     """Custom JvmProcessor that handles Kotlin compilation
     """
     r_java = resources_ctx.r_java
     outputs = struct(jar = ctx.outputs.lib_jar, srcjar = ctx.outputs.lib_src_jar, deploy_jar = None)
-    providers = kt_android_produce_jar_actions(ctx, "kt_android_library", outputs, r_java)
+    providers = _kt_android_produce_jar_actions(ctx, "kt_android_library", outputs, r_java)
 
     return _ProviderInfo(
         name = "jvm_ctx",
@@ -87,13 +88,7 @@ def kt_android_library_impl(ctx):
     java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package)
     return _processing_pipeline.run(ctx, java_package, _PROCESSING_PIPELINE)
 
-def _get_android_sdk_jar(ctx):
-    android_jar = _get_android_sdk(ctx).android_jar
-    return _JavaInfo(output_jar = android_jar, compile_jar = android_jar, neverlink = True)
-
 def _get_android_resource_class_jars(targets):
-    """Encapsulates compiler dependency metadata."""
-
     android_compile_dependencies = []
 
     # Collect R.class jar files from direct dependencies
@@ -108,7 +103,7 @@ def _get_android_resource_class_jars(targets):
 
     return android_compile_dependencies
 
-def kt_android_produce_jar_actions(
+def _kt_android_produce_jar_actions(
         ctx,
         rule_kind,
         outputs,
@@ -116,9 +111,6 @@ def kt_android_produce_jar_actions(
         extra_resources = {}):
     """Setup The actions to compile a jar and if any resources or resource_jars were provided to merge these in with the
     compilation output.
-
-    Returns:
-        see `kt_jvm_compile_action`.
     """
     deps = getattr(ctx.attr, "deps", [])
     associates = getattr(ctx.attr, "associates", [])
@@ -127,7 +119,13 @@ def kt_android_produce_jar_actions(
     _compile.verify_associates_not_duplicated_in_deps(deps = deps, associate_deps = associates)
 
     # Collect the android compile dependencies
-    android_java_infos = [_get_android_sdk_jar(ctx)]
+    android_java_infos = [
+        _JavaInfo(
+            output_jar = _get_android_sdk(ctx).android_jar,
+            compile_jar = _get_android_sdk(ctx).android_jar,
+            neverlink = True,
+        ),
+    ]
     if rClass:
         android_java_infos.append(rClass)
     android_java_infos.extend(_get_android_resource_class_jars(deps + associates + runtime_deps))
@@ -143,13 +141,13 @@ def kt_android_produce_jar_actions(
     )
 
     # Setup the compile action.
-    return _kt_jvm_produce_output_jar_actions(
+    return _compile.kt_jvm_produce_output_jar_actions(
         ctx,
         rule_kind = rule_kind,
         compile_deps = compile_deps,
         outputs = outputs,
         extra_resources = extra_resources,
-    ) if ctx.attr.srcs else _export_only_providers(
+    ) if ctx.attr.srcs else _compile.compile.export_only_providers(
         ctx = ctx,
         actions = ctx.actions,
         outputs = outputs,

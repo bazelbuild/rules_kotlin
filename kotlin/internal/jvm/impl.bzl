@@ -24,8 +24,7 @@ load(
 )
 load(
     "//kotlin/internal/jvm:compile.bzl",
-    "export_only_providers",
-    _kt_jvm_produce_jar_actions = "kt_jvm_produce_jar_actions",
+    _compile = "compile",
 )
 load(
     "//kotlin/internal/utils:utils.bzl",
@@ -224,7 +223,7 @@ def kt_jvm_library_impl(ctx):
         )
     return _make_providers(
         ctx,
-        _kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else export_only_providers(
+        _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else _compile.export_only_providers(
             ctx = ctx,
             actions = ctx.actions,
             outputs = ctx.outputs,
@@ -234,7 +233,7 @@ def kt_jvm_library_impl(ctx):
     )
 
 def kt_jvm_binary_impl(ctx):
-    providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_binary")
+    providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_binary")
     jvm_flags = []
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
         jvm_flags = ctx.fragments.java.default_jvm_opts
@@ -269,7 +268,7 @@ _SPLIT_STRINGS = [
 ]
 
 def kt_jvm_junit_test_impl(ctx):
-    providers = _kt_jvm_produce_jar_actions(ctx, "kt_jvm_test")
+    providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_test")
     runtime_jars = depset(ctx.files._bazel_test_runner, transitive = [providers.java.transitive_runtime_jars])
 
     coverage_runfiles = []
