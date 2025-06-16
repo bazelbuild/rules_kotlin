@@ -207,7 +207,3 @@ def kt_android_local_test_impl(ctx):
     """
     java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package)
     return _processing_pipeline.run(ctx, java_package, _PROCESSING_PIPELINE)
-
-def _get_android_sdk_jar(ctx):
-    android_jar = _get_android_sdk(ctx).android_jar
-    return JavaInfo(output_jar = android_jar, compile_jar = android_jar, neverlink = True)
