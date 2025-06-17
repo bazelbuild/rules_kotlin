@@ -36,7 +36,7 @@ load(
 )
 load(
     "@rules_java//java:defs.bzl",
-    _JavaInfo = "JavaInfo",
+    "JavaInfo",
 )
 load(
     "//kotlin/internal/jvm:compile.bzl",
@@ -97,7 +97,7 @@ def _get_android_resource_class_jars(targets):
             jars = d[_AndroidLibraryResourceClassJarProvider].jars
             if jars:
                 android_compile_dependencies.extend([
-                    _JavaInfo(output_jar = jar, compile_jar = jar, neverlink = True)
+                    JavaInfo(output_jar = jar, compile_jar = jar, neverlink = True)
                     for jar in _utils.list_or_depset_to_list(jars)
                 ])
 
@@ -120,7 +120,7 @@ def _kt_android_produce_jar_actions(
 
     # Collect the android compile dependencies
     android_java_infos = [
-        _JavaInfo(
+        JavaInfo(
             output_jar = _get_android_sdk(ctx).android_jar,
             compile_jar = _get_android_sdk(ctx).android_jar,
             neverlink = True,

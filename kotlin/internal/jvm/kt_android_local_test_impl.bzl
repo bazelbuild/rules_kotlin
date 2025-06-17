@@ -51,8 +51,8 @@ load(
 )
 load(
     "@rules_java//java:defs.bzl",
-    _JavaInfo = "JavaInfo",
-    _java_common = "java_common",
+    "JavaInfo",
+    "java_common",
 )
 load(
     "//kotlin/internal:defs.bzl",
@@ -141,7 +141,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
             deps_java_infos = (
                 ([resources_ctx.r_java] if resources_ctx.r_java else []) +
                 [
-                    _JavaInfo(
+                    JavaInfo(
                         output_jar = _get_android_sdk(ctx).android_jar,
                         compile_jar = _get_android_sdk(ctx).android_jar,
                         # The android_jar must not be compiled into the test, it
@@ -155,7 +155,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         ),
         outputs = outputs,
     )
-    java_info = _java_common.add_constraints(providers.java, "android")
+    java_info = java_common.add_constraints(providers.java, "android")
 
     # Create test run action
     providers = [providers.kt, java_info]
