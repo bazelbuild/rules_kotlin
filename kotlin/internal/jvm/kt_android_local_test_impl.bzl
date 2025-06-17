@@ -131,7 +131,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         coverage_start_class = None
 
     # Setup the compile action.
-    providers = _compile._kt_jvm_produce_output_jar_actions(
+    providers = _compile.kt_jvm_produce_output_jar_actions(
         ctx,
         rule_kind = "kt_android_local_test",
         compile_deps = _jvm_deps_utils.jvm_deps(
