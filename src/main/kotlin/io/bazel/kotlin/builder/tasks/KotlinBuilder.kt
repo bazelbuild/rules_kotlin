@@ -144,7 +144,7 @@ class KotlinBuilder
         label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
         argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).also {
           val splitRuleKind = it.split("_")
-          require(splitRuleKind[0] == "kt") { "Invalid rule kind $it"}
+          require(splitRuleKind[0] == "kt") { "Invalid rule kind $it" }
           platform = Platform.valueOf(splitRuleKind[1].uppercase())
           ruleKind = RuleKind.valueOf(splitRuleKind.last().uppercase())
         }

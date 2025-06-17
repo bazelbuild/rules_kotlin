@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load(":kt_android_library.bzl", _kt_android_library = "kt_android_library")
-load(":kt_android_local_test_impl.bzl", _kt_android_local_test_impl = "kt_android_local_test_impl")
+load(":kt_android_local_test_impl.bzl", _kt_android_local_test = "kt_android_local_test")
 
 kt_android_library = _kt_android_library
-kt_android_local_test_impl = _kt_android_local_test_impl
+kt_android_local_test = _kt_android_local_test
