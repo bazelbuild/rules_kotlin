@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("@rules_java//java:defs.bzl", "java_binary")
 
 exports_files([
     "empty.jar",
@@ -26,13 +26,6 @@ java_binary(
     main_class = "org.pantsbuild.jarjar.Main",
     visibility = ["//visibility:public"],
     runtime_deps = [":jarjar.jar"],
-)
-
-java_import(
-    name = "android_sdk",
-    jars = ["@rules_android//tools/android:android_jar"],
-    neverlink = True,
-    visibility = ["//visibility:public"],
 )
 
 bzl_library(

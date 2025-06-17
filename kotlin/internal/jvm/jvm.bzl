@@ -249,6 +249,7 @@ _common_attr = utils.add_dicts(
             providers = [_JavacOptions],
             mandatory = False,
         ),
+        "_use_auto_exec_groups": attr.bool(default = False),
     },
 )
 
@@ -658,4 +659,9 @@ kt_plugin_cfg = rule(
             ],
         ),
     },
+)
+
+attrs = struct(
+    lib_common_attr = _lib_common_attr,
+    runnable_common_attr = _runnable_common_attr,
 )

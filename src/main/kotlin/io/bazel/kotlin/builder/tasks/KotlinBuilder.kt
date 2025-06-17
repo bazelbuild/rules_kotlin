@@ -101,7 +101,9 @@ class KotlinBuilder
       try {
         @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
         when (compileContext.info.platform) {
-          Platform.JVM -> executeJvmTask(compileContext, taskContext.directory, argMap)
+          Platform.JVM,
+          Platform.ANDROID,
+          -> executeJvmTask(compileContext, taskContext.directory, argMap)
           Platform.UNRECOGNIZED -> throw IllegalStateException(
             "unrecognized platform: ${compileContext.info}",
           )
@@ -140,16 +142,11 @@ class KotlinBuilder
         addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
 
         label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
-        argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).split("_").also {
-          check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
-          platform =
-            checkNotNull(Platform.valueOf(it[1].uppercase())) {
-              "unrecognized platform ${it[1]}"
-            }
-          ruleKind =
-            checkNotNull(RuleKind.valueOf(it[2].uppercase())) {
-              "unrecognized rule kind ${it[2]}"
-            }
+        argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).also {
+          val splitRuleKind = it.split("_")
+          require(splitRuleKind[0] == "kt") { "Invalid rule kind $it" }
+          platform = Platform.valueOf(splitRuleKind[1].uppercase())
+          ruleKind = RuleKind.valueOf(splitRuleKind.last().uppercase())
         }
         moduleName =
           argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {

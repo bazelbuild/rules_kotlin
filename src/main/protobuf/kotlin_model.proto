@@ -54,6 +54,7 @@ enum RuleKind {
 
 enum Platform {
     JVM = 0;
+    ANDROID = 1;
 }
 
 // Common info about a Kotlin compilation task, this message is shared by all compilation tasks.
