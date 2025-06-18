@@ -56,7 +56,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
 
     return struct(
         module_name = associates.module_name,
-        deps = dep_infos + associates.dep_infos,
+        deps = dep_infos,
         exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),
