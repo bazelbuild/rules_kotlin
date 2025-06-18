@@ -147,7 +147,7 @@ def _kt_android_produce_jar_actions(
         compile_deps = compile_deps,
         outputs = outputs,
         extra_resources = extra_resources,
-    ) if ctx.attr.srcs else _compile.compile.export_only_providers(
+    ) if ctx.attr.srcs else _compile.export_only_providers(
         ctx = ctx,
         actions = ctx.actions,
         outputs = outputs,
