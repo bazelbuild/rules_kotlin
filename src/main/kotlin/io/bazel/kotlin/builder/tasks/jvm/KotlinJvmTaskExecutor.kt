@@ -65,6 +65,7 @@ class KotlinJvmTaskExecutor
         preprocessedTask.apply {
           sequenceOf(
             runCatching {
+              context.execute("create classpath snapshots", ::createClasspathSnapshots)
               context.execute("kotlinc") {
                 if (compileKotlin) {
                   compileKotlin(

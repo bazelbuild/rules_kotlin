@@ -88,11 +88,25 @@ versions = struct(
         sha256 = "44e965bb067b2bb5cd9184dab2c3dea6e3eab747d341c07645bb4c88f09e49c8",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.1.20",
+        version = "2.1.21",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
         ],
-        sha256 = "6e94896e321603e3bfe89fef02478e44d1d64a3d25d49d0694892ffc01c60acf",
+        sha256 = "e6c7f18a3228f56ca91400a54ddad21e1d789a9f9a07263b560c8c95347c63cd",
+    ),
+    KOTLIN_BUILD_TOOLS_API = version(
+        version = "2.1.21",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/{version}/kotlin-build-tools-api-{version}.jar",
+        ],
+        sha256 = "06bb6b3671d4bc3ba74c0e0efabbdcd555ccc2d4cc2ef67cd309c5738c8d1e54",
+    ),
+    KOTLIN_COMPILER_EMBEDDABLE = version(
+        version = "2.1.21",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/{version}/kotlin-compiler-embeddable-{version}.jar",
+        ],
+        sha256 = "67a2e3673765f097725608cc7c843b0d8fdd94bd9af41327211361614aa57d49",
     ),
     RULES_ANDROID = version(
         version = "0.6.4",
