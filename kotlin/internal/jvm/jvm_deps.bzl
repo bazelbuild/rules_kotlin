@@ -23,9 +23,17 @@ def _java_info(target):
 
 def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
-    dep_infos = deps_java_infos + [_java_info(d) for d in deps] + [toolchains.kt.jvm_stdlibs]
-
-    associates = _associate_utils.get_associates(ctx, toolchains = toolchains, associates = associate_deps)
+    associates = _associate_utils.get_associates(
+        ctx,
+        toolchains = toolchains,
+        associates = associate_deps,
+    )
+    dep_infos = (
+        [toolchains.kt.jvm_stdlibs] +
+        associates.dep_infos +
+        deps_java_infos +
+        [_java_info(d) for d in deps]
+    )
 
     # Reduced classpath, exclude transitive deps from compilation
     if (toolchains.kt.experimental_prune_transitive_deps and
@@ -41,9 +49,6 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         ] + [
             d.transitive_compile_time_jars
             for d in dep_infos
-        ] + [
-            d.transitive_compile_time_jars
-            for d in associates.dep_infos
         ]
 
     compile_depset_list = depset(transitive = transitive + [associates.jars]).to_list()
@@ -51,7 +56,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
 
     return struct(
         module_name = associates.module_name,
-        deps = dep_infos + associates.dep_infos,
+        deps = dep_infos,
         exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),
