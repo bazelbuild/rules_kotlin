@@ -718,7 +718,7 @@ def _kt_jvm_produce_output_jar_actions(
     instrumented_files = coverage_common.instrumented_files_info(
         ctx,
         source_attributes = ["srcs"],
-        dependency_attributes = ["deps", "exports", "associates"],
+        dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
         extensions = ["kt", "java"],
     )
 
@@ -1025,7 +1025,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
         instrumented_files = coverage_common.instrumented_files_info(
             ctx,
             source_attributes = ["srcs"],
-            dependency_attributes = ["deps", "exports", "associates"],
+            dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
             extensions = ["kt", "java"],
         ),
     )
