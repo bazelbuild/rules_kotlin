@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -229,43 +230,17 @@ class KotlinBuilder
 
         with(root.directoriesBuilder) {
           val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
-          classes =
-            workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
-          javaClasses =
-            workingDir
-              .resolveNewDirectories(
-                getOutputDirPath(moduleName, "java_classes"),
-              ).toString()
+          classes = getOutputDirPath(info, workingDir, moduleName, "classes").toString()
+          javaClasses = getOutputDirPath(info, workingDir, moduleName, "java_classes").toString()
           if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) {
-            abiClasses =
-              workingDir
-                .resolveNewDirectories(
-                  getOutputDirPath(moduleName, "abi_classes"),
-                ).toString()
+            abiClasses = getOutputDirPath(info, workingDir, moduleName, "abi_classes").toString()
           }
-          generatedClasses =
-            workingDir
-              .resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes"))
-              .toString()
-          temp =
-            workingDir
-              .resolveNewDirectories(
-                getOutputDirPath(moduleName, "temp"),
-              ).toString()
-          generatedSources =
-            workingDir
-              .resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources"))
-              .toString()
-          generatedJavaSources =
-            workingDir
-              .resolveNewDirectories(getOutputDirPath(moduleName, "generated_java_sources"))
-              .toString()
-          generatedStubClasses =
-            workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
-          coverageMetadataClasses =
-            workingDir
-              .resolveNewDirectories(getOutputDirPath(moduleName, "coverage-metadata"))
-              .toString()
+          generatedClasses = getOutputDirPath(info, workingDir, moduleName, "generated_classes").toString()
+          temp = getOutputDirPath(info, workingDir, moduleName, "temp").toString()
+          generatedSources = getOutputDirPath(info, workingDir, moduleName, "generated_sources").toString()
+          generatedJavaSources = getOutputDirPath(info, workingDir, moduleName, "generated_java_sources").toString()
+          generatedStubClasses = getOutputDirPath(info, workingDir, moduleName, "stubs").toString()
+          coverageMetadataClasses = getOutputDirPath(info, workingDir, moduleName, "coverage-metadata").toString()
         }
 
         with(root.inputsBuilder) {
@@ -323,7 +298,18 @@ class KotlinBuilder
       }
 
     private fun getOutputDirPath(
+      info: CompilationTaskInfo,
+      workingDir: Path,
       moduleName: String,
       dirName: String,
-    ) = "_kotlinc/${moduleName}_jvm/$dirName"
+    ): Path {
+      if (info.incrementalCompilation) {
+        val relativePath = moduleName.substringBefore("-").replace("_", "/")
+        val path = Paths.get("").toAbsolutePath().parent.resolve("_kotlin_incremental/${relativePath}/out/$dirName")
+        Files.createDirectories(path)
+        return path
+      }
+
+      return workingDir.resolveNewDirectories("_kotlinc/${moduleName}_jvm/$dirName")
+    }
   }
