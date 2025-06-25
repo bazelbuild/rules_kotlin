@@ -35,6 +35,7 @@ import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.ObjectOutputStream
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Files.isDirectory
 import java.nio.file.Files.walk
@@ -91,6 +92,11 @@ fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): Co
       overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
     ).flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
     .flag("-module-name", info.moduleName)
+    .apply {
+      if (info.buildToolsApi) {
+        flag("-label", info.label)
+      }
+    }
 }
 
 internal fun JvmCompilationTask.plugins(
@@ -308,8 +314,13 @@ private fun JvmCompilationTask.runKspPlugin(
     baseArgs(overrides)
       .plus(kspArgs(plugins))
       .flag("-d", directories.generatedClasses)
-      .values(inputs.kotlinSourcesList)
       .values(inputs.javaSourcesList)
+      .values(inputs.kotlinSourcesList)
+      .apply {
+        if (info.incrementalCompilation) {
+          flag("-incremental_id", "ksp")
+        }
+      }
       .list()
       .let { args ->
         context.executeCompilerTask(
@@ -422,6 +433,28 @@ internal fun JvmCompilationTask.createGeneratedKspKotlinSrcJar() {
   }
 }
 
+internal fun JvmCompilationTask.createClasspathSnapshots() {
+  inputs.classpathList.forEach {
+    ClasspathSnapshotGenerator(Paths.get(it), Paths.get("$it.snapshot"), SnapshotGranularity.CLASS_MEMBER_LEVEL).run()
+  }
+}
+
+internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
+  return inputs.classpathList.map { it: String ->
+    "$it.snapshot"
+  }
+}
+
+
+val ROOT: String by lazy {
+  FileSystems
+    .getDefault()
+    .getPath("")
+    .toAbsolutePath()
+    .toString() + File.separator
+}
+
+
 /**
  * Compiles Kotlin sources to classes. Does not compile Java sources.
  */
@@ -441,9 +474,23 @@ fun JvmCompilationTask.compileKotlin(
           options = inputs.compilerPluginOptionsList,
           classpath = inputs.compilerPluginClasspathList,
         )
-    ).values(inputs.javaSourcesList)
+      )
+      .values(inputs.javaSourcesList)
       .values(inputs.kotlinSourcesList)
       .flag("-d", directories.classes)
+      .apply {
+        if (info.incrementalCompilation) {
+          flag("-incremental_id", "kotlin")
+          flag("-snapshot")
+          paths(
+            createClasspathSnapshotsPaths(),
+          ) {
+            it
+              .map(Path::toString)
+              .joinToString(File.pathSeparator)
+          }
+        }
+      }
       .list()
       .let {
         context.whenTracing {

@@ -88,6 +88,7 @@ class KotlinBuilder
         INSTRUMENT_COVERAGE("--instrument_coverage"),
         KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
         BUILD_TOOLS_API("--build_tools_api"),
+        INCREMENTAL_COMPILATION("--incremental_compilation"),
       }
     }
 
@@ -169,6 +170,9 @@ class KotlinBuilder
         }
         argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
           buildToolsApi = it == "true"
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)?.let {
+          incrementalCompilation = it == "true"
         }
         this
       }
@@ -285,8 +289,17 @@ class KotlinBuilder
             argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
           )
 
+          // Kotlin compiler always requires absolute path for source input in incremental mode
+          val useAbsolutePath = argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION) == "true"
           argMap
             .optional(KotlinBuilderFlags.SOURCES)
+            ?.map {
+              if (useAbsolutePath) {
+                FileSystems.getDefault().getPath(it).toAbsolutePath().toString()
+              } else {
+                it
+              }
+            }
             ?.iterator()
             ?.partitionJvmSources(
               { addKotlinSources(it) },
