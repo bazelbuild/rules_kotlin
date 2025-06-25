@@ -95,6 +95,9 @@ class KotlinJvmTaskExecutor
                             if (info.removePrivateClassesInAbiJar) {
                               flag("removePrivateClasses", "true")
                             }
+                            if (info.removeDebugInfo) {
+                              flag("removeDebugInfo", "true")
+                            }
                           }
                           given(outputs.jar).empty {
                             plugin(plugins.skipCodeGen)

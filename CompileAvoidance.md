@@ -54,6 +54,19 @@ define_kt_toolchain(
 )
 ```
 
+In order to completely remove debug information from the ABI jar, the `experimental_remove_debug_info_in_abi_jars` flag can be used along with `experimental_use_abi_jars`
+
+```python
+load("//kotlin:core.bzl", "define_kt_toolchain")
+
+
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    experimental_use_abi_jars = True,
+    experimental_remove_debug_info_in_abi_jars = True,
+)
+```
+
 If you encounter bugs in older compiler versions such as [KT-71525](https://youtrack.jetbrains.com/issue/KT-71525) then ABI generation with only public symbols can be disabled on a per target basis by setting the following tags
 
 ```python
@@ -61,6 +74,10 @@ load("//kotlin:jvm.bzl", "kt_jvm_library")
 
 kt_jvm_library(
     name = "framework",
-    tags = ["kt_treat_internal_as_private_in_abi_plugin_incompatible", "kt_remove_private_classes_in_abi_plugin_incompatible"],
+    tags = [
+        "kt_treat_internal_as_private_in_abi_plugin_incompatible", 
+        "kt_remove_private_classes_in_abi_plugin_incompatible", 
+        "kt_remove_debug_info_in_abi_plugin_incompatible"
+    ],
 )
 ```

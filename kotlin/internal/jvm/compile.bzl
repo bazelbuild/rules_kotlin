@@ -537,6 +537,9 @@ def _run_kt_builder_action(
                 "\nAdditionally ensure the target does not contain the kt_remove_private_classes_in_abi_plugin_incompatible tag.",
             )
 
+    if not "kt_remove_debug_info_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_debug_info_in_abi_jars == True:
+        args.add("--remove_debug_info_in_abi_jar", "true")
+
     args.add("--build_kotlin", build_kotlin)
 
     progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
