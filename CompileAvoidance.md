@@ -54,7 +54,7 @@ define_kt_toolchain(
 )
 ```
 
-To completely remove debug information from the ABI jar, the `experimental_remove_debug_info_in_abi_jars` flag can be used along with `experimental_use_abi_jars`
+In order to completely remove debug information from the ABI jar, the `experimental_remove_debug_info_in_abi_jars` flag can be used along with `experimental_use_abi_jars`
 
 ```python
 load("//kotlin:core.bzl", "define_kt_toolchain")
