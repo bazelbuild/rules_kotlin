@@ -315,7 +315,7 @@ def kt_jvm_junit_test_impl(ctx):
             direct = ctx.files._java_runtime,
         ),
         # adds common test variables, including TEST_WORKSPACE.
-        testing.TestEnvironment(environment = ctx.attr.env),
+        testing.TestEnvironment(environment = ctx.attr.env, inherited_environment = ctx.attr.env_inherit),
     )
 
 _KtCompilerPluginClasspathInfo = provider(
