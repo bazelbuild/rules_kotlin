@@ -11,23 +11,12 @@ load(
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 def kt_js_import_impl(ctx):
-    klibs = []
-    for dep in ctx.attr.klibs:
-        klibs.append(dep[DefaultInfo].files)
-
     return [
-        DefaultInfo(files = depset(transitive = klibs)),
+        DefaultInfo(files = depset(ctx.files.klibs)),
         _KtJsInfo(
-            klibs = klibs,
+            klibs = depset(ctx.files.klibs),
         ),
     ]
-
-def _collect_kt_and_klib_inputs_and_args(ctx):
-    klibs = []
-    for dep in ctx.attr.deps:
-        klibs.append(depset(direct = dep[_KtJsInfo].klibs, transitive = dep[_KtJsInfo].transitive_klibs))
-
-    inputs = depset()
 
 def kt_js_library_impl(ctx):
     if ctx.attr.output_kind == "klib" and ctx.attr.sourcemap:
@@ -38,11 +27,10 @@ def kt_js_library_impl(ctx):
     klib = None
     outputs = []
     module_name = utils.derive_module_name(ctx)
-    builder_args = utils.init_args(ctx, "kt_js_library", module_name, js = True)
+    builder_args = utils.init_args(ctx, "kt_js_library", module_name)
 
     if ctx.attr.output_kind == "js":
         js_file = ctx.actions.declare_file("{}.js".format(ctx.label.name))
-        source_map = ctx.actions.declare_file("{}.js.map".format(ctx.label.name))
         builder_args.add("--kotlin_output_js", js_file.path)
         outputs.append(js_file)
     else:
@@ -50,31 +38,35 @@ def kt_js_library_impl(ctx):
         builder_args.add("--kotlin_output_js_klib", klib.path)
         outputs.append(klib)
 
-    toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
-
-    libraries = depset([d[_KtJsInfo].klib for d in ctx.attr.deps])
-
+    toolchains = ctx.toolchains[_TOOLCHAIN_TYPE]
+    deps_klibs = []
+    for dep in ctx.attr.deps:
+        deps_klibs.append(dep[_KtJsInfo].klibs)
+    libraries = depset(transitive = [ctx.attr._js_stdlib[_KtJsInfo].klibs] + deps_klibs)
     builder_args.add_all("--sources", ctx.files.srcs)
-    builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder, toolchain.kotlin_home])
+    builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchains.kotlinbuilder, toolchains.kotlin_home])
 
-    kotlinc_options = toolchain.kotlinc_options
+    kotlinc_options = toolchains.kotlinc_options
 
     builder_args.add_all(
         "--kotlin_js_passthrough_flags",
-        kotlinc_options_to_flags(kotlinc_options),
+        ["--target=es5"],
     )
-    print(toolchain.jvm_stdlibs)
+    builder_args.add("--strict_kotlin_deps", "off")
+    builder_args.add("--reduced_classpath_mode", "off")
+    builder_args.add_all("--kotlin_js_libraries", libraries, omit_if_empty = False)
+
     ctx.actions.run(
         mnemonic = "KotlinJsCompile",
         inputs = depset(builder_inputs + ctx.files.srcs, transitive = [libraries]),
         outputs = outputs,
-        executable = toolchain.kotlinbuilder.files_to_run.executable,
+        executable = toolchains.kotlinbuilder.files_to_run.executable,
         tools = [
-            toolchain.kotlinbuilder.files_to_run,
-            toolchain.kotlin_home.files_to_run,
+            toolchains.kotlinbuilder.files_to_run,
+            toolchains.kotlin_home.files_to_run,
         ],
         execution_requirements = {"supports-workers": "1"},
-        arguments = [builder_args],
+        arguments = [ctx.actions.args().add_all(toolchains.builder_args), builder_args],
         progress_message = "Compiling Kotlin to JS %%{label} { kt: %d }" % len(ctx.files.srcs),
         input_manifests = input_manifests,
         env = {
@@ -87,7 +79,7 @@ def kt_js_library_impl(ctx):
             files = depset(outputs),
         ),
         _KtJsInfo(
-            js_file = js_file,
-            klibs = [klib],
+            js_file = depset([js_file]),
+            klibs = depset(direct = [klib]),
         ),
     ]

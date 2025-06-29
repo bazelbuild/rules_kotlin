@@ -1,6 +1,0 @@
-load("//kotlin:js.bzl", "kt_js_library")
-
-kt_js_library(
-    name = "helloworld",
-    srcs = ["helloworld/Main.kt"],
-)

@@ -72,8 +72,10 @@ KOTLINC_ARTIFACTS = struct(
         plugin = {},
         runtime = {
             "kotlin-stdlib-js-klib": "lib/kotlin-stdlib-js.klib",
+            "kotlin-reflect": "lib/kotlin-reflect.jar",
         },
-        compile = {},
+        compile = {
+        },
     ),
 )
 

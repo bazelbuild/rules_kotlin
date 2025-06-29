@@ -5,6 +5,9 @@ load(
 )
 load(":impl.bzl", "kt_js_import_impl", "kt_js_library_impl")
 
+"""
+kt_js_import exposes .klib files to other kt_js_library targets
+"""
 kt_js_import = rule(
     implementation = kt_js_import_impl,
     attrs = {
@@ -17,6 +20,11 @@ kt_js_import = rule(
     provides = [_KtJsInfo],
 )
 
+"""
+kt_js_library runs the compilation of Kotlin to intermediate klib files to be shared
+with other kt_js_library targets or generates JS directly to then run directly with Node/Javascript
+runtim
+"""
 kt_js_library = rule(
     implementation = kt_js_library_impl,
     attrs = {
@@ -37,8 +45,8 @@ kt_js_library = rule(
             default = False,
             doc = "Indicates whether sourcemaps (.js.map) files should be emitted if output_kind is set to js",
         ),
-        "_js_stdlibs": attr.label_list(
-            default = [Label("//kotlin/compiler:kotlin-stdlib-js-klib")],
+        "_js_stdlib": attr.label(
+            default = Label("//kotlin/compiler:kotlin-stdlib-js-klib"),
             providers = [_KtJsInfo],
         ),
     },
