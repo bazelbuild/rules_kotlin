@@ -55,7 +55,7 @@ def kt_js_library_impl(ctx):
     libraries = depset([d[_KtJsInfo].klib for d in ctx.attr.deps])
 
     builder_args.add_all("--sources", ctx.files.srcs)
-    inputs, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder, toolchain.kotlin_home])
+    builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder, toolchain.kotlin_home])
 
     kotlinc_options = toolchain.kotlinc_options
 
@@ -63,11 +63,16 @@ def kt_js_library_impl(ctx):
         "--kotlin_js_passthrough_flags",
         kotlinc_options_to_flags(kotlinc_options),
     )
+    print(toolchain.jvm_stdlibs)
     ctx.actions.run(
-        mnemonic = "KotlinCompile",
-        inputs = depset(inputs + ctx.files.srcs, transitive = [libraries]),
+        mnemonic = "KotlinJsCompile",
+        inputs = depset(builder_inputs + ctx.files.srcs, transitive = [libraries]),
         outputs = outputs,
         executable = toolchain.kotlinbuilder.files_to_run.executable,
+        tools = [
+            toolchain.kotlinbuilder.files_to_run,
+            toolchain.kotlin_home.files_to_run,
+        ],
         execution_requirements = {"supports-workers": "1"},
         arguments = [builder_args],
         progress_message = "Compiling Kotlin to JS %%{label} { kt: %d }" % len(ctx.files.srcs),
