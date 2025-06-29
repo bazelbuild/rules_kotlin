@@ -16,6 +16,7 @@
  */
 package io.bazel.kotlin.builder.tasks
 
+import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
@@ -24,10 +25,7 @@ import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.builder.utils.resolveNewDirectories
-import io.bazel.kotlin.model.CompilationTaskInfo
-import io.bazel.kotlin.model.JvmCompilationTask
-import io.bazel.kotlin.model.Platform
-import io.bazel.kotlin.model.RuleKind
+import io.bazel.kotlin.model.*
 import io.bazel.worker.WorkerContext
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
@@ -43,6 +41,7 @@ class KotlinBuilder
   @Inject
   internal constructor(
     private val jvmTaskExecutor: KotlinJvmTaskExecutor,
+    private val jsTaskExecutor: Kotlin2JsTaskExecutor,
   ) {
     companion object {
       @JvmStatic
@@ -89,6 +88,11 @@ class KotlinBuilder
         INSTRUMENT_COVERAGE("--instrument_coverage"),
         KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
         BUILD_TOOLS_API("--build_tools_api"),
+        JS_PASSTHROUGH_FLAGS("--kotlin_js_passthrough_flags"),
+        JS_KLIBS("--kotlin_js_libraries"),
+        OUTPUT_JS("--kotlin_output_js"),
+        OUTPUT_JS_KLIB("--kotlin_output_js_klib"),
+        OUTPUT_JS_SOURCEMAP("--kotlint_output_js_sourcemap")
       }
     }
 
@@ -105,6 +109,7 @@ class KotlinBuilder
           Platform.JVM,
           Platform.ANDROID,
           -> executeJvmTask(compileContext, taskContext.directory, argMap)
+          Platform.JS -> executeJsTask(compileContext, taskContext.directory, argMap)
           Platform.UNRECOGNIZED -> throw IllegalStateException(
             "unrecognized platform: ${compileContext.info}",
           )
@@ -120,6 +125,7 @@ class KotlinBuilder
       }
       return status
     }
+
 
     private fun buildContext(
       ctx: WorkerContext.TaskContext,
@@ -309,6 +315,44 @@ class KotlinBuilder
         }
         root.build()
       }
+
+      private fun executeJsTask(
+        context: CompilationTaskContext,
+        workingDir: Path,
+        argMap: ArgMap,
+      ) = buildJsTask(context.info, workingDir, argMap).let { jsTask ->
+        context.whenTracing { printProto("js task input", jsTask) }
+        jsTaskExecutor.execute(context, jsTask)
+      }
+
+  private fun buildJsTask(
+    info: CompilationTaskInfo,
+    workingDir: Path,
+    argMap: ArgMap,
+  ): JsCompilationTask =
+    with(JsCompilationTask.newBuilder()) {
+      this.info = info
+
+      with(directoriesBuilder) {
+        temp = workingDir.toString()
+      }
+
+      with(inputsBuilder) {
+        addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_KLIBS))
+        addAllKotlinSources(argMap.mandatory(KotlinBuilderFlags.SOURCES))
+      }
+
+      argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JS)?.let {
+        with(outputsBuilder.jsBuilder) {
+          this.setJsFile(it)
+        }
+      }
+      argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JS_KLIB)?.let {
+        outputsBuilder.setKlib(it)
+      }
+      addAllPassThroughFlags(argMap.mandatory(KotlinBuilderFlags.JS_PASSTHROUGH_FLAGS))
+      build()
+    }
 
     private fun getOutputDirPath(
       moduleName: String,

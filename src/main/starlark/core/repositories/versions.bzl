@@ -138,5 +138,14 @@ versions = struct(
         ],
         sha256 = "8769e5647557e3700919c32d508f5c5dad53c5d8234cd10846354fbcff14aa24",
     ),
+    KOTLIN_NATIVE_RELEASE = struct(
+        version = "2.1.21",
+        sha256sums = {
+            "linux-x86_64": "42fb88529b4039b6ac1961a137ccb1c79fc80315947f3ec31b56834c7ce20d0b",
+            "macos-x86_64": "fc6b5979ec322be803bfac549661aaf0f8f7342aa3bd09008d471fff2757bbdf",
+            "macos-aarch64": "8df16175b962bc4264a5c3b32cb042d91458babbd093c0f36194dc4645f5fe2",
+            "windows-x86_64": "03301473bb9e68dadfdd265857a2a5913a147e700e345d32db73e0a21a2ffbfa",
+        },
+    ),
     use_repository = _use_repository,
 )

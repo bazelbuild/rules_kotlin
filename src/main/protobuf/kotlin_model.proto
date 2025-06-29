@@ -55,6 +55,7 @@ enum RuleKind {
 enum Platform {
     JVM = 0;
     ANDROID = 1;
+    JS = 2;
 }
 
 // Common info about a Kotlin compilation task, this message is shared by all compilation tasks.
@@ -174,4 +175,40 @@ message JvmCompilationTask {
   Inputs inputs = 4;
   bool compile_kotlin = 6;
   bool instrument_coverage = 7;
+}
+
+
+message JsCompilationTask {
+
+  // Directories used by the builder.
+  message Directories {
+    // A temp directory that the compiler may use.
+    string temp = 4;
+  }
+
+  message Outputs {
+    oneof js_or_klib {
+      string klib = 1;
+      JsOutput js = 2;
+    }
+  }
+
+  message JsOutput {
+    string js_file = 1;
+    string sourcemap = 2;
+  }
+  message Inputs {
+    repeated string libraries = 1;
+    // Partitioned from the builder flags, expanding the source_jars.
+    repeated string kotlin_sources = 2;
+  }
+
+  CompilationTaskInfo info = 1;
+  Outputs outputs = 3;
+  Inputs inputs = 4;
+
+  // flags that should be passed through straight to the kotlinc-js compiler.
+  repeated string pass_through_flags = 5;
+
+  Directories directories = 6;
 }

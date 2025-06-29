@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS")
+load("//kotlin:js.bzl", "kt_js_import")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
@@ -32,12 +33,18 @@ def _import_artifacts(artifacts, rule_kind):
 
 def _import_labels(labels, rule_kind, **rule_args):
     for (label, file) in labels.items():
-        if not file.endswith(".jar"):
+        if not file.endswith(".jar") and not file.endswith(".klib"):
             native.filegroup(
                 name = label,
                 srcs = [
                     "@%s//:%s" % (_KT_COMPILER_REPO, label),
                 ],
+            )
+            return
+        elif file.endswith(".klib"):
+            kt_js_import(
+                name = label,
+                klibs = ["@%s//:%s" % (_KT_COMPILER_REPO, label)],
             )
             return
 
@@ -62,4 +69,5 @@ def kt_configure_compiler():
         fail("kt_configure_compiler must be called in kotlin/compiler not %s" % native.package_name())
 
     _import_artifacts(KOTLINC_ARTIFACTS.jvm, kt_jvm_import)
+    _import_artifacts(KOTLINC_ARTIFACTS.js, kt_js_import)
     _import_artifacts(KOTLINC_ARTIFACTS.core, kt_jvm_import)

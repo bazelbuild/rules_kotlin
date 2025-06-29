@@ -321,4 +321,14 @@ class KotlinToolchain private constructor(
         return KotlincInvoker(toolchain = toolchain, clazz = clazz)
       }
     }
+
+  @Singleton
+  class K2JSCompilerInvoker
+  @Inject
+  constructor(
+    toolchain: KotlinToolchain,
+  ) : KotlincInvoker(
+    toolchain.toolchainWithReflect(),
+    "org.jetbrains.kotlin.cli.js.K2JSCompiler",
+  )
 }
