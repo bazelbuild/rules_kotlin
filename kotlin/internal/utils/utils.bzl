@@ -33,7 +33,6 @@ def _init_builder_args(ctx, rule_kind, module_name, kotlinc_options = None):
 
     kotlin_jvm_target = kotlinc_options.jvm_target if (kotlinc_options and kotlinc_options.jvm_target) else toolchain.jvm_target
     args.add("--kotlin_jvm_target", kotlin_jvm_target)
-
     args.add("--kotlin_api_version", toolchain.api_version)
     args.add("--kotlin_language_version", toolchain.language_version)
 
