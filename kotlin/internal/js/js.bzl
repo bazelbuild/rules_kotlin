@@ -49,6 +49,10 @@ kt_js_library = rule(
             default = Label("//kotlin/compiler:kotlin-stdlib-js-klib"),
             providers = [_KtJsInfo],
         ),
+        "es_target": attr.string(
+            values = ["es5", "es2015"],
+            default = "es5",
+        ),
     },
     toolchains = [_TOOLCHAIN_TYPE],
     provides = [_KtJsInfo],

@@ -50,7 +50,7 @@ def kt_js_library_impl(ctx):
 
     builder_args.add_all(
         "--kotlin_js_passthrough_flags",
-        ["--target=es5"],
+        ["--target={}".format(ctx.attr.es_target)],
     )
     builder_args.add("--strict_kotlin_deps", "off")
     builder_args.add("--reduced_classpath_mode", "off")
