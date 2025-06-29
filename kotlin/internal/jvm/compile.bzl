@@ -114,9 +114,6 @@ def _fail_if_invalid_associate_deps(associate_deps, deps):
             ",\n ".join(["    %s" % x for x in list(diff)]),
         )
 
-def _java_infos_to_compile_jars(java_infos):
-    return depset(transitive = [j.compile_jars for j in java_infos])
-
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
     plugins = []
@@ -469,7 +466,7 @@ def _run_kt_builder_action(
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
     args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kotlinc_options))
     args.add_all("--javacopts", javac_options_to_flags(javac_options))
-    args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
+    args.add_all("--direct_dependencies", compile_deps.direct_dep_jars)
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
