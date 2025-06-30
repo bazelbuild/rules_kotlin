@@ -187,10 +187,8 @@ message JsCompilationTask {
   }
 
   message Outputs {
-    oneof js_or_klib {
       string klib = 1;
-      JsOutput js = 2;
-    }
+      optional JsOutput js = 2;
   }
 
   message JsOutput {

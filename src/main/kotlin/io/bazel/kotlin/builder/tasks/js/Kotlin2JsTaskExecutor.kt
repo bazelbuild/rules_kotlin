@@ -30,12 +30,12 @@ class Kotlin2JsTaskExecutor
       task.compile(context)
     }
 
-    private fun JsCompilationTask.compile(context: CompilationTaskContext): Path {
-      if (outputs.hasKlib()) {
-        return compileToKlib(context)
-      } else {
-        return compileToJs(context)
-      }
+    private fun JsCompilationTask.compile(context: CompilationTaskContext) {
+        compileToKlib(context)
+        // If producing JS, add a additional compilation step after creating klib
+        if(outputs.js != null && !outputs.js.jsFile.isNullOrEmpty()) {
+          compileToJs(context)
+        }
     }
 
     private fun JsCompilationTask.workingDirectory(): Path = fileSystem.getPath(directories.temp)
@@ -90,6 +90,8 @@ class Kotlin2JsTaskExecutor
     private fun JsCompilationTask.compileToJs(context: CompilationTaskContext): Path {
       val args = commonArgs()
       args.add("-Xir-produce-js")
+      val klibOut = fileSystem.getPath(outputs.klib)
+      args.addAll("-Xinclude=${klibOut.toAbsolutePath()}")
       val jsOut = fileSystem.getPath(outputs.js.jsFile)
       val outputDirectory = jsOut.parent
       args.addAll("-ir-output-name=${jsOut.toFile().nameWithoutExtension}")

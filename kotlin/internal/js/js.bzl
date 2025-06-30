@@ -39,7 +39,7 @@ kt_js_library = rule(
         "output_kind": attr.string(
             values = ["klib", "js"],
             default = "klib",
-            doc = "The output to be generated with the rule, either klib or js",
+            doc = "The output to be generated with the rule, either only a klib or klib + js",
         ),
         "sourcemap": attr.bool(
             default = False,
