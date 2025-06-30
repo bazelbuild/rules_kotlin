@@ -19,3 +19,11 @@ KtJvmInfo = provider(
         "all_output_jars": "Returns all the output Jars produced by this rule. [bazel-bsp-aspect]",
     },
 )
+
+KtJsInfo = provider(
+    fields = {
+        "js_file": "The transpiled JS output, if producing the final binary instead of klib",
+        "klibs": "The klibs emitted by this target",
+        "transitive_klibs": "A depset of klibs transitively produced through this target",
+    },
+)

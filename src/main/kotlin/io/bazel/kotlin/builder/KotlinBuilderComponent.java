@@ -20,6 +20,7 @@ import dagger.BindsInstance;
 import dagger.Component;
 import dagger.Provides;
 import io.bazel.kotlin.builder.tasks.CompileKotlin;
+import io.bazel.kotlin.builder.tasks.js.Kotlin2JsTaskExecutor;
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
@@ -32,6 +33,8 @@ public interface KotlinBuilderComponent {
     KotlinToolchain toolchain();
 
     KotlinJvmTaskExecutor jvmTaskExecutor();
+
+    Kotlin2JsTaskExecutor jsTaskExecutor();
 
     CompileKotlin work();
 

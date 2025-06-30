@@ -68,11 +68,20 @@ KOTLINC_ARTIFACTS = struct(
             "trove4j": "lib/trove4j.jar",
         },
     ),
+    js = struct(
+        plugin = {},
+        runtime = {
+            "kotlin-stdlib-js-klib": "lib/kotlin-stdlib-js.klib",
+            "kotlin-reflect": "lib/kotlin-reflect.jar",
+        },
+        compile = {
+        },
+    ),
 )
 
 KOTLINC_ARTIFACT_LIST = {
     label: file
-    for lang in ["jvm", "core"]
+    for lang in ["jvm", "core", "js"]
     for type in ["compile", "plugin", "runtime"]
     for (label, file) in getattr(getattr(KOTLINC_ARTIFACTS, lang), type).items()
 }

@@ -15,6 +15,7 @@ load(
     "//src/main/starlark/core/compile:common.bzl",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
     _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
+    _KtJsInfo = "KtJsInfo",
     _KtJvmInfo = "KtJvmInfo",
 )
 load(
@@ -47,3 +48,5 @@ KspPluginInfo = _KspPluginInfo
 KtCompilerPluginOption = _KtCompilerPluginOption
 
 KtPluginConfiguration = _KtPluginConfiguration
+
+KtJsInfo = _KtJsInfo
