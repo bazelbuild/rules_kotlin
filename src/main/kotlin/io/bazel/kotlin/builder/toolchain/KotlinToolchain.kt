@@ -324,11 +324,11 @@ class KotlinToolchain private constructor(
 
   @Singleton
   class K2JSCompilerInvoker
-  @Inject
-  constructor(
-    toolchain: KotlinToolchain,
-  ) : KotlincInvoker(
-    toolchain,
-    "io.bazel.kotlin.compiler.BazelK2JSCompiler",
-  )
+    @Inject
+    constructor(
+      toolchain: KotlinToolchain,
+    ) : KotlincInvoker(
+        toolchain,
+        "io.bazel.kotlin.compiler.BazelK2JSCompiler",
+      )
 }

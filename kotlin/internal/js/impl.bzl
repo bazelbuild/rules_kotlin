@@ -3,11 +3,6 @@ load(
     _KtJsInfo = "KtJsInfo",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
-load(
-    "//kotlin/internal:opts.bzl",
-    "KotlincOptions",
-    "kotlinc_options_to_flags",
-)
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 def kt_js_import_impl(ctx):
@@ -23,7 +18,6 @@ def kt_js_library_impl(ctx):
         fail("sourcemap can be only generated with js output_kind")
 
     js_file = None
-    source_map = None
     klib = None
     outputs = []
     module_name = utils.derive_module_name(ctx)
@@ -44,8 +38,6 @@ def kt_js_library_impl(ctx):
     libraries = depset(transitive = [ctx.attr._js_stdlib[_KtJsInfo].klibs] + deps_klibs)
     builder_args.add_all("--sources", ctx.files.srcs)
     builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchains.kotlinbuilder, toolchains.kotlin_home])
-
-    kotlinc_options = toolchains.kotlinc_options
 
     builder_args.add_all(
         "--kotlin_js_passthrough_flags",
