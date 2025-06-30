@@ -28,6 +28,8 @@ import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.JsCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask
+import io.bazel.kotlin.model.Platform
+import io.bazel.kotlin.model.RuleKind
 import io.bazel.worker.WorkerContext
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems

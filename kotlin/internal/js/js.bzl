@@ -53,6 +53,10 @@ kt_js_library = rule(
             values = ["es5", "es2015"],
             default = "es5",
         ),
+        "module_kind": attr.string(
+            values = ["plain", "umd", "amd", "commonjs", "umd", "es"],
+            default = "commonjs",
+        ),
     },
     toolchains = [_TOOLCHAIN_TYPE],
     provides = [_KtJsInfo],
