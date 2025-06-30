@@ -20,6 +20,7 @@ def kt_js_library_impl(ctx):
     js_file = None
     klib = None
     outputs = []
+    additional_providers = []
     module_name = utils.derive_module_name(ctx)
     builder_args = utils.init_args(ctx, "kt_js_library", module_name)
 
@@ -30,6 +31,9 @@ def kt_js_library_impl(ctx):
         js_file = ctx.actions.declare_file("{}.js".format(ctx.label.name))
         builder_args.add("--kotlin_output_js", js_file.path)
         outputs.append(js_file)
+        additional_providers.append(OutputGroupInfo(
+            js = depset([js_file]),
+        ))
 
     toolchains = ctx.toolchains[_TOOLCHAIN_TYPE]
     deps_klibs = []
@@ -76,7 +80,4 @@ def kt_js_library_impl(ctx):
             js_file = depset([js_file]),
             klibs = depset(direct = [klib]),
         ),
-        OutputGroupInfo(
-            js = depset([js_file]),
-        ),
-    ]
+    ] + additional_providers
