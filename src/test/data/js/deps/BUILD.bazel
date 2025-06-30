@@ -12,6 +12,7 @@ kt_js_library(
     srcs = [
         "Main.kt",
     ],
+    output_kind = "js",
     deps = [
         ":app",
     ],

@@ -31,11 +31,11 @@ class Kotlin2JsTaskExecutor
     }
 
     private fun JsCompilationTask.compile(context: CompilationTaskContext) {
-        compileToKlib(context)
-        // If producing JS, add a additional compilation step after creating klib
-        if(outputs.js != null && !outputs.js.jsFile.isNullOrEmpty()) {
-          compileToJs(context)
-        }
+      compileToKlib(context)
+      // If producing JS, add a additional compilation step after creating klib
+      if (outputs.js != null && !outputs.js.jsFile.isNullOrEmpty()) {
+        compileToJs(context)
+      }
     }
 
     private fun JsCompilationTask.workingDirectory(): Path = fileSystem.getPath(directories.temp)
