@@ -4,7 +4,6 @@ import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.model.JsCompilationTask
-import java.io.File
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -18,37 +17,37 @@ import kotlin.io.path.exists
 
 @Singleton
 class Kotlin2JsTaskExecutor
-@Inject
-constructor(
-  private val invoker: KotlinToolchain.K2JSCompilerInvoker,
-) {
-  private val fileSystem: FileSystem = FileSystems.getDefault()
-
-  fun execute(
-    context: CompilationTaskContext,
-    task: JsCompilationTask,
+  @Inject
+  constructor(
+    private val invoker: KotlinToolchain.K2JSCompilerInvoker,
   ) {
-    task.compile(context)
-  }
+    private val fileSystem: FileSystem = FileSystems.getDefault()
 
-  private fun JsCompilationTask.compile(context: CompilationTaskContext): Path {
-    if(outputs.hasKlib()) {
-      return compileToKlib(context)
-    } else {
-      return compileToJs(context)
-    }
-  }
-
-  private fun JsCompilationTask.workingDirectory(): Path = fileSystem.getPath(directories.temp)
-
-  private fun JsCompilationTask.commonArgs(): MutableList<String> {
-    val workDir = workingDirectory()
-    if(!workDir.exists()) {
-      workDir.toFile().mkdirs()
+    fun execute(
+      context: CompilationTaskContext,
+      task: JsCompilationTask,
+    ) {
+      task.compile(context)
     }
 
-    val execRoot = fileSystem.getPath(".").absolute()
-    return mutableListOf<String>().apply {
+    private fun JsCompilationTask.compile(context: CompilationTaskContext): Path {
+      if (outputs.hasKlib()) {
+        return compileToKlib(context)
+      } else {
+        return compileToJs(context)
+      }
+    }
+
+    private fun JsCompilationTask.workingDirectory(): Path = fileSystem.getPath(directories.temp)
+
+    private fun JsCompilationTask.commonArgs(): MutableList<String> {
+      val workDir = workingDirectory()
+      if (!workDir.exists()) {
+        workDir.toFile().mkdirs()
+      }
+
+      val execRoot = fileSystem.getPath(".").absolute()
+      return mutableListOf<String>().apply {
         addAll(passThroughFlagsList)
         addAll(
           "-libraries",
@@ -64,49 +63,49 @@ constructor(
         addAll("-Xir-module-name=${info.moduleName}")
         addAll(inputs.kotlinSourcesList.map { execRoot.resolve(it).absolutePathString() })
       }
-  }
-
-  private fun JsCompilationTask.compileToKlib(context: CompilationTaskContext): Path {
-    val args = commonArgs()
-    val klibOut = fileSystem.getPath(outputs.klib)
-    args.add("-Xir-produce-klib-file")
-    args.addAll("-ir-output-name=${klibOut.toFile().nameWithoutExtension}")
-    context.whenTracing { printLines("klib compile args", args) }
-
-    val outputDirectory = klibOut.parent
-    val workDir = workingDirectory()
-
-    context.executeCompilerTask(args, invoker::compile)
-    context.whenTracing {
-      printLines(
-        "outputs",
-        Files.walk(outputDirectory).map { p -> p.toString() }.collect(Collectors.toList()),
-      )
     }
-    Files.copy(workDir.resolve(klibOut.fileName), klibOut)
 
-    return workDir
-  }
+    private fun JsCompilationTask.compileToKlib(context: CompilationTaskContext): Path {
+      val args = commonArgs()
+      val klibOut = fileSystem.getPath(outputs.klib)
+      args.add("-Xir-produce-klib-file")
+      args.addAll("-ir-output-name=${klibOut.toFile().nameWithoutExtension}")
+      context.whenTracing { printLines("klib compile args", args) }
 
-  private fun JsCompilationTask.compileToJs(context: CompilationTaskContext): Path {
-    val args = commonArgs()
-    args.add("-Xir-produce-js")
-    val jsOut = fileSystem.getPath(outputs.js.jsFile)
-    val outputDirectory = jsOut.parent
-    args.addAll("-ir-output-name=${jsOut.toFile().nameWithoutExtension}")
+      val outputDirectory = klibOut.parent
+      val workDir = workingDirectory()
 
-    val workDir = workingDirectory()
-    context.whenTracing { printLines("js compile args", args) }
+      context.executeCompilerTask(args, invoker::compile)
+      context.whenTracing {
+        printLines(
+          "outputs",
+          Files.walk(outputDirectory).map { p -> p.toString() }.collect(Collectors.toList()),
+        )
+      }
+      Files.copy(workDir.resolve(klibOut.fileName), klibOut)
 
-    context.executeCompilerTask(args, invoker::compile)
-    context.whenTracing {
-      printLines(
-        "outputs",
-        Files.walk(outputDirectory).map { p -> p.toString() }.collect(Collectors.toList()),
-      )
+      return workDir
     }
-    Files.copy(workDir.resolve(jsOut.fileName), jsOut)
 
-    return workDir
+    private fun JsCompilationTask.compileToJs(context: CompilationTaskContext): Path {
+      val args = commonArgs()
+      args.add("-Xir-produce-js")
+      val jsOut = fileSystem.getPath(outputs.js.jsFile)
+      val outputDirectory = jsOut.parent
+      args.addAll("-ir-output-name=${jsOut.toFile().nameWithoutExtension}")
+
+      val workDir = workingDirectory()
+      context.whenTracing { printLines("js compile args", args) }
+
+      context.executeCompilerTask(args, invoker::compile)
+      context.whenTracing {
+        printLines(
+          "outputs",
+          Files.walk(outputDirectory).map { p -> p.toString() }.collect(Collectors.toList()),
+        )
+      }
+      Files.copy(workDir.resolve(jsOut.fileName), jsOut)
+
+      return workDir
+    }
   }
-}

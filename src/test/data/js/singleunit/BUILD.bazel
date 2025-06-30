@@ -6,4 +6,5 @@ kt_js_library(
         "App.kt",
         "Main.kt",
     ],
+    output_kind = "js",
 )

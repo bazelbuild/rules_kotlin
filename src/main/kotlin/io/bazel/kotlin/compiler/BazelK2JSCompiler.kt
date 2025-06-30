@@ -28,7 +28,7 @@ class BazelK2JSCompiler {
     vararg args: String,
   ): ExitCode {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
-    val delegate: K2JSCompiler = K2JSCompiler()
+    val delegate = K2JSCompiler()
     val arguments = delegate.createArguments().also { delegate.parseArguments(args, it) }
     val collector =
       PrintingMessageCollector(errStream, MessageRenderer.PLAIN_RELATIVE_PATHS, arguments.verbose)

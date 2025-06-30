@@ -92,7 +92,7 @@ class KotlinBuilder
         JS_KLIBS("--kotlin_js_libraries"),
         OUTPUT_JS("--kotlin_output_js"),
         OUTPUT_JS_KLIB("--kotlin_output_js_klib"),
-        OUTPUT_JS_SOURCEMAP("--kotlint_output_js_sourcemap")
+        OUTPUT_JS_SOURCEMAP("--kotlint_output_js_sourcemap"),
       }
     }
 
@@ -125,7 +125,6 @@ class KotlinBuilder
       }
       return status
     }
-
 
     private fun buildContext(
       ctx: WorkerContext.TaskContext,
@@ -316,43 +315,43 @@ class KotlinBuilder
         root.build()
       }
 
-      private fun executeJsTask(
-        context: CompilationTaskContext,
-        workingDir: Path,
-        argMap: ArgMap,
-      ) = buildJsTask(context.info, workingDir, argMap).let { jsTask ->
-        context.whenTracing { printProto("js task input", jsTask) }
-        jsTaskExecutor.execute(context, jsTask)
-      }
-
-  private fun buildJsTask(
-    info: CompilationTaskInfo,
-    workingDir: Path,
-    argMap: ArgMap,
-  ): JsCompilationTask =
-    with(JsCompilationTask.newBuilder()) {
-      this.info = info
-
-      with(directoriesBuilder) {
-        temp = workingDir.toString()
-      }
-
-      with(inputsBuilder) {
-        addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_KLIBS))
-        addAllKotlinSources(argMap.mandatory(KotlinBuilderFlags.SOURCES))
-      }
-
-      argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JS)?.let {
-        with(outputsBuilder.jsBuilder) {
-          this.setJsFile(it)
-        }
-      }
-      argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JS_KLIB)?.let {
-        outputsBuilder.setKlib(it)
-      }
-      addAllPassThroughFlags(argMap.mandatory(KotlinBuilderFlags.JS_PASSTHROUGH_FLAGS))
-      build()
+    private fun executeJsTask(
+      context: CompilationTaskContext,
+      workingDir: Path,
+      argMap: ArgMap,
+    ) = buildJsTask(context.info, workingDir, argMap).let { jsTask ->
+      context.whenTracing { printProto("js task input", jsTask) }
+      jsTaskExecutor.execute(context, jsTask)
     }
+
+    private fun buildJsTask(
+      info: CompilationTaskInfo,
+      workingDir: Path,
+      argMap: ArgMap,
+    ): JsCompilationTask =
+      with(JsCompilationTask.newBuilder()) {
+        this.info = info
+
+        with(directoriesBuilder) {
+          temp = workingDir.toString()
+        }
+
+        with(inputsBuilder) {
+          addAllLibraries(argMap.mandatory(KotlinBuilderFlags.JS_KLIBS))
+          addAllKotlinSources(argMap.mandatory(KotlinBuilderFlags.SOURCES))
+        }
+
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JS)?.let {
+          with(outputsBuilder.jsBuilder) {
+            this.setJsFile(it)
+          }
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JS_KLIB)?.let {
+          outputsBuilder.setKlib(it)
+        }
+        addAllPassThroughFlags(argMap.mandatory(KotlinBuilderFlags.JS_PASSTHROUGH_FLAGS))
+        build()
+      }
 
     private fun getOutputDirPath(
       moduleName: String,
