@@ -1,0 +1,23 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@rules_kotlin//kotlin:js.bzl", "kt_js_library")
+
+kt_js_library(
+    name = "app",
+    srcs = [
+        "App.kt",
+        "Main.kt",
+    ],
+    output_kind = "js",
+)
+
+filegroup(
+    name = "js-file",
+    srcs = [":app"],
+    output_group = "js",
+)
+
+js_binary(
+    name = "express",
+    data = ["//:node_modules/express"],
+    entry_point = ":js-file",
+)

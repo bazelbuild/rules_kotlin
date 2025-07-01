@@ -28,6 +28,7 @@ release_archive(
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
+        "//kotlin/internal/js:pkg",
         "//kotlin/internal/jvm:pkg",
         "//kotlin/internal/lint:pkg",
         "//kotlin/internal/utils:pkg",
@@ -39,6 +40,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//kotlin:__subpackages__"],
     deps = [
+        "//kotlin/internal/js",
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",

@@ -1,0 +1,20 @@
+load("//kotlin:js.bzl", "kt_js_library")
+
+kt_js_library(
+    name = "app",
+    srcs = [
+        "App.kt",
+    ],
+)
+
+kt_js_library(
+    name = "main",
+    srcs = [
+        "Main.kt",
+    ],
+    output_kind = "js",
+    visibility = ["//src/test:__subpackages__"],
+    deps = [
+        ":app",
+    ],
+)

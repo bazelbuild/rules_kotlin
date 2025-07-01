@@ -216,6 +216,57 @@ Setup a simple kotlin_test.
 
 
 
+<a id="kt_js_import"></a>
+
+## kt_js_import
+
+<pre>
+load("@rules_kotlin//kotlin:js.bzl", "kt_js_import")
+
+kt_js_import(<a href="#kt_js_import-name">name</a>, <a href="#kt_js_import-klibs">klibs</a>)
+</pre>
+
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="kt_js_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="kt_js_import-klibs"></a>klibs |  One or more klib targets that model a kotlin/js library   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+
+
+<a id="kt_js_library"></a>
+
+## kt_js_library
+
+<pre>
+load("@rules_kotlin//kotlin:js.bzl", "kt_js_library")
+
+kt_js_library(<a href="#kt_js_library-name">name</a>, <a href="#kt_js_library-deps">deps</a>, <a href="#kt_js_library-srcs">srcs</a>, <a href="#kt_js_library-es_target">es_target</a>, <a href="#kt_js_library-module_kind">module_kind</a>, <a href="#kt_js_library-output_kind">output_kind</a>, <a href="#kt_js_library-sourcemap">sourcemap</a>)
+</pre>
+
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="kt_js_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="kt_js_library-deps"></a>deps |  A list of other kt_js_library that this library depends on for compilation   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_js_library-srcs"></a>srcs |  A list of source files to be transpiled to JS   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="kt_js_library-es_target"></a>es_target |  -   | String | optional |  `"es5"`  |
+| <a id="kt_js_library-module_kind"></a>module_kind |  -   | String | optional |  `"commonjs"`  |
+| <a id="kt_js_library-output_kind"></a>output_kind |  The output to be generated with the rule, either only a klib or klib + js   | String | optional |  `"klib"`  |
+| <a id="kt_js_library-sourcemap"></a>sourcemap |  Indicates whether sourcemaps (.js.map) files should be emitted if output_kind is set to js   | Boolean | optional |  `False`  |
+
+
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
+
+
+
 <a id="ktlint_config"></a>
 
 ## ktlint_config

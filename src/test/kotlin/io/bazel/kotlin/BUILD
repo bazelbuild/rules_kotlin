@@ -68,9 +68,16 @@ kt_rules_e2e_test(
     data = ["//src/test/data/jvm/ksp"],
 )
 
+kt_rules_e2e_test(
+    name = "KotlinJsAssertionTest",
+    srcs = ["KotlinJsAssertionTest.kt"],
+    data = ["//src/test/data/js:js_klib_tests"],
+)
+
 test_suite(
     name = "assertion_tests",
     tests = [
+        "KotlinJsAssertionTest",
         "KotlinJvm13Test",
         "KotlinJvmAssociatesBasicVisibilityTest",
         "KotlinJvmBasicAssertionTest",

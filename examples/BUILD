@@ -75,8 +75,6 @@ genrule(
                 # Exclude files in `examples`.
                 exclude = [
                     "*",
-                    # Node is currently broken.
-                    "node/**",
                     # Anvil is broken by a verison upgrade.
                     "anvil/**",
                 ],
