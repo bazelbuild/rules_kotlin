@@ -69,7 +69,7 @@ class Kotlin2JsTaskExecutor
       val args = commonArgs()
       val klibOut = fileSystem.getPath(outputs.klib)
       args.add("-Xir-produce-klib-file")
-      args.addAll("-ir-output-name=${klibOut.toFile().nameWithoutExtension}")
+      args.add("-ir-output-name=${klibOut.toFile().nameWithoutExtension}")
       context.whenTracing { printLines("klib compile args", args) }
 
       val outputDirectory = klibOut.parent
@@ -91,10 +91,10 @@ class Kotlin2JsTaskExecutor
       val args = commonArgs()
       args.add("-Xir-produce-js")
       val klibOut = fileSystem.getPath(outputs.klib)
-      args.addAll("-Xinclude=${klibOut.toAbsolutePath()}")
+      args.add("-Xinclude=${klibOut.toAbsolutePath()}")
       val jsOut = fileSystem.getPath(outputs.js.jsFile)
       val outputDirectory = jsOut.parent
-      args.addAll("-ir-output-name=${jsOut.toFile().nameWithoutExtension}")
+      args.add("-ir-output-name=${jsOut.toFile().nameWithoutExtension}")
 
       val workDir = workingDirectory()
       context.whenTracing { printLines("js compile args", args) }

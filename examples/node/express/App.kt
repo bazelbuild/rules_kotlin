@@ -1,8 +1,7 @@
-@file:JsModule("express")
-@file:JsNonModule
 package express
 
-
+@JsModule("express")
+@JsNonModule
 external fun express(): ExpressApp
 
 external interface ExpressApp {
