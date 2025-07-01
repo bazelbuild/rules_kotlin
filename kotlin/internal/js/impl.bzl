@@ -33,6 +33,11 @@ def kt_js_library_impl(ctx):
         outputs.append(js_file)
         additional_providers.append(OutputGroupInfo(
             js = depset([js_file]),
+            klib = depset([klib]),
+        ))
+    else:
+        additional_providers.append(OutputGroupInfo(
+            klib = depset([klib]),
         ))
 
     toolchains = ctx.toolchains[_TOOLCHAIN_TYPE]

@@ -7,4 +7,5 @@ kt_js_library(
         "Main.kt",
     ],
     output_kind = "js",
+    visibility = ["//src/test:__subpackages__"],
 )

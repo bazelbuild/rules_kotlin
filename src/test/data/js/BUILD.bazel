@@ -1,0 +1,9 @@
+filegroup(
+    name = "js_klib_tests",
+    srcs = [
+        "//src/test/data/js/deps:main",
+        "//src/test/data/js/singleunit",
+    ],
+    output_group = "klib",
+    visibility = ["//src/test:__subpackages__"],
+)
