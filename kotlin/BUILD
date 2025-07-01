@@ -44,6 +44,7 @@ release_archive(
     )
     for doc in [
         "jvm",
+        "js",
         "lint",
         "core",
         "repositories.doc",
@@ -54,6 +55,7 @@ genrule(
     name = "stardoc",
     srcs = [doc for doc in [
         "jvm",
+        "js",
         "lint",
         "core",
         "repositories.doc",

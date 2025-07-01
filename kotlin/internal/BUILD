@@ -40,6 +40,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//kotlin:__subpackages__"],
     deps = [
+        "//kotlin/internal/js",
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",
         "//kotlin/internal/utils",
