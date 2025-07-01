@@ -28,6 +28,7 @@ release_archive(
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [
+        "//kotlin/internal/js:pkg",
         "//kotlin/internal/jvm:pkg",
         "//kotlin/internal/lint:pkg",
         "//kotlin/internal/utils:pkg",
