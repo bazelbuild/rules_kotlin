@@ -31,13 +31,12 @@ ksp_version = _ksp_version
 def kotlin_repositories(
         is_bzlmod = False,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
-        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE,
-        kotlin_native_release = versions.KOTLIN_NATIVE_RELEASE):
+        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
         compiler_release: (internal) version provider from versions.bzl.
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
-    _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release, kotlin_native_release = kotlin_native_release)
+    _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
     kt_configure()

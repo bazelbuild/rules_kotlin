@@ -28,7 +28,6 @@ load(
 )
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
-load(":native.bzl", "KOTLIN_NATIVE_PLATFORMS", "kotlin_native_compiler_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
 versions = _versions
@@ -40,8 +39,7 @@ def kotlin_repositories(
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
-        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE,
-        kotlin_native_release = versions.KOTLIN_NATIVE_RELEASE):
+        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
@@ -65,14 +63,6 @@ def kotlin_repositories(
         sha256 = ksp_compiler_release.sha256,
         strip_version = ksp_compiler_release.version,
     )
-
-    for platform in KOTLIN_NATIVE_PLATFORMS:
-        kotlin_native_compiler_repository(
-            name = "kotlin-native-" + platform,
-            version = kotlin_native_release.version,
-            sha256 = kotlin_native_release.sha256sums[platform],
-            platform = platform,
-        )
 
     maybe(
         http_file,
