@@ -16,6 +16,7 @@ load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KT_NATIVE_COMPILER_REPO_PREFIX = "KT_NATIVE_COMPILER_REPO_PREFIX",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
@@ -79,6 +80,7 @@ def _kotlin_toolchain_impl(ctx):
         ],
         jdeps_merger = ctx.attr.jdeps_merger,
         kotlin_home = ctx.attr.kotlin_home,
+        konan_home = ctx.attr.konan_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -113,6 +115,10 @@ _kt_toolchain = rule(
         "kotlin_home": attr.label(
             doc = "the filegroup defining the kotlin home",
             default = Label("@" + _KT_COMPILER_REPO + "//:home"),
+            allow_files = True,
+        ),
+        "konan_home": attr.label(
+            doc = "the filegroup defining the konan/kotlin-native home",
             allow_files = True,
         ),
         "kotlinbuilder": attr.label(
@@ -379,6 +385,12 @@ def define_kt_toolchain(
         jvm_runtime = jvm_runtime if jvm_runtime != None else [
             Label("//kotlin/compiler:kotlin-stdlib"),
         ],
+        konan_home = select({
+            "@bazel_tools//src/conditions:linux_x86_64": Label("@" + _KT_NATIVE_COMPILER_REPO_PREFIX + "_linux_x86_64//:konan_home"),
+            "@bazel_tools//src/conditions:darwin_arm64": Label("@" + _KT_NATIVE_COMPILER_REPO_PREFIX + "_macos_aarch64//:konan_home"),
+            "@bazel_tools//src/conditions:darwin_x86_64": Label("@" + _KT_NATIVE_COMPILER_REPO_PREFIX + "_macos_x86_64//:konan_home"),
+            "@bazel_tools//src/conditions:windows": Label("@" + _KT_NATIVE_COMPILER_REPO_PREFIX + "_windows_x86_64//:konan_home"),
+        }),
     )
     native.toolchain(
         name = name,

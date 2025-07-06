@@ -16,6 +16,7 @@ load(
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
     _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
     _KtJvmInfo = "KtJvmInfo",
+    _KtKlibCommonInfo = "KtKlibCommonInfo",
 )
 load(
     "//src/main/starlark/core/plugin:providers.bzl",
@@ -35,6 +36,9 @@ JAVA_RUNTIME_TOOLCHAIN_TYPE = _JAVA_RUNTIME_TOOLCHAIN_TYPE
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 
+# The preifx of the Kotlin native compiler workspace name (will be suffixed with the platform)
+KT_NATIVE_COMPILER_REPO_PREFIX = "com_github_jetbrains_kotlin_native"
+
 # The name of the KSP compiler plugin workspace
 KSP_COMPILER_PLUGIN_REPO = "com_github_google_ksp"
 
@@ -47,3 +51,5 @@ KspPluginInfo = _KspPluginInfo
 KtCompilerPluginOption = _KtCompilerPluginOption
 
 KtPluginConfiguration = _KtPluginConfiguration
+
+KtKlibCommonInfo = _KtKlibCommonInfo

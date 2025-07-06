@@ -70,9 +70,51 @@ KOTLINC_ARTIFACTS = struct(
     ),
 )
 
+KOTLIN_NATIVE_ARTIFACTS = struct(
+    linux_x86_64 = struct(
+        plugin = {},
+        compile = {
+            "kotlin-native-linux-x86_64": "konan/lib/kotlin-native.jar",
+            "trove4j-linux-x86_64": "konan/lib/trove4j.jar",
+        },
+        runtime = {},
+    ),
+    macos_x86_64 = struct(
+        plugin = {},
+        compile = {
+            "kotlin-native-macos-x86_64": "konan/lib/kotlin-native.jar",
+            "trove4j-macos-x86_64": "konan/lib/trove4j.jar",
+        },
+        runtime = {},
+    ),
+    macos_aarch64 = struct(
+        plugin = {},
+        compile = {
+            "kotlin-native-macos_aarch64": "konan/lib/kotlin-native.jar",
+            "trove4j-macos_aarch64": "konan/lib/trove4j.jar",
+        },
+        runtime = {},
+    ),
+    windows_x86_64 = struct(
+        plugin = {},
+        compile = {
+            "kotlin-native-windows_x86_64": "konan/lib/kotlin-native.jar",
+            "trove4j-windows_x86_64": "konan/lib/trove4j.jar",
+        },
+        runtime = {},
+    ),
+)
+
 KOTLINC_ARTIFACT_LIST = {
     label: file
     for lang in ["jvm", "core"]
     for type in ["compile", "plugin", "runtime"]
     for (label, file) in getattr(getattr(KOTLINC_ARTIFACTS, lang), type).items()
+}
+
+KOTLIN_NATIVE_ARTIFACT_LIST = {
+    label: file
+    for platform in ["linux_x86_64", "macos_x86_64", "macos_aarch64", "windows_x86_64"]
+    for type in ["compile", "plugin", "runtime"]
+    for (label, file) in getattr(getattr(KOTLIN_NATIVE_ARTIFACTS, platform), type).items()
 }

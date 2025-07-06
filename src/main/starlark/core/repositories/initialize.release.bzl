@@ -25,9 +25,11 @@ load(
     "//kotlin/internal:defs.bzl",
     _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
+    _KT_NATIVE_COMPILER_REPO_PREFIX = "KT_NATIVE_COMPILER_REPO_PREFIX",
 )
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
+load(":native.bzl", "kotlin_native_compiler_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
 versions = _versions
@@ -39,7 +41,11 @@ def kotlin_repositories(
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
         compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
-        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
+        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE,
+        kotlin_native_release_linux_x86_64 = versions.KOTLIN_NATIVE_CURRENT_RELEASE_LINUX_X86_64,
+        kotlin_native_release_macos_x86_64 = versions.KOTLIN_NATIVE_CURRENT_RELEASE_MACOS_X86_64,
+        kotlin_native_release_macos_aarch64 = versions.KOTLIN_NATIVE_CURRENT_RELEASE_MACOS_AARCH64,
+        kotlin_native_release_windows_x86_64 = versions.KOTLIN_NATIVE_CURRENT_RELEASE_WINDOWS_X86_64):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
@@ -48,6 +54,10 @@ def kotlin_repositories(
         configured_repository_name: for the default versioned kt_* rules repository. If None, no versioned repository is
          created.
         ksp_compiler_release: (internal) version provider from versions.bzl.
+        kotlin_native_release_linux_x86_64: (internal) version provider from versions.bzl
+        kotlin_native_release_macos_x86_64: (internal) version provider from versions.bzl
+        kotlin_native_release_macos_aarch_64: (internal) version provider from versions.bzl
+        kotlin_native_release_windows_x86_64: (internal) version provider from versions.bzl
     """
 
     kotlin_compiler_repository(
@@ -55,6 +65,38 @@ def kotlin_repositories(
         urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
         sha256 = compiler_release.sha256,
         compiler_version = compiler_release.version,
+    )
+
+    kotlin_native_compiler_repository(
+        name = _KT_NATIVE_COMPILER_REPO_PREFIX + "_linux_x86_64",
+        compiler_version = kotlin_native_release_linux_x86_64.version,
+        urls = [url.format(version = kotlin_native_release_linux_x86_64.version) for url in kotlin_native_release_linux_x86_64.url_templates],
+        sha256 = kotlin_native_release_linux_x86_64.sha256,
+        strip_prefix = kotlin_native_release_linux_x86_64.strip_prefix_template.format(version = kotlin_native_release_linux_x86_64.version),
+    )
+
+    kotlin_native_compiler_repository(
+        name = _KT_NATIVE_COMPILER_REPO_PREFIX + "_macos_x86_64",
+        compiler_version = kotlin_native_release_macos_x86_64.version,
+        urls = [url.format(version = kotlin_native_release_macos_x86_64.version) for url in kotlin_native_release_macos_x86_64.url_templates],
+        sha256 = kotlin_native_release_macos_x86_64.sha256,
+        strip_prefix = kotlin_native_release_macos_x86_64.strip_prefix_template.format(version = kotlin_native_release_macos_x86_64.version),
+    )
+
+    kotlin_native_compiler_repository(
+        name = _KT_NATIVE_COMPILER_REPO_PREFIX + "_macos_aarch64",
+        compiler_version = kotlin_native_release_macos_aarch64.version,
+        urls = [url.format(version = kotlin_native_release_macos_aarch64.version) for url in kotlin_native_release_macos_aarch64.url_templates],
+        sha256 = kotlin_native_release_macos_aarch64.sha256,
+        strip_prefix = kotlin_native_release_macos_aarch64.strip_prefix_template.format(version = kotlin_native_release_macos_aarch64.version),
+    )
+
+    kotlin_native_compiler_repository(
+        name = _KT_NATIVE_COMPILER_REPO_PREFIX + "_windows_x86_64",
+        compiler_version = kotlin_native_release_windows_x86_64.version,
+        urls = [url.format(version = kotlin_native_release_windows_x86_64.version) for url in kotlin_native_release_windows_x86_64.url_templates],
+        sha256 = kotlin_native_release_windows_x86_64.sha256,
+        strip_prefix = kotlin_native_release_windows_x86_64.strip_prefix_template.format(version = kotlin_native_release_windows_x86_64.version),
     )
 
     ksp_compiler_plugin_repository(

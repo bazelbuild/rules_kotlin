@@ -19,3 +19,11 @@ KtJvmInfo = provider(
         "all_output_jars": "Returns all the output Jars produced by this rule. [bazel-bsp-aspect]",
     },
 )
+
+KtKlibCommonInfo = provider(
+    fields = {
+        "module_name": "the module_name",
+        "klibs": "the klibs provided by the output of compilation",
+        "transitive_klibs": "Returns the transitive set of klibs required to build the target",
+    },
+)

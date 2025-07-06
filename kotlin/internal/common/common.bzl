@@ -1,0 +1,62 @@
+load("//kotlin/internal:defs.bzl", _KtKlibCommonInfo = "KtKlibCommonInfo", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
+load("//kotlin/internal/utils:utils.bzl", "utils")
+
+def _kt_klib_library(ctx):
+    module_name = utils.derive_module_name(ctx)
+    builder_args = utils.init_args(ctx, "kt_klib_library", module_name)
+
+    klib = ctx.actions.declare_file("{}.klib".format(ctx.label.name))
+    outputs = [klib]
+
+    toolchains = ctx.toolchains[_TOOLCHAIN_TYPE]
+    deps_klibs = []
+    for dep in ctx.attr.deps:
+        deps_klibs.append(dep[_KtKlibCommonInfo].klibs)
+    libraries = depset(transitive = deps_klibs)
+    builder_args.add_all("--sources", ctx.files.srcs)
+    builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchains.kotlinbuilder, toolchains.konan_home])
+
+    builder_args.add("--strict_kotlin_deps", "off")
+    builder_args.add("--reduced_classpath_mode", "off")
+    builder_args.add("--output_klib", klib.path)
+
+    ctx.actions.run(
+        mnemonic = "KotlinKlibCompile",
+        inputs = depset(builder_inputs + ctx.files.srcs, transitive = [libraries]),
+        outputs = outputs,
+        executable = toolchains.kotlinbuilder.files_to_run.executable,
+        tools = [
+            toolchains.kotlinbuilder.files_to_run,
+            toolchains.konan_home[DefaultInfo].files_to_run,
+        ],
+        execution_requirements = {"supports-workers": "1"},
+        arguments = [ctx.actions.args().add_all(toolchains.builder_args), builder_args],
+        progress_message = "Compiling Kotlin to Klib %%{label} { kt: %d }" % len(ctx.files.srcs),
+        input_manifests = input_manifests,
+        env = {
+            "REPOSITORY_NAME": utils.builder_workspace_name(ctx),
+        },
+    )
+
+    return [
+        DefaultInfo(files = depset(outputs)),
+        _KtKlibCommonInfo(
+            klibs = depset(outputs),
+        ),
+    ]
+
+kt_klib_library = rule(
+    implementation = _kt_klib_library,
+    attrs = {
+        "srcs": attr.label_list(
+            doc = "A list of source files to be compiled to klib",
+            allow_files = [".kt"],
+        ),
+        "deps": attr.label_list(
+            doc = "A list of other kt_klib_library targets that this library depends on for compilation",
+            providers = [_KtKlibCommonInfo],
+        ),
+    },
+    toolchains = [_TOOLCHAIN_TYPE],
+    provides = [_KtKlibCommonInfo],
+)
