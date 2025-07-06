@@ -1,4 +1,4 @@
-load("//kotlin/internal:defs.bzl", _KtKlibCommonInfo = "KtKlibCommonInfo", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
+load("//kotlin/internal:defs.bzl", _KtKlibInfo = "KtKlibInfo", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 def _kt_klib_library(ctx):
@@ -11,7 +11,7 @@ def _kt_klib_library(ctx):
     toolchains = ctx.toolchains[_TOOLCHAIN_TYPE]
     deps_klibs = []
     for dep in ctx.attr.deps:
-        deps_klibs.append(dep[_KtKlibCommonInfo].klibs)
+        deps_klibs.append(dep[_KtKlibInfo].klibs)
     libraries = depset(transitive = deps_klibs)
     builder_args.add_all("--sources", ctx.files.srcs)
     builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchains.kotlinbuilder, toolchains.konan_home])
@@ -40,13 +40,17 @@ def _kt_klib_library(ctx):
 
     return [
         DefaultInfo(files = depset(outputs)),
-        _KtKlibCommonInfo(
+        _KtKlibInfo(
             klibs = depset(outputs),
         ),
     ]
 
 kt_klib_library = rule(
     implementation = _kt_klib_library,
+    doc = """
+This rule is intended to leverage the new Kotlin IR backend to allow for compiling platform-independent Kotlin code
+to be shared between Kotlin code for different platforms (JS/JVM/WASM etc.). It produces a klib file as the output.
+    """,
     attrs = {
         "srcs": attr.label_list(
             doc = "A list of source files to be compiled to klib",
@@ -54,9 +58,9 @@ kt_klib_library = rule(
         ),
         "deps": attr.label_list(
             doc = "A list of other kt_klib_library targets that this library depends on for compilation",
-            providers = [_KtKlibCommonInfo],
+            providers = [_KtKlibInfo],
         ),
     },
     toolchains = [_TOOLCHAIN_TYPE],
-    provides = [_KtKlibCommonInfo],
+    provides = [_KtKlibInfo],
 )

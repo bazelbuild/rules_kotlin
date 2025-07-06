@@ -16,7 +16,7 @@ load(
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
     _JAVA_TOOLCHAIN_TYPE = "JAVA_TOOLCHAIN_TYPE",
     _KtJvmInfo = "KtJvmInfo",
-    _KtKlibCommonInfo = "KtKlibCommonInfo",
+    _KtKlibInfo = "KtKlibInfo",
 )
 load(
     "//src/main/starlark/core/plugin:providers.bzl",
@@ -52,4 +52,4 @@ KtCompilerPluginOption = _KtCompilerPluginOption
 
 KtPluginConfiguration = _KtPluginConfiguration
 
-KtKlibCommonInfo = _KtKlibCommonInfo
+KtKlibInfo = _KtKlibInfo

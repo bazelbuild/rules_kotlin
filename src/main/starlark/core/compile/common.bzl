@@ -20,7 +20,7 @@ KtJvmInfo = provider(
     },
 )
 
-KtKlibCommonInfo = provider(
+KtKlibInfo = provider(
     fields = {
         "module_name": "the module_name",
         "klibs": "the klibs provided by the output of compilation",
