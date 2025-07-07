@@ -129,6 +129,7 @@ def _test_deps_core(
         additional_compile_libs = [],
         **kwargs):
     def _case(test):
+        have_data = test.artifact("some.file")
         have = test.have(
             rule_under_test,
             name = "have",
@@ -136,6 +137,9 @@ def _test_deps_core(
                 test.artifact("hold.kt"),
             ],
             deps = [
+            ],
+            data = [
+                have_data,
             ],
             **kwargs
         )
@@ -181,7 +185,9 @@ def _test_deps_core(
                 ),
                 "runfiles": Want(
                     attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [],
+                    value = [
+                        have_data,
+                    ],
                 ),
             },
         )
