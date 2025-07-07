@@ -91,8 +91,8 @@ def _kotlin_toolchain_impl(ctx):
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
-        experimental_build_tools_api = ctx.attr.experimental_build_tools_api,
-        experimental_incremental_compilation = ctx.attr.experimental_incremental_compilation,
+        experimental_build_tools_api = ctx.attr.experimental_build_tools_api[BuildSettingInfo].value,
+        experimental_incremental_compilation = ctx.attr.experimental_incremental_compilation[BuildSettingInfo].value,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -249,13 +249,15 @@ _kt_toolchain = rule(
                 "KOTLINBUILDER_REDUCED",
             ],
         ),
-        "experimental_build_tools_api": attr.bool(
+        "experimental_build_tools_api": attr.label(
             doc = "Enables experimental support for Build Tools API integration",
             default = False,
+            default = Label("//kotlin/settings:experimental_build_tools_api"),
         ),
-        "experimental_incremental_compilation": attr.bool(
+        "experimental_incremental_compilation": attr.label(
             doc = "TODO",
             default = False,
+            default = Label("//kotlin/settings:experimental_incremental_compilation"),
         ),
         "javac_options": attr.label(
             doc = "Compiler options for javac",
