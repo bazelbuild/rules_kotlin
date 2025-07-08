@@ -224,13 +224,13 @@ def kt_jvm_library_impl(ctx):
         )
     return _make_providers(
         ctx,
-        _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else _compile.export_only_providers(
+        providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else _compile.export_only_providers(
             ctx = ctx,
             actions = ctx.actions,
             outputs = ctx.outputs,
             attr = ctx.attr,
         ),
-        runfiles_targets = ctx.attr.deps + ctx.attr.exports,
+        runfiles_targets = ctx.attr.deps + ctx.attr.exports + ctx.attr.runtime_deps + ctx.attr.data,
     )
 
 def kt_jvm_binary_impl(ctx):
@@ -251,12 +251,12 @@ def kt_jvm_binary_impl(ctx):
     return _make_providers(
         ctx,
         providers,
-        runfiles_targets = ctx.attr.deps,
         transitive_files = depset(
             order = "default",
             transitive = [providers.java.transitive_runtime_jars],
             direct = ctx.files._java_runtime,
         ),
+        runfiles_targets = ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
     )
 
 _SPLIT_STRINGS = [
@@ -308,7 +308,7 @@ def kt_jvm_junit_test_impl(ctx):
     return _make_providers(
         ctx,
         providers,
-        ctx.attr.deps,
+        ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
         depset(
             order = "default",
             transitive = [runtime_jars, depset(coverage_runfiles), depset(coverage_metadata)],
