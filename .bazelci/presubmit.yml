@@ -6,6 +6,10 @@ matrix:
   integration_platform:
     - ubuntu2404
     - ubuntu2204
+  integration_shard_flags:
+    - ["--test_tag_filters=shard_0", "--config=rbe"]
+    - ["--test_tag_filters=shard_1", "--config=rbe"]
+    - ["--test_tag_filters=shard_2", "--config=rbe"]
     # - macos
     # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
   test_flags:
@@ -30,8 +34,7 @@ tasks:
   integration_tests:
     name: "Integration Tests"
     platform: ${{ integration_platform }}
-    test_flags:
-      - "--config=rbe"
+    test_flags: ${{ integration_shard_flags }}
     test_targets:
       - //examples:all
   rbe_ubuntu1604:
