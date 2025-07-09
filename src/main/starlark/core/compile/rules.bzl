@@ -110,7 +110,7 @@ def _kt_jvm_library_impl(ctx):
                 files = ctx.files.data,
             ).merge_all([
                 d[DefaultInfo].default_runfiles
-                for d in ctx.attr.deps + ctx.attr.exports
+                for d in ctx.attr.deps + ctx.attr.exports + ctx.attr.data + ctx.attr.runtime_deps
                 if DefaultInfo in d
             ]),
         ),
@@ -166,7 +166,7 @@ def _kt_jvm_binary_impl(ctx):
                 transitive_files = launch_runfiles,
             ).merge_all([
                 d[DefaultInfo].default_runfiles
-                for d in ctx.attr.deps
+                for d in ctx.attr.deps + ctx.attr.data + ctx.attr.runtime_deps
                 if DefaultInfo in d
             ]),
             executable = executable,
