@@ -48,6 +48,14 @@ kt_ksp_plugin(
     ],
 )
 
+kt_ksp_plugin(
+    name = "generate_bytecode_plugin",
+    processor_class = "com.example.BytecodeGeneratorProcessor",
+    deps = [
+        "//src/test/data/jvm/ksp/bytecodegenerator/processor/src/main/com/example:processor",
+    ],
+)
+
 kt_jvm_library(
     name = "ksp_kotlin_resources",
     srcs = ["CoffeeAppModel.kt"],
@@ -140,9 +148,40 @@ kt_jvm_library(
     ],
 )
 
+kt_jvm_library(
+    name = "ksp_generate_bytecode",
+    srcs = ["BytecodeExample.kt"],
+    plugins = [":generate_bytecode_plugin"],
+    deps = [
+        "//src/test/data/jvm/ksp/bytecodegenerator/annotation",
+    ],
+)
+
+kt_jvm_library(
+    name = "ksp_bytecode_plugin_generates_no_classes_with_other_plugins",
+    # these files don't have relevant annotations, and don't generate the bytecode/generated classes
+    # from generate_bytecode_plugin
+    srcs = [
+        "CoffeeApp.kt",
+        "CoffeeBean.java",
+        "CoffeeMaker.kt",
+        "DripCoffeeModule.kt",
+    ],
+    plugins = [
+        ":generate_bytecode_plugin",
+        ":dagger",
+    ],
+    deps = [
+        "@kotlin_rules_maven//:com_google_dagger_dagger",
+        "@kotlin_rules_maven//:com_google_dagger_dagger_compiler",
+    ],
+)
+
 filegroup(
     name = "ksp",
     srcs = [
+        ":ksp_bytecode_plugin_generates_no_classes_with_other_plugins.jar",
+        ":ksp_generate_bytecode.jar",
         ":ksp_kotlin_resources.jar",
         ":ksp_kotlin_resources_missing_plugin.jar",
         ":ksp_kotlin_resources_multiple_plugins.jar",
