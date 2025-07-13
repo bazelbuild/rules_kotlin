@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+
 
 package(default_visibility = ["//visibility:public"])
 
@@ -20,10 +23,22 @@ filegroup(
     srcs = glob(["bin/**"]),
 )
 
-filegroup(
-    name = "konan_home",
-    srcs = glob(["konan/**"])
+write_file(
+    name = "klib_system_cache_marker",
+    out  = "klib/cache/macos_arm64STATIC/klib_cache_marker",
+    content = [
+        "Marker file intended to create the klib system cache placeholder even if we don't use it. The native compiler errors out otherwise",
+        "See See https://github.com/JetBrains/kotlin/blob/v2.1.21/kotlin-native/backend.native/compiler/ir/backend.native/src/org/jetbrains/kotlin/backend/konan/KonanConfig.kt#L567"
+    ],
 )
+
+
+copy_to_directory(
+    name = "konan_home",
+    # TODO: figure out if all files are needed
+    srcs = glob(["konan/**", "klib/**"]) + [":klib_system_cache_marker"],
+)
+
 
 filegroup(
     name = "konan_properties",

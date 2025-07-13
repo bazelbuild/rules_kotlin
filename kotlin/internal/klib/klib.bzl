@@ -20,6 +20,17 @@ def _kt_klib_library(ctx):
     builder_args.add("--reduced_classpath_mode", "off")
     builder_args.add("--output_klib", klib.path)
 
+    deps_klibs = []
+    for dep in ctx.attr.deps:
+        deps_klibs.append(dep[_KtKlibInfo].klibs)
+    libraries = depset(transitive = deps_klibs)
+    builder_args.add_all("--klibs", libraries, omit_if_empty = False)
+
+    # This will be a directory we need to propagate to the compiler
+    konan_home = toolchains.konan_home[DefaultInfo].files.to_list()[0]
+    if not konan_home.is_directory:
+        fail("konan home must be a directory!")
+
     ctx.actions.run(
         mnemonic = "KotlinKlibCompile",
         inputs = depset(builder_inputs + ctx.files.srcs, transitive = [libraries]),
@@ -35,6 +46,7 @@ def _kt_klib_library(ctx):
         input_manifests = input_manifests,
         env = {
             "REPOSITORY_NAME": utils.builder_workspace_name(ctx),
+            "KONAN_HOME": konan_home.path,
         },
     )
 

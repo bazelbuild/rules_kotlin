@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS", "KOTLIN_NATIVE_ARTIFACTS")
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO", _KT_NATIVE_COMPILER_REPO_PREFIX = "KT_NATIVE_COMPILER_REPO_PREFIX")
 

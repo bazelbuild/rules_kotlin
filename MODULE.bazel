@@ -19,6 +19,8 @@ bazel_dep(name = "rules_shell", version = "0.4.1")
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.0.3", dev_dependency = True)
 
+bazel_dep(name = "aspect_bazel_lib", version = "2.19.4")
+
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 

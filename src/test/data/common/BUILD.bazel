@@ -1,6 +1,0 @@
-load("//kotlin/internal/common:common.bzl", "kt_klib_library")
-
-kt_klib_library(
-    name = "basic",
-    srcs = ["basic/Hello.kt"],
-)

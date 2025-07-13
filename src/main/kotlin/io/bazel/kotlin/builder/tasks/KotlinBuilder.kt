@@ -16,8 +16,8 @@
  */
 package io.bazel.kotlin.builder.tasks
 
-import io.bazel.kotlin.builder.tasks.common.KotlinKlibTaskExecutor
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.tasks.klib.KotlinKlibTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.ArgMap
@@ -25,7 +25,11 @@ import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.builder.utils.resolveNewDirectories
-import io.bazel.kotlin.model.*
+import io.bazel.kotlin.model.CompilationTaskInfo
+import io.bazel.kotlin.model.JvmCompilationTask
+import io.bazel.kotlin.model.KlibCompilationTask
+import io.bazel.kotlin.model.Platform
+import io.bazel.kotlin.model.RuleKind
 import io.bazel.worker.WorkerContext
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
@@ -89,7 +93,7 @@ class KotlinBuilder
         KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
         BUILD_TOOLS_API("--build_tools_api"),
         KLIBS("--klibs"),
-        OUTPUT_KLIB("--output_klib")
+        OUTPUT_KLIB("--output_klib"),
       }
     }
 
@@ -191,36 +195,40 @@ class KotlinBuilder
       jvmTaskExecutor.execute(context, task)
     }
 
-  private fun executeKlibTask(
-    context: CompilationTaskContext,
-    workingDir: Path,
-    argMap: ArgMap,
-  ) {
-    val task = buildKlibTask(context.info, workingDir, argMap)
-    context.whenTracing { printProto("klib common task input", task) }
-    buildKlibTask(context.info, workingDir, argMap)
-    klibTaskExecutor.execute(context, task)
-  }
+    private fun executeKlibTask(
+      context: CompilationTaskContext,
+      workingDir: Path,
+      argMap: ArgMap,
+    ) {
+      val task = buildKlibTask(context.info, workingDir, argMap)
+      context.whenTracing { printProto("klib common task input", task) }
+      buildKlibTask(context.info, workingDir, argMap)
+      klibTaskExecutor.execute(context, task)
+    }
 
-  private fun buildKlibTask(info: CompilationTaskInfo, workingDir: Path, argMap: ArgMap): KlibCompilationTask =
-   with(KlibCompilationTask.newBuilder()) {
-     this.info = info
-     with(directoriesBuilder) {
-       temp = workingDir.toString()
-     }
+    private fun buildKlibTask(
+      info: CompilationTaskInfo,
+      workingDir: Path,
+      argMap: ArgMap,
+    ): KlibCompilationTask =
+      with(KlibCompilationTask.newBuilder()) {
+        this.info = info
+        with(directoriesBuilder) {
+          temp = workingDir.toString()
+        }
 
-     with(inputsBuilder) {
-       argMap.optional(KotlinBuilderFlags.KLIBS)?.let{
-         addAllLibraries(it)
-       }
-       addAllKotlinSources(argMap.mandatory(KotlinBuilderFlags.SOURCES))
-     }
+        with(inputsBuilder) {
+          argMap.optional(KotlinBuilderFlags.KLIBS)?.let {
+            addAllLibraries(it)
+          }
+          addAllKotlinSources(argMap.mandatory(KotlinBuilderFlags.SOURCES))
+        }
 
-     with(outputsBuilder) {
-       this.setKlib(argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_KLIB))
-     }
-     build()
-   }
+        with(outputsBuilder) {
+          this.setKlib(argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_KLIB))
+        }
+        build()
+      }
 
     private fun buildJvmTask(
       info: CompilationTaskInfo,
