@@ -23,7 +23,6 @@ import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
-import io.bazel.kotlin.model.KotlinToolchainInfo;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -40,8 +39,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             KOTLIN_STDLIB = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib"),
             KOTLIN_STDLIB_JDK7 = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-jdk7"),
             KOTLIN_STDLIB_JDK8 = Dep.fromLabel("//kotlin/compiler:kotlin-stdlib-jdk8"),
-            JVM_ABI_GEN = Dep.fromLabel("//kotlin/compiler:jvm-abi-gen"),
-            KOTLIN_NATIVE = Dep.fromLabel("//kotlin/compiler:kotlin-native");
+            JVM_ABI_GEN = Dep.fromLabel("//kotlin/compiler:jvm-abi-gen");
 
     private static final JvmCompilationTask.Builder taskBuilder = JvmCompilationTask.newBuilder();
     private static final EnumSet<DirectoryType> ALL_DIRECTORY_TYPES =
