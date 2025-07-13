@@ -19,7 +19,7 @@ def _test_kt_klib_basic_impl(env, target):
     action_subject.inputs().contains("src/test/starlark/internal/klib/Basic.kt")
 
 def _test_kt_klib_basic(name):
-    kt_klib_library(name = "basic", srcs = ["Basic.kt"])
+    kt_klib_library(name = "basic", srcs = ["Basic.kt"], tags = ["manual"])
 
     analysis_test(name, target = "basic", impl = _test_kt_klib_basic_impl)
 
@@ -37,9 +37,9 @@ def _test_kt_klib_deps_impl(env, target):
     action_subject.argv().contains_at_least(["--klibs"])
 
 def _test_kt_klib_deps(name):
-    kt_klib_library(name = "first", srcs = ["First.kt"])
+    kt_klib_library(name = "first", srcs = ["First.kt"], tags = ["manual"])
 
-    kt_klib_library(name = "second", srcs = ["Second.kt"], deps = [":first"])
+    kt_klib_library(name = "second", srcs = ["Second.kt"], deps = [":first"], tags = ["manual"])
 
     analysis_test(name, target = "second", impl = _test_kt_klib_deps_impl)
 

@@ -29,7 +29,7 @@ class BazelK2NativeCompiler {
   ): ExitCode {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
     val konanHome = System.getenv("KONAN_HOME")
-    requireNotNull(konanHome) {"KONAN_HOME env var must be set!"}
+    requireNotNull(konanHome) { "KONAN_HOME env var must be set!" }
 
     System.setProperty("konan.home", konanHome)
 
