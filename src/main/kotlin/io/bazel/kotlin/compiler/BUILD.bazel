@@ -23,6 +23,7 @@ kt_bootstrap_library(
         "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-script-runtime",
+        "//kotlin/compiler:kotlin-native",
     ],
     visibility = ["//src:__subpackages__"],
 )

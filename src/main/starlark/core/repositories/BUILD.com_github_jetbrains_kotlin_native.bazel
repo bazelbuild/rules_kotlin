@@ -1,0 +1,81 @@
+# Copyright 2025 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "bin",
+    srcs = glob(["bin/**"]),
+)
+
+write_file(
+    name = "klib_system_cache_marker_macos_arm64",
+    out = "klib/cache/macos_arm64STATIC/klib_cache_marker",
+    content = [
+        "Marker file intended to create the klib system cache placeholder even if we don't use it. The native compiler errors out otherwise",
+        "See See https://github.com/JetBrains/kotlin/blob/v2.1.21/kotlin-native/backend.native/compiler/ir/backend.native/src/org/jetbrains/kotlin/backend/konan/KonanConfig.kt#L567",
+    ],
+)
+
+write_file(
+    name = "klib_system_cache_marker_linux_x64",
+    out = "klib/cache/linux_x64STATIC/klib_cache_marker",
+    content = [
+        "Marker file intended to create the klib system cache placeholder even if we don't use it. The native compiler errors out otherwise",
+        "See See https://github.com/JetBrains/kotlin/blob/v2.1.21/kotlin-native/backend.native/compiler/ir/backend.native/src/org/jetbrains/kotlin/backend/konan/KonanConfig.kt#L567",
+    ],
+)
+
+write_file(
+    name = "klib_system_cache_marker_macos_x64",
+    out = "klib/cache/macos_x64STATIC/klib_cache_marker",
+    content = [
+        "Marker file intended to create the klib system cache placeholder even if we don't use it. The native compiler errors out otherwise",
+        "See See https://github.com/JetBrains/kotlin/blob/v2.1.21/kotlin-native/backend.native/compiler/ir/backend.native/src/org/jetbrains/kotlin/backend/konan/KonanConfig.kt#L567",
+    ],
+)
+
+copy_to_directory(
+    name = "konan_home",
+    # TODO: figure out if all files are needed
+    srcs = glob([
+        "konan/**",
+        "klib/**",
+    ]) + [
+        ":klib_system_cache_marker_linux_x64",
+        ":klib_system_cache_marker_macos_arm64",
+        ":klib_system_cache_marker_macos_x64",
+    ],
+)
+
+filegroup(
+    name = "konan_properties",
+    srcs = ["konan/konan.properties"],
+)
+
+filegroup(
+    name = "stdlib",
+    srcs = glob(["klib/common/stdlib/**"]),
+)
+
+# Have a filegroup for the kotlin-native jars that will be explicitly aliased
+[
+    filegroup(
+        name = name.replace(".", "_"),
+        srcs = glob(["" + name]),
+    )
+    for name in glob(["konan/lib/**"])
+]
