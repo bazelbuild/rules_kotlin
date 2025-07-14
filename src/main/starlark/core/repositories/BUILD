@@ -20,6 +20,7 @@ release_archive(
         "BUILD.com_github_google_ksp.bazel",
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "BUILD.com_github_jetbrains_kotlin_native.bazel",
+        "BUILD.kotlin-native_capabilities.bazel",
         "BUILD.kotlin_capabilities.bazel",
         "bzlmod_impl.bzl",
         "capabilities.bzl",
