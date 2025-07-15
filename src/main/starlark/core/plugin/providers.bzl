@@ -13,7 +13,7 @@ KtCompilerPluginInfo = provider(
         "stubs": "Run this plugin during kapt stub generation.",
         "compile": "Run this plugin during koltinc compilation.",
         "options": "List of plugin options, represented as KtCompilerPluginOption, to be passed to the compiler",
-        "resolve_cfg": "A Callable[[KtCompilerPluginInfo, Dict[str,str], List[Target], KtPluginConfiguration]" +
+        "resolve_cfg": "A Callable[[KtCompilerPluginInfo, Dict[str, List[str]], List[Target]], KtPluginConfiguration]" +
                        " that resolves an associated plugin configuration.",
         "merge_cfgs": "A Callable[[KtCompilerPluginInfo, List[KtPluginConfiguration]]] that merge multiple plugin configurations.",
     },
@@ -22,7 +22,7 @@ KtCompilerPluginInfo = provider(
 KtPluginConfiguration = provider(
     fields = {
         "id": "The id of the compiler plugin associated with this configuration.",
-        "options": "List of plugin options, represented KtCompilerPluginOption",
+        "options": "List of plugin options, represented as KtCompilerPluginOption",
         "classpath": "Depset of jars to add to the classpath when running the plugin.",
         "data": "runfiles to pass to the plugin.",
     },

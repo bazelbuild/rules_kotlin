@@ -298,6 +298,7 @@ _kt_toolchain = rule(
             default = Label("//kotlin/settings:experimental_strict_associate_dependencies"),
         ),
         "_jvm_emit_jdeps": attr.label(default = "//kotlin/settings:jvm_emit_jdeps"),
+        "_incompatible_disable_internal_kapt": attr.label(default = "//kotlin/settings:incompatible_disable_internal_kapt"),
     },
     implementation = _kotlin_toolchain_impl,
     provides = [platform_common.ToolchainInfo],
