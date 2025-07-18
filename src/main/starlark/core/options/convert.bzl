@@ -17,7 +17,7 @@ def _to_flags(opts, attr_provider):
         value = getattr(attr_provider, n, None)
         if o.value_to_flag and o.value_to_flag.get(derive.info, None):
             info = o.value_to_flag[derive.info]
-            flag = info.derive(info.ctx, value)
+            flag = info.derive(info.ctx, value or o.args.get("default", None))
         elif o.value_to_flag:
             flag = o.value_to_flag.get(value, None)
         else:

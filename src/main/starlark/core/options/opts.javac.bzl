@@ -97,6 +97,15 @@ _JOPTS = {
             derive.info: derive.repeated_values_for("--add-exports="),
         },
     ),
+    "annotation_processor_options": struct(
+        args = dict(
+            default = {},
+            doc = "Options for annotation processors.",
+        ),
+        value_to_flag = {
+            derive.info: derive.format_key_value_for("-A", "{name}{key}={value}"),
+        },
+    ),
 }
 
 def _javac_options_impl(ctx):
@@ -113,7 +122,7 @@ kt_javac_options = rule(
     implementation = _javac_options_impl,
     doc = "Define java compiler options for `kt_jvm_*` rules with java sources.",
     provides = [JavacOptions],
-    attrs = {n: o.type(**o.args) for n, o in _JOPTS.items()},
+    attrs = {n: o.type(**o.args) for n, o in _JOPTS.items() if hasattr(o, "type")},
 )
 
 def javac_options_to_flags(javac_options):

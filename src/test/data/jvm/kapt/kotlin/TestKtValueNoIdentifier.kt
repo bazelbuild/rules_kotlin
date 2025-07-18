@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tests.smoke.kapt.java;
+package tests.smoke.kapt.kotlin
 
-
-import com.google.auto.value.AutoValue;
-import com.google.auto.value.extension.memoized.Memoized;
+import com.google.auto.value.AutoValue
 
 @AutoValue
-public abstract class TestAutoValue {
-    static Builder builder() {
-        return new AutoValue_TestAutoValue.Builder();
-    }
+abstract class TestKtValueNoIdentifier {
+  abstract fun name(): String
+  companion object {
+    fun builder(): Builder = AutoValue_TestKtValueNoIdentifier.Builder()
+  }
 
-    abstract String name();
-
-    @AutoValue.Builder
-    abstract static class Builder {
-        abstract Builder setName(String name);
-
-        abstract TestAutoValue build();
-    }
+  @AutoValue.Builder
+  abstract class Builder {
+    abstract fun setName(name: String): Builder
+    abstract fun build(): TestKtValueNoIdentifier
+  }
 }
