@@ -429,7 +429,9 @@ def kt_compiler_plugin_impl(ctx):
 
 def kt_plugin_cfg_impl(ctx):
     plugin = ctx.attr.plugin[_KtCompilerPluginInfo]
-    return plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, ctx.expand_location)
+    return [
+        plugin,
+    ] + plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, ctx.expand_location)
 
 def kt_ksp_plugin_impl(ctx):
     deps = ctx.attr.deps

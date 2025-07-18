@@ -20,17 +20,18 @@ import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 
 @AutoValue
-public abstract class TestAutoValue {
-    static Builder builder() {
-        return new AutoValue_TestAutoValue.Builder();
+public abstract class TestAutoValueNoIdentifiers {
+
+    public static TestAutoValueNoIdentifiers.Builder builder() {
+        return new AutoValue_TestAutoValueNoIdentifiers.Builder();
     }
 
     abstract String name();
 
     @AutoValue.Builder
-    abstract static class Builder {
-        abstract Builder setName(String name);
+    public abstract static class Builder {
+        public abstract Builder setName(String name);
 
-        abstract TestAutoValue build();
+        public abstract TestAutoValueNoIdentifiers build();
     }
 }

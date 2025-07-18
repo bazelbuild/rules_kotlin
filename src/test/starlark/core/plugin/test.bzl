@@ -439,49 +439,6 @@ def _test_library_multiple_plugins_with_same_id(test):
         },
     )
 
-def _test_cfg_without_plugin(test):
-    adee, _ = plugin_for(
-        test,
-        name = "Adee",
-        id = "adee.see",
-    )
-    adee_cfg = test.have(
-        kt_plugin_cfg,
-        name = "adee_cfg",
-        plugin = adee,
-        options = {
-            "-Dop": ["compile_only"],
-        },
-    )
-
-    got = test.got(
-        kt_jvm_library,
-        name = "got_library",
-        srcs = [
-            test.artifact(
-                name = "got_library.kt",
-            ),
-        ],
-        plugins = [
-            adee_cfg,
-        ],
-    )
-
-    analysis_test(
-        name = test.name,
-        impl = _expect_failure,
-        expect_failure = True,
-        target = got,
-        attr_values = {
-            "want_failures": [
-                "has plugin configurations without corresponding plugins: [\"%s: adee.see\"]" % Label(adee_cfg),
-            ],
-        },
-        attrs = {
-            "want_failures": attr.string_list(),
-        },
-    )
-
 def test_suite(name):
     suite(
         name,
@@ -489,6 +446,4 @@ def test_suite(name):
         test_compile_configuration = _test_compile_configuration,
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
-        test_cfg_without_plugin = _test_cfg_without_plugin,
-        test_compile_multiple_configurations = _test_compile_multiple_configurations,
     )

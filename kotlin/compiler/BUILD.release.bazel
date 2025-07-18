@@ -14,6 +14,7 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":compiler.bzl", "kt_configure_compiler")
+load(":kapt.bzl", "kapt_compiler_plugin")
 load(":ksp.bzl", "kt_configure_ksp")
 
 package(default_visibility = ["//visibility:public"])
@@ -27,4 +28,9 @@ kt_configure_ksp()
 bzl_library(
     name = "compiler",
     srcs = glob(["*.bzl"]),
+)
+
+kapt_compiler_plugin(
+    name = "kapt",
+    id = "org.jetbrains.kotlin.kapt3",
 )
