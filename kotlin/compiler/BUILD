@@ -34,5 +34,6 @@ release_archive(
 )
 
 kapt_compiler_plugin(
+    name = "kapt",
     id = "org.jetbrains.kotlin.kapt3",
 )

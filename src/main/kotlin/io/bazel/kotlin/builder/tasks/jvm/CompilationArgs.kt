@@ -201,9 +201,13 @@ class CompilationArgs(
     for ((k, vs) in values) {
       oos.writeUTF(k)
 
-      oos.writeInt(vs.size)
-      for (v in vs) {
-        oos.writeUTF(v)
+      if (vs.size == 1) {
+        oos.writeUTF(vs[0])
+      } else {
+        oos.writeInt(vs.size)
+        for (v in vs) {
+          oos.writeUTF(v)
+        }
       }
     }
 

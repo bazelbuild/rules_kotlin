@@ -660,6 +660,7 @@ kt_plugin_cfg = rule(
                 [JavaInfo],
                 [JavaPluginInfo],
             ],
+            cfg = "exec",
         ),
     },
 )

@@ -167,6 +167,7 @@ internal fun JvmCompilationTask.kaptArgs(
     val version =
       info.toolchainInfo.common.apiVersion
         .toFloat()
+
     when {
       version < 1.5 ->
         base64Encode(
@@ -180,6 +181,20 @@ internal fun JvmCompilationTask.kaptArgs(
         ) { option, value ->
           "plugin:${plugins.kapt.id}:$option=$value"
         }
+    }
+    // Read kapt options from the plugin options
+    val optionPrefix = plugins.kapt.id + ":apoption="
+    val options =
+      (inputs.compilerPluginOptionsList + inputs.stubsPluginOptionsList)
+        .filter { o -> o.startsWith(optionPrefix) }
+        .map { o -> o.substring(optionPrefix.length).split(":", limit = 2) }
+        .map { kv -> kv[0] to listOf(kv[1]) }
+        .toTypedArray()
+
+    if (options.isNotEmpty()) {
+      base64Encode("-P", *options) { enc ->
+        "plugin:${plugins.kapt.id}:apoptions=$enc"
+      }
     }
   }
 }
@@ -265,7 +280,7 @@ private fun JvmCompilationTask.runKaptPlugin(
     baseArgs()
       .plus(
         plugins(
-          options = inputs.stubsPluginOptionsList,
+          options = inputs.stubsPluginOptionsList.filterNot { o -> o.startsWith(plugins.kapt.id) },
           classpath = inputs.stubsPluginClasspathList,
         ),
       ).plus(
@@ -278,7 +293,7 @@ private fun JvmCompilationTask.runKaptPlugin(
         context.executeCompilerTask(
           args,
           compiler::compile,
-          printOnSuccess = context.whenTracing { true } ?: false,
+          printOnSuccess = context.whenTracing { true } == true,
         )
       }.let { outputLines ->
         // if tracing is enabled the output should be formatted in a special way, if we aren't
