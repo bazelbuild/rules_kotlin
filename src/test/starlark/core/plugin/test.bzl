@@ -490,4 +490,5 @@ def test_suite(name):
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
         test_cfg_without_plugin = _test_cfg_without_plugin,
+        test_compile_multiple_configurations = _test_compile_multiple_configurations,
     )
