@@ -46,7 +46,8 @@ def _targets_to_annotation_processors(targets):
             p = t[JavaInfo].plugins
             if p.processor_jars:
                 plugins.append(p)
-    return depset(plugins)
+
+    return plugins
 
 def _targets_to_ksp_annotation_processors(targets):
     plugins = []

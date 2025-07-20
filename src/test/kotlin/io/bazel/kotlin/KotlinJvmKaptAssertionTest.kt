@@ -15,7 +15,10 @@
  */
 package io.bazel.kotlin
 
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import tests.smoke.kapt.java.TestAutoValueNoIdentifiers
+import tests.smoke.kapt.kotlin.TestKtValueNoIdentifier
 
 class KotlinJvmKaptAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/kapt") {
   @Test
@@ -71,6 +74,16 @@ class KotlinJvmKaptAssertionTest : KotlinAssertionTestCase("src/test/data/jvm/ka
         "tests/smoke/kapt/java/TestAutoValue\$Builder.class"
       )
     }
+  }
+
+  @Test
+  fun testAnnotationProcessingOption() {
+    assertThat(
+      TestKtValueNoIdentifier.builder().setName("ktan").build().toString(),
+    ).isEqualTo("{ktan}")
+    assertThat(
+      TestAutoValueNoIdentifiers.builder().setName("jcan").build().toString(),
+    ).isEqualTo("{jcan}")
   }
 
   @Test
