@@ -607,6 +607,7 @@ kt_jvm_library(
     srcs = glob(["*.kt"]),
     plugins = ["//:moshi-kotlin-codegen"],
 )
+```
 """,
     attrs = {
         "deps": attr.label_list(
