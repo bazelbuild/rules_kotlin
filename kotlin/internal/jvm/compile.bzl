@@ -213,7 +213,7 @@ def _new_plugins_from(targets):
         cfg = t[_KtPluginConfiguration]
         if cfg.id not in all_plugins:
             cfgs_without_plugin.append("%s: %s" % (t.label, cfg.id))
-        all_plugin_cfgs[cfg.id] = cfg
+        all_plugin_cfgs.setdefault(cfg.id, []).append(cfg)
 
     if cfgs_without_plugin:
         fail("has plugin configurations without corresponding plugins: %s" % cfgs_without_plugin)
@@ -231,7 +231,7 @@ def _new_plugin_from(all_cfgs, plugins_for_phase):
         classpath.append(p.classpath)
         options.extend(p.options)
         if p.id in all_cfgs:
-            cfg = all_cfgs[p.id]
+            cfg = p.merge_cfgs(p, all_cfgs[p.id])
             classpath.append(cfg.classpath)
             data.append(cfg.data)
             options.extend(cfg.options)
