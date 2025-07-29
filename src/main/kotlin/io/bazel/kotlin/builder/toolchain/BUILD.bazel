@@ -24,6 +24,7 @@ kt_bootstrap_library(
         "//kotlin/compiler:symbol-processing-api",
         "//kotlin/compiler:symbol-processing-cmdline",
         "//kotlin/compiler:kotlin-preloader",
+        "//kotlin/compiler:kotlin-native",
     ],
     visibility = ["//src:__subpackages__"],
     deps = [

@@ -1,0 +1,26 @@
+load("//kotlin/internal/klib:klib.bzl", "kt_klib_library")
+
+kt_klib_library(
+    name = "basic",
+    srcs = ["basic/Hello.kt"],
+)
+
+kt_klib_library(
+    name = "deps_greeting",
+    srcs = ["deps/data/Greeting.kt"],
+)
+
+kt_klib_library(
+    name = "deps_main",
+    srcs = ["deps/Main.kt"],
+    deps = [":deps_greeting"],
+)
+
+filegroup(
+    name = "klib_tests",
+    srcs = [
+        "deps_main",
+        ":basic",
+    ],
+    visibility = ["//src/test:__subpackages__"],
+)

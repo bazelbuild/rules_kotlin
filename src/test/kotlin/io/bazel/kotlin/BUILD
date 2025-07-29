@@ -68,6 +68,14 @@ kt_rules_e2e_test(
     data = ["//src/test/data/jvm/ksp"],
 )
 
+kt_rules_e2e_test(
+    name = "KotlinKlibAssertionTest",
+    srcs = ["KotlinKlibAssertionTest.kt"],
+    data = [
+        "//src/test/data/klib:klib_tests",
+    ],
+)
+
 test_suite(
     name = "assertion_tests",
     tests = [
