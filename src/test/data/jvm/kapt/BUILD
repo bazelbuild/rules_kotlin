@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
+load("//kotlin:core.bzl", "kt_plugin_cfg")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -59,6 +60,35 @@ kt_jvm_library(
         "kotlin/TestKtValue.kt",
     ],
     plugins = [":autovalue"],
+    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
+)
+
+kt_plugin_cfg(
+    name = "autovalue_no_identifiers",
+    options = {
+        "com.google.auto.value.OmitIdentifiers": ["true"],
+    },
+    plugin = "//kotlin/compiler:kapt",
+    deps = [
+        ":autovalue",
+    ],
+)
+
+kt_jvm_library(
+    name = "ap_kotlin_mixed_no_identifier",
+    srcs = [
+        "java/TestAutoValueNoIdentifiers.java",
+        "kotlin/TestKtValueNoIdentifier.kt",
+    ],
+    plugins = [
+        ":autovalue_no_identifiers",
+    ],
+    tags = [
+        "trace",
+    ],
+    visibility = [
+        "//src/test:__subpackages__",
+    ],
     deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations"],
 )
 
