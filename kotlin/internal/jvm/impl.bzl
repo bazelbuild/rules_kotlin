@@ -72,9 +72,10 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     java_bin_path = java_runtime.java_executable_runfiles_path
 
     # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
-    # Enable the security manager past deprecation.
+    # Enable the security manager past deprecation until permanently disabled: https://openjdk.org/jeps/486
     # On bazel 6, this check isn't possible...
-    if getattr(java_runtime, "version", 0) >= 17:
+    _java_runtime_version = getattr(java_runtime, "version", 0)
+    if _java_runtime_version >= 17 and _java_runtime_version < 24:
         jvm_flags = jvm_flags + " -Djava.security.manager=allow"
 
     if ctx.configuration.coverage_enabled:
