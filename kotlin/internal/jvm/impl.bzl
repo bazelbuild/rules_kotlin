@@ -15,8 +15,6 @@
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
-    "KtCompilerPluginOption",
-    "KtPluginConfiguration",
     _KspPluginInfo = "KspPluginInfo",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
@@ -30,6 +28,7 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
+load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
 load("//third_party:jarjar.bzl", "jarjar_action")
 
 # borrowed from skylib to avoid adding that to the release.
@@ -392,37 +391,6 @@ def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         ],
     )
 
-def _resolve_plugin_options(id, string_list_dict, expand_location):
-    """
-    Resolves plugin options from a string dict to a dict of strings.
-
-    Args:
-        id: the plugin id
-        string_list_dict: a dict of list[string].
-    Returns:
-        a dict of strings
-    """
-    options = []
-    for (k, vs) in string_list_dict.items():
-        for v in vs:
-            if "=" in k:
-                fail("kotlin compiler option keys cannot contain the = symbol")
-            value = k + "=" + expand_location(v) if v else k
-            options.append(KtCompilerPluginOption(id = id, value = value))
-    return options
-
-# This is naive reference implementation for resolving configurations.
-# A more complicated plugin will need to provide its own implementation.
-def _resolve_plugin_cfg(info, options, deps, expand_location):
-    ji = java_common.merge([dep[JavaInfo] for dep in deps if JavaInfo in dep])
-    classpath = depset(ji.runtime_output_jars, transitive = [ji.transitive_runtime_jars])
-    return KtPluginConfiguration(
-        id = info.id,
-        options = _resolve_plugin_options(info.id, options, expand_location),
-        classpath = classpath,
-        data = depset(),
-    )
-
 def kt_compiler_plugin_impl(ctx):
     plugin_id = ctx.attr.id
 
@@ -444,7 +412,7 @@ def kt_compiler_plugin_impl(ctx):
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
     # TODO(1035): Migrate kt_compiler_plugin.options to string_list_dict
-    options = _resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, ctx.expand_location)
+    options = plugin_common.resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, ctx.expand_location)
 
     return [
         DefaultInfo(files = classpath),
@@ -454,7 +422,8 @@ def kt_compiler_plugin_impl(ctx):
             options = options,
             stubs = ctx.attr.stubs_phase,
             compile = ctx.attr.compile_phase,
-            resolve_cfg = _resolve_plugin_cfg,
+            resolve_cfg = plugin_common.resolve_cfg,
+            merge_cfgs = plugin_common.merge_cfgs,
         ),
     ]
 

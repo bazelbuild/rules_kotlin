@@ -15,6 +15,7 @@ KtCompilerPluginInfo = provider(
         "options": "List of plugin options, represented as KtCompilerPluginOption, to be passed to the compiler",
         "resolve_cfg": "A Callable[[KtCompilerPluginInfo, Dict[str,str], List[Target], KtPluginConfiguration]" +
                        " that resolves an associated plugin configuration.",
+        "merge_cfgs": "A Callable[[KtCompilerPluginInfo, List[KtPluginConfiguration]]] that merge multiple plugin configurations.",
     },
 )
 
@@ -23,7 +24,7 @@ KtPluginConfiguration = provider(
         "id": "The id of the compiler plugin associated with this configuration.",
         "options": "List of plugin options, represented KtCompilerPluginOption",
         "classpath": "Depset of jars to add to the classpath when running the plugin.",
-        "data": "Depset of files to pass to the plugin as data.",
+        "data": "runfiles to pass to the plugin.",
     },
 )
 
