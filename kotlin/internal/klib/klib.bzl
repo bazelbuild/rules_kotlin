@@ -10,8 +10,12 @@ def _kt_klib_library(ctx):
 
     toolchains = ctx.toolchains[_TOOLCHAIN_TYPE]
     deps_klibs = []
+    transitive_klibs = []
     for dep in ctx.attr.deps:
         deps_klibs.append(dep[_KtKlibInfo].klibs)
+        deps_klibs.append(dep[_KtKlibInfo].transitive_klibs)
+        transitive_klibs.append(dep[_KtKlibInfo].transitive_klibs)
+
     libraries = depset(transitive = deps_klibs)
     builder_args.add_all("--sources", ctx.files.srcs)
     builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchains.kotlinbuilder, toolchains.konan_home])
@@ -20,9 +24,6 @@ def _kt_klib_library(ctx):
     builder_args.add("--reduced_classpath_mode", "off")
     builder_args.add("--output_klib", klib.path)
 
-    deps_klibs = []
-    for dep in ctx.attr.deps:
-        deps_klibs.append(dep[_KtKlibInfo].klibs)
     libraries = depset(transitive = deps_klibs)
     builder_args.add_all("--klibs", libraries, omit_if_empty = False)
 
@@ -54,6 +55,7 @@ def _kt_klib_library(ctx):
         DefaultInfo(files = depset(outputs)),
         _KtKlibInfo(
             klibs = depset(outputs),
+            transitive_klibs = depset(transitive = transitive_klibs),
         ),
     ]
 
