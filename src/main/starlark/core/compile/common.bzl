@@ -1,4 +1,5 @@
 TYPE = "//src/main/starlark/core/compile:toolchain_type"
+NATIVE_TYPE = "//src/main/starlark/core/compile:native_toolchain_type"
 
 # Java toolchains
 JAVA_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/jdk:toolchain_type")

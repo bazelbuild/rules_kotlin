@@ -70,40 +70,102 @@ KOTLINC_ARTIFACTS = struct(
     ),
 )
 
-KOTLIN_NATIVE_ARTIFACTS = struct(
-    linux_x86_64 = struct(
+KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS = {
+    "linux_x86_64": struct(
         plugin = {},
         compile = {
             "kotlin-native-linux-x86_64": "konan/lib/kotlin-native.jar",
             "trove4j-linux-x86_64": "konan/lib/trove4j.jar",
         },
         runtime = {},
+        exec_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+        # the targets have been extracted here manually by either running kotlinc-native -list-targets for the relevant distribution
+        # or listing entries under <konan.home>/targets/, and then map Bazel platforms for it so that we can create the relevant toolchains
+        # with the right target_compatible_with
+        targets = {
+            ("@platforms//os:android", "@platforms//cpu:armv7"): ["android_arm32"],
+            ("@platforms//os:android", "@platforms//cpu:arm64"): ["android_arm64"],
+            ("@platforms//os:android", "@platforms//cpu:x86_64"): ["android_x64"],
+            ("@platforms//os:linux", "@platforms//cpu:armv7"): ["linux_arm32_hfp"],
+            ("@platforms//os:linux", "@platforms//cpu:x86_64"): ["linux_64"],
+            ("@platforms//os:windows", "@platforms//cpu:x86_64"): ["mingw_x64"],
+        },
     ),
-    macos_x86_64 = struct(
+    "macos_x86_64": struct(
         plugin = {},
         compile = {
             "kotlin-native-macos-x86_64": "konan/lib/kotlin-native.jar",
             "trove4j-macos-x86_64": "konan/lib/trove4j.jar",
         },
         runtime = {},
+        exec_compatible_with = ["@platforms//os:macos", "@platforms//cpu:x86_64"],
+        targets = {
+            ("@platforms//os:android", "@platforms//cpu:armv7"): ["android_arm32"],
+            ("@platforms//os:android", "@platforms//cpu:arm64"): ["android_arm64"],
+            ("@platforms//os:android", "@platforms//cpu:x86_64"): ["android_x64"],
+            ("@platforms//os:android", "@platforms//cpu:x86_32"): ["android_x86"],
+            ("@platforms//os:ios", "@platforms//cpu:arm64"): ["ios_arm64", "ios_simulator_arm64"],
+            ("@platforms//os:ios", "@platforms//cpu:x86_64"): ["ios_x64"],
+            ("@platforms//os:linux", "@platforms//cpu:armv7"): ["linux_arm32_hfp"],
+            ("@platforms//os:linux", "@platforms//cpu:arm64"): ["linux_arm64"],
+            ("@platforms//os:linux", "@platforms//cpu:x86_64"): ["linux_x64"],
+            ("@platforms//os:macos", "@platforms//cpu:arm64"): ["macos_arm64"],
+            ("@platforms//os:macos", "@platforms//cpu:x86_64"): ["macos_x64"],
+            ("@platforms//os:windows", "@platforms//cpu:x86_64"): ["mingw_x64"],
+            ("@platforms//os:tvos", "@platforms//cpu:arm64"): ["tvos_arm64", "tvos_simulator_arm64"],
+            ("@platforms//os:tvos", "@platforms//cpu:x86_64"): ["tvos_x64"],
+            ("@platforms//os:watchos", "@platforms//cpu:armv7k"): ["watchos_arm32"],
+            ("@platforms//os:watchos", "@platforms//cpu:arm64"): ["watchos_arm64", "watchos_simulator_arm64"],
+            ("@platforms//os:watchos", "@platforms//cpu:arm64_32"): ["watchos_device_arm64"],
+            ("@platforms//os:watchos", "@platforms//cpu:x86_64"): ["watchos_x64"],
+        },
     ),
-    macos_aarch64 = struct(
+    "macos_aarch64": struct(
         plugin = {},
         compile = {
             "kotlin-native-macos_aarch64": "konan/lib/kotlin-native.jar",
             "trove4j-macos_aarch64": "konan/lib/trove4j.jar",
         },
         runtime = {},
+        exec_compatible_with = ["@platforms//os:macos", "@platforms//cpu:arm64"],
+        targets = {
+            ("@platforms//os:linux", "@platforms//cpu:x86_64"): ["linux_x64"],
+            ("@platforms//os:linux", "@platforms//cpu:arm64"): ["linux_arm64"],
+            ("@platforms//os:windows", "@platforms//cpu:x86_64"): ["mingw_x64"],
+            ("@platforms//os:android", "@platforms//cpu:x86_32"): ["android_x86"],
+            ("@platforms//os:android", "@platforms//cpu:x86_64"): ["android_x64"],
+            ("@platforms//os:android", "@platforms//cpu:armv7"): ["android_arm32"],
+            ("@platforms//os:android", "@platforms//cpu:arm64"): ["android_arm64"],
+            ("@platforms//os:macos", "@platforms//cpu:x86_64"): ["macos_x64"],
+            ("@platforms//os:macos", "@platforms//cpu:arm64"): ["macos_arm64"],
+            ("@platforms//os:ios", "@platforms//cpu:arm64"): ["ios_arm64", "ios_simulator_arm64"],
+            ("@platforms//os:ios", "@platforms//cpu:x86_64"): ["ios_x64"],
+            ("@platforms//os:watchos", "@platforms//cpu:armv7k"): ["watchos_arm32"],
+            ("@platforms//os:watchos", "@platforms//cpu:arm64"): ["watchos_arm64", "watchos_simulator_arm64"],
+            ("@platforms//os:watchos", "@platforms//cpu:arm64_32"): ["watchos_device_arm64"],
+            ("@platforms//os:watchos", "@platforms//cpu:x86_64"): ["watchos_x64"],
+            ("@platforms//os:tvos", "@platforms//cpu:arm64"): ["tvos_arm64", "tvos_simulator_arm64"],
+            ("@platforms//os:tvos", "@platforms//cpu:x86_64"): ["tvos_x64"],
+        },
     ),
-    windows_x86_64 = struct(
+    "windows_x86_64": struct(
         plugin = {},
         compile = {
             "kotlin-native-windows_x86_64": "konan/lib/kotlin-native.jar",
             "trove4j-windows_x86_64": "konan/lib/trove4j.jar",
         },
         runtime = {},
+        exec_compatible_with = ["@platforms//os:windows", "@platforms//cpu:x86_64"],
+        targets = {
+            ("@platforms//os:windows", "@platforms//cpu:x86_64"): ["mingw_x64"],
+            ("@platforms//os:android", "@platforms//cpu:armv7"): ["android_arm32"],
+            ("@platforms//os:android", "@platforms//cpu:arm64"): ["android_arm64"],
+            ("@platforms//os:android", "@platforms//cpu:x86_32"): ["android_x86"],
+            ("@platforms//os:android", "@platforms//cpu:x86_64"): ["android_x64"],
+            ("@platforms//os:linux", "@platforms//cpu:x86_64"): ["linux_64"],
+        },
     ),
-)
+}
 
 KOTLINC_ARTIFACT_LIST = {
     label: file
@@ -114,7 +176,7 @@ KOTLINC_ARTIFACT_LIST = {
 
 KOTLIN_NATIVE_ARTIFACT_LIST = {
     label: file
-    for platform in ["linux_x86_64", "macos_x86_64", "macos_aarch64", "windows_x86_64"]
+    for platform in KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS.keys()
     for type in ["compile", "plugin", "runtime"]
-    for (label, file) in getattr(getattr(KOTLIN_NATIVE_ARTIFACTS, platform), type).items()
+    for (label, file) in getattr(KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS[platform], type).items()
 }

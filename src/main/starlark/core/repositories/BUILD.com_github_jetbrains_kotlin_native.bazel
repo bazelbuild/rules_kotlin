@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@aspect_bazel_lib//lib:copy_to_directory.bzl", "copy_to_directory")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@bazel_skylib//rules/directory:directory.bzl", "directory")
 
 package(default_visibility = ["//visibility:public"])
+
 
 filegroup(
     name = "bin",
@@ -48,17 +49,17 @@ write_file(
     ],
 )
 
-copy_to_directory(
+directory(
     name = "konan_home",
-    # TODO: figure out if all files are needed
     srcs = glob([
         "konan/**",
         "klib/**",
-    ]) + [
-        ":klib_system_cache_marker_linux_x64",
-        ":klib_system_cache_marker_macos_arm64",
-        ":klib_system_cache_marker_macos_x64",
-    ],
+    ]),
+)
+
+filegroup(
+    name = "klib_cache_marker_files",
+    srcs = [":klib_system_cache_marker_macos_arm64"],
 )
 
 filegroup(

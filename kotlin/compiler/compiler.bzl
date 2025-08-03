@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS", "KOTLIN_NATIVE_ARTIFACTS")
+load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS", "KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO", _KT_NATIVE_COMPILER_REPO_PREFIX = "KT_NATIVE_COMPILER_REPO_PREFIX")
 
@@ -63,10 +63,8 @@ def kt_configure_compiler():
 
     _import_artifacts(KOTLINC_ARTIFACTS.jvm, kt_jvm_import)
     _import_artifacts(KOTLINC_ARTIFACTS.core, kt_jvm_import)
-    _import_artifacts(KOTLIN_NATIVE_ARTIFACTS.linux_x86_64, kt_jvm_import, compiler_repo = _KT_NATIVE_COMPILER_REPO_PREFIX + "_linux_x86_64")
-    _import_artifacts(KOTLIN_NATIVE_ARTIFACTS.macos_x86_64, kt_jvm_import, compiler_repo = _KT_NATIVE_COMPILER_REPO_PREFIX + "_macos_x86_64")
-    _import_artifacts(KOTLIN_NATIVE_ARTIFACTS.macos_aarch64, kt_jvm_import, compiler_repo = _KT_NATIVE_COMPILER_REPO_PREFIX + "_macos_aarch64")
-    _import_artifacts(KOTLIN_NATIVE_ARTIFACTS.windows_x86_64, kt_jvm_import, compiler_repo = _KT_NATIVE_COMPILER_REPO_PREFIX + "_windows_x86_64")
+    for platform in KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS.keys():
+        _import_artifacts(KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS[platform], kt_jvm_import, compiler_repo = _KT_NATIVE_COMPILER_REPO_PREFIX + "_" + platform)
 
     # a convenience alias for kotlin-native to be referenced in other places
     native.alias(

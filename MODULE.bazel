@@ -19,8 +19,6 @@ bazel_dep(name = "rules_shell", version = "0.4.1")
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.0.3", dev_dependency = True)
 
-bazel_dep(name = "aspect_bazel_lib", version = "2.19.4")
-
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
@@ -48,6 +46,8 @@ use_repo(
 register_toolchains("//src/main/starlark/core/compile/cli")
 
 register_toolchains("//kotlin/internal:default_toolchain")
+
+register_toolchains("//kotlin/internal/klib:all")
 
 # Development dependencies
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that

@@ -1,4 +1,4 @@
-load("//kotlin/internal:defs.bzl", _KtKlibInfo = "KtKlibInfo", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
+load("//kotlin/internal:defs.bzl", _KtKlibInfo = "KtKlibInfo", _NATIVE_TOOLCHAIN_TYPE = "NATIVE_TOOLCHAIN_TYPE", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 def _kt_klib_library(ctx):
@@ -9,6 +9,11 @@ def _kt_klib_library(ctx):
     outputs = [klib]
 
     toolchains = ctx.toolchains[_TOOLCHAIN_TYPE]
+
+    # Retrieve konan.home from the chosen toolchain's distribution
+    native_toolchain_info = ctx.toolchains[_NATIVE_TOOLCHAIN_TYPE].kotlin_native_info
+    konan_home = native_toolchain_info.konan_home
+
     deps_klibs = []
     transitive_klibs = []
     for dep in ctx.attr.deps:
@@ -18,7 +23,7 @@ def _kt_klib_library(ctx):
 
     libraries = depset(transitive = deps_klibs)
     builder_args.add_all("--sources", ctx.files.srcs)
-    builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchains.kotlinbuilder, toolchains.konan_home])
+    builder_inputs, _, input_manifests = ctx.resolve_command(tools = [toolchains.kotlinbuilder])
 
     builder_args.add("--strict_kotlin_deps", "off")
     builder_args.add("--reduced_classpath_mode", "off")
@@ -27,19 +32,13 @@ def _kt_klib_library(ctx):
     libraries = depset(transitive = deps_klibs)
     builder_args.add_all("--klibs", libraries, omit_if_empty = False)
 
-    # This will be a directory we need to propagate to the compiler
-    konan_home = toolchains.konan_home[DefaultInfo].files.to_list()[0]
-    if not konan_home.is_directory:
-        fail("konan home must be a directory!")
-
     ctx.actions.run(
         mnemonic = "KotlinKlibCompile",
-        inputs = depset(builder_inputs + ctx.files.srcs, transitive = [libraries]),
+        inputs = depset(builder_inputs + ctx.files.srcs, transitive = [libraries, native_toolchain_info.konan_home_files]),
         outputs = outputs,
         executable = toolchains.kotlinbuilder.files_to_run.executable,
         tools = [
             toolchains.kotlinbuilder.files_to_run,
-            toolchains.konan_home[DefaultInfo].files_to_run,
         ],
         execution_requirements = {"supports-workers": "1"},
         arguments = [ctx.actions.args().add_all(toolchains.builder_args), builder_args],
@@ -75,6 +74,6 @@ to be shared between Kotlin code for different platforms (JS/JVM/WASM etc.). It 
             providers = [_KtKlibInfo],
         ),
     },
-    toolchains = [_TOOLCHAIN_TYPE],
+    toolchains = [_TOOLCHAIN_TYPE, _NATIVE_TOOLCHAIN_TYPE],
     provides = [_KtKlibInfo],
 )

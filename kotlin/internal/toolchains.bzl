@@ -385,12 +385,6 @@ def define_kt_toolchain(
         jvm_runtime = jvm_runtime if jvm_runtime != None else [
             Label("//kotlin/compiler:kotlin-stdlib"),
         ],
-        konan_home = select({
-            "@bazel_tools//src/conditions:linux_x86_64": Label("@" + _KT_NATIVE_COMPILER_REPO_PREFIX + "_linux_x86_64//:konan_home"),
-            "@bazel_tools//src/conditions:darwin_arm64": Label("@" + _KT_NATIVE_COMPILER_REPO_PREFIX + "_macos_aarch64//:konan_home"),
-            "@bazel_tools//src/conditions:darwin_x86_64": Label("@" + _KT_NATIVE_COMPILER_REPO_PREFIX + "_macos_x86_64//:konan_home"),
-            "@bazel_tools//src/conditions:windows": Label("@" + _KT_NATIVE_COMPILER_REPO_PREFIX + "_windows_x86_64//:konan_home"),
-        }),
     )
     native.toolchain(
         name = name,
