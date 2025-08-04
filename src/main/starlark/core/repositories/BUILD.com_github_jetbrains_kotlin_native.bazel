@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@bazel_skylib//rules/directory:directory.bzl", "directory")
 
 package(default_visibility = ["//visibility:public"])

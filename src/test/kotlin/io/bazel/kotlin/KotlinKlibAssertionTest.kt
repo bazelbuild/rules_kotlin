@@ -5,7 +5,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class KotlinKlibAssertionTest : KotlinAssertionTestCase("src/test/data/klib") {
+class KotlinKlibAssertionTest : KotlinAssertionTestCase("src/test/data/native") {
   @Test
   fun testBasicKlibIsProduced() {
     klibTestCase("basic.klib", "kt_lib_library produces klib with stdlib usage") {

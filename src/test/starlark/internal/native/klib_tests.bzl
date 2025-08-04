@@ -15,7 +15,7 @@ def _test_kt_klib_basic_impl(env, target):
     _common_assertions(env, target)
     target_subject = env.expect.that_target(target)
     action_subject = target_subject.action_named("KotlinKlibCompile")
-    action_subject.inputs().contains("src/test/starlark/internal/klib/Basic.kt")
+    action_subject.inputs().contains("src/test/starlark/internal/native/Basic.kt")
 
 def _test_kt_klib_basic(name):
     kt_klib_library(name = "basic", srcs = ["Basic.kt"], tags = ["manual"])
@@ -27,10 +27,10 @@ def _test_kt_klib_deps_impl(env, target):
 
     target_subject = env.expect.that_target(target)
     action_subject = target_subject.action_named("KotlinKlibCompile")
-    action_subject.inputs().contains("src/test/starlark/internal/klib/Second.kt")
+    action_subject.inputs().contains("src/test/starlark/internal/native/Second.kt")
 
     # the klib from first compilation is passed as input
-    action_subject.inputs().contains("src/test/starlark/internal/klib/first.klib")
+    action_subject.inputs().contains("src/test/starlark/internal/native/first.klib")
 
     # and it's passed through the arguments
     action_subject.argv().contains_at_least(["--klibs"])
