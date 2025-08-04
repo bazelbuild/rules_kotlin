@@ -4,10 +4,7 @@ import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
 import io.bazel.kotlin.model.KlibCompilationTask
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.*
 import java.util.stream.Collectors
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,6 +35,13 @@ class KotlinKlibTaskExecutor
       if (!workDir.exists()) {
         workDir.toFile().mkdirs()
       }
+
+      val konanHome = this.info.toolchainInfo.native.konanHome
+      if(!Paths.get(konanHome).exists()) {
+        throw IllegalArgumentException("$konanHome doesn't point to konan.home or doesn't exist.")
+      }
+
+      System.setProperty("konan.home", konanHome);
 
       val autoCacheDirectory = workingDirectory().resolve("native_auto_cache")
       if (!autoCacheDirectory.exists()) {

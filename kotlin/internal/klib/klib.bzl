@@ -31,6 +31,7 @@ def _kt_klib_library(ctx):
 
     libraries = depset(transitive = deps_klibs)
     builder_args.add_all("--klibs", libraries, omit_if_empty = False)
+    builder_args.add("--konan_home", konan_home.path)
 
     ctx.actions.run(
         mnemonic = "KotlinKlibCompile",
@@ -46,7 +47,6 @@ def _kt_klib_library(ctx):
         input_manifests = input_manifests,
         env = {
             "REPOSITORY_NAME": utils.builder_workspace_name(ctx),
-            "KONAN_HOME": konan_home.path,
         },
     )
 

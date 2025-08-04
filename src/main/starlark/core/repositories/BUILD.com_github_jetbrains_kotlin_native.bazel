@@ -22,44 +22,12 @@ filegroup(
     srcs = glob(["bin/**"]),
 )
 
-write_file(
-    name = "klib_system_cache_marker_macos_arm64",
-    out = "klib/cache/macos_arm64STATIC/klib_cache_marker",
-    content = [
-        "Marker file intended to create the klib system cache placeholder even if we don't use it. The native compiler errors out otherwise",
-        "See See https://github.com/JetBrains/kotlin/blob/v2.1.21/kotlin-native/backend.native/compiler/ir/backend.native/src/org/jetbrains/kotlin/backend/konan/KonanConfig.kt#L567",
-    ],
-)
-
-write_file(
-    name = "klib_system_cache_marker_linux_x64",
-    out = "klib/cache/linux_x64STATIC/klib_cache_marker",
-    content = [
-        "Marker file intended to create the klib system cache placeholder even if we don't use it. The native compiler errors out otherwise",
-        "See See https://github.com/JetBrains/kotlin/blob/v2.1.21/kotlin-native/backend.native/compiler/ir/backend.native/src/org/jetbrains/kotlin/backend/konan/KonanConfig.kt#L567",
-    ],
-)
-
-write_file(
-    name = "klib_system_cache_marker_macos_x64",
-    out = "klib/cache/macos_x64STATIC/klib_cache_marker",
-    content = [
-        "Marker file intended to create the klib system cache placeholder even if we don't use it. The native compiler errors out otherwise",
-        "See See https://github.com/JetBrains/kotlin/blob/v2.1.21/kotlin-native/backend.native/compiler/ir/backend.native/src/org/jetbrains/kotlin/backend/konan/KonanConfig.kt#L567",
-    ],
-)
-
 directory(
     name = "konan_home",
     srcs = glob([
         "konan/**",
         "klib/**",
     ]),
-)
-
-filegroup(
-    name = "klib_cache_marker_files",
-    srcs = [":klib_system_cache_marker_macos_arm64"],
 )
 
 filegroup(

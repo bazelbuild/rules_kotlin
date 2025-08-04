@@ -31,12 +31,6 @@ alias(
     actual = "@$git_repo$//:konan_properties",
 )
 
-# TODO: figure out a way to avoid having these
-alias(
-    name = "klib_cache_marker_files",
-    actual = "@$git_repo$//:klib_cache_marker_files",
-)
-
 [
     alias(
         name = label,

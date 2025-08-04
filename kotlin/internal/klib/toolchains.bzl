@@ -17,7 +17,7 @@ def _kt_native_toolchain_impl(ctx):
         platform_common.ToolchainInfo(
             kotlin_native_info = KotlinNativeToolchainInfo(
                 konan_home = konan_home,
-                konan_home_files = depset(direct = ctx.files.klib_cache_marker_files, transitive = [konan_home_info.transitive_files]),
+                konan_home_files = depset(transitive = [konan_home_info.transitive_files]),
                 konan_properties = konan_properties,
                 targets = ctx.attr.targets,
             ),
@@ -34,10 +34,6 @@ kt_native_toolchain = rule(
         "targets": attr.string_list(
             doc = "The list of targets supported by this toolchain. Each target can be passed to kotlinc-native with -target option",
             default = [],
-        ),
-        "klib_cache_marker_files": attr.label(
-            doc = "Marker files generated to trick the Kotlin Native compiler to assume the local cache already exists. Without this, it fails to bootstrap the compiler because it expects the directory to exist.",
-            allow_files = True,
         ),
     },
     provides = [platform_common.ToolchainInfo],
@@ -66,7 +62,6 @@ def kt_configure_native_toolchains():
                 name = toolchain_name + "_impl",
                 konan_home = "@com_github_jetbrains_kotlin_native_{}//:konan_home".format(exec_platform),
                 targets = kotlin_native_targets,
-                klib_cache_marker_files = "@com_github_jetbrains_kotlin_native_{}//:klib_cache_marker_files".format(exec_platform),
             )
 
             # Register the toolchain

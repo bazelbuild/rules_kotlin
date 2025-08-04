@@ -41,8 +41,15 @@ message KotlinToolchainInfo {
         string jvm_target = 1;
     }
 
+    // Properties specific to the native compiler
+    message Native {
+        // The path to the konan directory in the distribution
+        string konan_home = 1;
+    }
+
     Common common = 1;
     Jvm jvm = 2;
+    Native native = 3;
 }
 
 enum RuleKind {
@@ -183,6 +190,8 @@ message KlibCompilationTask {
   message Directories {
     // A temp directory that the compiler may use.
     string temp = 4;
+    // Path to the konan distribution directory of the native compiler
+    string konan_home = 5;
   }
 
   message Outputs {

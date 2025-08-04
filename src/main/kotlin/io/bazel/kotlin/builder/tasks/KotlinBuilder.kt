@@ -94,6 +94,7 @@ class KotlinBuilder
         BUILD_TOOLS_API("--build_tools_api"),
         KLIBS("--klibs"),
         OUTPUT_KLIB("--output_klib"),
+        KONAN_HOME("--konan_home")
       }
     }
 
@@ -202,7 +203,6 @@ class KotlinBuilder
     ) {
       val task = buildKlibTask(context.info, workingDir, argMap)
       context.whenTracing { printProto("klib common task input", task) }
-      buildKlibTask(context.info, workingDir, argMap)
       klibTaskExecutor.execute(context, task)
     }
 
@@ -215,6 +215,10 @@ class KotlinBuilder
         this.info = info
         with(directoriesBuilder) {
           temp = workingDir.toString()
+        }
+
+        with(infoBuilder.toolchainInfoBuilder.nativeBuilder) {
+          this.setKonanHome(argMap.mandatorySingle(KotlinBuilderFlags.KONAN_HOME))
         }
 
         with(inputsBuilder) {
