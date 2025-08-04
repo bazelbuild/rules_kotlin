@@ -72,7 +72,7 @@ kt_rules_e2e_test(
     name = "KotlinKlibAssertionTest",
     srcs = ["KotlinKlibAssertionTest.kt"],
     data = [
-        "//src/test/data/klib:klib_tests",
+        "//src/test/data/native:klib_tests",
     ],
 )
 
