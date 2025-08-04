@@ -1,16 +1,16 @@
-load("//kotlin/internal/native:klib.bzl", "kt_klib_library")
+load("//kotlin/internal/native:library.bzl", "kt_library")
 
-kt_klib_library(
+kt_library(
     name = "basic",
     srcs = ["basic/Hello.kt"],
 )
 
-kt_klib_library(
+kt_library(
     name = "deps_greeting",
     srcs = ["deps/data/Greeting.kt"],
 )
 
-kt_klib_library(
+kt_library(
     name = "deps_main",
     srcs = ["deps/Main.kt"],
     deps = [":deps_greeting"],

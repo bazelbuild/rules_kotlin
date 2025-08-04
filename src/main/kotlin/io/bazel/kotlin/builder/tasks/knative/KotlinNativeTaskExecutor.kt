@@ -1,9 +1,9 @@
-package io.bazel.kotlin.builder.tasks.klib
+package io.bazel.kotlin.builder.tasks.knative
 
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.addAll
-import io.bazel.kotlin.model.KlibCompilationTask
+import io.bazel.kotlin.model.KotlinNativeCompilationTask
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -17,7 +17,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.pathString
 
 @Singleton
-class KotlinKlibTaskExecutor
+class KotlinNativeTaskExecutor
   @Inject
   constructor(
     private val invoker: KotlinToolchain.K2NativeCompilerInvoker,
@@ -26,14 +26,15 @@ class KotlinKlibTaskExecutor
 
     fun execute(
       context: CompilationTaskContext,
-      task: KlibCompilationTask,
+      task: KotlinNativeCompilationTask,
     ) {
       task.compile(context)
     }
 
-    private fun KlibCompilationTask.workingDirectory(): Path = fileSystem.getPath(directories.temp)
+    private fun KotlinNativeCompilationTask.workingDirectory(): Path =
+      fileSystem.getPath(directories.temp)
 
-    private fun KlibCompilationTask.commonArgs(): MutableList<String> {
+    private fun KotlinNativeCompilationTask.commonArgs(): MutableList<String> {
       val workDir = workingDirectory()
       if (!workDir.exists()) {
         workDir.toFile().mkdirs()
@@ -73,7 +74,7 @@ class KotlinKlibTaskExecutor
       }
     }
 
-    private fun KlibCompilationTask.compile(context: CompilationTaskContext) {
+    private fun KotlinNativeCompilationTask.compile(context: CompilationTaskContext) {
       val args = commonArgs()
       val klibOut = fileSystem.getPath(outputs.klib)
       inputs.librariesList.forEach { library ->

@@ -1,3 +1,3 @@
-load(":klib_tests.bzl", "kt_klib_test_suite")
+load(":kt_library_tests.bzl", "kt_library_test_suite")
 
-kt_klib_test_suite(name = "klib_tests")
+kt_library_test_suite(name = "library_tests")

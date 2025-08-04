@@ -1,9 +1,9 @@
 load("//kotlin/internal:defs.bzl", _KtKlibInfo = "KtKlibInfo", _NATIVE_TOOLCHAIN_TYPE = "NATIVE_TOOLCHAIN_TYPE", _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE")
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
-def _kt_klib_library(ctx):
+def _kt_library_impl(ctx):
     module_name = utils.derive_module_name(ctx)
-    builder_args = utils.init_args(ctx, "kt_klib_library", module_name)
+    builder_args = utils.init_args(ctx, "kt_library", module_name)
 
     klib = ctx.actions.declare_file("{}.klib".format(ctx.label.name))
     outputs = [klib]
@@ -57,8 +57,8 @@ def _kt_klib_library(ctx):
         ),
     ]
 
-kt_klib_library = rule(
-    implementation = _kt_klib_library,
+kt_library = rule(
+    implementation = _kt_library_impl,
     doc = """
 This rule is intended to leverage the new Kotlin IR backend to allow for compiling platform-independent Kotlin code
 to be shared between Kotlin code for different platforms (JS/JVM/WASM etc.). It produces a klib file as the output.

@@ -62,7 +62,7 @@ enum RuleKind {
 enum Platform {
     JVM = 0;
     ANDROID = 1;
-    KLIB = 3;
+    NATIVE_LIBRARY = 3;
 }
 
 // Common info about a Kotlin compilation task, this message is shared by all compilation tasks.
@@ -185,7 +185,7 @@ message JvmCompilationTask {
 }
 
 
-message KlibCompilationTask {
+message KotlinNativeCompilationTask {
   // Directories used by the builder.
   message Directories {
     // A temp directory that the compiler may use.
