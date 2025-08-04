@@ -56,12 +56,10 @@ class KotlinKlibTaskExecutor
       val execRoot = fileSystem.getPath(".").absolute()
       return mutableListOf<String>().apply {
         addAll(passThroughFlagsList)
-        // kotlin-native klib compilation requires caching and no way to disable, so pass a temp directory
-        // within the current working directory to isolate its cache (which is unique to this worker anyway)
-        // Ideally we disable caching though and rely only on Bazel
-        add("-Xauto-cache-dir=${autoCacheDirectory.absolutePathString()}")
-        add("-Xauto-cache-from=${autoCacheFromDirectory.absolutePathString()}")
         add("-Xklib-normalize-absolute-path")
+        // Avoid downloading any dependencies during the build
+        add("-Xoverride-konan-properties=airplaneMode=true")
+        add("-nostdlib")
         addAll("-module-name=${info.moduleName}")
         addAll(inputs.kotlinSourcesList.map { execRoot.resolve(it).absolutePathString() })
       }

@@ -18,7 +18,6 @@ def _kt_klib_library(ctx):
     transitive_klibs = []
     for dep in ctx.attr.deps:
         deps_klibs.append(dep[_KtKlibInfo].klibs)
-        deps_klibs.append(dep[_KtKlibInfo].transitive_klibs)
         transitive_klibs.append(dep[_KtKlibInfo].transitive_klibs)
 
     libraries = depset(transitive = deps_klibs)
@@ -30,7 +29,7 @@ def _kt_klib_library(ctx):
     builder_args.add("--output_klib", klib.path)
 
     libraries = depset(transitive = deps_klibs)
-    builder_args.add_all("--klibs", libraries, omit_if_empty = False)
+    builder_args.add_all("--klibs", libraries)
     builder_args.add("--konan_home", konan_home.path)
 
     ctx.actions.run(
