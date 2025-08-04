@@ -1,4 +1,4 @@
-load("//kotlin/internal/klib:klib.bzl", "kt_klib_library")
+load("//kotlin/internal/native:klib.bzl", "kt_klib_library")
 
 kt_klib_library(
     name = "basic",

@@ -16,7 +16,6 @@ load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-    _KT_NATIVE_COMPILER_REPO_PREFIX = "KT_NATIVE_COMPILER_REPO_PREFIX",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(

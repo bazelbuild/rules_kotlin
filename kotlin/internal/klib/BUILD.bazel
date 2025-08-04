@@ -1,3 +1,0 @@
-load("//kotlin/internal/klib:toolchains.bzl", "kt_configure_native_toolchains")
-
-kt_configure_native_toolchains()

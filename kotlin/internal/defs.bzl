@@ -28,7 +28,7 @@ load(
 
 # The Kotlin Toolchain type.
 TOOLCHAIN_TYPE = "%s" % Label("//kotlin/internal:kt_toolchain_type")
-NATIVE_TOOLCHAIN_TYPE = "%s" % Label("//kotlin/internal/klib:kt_native_toolchain_type")
+NATIVE_TOOLCHAIN_TYPE = "%s" % Label("//kotlin/internal/native:kt_native_toolchain_type")
 
 # Java toolchains
 JAVA_TOOLCHAIN_TYPE = _JAVA_TOOLCHAIN_TYPE
