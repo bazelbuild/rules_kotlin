@@ -12,7 +12,6 @@ import java.nio.file.Paths
 import java.util.stream.Collectors
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
@@ -57,13 +56,18 @@ class KotlinKlibTaskExecutor
         autoCacheFromDirectory.toFile().mkdirs()
       }
 
-      val execRoot = fileSystem.getPath(".").absolute()
+      val execRoot = fileSystem.getPath(".")
       return mutableListOf<String>().apply {
         addAll(passThroughFlagsList)
         add("-Xklib-normalize-absolute-path")
         // Avoid downloading any dependencies during the build
         add("-Xoverride-konan-properties=airplaneMode=true")
         add("-nostdlib")
+
+        // Map paths in debug symbols to relative paths to execroot
+        add("-Xdebug-prefix-map=" + execRoot + "=.")
+        // Use relative paths in klibs
+        add("-Xklib-relative-path-base=" + execRoot)
         addAll("-module-name=${info.moduleName}")
         addAll(inputs.kotlinSourcesList.map { execRoot.resolve(it).absolutePathString() })
       }
