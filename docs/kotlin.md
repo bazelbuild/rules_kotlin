@@ -578,7 +578,9 @@ This macro registers the kotlin toolchain.
 load("@rules_kotlin//kotlin:repositories.doc.bzl", "kotlin_repositories")
 
 kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-ksp_repository_name">ksp_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>,
-                    <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>)
+                    <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>, <a href="#kotlin_repositories-kotlin_native_release_linux_x86_64">kotlin_native_release_linux_x86_64</a>,
+                    <a href="#kotlin_repositories-kotlin_native_release_macos_x86_64">kotlin_native_release_macos_x86_64</a>, <a href="#kotlin_repositories-kotlin_native_release_macos_aarch64">kotlin_native_release_macos_aarch64</a>,
+                    <a href="#kotlin_repositories-kotlin_native_release_windows_x86_64">kotlin_native_release_windows_x86_64</a>)
 </pre>
 
 Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -593,6 +595,10 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "1ba08a8b45da99339a0601134cc037b54cf85e9bc0edbe76dcbd27c2d684a977", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.1.21")` |
 | <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "44e965bb067b2bb5cd9184dab2c3dea6e3eab747d341c07645bb4c88f09e49c8", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.1.21-2.0.1")` |
+| <a id="kotlin_repositories-kotlin_native_release_linux_x86_64"></a>kotlin_native_release_linux_x86_64 |  (internal) version provider from versions.bzl   |  `struct(sha256 = "42fb88529b4039b6ac1961a137ccb1c79fc80315947f3ec31b56834c7ce20d0b", strip_prefix_template = "kotlin-native-prebuilt-linux-x86_64-{version}", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-linux-x86_64-{version}.tar.gz"], version = "2.1.21")` |
+| <a id="kotlin_repositories-kotlin_native_release_macos_x86_64"></a>kotlin_native_release_macos_x86_64 |  (internal) version provider from versions.bzl   |  `struct(sha256 = "fc6b5979ec322be803bfac549661aaf0f8f7342aa3bd09008d471fff2757bbdf", strip_prefix_template = "kotlin-native-prebuilt-macos-x86_64-{version}", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-macos-x86_64-{version}.tar.gz"], version = "2.1.21")` |
+| <a id="kotlin_repositories-kotlin_native_release_macos_aarch64"></a>kotlin_native_release_macos_aarch64 |  <p align="center"> - </p>   |  `struct(sha256 = "8df16175b962bc4264a5c3b32cb042d91458babbd093c0f36194dc4645f5fe2e", strip_prefix_template = "kotlin-native-prebuilt-macos-aarch64-{version}", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-macos-aarch64-{version}.tar.gz"], version = "2.1.21")` |
+| <a id="kotlin_repositories-kotlin_native_release_windows_x86_64"></a>kotlin_native_release_windows_x86_64 |  (internal) version provider from versions.bzl   |  `struct(sha256 = "8df16175b962bc4264a5c3b32cb042d91458babbd093c0f36194dc4645f5fe2", strip_prefix_template = "kotlin-native-prebuilt-windows-x86_64-{version}", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-windows-x86_64-{version}.zip"], version = "2.1.21")` |
 
 
 <a id="versions.use_repository"></a>
