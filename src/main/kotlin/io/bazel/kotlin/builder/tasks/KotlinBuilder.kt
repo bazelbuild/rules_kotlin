@@ -94,7 +94,7 @@ class KotlinBuilder
         BUILD_TOOLS_API("--build_tools_api"),
         KLIBS("--klibs"),
         OUTPUT_KLIB("--output_klib"),
-        KONAN_HOME("--konan_home")
+        KONAN_HOME("--konan_home"),
       }
     }
 

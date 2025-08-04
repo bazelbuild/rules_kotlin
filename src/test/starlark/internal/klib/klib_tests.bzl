@@ -9,8 +9,7 @@ def _common_assertions(env, target):
     target_subject.has_provider(KtKlibInfo)
 
     action_subject = target_subject.action_named("KotlinKlibCompile")
-    action_subject.env().keys().contains("KONAN_HOME")
-    action_subject.argv().contains_at_least(["--rule_kind", "kt_klib_library", "--output_klib"])
+    action_subject.argv().contains_at_least(["--rule_kind", "kt_klib_library", "--output_klib", "--konan_home"])
 
 def _test_kt_klib_basic_impl(env, target):
     _common_assertions(env, target)
