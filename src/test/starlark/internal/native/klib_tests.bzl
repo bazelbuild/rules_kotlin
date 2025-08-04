@@ -1,7 +1,7 @@
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
 load("//kotlin/internal:defs.bzl", "KtKlibInfo")
-load("//kotlin/internal/klib:klib.bzl", "kt_klib_library")
+load("//kotlin/internal/native:klib.bzl", "kt_klib_library")
 
 def _common_assertions(env, target):
     # Assertions common to all kt_klib_library tests
