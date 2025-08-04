@@ -79,7 +79,6 @@ def _kotlin_toolchain_impl(ctx):
         ],
         jdeps_merger = ctx.attr.jdeps_merger,
         kotlin_home = ctx.attr.kotlin_home,
-        konan_home = ctx.attr.konan_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -114,10 +113,6 @@ _kt_toolchain = rule(
         "kotlin_home": attr.label(
             doc = "the filegroup defining the kotlin home",
             default = Label("@" + _KT_COMPILER_REPO + "//:home"),
-            allow_files = True,
-        ),
-        "konan_home": attr.label(
-            doc = "the filegroup defining the konan/kotlin-native home",
             allow_files = True,
         ),
         "kotlinbuilder": attr.label(
