@@ -11,7 +11,7 @@ KotlinNativeToolchainInfo = provider(fields = {
 def _kt_native_toolchain_impl(ctx):
     konan_home_info = ctx.attr.konan_home[DirectoryInfo]
     konan_properties = konan_home_info.get_file("konan/konan.properties")
-    konan_home = konan_home_info.get_subdirectory("konan")
+    konan_home = konan_home_info
 
     return [
         platform_common.ToolchainInfo(
