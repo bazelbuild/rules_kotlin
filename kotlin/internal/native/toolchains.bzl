@@ -40,6 +40,7 @@ kt_native_toolchain = rule(
 )
 
 def kt_configure_native_toolchains():
+    """Defines and registers the default toolchains for the kotlin-native compiler for all the platforms and targets supported."""
     native.toolchain_type(
         name = "kt_native_toolchain_type",
         visibility = ["//visibility:public"],
@@ -57,9 +58,15 @@ def kt_configure_native_toolchains():
                 target_cpu.split("//")[1].replace(":", "_").replace("/", "_"),
             )
 
+            toolchain_impl = "default_kt_native_{}_to_{}_{}".format(
+                exec_platform,
+                target_os.split("//")[1].replace(":", "_").replace("/", "_"),
+                target_cpu.split("//")[1].replace(":", "_").replace("/", "_"),
+            )
+
             # Create the toolchain implementation
             kt_native_toolchain(
-                name = toolchain_name + "_impl",
+                name = toolchain_impl,
                 konan_home = "@com_github_jetbrains_kotlin_native_{}//:konan_home".format(exec_platform),
                 targets = kotlin_native_targets,
             )
@@ -69,6 +76,6 @@ def kt_configure_native_toolchains():
                 name = toolchain_name,
                 exec_compatible_with = artifacts_and_targets.exec_compatible_with,
                 target_compatible_with = [target_os, target_cpu],
-                toolchain = ":" + toolchain_name + "_impl",
+                toolchain = ":" + toolchain_impl,
                 toolchain_type = ":kt_native_toolchain_type",
             )
