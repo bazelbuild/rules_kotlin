@@ -17,6 +17,7 @@
 package io.bazel.kotlin.builder.tasks
 
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.tasks.knative.KotlinNativeTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.ArgMap
@@ -26,6 +27,7 @@ import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.builder.utils.resolveNewDirectories
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.JvmCompilationTask
+import io.bazel.kotlin.model.KotlinNativeCompilationTask
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
 import io.bazel.worker.WorkerContext
@@ -43,6 +45,7 @@ class KotlinBuilder
   @Inject
   internal constructor(
     private val jvmTaskExecutor: KotlinJvmTaskExecutor,
+    private val nativeTaskExecutor: KotlinNativeTaskExecutor,
   ) {
     companion object {
       @JvmStatic
@@ -89,6 +92,9 @@ class KotlinBuilder
         INSTRUMENT_COVERAGE("--instrument_coverage"),
         KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
         BUILD_TOOLS_API("--build_tools_api"),
+        KLIBS("--klibs"),
+        OUTPUT_KLIB("--output_klib"),
+        KONAN_HOME("--konan_home"),
       }
     }
 
@@ -105,6 +111,12 @@ class KotlinBuilder
           Platform.JVM,
           Platform.ANDROID,
           -> executeJvmTask(compileContext, taskContext.directory, argMap)
+          Platform.NATIVE_LIBRARY ->
+            executeKotlinNativeTask(
+              compileContext,
+              taskContext.directory,
+              argMap,
+            )
           Platform.UNRECOGNIZED -> throw IllegalStateException(
             "unrecognized platform: ${compileContext.info}",
           )
@@ -146,8 +158,13 @@ class KotlinBuilder
         argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).also {
           val splitRuleKind = it.split("_")
           require(splitRuleKind[0] == "kt") { "Invalid rule kind $it" }
-          platform = Platform.valueOf(splitRuleKind[1].uppercase())
           ruleKind = RuleKind.valueOf(splitRuleKind.last().uppercase())
+          platform =
+            when (it) {
+              // kt_library is a special case
+              "kt_library" -> Platform.NATIVE_LIBRARY
+              else -> Platform.valueOf(splitRuleKind[1].uppercase())
+            }
         }
         moduleName =
           argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
@@ -188,6 +205,44 @@ class KotlinBuilder
       }
       jvmTaskExecutor.execute(context, task)
     }
+
+    private fun executeKotlinNativeTask(
+      context: CompilationTaskContext,
+      workingDir: Path,
+      argMap: ArgMap,
+    ) {
+      val task = buildKotlinNativeTask(context.info, workingDir, argMap)
+      context.whenTracing { printProto("kotlin native compile task input", task) }
+      nativeTaskExecutor.execute(context, task)
+    }
+
+    private fun buildKotlinNativeTask(
+      info: CompilationTaskInfo,
+      workingDir: Path,
+      argMap: ArgMap,
+    ): KotlinNativeCompilationTask =
+      with(KotlinNativeCompilationTask.newBuilder()) {
+        this.info = info
+        with(directoriesBuilder) {
+          temp = workingDir.toString()
+        }
+
+        with(infoBuilder.toolchainInfoBuilder.nativeBuilder) {
+          this.setKonanHome(argMap.mandatorySingle(KotlinBuilderFlags.KONAN_HOME))
+        }
+
+        with(inputsBuilder) {
+          argMap.optional(KotlinBuilderFlags.KLIBS)?.let {
+            addAllLibraries(it)
+          }
+          addAllKotlinSources(argMap.mandatory(KotlinBuilderFlags.SOURCES))
+        }
+
+        with(outputsBuilder) {
+          this.setKlib(argMap.mandatorySingle(KotlinBuilderFlags.OUTPUT_KLIB))
+        }
+        build()
+      }
 
     private fun buildJvmTask(
       info: CompilationTaskInfo,

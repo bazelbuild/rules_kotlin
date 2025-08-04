@@ -1,4 +1,5 @@
 TYPE = "//src/main/starlark/core/compile:toolchain_type"
+NATIVE_TYPE = "//src/main/starlark/core/compile:native_toolchain_type"
 
 # Java toolchains
 JAVA_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/jdk:toolchain_type")
@@ -17,5 +18,13 @@ KtJvmInfo = provider(
         "annotation_processing": "Generated annotation processing jars. [intellij-aspect]",
         "additional_generated_source_jars": "Returns additional Jars containing generated source files from kapt, ksp, etc. [bazel-bsp-aspect]",
         "all_output_jars": "Returns all the output Jars produced by this rule. [bazel-bsp-aspect]",
+    },
+)
+
+KtKlibInfo = provider(
+    fields = {
+        "module_name": "the module_name",
+        "klibs": "the klibs provided by the output of compilation",
+        "transitive_klibs": "Returns the transitive set of klibs required to build the target",
     },
 )
