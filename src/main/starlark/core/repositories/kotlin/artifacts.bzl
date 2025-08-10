@@ -70,14 +70,8 @@ KOTLINC_ARTIFACTS = struct(
     ),
 )
 
-KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS = {
+KOTLIN_NATIVE_TARGETS = {
     "linux_x86_64": struct(
-        plugin = {},
-        compile = {
-            "kotlin-native-linux-x86_64": "konan/lib/kotlin-native.jar",
-            "trove4j-linux-x86_64": "konan/lib/trove4j.jar",
-        },
-        runtime = {},
         exec_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
         # the targets have been extracted here manually by either running kotlinc-native -list-targets for the relevant distribution
         # or listing entries under <konan.home>/targets/, and then map Bazel platforms for it so that we can create the relevant toolchains
@@ -92,12 +86,6 @@ KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS = {
         },
     ),
     "macos_x86_64": struct(
-        plugin = {},
-        compile = {
-            "kotlin-native-macos-x86_64": "konan/lib/kotlin-native.jar",
-            "trove4j-macos-x86_64": "konan/lib/trove4j.jar",
-        },
-        runtime = {},
         exec_compatible_with = ["@platforms//os:macos", "@platforms//cpu:x86_64"],
         targets = {
             ("@platforms//os:android", "@platforms//cpu:armv7"): ["android_arm32"],
@@ -121,12 +109,6 @@ KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS = {
         },
     ),
     "macos_aarch64": struct(
-        plugin = {},
-        compile = {
-            "kotlin-native-macos_aarch64": "konan/lib/kotlin-native.jar",
-            "trove4j-macos_aarch64": "konan/lib/trove4j.jar",
-        },
-        runtime = {},
         exec_compatible_with = ["@platforms//os:macos", "@platforms//cpu:arm64"],
         targets = {
             ("@platforms//os:linux", "@platforms//cpu:x86_64"): ["linux_x64"],
@@ -149,12 +131,6 @@ KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS = {
         },
     ),
     "windows_x86_64": struct(
-        plugin = {},
-        compile = {
-            "kotlin-native-windows_x86_64": "konan/lib/kotlin-native.jar",
-            "trove4j-windows_x86_64": "konan/lib/trove4j.jar",
-        },
-        runtime = {},
         exec_compatible_with = ["@platforms//os:windows", "@platforms//cpu:x86_64"],
         targets = {
             ("@platforms//os:windows", "@platforms//cpu:x86_64"): ["mingw_x64"],
@@ -172,11 +148,4 @@ KOTLINC_ARTIFACT_LIST = {
     for lang in ["jvm", "core"]
     for type in ["compile", "plugin", "runtime"]
     for (label, file) in getattr(getattr(KOTLINC_ARTIFACTS, lang), type).items()
-}
-
-KOTLIN_NATIVE_ARTIFACT_LIST = {
-    label: file
-    for platform in KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS.keys()
-    for type in ["compile", "plugin", "runtime"]
-    for (label, file) in getattr(KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS[platform], type).items()
 }

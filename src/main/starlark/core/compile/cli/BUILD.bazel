@@ -1,8 +1,9 @@
 load("@rules_java//java:java_binary.bzl", "java_binary")
 load("@rules_java//java:java_import.bzl", "java_import")
 load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
-load("//src/main/starlark/core/compile:common.bzl", "TYPE")
+load("//src/main/starlark/core/compile:common.bzl", "NATIVE_TYPE", "TYPE")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
+load(":native.bzl", "define_native_cli_toolchains")
 load(":toolchain.bzl", "cli_toolchain")
 
 java_import(
@@ -35,3 +36,5 @@ toolchain(
     toolchain = ":cli_toolchain",
     toolchain_type = TYPE,
 )
+
+define_native_cli_toolchains()

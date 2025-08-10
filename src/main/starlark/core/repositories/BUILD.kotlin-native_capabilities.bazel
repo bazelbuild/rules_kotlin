@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load(":artifacts.bzl", "KOTLIN_NATIVE_ARTIFACT_LIST")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -31,10 +30,12 @@ alias(
     actual = "@$git_repo$//:konan_properties",
 )
 
-[
-    alias(
-        name = label,
-        actual = "@$git_repo$//:%s" % file.replace(".", "_"),
-    )
-    for (label, file) in KOTLIN_NATIVE_ARTIFACT_LIST.items()
-]
+alias(
+    name = "kotlin-native",
+    actual = "@$git_repo$//:kotlin-native",
+)
+
+alias(
+    name = "trove4j",
+    actual = "@$git_repo$//:trove4j",
+)

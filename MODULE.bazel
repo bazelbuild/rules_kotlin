@@ -43,7 +43,7 @@ use_repo(
     "kotlinx_serialization_json_jvm",
 )
 
-register_toolchains("//src/main/starlark/core/compile/cli")
+register_toolchains("//src/main/starlark/core/compile/cli:all")
 
 register_toolchains("//kotlin/internal:default_toolchain")
 

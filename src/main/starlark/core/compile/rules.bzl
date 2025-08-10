@@ -1,5 +1,5 @@
 load("@rules_java//java:defs.bzl", "JavaInfo")
-load(":common.bzl", "KtJvmInfo", "TYPE")
+load(":common.bzl", "KtJvmInfo", "NATIVE_TYPE", "TYPE")
 
 _COMMON_ATTRS = {
     "srcs": attr.label_list(
@@ -59,6 +59,9 @@ _COMMON_ATTRS = {
 
 def _kt_jvm_library_impl(ctx):
     kt_tools = ctx.toolchains[TYPE]
+    native_toolchain = ctx.toolchains[NATIVE_TYPE]
+    native_java_infos = native_toolchain.kotlin_native_compile_info.native_java_infos
+
     class_jar = ctx.outputs.class_jar
     source_jar = ctx.outputs.source_jar
     java_info_deps = [d[JavaInfo] for d in ctx.attr.deps if JavaInfo in d]
@@ -66,7 +69,7 @@ def _kt_jvm_library_impl(ctx):
     kt_tools.compile(
         actions = ctx.actions,
         srcs = ctx.files.srcs,
-        dep_jars = depset(transitive = [j.compile_jars for j in java_info_deps]),
+        dep_jars = depset(transitive = [j.compile_jars for j in java_info_deps] + [j.compile_jars for j in native_java_infos]),
         class_jar = class_jar,
         output_srcjar = source_jar,
         module_name = module_name,
@@ -121,6 +124,7 @@ _kt_jvm_library = rule(
     attrs = _COMMON_ATTRS,
     toolchains = [
         TYPE,
+        NATIVE_TYPE,
     ],
     provides = [JavaInfo, KtJvmInfo],
 )
@@ -135,10 +139,13 @@ def core_kt_jvm_library(name, **kwargs):
 
 def _kt_jvm_binary_impl(ctx):
     kt_tools = ctx.toolchains[TYPE]
+    native_toolchain = ctx.toolchains[NATIVE_TYPE]
+    native_java_infos = native_toolchain.kotlin_native_compile_info.native_java_infos
+    native_jvm_flags = native_toolchain.kotlin_native_compile_info.jvm_flags
 
     providers = _kt_jvm_library_impl(ctx)
     java_info_deps = [d[JavaInfo] for d in ctx.attr.deps if JavaInfo in d]
-    runtime_jars = depset([ctx.outputs.class_jar], transitive = [j.transitive_runtime_jars for j in java_info_deps])
+    runtime_jars = depset([ctx.outputs.class_jar], transitive = [j.transitive_runtime_jars for j in java_info_deps] + [j.transitive_runtime_jars for j in native_java_infos])
     executable = ctx.outputs.executable
 
     launch_runfiles = kt_tools.launch(
@@ -147,7 +154,7 @@ def _kt_jvm_binary_impl(ctx):
         actions = ctx.actions,
         path_separator = ctx.configuration.host_path_separator,
         workspace_prefix = ctx.workspace_name + "/",
-        jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in ctx.attr.jvm_flags]),
+        jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in ctx.attr.jvm_flags + native_jvm_flags]),
         runtime_jars = runtime_jars,
     )
 
@@ -185,6 +192,7 @@ _kt_jvm_binary = rule(
     },
     toolchains = [
         TYPE,
+        NATIVE_TYPE,
     ],
     executable = True,
 )

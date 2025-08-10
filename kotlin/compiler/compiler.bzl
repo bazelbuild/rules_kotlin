@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS", "KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS")
+load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
-load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO", _KT_NATIVE_COMPILER_REPO_PREFIX = "KT_NATIVE_COMPILER_REPO_PREFIX")
+load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
 KOTLIN_STDLIBS = [
     "//kotlin/compiler:annotations",
@@ -63,16 +63,3 @@ def kt_configure_compiler():
 
     _import_artifacts(KOTLINC_ARTIFACTS.jvm, kt_jvm_import)
     _import_artifacts(KOTLINC_ARTIFACTS.core, kt_jvm_import)
-    for platform in KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS.keys():
-        _import_artifacts(KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS[platform], kt_jvm_import, compiler_repo = _KT_NATIVE_COMPILER_REPO_PREFIX + "_" + platform)
-
-    # a convenience alias for kotlin-native to be referenced in other places
-    native.alias(
-        actual = select({
-            "@bazel_tools//src/conditions:linux_x86_64": "//kotlin/compiler:kotlin-native-linux-x86_64",
-            "@bazel_tools//src/conditions:darwin": "//kotlin/compiler:kotlin-native-macos-x86_64",
-            "@bazel_tools//src/conditions:windows": "//kotlin/compiler:kotlin-native-windows_x86_64",
-            "@bazel_tools//src/conditions:darwin_arm64": "//kotlin/compiler:kotlin-native-macos_aarch64",
-        }),
-        name = "kotlin-native",
-    )

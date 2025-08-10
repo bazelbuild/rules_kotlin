@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@bazel_skylib//rules/directory:directory.bzl", "directory")
+load("@rules_kotlin//kotlin/internal/jvm:jvm.bzl", "kt_jvm_import")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -46,3 +47,17 @@ filegroup(
     )
     for name in glob(["konan/lib/**"])
 ]
+
+kt_jvm_import(
+    name = "kotlin-native",
+    jars = [
+        "konan/lib/kotlin-native.jar"
+    ],
+)
+
+kt_jvm_import(
+    name = "trove4j",
+    jars = [
+        "konan/lib/trove4j.jar"
+    ],
+)
