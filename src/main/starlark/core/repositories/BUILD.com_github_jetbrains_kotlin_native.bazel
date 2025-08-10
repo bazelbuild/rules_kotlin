@@ -51,13 +51,13 @@ filegroup(
 kt_jvm_import(
     name = "kotlin-native",
     jars = [
-        "konan/lib/kotlin-native.jar"
+        "konan/lib/kotlin-native.jar",
     ],
 )
 
 kt_jvm_import(
     name = "trove4j",
     jars = [
-        "konan/lib/trove4j.jar"
+        "konan/lib/trove4j.jar",
     ],
 )

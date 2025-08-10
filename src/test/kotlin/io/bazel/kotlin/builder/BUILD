@@ -39,7 +39,6 @@ java_library(
         "KotlinJvmTestBuilder.java",
     ],
     data = [
-        "//kotlin/compiler:kotlin-native",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
     ],

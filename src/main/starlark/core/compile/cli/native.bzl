@@ -1,3 +1,4 @@
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//kotlin/internal:defs.bzl", "KT_NATIVE_COMPILER_REPO_PREFIX", "KtJvmInfo")
 load("//src/main/starlark/core/compile:common.bzl", "NATIVE_TYPE")
 load("//src/main/starlark/core/repositories/kotlin:artifacts.bzl", "KOTLIN_NATIVE_TARGETS")
@@ -48,12 +49,12 @@ def define_native_cli_toolchains():
             "@bazel_tools//src/conditions:windows": "@" + KT_NATIVE_COMPILER_REPO_PREFIX + "_" + "windows_x86_64//:kotlin-native",
             "@bazel_tools//src/conditions:darwin_arm64": "@" + KT_NATIVE_COMPILER_REPO_PREFIX + "_" + "macos_aarch64//:kotlin-native",
         }),
-        visibility = ["//src/main:__subpackages__"],
+        visibility = ["//src:__subpackages__"],
     )
     for exec_platform, targets in KOTLIN_NATIVE_TARGETS.items():
         exec_compatible_with = targets.exec_compatible_with
 
-        for target_constraint_tuple, kotlin_native_targets in targets.targets.items():
+        for target_constraint_tuple in targets.targets.keys():
             target_os, target_cpu = target_constraint_tuple
 
             # Create a unique name for this toolchain
@@ -64,7 +65,6 @@ def define_native_cli_toolchains():
             )
             toolchain_name = "default_kt_native_toolchain_{}".format(toolchain_suffix)
             toolchain_impl = "default_kt_native_{}".format(toolchain_suffix)
-            default_target = targets.targets[target_constraint_tuple][0]
 
             kotlin_native = Label("@" + KT_NATIVE_COMPILER_REPO_PREFIX + "_" + exec_platform + "//:kotlin-native")
 
