@@ -15,6 +15,7 @@ load("//src/main/starlark/release:packager.bzl", "release_archive")
 # limitations under the License.
 load(":compiler.bzl", "kt_configure_compiler")
 load(":ksp.bzl", "kt_configure_ksp")
+load(":native.bzl", "kt_configure_native_compiler")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -23,6 +24,9 @@ kt_configure_compiler()
 
 # Configures the KSP plugins
 kt_configure_ksp()
+
+# Configure the native compiler (used only for runfiles in KotlinBuilder)
+kt_configure_native_compiler()
 
 release_archive(
     name = "pkg",
