@@ -16,9 +16,14 @@ def _kt_library_impl(ctx):
 
     deps_klibs = []
     transitive_klibs = []
+    runfiles = ctx.runfiles(files = ctx.files.data)
     for dep in ctx.attr.deps:
         deps_klibs.append(dep[_KtKlibInfo].klibs)
         transitive_klibs.append(dep[_KtKlibInfo].transitive_klibs)
+        runfiles = runfiles.merge(dep[DefaultInfo].default_runfiles)
+
+    for d in ctx.attr.data:
+        runfiles = runfiles.merge(d[DefaultInfo].default_runfiles)
 
     libraries = depset(transitive = deps_klibs)
     builder_args.add_all("--sources", ctx.files.srcs)
@@ -50,7 +55,7 @@ def _kt_library_impl(ctx):
     )
 
     return [
-        DefaultInfo(files = depset(outputs)),
+        DefaultInfo(files = depset(outputs), runfiles = runfiles),
         _KtKlibInfo(
             klibs = depset(outputs),
             transitive_klibs = depset(transitive = transitive_klibs),
@@ -71,6 +76,11 @@ to be shared between Kotlin code for different platforms (JS/JVM/WASM etc.). It 
         "deps": attr.label_list(
             doc = "A list of other kt_klib_library targets that this library depends on for compilation",
             providers = [_KtKlibInfo],
+        ),
+        "data": attr.label_list(
+            doc = """The list of files needed by this rule at runtime. See general comments about `data` at
+                [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
+            allow_files = True,
         ),
     },
     toolchains = [_TOOLCHAIN_TYPE, _NATIVE_TOOLCHAIN_TYPE],

@@ -42,11 +42,49 @@ def _test_kt_library_deps(name):
 
     analysis_test(name, target = "second", impl = _test_kt_library_deps_impl)
 
+def _test_kt_library_runfiles_impl(env, target):
+    _common_assertions(env, target)
+
+    target_subject = env.expect.that_target(target)
+    target_subject.data_runfiles().contains_at_least(["_main/src/test/starlark/internal/native/foo.txt"])
+
+def _test_kt_library_runfiles(name):
+    native.filegroup(
+        name = "runfiles1",
+        srcs = ["foo.txt"],
+    )
+    kt_library(name = "lib_with_data", srcs = ["First.kt"], data = [":runfiles1"])
+
+    analysis_test(name, target = "lib_with_data", impl = _test_kt_library_runfiles_impl)
+
+def _test_kt_library_transitive_runfiles_impl(env, target):
+    _common_assertions(env, target)
+
+    target_subject = env.expect.that_target(target)
+    target_subject.data_runfiles().contains_at_least(["_main/src/test/starlark/internal/native/foo.txt"])
+
+def _test_kt_library_transitive_runfiles(name):
+    native.filegroup(
+        name = "runfiles2",
+        srcs = ["foo.txt"],
+    )
+    kt_library(name = "lib2_with_data", srcs = ["First.kt"], data = [":runfiles2"])
+
+    kt_library(name = "final_lib", srcs = ["Second.kt"], deps = [":lib2_with_data"])
+
+    analysis_test(name, target = "final_lib", impl = _test_kt_library_transitive_runfiles_impl)
+
 def kt_library_test_suite(name):
     test_suite(
         name = name,
         tests = [
+            # assert compilation of single target with no deps works
             _test_kt_library_basic,
+            # Assert compilation with deps works
             _test_kt_library_deps,
+            # Assert runfiles are available
+            _test_kt_library_runfiles,
+            # Assert transitive runfiles are propagated
+            _test_kt_library_transitive_runfiles,
         ],
     )
