@@ -1,4 +1,3 @@
-load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//src/main/starlark/core/repositories/kotlin:artifacts.bzl", "KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS")
 
@@ -55,7 +54,6 @@ def kt_configure_native_toolchains():
     # Create toolchains for each exec platform and their supported targets
     for exec_platform, artifacts_and_targets in KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS.items():
         exec_compatible_with = artifacts_and_targets.exec_compatible_with
-        default_target = artifacts_and_targets.targets[tuple(exec_compatible_with)][0]
         for target_constraint_tuple, kotlin_native_targets in artifacts_and_targets.targets.items():
             target_os, target_cpu = target_constraint_tuple
 
@@ -67,6 +65,7 @@ def kt_configure_native_toolchains():
             )
             toolchain_name = "default_kt_native_toolchain_{}".format(toolchain_suffix)
             toolchain_impl = "default_kt_native_{}".format(toolchain_suffix)
+            default_target = artifacts_and_targets.targets[target_constraint_tuple][0]
 
             # Create the toolchain implementation
             kt_native_toolchain(
