@@ -52,8 +52,9 @@ def _test_kt_library_runfiles(name):
     native.filegroup(
         name = "runfiles1",
         srcs = ["foo.txt"],
+        tags = ["manual"],
     )
-    kt_library(name = "lib_with_data", srcs = ["First.kt"], data = [":runfiles1"])
+    kt_library(name = "lib_with_data", srcs = ["First.kt"], data = [":runfiles1"], tags = ["manual"])
 
     analysis_test(name, target = "lib_with_data", impl = _test_kt_library_runfiles_impl)
 
@@ -67,10 +68,11 @@ def _test_kt_library_transitive_runfiles(name):
     native.filegroup(
         name = "runfiles2",
         srcs = ["foo.txt"],
+        tags = ["manual"],
     )
-    kt_library(name = "lib2_with_data", srcs = ["First.kt"], data = [":runfiles2"])
+    kt_library(name = "lib2_with_data", srcs = ["First.kt"], data = [":runfiles2"], tags = ["manual"])
 
-    kt_library(name = "final_lib", srcs = ["Second.kt"], deps = [":lib2_with_data"])
+    kt_library(name = "final_lib", srcs = ["Second.kt"], deps = [":lib2_with_data"], tags = ["manual"])
 
     analysis_test(name, target = "final_lib", impl = _test_kt_library_transitive_runfiles_impl)
 
