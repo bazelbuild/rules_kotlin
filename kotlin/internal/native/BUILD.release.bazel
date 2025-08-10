@@ -1,5 +1,5 @@
-load(":toolchains.bzl", "kt_configure_native_toolchains")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":toolchains.bzl", "kt_configure_native_toolchains")
 
 kt_configure_native_toolchains()
 
