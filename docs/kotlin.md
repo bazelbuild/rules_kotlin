@@ -562,7 +562,7 @@ load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 kt_register_toolchains()
 </pre>
 
-This macro registers the kotlin toolchain.
+This macro registers the kotlin/JVM toolchain and the kotlin native toolchain.
 
 
 
