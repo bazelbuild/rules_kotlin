@@ -65,6 +65,9 @@ class KotlinNativeTaskExecutor
         add("-Xoverride-konan-properties=airplaneMode=true")
         add("-nostdlib")
 
+        // the target for which we should compile libaries/binaries to
+        add("-target=${info.toolchainInfo.native.kotlinNativeTarget}")
+
         // Map paths in debug symbols to relative paths to execroot
         add("-Xdebug-prefix-map=" + execRoot + "=.")
         // Use relative paths in klibs

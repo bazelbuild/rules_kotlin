@@ -95,6 +95,7 @@ class KotlinBuilder
         KLIBS("--klibs"),
         OUTPUT_KLIB("--output_klib"),
         KONAN_HOME("--konan_home"),
+        KOTLIN_NATIVE_TARGET("--kotlin_native_target"),
       }
     }
 
@@ -229,6 +230,9 @@ class KotlinBuilder
 
         with(infoBuilder.toolchainInfoBuilder.nativeBuilder) {
           this.setKonanHome(argMap.mandatorySingle(KotlinBuilderFlags.KONAN_HOME))
+          this.setKotlinNativeTarget(
+            argMap.mandatorySingle(KotlinBuilderFlags.KOTLIN_NATIVE_TARGET),
+          )
         }
 
         with(inputsBuilder) {

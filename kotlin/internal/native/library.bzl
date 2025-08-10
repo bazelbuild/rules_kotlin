@@ -13,6 +13,7 @@ def _kt_library_impl(ctx):
     # Retrieve konan.home from the chosen toolchain's distribution
     native_toolchain_info = ctx.toolchains[_NATIVE_TOOLCHAIN_TYPE].kotlin_native_info
     konan_home = native_toolchain_info.konan_home
+    native_target = native_toolchain_info.target
 
     deps_klibs = []
     transitive_klibs = []
@@ -32,6 +33,7 @@ def _kt_library_impl(ctx):
     builder_args.add("--strict_kotlin_deps", "off")
     builder_args.add("--reduced_classpath_mode", "off")
     builder_args.add("--output_klib", klib.path)
+    builder_args.add("--kotlin_native_target", native_target)
 
     libraries = depset(transitive = deps_klibs)
     builder_args.add_all("--klibs", libraries)

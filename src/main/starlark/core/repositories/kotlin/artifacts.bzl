@@ -87,7 +87,7 @@ KOTLIN_NATIVE_ARTIFACTS_AND_TARGETS = {
             ("@platforms//os:android", "@platforms//cpu:arm64"): ["android_arm64"],
             ("@platforms//os:android", "@platforms//cpu:x86_64"): ["android_x64"],
             ("@platforms//os:linux", "@platforms//cpu:armv7"): ["linux_arm32_hfp"],
-            ("@platforms//os:linux", "@platforms//cpu:x86_64"): ["linux_64"],
+            ("@platforms//os:linux", "@platforms//cpu:x86_64"): ["linux_x64"],
             ("@platforms//os:windows", "@platforms//cpu:x86_64"): ["mingw_x64"],
         },
     ),

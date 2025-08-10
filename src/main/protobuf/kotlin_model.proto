@@ -45,6 +45,8 @@ message KotlinToolchainInfo {
     message Native {
         // The path to the konan directory in the distribution
         string konan_home = 1;
+        // The kotlin native target for which to produce libraries/binaries
+        string kotlin_native_target = 2;
     }
 
     Common common = 1;
