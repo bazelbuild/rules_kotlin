@@ -1,5 +1,7 @@
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
+load("@rules_testing//lib:truth.bzl", "subjects")
+load("@rules_testing//tests:test_util.bzl", "test_util")
 load("//kotlin/internal:defs.bzl", "KtKlibInfo")
 load("//kotlin/internal/native:library.bzl", "kt_library")
 
@@ -16,6 +18,8 @@ def _test_kt_library_basic_impl(env, target):
     target_subject = env.expect.that_target(target)
     action_subject = target_subject.action_named("KotlinKlibCompile")
     action_subject.inputs().contains("src/test/starlark/internal/native/Basic.kt")
+
+    target_subject.runfiles().contains("_main/src/test/starlark/internal/native/basic.klib")
 
 def _test_kt_library_basic(name):
     kt_library(name = "basic", srcs = ["Basic.kt"], tags = ["manual"])
@@ -34,6 +38,9 @@ def _test_kt_library_deps_impl(env, target):
 
     # and it's passed through the arguments
     action_subject.argv().contains_at_least(["--klibs"])
+
+    # Transitive outputs are propagated in runfiles
+    target_subject.runfiles().contains_at_least(["_main/src/test/starlark/internal/native/first.klib", "_main/src/test/starlark/internal/native/second.klib"])
 
 def _test_kt_library_deps(name):
     kt_library(name = "first", srcs = ["First.kt"], tags = ["manual"])
@@ -82,7 +89,7 @@ def kt_library_test_suite(name):
         tests = [
             # assert compilation of single target with no deps works
             _test_kt_library_basic,
-            # Assert compilation with deps works
+            # Assert compilation with deps works and transitive outputs are propagated
             _test_kt_library_deps,
             # Assert runfiles are available
             _test_kt_library_runfiles,

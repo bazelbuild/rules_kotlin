@@ -17,7 +17,8 @@ def _kt_library_impl(ctx):
 
     deps_klibs = []
     transitive_klibs = []
-    runfiles = ctx.runfiles(files = ctx.files.data)
+    runfiles = ctx.runfiles(files = [klib] + ctx.files.data)
+
     for dep in ctx.attr.deps:
         deps_klibs.append(dep[_KtKlibInfo].klibs)
         transitive_klibs.append(dep[_KtKlibInfo].transitive_klibs)
@@ -57,10 +58,10 @@ def _kt_library_impl(ctx):
     )
 
     return [
-        DefaultInfo(files = depset(outputs), runfiles = runfiles),
+        DefaultInfo(files = depset(outputs, transitive = transitive_klibs + deps_klibs), runfiles = runfiles),
         _KtKlibInfo(
             klibs = depset(outputs),
-            transitive_klibs = depset(transitive = transitive_klibs),
+            transitive_klibs = depset(transitive = transitive_klibs + deps_klibs),
         ),
     ]
 
