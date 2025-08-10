@@ -31,6 +31,16 @@ use_repo(
     "kotlinx_serialization_json",
     "kotlinx_serialization_json_jvm",
     "kotlin_build_tools_impl",
+    "com_github_jetbrains_kotlin_native_linux_x86_64",
+    "com_github_jetbrains_kotlin_native_linux_x86_64_git",
+    "com_github_jetbrains_kotlin_native_macos_aarch64",
+    "com_github_jetbrains_kotlin_native_macos_aarch64_git",
+    "com_github_jetbrains_kotlin_native_macos_x86_64",
+    "com_github_jetbrains_kotlin_native_macos_x86_64_git",
+    "com_github_jetbrains_kotlin_native_windows_x86_64",
+    "com_github_jetbrains_kotlin_native_windows_x86_64_git",
 )
 
 register_toolchains("//kotlin/internal:default_toolchain")
+
+register_toolchains("//kotlin/internal/native:all")
