@@ -111,7 +111,7 @@ versions = struct(
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-windows-x86_64-{version}.zip",
         ],
-        sha256 = "8df16175b962bc4264a5c3b32cb042d91458babbd093c0f36194dc4645f5fe2",
+        sha256 = "03301473bb9e68dadfdd265857a2a5913a147e700e345d32db73e0a21a2ffbfa",
         strip_prefix_template = "kotlin-native-prebuilt-windows-x86_64-{version}",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
