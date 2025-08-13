@@ -150,6 +150,9 @@ class KotlinJvmTaskExecutor
           if (outputs.generatedKspSrcJar.isNotEmpty()) {
             context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
           }
+          if (outputs.generatedKspClassesJar.isNotEmpty()) {
+            context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
+          }
         }
       }
     }
