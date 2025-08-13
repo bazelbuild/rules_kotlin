@@ -446,4 +446,5 @@ def test_suite(name):
         test_compile_configuration = _test_compile_configuration,
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
+        test_compile_multiple_configurations = _test_compile_multiple_configurations,
     )

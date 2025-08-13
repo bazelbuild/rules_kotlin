@@ -10,7 +10,11 @@ load(
     "KtPluginConfiguration",
 )
 
-def _resolve_kapt_cfg(info, option_string_list_dict, deps, expand_location):
+def _resolve_kapt_cfg(
+        info,
+        option_string_list_dict,
+        deps,
+        expand_location):  # @unused Needed for lambda contract.
     infos = []
     plugins = []
     for d in deps:
