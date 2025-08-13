@@ -2,21 +2,31 @@ load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":providers.bzl", "KtCompilerPluginOption", "KtPluginConfiguration")
 
-# This is naive reference implementation for resolving configurations.
-# A more complicated plugin will need to provide its own implementation.
 def _resolve_plugin_cfg(info, options, deps, expand_location):
+    """Resolves a plugin config.
+
+    Args:
+        info: KtCompilerPluginInfo of the plugin configuration.
+        options: Dict[str, List[str]] of options from kt_plugin_cfg
+        deps: List[Target] from kt_plugin_cfg
+        expand_location: Callable[str]str to expand any target references, from ctx.expand_location
+    Return:
+        List[Provider] of providers.
+    """
     ji = java_common.merge([dep[JavaInfo] for dep in deps if JavaInfo in dep])
     classpath = depset(ji.runtime_output_jars, transitive = [ji.transitive_runtime_jars])
     data = None
     data_runfiles = [d[DefaultInfo].default_runfiles for d in deps if d[DefaultInfo]]
     if data_runfiles:
         data = data_runfiles[0].merge_all(data_runfiles[1:])
-    return KtPluginConfiguration(
-        id = info.id,
-        options = _resolve_plugin_options(info.id, options, expand_location),
-        classpath = classpath,
-        data = data,
-    )
+    return [
+        KtPluginConfiguration(
+            id = info.id,
+            options = _resolve_plugin_options(info.id, options, expand_location),
+            classpath = classpath,
+            data = data,
+        ),
+    ]
 
 def _merge_plugin_cfgs(info, cfgs):
     classpath = depset(transitive = [cfg.classpath for cfg in cfgs])
@@ -35,8 +45,9 @@ def _resolve_plugin_options(id, string_list_dict, expand_location):
     Args:
         id: the plugin id
         string_list_dict: a dict of list[string].
+        expand_location:
     Returns:
-        a dict of strings
+        list of KtCompilerPluginOption
     """
     options = []
     for (k, vs) in string_list_dict.items():

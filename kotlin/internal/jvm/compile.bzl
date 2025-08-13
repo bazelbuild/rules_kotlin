@@ -197,7 +197,7 @@ def _new_plugins_from(targets):
         plugin = t[_KtCompilerPluginInfo]
         if not (plugin.stubs or plugin.compile):
             plugins_without_phase.append("%s: %s" % (t.label, plugin.id))
-        if plugin.id in all_plugins:
+        if plugin.id in all_plugins and all_plugins[plugin.id] != plugin:
             # This need a more robust error messaging.
             fail("has multiple plugins with the same id: %s." % plugin.id)
         all_plugins[plugin.id] = plugin
@@ -884,6 +884,12 @@ def _run_kt_java_builder_actions(
     ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(ctx.attr.plugins)
     if srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars:
         javac_opts = javac_options_to_flags(ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options)
+        javac_opts.extend([
+            flag
+            for plugin in ctx.attr.plugins
+            if JavacOptions in plugin
+            for flag in javac_options_to_flags(plugin[JavacOptions])
+        ])
 
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
         # annotation processors in `deps` also.
@@ -894,7 +900,7 @@ def _run_kt_java_builder_actions(
             source_files = srcs.java,
             source_jars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars,
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
-            deps = compile_deps.deps + kt_stubs_for_java,
+            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
             java_toolchain = toolchains.java,
             plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
             javac_opts = javac_opts,
