@@ -1,0 +1,5 @@
+load(":experimental_prune_transitive_deps_tests.bzl", "experimental_prune_transitive_deps_tests")
+
+experimental_prune_transitive_deps_tests(
+    name = "experimental_prune_transitive_deps_tests",
+)
