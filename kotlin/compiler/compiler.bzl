@@ -25,18 +25,18 @@ KOTLIN_STDLIBS = [
     "//kotlin/compiler:trove4j",
 ]
 
-def _import_artifacts(artifacts, rule_kind):
-    _import_labels(artifacts.plugin, rule_kind)
-    _import_labels(artifacts.runtime, rule_kind)
-    _import_labels(artifacts.compile, rule_kind, neverlink = 1)
+def _import_artifacts(artifacts, rule_kind, compiler_repo = _KT_COMPILER_REPO):
+    _import_labels(artifacts.plugin, rule_kind, compiler_repo)
+    _import_labels(artifacts.runtime, rule_kind, compiler_repo)
+    _import_labels(artifacts.compile, rule_kind, compiler_repo, neverlink = 1)
 
-def _import_labels(labels, rule_kind, **rule_args):
+def _import_labels(labels, rule_kind, compiler_repo, **rule_args):
     for (label, file) in labels.items():
         if not file.endswith(".jar"):
             native.filegroup(
                 name = label,
                 srcs = [
-                    "@%s//:%s" % (_KT_COMPILER_REPO, label),
+                    "@%s//:%s" % (compiler_repo, label),
                 ],
             )
             return
@@ -46,10 +46,10 @@ def _import_labels(labels, rule_kind, **rule_args):
         args = dict(rule_args.items())
         args["visibility"] = ["//visibility:public"]
         args["name"] = label
-        args["jars"] = ["@%s//:%s" % (_KT_COMPILER_REPO, label)]
+        args["jars"] = ["@%s//:%s" % (compiler_repo, label)]
         sources = label + "-sources"
         if sources in labels:
-            args["srcjar"] = "@%s//:%s" % (_KT_COMPILER_REPO, sources)
+            args["srcjar"] = "@%s//:%s" % (compiler_repo, sources)
         rule_kind(**args)
 
 def kt_configure_compiler():
