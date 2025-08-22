@@ -5,26 +5,51 @@ load("//kotlin/compiler:kapt.bzl", "kapt_compiler_plugin")
 load("//src/test/starlark:case.bzl", "Want", "suite")
 load("//src/test/starlark:truth.bzl", "flags_and_values_of")
 
+def _normalize_path_with_cfg(file):
+    """Attempts to normalize the file to standard configs.
+
+    This turns out to be necessary due to multiple transitions with testing.analysis_test.
+    """
+    prefix = file.path.removesuffix(file.short_path)
+    segments = prefix.split("/")
+    if segments[0] == "bazel-out":
+        # not exactly reliable, but the current test rules perform several transitions making it
+        # difficult to validate if a file is actually where it should be.
+        if "exec" in segments[1]:
+            return "(exec) " + file.short_path
+        return "(target) " + file.short_path
+    if file.is_source():
+        return "(source) " + file.short_path
+
+    return file.path
+
 def _action(env, got):
     got_target = env.expect.that_target(got)
 
-    inputs = []
+    want_inputs = {}
     for i in env.ctx.attr.exec_inputs:
         if JavaInfo in i:
             for jo in i[JavaInfo].java_outputs:
-                inputs.append(jo.compile_jar)
+                want_inputs[_normalize_path_with_cfg(jo.compile_jar)] = True
         else:
-            inputs.extend(i[DefaultInfo].files.to_list())
+            for f in i[DefaultInfo].files.to_list():
+                want_inputs[_normalize_path_with_cfg(f)] = True
     for i in env.ctx.attr.target_inputs:
         if JavaInfo in i:
             for jo in i[JavaInfo].java_outputs:
-                inputs.append(jo.compile_jar)
+                want_inputs[_normalize_path_with_cfg(jo.compile_jar)] = True
         else:
-            inputs.extend(i[DefaultInfo].files.to_list())
+            for f in i[DefaultInfo].files.to_list():
+                want_inputs[_normalize_path_with_cfg(f)] = True
 
     compile = got_target.action_named(env.ctx.attr.mnemonic)
 
-    compile.contains_at_least_inputs(inputs)
+    got_inputs = {
+        _normalize_path_with_cfg(f): True
+        for f in compile.actual.inputs.to_list()
+    }
+
+    env.expect.that_collection(got_inputs.keys()).contains_at_least(want_inputs.keys())
 
     got_target.runfiles().contains_at_least([
         "/".join((env.ctx.workspace_name, f.short_path))
