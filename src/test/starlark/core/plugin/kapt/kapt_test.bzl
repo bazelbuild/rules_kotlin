@@ -18,7 +18,7 @@ def _normalize_path_with_cfg(file):
         if "exec" in segments[1]:
             return "(exec) " + file.short_path
         return "(target) " + file.short_path
-    if file.is_source():
+    if file.is_source:
         return "(source) " + file.short_path
 
     return file.path
