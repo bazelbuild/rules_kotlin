@@ -430,7 +430,7 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
         args = dict(
             default = "",
             doc = "The target version of the generated JVM bytecode",
-            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
+            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
         ),
         type = attr.string,
         value_to_flag = None,
@@ -442,7 +442,7 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
             doc = """Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer.
                      The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–21.
                      This also sets the value of '-jvm-target' to be equal to the selected JDK version.""",
-            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
+            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
         ),
         type = attr.string,
         value_to_flag = None,
