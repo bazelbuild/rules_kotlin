@@ -176,7 +176,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
 
     _java_runtime_version = getattr(java_runtime, "version", 0)
     if _java_runtime_version >= 17 and _java_runtime_version < 24:
-        jvm_flags = jvm_flags + " -Djava.security.manager=allow"
+        jvm_flags.append("-Djava.security.manager=allow")
 
     return _ProviderInfo(
         name = "jvm_ctx",
