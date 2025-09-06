@@ -30,6 +30,7 @@ release_archive(
     deps = [
         "//kotlin/internal/jvm:pkg",
         "//kotlin/internal/lint:pkg",
+        "//kotlin/internal/native:pkg",
         "//kotlin/internal/utils:pkg",
     ],
 )
@@ -41,6 +42,7 @@ bzl_library(
     deps = [
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",
+        "//kotlin/internal/native",
         "//kotlin/internal/utils",
         "//src/main/starlark",
         "//src/main/starlark/core/compile",
