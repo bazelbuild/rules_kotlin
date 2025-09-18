@@ -1,5 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+# TODO (rbeazleyspot) Update release url when #1364 is released
 http_archive(
     name = "rules_kotlin",
     sha256 = "34e8c0351764b71d78f76c8746e98063979ce08dcf1a91666f3f3bc2949a533d",
