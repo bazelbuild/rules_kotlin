@@ -198,6 +198,9 @@ _kt_toolchain = rule(
                 "19",
                 "20",
                 "21",
+                "22",
+                "23",
+                "24",
             ],
         ),
         "experimental_multiplex_workers": attr.bool(
