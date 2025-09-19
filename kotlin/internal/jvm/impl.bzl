@@ -392,6 +392,9 @@ def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         ],
     )
 
+def _expand_location_with_data_deps(ctx):
+    return lambda targets: ctx.expand_location(targets, ctx.attr.data)
+
 def kt_compiler_plugin_impl(ctx):
     plugin_id = ctx.attr.id
 
@@ -413,7 +416,7 @@ def kt_compiler_plugin_impl(ctx):
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
     # TODO(1035): Migrate kt_compiler_plugin.options to string_list_dict
-    options = plugin_common.resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, ctx.expand_location)
+    options = plugin_common.resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, _expand_location_with_data_deps(ctx))
 
     return [
         DefaultInfo(files = classpath),
@@ -432,7 +435,7 @@ def kt_plugin_cfg_impl(ctx):
     plugin = ctx.attr.plugin[_KtCompilerPluginInfo]
     return [
         plugin,
-    ] + plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, ctx.expand_location)
+    ] + plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, _expand_location_with_data_deps(ctx))
 
 def kt_ksp_plugin_impl(ctx):
     deps = ctx.attr.deps

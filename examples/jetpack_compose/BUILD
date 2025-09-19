@@ -18,15 +18,22 @@ define_kt_toolchain(
 
 kt_compiler_plugin(
     name = "jetpack_compose_compiler_plugin",
+    data = [":stability_config"],
     id = "androidx.compose.compiler.plugins.kotlin",
     options = {
         "sourceInformation": "true",  # Required for AS Layout Inspector, disable for release builds
+        "stabilityConfigurationPath": "$(locations :stability_config)",
     },
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],
     deps = [
         "@maven_rules_kotlin_example//:org_jetbrains_kotlin_kotlin_compose_compiler_plugin_embeddable",
     ],
+)
+
+filegroup(
+    name = "stability_config",
+    srcs = ["stability.conf"],
 )
 
 platform(

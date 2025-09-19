@@ -535,6 +535,11 @@ kt_jvm_library(
 ```
 """,
     attrs = {
+        "data": attr.label_list(
+            doc = "The list of data files to be used by compiler's plugin",
+            providers = [DefaultInfo],
+            cfg = "exec",
+        ),
         "deps": attr.label_list(
             doc = "The list of libraries to be added to the compiler's plugin classpath",
             providers = [JavaInfo],
@@ -661,6 +666,11 @@ kt_plugin_cfg = rule(
                 [JavaInfo],
                 [JavaPluginInfo],
             ],
+            cfg = "exec",
+        ),
+        "data": attr.label_list(
+            doc = "The list of data files to be used by compiler's plugin",
+            providers = [DefaultInfo],
             cfg = "exec",
         ),
     },
