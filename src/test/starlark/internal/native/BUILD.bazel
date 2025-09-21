@@ -1,0 +1,3 @@
+load(":kt_library_tests.bzl", "kt_library_test_suite")
+
+kt_library_test_suite(name = "library_tests")

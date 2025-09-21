@@ -28,6 +28,14 @@ use_repo(
     "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
     "com_github_jetbrains_kotlin_git",
+    "com_github_jetbrains_kotlin_native_linux_x86_64",
+    "com_github_jetbrains_kotlin_native_linux_x86_64_git",
+    "com_github_jetbrains_kotlin_native_macos_aarch64",
+    "com_github_jetbrains_kotlin_native_macos_aarch64_git",
+    "com_github_jetbrains_kotlin_native_macos_x86_64",
+    "com_github_jetbrains_kotlin_native_macos_x86_64_git",
+    "com_github_jetbrains_kotlin_native_windows_x86_64",
+    "com_github_jetbrains_kotlin_native_windows_x86_64_git",
     "com_github_pinterest_ktlint",
     "kotlin_build_tools_impl",
     "kotlinx_serialization_core_jvm",
@@ -35,9 +43,11 @@ use_repo(
     "kotlinx_serialization_json_jvm",
 )
 
-register_toolchains("//src/main/starlark/core/compile/cli")
+register_toolchains("//src/main/starlark/core/compile/cli:all")
 
 register_toolchains("//kotlin/internal:default_toolchain")
+
+register_toolchains("//kotlin/internal/native:all")
 
 # Development dependencies
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
