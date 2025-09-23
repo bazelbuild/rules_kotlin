@@ -1,3 +1,4 @@
+load("@bazel_skylib//lib:modules.bzl", "modules")
 load(
     "//src/main/starlark/core/repositories:initialize.bzl",
     _kotlin_repositories = "kotlin_repositories",
@@ -17,6 +18,7 @@ def _rules_kotlin_extensions_impl(mctx):
         _kotlinc_version,
         _ksp_version,
     )
+    return modules.use_all_repos(mctx, reproducible = True)
 
 rules_kotlin_extensions = module_extension(
     implementation = _rules_kotlin_extensions_impl,
