@@ -14,7 +14,7 @@ def _ktlint_fix_impl(ctx):
     args.append("--relative")
 
     # Much of the following is lifted from:
-    # https://cs.opensource.google/bazel/bazel/+/refs/tags/4.0.0:src/main/java/com/google/devtools/build/lib/bazel/rules/java/java_stub_template.txt;l=114
+    # https://github.com/bazelbuild/rules_java/blob/master/java/bazel/rules/java_stub_template.txt
     content = """#!/usr/bin/env bash
 # Find our runfiles tree.
 #
