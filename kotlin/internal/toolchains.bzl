@@ -308,10 +308,14 @@ _kt_toolchain = rule(
 )
 
 _KT_DEFAULT_TOOLCHAIN = Label("//kotlin/internal:default_toolchain")
+_KT_DEFAULT_NATIVE_TOOLCHAINS = Label("//kotlin/internal/native:all")
 
 def kt_register_toolchains():
-    """This macro registers the kotlin toolchain."""
+    """This macro registers the kotlin/JVM toolchain and the kotlin native toolchain."""
     native.register_toolchains(str(_KT_DEFAULT_TOOLCHAIN))
+
+    # Register all default native toolchains
+    native.register_toolchains(str(_KT_DEFAULT_NATIVE_TOOLCHAINS))
 
 # Evaluating the select in the context of bzl file to get its repository
 _DEBUG_SELECT = select({

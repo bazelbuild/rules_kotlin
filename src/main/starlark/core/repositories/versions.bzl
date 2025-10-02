@@ -10,6 +10,8 @@ version = provider(
     },
 )
 
+_DEFAULT_KOTLIN_COMPILER_RELEASE_VERSION = "2.1.21"
+
 def _use_repository(name, version, rule, **kwargs):
     http_archive_arguments = dict(kwargs)
     http_archive_arguments["sha256"] = version.sha256
@@ -74,11 +76,43 @@ versions = struct(
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.1.21",
+        version = _DEFAULT_KOTLIN_COMPILER_RELEASE_VERSION,
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
         sha256 = "1ba08a8b45da99339a0601134cc037b54cf85e9bc0edbe76dcbd27c2d684a977",
+    ),
+    KOTLIN_NATIVE_CURRENT_RELEASE_LINUX_X86_64 = version(
+        version = _DEFAULT_KOTLIN_COMPILER_RELEASE_VERSION,
+        url_templates = [
+            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-linux-x86_64-{version}.tar.gz",
+        ],
+        sha256 = "42fb88529b4039b6ac1961a137ccb1c79fc80315947f3ec31b56834c7ce20d0b",
+        strip_prefix_template = "kotlin-native-prebuilt-linux-x86_64-{version}",
+    ),
+    KOTLIN_NATIVE_CURRENT_RELEASE_MACOS_X86_64 = version(
+        version = _DEFAULT_KOTLIN_COMPILER_RELEASE_VERSION,
+        url_templates = [
+            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-macos-x86_64-{version}.tar.gz",
+        ],
+        sha256 = "fc6b5979ec322be803bfac549661aaf0f8f7342aa3bd09008d471fff2757bbdf",
+        strip_prefix_template = "kotlin-native-prebuilt-macos-x86_64-{version}",
+    ),
+    KOTLIN_NATIVE_CURRENT_RELEASE_MACOS_AARCH64 = version(
+        version = _DEFAULT_KOTLIN_COMPILER_RELEASE_VERSION,
+        url_templates = [
+            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-macos-aarch64-{version}.tar.gz",
+        ],
+        sha256 = "8df16175b962bc4264a5c3b32cb042d91458babbd093c0f36194dc4645f5fe2e",
+        strip_prefix_template = "kotlin-native-prebuilt-macos-aarch64-{version}",
+    ),
+    KOTLIN_NATIVE_CURRENT_RELEASE_WINDOWS_X86_64 = version(
+        version = _DEFAULT_KOTLIN_COMPILER_RELEASE_VERSION,
+        url_templates = [
+            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-native-prebuilt-windows-x86_64-{version}.zip",
+        ],
+        sha256 = "03301473bb9e68dadfdd265857a2a5913a147e700e345d32db73e0a21a2ffbfa",
+        strip_prefix_template = "kotlin-native-prebuilt-windows-x86_64-{version}",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "2.1.21-2.0.1",

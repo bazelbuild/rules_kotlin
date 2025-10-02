@@ -1,0 +1,15 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":toolchains.bzl", "kt_configure_native_toolchains")
+
+kt_configure_native_toolchains()
+
+bzl_library(
+    name = "native",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//kotlin:__subpackages__"],
+    deps = [
+        "//kotlin/internal/utils",
+        "//src/main/starlark/core/repositories/kotlin",
+        "@bazel_skylib//rules/directory",
+    ],
+)

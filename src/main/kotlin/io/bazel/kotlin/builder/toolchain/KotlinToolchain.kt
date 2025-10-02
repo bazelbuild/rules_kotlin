@@ -83,6 +83,13 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    private val KOTLIN_NATIVE by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin_native...kotlin-native",
+        ).toPath()
+    }
+
     private val KSP_SYMBOL_PROCESSING_API by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
@@ -150,6 +157,7 @@ class KotlinToolchain private constructor(
       createToolchain(
         JAVA_HOME,
         KOTLINC.verified().absoluteFile,
+        KOTLIN_NATIVE.verified().absoluteFile,
         COMPILER.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
@@ -167,6 +175,7 @@ class KotlinToolchain private constructor(
     fun createToolchain(
       javaHome: Path,
       kotlinc: File,
+      kotlinNative: File,
       buildTools: File,
       compiler: File,
       jvmAbiGenFile: File,
@@ -182,6 +191,7 @@ class KotlinToolchain private constructor(
       KotlinToolchain(
         listOf(
           kotlinc,
+          kotlinNative,
           compiler,
           buildTools,
           // plugins *must* be preloaded. Not doing so causes class conflicts
@@ -321,4 +331,14 @@ class KotlinToolchain private constructor(
         return KotlincInvoker(toolchain = toolchain, clazz = clazz)
       }
     }
+
+  @Singleton
+  class K2NativeCompilerInvoker
+    @Inject
+    constructor(
+      toolchain: KotlinToolchain,
+    ) : KotlincInvoker(
+        toolchain,
+        "io.bazel.kotlin.compiler.BazelK2NativeCompiler",
+      )
 }
