@@ -95,6 +95,11 @@ def _get_associates(ctx, toolchains, associates):
             dep_infos = java_infos,
         )
 
+def _filter_abi_associate_jar(transitive, associates):
+    compile_depset_list = depset(transitive = transitive).to_list()
+    return [jar for jar in compile_depset_list if not _sets.contains(associates.abi_jar_set, jar)]
+
 associate_utils = struct(
     get_associates = _get_associates,
+    filter_abi_associate_jar = _filter_abi_associate_jar,
 )
