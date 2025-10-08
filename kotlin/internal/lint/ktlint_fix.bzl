@@ -97,7 +97,7 @@ PATH=\"$(dirname "{binjava}"):$PATH\" "$TOOL" {args} $SRCS
         executable = ctx.executable._ktlint_tool.path,
         args = " ".join(args),
         srcs = " ".join([src.path for src in ctx.files.srcs]),
-        binjava = ctx.attr._java[java_common.JavaRuntimeInfo].java_executable_runfiles_path,
+        binjava = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime.java_executable_runfiles_path,
     )
 
     content = ctx.expand_location(content, [ctx.attr._ktlint_tool])
@@ -109,10 +109,11 @@ PATH=\"$(dirname "{binjava}"):$PATH\" "$TOOL" {args} $SRCS
         is_executable = True,
     )
 
-    files = [ctx.executable._ktlint_tool] + ctx.files._java
+    files = [ctx.executable._ktlint_tool]
+    transitive_files = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime.files
     if editorconfig:
         files.append(editorconfig)
-    runfiles = ctx.runfiles(files = files)
+    runfiles = ctx.runfiles(files = files, transitive_files = transitive_files)
 
     return [
         DefaultInfo(
@@ -141,10 +142,10 @@ ktlint_fix = rule(
             executable = True,
             cfg = "target",
         ),
-        "_java": attr.label(
-            default = "@bazel_tools//tools/jdk:current_java_runtime",
-        ),
     },
+    toolchains = [
+        "@bazel_tools//tools/jdk:runtime_toolchain_type",
+    ],
     executable = True,
     doc = "Lint Kotlin files and automatically fix them as needed",
 )
