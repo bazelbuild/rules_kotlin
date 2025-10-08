@@ -92,11 +92,12 @@ fi
 SRCS=({srcs})
 SRCS=${{SRCS[@]/#/$BUILD_DIR}}
 
-"$TOOL" {args} $SRCS
+PATH=\"$(dirname "{binjava}"):$PATH\" "$TOOL" {args} $SRCS
 """.format(
         executable = ctx.executable._ktlint_tool.path,
         args = " ".join(args),
         srcs = " ".join([src.path for src in ctx.files.srcs]),
+        binjava = ctx.attr._java[java_common.JavaRuntimeInfo].java_executable_runfiles_path,
     )
 
     content = ctx.expand_location(content, [ctx.attr._ktlint_tool])
@@ -108,7 +109,7 @@ SRCS=${{SRCS[@]/#/$BUILD_DIR}}
         is_executable = True,
     )
 
-    files = [ctx.executable._ktlint_tool]
+    files = [ctx.executable._ktlint_tool] + ctx.files._java
     if editorconfig:
         files.append(editorconfig)
     runfiles = ctx.runfiles(files = files)
@@ -139,6 +140,9 @@ ktlint_fix = rule(
             default = "@com_github_pinterest_ktlint//file",
             executable = True,
             cfg = "target",
+        ),
+        "_java": attr.label(
+            default = "@bazel_tools//tools/jdk:current_java_runtime",
         ),
     },
     executable = True,
