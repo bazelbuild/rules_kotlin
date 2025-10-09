@@ -1,5 +1,6 @@
 load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
+load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE")
 
 def _ktlint_fix_impl(ctx):
     editorconfig = get_editorconfig(ctx.attr.config)
@@ -97,7 +98,7 @@ PATH=\"$(dirname "{binjava}"):$PATH\" "$TOOL" {args} $SRCS
         executable = ctx.executable._ktlint_tool.path,
         args = " ".join(args),
         srcs = " ".join([src.path for src in ctx.files.srcs]),
-        binjava = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime.java_executable_runfiles_path,
+        binjava = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.java_executable_runfiles_path,
     )
 
     content = ctx.expand_location(content, [ctx.attr._ktlint_tool])
@@ -110,7 +111,7 @@ PATH=\"$(dirname "{binjava}"):$PATH\" "$TOOL" {args} $SRCS
     )
 
     files = [ctx.executable._ktlint_tool]
-    transitive_files = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime.files
+    transitive_files = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.files
     if editorconfig:
         files.append(editorconfig)
     runfiles = ctx.runfiles(files = files, transitive_files = transitive_files)
