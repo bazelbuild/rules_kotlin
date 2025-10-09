@@ -1,6 +1,6 @@
+load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE")
 load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
-load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE")
 
 def _ktlint_fix_impl(ctx):
     editorconfig = get_editorconfig(ctx.attr.config)
