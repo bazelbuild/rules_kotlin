@@ -1,3 +1,4 @@
+load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE")
 load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
 
@@ -92,11 +93,12 @@ fi
 SRCS=({srcs})
 SRCS=${{SRCS[@]/#/$BUILD_DIR}}
 
-"$TOOL" {args} $SRCS
+PATH=\"$(dirname "{binjava}"):$PATH\" "$TOOL" {args} $SRCS
 """.format(
         executable = ctx.executable._ktlint_tool.path,
         args = " ".join(args),
         srcs = " ".join([src.path for src in ctx.files.srcs]),
+        binjava = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.java_executable_runfiles_path,
     )
 
     content = ctx.expand_location(content, [ctx.attr._ktlint_tool])
@@ -109,9 +111,10 @@ SRCS=${{SRCS[@]/#/$BUILD_DIR}}
     )
 
     files = [ctx.executable._ktlint_tool]
+    transitive_files = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.files
     if editorconfig:
         files.append(editorconfig)
-    runfiles = ctx.runfiles(files = files)
+    runfiles = ctx.runfiles(files = files, transitive_files = transitive_files)
 
     return [
         DefaultInfo(
@@ -141,6 +144,9 @@ ktlint_fix = rule(
             cfg = "target",
         ),
     },
+    toolchains = [
+        JAVA_RUNTIME_TOOLCHAIN_TYPE,
+    ],
     executable = True,
     doc = "Lint Kotlin files and automatically fix them as needed",
 )
