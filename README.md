@@ -8,7 +8,6 @@
 <br/>
 <a href="https://github.com/bazelbuild/rules_kotlin/releases/"><img src="https://img.shields.io/github/v/release/bazelbuild/rules_kotlin?display_name=tag&include_prereleases&label=Latest%20Release%20Candidate"/></a>
 
-
 For more information about release and changelogs please see [Changelog](CHANGELOG.md) or refer to the [Github Releases](https://github.com/bazelbuild/rules_kotlin/releases) page.
 
 # `rules_kotlin` Bazel Compatibility
