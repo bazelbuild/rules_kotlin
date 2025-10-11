@@ -145,7 +145,7 @@ ktlint_fix = rule(
         ),
     },
     toolchains = [
-        "@bazel_tools//tools/jdk:runtime_toolchain_type",
+        JAVA_RUNTIME_TOOLCHAIN_TYPE,
     ],
     executable = True,
     doc = "Lint Kotlin files and automatically fix them as needed",
