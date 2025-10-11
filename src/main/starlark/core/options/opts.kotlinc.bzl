@@ -83,6 +83,17 @@ _KOPTS_ALL = {
             True: ["-Xcontext-receivers"],
         },
     ),
+    "x_context_parameters": struct(
+        flag = "-Xcontext-parameters",
+        args = dict(
+            default = False,
+            doc = "Enable experimental context parameters (Kotlin 2.2+).",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xcontext-parameters"],
+        },
+    ),
     "x_suppress_version_warnings": struct(
         flag = "-Xsuppress-version-warnings",
         args = dict(
