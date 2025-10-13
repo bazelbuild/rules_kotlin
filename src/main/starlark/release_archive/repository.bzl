@@ -1,4 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:local.bzl", "local_repository")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 versions = struct(
@@ -189,7 +190,8 @@ def archive_repository(
     source_repository_name = source_repository_name or ("%s_head" % name)
     if remote_source_archive:
         maybe(
-            http_archive,
+            http_repository,
+            type = "archive",
             name = source_repository_name,
             sha256 = remote_source_archive.sha256,
             strip_prefix = remote_source_archive.prefix,
@@ -197,7 +199,7 @@ def archive_repository(
         )
     else:
         maybe(
-            native.local_repository,
+            local_repository,
             name = source_repository_name,
             path = local_path,
         )
