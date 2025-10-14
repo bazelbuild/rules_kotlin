@@ -1,5 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("//src/main/starlark/core/repositories:utils.bzl", "http_repository", "maybe")
 
 versions = struct(
     RULES_KOTLIN = struct(
@@ -189,7 +188,8 @@ def archive_repository(
     source_repository_name = source_repository_name or ("%s_head" % name)
     if remote_source_archive:
         maybe(
-            http_archive,
+            http_repository,
+            type = "archive",
             name = source_repository_name,
             sha256 = remote_source_archive.sha256,
             strip_prefix = remote_source_archive.prefix,
