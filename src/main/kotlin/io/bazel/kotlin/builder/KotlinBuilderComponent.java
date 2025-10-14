@@ -22,6 +22,7 @@ import dagger.Provides;
 import io.bazel.kotlin.builder.tasks.CompileKotlin;
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
+import io.bazel.kotlin.builder.tasks.knative.KotlinNativeTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 
 import javax.inject.Singleton;
@@ -32,6 +33,8 @@ public interface KotlinBuilderComponent {
     KotlinToolchain toolchain();
 
     KotlinJvmTaskExecutor jvmTaskExecutor();
+
+    KotlinNativeTaskExecutor nativeTaskExecutor();
 
     CompileKotlin work();
 

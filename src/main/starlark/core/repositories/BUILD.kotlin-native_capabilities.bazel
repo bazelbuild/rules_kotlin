@@ -1,4 +1,4 @@
-# Copyright 2020 The Bazel Authors. All rights reserved.
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,30 +11,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load(":compiler.bzl", "kt_configure_compiler")
-load(":kapt.bzl", "kapt_compiler_plugin")
-load(":ksp.bzl", "kt_configure_ksp")
-load(":native.bzl", "kt_configure_native_compiler")
 
 package(default_visibility = ["//visibility:public"])
 
-# Configures the compiler
-kt_configure_compiler()
-
-# Configures the KSP plugins
-kt_configure_ksp()
-
-# Configure the native compiler (used only for runfiles in KotlinBuilder)
-kt_configure_native_compiler()
-
 bzl_library(
-    name = "compiler",
+    name = "capabilities",
     srcs = glob(["*.bzl"]),
 )
 
-kapt_compiler_plugin(
-    name = "kapt",
-    id = "org.jetbrains.kotlin.kapt3",
+alias(
+    name = "konan_home",
+    actual = "@$git_repo$//:konan_home",
+)
+
+alias(
+    name = "konan_properties",
+    actual = "@$git_repo$//:konan_properties",
+)
+
+alias(
+    name = "kotlin-native",
+    actual = "@$git_repo$//:kotlin-native",
+)
+
+alias(
+    name = "trove4j",
+    actual = "@$git_repo$//:trove4j",
 )
