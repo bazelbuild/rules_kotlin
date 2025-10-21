@@ -251,12 +251,16 @@ def kt_jvm_binary_impl(ctx):
     return _make_providers(
         ctx,
         providers,
-        transitive_files = depset(
+        ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
+        depset(
             order = "default",
             transitive = [providers.java.transitive_runtime_jars],
             direct = ctx.files._java_runtime,
         ),
-        runfiles_targets = ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
+        RunEnvironmentInfo(
+            environment = ctx.attr.env,
+            inherited_environment = ctx.attr.env_inherit,
+        ),
     )
 
 _SPLIT_STRINGS = [
