@@ -1,0 +1,15 @@
+load("//kotlin:jvm.bzl", "kt_jvm_binary")
+
+# Example demonstrating env and env_inherit support in kt_jvm_binary
+kt_jvm_binary(
+    name = "env_demo",
+    srcs = ["Main.kt"],
+    # Set custom environment variables
+    env = {
+        "GREETING": "Hello from Bazel!",
+        "MESSAGE": "Environment variables are working!",
+    },
+    # Inherit environment variables from the shell
+    env_inherit = ["HOME"],
+    main_class = "com.example.MainKt",
+)
