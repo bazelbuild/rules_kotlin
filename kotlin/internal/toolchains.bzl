@@ -131,7 +131,7 @@ _kt_toolchain = rule(
         ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
-            default = "2.1",
+            default = "2.2",
             values = [
                 "1.1",
                 "1.2",
@@ -150,7 +150,7 @@ _kt_toolchain = rule(
         ),
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
-            default = "2.1",
+            default = "2.2",
             values = [
                 "1.1",
                 "1.2",
