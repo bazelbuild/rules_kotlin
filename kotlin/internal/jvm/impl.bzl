@@ -71,6 +71,15 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
     java_bin_path = java_runtime.java_executable_runfiles_path
 
+    # Normalize java_bin_path like rules_java does: prepend workspace name for relative paths
+    if not _is_absolute(java_bin_path):
+        java_bin_path = ctx.workspace_name + "/" + java_bin_path
+
+    # Construct JAVABIN substitution with ${JAVA_RUNFILES}/ prefix for relative paths
+    # This works in both runfiles-enabled and manifest-only modes
+    prefix = "" if _is_absolute(java_bin_path) else "${JAVA_RUNFILES}/"
+    java_bin = "JAVABIN=${JAVABIN:-" + prefix + java_bin_path + "}"
+
     # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
     # Enable the security manager past deprecation until permanently disabled: https://openjdk.org/jeps/486
     # On bazel 6, this check isn't possible...
@@ -98,7 +107,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
                 "%classpath%": classpath,
                 "%runfiles_manifest_only%": "",
                 "%java_start_class%": "com.google.testing.coverage.JacocoCoverageRunner",
-                "%javabin%": "JAVABIN=" + java_bin_path,
+                "%javabin%": java_bin,
                 "%jvm_flags%": jvm_flags,
                 "%set_jacoco_metadata%": "export JACOCO_METADATA_JAR=\"$JAVA_RUNFILES/{}/{}\"".format(ctx.workspace_name, jacoco_metadata_file.short_path),
                 "%set_jacoco_main_class%": """export JACOCO_MAIN_CLASS={}""".format(main_class),
@@ -123,7 +132,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
             "%classpath%": classpath,
             "%runfiles_manifest_only%": "",
             "%java_start_class%": main_class,
-            "%javabin%": "JAVABIN=" + java_bin_path,
+            "%javabin%": java_bin,
             "%jvm_flags%": jvm_flags,
             "%set_jacoco_metadata%": "",
             "%set_jacoco_main_class%": "",
