@@ -297,6 +297,15 @@ _runnable_common_attr = utils.add_dicts(_common_attr, _runnable_implicit_deps, {
         support make variable substitution.""",
         default = [],
     ),
+    "env": attr.string_dict(
+        doc = """Environment variables to set when this binary is executed with `bazel run`.
+Note: for Starlark rules, values are used as-is (no automatic $(location) / make variable expansion).""",
+        default = {},
+    ),
+    "env_inherit": attr.string_list(
+        doc = """Names of environment variables to inherit from the shell when executed with `bazel run`.""",
+        default = [],
+    ),
 })
 
 _common_outputs = dict(
