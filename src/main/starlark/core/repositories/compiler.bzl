@@ -93,11 +93,15 @@ def _get_capability_template(compiler_version, templates):
 kotlin_capabilities_repository = repository_rule(
     implementation = _kotlin_capabilities_impl,
     attrs = {
+        "compiler_version": attr.string(
+            doc = "compiler version",
+        ),
         "git_repository_name": attr.string(
             doc = "Name of the repository containing kotlin compiler libraries",
         ),
-        "compiler_version": attr.string(
-            doc = "compiler version",
+        "_artifacts_template": attr.label(
+            doc = "kotlinc artifacts template",
+            default = "//src/main/starlark/core/repositories/kotlin:artifacts.bzl",
         ),
         "_capability_templates": attr.label_list(
             doc = "List of compiler capability templates.",
@@ -107,22 +111,18 @@ kotlin_capabilities_repository = repository_rule(
             doc = "repository build file template",
             default = ":BUILD.kotlin_capabilities.bazel",
         ),
-        "_artifacts_template": attr.label(
-            doc = "kotlinc artifacts template",
-            default = "//src/main/starlark/core/repositories/kotlin:artifacts.bzl",
-        ),
     },
 )
 
 kotlin_compiler_git_repository = repository_rule(
     implementation = _kotlin_compiler_impl,
     attrs = {
+        "sha256": attr.string(
+            doc = "sha256 of the compiler archive",
+        ),
         "urls": attr.string_list(
             doc = "A list of urls for the kotlin compiler",
             mandatory = True,
-        ),
-        "sha256": attr.string(
-            doc = "sha256 of the compiler archive",
         ),
         "_template": attr.label(
             doc = "repository build file template",

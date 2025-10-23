@@ -390,8 +390,8 @@ def _run_kapt_builder_actions(
         plugins = plugins,
         outputs = {
             "generated_java_srcjar": ap_generated_src_jar,
-            "kapt_generated_stub_jar": kapt_generated_stub_jar,
             "kapt_generated_class_jar": kapt_generated_class_jar,
+            "kapt_generated_stub_jar": kapt_generated_stub_jar,
         },
         build_kotlin = False,
         mnemonic = "KotlinKapt",
@@ -433,8 +433,8 @@ def _run_ksp_builder_actions(
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         outputs = {
-            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
             "ksp_generated_classes_jar": ksp_generated_classes_jar,
+            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
         },
         build_kotlin = False,
         mnemonic = "KotlinKsp",
@@ -832,8 +832,8 @@ def _run_kt_java_builder_actions(
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
             outputs = {
-                "output": kt_runtime_jar,
                 "abi_jar": kt_compile_jar,
+                "output": kt_runtime_jar,
             }
         else:
             kt_compile_jar = kt_runtime_jar
