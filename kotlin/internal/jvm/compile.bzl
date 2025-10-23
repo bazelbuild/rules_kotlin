@@ -305,16 +305,16 @@ def _build_resourcejar_action(ctx, extra_resources = {}):
     """
     resources_jar_output = ctx.actions.declare_file(ctx.label.name + "-resources.jar")
     zipper_args = _resourcejar_args_action(ctx, extra_resources)
-    ctx.actions.run_shell(
+    ctx.actions.run(
         mnemonic = "KotlinZipResourceJar",
+        executable = ctx.executable._zipper,
         inputs = ctx.files.resources + extra_resources.values() + [zipper_args],
-        tools = [ctx.executable._zipper],
         outputs = [resources_jar_output],
-        command = "{zipper} c {resources_jar_output} @{path}".format(
-            path = zipper_args.path,
-            resources_jar_output = resources_jar_output.path,
-            zipper = ctx.executable._zipper.path,
-        ),
+        arguments = [
+            "c",
+            resources_jar_output.path,
+            "@" + zipper_args.path,
+        ],
         progress_message = "Creating intermediate resource jar %{label}",
     )
     return resources_jar_output
