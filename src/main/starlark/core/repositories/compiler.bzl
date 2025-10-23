@@ -2,6 +2,7 @@
 Defines kotlin compiler repositories.
 """
 
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "get_auth")
 load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "TEMPLATES")
 
 def _kotlin_compiler_impl(repository_ctx):
@@ -10,6 +11,7 @@ def _kotlin_compiler_impl(repository_ctx):
         attr.urls,
         sha256 = attr.sha256,
         stripPrefix = "kotlinc",
+        auth = get_auth(repository_ctx, attr.urls),
     )
     repository_ctx.template(
         "BUILD.bazel",
