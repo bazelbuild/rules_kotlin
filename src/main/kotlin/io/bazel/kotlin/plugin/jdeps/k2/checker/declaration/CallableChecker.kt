@@ -16,11 +16,8 @@ internal class CallableChecker(
    * Tracks the return type & type parameters of a callable declaration. Function parameters are
    * tracked in [FunctionChecker].
    */
-  override fun check(
-    declaration: FirCallableDeclaration,
-    context: CheckerContext,
-    reporter: DiagnosticReporter,
-  ) {
+  context(context: CheckerContext, reporter: DiagnosticReporter)
+  override fun check(declaration: FirCallableDeclaration) {
     // return type
     declaration.returnTypeRef.let { classUsageRecorder.recordTypeRef(it, context) }
 

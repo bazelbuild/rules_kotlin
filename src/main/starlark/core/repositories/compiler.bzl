@@ -2,7 +2,7 @@
 Defines kotlin compiler repositories.
 """
 
-load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "TEMPLATES")
+load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "ARTIFACT_TEMPLATES", "TEMPLATES")
 
 def _kotlin_compiler_impl(repository_ctx):
     attr = repository_ctx.attr
@@ -32,11 +32,18 @@ def _kotlin_capabilities_impl(repository_ctx):
             "$git_repo$": attr.git_repository_name,
         },
     )
+
+    # Select the appropriate artifact template based on compiler version
+    artifact_template = _get_artifact_template(
+        attr.compiler_version,
+        [repository_ctx.path(at) for at in attr._artifact_templates],
+    )
     repository_ctx.template(
         "artifacts.bzl",
-        attr._artifacts_template,
+        artifact_template,
         executable = False,
     )
+
     template = _get_capability_template(
         attr.compiler_version,
         [repository_ctx.path(ct) for ct in attr._capability_templates],
@@ -90,6 +97,49 @@ def _get_capability_template(compiler_version, templates):
     # Legacy
     return version_index[(0, 0, 0)]
 
+def _get_artifact_template(compiler_version, templates):
+    """Select artifact template based on compiler version."""
+    version_index = {}
+    target = _version(compiler_version)
+    if len(target) > 2:
+        target = target[0:2]
+
+    for template in templates:
+        # Extract version from artifacts_X.Y.bzl format
+        basename = template.basename
+        if not basename.startswith("artifacts_"):
+            continue
+        version_str = basename[len("artifacts_"):basename.find(".bzl")]
+        version = _version(version_str)
+        if len(version) > 2:
+            version = version[0:2]
+
+        if target == version:
+            return template
+        version_index[version] = template
+
+    # If no exact match, find the highest version that is <= target
+    # If target is higher than all available, use the latest
+    if version_index:
+        sorted_versions = sorted(version_index.keys())
+
+        # Find highest version <= target
+        best_match = None
+        for version in sorted_versions:
+            if version <= target:
+                best_match = version
+            else:
+                break
+
+        # If no version <= target, use the latest (for newer compiler versions)
+        if best_match:
+            return version_index[best_match]
+        else:
+            return version_index[sorted_versions[-1]]
+
+    # Default to first available template
+    return templates[0] if templates else None
+
 kotlin_capabilities_repository = repository_rule(
     implementation = _kotlin_capabilities_impl,
     attrs = {
@@ -103,13 +153,13 @@ kotlin_capabilities_repository = repository_rule(
             doc = "List of compiler capability templates.",
             default = TEMPLATES,
         ),
+        "_artifact_templates": attr.label_list(
+            doc = "List of artifact definition templates.",
+            default = ARTIFACT_TEMPLATES,
+        ),
         "_template": attr.label(
             doc = "repository build file template",
             default = ":BUILD.kotlin_capabilities.bazel",
-        ),
-        "_artifacts_template": attr.label(
-            doc = "kotlinc artifacts template",
-            default = "//src/main/starlark/core/repositories/kotlin:artifacts.bzl",
         ),
     },
 )

@@ -1,0 +1,36 @@
+module(
+    name = "custom_compiler_version_example",
+    version = "1.0",
+)
+
+# Use local rules_kotlin for testing
+bazel_dep(name = "rules_kotlin", version = "1.8.1")
+bazel_dep(name = "rules_java", version = "8.9.0")
+
+local_path_override(
+    module_name = "rules_kotlin",
+    path = "../..",
+)
+
+# Override the Kotlin compiler version to use 2.1.21
+# This demonstrates backward compatibility with versions that include trove4j
+rules_kotlin_ext = use_extension("@rules_kotlin//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
+rules_kotlin_ext.kotlinc_version(
+    sha256 = "1ba08a8b45da99339a0601134cc037b54cf85e9bc0edbe76dcbd27c2d684a977",
+    version = "2.1.21",
+)
+rules_kotlin_ext.ksp_version(
+    sha256 = "44e965bb067b2bb5cd9184dab2c3dea6e3eab747d341c07645bb4c88f09e49c8",
+    version = "2.1.21-2.0.1",
+)
+use_repo(
+    rules_kotlin_ext,
+    "com_github_google_ksp",
+    "com_github_jetbrains_kotlin",
+    "com_github_jetbrains_kotlin_git",
+    "com_github_pinterest_ktlint",
+    "kotlin_build_tools_impl",
+    "kotlinx_serialization_core_jvm",
+    "kotlinx_serialization_json",
+    "kotlinx_serialization_json_jvm",
+)

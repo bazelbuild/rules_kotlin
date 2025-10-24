@@ -42,7 +42,10 @@ def compile_kotlin_for_jvm(
     args.add("-module-name", module_name)
     args.add_joined("-cp", classpath, join_with = path_separator)
     for (k, v) in kotlinc_opts.items():
-        args.add(k, v)
+        if v:
+            args.add(k, v)
+        else:
+            args.add(k)
     args.add_all(srcs)
 
     actions.run(
