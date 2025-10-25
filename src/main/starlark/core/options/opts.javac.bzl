@@ -24,7 +24,7 @@ _JOPTS = {
         ),
         type = attr.string,
         value_to_flag = {
-            "off": ["-nowarn"],
+            "off": ["-nowarn", "-Xlint:none"],
             "error": ["-Werror"],
             "report": None,
         },
