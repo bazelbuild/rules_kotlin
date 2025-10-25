@@ -26,6 +26,7 @@ import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
+import java.util.zip.ZipFile
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -36,6 +37,9 @@ class TestCaseFailedException(name: String? = null, description: String? = null,
     """"${name?.let { "jar: $it " } ?: ""} "$description" failed, error: ${cause.message}""",
     cause
   )
+
+// klib is just a zip file with specific entries
+typealias KlibZipFile = ZipFile
 
 abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() {
   private lateinit var currentFile: File
@@ -68,6 +72,28 @@ abstract class KotlinAssertionTestCase(root: String) : BasicAssertionTestCase() 
       "testFile $name did not exist in test case root $testRunfileRoot"
     }
     runTestCase(name, description) { JarFile(currentFile).op() }
+  }
+
+  protected fun klibTestCase(
+    name: String,
+    description: String? = null,
+    op: KlibZipFile.() -> Unit
+  ) {
+    currentFile = testRunfileRoot.resolve(name).toFile()
+    check(currentFile.exists()) {
+      "testFile $name did not exist in test case root $testRunfileRoot"
+    }
+     runTestCase(name, description) {
+      KlibZipFile(currentFile).op()
+    }
+  }
+
+  protected fun KlibZipFile.assertContainsEntries(vararg want: String) {
+    val got = this.entries().asSequence().map { it.name }.toSet()
+    val missing = want.toSet() - got
+    check(missing.isEmpty()) {
+      "Entries Missing: $missing \nFrom: $got"
+    }
   }
 
   protected fun JarFile.assertContainsEntries(vararg want: String) {

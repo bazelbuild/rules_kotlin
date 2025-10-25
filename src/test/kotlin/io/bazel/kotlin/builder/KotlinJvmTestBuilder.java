@@ -23,7 +23,6 @@ import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
-import io.bazel.kotlin.model.KotlinToolchainInfo;
 
 import java.util.EnumSet;
 import java.util.HashSet;
