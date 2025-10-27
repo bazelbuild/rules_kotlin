@@ -59,14 +59,14 @@ def _convert_options_to_flags_test(ctx):
         env,
         expected = convert.kotlinc_options_to_flags(_TEST_OPTS, attrs),
         actual = [
-            "-foo-options",
-            "-bar:1",
-            "-bar:2",
-            "-bar:3",
-            "-flag=1",
             "-flag-repeated=1",
             "-flag-repeated=2",
             "-flag-repeated=3",
+            "-flag=1",
+            "-bar:1",
+            "-bar:2",
+            "-bar:3",
+            "-foo-options",
         ],
     )
 
