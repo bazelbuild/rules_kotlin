@@ -110,7 +110,6 @@ buildifier(
         "-uninitialized",
         "-unreachable",
     ],
-    mode = "diff",
 )
 
 buildifier(
