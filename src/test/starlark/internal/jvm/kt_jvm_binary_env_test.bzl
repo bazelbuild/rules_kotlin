@@ -14,8 +14,8 @@ def _kt_jvm_binary_env_test_impl(env, target):
 
     # Verify the environment variables
     env.expect.that_dict(run_env_info.environment).contains_exactly({
-        "FOO": "bar",
         "BAZ": "qux",
+        "FOO": "bar",
     })
 
     # Verify the inherited environment variables
@@ -31,8 +31,8 @@ def _kt_jvm_binary_env_test(name):
         srcs = [util.empty_file(name + "_Main.kt")],
         main_class = "test.Main",
         env = {
-            "FOO": "bar",
             "BAZ": "qux",
+            "FOO": "bar",
         },
         env_inherit = ["HOME", "PATH"],
         tags = ["manual"],
