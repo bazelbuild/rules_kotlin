@@ -36,8 +36,8 @@ rules_stardoc_repository = repository_rule(
     implementation = _rules_stardoc_repository_impl,
     attrs = {
         "sha256": attr.string(),
+        "starlark_packages": attr.string_list(),
         "strip_prefix": attr.string(),
         "urls": attr.string_list(),
-        "starlark_packages": attr.string_list(),
     },
 )

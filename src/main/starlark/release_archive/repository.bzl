@@ -135,21 +135,6 @@ _archive_repository = repository_rule(
             doc = "Bazel version to use for building the release archive",
             default = "7.0.0",
         ),
-        "_remote_urls": attr.string_list(
-            doc = "A list of urls for the archive",
-            default = versions.RULES_KOTLIN.urls,
-        ),
-        "_remote_sha256": attr.string(
-            doc = "sha256 of the archive",
-            default = versions.RULES_KOTLIN.sha256,
-        ),
-        "_remote_prefix": attr.string(
-            doc = "prefix to remove from the remote archive",
-            default = versions.RULES_KOTLIN.prefix,
-        ),
-        "local_release_archive_target": attr.label(
-            doc = "release_archive rule.",
-        ),
         "env_archive": attr.string(
             doc = "release archive path environment variable name",
             default = "RULES_KOTLIN_ARCHIVE",
@@ -161,6 +146,21 @@ _archive_repository = repository_rule(
         "env_stable": attr.string(
             doc = "Use stable release",
             default = "RULES_KOTLIN_STABLE",
+        ),
+        "local_release_archive_target": attr.label(
+            doc = "release_archive rule.",
+        ),
+        "_remote_prefix": attr.string(
+            doc = "prefix to remove from the remote archive",
+            default = versions.RULES_KOTLIN.prefix,
+        ),
+        "_remote_sha256": attr.string(
+            doc = "sha256 of the archive",
+            default = versions.RULES_KOTLIN.sha256,
+        ),
+        "_remote_urls": attr.string_list(
+            doc = "A list of urls for the archive",
+            default = versions.RULES_KOTLIN.urls,
         ),
     },
 )

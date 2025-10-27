@@ -239,17 +239,17 @@ def _abi_test(name, impl):
         impl = impl,
         target = name + "_subject",
         attr_values = {
-            "associate_jar": util.empty_file(name + "associate.jar"),
             "associate_abi_jar": util.empty_file(name + "associate_abi.jar"),
-            "direct_dep_jar": util.empty_file(name + "direct_dep.jar"),
+            "associate_jar": util.empty_file(name + "associate.jar"),
             "direct_dep_abi_jar": util.empty_file(name + "direct_dep_abi.jar"),
+            "direct_dep_jar": util.empty_file(name + "direct_dep.jar"),
             "jvm_jar": util.empty_file(name + "jvm.jar"),
         },
         attrs = {
-            "associate_jar": attr.label(allow_files = True),
             "associate_abi_jar": attr.label(allow_files = True),
-            "direct_dep_jar": attr.label(allow_files = True),
+            "associate_jar": attr.label(allow_files = True),
             "direct_dep_abi_jar": attr.label(allow_files = True),
+            "direct_dep_jar": attr.label(allow_files = True),
             "jvm_jar": attr.label(allow_files = True),
         },
     )
@@ -362,14 +362,14 @@ def _dep_infos_ordering_test(name):
         impl = _dep_infos_ordering_test_impl,
         target = name + "_subject",
         attr_values = {
-            "user_dep_jar": util.empty_file(name + "user_dep.jar"),
             "associate_jar": util.empty_file(name + "associate.jar"),
             "jvm_jar": util.empty_file(name + "jvm.jar"),
+            "user_dep_jar": util.empty_file(name + "user_dep.jar"),
         },
         attrs = {
-            "user_dep_jar": attr.label(allow_files = True),
             "associate_jar": attr.label(allow_files = True),
             "jvm_jar": attr.label(allow_files = True),
+            "user_dep_jar": attr.label(allow_files = True),
         },
     )
 
