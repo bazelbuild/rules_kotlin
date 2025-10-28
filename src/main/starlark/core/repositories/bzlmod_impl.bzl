@@ -21,8 +21,8 @@ def configure_modules_and_repositories(modules, kotlin_repositories, kotlinc_ver
 
 _version_tag = tag_class(
     attrs = {
-        "version": attr.string(mandatory = True),
         "sha256": attr.string(mandatory = True),
+        "version": attr.string(mandatory = True),
     },
 )
 

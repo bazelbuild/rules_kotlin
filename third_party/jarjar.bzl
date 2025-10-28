@@ -46,12 +46,12 @@ jar_jar = rule(
     implementation = _jar_jar_impl,
     attrs = {
         "input_jar": attr.label(allow_single_file = True),
-        "rules": attr.label(allow_single_file = True),
         "jarjar_runner": attr.label(
             executable = True,
             cfg = "exec",
             default = Label("//third_party:jarjar_runner"),
         ),
+        "rules": attr.label(allow_single_file = True),
     },
     outputs = {
         "jar": "%{name}.jar",

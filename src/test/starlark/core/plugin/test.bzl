@@ -94,16 +94,16 @@ def _test_kt_plugin_cfg(test):
         impl = _provider_test_impl,
         target = cfg,
         attr_values = {
-            "want_plugin": plugin,
             "want_deps": [cfg_dep],
             "want_options": [
                 "extra=annotation",
             ],
+            "want_plugin": plugin,
         },
         attrs = {
-            "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
-            "want_options": attr.string_list(),
             "want_deps": attr.label_list(providers = [JavaInfo]),
+            "want_options": attr.string_list(),
+            "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
         },
     )
 
