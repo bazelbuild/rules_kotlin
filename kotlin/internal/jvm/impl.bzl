@@ -105,17 +105,17 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
             output = ctx.outputs.executable,
             substitutions = {
                 "%classpath%": classpath,
-                "%runfiles_manifest_only%": "",
                 "%java_start_class%": "com.google.testing.coverage.JacocoCoverageRunner",
                 "%javabin%": java_bin,
                 "%jvm_flags%": jvm_flags,
-                "%set_jacoco_metadata%": "export JACOCO_METADATA_JAR=\"$JAVA_RUNFILES/{}/{}\"".format(ctx.workspace_name, jacoco_metadata_file.short_path),
-                "%set_jacoco_main_class%": """export JACOCO_MAIN_CLASS={}""".format(main_class),
-                "%set_jacoco_java_runfiles_root%": """export JACOCO_JAVA_RUNFILES_ROOT=$JAVA_RUNFILES/{}/""".format(ctx.workspace_name),
-                "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=YES""",
-                "%workspace_prefix%": ctx.workspace_name + "/",
-                "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
                 "%needs_runfiles%": "0" if _is_absolute(java_bin_path) else "1",
+                "%runfiles_manifest_only%": "",
+                "%set_jacoco_java_runfiles_root%": """export JACOCO_JAVA_RUNFILES_ROOT=$JAVA_RUNFILES/{}/""".format(ctx.workspace_name),
+                "%set_jacoco_main_class%": """export JACOCO_MAIN_CLASS={}""".format(main_class),
+                "%set_jacoco_metadata%": "export JACOCO_METADATA_JAR=\"$JAVA_RUNFILES/{}/{}\"".format(ctx.workspace_name, jacoco_metadata_file.short_path),
+                "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=YES""",
+                "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
+                "%workspace_prefix%": ctx.workspace_name + "/",
             },
             is_executable = True,
         )
@@ -130,17 +130,17 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
         output = ctx.outputs.executable,
         substitutions = {
             "%classpath%": classpath,
-            "%runfiles_manifest_only%": "",
             "%java_start_class%": main_class,
             "%javabin%": java_bin,
             "%jvm_flags%": jvm_flags,
-            "%set_jacoco_metadata%": "",
-            "%set_jacoco_main_class%": "",
-            "%set_jacoco_java_runfiles_root%": "",
-            "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=NO""",
-            "%workspace_prefix%": ctx.workspace_name + "/",
-            "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
             "%needs_runfiles%": "0" if _is_absolute(java_bin_path) else "1",
+            "%runfiles_manifest_only%": "",
+            "%set_jacoco_java_runfiles_root%": "",
+            "%set_jacoco_main_class%": "",
+            "%set_jacoco_metadata%": "",
+            "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=NO""",
+            "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
+            "%workspace_prefix%": ctx.workspace_name + "/",
         },
         is_executable = True,
     )
@@ -333,8 +333,8 @@ def kt_jvm_junit_test_impl(ctx):
 
 _KtCompilerPluginClasspathInfo = provider(
     fields = {
-        "reshaded_infos": "list reshaded JavaInfos of a compiler library",
         "infos": "list JavaInfos of a compiler library",
+        "reshaded_infos": "list reshaded JavaInfos of a compiler library",
     },
 )
 
