@@ -89,6 +89,7 @@ buildifier(
     ],
     lint_mode = "warn",
     lint_warnings = [
+        "+unsorted-dict-items",
         "-confusing-name",
         "-constant-glob",
         "-duplicated-name",
@@ -107,7 +108,6 @@ buildifier(
         "-uninitialized",
         "-unreachable",
     ],
-    mode = "diff",
 )
 
 buildifier(
@@ -116,4 +116,7 @@ buildifier(
         "./.git/*",
     ],
     lint_mode = "fix",
+    lint_warnings = [
+        "+unsorted-dict-items",
+    ],
 )
