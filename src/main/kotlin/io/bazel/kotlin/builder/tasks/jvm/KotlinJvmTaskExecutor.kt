@@ -63,7 +63,7 @@ class KotlinJvmTaskExecutor
 
       context.execute("compile classes") {
         preprocessedTask.apply {
-          sequenceOf(
+          listOf(
             runCatching {
               context.execute("kotlinc") {
                 if (compileKotlin) {
@@ -79,6 +79,9 @@ class KotlinJvmTaskExecutor
                             flag("target_label", info.label)
                             inputs.directDependenciesList.forEach {
                               flag("direct_dependencies", it)
+                            }
+                            inputs.classpathList.forEach {
+                              flag("full_classpath", it)
                             }
                             flag("strict_kotlin_deps", info.strictKotlinDeps)
                           }

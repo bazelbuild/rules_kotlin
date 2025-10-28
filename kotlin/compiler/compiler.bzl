@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS")
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
+load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
