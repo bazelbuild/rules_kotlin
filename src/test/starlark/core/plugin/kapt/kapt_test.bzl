@@ -81,21 +81,9 @@ def _apoptions_to_kotlinc(rule_under_test, **kwargs):
             got = got,
             what = _action,
             wants = {
-                "mnemonic": Want(
-                    attr = attr.string(),
-                    value = "KotlinKapt",
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [],
-                ),
                 "exec_inputs": Want(
                     attr = attr.label_list(allow_empty = True, allow_files = True, cfg = "exec"),
                     value = [dep_jar],
-                ),
-                "target_inputs": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True, cfg = "target"),
-                    value = [src],
                 ),
                 "flags": Want(
                     attr = attr.string_list_dict(),
@@ -104,6 +92,18 @@ def _apoptions_to_kotlinc(rule_under_test, **kwargs):
                             "org.jetbrains.kotlin.kapt3:apoption=%s:%s" % (option_key, option_value),
                         ],
                     },
+                ),
+                "mnemonic": Want(
+                    attr = attr.string(),
+                    value = "KotlinKapt",
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [],
+                ),
+                "target_inputs": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True, cfg = "target"),
+                    value = [src],
                 ),
             },
         )
@@ -158,6 +158,16 @@ def _options_to_javac(rule_under_test, **kwargs):
             got = got,
             what = _action,
             wants = {
+                "exec_inputs": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True, cfg = "exec"),
+                    value = [dep_jar],
+                ),
+                "flags": Want(
+                    attr = attr.string_list_dict(),
+                    value = {
+                        "-A" + option_key: [option_value],
+                    },
+                ),
                 "mnemonic": Want(
                     attr = attr.string(),
                     value = "Javac",
@@ -166,19 +176,9 @@ def _options_to_javac(rule_under_test, **kwargs):
                     attr = attr.label_list(allow_empty = True, allow_files = True),
                     value = [],
                 ),
-                "exec_inputs": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True, cfg = "exec"),
-                    value = [dep_jar],
-                ),
                 "target_inputs": Want(
                     attr = attr.label_list(allow_empty = True, allow_files = True, cfg = "target"),
                     value = [src],
-                ),
-                "flags": Want(
-                    attr = attr.string_list_dict(),
-                    value = {
-                        "-A" + option_key: [option_value],
-                    },
                 ),
             },
         )

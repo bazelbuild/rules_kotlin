@@ -93,13 +93,21 @@ def _test_neverlink_deps(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
-                "source_jar": Want(
-                    attr = attr.label(allow_single_file = True),
-                    value = got + srcjar_ext,
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
                 ),
                 "inputs": Want(
                     attr = attr.label_list(allow_empty = True, allow_files = True),
                     value = [got_src, have],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [],
+                ),
+                "source_jar": Want(
+                    attr = attr.label(allow_single_file = True),
+                    value = got + srcjar_ext,
                 ),
                 "transitive_compile_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
@@ -108,14 +116,6 @@ def _test_neverlink_deps(
                 "transitive_runtime_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
-                ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [],
                 ),
             },
         )
@@ -167,13 +167,24 @@ def _test_runfiles(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
-                "source_jar": Want(
-                    attr = attr.label(allow_single_file = True),
-                    value = got + srcjar_ext,
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
                 ),
                 "inputs": Want(
                     attr = attr.label_list(allow_empty = True, allow_files = True),
                     value = [data],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [
+                        data_file,
+                        transitive_data_file,
+                    ],
+                ),
+                "source_jar": Want(
+                    attr = attr.label(allow_single_file = True),
+                    value = got + srcjar_ext,
                 ),
                 "transitive_compile_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
@@ -182,17 +193,6 @@ def _test_runfiles(
                 "transitive_runtime_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
-                ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [
-                        data_file,
-                        transitive_data_file,
-                    ],
                 ),
             },
         )
@@ -240,13 +240,23 @@ def _test_deps(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
-                "source_jar": Want(
-                    attr = attr.label(allow_single_file = True),
-                    value = got + srcjar_ext,
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
                 ),
                 "inputs": Want(
                     attr = attr.label_list(allow_empty = True, allow_files = True),
                     value = [have],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [
+                        have_data,
+                    ],
+                ),
+                "source_jar": Want(
+                    attr = attr.label(allow_single_file = True),
+                    value = got + srcjar_ext,
                 ),
                 "transitive_compile_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
@@ -255,16 +265,6 @@ def _test_deps(
                 "transitive_runtime_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
-                ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [
-                        have_data,
-                    ],
                 ),
             },
         )
@@ -301,6 +301,18 @@ def _test_no_deps(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
+                ),
+                "inputs": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [have_src],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [have_data],
+                ),
                 "source_jar": Want(
                     attr = attr.label(allow_single_file = True),
                     value = got + srcjar_ext,
@@ -312,18 +324,6 @@ def _test_no_deps(
                 "transitive_runtime_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
-                ),
-                "inputs": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [have_src],
-                ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [have_data],
                 ),
             },
         )
@@ -381,6 +381,18 @@ def _test_exports(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
+                ),
+                "inputs": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [have_src, have_library],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [have_data],
+                ),
                 "source_jar": Want(
                     attr = attr.label(allow_single_file = True),
                     value = got + srcjar_ext,
@@ -392,18 +404,6 @@ def _test_exports(
                 "transitive_runtime_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
-                ),
-                "inputs": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [have_src, have_library],
-                ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [have_data],
                 ),
             },
         )

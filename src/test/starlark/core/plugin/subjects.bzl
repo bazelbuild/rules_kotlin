@@ -15,12 +15,12 @@ def plugin_subject_factory(value, meta):
         value,
         meta = meta,
         attrs = {
-            "id": subjects.str,
-            "plugin_jars": subjects.collection,
             "classpath": subjects.collection,
-            "stubs": subjects.bool,
             "compile": subjects.bool,
+            "id": subjects.str,
             "options": subjects.collection,
+            "plugin_jars": subjects.collection,
+            "stubs": subjects.bool,
         },
     )
 
@@ -29,9 +29,9 @@ def plugin_configuration_subject_factory(value, meta):
         value,
         meta = meta,
         attrs = {
-            "id": subjects.str,
-            "options": subjects.collection,
             "classpath": subjects.collection,
             "data": subjects.collection,
+            "id": subjects.str,
+            "options": subjects.collection,
         },
     )

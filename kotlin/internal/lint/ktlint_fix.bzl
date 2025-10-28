@@ -126,17 +126,17 @@ PATH=\"$(dirname "{binjava}"):$PATH\" "$TOOL" {args} $SRCS
 ktlint_fix = rule(
     _ktlint_fix_impl,
     attrs = {
-        "srcs": attr.label_list(
-            allow_files = [".kt", ".kts"],
-            doc = "Source files to review and fix",
-            mandatory = True,
-            allow_empty = False,
-        ),
         "config": attr.label(
             doc = "ktlint_config to use",
             providers = [
                 [KtlintConfigInfo],
             ],
+        ),
+        "srcs": attr.label_list(
+            allow_files = [".kt", ".kts"],
+            doc = "Source files to review and fix",
+            mandatory = True,
+            allow_empty = False,
         ),
         "_ktlint_tool": attr.label(
             default = "@com_github_pinterest_ktlint//file",

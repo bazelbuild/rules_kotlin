@@ -11,8 +11,8 @@ KOTLINC_ARTIFACTS = struct(
             "lombok-compiler-plugin": "lib/lombok-compiler-plugin.jar",
             "mutability-annotations-compat": "lib/mutability-annotations-compat.jar",
             "noarg-compiler-plugin": "lib/noarg-compiler-plugin.jar",
-            "sam-with-receiver-compiler-plugin": "lib/sam-with-receiver-compiler-plugin.jar",
             "parcelize-compiler-plugin": "lib/parcelize-compiler.jar",
+            "sam-with-receiver-compiler-plugin": "lib/sam-with-receiver-compiler-plugin.jar",
         },
         runtime = {
             "jvm-abi-gen": "lib/jvm-abi-gen.jar",
@@ -34,6 +34,7 @@ KOTLINC_ARTIFACTS = struct(
     core = struct(
         plugin = {},
         runtime = {
+            "kotlin-preloader": "lib/kotlin-preloader.jar",
             "kotlin-reflect": "lib/kotlin-reflect.jar",
             "kotlin-reflect-sources": "lib/kotlin-reflect-sources.jar",
             "kotlin-script-runtime": "lib/kotlin-script-runtime.jar",
@@ -41,7 +42,6 @@ KOTLINC_ARTIFACTS = struct(
             "kotlin-test": "lib/kotlin-test.jar",
             "kotlin-test-sources": "lib/kotlin-test-sources.jar",
             "kotlin-test-testng-sources": "lib/kotlin-test-testng-sources.jar",
-            "kotlin-preloader": "lib/kotlin-preloader.jar",
         },
         compile = {
             "android-extensions-compiler": "lib/android-extensions-compiler.jar",

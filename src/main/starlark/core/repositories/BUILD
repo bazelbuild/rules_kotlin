@@ -26,9 +26,9 @@ release_archive(
         "versions.bzl",
     ],
     src_map = {
-        "initialize.release.bzl": "initialize.bzl",
         "BUILD.release.bazel": "BUILD.bazel",
         "bzlmod_setup.release.bzl": "bzlmod_setup.bzl",
+        "initialize.release.bzl": "initialize.bzl",
     },
     deps = [
         "//src/main/starlark/core/repositories/kotlin:pkg",

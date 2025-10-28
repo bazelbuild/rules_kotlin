@@ -81,25 +81,25 @@ def _ktlint_test_impl(ctx):
 ktlint_test = rule(
     _ktlint_test_impl,
     attrs = {
-        "srcs": attr.label_list(
-            allow_files = [".kt", ".kts"],
-            doc = "Source files to lint",
-            mandatory = True,
-            allow_empty = False,
-        ),
         "config": attr.label(
             doc = "ktlint_config to use",
             providers = [
                 [KtlintConfigInfo],
             ],
         ),
+        "srcs": attr.label_list(
+            allow_files = [".kt", ".kts"],
+            doc = "Source files to lint",
+            mandatory = True,
+            allow_empty = False,
+        ),
+        "_javabase": attr.label(
+            default = "@bazel_tools//tools/jdk:current_java_runtime",
+        ),
         "_ktlint_tool": attr.label(
             default = "@com_github_pinterest_ktlint//file",
             executable = True,
             cfg = "exec",
-        ),
-        "_javabase": attr.label(
-            default = "@bazel_tools//tools/jdk:current_java_runtime",
         ),
         "_windows_constraint": attr.label(default = "@platforms//os:windows"),
     },

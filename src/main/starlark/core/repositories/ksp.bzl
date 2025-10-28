@@ -36,15 +36,15 @@ def _ksp_compiler_plugin_repository_impl(repository_ctx):
 ksp_compiler_plugin_repository = repository_rule(
     implementation = _ksp_compiler_plugin_repository_impl,
     attrs = {
-        "urls": attr.string_list(
-            doc = "A list of urls for the kotlin compiler",
-            mandatory = True,
-        ),
         "sha256": attr.string(
             doc = "sha256 of the compiler archive",
         ),
         "strip_version": attr.string(
             doc = "version to strip from the path.",
+            mandatory = True,
+        ),
+        "urls": attr.string_list(
+            doc = "A list of urls for the kotlin compiler",
             mandatory = True,
         ),
         "_template": attr.label(

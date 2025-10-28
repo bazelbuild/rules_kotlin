@@ -32,7 +32,11 @@ Also, `kt_jvm_*` rules support the following standard `java_*` rules attributes:
   * `resources`
   * `resources_strip_prefix`
   * `exports`
-  
+
+Additionally, `kt_jvm_binary` and `kt_jvm_test` support environment variable configuration:
+  * `env` - Dictionary of environment variables to set when the target is executed with `bazel run` or `bazel test`
+  * `env_inherit` - List of environment variable names to inherit from the shell environment
+
 Android rules also support custom_package for `R.java` generation, `manifest=`, `resource_files`, etc.
 
 Other features:

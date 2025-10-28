@@ -91,7 +91,7 @@ release_archive(
         "java_stub_template.txt",
     ],
     src_map = {
-        "jarjar_runner_deploy.jar": "jarjar.jar",
         "BUILD.release.bazel": "BUILD.bazel",
+        "jarjar_runner_deploy.jar": "jarjar.jar",
     },
 )

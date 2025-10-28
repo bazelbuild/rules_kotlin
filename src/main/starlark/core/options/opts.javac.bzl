@@ -16,17 +16,23 @@ load("//src/main/starlark/core/options:convert.bzl", "convert")
 load("//src/main/starlark/core/options:derive.bzl", "derive")
 
 _JOPTS = {
-    "warn": struct(
+    "add_exports": struct(
         args = dict(
-            default = "report",
-            doc = "Control warning behaviour.",
-            values = ["off", "report", "error"],
+            default = [],
+            doc = "Export internal jdk apis",
         ),
-        type = attr.string,
+        type = attr.string_list,
         value_to_flag = {
-            "off": ["-nowarn"],
-            "error": ["-Werror"],
-            "report": None,
+            derive.info: derive.repeated_values_for("--add-exports="),
+        },
+    ),
+    "annotation_processor_options": struct(
+        args = dict(
+            default = {},
+            doc = "Options for annotation processors.",
+        ),
+        value_to_flag = {
+            derive.info: derive.format_key_value_for("-A", "{name}{key}={value}"),
         },
     ),
     "release": struct(
@@ -37,11 +43,24 @@ _JOPTS = {
         ),
         type = attr.string,
         value_to_flag = {
-            "8": ["--release 8"],
             "11": ["--release 11"],
             "17": ["--release 17"],
             "21": ["--release 21"],
+            "8": ["--release 8"],
             "default": None,
+        },
+    ),
+    "warn": struct(
+        args = dict(
+            default = "report",
+            doc = "Control warning behaviour.",
+            values = ["off", "report", "error"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "error": ["-Werror"],
+            "off": ["-nowarn"],
+            "report": None,
         },
     ),
     "x_ep_disable_all_checks": struct(
@@ -52,6 +71,19 @@ _JOPTS = {
         type = attr.bool,
         value_to_flag = {
             True: ["-XepDisableAllChecks"],
+        },
+    ),
+    "x_explicit_api_mode": struct(
+        args = dict(
+            default = "off",
+            doc = "Enable explicit API mode for Kotlin libraries.",
+            values = ["off", "warning", "strict"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "off": None,
+            "strict": ["-Xexplicit-api=strict"],
+            "warning": ["-Xexplicit-api=warning"],
         },
     ),
     "x_lint": struct(
@@ -72,38 +104,6 @@ _JOPTS = {
         type = attr.bool,
         value_to_flag = {
             True: ["-XDsuppressNotes"],
-        },
-    ),
-    "x_explicit_api_mode": struct(
-        args = dict(
-            default = "off",
-            doc = "Enable explicit API mode for Kotlin libraries.",
-            values = ["off", "warning", "strict"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "off": None,
-            "warning": ["-Xexplicit-api=warning"],
-            "strict": ["-Xexplicit-api=strict"],
-        },
-    ),
-    "add_exports": struct(
-        args = dict(
-            default = [],
-            doc = "Export internal jdk apis",
-        ),
-        type = attr.string_list,
-        value_to_flag = {
-            derive.info: derive.repeated_values_for("--add-exports="),
-        },
-    ),
-    "annotation_processor_options": struct(
-        args = dict(
-            default = {},
-            doc = "Options for annotation processors.",
-        ),
-        value_to_flag = {
-            derive.info: derive.format_key_value_for("-A", "{name}{key}={value}"),
         },
     ),
 }

@@ -1,0 +1,26 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load(":RunnerRule.bzl", "runner")
+
+# A simple kt_jvm_binary for testing
+kt_jvm_binary(
+    name = "hello",
+    srcs = ["Main.kt"],
+    main_class = "runfiles.test.MainKt",
+)
+
+# Execute the kt_jvm_binary as a tool in another rule's action.
+# This tests that the binary can find its Java runtime when executed
+# as a tool, which was failing before the fix for #1332.
+runner(
+    name = "hello_as_tool",
+    tool_bin = ":hello",
+)
+
+# Test that verifies the above action succeeds
+sh_test(
+    name = "runfiles_test",
+    srcs = ["run_test.sh"],
+    args = ["$(location :hello_as_tool)"],
+    data = [":hello_as_tool"],
+)

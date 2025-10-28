@@ -1,22 +1,5 @@
 load(":integration.bzl", "derive_metadata", "example_integration_test_suite")
 
-genrule(
-    name = "update_bit_ignore",
-    srcs = [],
-    outs = [
-        "update_bit_ignore.sh",
-    ],
-    cmd = "\n".join([
-        "cat <<'EOS' > $@",
-        "#!/usr/bin/env bash",
-        "cd $${BUILD_WORKSPACE_DIRECTORY}",
-        "echo 'common --deleted_packages='$$(find examples -type 'd' | grep -v '^examples$$' | tr '\n' ',' | sed 's/,$$//')" +
-        "> bit-ignore.bazelrc",
-        "EOS",
-    ]),
-    executable = True,
-)
-
 SHARD_COUNT = 3
 
 [

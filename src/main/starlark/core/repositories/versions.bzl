@@ -3,10 +3,10 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 version = provider(
     fields = {
-        "url_templates": "list of string templates with the placeholder {version}",
-        "version": "the version in the form \\D+.\\D+.\\D+(.*)",
         "sha256": "sha256 checksum for the version being downloaded.",
         "strip_prefix_template": "string template with the placeholder {version}.",
+        "url_templates": "list of string templates with the placeholder {version}",
+        "version": "the version in the form \\D+.\\D+.\\D+(.*)",
     },
 )
 

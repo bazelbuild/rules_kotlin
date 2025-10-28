@@ -14,30 +14,30 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "com.google.devtools.ksp.symbol-processing",
     options = {
+        "allWarningsAsErrors": "false",
         "apclasspath": "{classpath}",
-        # projectBaseDir shouldn't matter because incremental is disabled
-        "projectBaseDir": "{temp}",
-        # Disable incremental mode
-        "incremental": "false",
+        # Directory to write KSP caches. Shouldn't matter because incremental is disabled
+        "cachesDir": "{temp}",
         # Directory where class files are written to. Files written to this directory are class
         # files being written directly from the annotation processor, not Kotlinc
         "classOutputDir": "{generatedClasses}",
+        # Disable incremental mode
+        "incremental": "false",
         # Directory where generated Java sources files are written to
         "javaOutputDir": "{generatedSources}",
         # Directory where generated Kotlin sources files are written to
         "kotlinOutputDir": "{generatedSources}",
+        # TODO(bencodes) Not sure what this directory is yet.
+        "kspOutputDir": "{temp}",
+        # projectBaseDir shouldn't matter because incremental is disabled
+        "projectBaseDir": "{temp}",
         # Directory where META-INF data is written to. This might not be the most ideal place to
         # write this. Maybe just directly to the classes directory?
         "resourceOutputDir": "{generatedSources}",
-        # TODO(bencodes) Not sure what this directory is yet.
-        "kspOutputDir": "{temp}",
-        # Directory to write KSP caches. Shouldn't matter because incremental is disabled
-        "cachesDir": "{temp}",
-        # Include in compilation as an example. This should be processed in the stubs phase.
-        "withCompilation": "true",
         # Set returnOkOnError to false because we want to fail the build if there are any errors
         "returnOkOnError": "false",
-        "allWarningsAsErrors": "false",
+        # Include in compilation as an example. This should be processed in the stubs phase.
+        "withCompilation": "true",
     },
     visibility = ["//visibility:public"],
     deps = [
