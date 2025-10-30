@@ -7,9 +7,9 @@ matrix:
     - ubuntu2404
     - ubuntu2204
   integration_shard_flags:
-    - ["--test_tag_filters=shard_0", "--config=rbe"]
-    - ["--test_tag_filters=shard_1", "--config=rbe"]
-    - ["--test_tag_filters=shard_2", "--config=rbe"]
+    - ["--test_tag_filters=shard_0"]
+    - ["--test_tag_filters=shard_1"]
+    - ["--test_tag_filters=shard_2"]
     # - macos
     # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
   test_flags:
@@ -48,7 +48,6 @@ tasks:
     test_flags:
       # Override the default worker strategy for remote builds (worker strategy
       # cannot be used with remote builds)
-      - "--config=rbe"
       - "--strategy=KotlinCompile=remote"
   stardoc:
     name: Stardoc api documentation
