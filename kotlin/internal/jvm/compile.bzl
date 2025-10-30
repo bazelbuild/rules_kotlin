@@ -146,9 +146,13 @@ _CONVENTIONAL_RESOURCE_PATHS = [
 
 def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
     if not path.startswith(resource_strip_prefix):
-        fail("Resource file %s is not under the specified prefix to strip" % path)
+        fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
 
     clean_path = path[len(resource_strip_prefix):]
+
+    # Remove leading slash if present
+    if clean_path and clean_path[0] == "/":
+        clean_path = clean_path[1:]
     return clean_path
 
 def _adjust_resources_path_by_default_prefixes(path):
@@ -274,8 +278,21 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
 
 def _resourcejar_args_action(ctx, extra_resources = {}):
     res_cmd = []
+
+    # Get the strip prefix from the File object if provided
+    strip_prefix = None
+    if ctx.file.resource_strip_prefix:
+        # Use the full path directly - it could be a directory or a file
+        file_path = ctx.file.resource_strip_prefix.path
+
+        # Ensure it ends with a trailing slash for proper prefix matching
+        if not file_path.endswith("/"):
+            strip_prefix = file_path + "/"
+        else:
+            strip_prefix = file_path
+
     for f in ctx.files.resources:
-        target_path = _adjust_resources_path(f.short_path, ctx.attr.resource_strip_prefix)
+        target_path = _adjust_resources_path(f.path, strip_prefix)
         if target_path[0] == "/":
             target_path = target_path[1:]
         line = "{target_path}={f_path}\n".format(

@@ -227,10 +227,12 @@ _common_attr = utils.add_dicts(
         the output jar.""",
             default = [],
         ),
-        "resource_strip_prefix": attr.string(
-            doc = """The path prefix to strip from Java resources, files residing under common prefix such as
-        `src/main/resources` or `src/test/resources` or `kotlin` will have stripping applied by convention.""",
-            default = "",
+        "resource_strip_prefix": attr.label(
+            doc = """The path prefix to strip from Java resources. Should be a label pointing to a directory.
+        Files residing under common prefix such as `src/main/resources` or `src/test/resources` or `kotlin`
+        will have stripping applied by convention if this is not specified.""",
+            allow_single_file = True,
+            providers = ["FileProvider"],
         ),
         "resources": attr.label_list(
             doc = """A list of files that should be include in a Java jar.""",

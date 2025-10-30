@@ -1,0 +1,12 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+# Export the resource directory structure
+exports_files(["resource"])
+
+kt_jvm_library(
+    name = "printer",
+    srcs = glob(["*.kt"]),
+    resource_strip_prefix = "resourcez",
+    resources = glob(["resourcez/**"]),
+    visibility = ["//visibility:public"],
+)
