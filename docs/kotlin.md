@@ -394,7 +394,8 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
                    <a href="#kt_kotlinc_options-x_no_param_assertions">x_no_param_assertions</a>, <a href="#kt_kotlinc_options-x_no_receiver_assertions">x_no_receiver_assertions</a>, <a href="#kt_kotlinc_options-x_no_source_debug_extension">x_no_source_debug_extension</a>,
                    <a href="#kt_kotlinc_options-x_optin">x_optin</a>, <a href="#kt_kotlinc_options-x_report_perf">x_report_perf</a>, <a href="#kt_kotlinc_options-x_sam_conversions">x_sam_conversions</a>, <a href="#kt_kotlinc_options-x_skip_prerelease_check">x_skip_prerelease_check</a>,
                    <a href="#kt_kotlinc_options-x_suppress_version_warnings">x_suppress_version_warnings</a>, <a href="#kt_kotlinc_options-x_suppress_warning">x_suppress_warning</a>,
-                   <a href="#kt_kotlinc_options-x_type_enhancement_improvements_strict_mode">x_type_enhancement_improvements_strict_mode</a>, <a href="#kt_kotlinc_options-x_use_fir_lt">x_use_fir_lt</a>, <a href="#kt_kotlinc_options-x_use_k2">x_use_k2</a>)
+                   <a href="#kt_kotlinc_options-x_type_enhancement_improvements_strict_mode">x_type_enhancement_improvements_strict_mode</a>, <a href="#kt_kotlinc_options-x_use_fir_lt">x_use_fir_lt</a>, <a href="#kt_kotlinc_options-x_use_k2">x_use_k2</a>,
+                   <a href="#kt_kotlinc_options-x_warning_level">x_warning_level</a>)
 </pre>
 
 Define kotlin compiler options.
@@ -439,6 +440,7 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-x_type_enhancement_improvements_strict_mode"></a>x_type_enhancement_improvements_strict_mode |  Enables strict mode for type enhancement improvements, enforcing stricter type checking and enhancements.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_use_fir_lt"></a>x_use_fir_lt |  Compile using LightTree parser with Front-end IR. Warning: this feature is far from being production-ready   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_use_k2"></a>x_use_k2 |  Compile using experimental K2. K2 is a new compiler pipeline, no compatibility guarantees are yet provided   | Boolean | optional |  `False`  |
+| <a id="kt_kotlinc_options-x_warning_level"></a>x_warning_level |  Suppress specific warnings globally   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 
 
 <a id="kt_ksp_plugin"></a>

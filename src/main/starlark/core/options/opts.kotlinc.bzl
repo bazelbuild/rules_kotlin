@@ -445,7 +445,7 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
     "x_warning_level": struct(
         args = dict(
             default = {},
-            doc = "Define APIs to opt-in to.",
+            doc = "Suppress specific warnings globally",
         ),
         type = attr.string_dict,
         value_to_flag = None,
