@@ -442,15 +442,6 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
             derive.info: derive.repeated_values_for("-Xsuppress-warning="),
         },
     ),
-    "x_warning_level": struct(
-        args = dict(
-            default = {},
-            doc = "Suppress specific warnings globally. Ex: 'OPTION': '(error|warning|disabled)'",
-        ),
-        type = attr.string_dict,
-        value_to_flag = None,
-        map_value_to_flag = _map_warning_level,
-    ),
     "x_type_enhancement_improvements_strict_mode": struct(
         args = dict(
             default = False,
@@ -494,6 +485,15 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
         value_to_flag = {
             True: ["-Xuse-k2"],
         },
+    ),
+    "x_warning_level": struct(
+        args = dict(
+            default = {},
+            doc = "Suppress specific warnings globally. Ex: 'OPTION': '(error|warning|disabled)'",
+        ),
+        type = attr.string_dict,
+        value_to_flag = None,
+        map_value_to_flag = _map_warning_level,
     ),
 }
 
