@@ -283,11 +283,13 @@ def _resourcejar_args_action(ctx, extra_resources = {}):
     strip_prefix = None
     if ctx.file.resource_strip_prefix:
         # Use the full path directly - it could be a directory or a file
-        file_path = ctx.file.resource_strip_prefix.path
+        file = ctx.file.resource_strip_prefix
+        file_path = file.path
 
-        # Ensure it ends with a trailing slash for proper prefix matching
-        if not file_path.endswith("/"):
-            strip_prefix = file_path + "/"
+        # if dirname starts with ctx.label.package, we need to remote ctx.label.package, because it means that
+        # we've hit the edge case when there is a target with the same name as the package
+        if file.dirname.startswith(ctx.label.package + "/"):
+            strip_prefix = file_path[len(ctx.label.package) + 1:]
         else:
             strip_prefix = file_path
 
