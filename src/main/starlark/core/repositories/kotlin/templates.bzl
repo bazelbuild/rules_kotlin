@@ -24,8 +24,3 @@ TEMPLATES = [
     Label("capabilities_2.1.bzl.com_github_jetbrains_kotlin.bazel"),
     Label("capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel"),
 ]
-
-ARTIFACT_TEMPLATES = [
-    Label("artifacts_2.1.bzl"),
-    Label("artifacts_2.2.bzl"),
-]

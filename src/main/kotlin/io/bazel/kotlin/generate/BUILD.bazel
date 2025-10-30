@@ -33,23 +33,3 @@ kt_jvm_binary(
         ":kotlin_release_options_lib",
     ],
 )
-
-kt_jvm_library(
-    name = "kotlin_artifacts_lib",
-    srcs = ["WriteKotlinArtifacts.kt"],
-    visibility = [
-        "//src/test:__subpackages__",
-    ],
-    deps = [
-        ":kotlinc_jar",
-        "//kotlin/compiler:kotlin-reflect",
-    ],
-)
-
-kt_jvm_binary(
-    name = "kotlin_artifacts",
-    main_class = "io.bazel.kotlin.generate.WriteKotlinArtifacts",
-    runtime_deps = [
-        ":kotlin_artifacts_lib",
-    ],
-)
