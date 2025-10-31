@@ -7,15 +7,15 @@ matrix:
     - ubuntu2404
     - ubuntu2204
   integration_shard_flags:
-    - ["--test_tag_filters=shard_0", "--config=rbe"]
-    - ["--test_tag_filters=shard_1", "--config=rbe"]
-    - ["--test_tag_filters=shard_2", "--config=rbe"]
+    - ["--test_tag_filters=shard_0"]
+    - ["--test_tag_filters=shard_1"]
+    - ["--test_tag_filters=shard_2"]
     # - macos
     # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
   test_flags:
-    - ["--enable_bzlmod=true"]
+    - []
 validate_config: 1
-bazel: 7.6.1
+bazel: 8.4.2
 buildifier:
   version: 8.2.0
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
@@ -37,7 +37,7 @@ tasks:
     test_flags: ${{ integration_shard_flags }}
     test_targets:
       - //examples:all
-  rbe_ubuntu1604:
+  rbe_ubuntu2404:
     test_targets:
       - "--"
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
@@ -48,7 +48,6 @@ tasks:
     test_flags:
       # Override the default worker strategy for remote builds (worker strategy
       # cannot be used with remote builds)
-      - "--config=rbe"
       - "--strategy=KotlinCompile=remote"
   stardoc:
     name: Stardoc api documentation
