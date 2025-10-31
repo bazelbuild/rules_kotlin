@@ -598,8 +598,8 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  `False` |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
-| <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "81f0264c9073b5cbbdb3ff8418cf2c5dac076879fc156fa1a6462f5a5acc4420", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.2.20")` |
-| <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "91599210c8f332fe5d16dd5704821daf50f3e0d06c6a122fd895276f6e55b598", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.2.20-2.0.4")` |
+| <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "a623871f1cd9c938946948b70ef9170879f0758043885bbd30c32f024e511714", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.2.21")` |
+| <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "6550f1117d7c9590cc9a5075b92682a218c8e1df4093d7e683d73cc481733dd1", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.2.21-2.0.4")` |
 
 
 <a id="versions.use_repository"></a>
