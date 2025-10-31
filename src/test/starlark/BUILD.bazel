@@ -1,3 +1,6 @@
+load("//src/test/starlark/internal/jvm:resource_strip_prefix_test.bzl", "myrules_test_suite")
 load(":convert_test.bzl", "convert_test_suite")
 
 convert_test_suite(name = "convert_tests")
+
+myrules_test_suite(name = "resource_strip_prefix_tests")

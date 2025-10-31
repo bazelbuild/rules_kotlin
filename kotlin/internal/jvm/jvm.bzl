@@ -232,7 +232,7 @@ _common_attr = utils.add_dicts(
         Files residing under common prefix such as `src/main/resources` or `src/test/resources` or `kotlin`
         will have stripping applied by convention if this is not specified.""",
             allow_single_file = True,
-            providers = ["FileProvider"],
+            #             providers = ["FileProvider"],
         ),
         "resources": attr.label_list(
             doc = """A list of files that should be include in a Java jar.""",

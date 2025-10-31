@@ -149,10 +149,6 @@ def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
         fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
 
     clean_path = path[len(resource_strip_prefix):]
-
-    # Remove leading slash if present
-    if clean_path and clean_path[0] == "/":
-        clean_path = clean_path[1:]
     return clean_path
 
 def _adjust_resources_path_by_default_prefixes(path):
@@ -282,16 +278,24 @@ def _resourcejar_args_action(ctx, extra_resources = {}):
     # Get the strip prefix from the File object if provided
     strip_prefix = None
     if ctx.file.resource_strip_prefix:
-        # Use the full path directly - it could be a directory or a file
         file = ctx.file.resource_strip_prefix
         file_path = file.path
 
-        # if dirname starts with ctx.label.package, we need to remote ctx.label.package, because it means that
+        # Assume that strip_prefix has the same root as the resources
+        if ctx.files.resources and file.root.path != ctx.files.resources[0].root.path:
+            # Strip prefix root mismatch
+            file_path = file_path[len(file.root.path):]
+
+        # if dirname starts with ctx.label.package, we need to remove ctx.label.package, because it means that
         # we've hit the edge case when there is a target with the same name as the package
         if file.dirname.startswith(ctx.label.package + "/"):
             strip_prefix = file_path[len(ctx.label.package) + 1:]
         else:
             strip_prefix = file_path
+
+        if ctx.files.resources and file.root.path != ctx.files.resources[0].root.path:
+            # Add back the root path to align with resources paths
+            strip_prefix = ctx.files.resources[0].root.path + "/" + strip_prefix
 
     for f in ctx.files.resources:
         target_path = _adjust_resources_path(f.path, strip_prefix)
