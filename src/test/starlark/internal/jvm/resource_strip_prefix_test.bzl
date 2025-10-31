@@ -1,12 +1,9 @@
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-# ==== Check the provider contents ====
 
-def _provider_contents_test_impl(ctx):
+def _strip_resource_prefix_test_impl(ctx):
     env = analysistest.begin(ctx)
-
-    target_under_test = analysistest.target_under_test(env)
 
     actions = analysistest.target_actions(env)
 
@@ -45,12 +42,8 @@ def _provider_contents_test_impl(ctx):
 
     return analysistest.end(env)
 
-# Create the testing rule to wrap the test logic. This must be bound to a global
-# variable, not called in a macro's body, since macros get evaluated at loading
-# time but the rule gets evaluated later, at analysis time. Since this is a test
-# rule, its name must end with "_test".
-provider_contents_test = analysistest.make(
-    _provider_contents_test_impl,
+strip_resource_prefix_test = analysistest.make(
+    _strip_resource_prefix_test_impl,
     attrs = {
         "pkg": attr.string(),
         "resource_path": attr.string(),
@@ -59,7 +52,7 @@ provider_contents_test = analysistest.make(
 )
 
 # Macro to setup the test.
-def _test_provider_contents():
+def _strip_resource_prefix_contents():
     write_file(
         name = "file",
         out = "resourcez/resource.txt",
@@ -109,7 +102,7 @@ def _test_provider_contents():
         tags = ["manual"],
     )
 
-    provider_contents_test(
+    strip_resource_prefix_test(
         name = "dynamically_created_file_test",
         target_under_test = ":dynamically_created_file",
         tags = ["manual"],
@@ -118,7 +111,7 @@ def _test_provider_contents():
         resource_path = "resource.txt",
     )
 
-    provider_contents_test(
+    strip_resource_prefix_test(
         name = "static_file_test",
         target_under_test = ":static_file",
         tags = ["manual"],
@@ -127,7 +120,7 @@ def _test_provider_contents():
         resource_path = "resource.txt",
     )
 
-    provider_contents_test(
+    strip_resource_prefix_test(
         name = "standard_package_test",
         target_under_test = ":standard_package",
         tags = ["manual"],
@@ -136,7 +129,7 @@ def _test_provider_contents():
         resource_path = "resource.txt",
     )
 
-    provider_contents_test(
+    strip_resource_prefix_test(
         name = "same_as_package_name_test",
         target_under_test = ":same_as_package_name",
         tags = ["manual"],
@@ -147,10 +140,9 @@ def _test_provider_contents():
 
 # Entry point from the BUILD file; macro for running each test case's macro and
 # declaring a test suite that wraps them together.
-def myrules_test_suite(name):
+def strip_resource_prefix_test_suite(name):
     # Call all test functions and wrap their targets in a suite.
-    _test_provider_contents()
-    # ...
+    _strip_resource_prefix_contents()
 
     native.test_suite(
         name = name,
