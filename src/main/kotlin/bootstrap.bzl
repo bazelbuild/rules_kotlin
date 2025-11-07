@@ -16,7 +16,7 @@ load("//kotlin:lint.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_tes
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_library")
 load("//third_party:jarjar.bzl", "jar_jar")
 
-def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibility = [], kotlinc_opts = {}, **kwargs):
+def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibility = [], kotlinc_opts = [], **kwargs):
     """
     Simple compilation of a kotlin library using a non-persistent worker. The target is a JavaInfo provider.
 
