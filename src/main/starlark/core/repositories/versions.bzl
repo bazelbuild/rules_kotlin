@@ -59,8 +59,8 @@ versions = struct(
         ],
     ),
     RULES_PROTO = version(
-        version = "7.0.2",
-        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
+        version = "7.1.0",
+        sha256 = "14a225870ab4e91869652cfd69ef2028277fc1dc4910d65d353b62d6e0ae21f4",
         strip_prefix_template = "rules_proto-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
