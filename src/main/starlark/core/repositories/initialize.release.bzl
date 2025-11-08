@@ -65,6 +65,20 @@ def kotlin_repositories(
     )
 
     maybe(
+        http_jar,
+        name = "ksp2_symbol_processing_aa",
+        sha256 = versions.KSP2_SYMBOL_PROCESSING_AA.sha256,
+        urls = [url.format(version = versions.KSP2_SYMBOL_PROCESSING_AA.version) for url in versions.KSP2_SYMBOL_PROCESSING_AA.url_templates],
+    )
+
+    maybe(
+        http_jar,
+        name = "ksp2_symbol_processing_common_deps",
+        sha256 = versions.KSP2_SYMBOL_PROCESSING_COMMON_DEPS.sha256,
+        urls = [url.format(version = versions.KSP2_SYMBOL_PROCESSING_COMMON_DEPS.version) for url in versions.KSP2_SYMBOL_PROCESSING_COMMON_DEPS.url_templates],
+    )
+
+    maybe(
         http_file,
         name = "com_github_pinterest_ktlint",
         sha256 = versions.PINTEREST_KTLINT.sha256,

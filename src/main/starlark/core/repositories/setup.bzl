@@ -50,6 +50,10 @@ def kt_configure():
             "com.squareup.moshi:moshi:1.15.1",
             "com.squareup.moshi:moshi-kotlin:1.15.1",
             "com.squareup.moshi:moshi-kotlin-codegen:1.15.1",
+            # KSP2 standalone artifacts (for standalone KSP2 mode, not compiler plugin)
+            "com.google.devtools.ksp:symbol-processing-aa:2.1.21-2.0.1",
+            "com.google.devtools.ksp:symbol-processing-common-deps:2.1.21-2.0.1",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",

@@ -87,6 +87,20 @@ versions = struct(
         ],
         sha256 = "44e965bb067b2bb5cd9184dab2c3dea6e3eab747d341c07645bb4c88f09e49c8",
     ),
+    KSP2_SYMBOL_PROCESSING_AA = version(
+        version = "2.1.21-2.0.1",
+        url_templates = [
+            "https://repo1.maven.org/maven2/com/google/devtools/ksp/symbol-processing-aa/{version}/symbol-processing-aa-{version}.jar",
+        ],
+        sha256 = "9d3dd67a48fc6706937e233a9b1a98c5f1eb8559394638cb234be9244237863c",
+    ),
+    KSP2_SYMBOL_PROCESSING_COMMON_DEPS = version(
+        version = "2.1.21-2.0.1",
+        url_templates = [
+            "https://repo1.maven.org/maven2/com/google/devtools/ksp/symbol-processing-common-deps/{version}/symbol-processing-common-deps-{version}.jar",
+        ],
+        sha256 = "01cdf52b59d3e206aa4fa62781d1505a5cbd98743c05b072f9c8cb9e6aa2e003",
+    ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
         version = "2.1.20",
         url_templates = [

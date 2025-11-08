@@ -33,6 +33,8 @@ use_repo(
     "kotlinx_serialization_core_jvm",
     "kotlinx_serialization_json",
     "kotlinx_serialization_json_jvm",
+    "ksp2_symbol_processing_aa",
+    "ksp2_symbol_processing_common_deps",
 )
 
 register_toolchains("//src/main/starlark/core/compile/cli")

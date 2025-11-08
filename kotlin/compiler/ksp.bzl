@@ -40,3 +40,14 @@ def kt_configure_ksp():
         name = "symbol-processing-cmdline",
         jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-cmdline.jar",
     )
+
+    # KSP2 standalone jars (for Analysis API-based implementation)
+    kt_jvm_import(
+        name = "symbol-processing-aa",
+        jar = "@ksp2_symbol_processing_aa//jar",
+    )
+
+    kt_jvm_import(
+        name = "symbol-processing-common-deps",
+        jar = "@ksp2_symbol_processing_common_deps//jar",
+    )
