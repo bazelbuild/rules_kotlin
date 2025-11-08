@@ -10,7 +10,7 @@ default_java_toolchain(
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    jvm_target = "17",
+    jvm_target = "11",
 )
 
 # Define the compose compiler plugin

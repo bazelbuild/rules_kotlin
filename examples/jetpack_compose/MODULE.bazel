@@ -30,14 +30,7 @@ use_repo(android_ndk_repository_extension, "androidndk")
 
 register_toolchains("@androidndk//:all")
 
-http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "robolectric",
-    sha256 = "b2d2164bae80fcfbdd078eb2f0935ba06557402b8c814928d9e3bec7358e2b7b",
-    strip_prefix = "robolectric-bazel-4.14.1.2",
-    urls = ["https://github.com/robolectric/robolectric-bazel/releases/download/4.14.1.2/robolectric-bazel-4.14.1.2.tar.gz"],
-)
+bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
