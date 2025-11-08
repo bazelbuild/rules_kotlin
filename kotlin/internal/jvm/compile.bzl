@@ -460,8 +460,11 @@ def _run_ksp2_standalone_action(
     args.add("-api-version=" + toolchains.kt.api_version)
 
     # Required: Source roots (colon-separated)
-    if srcs.kt or srcs.java:
-        args.add("-source-roots=" + ":".join([_to_path(f) for f in srcs.kt + srcs.java]))
+    # Kotlin sources go to -source-roots, Java sources go to -java-source-roots
+    if srcs.kt:
+        args.add("-source-roots=" + ":".join([_to_path(f) for f in srcs.kt]))
+    if srcs.java:
+        args.add("-java-source-roots=" + ":".join([_to_path(f) for f in srcs.java]))
 
     # Required: Project structure
     args.add("-project-base-dir=" + project_base_dir.path)
@@ -526,10 +529,47 @@ def _run_ksp2_standalone_action(
     _create_srcjar(ctx, kotlin_out_dir, kotlin_srcjar)
     _create_srcjar(ctx, java_out_dir, java_srcjar)
 
+    # Package generated classes and resources into a jar
+    # This includes:
+    # - Classes generated directly by KSP processors (not compiled from sources)
+    # - Resources like META-INF/services, META-INF/proguard, etc.
+    generated_class_jar = ctx.actions.declare_file(
+        ctx.label.name + "-ksp2-generated-classes.jar",
+    )
+
+    # Merge class_out_dir and resource_out_dir into one jar
+    ctx.actions.run_shell(
+        command = """
+            mkdir -p "$TMP"
+            if [ -d "$CLASS_DIR" ] && [ "$(ls -A "$CLASS_DIR")" ]; then
+                cp -r "$CLASS_DIR"/* "$TMP/" 2>/dev/null || true
+            fi
+            if [ -d "$RESOURCE_DIR" ] && [ "$(ls -A "$RESOURCE_DIR")" ]; then
+                cp -r "$RESOURCE_DIR"/* "$TMP/" 2>/dev/null || true
+            fi
+            if [ "$(ls -A "$TMP")" ]; then
+                jar cf "$OUTPUT" -C "$TMP" .
+            else
+                jar cf "$OUTPUT" -C "$TMP" .
+            fi
+        """,
+        inputs = [class_out_dir, resource_out_dir],
+        outputs = [generated_class_jar],
+        env = {
+            "CLASS_DIR": class_out_dir.path,
+            "RESOURCE_DIR": resource_out_dir.path,
+            "OUTPUT": generated_class_jar.path,
+            "TMP": generated_class_jar.path + ".tmp",
+        },
+        mnemonic = "Ksp2GeneratedClassJar",
+        progress_message = "Packaging KSP2 generated classes and resources for %{label}",
+    )
+
     # Return generated artifacts
     return struct(
         kotlin_srcjar = kotlin_srcjar,
         java_srcjar = java_srcjar,
+        generated_class_jar = generated_class_jar,
     )
 
 def _run_kapt_builder_actions(
@@ -1074,44 +1114,31 @@ def _run_kt_java_builder_actions(
             ),
         )
 
-    # Run KSP
-    ksp_generated_class_jar = None
+    # Run KSP - Standalone KSP2 mode (using generic annotation processor architecture)
+    # KSP2 runs as a separate tool (not compiler plugin), generates sources,
+    # then all sources compile together in one kotlinc invocation
     ksp_generated_src_jar = None
+    ksp_generated_class_jar = None
     if has_kt_sources and ksp_annotation_processors:
-        if ctx.attr.use_ksp2_standalone:
-            # NEW: Standalone KSP2 mode
-            # KSP2 runs as a separate tool (not compiler plugin)
-            # Generates sources that are added to main compilation
-            ksp2_outputs = _run_ksp2_standalone_action(
-                ctx,
-                rule_kind = rule_kind,
-                toolchains = toolchains,
-                srcs = srcs,
-                compile_deps = compile_deps,
-                annotation_processors = ksp_annotation_processors,
-                transitive_runtime_jars = transitive_runtime_jars,
-            )
-            # Add generated sources to main compilation
-            # KEY: These will be compiled together with original sources
-            generated_ksp_src_jars.append(ksp2_outputs.kotlin_srcjar)
-            generated_ksp_src_jars.append(ksp2_outputs.java_srcjar)
-        else:
-            # OLD: Compiler plugin mode (backward compatibility)
-            ksp_outputs = _run_ksp_builder_actions(
-                ctx,
-                rule_kind = rule_kind,
-                toolchains = toolchains,
-                srcs = srcs,
-                compile_deps = compile_deps,
-                deps_artifacts = deps_artifacts,
-                annotation_processors = ksp_annotation_processors,
-                transitive_runtime_jars = transitive_runtime_jars,
-                plugins = plugins,
-            )
-            ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
-            output_jars.append(ksp_generated_class_jar)
-            ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
-            generated_ksp_src_jars.append(ksp_generated_src_jar)
+        ksp2_outputs = _run_ksp2_standalone_action(
+            ctx,
+            rule_kind = rule_kind,
+            toolchains = toolchains,
+            srcs = srcs,
+            compile_deps = compile_deps,
+            annotation_processors = ksp_annotation_processors,
+            transitive_runtime_jars = transitive_runtime_jars,
+        )
+        # Add generated sources to main compilation
+        # This enables circular dependencies: Kotlin ↔ generated Java
+        generated_ksp_src_jars.append(ksp2_outputs.kotlin_srcjar)
+        generated_ksp_src_jars.append(ksp2_outputs.java_srcjar)
+        # Add generated classes and resources jar to outputs
+        # This includes META-INF files and classes generated directly by processors
+        ksp_generated_class_jar = ksp2_outputs.generated_class_jar
+        output_jars.append(ksp_generated_class_jar)
+        # Use Java srcjar for annotation_processing field (IDE integration)
+        ksp_generated_src_jar = ksp2_outputs.java_srcjar
 
     java_infos = []
 
@@ -1180,9 +1207,11 @@ def _run_kt_java_builder_actions(
             for flag in javac_options_to_flags(plugin[JavacOptions])
         ])
 
-        # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
-        # annotation processors in `deps` also.
-        if len(srcs.kt) > 0:
+        # For KAPT, Kotlin takes care of annotation processing, so disable javac's.
+        # For KSP2 standalone, annotation processing should happen here in javac
+        # because KSP2 only processes Kotlin sources, not Java sources.
+        # Note: JavaBuilder "discovers" annotation processors in `deps` also.
+        if len(srcs.kt) > 0 and not ksp_annotation_processors:
             javac_opts.append("-proc:none")
         java_info = java_common.compile(
             ctx,

@@ -261,13 +261,6 @@ _common_attr = utils.add_dicts(
             cfg = "exec",
             executable = True,
         ),
-        # Feature flag to use standalone KSP2 instead of compiler plugin mode
-        # PUBLIC (no underscore) for testing - will make private again after validation
-        "use_ksp2_standalone": attr.bool(
-            default = False,  # Start with compiler plugin mode (backward compatible)
-            doc = """Use standalone KSP2 mode instead of compiler plugin mode.
-            Standalone mode provides native Kotlin 2.x support and better performance.""",
-        ),
         "_use_auto_exec_groups": attr.bool(default = False),
     },
 )

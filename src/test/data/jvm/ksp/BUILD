@@ -138,6 +138,7 @@ kt_jvm_library(
         ":autoservice",
         ":dagger",
         ":moshi",
+        "@kotlin_rules_maven//:com_google_auto_service_auto_service__java_plugin__com_google_auto_service_processor_AutoServiceProcessor",
     ],
     deps = [
         "@kotlin_rules_maven//:com_google_dagger_dagger",

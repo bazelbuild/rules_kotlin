@@ -58,8 +58,6 @@ kt_jvm_library(
     srcs = ["BasicService.kt"],
     plugins = [":autoservice"],
     deps = ["@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp"],
-    # ENABLE KSP2 STANDALONE MODE
-    use_ksp2_standalone = True,
 )
 
 # Test Case 2: Circular Dependencies (CRITICAL!)
@@ -82,8 +80,6 @@ kt_jvm_library(
         "@kotlin_rules_maven//:com_google_dagger_dagger",
         "@kotlin_rules_maven//:javax_inject_javax_inject",
     ],
-    # ENABLE KSP2 STANDALONE MODE
-    use_ksp2_standalone = True,
 )
 
 # Test Case 3: Mixed Java/Kotlin Sources
@@ -101,8 +97,6 @@ kt_jvm_library(
     ],
     plugins = [":dagger"],
     deps = ["@kotlin_rules_maven//:com_google_dagger_dagger"],
-    # ENABLE KSP2 STANDALONE MODE
-    use_ksp2_standalone = True,
 )
 
 # Test Case 4: Multiple Processors
@@ -124,6 +118,4 @@ kt_jvm_library(
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
         "@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp",
     ],
-    # ENABLE KSP2 STANDALONE MODE
-    use_ksp2_standalone = True,
 )
