@@ -26,11 +26,14 @@ use_repo(
     rules_kotlin_extensions,
     "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
+    "com_github_jetbrains_kotlin_git",
     "com_github_pinterest_ktlint",
+    "kotlin_build_tools_impl",
     "kotlinx_serialization_core_jvm",
     "kotlinx_serialization_json",
     "kotlinx_serialization_json_jvm",
-    "kotlin_build_tools_impl",
+    "ksp2_symbol_processing_aa",
+    "ksp2_symbol_processing_common_deps",
 )
 
 register_toolchains("//kotlin/internal:default_toolchain")

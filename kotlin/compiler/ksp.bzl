@@ -41,7 +41,9 @@ def kt_configure_ksp():
         jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-cmdline.jar",
     )
 
-    # KSP2 standalone jars (for Analysis API-based implementation)
+    # KSP2 standalone jars (for standalone KSP2 mode, not compiler plugin)
+    # These are downloaded via http_jar in initialize.release.bzl
+    # Note: In development BUILD, these are overridden to use @kotlin_rules_maven
     kt_jvm_import(
         name = "symbol-processing-aa",
         jar = "@ksp2_symbol_processing_aa//jar",

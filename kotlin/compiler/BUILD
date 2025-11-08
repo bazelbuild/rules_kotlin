@@ -1,4 +1,9 @@
 load("@rules_java//java:java_binary.bzl", "java_binary")
+
+# In development/bzlmod mode, manually define KSP targets using @kotlin_rules_maven
+# (kt_configure_ksp() is only called in BUILD.release.bazel for WORKSPACE mode)
+load("//kotlin:jvm.bzl", "kt_jvm_import")
+load("//kotlin/internal:defs.bzl", _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 # Copyright 2020 The Bazel Authors. All rights reserved.
@@ -16,15 +21,40 @@ load("//src/main/starlark/release:packager.bzl", "release_archive")
 # limitations under the License.
 load(":compiler.bzl", "kt_configure_compiler")
 load(":kapt.bzl", "kapt_compiler_plugin")
-load(":ksp.bzl", "kt_configure_ksp")
 
 package(default_visibility = ["//visibility:public"])
 
 # Configures the compiler
 kt_configure_compiler()
 
-# Configures the KSP plugins
-kt_configure_ksp()
+_KSP_COMPILER_PLUGIN_REPO_PREFIX = "@" + _KSP_COMPILER_PLUGIN_REPO + "//:"
+
+kt_jvm_import(
+    name = "symbol-processing",
+    jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing.jar",
+)
+
+kt_jvm_import(
+    name = "symbol-processing-api",
+    jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-api.jar",
+)
+
+kt_jvm_import(
+    name = "symbol-processing-cmdline",
+    jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-cmdline.jar",
+)
+
+kt_jvm_import(
+    name = "symbol-processing-aa",
+    jars = ["@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_aa"],
+    visibility = ["//visibility:public"],
+)
+
+kt_jvm_import(
+    name = "symbol-processing-common-deps",
+    jars = ["@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_common_deps"],
+    visibility = ["//visibility:public"],
+)
 
 release_archive(
     name = "pkg",
