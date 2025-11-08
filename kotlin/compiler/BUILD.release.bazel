@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_java//java:java_binary.bzl", "java_binary")
 load(":compiler.bzl", "kt_configure_compiler")
 load(":kapt.bzl", "kapt_compiler_plugin")
 load(":ksp.bzl", "kt_configure_ksp")
@@ -42,9 +43,9 @@ java_binary(
     name = "ksp2_standalone",
     main_class = "com.google.devtools.ksp.cmdline.KSPJvmMain",
     runtime_deps = [
+        ":kotlin-stdlib",
+        ":kotlinx-coroutines-core-jvm",
         ":symbol-processing-aa",
         ":symbol-processing-common-deps",
-        ":kotlinx-coroutines-core-jvm",
-        ":kotlin-stdlib",
     ],
 )

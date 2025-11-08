@@ -557,8 +557,8 @@ def _run_ksp2_standalone_action(
         outputs = [generated_class_jar],
         env = {
             "CLASS_DIR": class_out_dir.path,
-            "RESOURCE_DIR": resource_out_dir.path,
             "OUTPUT": generated_class_jar.path,
+            "RESOURCE_DIR": resource_out_dir.path,
             "TMP": generated_class_jar.path + ".tmp",
         },
         mnemonic = "Ksp2GeneratedClassJar",
@@ -1073,14 +1073,17 @@ def _run_kt_java_builder_actions(
             annotation_processors = ksp_annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
         )
+
         # Add generated sources to main compilation
         # This enables circular dependencies: Kotlin ↔ generated Java
         generated_ksp_src_jars.append(ksp2_outputs.kotlin_srcjar)
         generated_ksp_src_jars.append(ksp2_outputs.java_srcjar)
+
         # Add generated classes and resources jar to outputs
         # This includes META-INF files and classes generated directly by processors
         ksp_generated_class_jar = ksp2_outputs.generated_class_jar
         output_jars.append(ksp_generated_class_jar)
+
         # Use Java srcjar for annotation_processing field (IDE integration)
         ksp_generated_src_jar = ksp2_outputs.java_srcjar
 

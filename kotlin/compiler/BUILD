@@ -1,3 +1,4 @@
+load("@rules_java//java:java_binary.bzl", "java_binary")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 # Copyright 2020 The Bazel Authors. All rights reserved.
@@ -45,9 +46,9 @@ java_binary(
     name = "ksp2_standalone",
     main_class = "com.google.devtools.ksp.cmdline.KSPJvmMain",
     runtime_deps = [
+        ":kotlin-stdlib",
         "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_aa",
         "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
         "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
-        ":kotlin-stdlib",
     ],
 )
