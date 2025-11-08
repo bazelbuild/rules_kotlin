@@ -42,12 +42,17 @@ def _targets_to_annotation_processors(targets):
     return plugins
 
 def _targets_to_ksp_annotation_processors(targets):
-    plugins = []
+    """Extract KSP annotation processor JARs from targets.
+
+    Returns a depset of processor JAR Files, avoiding to_list() calls on depsets.
+    """
+    processor_jars = []
     for t in targets:
         if _KspPluginInfo in t:
             for plugin in t[_KspPluginInfo].plugins:
-                plugins.append(plugin.plugins)
-    return depset(plugins)
+                # plugin.plugins is a JavaPluginInfo.plugins struct with processor_jars
+                processor_jars.append(plugin.plugins.processor_jars)
+    return depset(transitive = processor_jars)
 
 def _targets_to_annotation_processors_java_plugin_info(targets):
     return [t[JavaPluginInfo] for t in targets if JavaPluginInfo in t]

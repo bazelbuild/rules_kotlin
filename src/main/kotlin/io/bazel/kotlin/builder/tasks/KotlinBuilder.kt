@@ -89,6 +89,7 @@ class KotlinBuilder
 
         // Generic annotation processing flags
         ANNOTATION_PROCESSING_PLUGIN_ID("--annotation_processing_plugin_id"),
+        ANNOTATION_PROCESSING_PLUGIN_JAR("--annotation_processing_plugin_jar"),
         ANNOTATION_PROCESSING_PROCESSORS("--annotation_processing_processors"),
         ANNOTATION_PROCESSING_PROCESSORPATH("--annotation_processing_processorpath"),
         ANNOTATION_PROCESSING_OPTIONS("--annotation_processing_options"),
@@ -280,6 +281,12 @@ class KotlinBuilder
             )?.let { pluginId ->
               annotationProcessingBuilder.apply {
                 this.pluginId = pluginId
+
+                // Get the plugin jar path (passed explicitly from Starlark)
+                argMap.optionalSingle(KotlinBuilderFlags.ANNOTATION_PROCESSING_PLUGIN_JAR)?.let {
+                  pluginJar = it
+                }
+
                 addAllProcessors(
                   argMap.optional(KotlinBuilderFlags.ANNOTATION_PROCESSING_PROCESSORS)
                     ?: emptyList(),

@@ -98,21 +98,33 @@ def _to_path(file):
     """Convert File to path string for KSP2 standalone args."""
     return file.path
 
-def _create_srcjar(ctx, input_dir, output_jar):
+def _create_srcjar(ctx, toolchains, input_dir, output_jar):
     """Package directory contents into a source jar.
 
     Args:
         ctx: Rule context
+        toolchains: Kotlin toolchains (includes java_runtime)
         input_dir: Directory containing source files
         output_jar: Output srcjar file
     """
-    ctx.actions.run_shell(
-        command = "jar cf \"$2\" -C \"$1\" .",
-        arguments = [input_dir.path, output_jar.path],
-        inputs = [input_dir],
+    # Use jar tool from Java runtime instead of assuming it's on PATH
+    jar_tool = toolchains.java_runtime.java_executable_exec_path.get_child("jar")
+
+    args = ctx.actions.args()
+    args.add("cf")
+    args.add(output_jar)
+    args.add("-C")
+    args.add(input_dir)
+    args.add(".")
+
+    ctx.actions.run(
+        executable = jar_tool,
+        arguments = [args],
+        inputs = depset([input_dir], transitive = [toolchains.java_runtime.files]),
         outputs = [output_jar],
         mnemonic = "PackageSourceJar",
         progress_message = "Creating source jar %{output}",
+        toolchain = _JAVA_RUNTIME_TOOLCHAIN_TYPE,
     )
 
 def _compiler_toolchains(ctx):
@@ -386,7 +398,7 @@ def _run_ksp2_standalone_action(
         toolchains,
         srcs,
         compile_deps,
-        annotation_processors,
+        processor_jars,
         transitive_runtime_jars):
     """Runs KSP2 in standalone mode (not as compiler plugin).
 
@@ -402,7 +414,7 @@ def _run_ksp2_standalone_action(
         toolchains: Kotlin toolchains
         srcs: Source files (kt, java)
         compile_deps: Compilation dependencies
-        annotation_processors: KSP annotation processors
+        processor_jars: Depset of KSP processor JAR files
         transitive_runtime_jars: Runtime JARs
 
     Returns:
@@ -425,22 +437,13 @@ def _run_ksp2_standalone_action(
         ctx.label.name + "-ksp2-resource-out",
     )
 
-    # Base directories for KSP2
-    project_base_dir = ctx.actions.declare_directory(
-        ctx.label.name + "-ksp2-project-base",
-    )
-    output_base_dir = ctx.actions.declare_directory(
-        ctx.label.name + "-ksp2-output-base",
-    )
-    caches_dir = ctx.actions.declare_directory(
-        ctx.label.name + "-ksp2-caches",
+    # Temp directory for KSP2 internal use (project base, output base, caches)
+    # We use a single temp directory instead of declaring multiple directory outputs
+    temp_dir = ctx.actions.declare_directory(
+        ctx.label.name + "-ksp2-temp",
     )
 
-    # Collect processor JARs
-    # annotation_processors is a DEPSET (not list!), each element has processor_jars (depset)
-    # Must convert to list first before iterating
-    processor_jars_depsets = [p.processor_jars for p in annotation_processors.to_list()]
-    processor_jars = depset(transitive = processor_jars_depsets).to_list()
+    # processor_jars is already a depset, no need to call to_list()
 
     # Build KSP2 arguments
     # KSP2 standalone uses a different argument format than typical CLI tools:
@@ -466,10 +469,10 @@ def _run_ksp2_standalone_action(
     if srcs.java:
         args.add("-java-source-roots=" + ":".join([_to_path(f) for f in srcs.java]))
 
-    # Required: Project structure
-    args.add("-project-base-dir=" + project_base_dir.path)
-    args.add("-output-base-dir=" + output_base_dir.path)
-    args.add("-caches-dir=" + caches_dir.path)
+    # Required: Project structure - use subdirectories of temp_dir
+    args.add("-project-base-dir=" + temp_dir.path + "/project")
+    args.add("-output-base-dir=" + temp_dir.path + "/output")
+    args.add("-caches-dir=" + temp_dir.path + "/caches")
 
     # Required: Output directories
     args.add("-kotlin-output-dir=" + kotlin_out_dir.path)
@@ -484,10 +487,10 @@ def _run_ksp2_standalone_action(
             _java_infos_to_compile_jars([compile_deps]),
             transitive_runtime_jars,
         ],
-    ).to_list()
+    )
 
-    if classpath_files:
-        args.add("-libraries=" + ":".join([_to_path(f) for f in classpath_files]))
+    # Use add_joined to avoid calling to_list() on the depset
+    args.add_joined("-libraries=", classpath_files, join_with = ":", map_each = _to_path, omit_if_empty = True)
 
     # JDK home
     args.add("-jdk-home=" + str(toolchains.java_runtime.java_home))
@@ -502,17 +505,18 @@ def _run_ksp2_standalone_action(
         executable = ctx.executable._ksp2_standalone,
         arguments = [args],
         inputs = depset(
-            srcs.kt + srcs.java + processor_jars,
-            transitive = [_java_infos_to_compile_jars([compile_deps])],
+            srcs.kt + srcs.java,
+            transitive = [
+                processor_jars,  # This is a depset
+                _java_infos_to_compile_jars([compile_deps]),
+            ],
         ),
         outputs = [
             kotlin_out_dir,
             java_out_dir,
             class_out_dir,
             resource_out_dir,
-            project_base_dir,
-            output_base_dir,
-            caches_dir,
+            temp_dir,  # Single temp directory instead of 3 separate ones
         ],
         mnemonic = "KotlinKsp2Standalone",
         progress_message = "Running KSP2 processors for %{label}",
@@ -526,8 +530,8 @@ def _run_ksp2_standalone_action(
         ctx.label.name + "-ksp2-java-generated.srcjar",
     )
 
-    _create_srcjar(ctx, kotlin_out_dir, kotlin_srcjar)
-    _create_srcjar(ctx, java_out_dir, java_srcjar)
+    _create_srcjar(ctx, toolchains, kotlin_out_dir, kotlin_srcjar)
+    _create_srcjar(ctx, toolchains, java_out_dir, java_srcjar)
 
     # Package generated classes and resources into a jar
     # This includes:
@@ -537,30 +541,20 @@ def _run_ksp2_standalone_action(
         ctx.label.name + "-ksp2-generated-classes.jar",
     )
 
-    # Merge class_out_dir and resource_out_dir into one jar
-    ctx.actions.run_shell(
-        command = """
-            mkdir -p "$TMP"
-            if [ -d "$CLASS_DIR" ] && [ "$(ls -A "$CLASS_DIR")" ]; then
-                cp -r "$CLASS_DIR"/* "$TMP/" 2>/dev/null || true
-            fi
-            if [ -d "$RESOURCE_DIR" ] && [ "$(ls -A "$RESOURCE_DIR")" ]; then
-                cp -r "$RESOURCE_DIR"/* "$TMP/" 2>/dev/null || true
-            fi
-            if [ "$(ls -A "$TMP")" ]; then
-                jar cf "$OUTPUT" -C "$TMP" .
-            else
-                jar cf "$OUTPUT" -C "$TMP" .
-            fi
-        """,
+    # Use singlejar to merge class_out_dir and resource_out_dir
+    # singlejar is much more efficient than shell scripts
+    args = ctx.actions.args()
+    args.add("--output", generated_class_jar)
+    args.add("--sources")
+    args.add(class_out_dir)
+    args.add(resource_out_dir)
+    args.add("--normalize")  # Normalize timestamps for reproducibility
+
+    ctx.actions.run(
+        executable = ctx.executable._singlejar,
+        arguments = [args],
         inputs = [class_out_dir, resource_out_dir],
         outputs = [generated_class_jar],
-        env = {
-            "CLASS_DIR": class_out_dir.path,
-            "OUTPUT": generated_class_jar.path,
-            "RESOURCE_DIR": resource_out_dir.path,
-            "TMP": generated_class_jar.path + ".tmp",
-        },
         mnemonic = "Ksp2GeneratedClassJar",
         progress_message = "Packaging KSP2 generated classes and resources for %{label}",
     )
@@ -627,7 +621,7 @@ def _build_annotation_processing_config(plugins, annotation_processors):
         annotation_processors: list of annotation processors
 
     Returns:
-        struct with plugin_id, processors, processorpath, options, apt_mode
+        struct with plugin_id, plugin_jar, processors, processorpath, options, apt_mode
         or None if no annotation processing is needed
     """
 
@@ -637,13 +631,16 @@ def _build_annotation_processing_config(plugins, annotation_processors):
 
     kapt_id = "org.jetbrains.kotlin.kapt3"
 
-    # Check if KAPT plugin is present in classpath
-    has_kapt = any([
-        kapt_id in str(jar) or "kotlin-annotation-processing" in str(jar)
-        for jar in plugins.stubs_phase.classpath.to_list()
-    ])
+    # Find the KAPT plugin jar in classpath
+    # We need to pass it explicitly to the builder instead of making the builder search for it
+    plugin_jar = None
+    for jar in plugins.stubs_phase.classpath.to_list():
+        jar_path = jar.path if hasattr(jar, "path") else str(jar)
+        if kapt_id in jar_path or "kotlin-annotation-processing" in jar_path:
+            plugin_jar = jar
+            break
 
-    if not has_kapt:
+    if not plugin_jar:
         # No KAPT plugin available, can't do annotation processing
         return None
 
@@ -667,6 +664,7 @@ def _build_annotation_processing_config(plugins, annotation_processors):
 
     return struct(
         plugin_id = kapt_id,
+        plugin_jar = plugin_jar,
         processors = processors,
         processorpath = processorpath,
         options = options,
@@ -720,6 +718,8 @@ def _run_kt_builder_action(
     )
     if ap_config:
         args.add("--annotation_processing_plugin_id", ap_config.plugin_id)
+        # Pass the plugin jar explicitly instead of making the builder search for it
+        args.add("--annotation_processing_plugin_jar", ap_config.plugin_jar)
         args.add_all(
             "--annotation_processing_processors",
             ap_config.processors,
@@ -881,19 +881,9 @@ def _kt_jvm_produce_output_jar_actions(
     ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
 
-    # Automatically add KAPT plugin when there are annotation processors
-    all_plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
-
-    # Check if KAPT plugin is already present by looking for its ID
-    kapt_id = "org.jetbrains.kotlin.kapt3"
-    has_kapt = any([
-        _KtCompilerPluginInfo in p and p[_KtCompilerPluginInfo].id == kapt_id
-        for p in all_plugins
-    ])
-
-    if annotation_processors and not has_kapt:
-        # Add implicit KAPT plugin if there are annotation processors but no explicit KAPT plugin
-        all_plugins = all_plugins + [ctx.attr._kapt_plugin]
+    # Include KAPT plugin from implicit dependency - it will only be used if annotation processing is configured
+    # The builder checks inputs.hasAnnotationProcessing() before activating it
+    all_plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps) + [ctx.attr._kapt_plugin]
 
     plugins = _new_plugins_from(all_plugins)
 
@@ -1070,7 +1060,7 @@ def _run_kt_java_builder_actions(
             toolchains = toolchains,
             srcs = srcs,
             compile_deps = compile_deps,
-            annotation_processors = ksp_annotation_processors,
+            processor_jars = ksp_annotation_processors,  # Already a depset of processor JARs
             transitive_runtime_jars = transitive_runtime_jars,
         )
 

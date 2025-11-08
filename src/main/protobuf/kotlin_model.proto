@@ -146,6 +146,8 @@ message JvmCompilationTask {
         map<string, string> options = 4;
         // APT mode (e.g., "stubsAndApt", "apt", "stubs")
         string apt_mode = 5;
+        // Path to the plugin JAR file (passed explicitly instead of searching classpath)
+        string plugin_jar = 6;
       }
 
       // The full classpath
