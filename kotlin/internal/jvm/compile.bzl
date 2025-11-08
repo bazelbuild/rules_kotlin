@@ -616,45 +616,6 @@ def _run_kapt_builder_actions(
         kapt_generated_class_jar = kapt_generated_class_jar,
     )
 
-def _run_ksp_builder_actions(
-        ctx,
-        rule_kind,
-        toolchains,
-        srcs,
-        compile_deps,
-        deps_artifacts,
-        annotation_processors,
-        transitive_runtime_jars,
-        plugins):
-    """Runs KSP using the KotlinBuilder tool
-
-    Returns:
-        A struct containing KSP outputs
-    """
-    ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-gensrc.jar")
-    ksp_generated_classes_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-genclasses.jar")
-
-    _run_kt_builder_action(
-        ctx = ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
-        srcs = srcs,
-        generated_src_jars = [],
-        compile_deps = compile_deps,
-        deps_artifacts = deps_artifacts,
-        annotation_processors = annotation_processors,
-        transitive_runtime_jars = transitive_runtime_jars,
-        plugins = plugins,
-        outputs = {
-            "ksp_generated_classes_jar": ksp_generated_classes_jar,
-            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
-        },
-        build_kotlin = False,
-        mnemonic = "KotlinKsp",
-    )
-
-    return struct(ksp_generated_class_jar = ksp_generated_classes_jar, ksp_generated_src_jar = ksp_generated_java_srcjar)
-
 def _build_annotation_processing_config(plugins, annotation_processors):
     """Extract annotation processing config from plugins.
 
