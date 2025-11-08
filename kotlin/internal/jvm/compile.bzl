@@ -94,6 +94,27 @@ def _partitioned_srcs(srcs):
         src_jars = src_jars,
     )
 
+def _to_path(file):
+    """Convert File to path string for KSP2 standalone args."""
+    return file.path
+
+def _create_srcjar(ctx, input_dir, output_jar):
+    """Package directory contents into a source jar.
+
+    Args:
+        ctx: Rule context
+        input_dir: Directory containing source files
+        output_jar: Output srcjar file
+    """
+    ctx.actions.run_shell(
+        command = "jar cf \"$2\" -C \"$1\" .",
+        arguments = [input_dir.path, output_jar.path],
+        inputs = [input_dir],
+        outputs = [output_jar],
+        mnemonic = "PackageSourceJar",
+        progress_message = "Creating source jar %{output}",
+    )
+
 def _compiler_toolchains(ctx):
     """Creates a struct of the relevant compilation toolchains"""
     return struct(
@@ -357,6 +378,158 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
         ],
         progress_message = progress_message,
         toolchain = _TOOLCHAIN_TYPE,
+    )
+
+def _run_ksp2_standalone_action(
+        ctx,
+        rule_kind,
+        toolchains,
+        srcs,
+        compile_deps,
+        annotation_processors,
+        transitive_runtime_jars):
+    """Runs KSP2 in standalone mode (not as compiler plugin).
+
+    This is simpler than compiler plugin mode:
+    1. Invoke KSP2 as a separate Java program
+    2. KSP2 generates sources to disk
+    3. Package generated sources into srcjars
+    4. Main compilation will include these sources
+
+    Args:
+        ctx: Rule context
+        rule_kind: Kind of rule (e.g., "kt_jvm_library")
+        toolchains: Kotlin toolchains
+        srcs: Source files (kt, java)
+        compile_deps: Compilation dependencies
+        annotation_processors: KSP annotation processors
+        transitive_runtime_jars: Runtime JARs
+
+    Returns:
+        struct with:
+            kotlin_srcjar: Generated Kotlin sources
+            java_srcjar: Generated Java sources
+    """
+
+    # Declare output directories
+    kotlin_out_dir = ctx.actions.declare_directory(
+        ctx.label.name + "-ksp2-kotlin-out",
+    )
+    java_out_dir = ctx.actions.declare_directory(
+        ctx.label.name + "-ksp2-java-out",
+    )
+    class_out_dir = ctx.actions.declare_directory(
+        ctx.label.name + "-ksp2-class-out",
+    )
+    resource_out_dir = ctx.actions.declare_directory(
+        ctx.label.name + "-ksp2-resource-out",
+    )
+
+    # Base directories for KSP2
+    project_base_dir = ctx.actions.declare_directory(
+        ctx.label.name + "-ksp2-project-base",
+    )
+    output_base_dir = ctx.actions.declare_directory(
+        ctx.label.name + "-ksp2-output-base",
+    )
+    caches_dir = ctx.actions.declare_directory(
+        ctx.label.name + "-ksp2-caches",
+    )
+
+    # Collect processor JARs
+    # annotation_processors is a DEPSET (not list!), each element has processor_jars (depset)
+    # Must convert to list first before iterating
+    processor_jars_depsets = [p.processor_jars for p in annotation_processors.to_list()]
+    processor_jars = depset(transitive = processor_jars_depsets).to_list()
+
+    # Build KSP2 arguments
+    # KSP2 standalone uses a different argument format than typical CLI tools:
+    # - Lists are colon-separated: -source-roots=file1:file2:file3
+    # - All arguments use key=value format
+    # - NO flagfile support
+    args = ctx.actions.args()
+
+    # Required: JVM target
+    args.add("-jvm-target=" + toolchains.kt.jvm_target)
+
+    # Required: Module name
+    args.add("-module-name=" + ctx.label.name)
+
+    # Required: Language and API versions (NO OVERRIDE NEEDED for KSP2!)
+    args.add("-language-version=" + toolchains.kt.language_version)
+    args.add("-api-version=" + toolchains.kt.api_version)
+
+    # Required: Source roots (colon-separated)
+    if srcs.kt or srcs.java:
+        args.add("-source-roots=" + ":".join([_to_path(f) for f in srcs.kt + srcs.java]))
+
+    # Required: Project structure
+    args.add("-project-base-dir=" + project_base_dir.path)
+    args.add("-output-base-dir=" + output_base_dir.path)
+    args.add("-caches-dir=" + caches_dir.path)
+
+    # Required: Output directories
+    args.add("-kotlin-output-dir=" + kotlin_out_dir.path)
+    args.add("-java-output-dir=" + java_out_dir.path)
+    args.add("-class-output-dir=" + class_out_dir.path)
+    args.add("-resource-output-dir=" + resource_out_dir.path)
+
+    # Libraries (classpath for compilation) - colon-separated
+    # Use full runtime jars (not ABI jars) because annotation processors need complete type information
+    classpath_files = depset(
+        transitive = [
+            _java_infos_to_compile_jars([compile_deps]),
+            transitive_runtime_jars,
+        ],
+    ).to_list()
+
+    if classpath_files:
+        args.add("-libraries=" + ":".join([_to_path(f) for f in classpath_files]))
+
+    # JDK home
+    args.add("-jdk-home=" + str(toolchains.java_runtime.java_home))
+
+    # Processor JARs (passed as positional arguments at the end, space-separated)
+    args.add_all(processor_jars, map_each = _to_path)
+
+    # Run KSP2 standalone
+    # Note: KSP2 standalone does NOT support Bazel persistent worker protocol
+    # (it doesn't understand --persistent_worker flag), so we run it as a regular action
+    ctx.actions.run(
+        executable = ctx.executable._ksp2_standalone,
+        arguments = [args],
+        inputs = depset(
+            srcs.kt + srcs.java + processor_jars,
+            transitive = [_java_infos_to_compile_jars([compile_deps])],
+        ),
+        outputs = [
+            kotlin_out_dir,
+            java_out_dir,
+            class_out_dir,
+            resource_out_dir,
+            project_base_dir,
+            output_base_dir,
+            caches_dir,
+        ],
+        mnemonic = "KotlinKsp2Standalone",
+        progress_message = "Running KSP2 processors for %{label}",
+    )
+
+    # Package generated sources into srcjars
+    kotlin_srcjar = ctx.actions.declare_file(
+        ctx.label.name + "-ksp2-kotlin-generated.srcjar",
+    )
+    java_srcjar = ctx.actions.declare_file(
+        ctx.label.name + "-ksp2-java-generated.srcjar",
+    )
+
+    _create_srcjar(ctx, kotlin_out_dir, kotlin_srcjar)
+    _create_srcjar(ctx, java_out_dir, java_srcjar)
+
+    # Return generated artifacts
+    return struct(
+        kotlin_srcjar = kotlin_srcjar,
+        java_srcjar = java_srcjar,
     )
 
 def _run_kapt_builder_actions(
@@ -905,21 +1078,40 @@ def _run_kt_java_builder_actions(
     ksp_generated_class_jar = None
     ksp_generated_src_jar = None
     if has_kt_sources and ksp_annotation_processors:
-        ksp_outputs = _run_ksp_builder_actions(
-            ctx,
-            rule_kind = rule_kind,
-            toolchains = toolchains,
-            srcs = srcs,
-            compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
-            annotation_processors = ksp_annotation_processors,
-            transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
-        )
-        ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
-        output_jars.append(ksp_generated_class_jar)
-        ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
-        generated_ksp_src_jars.append(ksp_generated_src_jar)
+        if ctx.attr.use_ksp2_standalone:
+            # NEW: Standalone KSP2 mode
+            # KSP2 runs as a separate tool (not compiler plugin)
+            # Generates sources that are added to main compilation
+            ksp2_outputs = _run_ksp2_standalone_action(
+                ctx,
+                rule_kind = rule_kind,
+                toolchains = toolchains,
+                srcs = srcs,
+                compile_deps = compile_deps,
+                annotation_processors = ksp_annotation_processors,
+                transitive_runtime_jars = transitive_runtime_jars,
+            )
+            # Add generated sources to main compilation
+            # KEY: These will be compiled together with original sources
+            generated_ksp_src_jars.append(ksp2_outputs.kotlin_srcjar)
+            generated_ksp_src_jars.append(ksp2_outputs.java_srcjar)
+        else:
+            # OLD: Compiler plugin mode (backward compatibility)
+            ksp_outputs = _run_ksp_builder_actions(
+                ctx,
+                rule_kind = rule_kind,
+                toolchains = toolchains,
+                srcs = srcs,
+                compile_deps = compile_deps,
+                deps_artifacts = deps_artifacts,
+                annotation_processors = ksp_annotation_processors,
+                transitive_runtime_jars = transitive_runtime_jars,
+                plugins = plugins,
+            )
+            ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
+            output_jars.append(ksp_generated_class_jar)
+            ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
+            generated_ksp_src_jars.append(ksp_generated_src_jar)
 
     java_infos = []
 

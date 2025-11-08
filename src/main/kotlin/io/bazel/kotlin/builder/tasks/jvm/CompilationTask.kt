@@ -376,6 +376,10 @@ private fun JvmCompilationTask.runKspPlugin(
   compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
   return context.execute("Ksp (${inputs.processorsList.joinToString(", ")})") {
+    // IMPORTANT: KSP running as a compiler plugin (not standalone KSP2) requires
+    // language version 1.9 even with Kotlin 2.x because the plugin doesn't declare
+    // compatibility with language version 2.0. The Kotlin compiler enforces this check.
+    // See: https://github.com/google/ksp/issues/1536
     val overrides =
       mutableMapOf(
         API_VERSION_ARG to kspKotlinToolchainVersion(info.toolchainInfo.common.apiVersion),
@@ -408,7 +412,10 @@ private fun JvmCompilationTask.runKspPlugin(
 }
 
 private fun kspKotlinToolchainVersion(version: String): String {
-  // KSP doesn't support Kotlin 2.0 yet, so we need to use 1.9
+  // KSP as a compiler plugin doesn't declare compatibility with Kotlin 2.0+ language versions.
+  // The compiler rejects the plugin when language version is set to 2.0+, so we must override
+  // to 1.9. This is specific to compiler plugin mode - standalone KSP2 supports Kotlin 2.x.
+  // See: https://github.com/google/ksp/issues/1536
   return if (version.toFloat() >= 2.0) "1.9" else version
 }
 

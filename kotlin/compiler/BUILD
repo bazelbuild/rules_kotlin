@@ -37,3 +37,17 @@ kapt_compiler_plugin(
     name = "kapt",
     id = "org.jetbrains.kotlin.kapt3",
 )
+
+# KSP2 Standalone binary
+# Runs KSP2 in standalone mode (not as a compiler plugin)
+# Uses the Analysis API-based implementation
+java_binary(
+    name = "ksp2_standalone",
+    main_class = "com.google.devtools.ksp.cmdline.KSPJvmMain",
+    runtime_deps = [
+        "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_aa",
+        "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
+        ":kotlin-stdlib",
+    ],
+)
