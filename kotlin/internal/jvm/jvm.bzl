@@ -249,6 +249,12 @@ _common_attr = utils.add_dicts(
             default = [],
             allow_files = [".srcjar", ".kt", ".java"],
         ),
+        # Implicit KAPT plugin for annotation processing support
+        "_kapt_plugin": attr.label(
+            default = Label("//kotlin/compiler:kapt"),
+            cfg = "exec",
+            providers = [_KtCompilerPluginInfo],
+        ),
         "_use_auto_exec_groups": attr.bool(default = False),
     },
 )

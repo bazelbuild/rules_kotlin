@@ -139,66 +139,6 @@ internal fun encodeMap(options: Map<String, String>): String {
     .encodeToString(os.toByteArray())
 }
 
-internal fun JvmCompilationTask.kaptArgs(
-  context: CompilationTaskContext,
-  plugins: InternalCompilerPlugins,
-  aptMode: String,
-): CompilationArgs {
-  val javacArgs =
-    mapOf<String, String>(
-      "-target" to info.toolchainInfo.jvm.jvmTarget,
-      "-source" to info.toolchainInfo.jvm.jvmTarget,
-    )
-  return CompilationArgs().apply {
-    xFlag("plugin", plugins.kapt.jarPath)
-
-    val values =
-      arrayOf(
-        "sources" to listOf(directories.generatedJavaSources),
-        "classes" to listOf(directories.generatedClasses),
-        "stubs" to listOf(directories.stubs),
-        "incrementalData" to listOf(directories.incrementalData),
-        "javacArguments" to listOf(javacArgs.let(::encodeMap)),
-        "correctErrorTypes" to listOf("false"),
-        "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
-        "apclasspath" to inputs.processorpathsList,
-        "aptMode" to listOf(aptMode),
-      )
-    val version =
-      info.toolchainInfo.common.apiVersion
-        .toFloat()
-
-    when {
-      version < 1.5 ->
-        base64Encode(
-          "-P",
-          *values + ("processors" to inputs.processorsList).asKeyToCommaList(),
-        ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
-      else ->
-        repeatFlag(
-          "-P",
-          *values + ("processors" to inputs.processorsList),
-        ) { option, value ->
-          "plugin:${plugins.kapt.id}:$option=$value"
-        }
-    }
-    // Read kapt options from the plugin options
-    val optionPrefix = plugins.kapt.id + ":apoption="
-    val options =
-      (inputs.compilerPluginOptionsList + inputs.stubsPluginOptionsList)
-        .filter { o -> o.startsWith(optionPrefix) }
-        .map { o -> o.substring(optionPrefix.length).split(":", limit = 2) }
-        .map { kv -> kv[0] to listOf(kv[1]) }
-        .toTypedArray()
-
-    if (options.isNotEmpty()) {
-      base64Encode("-P", *options) { enc ->
-        "plugin:${plugins.kapt.id}:apoptions=$enc"
-      }
-    }
-  }
-}
-
 internal fun JvmCompilationTask.kspArgs(plugins: InternalCompilerPlugins): CompilationArgs =
   CompilationArgs().apply {
     plugin(plugins.kspSymbolProcessingCommandLine)
@@ -247,11 +187,154 @@ internal fun JvmCompilationTask.kspArgs(plugins: InternalCompilerPlugins): Compi
 private fun Pair<String, List<String>>.asKeyToCommaList() =
   first to listOf(second.joinToString(","))
 
+/**
+ * Find annotation processing plugin jar from classpath.
+ *
+ * Searches for the plugin jar in the stubs_plugin_classpath based on plugin ID.
+ *
+ * @param pluginId Plugin identifier (e.g., "org.jetbrains.kotlin.kapt3")
+ * @param classpath List of jar paths from stubs_plugin_classpath
+ * @return Path to plugin jar or null if not found
+ */
+private fun findAnnotationProcessingPluginJar(
+  pluginId: String,
+  classpath: List<String>,
+): String? {
+  // Map plugin IDs to jar name patterns
+  val jarPatterns =
+    when (pluginId) {
+      "org.jetbrains.kotlin.kapt3" -> listOf("kotlin-annotation-processing", "kapt")
+      "com.google.devtools.ksp.symbol-processing" -> listOf("symbol-processing-api", "ksp")
+      else -> listOf(pluginId.substringAfterLast(".")) // Try last component of plugin ID
+    }
+
+  // Find first jar matching any pattern
+  return classpath.firstOrNull { jarPath ->
+    jarPatterns.any { pattern -> jarPath.contains(pattern, ignoreCase = true) }
+  }
+}
+
+/**
+ * Generic annotation processing args builder.
+ * Replaces KAPT-specific kaptArgs() with a generic version that works with any annotation processor.
+ */
+internal fun JvmCompilationTask.annotationProcessingArgs(
+  context: CompilationTaskContext,
+  config: JvmCompilationTask.Inputs.AnnotationProcessingConfig,
+  pluginJar: String,
+): CompilationArgs {
+  val javacArgs =
+    mapOf<String, String>(
+      "-target" to info.toolchainInfo.jvm.jvmTarget,
+      "-source" to info.toolchainInfo.jvm.jvmTarget,
+    )
+
+  return CompilationArgs().apply {
+    xFlag("plugin", pluginJar)
+
+    // Build base configuration for annotation processing
+    val aptMode = config.aptMode.ifEmpty { "stubsAndApt" }
+    val values =
+      arrayOf(
+        "sources" to listOf(directories.generatedJavaSources),
+        "classes" to listOf(directories.generatedClasses),
+        "stubs" to listOf(directories.stubs),
+        "incrementalData" to listOf(directories.incrementalData),
+        "javacArguments" to listOf(javacArgs.let(::encodeMap)),
+        "correctErrorTypes" to listOf("false"),
+        "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
+        "apclasspath" to config.processorpathsList,
+        "aptMode" to listOf(aptMode),
+      )
+
+    val version =
+      info.toolchainInfo.common.apiVersion
+        .toFloat()
+
+    // Format options based on Kotlin version
+    when {
+      version < 1.5 ->
+        base64Encode(
+          "-P",
+          *values + ("processors" to config.processorsList).asKeyToCommaList(),
+        ) { enc -> "plugin:${config.pluginId}:configuration=$enc" }
+      else ->
+        repeatFlag(
+          "-P",
+          *values + ("processors" to config.processorsList),
+        ) { option, value ->
+          "plugin:${config.pluginId}:$option=$value"
+        }
+    }
+
+    // Add custom plugin options from config
+    if (config.optionsMap.isNotEmpty()) {
+      val customOptions =
+        config.optionsMap.entries
+          .map { (k, v) -> k to listOf(v) }
+          .toTypedArray()
+
+      base64Encode("-P", *customOptions) { enc ->
+        "plugin:${config.pluginId}:apoptions=$enc"
+      }
+    }
+  }
+}
+
+/**
+ * Generic annotation processing plugin runner.
+ * Replaces KAPT-specific runKaptPlugin() with a generic version.
+ */
+private fun JvmCompilationTask.runAnnotationProcessingPlugin(
+  context: CompilationTaskContext,
+  config: JvmCompilationTask.Inputs.AnnotationProcessingConfig,
+  pluginJar: String,
+  compiler: KotlinToolchain.KotlincInvoker,
+): JvmCompilationTask {
+  val processorNames = config.processorsList.joinToString(", ")
+
+  return context.execute("${config.pluginId} ($processorNames)") {
+    val args =
+      baseArgs()
+        .plus(
+          plugins(
+            options =
+              inputs.stubsPluginOptionsList.filterNot { o ->
+                o.startsWith(config.pluginId)
+              },
+            // Filter out the annotation processing plugin jar to avoid duplicate -Xplugin
+            // It will be added by annotationProcessingArgs() below
+            classpath = inputs.stubsPluginClasspathList.filterNot { it == pluginJar },
+          ),
+        ).plus(
+          annotationProcessingArgs(context, config, pluginJar),
+        ).flag("-d", directories.generatedClasses)
+        .values(inputs.kotlinSourcesList)
+        .values(inputs.javaSourcesList)
+        .list()
+
+    args
+      .let { compilationArgs ->
+        context.executeCompilerTask(
+          compilationArgs,
+          compiler::compile,
+          printOnSuccess = context.whenTracing { true } == true,
+        )
+      }.let { outputLines ->
+        context.whenTracing {
+          context.printCompilerOutput(listOf("${config.pluginId} output:") + outputLines)
+        }
+        return@let expandWithGeneratedSources()
+      }
+  }
+}
+
 internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
   compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
+  // Early exit if no processors or sources
   if (
     (
       inputs.processorsList.isEmpty() &&
@@ -260,50 +343,31 @@ internal fun JvmCompilationTask.runPlugins(
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this
-  } else {
-    if (!outputs.generatedKspSrcJar.isNullOrEmpty()) {
-      return runKspPlugin(context, plugins, compiler)
-    } else if (!outputs.generatedClassJar.isNullOrEmpty()) {
-      return runKaptPlugin(context, plugins, compiler)
+  }
+
+  // Generic annotation processing path (KAPT, KSP, etc.)
+  if (inputs.hasAnnotationProcessing()) {
+    val config = inputs.annotationProcessing
+
+    // Extract plugin jar from classpath (provided by Starlark layer)
+    val pluginJar =
+      findAnnotationProcessingPluginJar(config.pluginId, inputs.stubsPluginClasspathList)
+
+    if (pluginJar != null) {
+      return runAnnotationProcessingPlugin(context, config, pluginJar, compiler)
     } else {
-      return this
+      error(
+        "Could not find plugin jar for ${config.pluginId} in classpath: ${inputs.stubsPluginClasspathList}",
+      )
     }
   }
-}
 
-private fun JvmCompilationTask.runKaptPlugin(
-  context: CompilationTaskContext,
-  plugins: InternalCompilerPlugins,
-  compiler: KotlinToolchain.KotlincInvoker,
-): JvmCompilationTask {
-  return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
-    baseArgs()
-      .plus(
-        plugins(
-          options = inputs.stubsPluginOptionsList.filterNot { o -> o.startsWith(plugins.kapt.id) },
-          classpath = inputs.stubsPluginClasspathList,
-        ),
-      ).plus(
-        kaptArgs(context, plugins, "stubsAndApt"),
-      ).flag("-d", directories.generatedClasses)
-      .values(inputs.kotlinSourcesList)
-      .values(inputs.javaSourcesList)
-      .list()
-      .let { args ->
-        context.executeCompilerTask(
-          args,
-          compiler::compile,
-          printOnSuccess = context.whenTracing { true } == true,
-        )
-      }.let { outputLines ->
-        // if tracing is enabled the output should be formatted in a special way, if we aren't
-        // tracing then any compiler output would make it's way to the console as is.
-        context.whenTracing {
-          printLines("kapt output", outputLines)
-        }
-        return@let expandWithGeneratedSources()
-      }
+  // KSP path (still uses dedicated function for now)
+  if (!outputs.generatedKspSrcJar.isNullOrEmpty()) {
+    return runKspPlugin(context, plugins, compiler)
   }
+
+  return this
 }
 
 private fun JvmCompilationTask.runKspPlugin(

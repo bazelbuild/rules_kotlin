@@ -90,6 +90,13 @@ class KotlinBuilder
         KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
         KSP_GENERATED_CLASSES_JAR("--ksp_generated_classes_jar"),
         BUILD_TOOLS_API("--build_tools_api"),
+
+        // Generic annotation processing flags
+        ANNOTATION_PROCESSING_PLUGIN_ID("--annotation_processing_plugin_id"),
+        ANNOTATION_PROCESSING_PROCESSORS("--annotation_processing_processors"),
+        ANNOTATION_PROCESSING_PROCESSORPATH("--annotation_processing_processorpath"),
+        ANNOTATION_PROCESSING_OPTIONS("--annotation_processing_options"),
+        ANNOTATION_PROCESSING_APT_MODE("--annotation_processing_apt_mode"),
       }
     }
 
@@ -278,6 +285,36 @@ class KotlinBuilder
 
           addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
           addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
+
+          // Parse generic annotation processing configuration
+          argMap
+            .optionalSingle(
+              KotlinBuilderFlags.ANNOTATION_PROCESSING_PLUGIN_ID,
+            )?.let { pluginId ->
+              annotationProcessingBuilder.apply {
+                this.pluginId = pluginId
+                addAllProcessors(
+                  argMap.optional(KotlinBuilderFlags.ANNOTATION_PROCESSING_PROCESSORS)
+                    ?: emptyList(),
+                )
+                addAllProcessorpaths(
+                  argMap.optional(KotlinBuilderFlags.ANNOTATION_PROCESSING_PROCESSORPATH)
+                    ?: emptyList(),
+                )
+                argMap
+                  .optional(KotlinBuilderFlags.ANNOTATION_PROCESSING_OPTIONS)
+                  ?.forEach { option ->
+                    // Expected format: "key=value"
+                    val parts = option.split("=", limit = 2)
+                    if (parts.size == 2) {
+                      putOptions(parts[0], parts[1])
+                    }
+                  }
+                argMap.optionalSingle(KotlinBuilderFlags.ANNOTATION_PROCESSING_APT_MODE)?.let {
+                  aptMode = it
+                }
+              }
+            }
 
           addAllStubsPluginOptions(
             argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),

@@ -175,15 +175,31 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             Preconditions.checkState(
                     taskBuilder.getInputs().getProcessorsList().isEmpty(), "processors already set");
             HashSet<String> processorClasses = new HashSet<>();
+            java.util.List<String> processorPaths = Stream.of(annotationProcessors)
+                    .peek(it -> processorClasses.add(it.processClass()))
+                    .flatMap(it -> it.processorPath().stream())
+                    .distinct()
+                    .collect(Collectors.toList());
+
             taskBuilder
                     .getInputsBuilder()
-                    .addAllProcessorpaths(
-                            Stream.of(annotationProcessors)
-                                    .peek(it -> processorClasses.add(it.processClass()))
-                                    .flatMap(it -> it.processorPath().stream())
-                                    .distinct()
-                                    .collect(Collectors.toList()))
+                    .addAllProcessorpaths(processorPaths)
                     .addAllProcessors(processorClasses);
+
+            // Add KAPT plugin jar to stubs_plugin_classpath so the builder can find it
+            String kaptPluginJar = Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar();
+            taskBuilder
+                    .getInputsBuilder()
+                    .addStubsPluginClasspath(kaptPluginJar);
+
+            // Also populate the new annotation_processing config for KAPT
+            taskBuilder
+                    .getInputsBuilder()
+                    .getAnnotationProcessingBuilder()
+                    .setPluginId("org.jetbrains.kotlin.kapt3")
+                    .addAllProcessors(processorClasses)
+                    .addAllProcessorpaths(processorPaths)
+                    .setAptMode("stubsAndApt");
         }
 
         public void addDirectDependencies(Dep... dependencies) {

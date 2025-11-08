@@ -33,7 +33,6 @@ import javax.inject.Singleton
 
 class KotlinToolchain private constructor(
   private val baseJars: List<File>,
-  val kapt3Plugin: CompilerPlugin,
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
@@ -45,13 +44,6 @@ class KotlinToolchain private constructor(
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@com_github_jetbrains_kotlin...jvm-abi-gen",
-        ).toPath()
-    }
-
-    private val KAPT_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kapt",
         ).toPath()
     }
 
@@ -155,7 +147,6 @@ class KotlinToolchain private constructor(
         JVM_ABI_PLUGIN.verified().absoluteFile,
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
-        KAPT_PLUGIN.verified().absoluteFile,
         KSP_SYMBOL_PROCESSING_API.toFile(),
         KSP_SYMBOL_PROCESSING_CMDLINE.toFile(),
         KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
@@ -172,7 +163,6 @@ class KotlinToolchain private constructor(
       jvmAbiGenFile: File,
       skipCodeGenFile: File,
       jdepsGenFile: File,
-      kaptFile: File,
       kspSymbolProcessingApi: File,
       kspSymbolProcessingCommandLine: File,
       kotlinxSerializationCoreJvm: File,
@@ -210,11 +200,6 @@ class KotlinToolchain private constructor(
           CompilerPlugin(
             jdepsGenFile.path,
             "io.bazel.kotlin.plugin.jdeps.JDepsGen",
-          ),
-        kapt3Plugin =
-          CompilerPlugin(
-            kaptFile.path,
-            "org.jetbrains.kotlin.kapt3",
           ),
         kspSymbolProcessingApi =
           CompilerPlugin(
@@ -260,7 +245,6 @@ class KotlinToolchain private constructor(
   fun toolchainWithReflect(kotlinReflect: File? = null): KotlinToolchain =
     KotlinToolchain(
       baseJars + listOf(kotlinReflect ?: KOTLIN_REFLECT.toFile()),
-      kapt3Plugin,
       jvmAbiGen,
       skipCodeGen,
       jdepsGen,

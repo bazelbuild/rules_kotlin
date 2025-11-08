@@ -48,7 +48,7 @@ public interface KotlinBuilderComponent {
         @Provides
         public InternalCompilerPlugins provideInternalPlugins(KotlinToolchain toolchain) {
             return new InternalCompilerPlugins(
-                    toolchain.getJvmAbiGen(), toolchain.getSkipCodeGen(), toolchain.getKapt3Plugin(), toolchain.getJdepsGen(),
+                    toolchain.getJvmAbiGen(), toolchain.getSkipCodeGen(), toolchain.getJdepsGen(),
                     toolchain.getKspSymbolProcessingApi(),
                     toolchain.getKspSymbolProcessingCommandLine());
         }

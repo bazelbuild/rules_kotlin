@@ -136,6 +136,22 @@ message JvmCompilationTask {
   }
 
   message Inputs {
+      // Generic annotation processing phase configuration.
+      // This replaces the hardcoded KAPT logic and allows any annotation processor
+      // to be used through the plugin system.
+      message AnnotationProcessingConfig {
+        // Plugin ID (e.g., "org.jetbrains.kotlin.kapt3", "com.google.devtools.ksp.symbol-processing")
+        string plugin_id = 1;
+        // Annotation processor fully qualified class names
+        repeated string processors = 2;
+        // Annotation processor classpath
+        repeated string processorpaths = 3;
+        // Plugin-specific options (key-value pairs)
+        map<string, string> options = 4;
+        // APT mode (e.g., "stubsAndApt", "apt", "stubs")
+        string apt_mode = 5;
+      }
+
       // The full classpath
       repeated string classpath = 1;
       // Direct dependencies of the target.
@@ -148,9 +164,9 @@ message JvmCompilationTask {
       repeated string java_sources = 5;
       // Jars containing additional sources.
       repeated string source_jars = 6;
-      // Annotation processor FQNames
+      // DEPRECATED: Annotation processor FQNames (use annotation_processing.processors instead)
       repeated string processors = 7;
-      // Annotation processor classpath.
+      // DEPRECATED: Annotation processor classpath (use annotation_processing.processorpaths instead)
       repeated string processorpaths = 8;
       // Kotlin stubs phase compiler plugin options
       repeated string stubs_plugin_options = 9;
@@ -168,6 +184,8 @@ message JvmCompilationTask {
       repeated string javac_flags = 15;
       // JDeps dependency artifacts
       repeated string deps_artifacts = 16;
+      // Generic annotation processing configuration (replaces hardcoded KAPT logic)
+      AnnotationProcessingConfig annotation_processing = 17;
   }
 
   CompilationTaskInfo info = 1;

@@ -67,10 +67,16 @@ def _resolve_kapt_cfg(
 
 def _kapt_compiler_plugin_impl(ctx):
     plugin_id = ctx.attr.id
+
+    # Include KAPT plugin jar in classpath
+    plugin_jars = []
+    for jar in ctx.files.kapt_jars:
+        plugin_jars.append(jar)
+
     return [
         KtCompilerPluginInfo(
             id = plugin_id,
-            classpath = depset(),
+            classpath = depset(plugin_jars),  # NEW: Include actual KAPT plugin jar
             options = [],
             stubs = True,
             compile = False,
@@ -83,5 +89,12 @@ kapt_compiler_plugin = rule(
     implementation = _kapt_compiler_plugin_impl,
     attrs = {
         "id": attr.string(default = "org.jetbrains.kotlin.kapt3"),
+        # KAPT plugin jar from compiler distribution
+        "kapt_jars": attr.label_list(
+            default = [
+                Label("//kotlin/compiler:kotlin-annotation-processing"),
+            ],
+            allow_files = [".jar"],
+        ),
     },
 )

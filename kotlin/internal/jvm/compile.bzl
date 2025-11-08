@@ -442,6 +442,63 @@ def _run_ksp_builder_actions(
 
     return struct(ksp_generated_class_jar = ksp_generated_classes_jar, ksp_generated_src_jar = ksp_generated_java_srcjar)
 
+def _build_annotation_processing_config(plugins, annotation_processors):
+    """Extract annotation processing config from plugins.
+
+    Builds the configuration for the generic annotation processing runner whenever
+    there are annotation processors, whether using kt_plugin_cfg or java_plugin.
+
+    Args:
+        plugins: struct with stubs_phase and compile_phase
+        annotation_processors: list of annotation processors
+
+    Returns:
+        struct with plugin_id, processors, processorpath, options, apt_mode
+        or None if no annotation processing is needed
+    """
+
+    # If no annotation processors, nothing to do
+    if not annotation_processors:
+        return None
+
+    kapt_id = "org.jetbrains.kotlin.kapt3"
+
+    # Check if KAPT plugin is present in classpath
+    has_kapt = any([
+        kapt_id in str(jar) or "kotlin-annotation-processing" in str(jar)
+        for jar in plugins.stubs_phase.classpath.to_list()
+    ])
+
+    if not has_kapt:
+        # No KAPT plugin available, can't do annotation processing
+        return None
+
+    processors = []
+    processorpath = []
+    options = {}
+
+    # Extract processors and classpaths
+    for processor in annotation_processors:
+        processors.extend(processor.processor_classes.to_list())
+        processorpath.extend([j.path for j in processor.processor_jars.to_list()])
+
+    # Extract apoptions from plugin options (if using kt_plugin_cfg)
+    for opt in plugins.stubs_phase.options:
+        if opt.id == kapt_id and opt.value.startswith("apoption="):
+            # Format: "apoption=key:value"
+            apoption_part = opt.value[len("apoption="):]
+            parts = apoption_part.split(":", 1)
+            if len(parts) == 2:
+                options[parts[0]] = parts[1]
+
+    return struct(
+        plugin_id = kapt_id,
+        processors = processors,
+        processorpath = processorpath,
+        options = options,
+        apt_mode = "stubsAndApt",
+    )
+
 def _run_kt_builder_action(
         ctx,
         mnemonic,
@@ -498,6 +555,31 @@ def _run_kt_builder_action(
         omit_if_empty = True,
         uniquify = True,
     )
+
+    # Add generic annotation processing configuration
+    ap_config = _build_annotation_processing_config(
+        plugins = plugins,
+        annotation_processors = annotation_processors,
+    )
+    if ap_config:
+        args.add("--annotation_processing_plugin_id", ap_config.plugin_id)
+        args.add_all(
+            "--annotation_processing_processors",
+            ap_config.processors,
+            omit_if_empty = True,
+        )
+        args.add_all(
+            "--annotation_processing_processorpath",
+            ap_config.processorpath,
+            omit_if_empty = True,
+        )
+        if ap_config.options:
+            args.add_all(
+                "--annotation_processing_options",
+                ["%s=%s" % (k, v) for k, v in ap_config.options.items()],
+            )
+        if ap_config.apt_mode:
+            args.add("--annotation_processing_apt_mode", ap_config.apt_mode)
 
     args.add_all(
         "--stubs_plugin_classpath",
@@ -641,7 +723,22 @@ def _kt_jvm_produce_output_jar_actions(
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
-    plugins = _new_plugins_from(ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps))
+
+    # Automatically add KAPT plugin when there are annotation processors
+    all_plugins = ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps)
+
+    # Check if KAPT plugin is already present by looking for its ID
+    kapt_id = "org.jetbrains.kotlin.kapt3"
+    has_kapt = any([
+        _KtCompilerPluginInfo in p and p[_KtCompilerPluginInfo].id == kapt_id
+        for p in all_plugins
+    ])
+
+    if annotation_processors and not has_kapt:
+        # Add implicit KAPT plugin if there are annotation processors but no explicit KAPT plugin
+        all_plugins = all_plugins + [ctx.attr._kapt_plugin]
+
+    plugins = _new_plugins_from(all_plugins)
 
     deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + ctx.attr.associates)
 
