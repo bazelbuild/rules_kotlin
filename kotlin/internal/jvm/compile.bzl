@@ -713,23 +713,6 @@ def _run_kt_builder_action(
     args.add_all("--kotlin_friend_paths", compile_deps.associate_jars, omit_if_empty = True)
     args.add("--instrument_coverage", ctx.coverage_instrumented())
 
-    # Collect and prepare plugin descriptor for the worker.
-    args.add_all(
-        "--processors",
-        annotation_processors,
-        map_each = _plugin_mappers.kt_plugin_to_processor,
-        omit_if_empty = True,
-        uniquify = True,
-    )
-
-    args.add_all(
-        "--processorpath",
-        annotation_processors,
-        map_each = _plugin_mappers.kt_plugin_to_processorpath,
-        omit_if_empty = True,
-        uniquify = True,
-    )
-
     # Add generic annotation processing configuration
     ap_config = _build_annotation_processing_config(
         plugins = plugins,

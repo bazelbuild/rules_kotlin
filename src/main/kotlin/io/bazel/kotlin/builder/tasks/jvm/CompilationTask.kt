@@ -289,35 +289,25 @@ internal fun JvmCompilationTask.runPlugins(
   plugins: InternalCompilerPlugins,
   compiler: KotlinToolchain.KotlincInvoker,
 ): JvmCompilationTask {
-  // Early exit if no processors or sources
-  if (
-    (
-      inputs.processorsList.isEmpty() &&
-        inputs.stubsPluginClasspathList.isEmpty()
-    ) ||
-    inputs.kotlinSourcesList.isEmpty()
-  ) {
+  // Early exit if no annotation processing or sources
+  if (!inputs.hasAnnotationProcessing() || inputs.kotlinSourcesList.isEmpty()) {
     return this
   }
 
   // Generic annotation processing path (KAPT, etc.)
-  if (inputs.hasAnnotationProcessing()) {
-    val config = inputs.annotationProcessing
+  val config = inputs.annotationProcessing
 
-    // Extract plugin jar from classpath (provided by Starlark layer)
-    val pluginJar =
-      findAnnotationProcessingPluginJar(config.pluginId, inputs.stubsPluginClasspathList)
+  // Extract plugin jar from classpath (provided by Starlark layer)
+  val pluginJar =
+    findAnnotationProcessingPluginJar(config.pluginId, inputs.stubsPluginClasspathList)
 
-    if (pluginJar != null) {
-      return runAnnotationProcessingPlugin(context, config, pluginJar, compiler)
-    } else {
-      error(
-        "Could not find plugin jar for ${config.pluginId} in classpath: ${inputs.stubsPluginClasspathList}",
-      )
-    }
+  if (pluginJar != null) {
+    return runAnnotationProcessingPlugin(context, config, pluginJar, compiler)
+  } else {
+    error(
+      "Could not find plugin jar for ${config.pluginId} in classpath: ${inputs.stubsPluginClasspathList}",
+    )
   }
-
-  return this
 }
 
 /**

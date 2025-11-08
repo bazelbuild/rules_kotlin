@@ -160,10 +160,6 @@ message JvmCompilationTask {
       repeated string java_sources = 5;
       // Jars containing additional sources.
       repeated string source_jars = 6;
-      // DEPRECATED: Annotation processor FQNames (use annotation_processing.processors instead)
-      repeated string processors = 7;
-      // DEPRECATED: Annotation processor classpath (use annotation_processing.processorpaths instead)
-      repeated string processorpaths = 8;
       // Kotlin stubs phase compiler plugin options
       repeated string stubs_plugin_options = 9;
       // Kotlin stubs phase compiler plugin options

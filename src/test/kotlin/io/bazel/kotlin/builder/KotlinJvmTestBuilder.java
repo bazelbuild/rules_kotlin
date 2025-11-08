@@ -173,7 +173,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
         public void addAnnotationProcessors(AnnotationProcessor... annotationProcessors) {
             Preconditions.checkState(
-                    taskBuilder.getInputs().getProcessorsList().isEmpty(), "processors already set");
+                    !taskBuilder.getInputs().hasAnnotationProcessing(), "annotation processors already set");
             HashSet<String> processorClasses = new HashSet<>();
             java.util.List<String> processorPaths = Stream.of(annotationProcessors)
                     .peek(it -> processorClasses.add(it.processClass()))
@@ -181,18 +181,13 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     .distinct()
                     .collect(Collectors.toList());
 
-            taskBuilder
-                    .getInputsBuilder()
-                    .addAllProcessorpaths(processorPaths)
-                    .addAllProcessors(processorClasses);
-
             // Add KAPT plugin jar to stubs_plugin_classpath so the builder can find it
             String kaptPluginJar = Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar();
             taskBuilder
                     .getInputsBuilder()
                     .addStubsPluginClasspath(kaptPluginJar);
 
-            // Also populate the new annotation_processing config for KAPT
+            // Populate the annotation_processing config for KAPT
             taskBuilder
                     .getInputsBuilder()
                     .getAnnotationProcessingBuilder()

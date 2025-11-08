@@ -24,14 +24,6 @@ def is_ksp_processor_generating_java(targets):
                 return True
     return False
 
-# Mapping functions for args.add_all.
-# These preserve the transitive depsets until needed.
-def _kt_plugin_to_processor(processor):
-    return processor.processor_classes.to_list()
-
-def _kt_plugin_to_processorpath(processor):
-    return [j.path for j in processor.processor_jars.to_list()]
-
 def _targets_to_annotation_processors(targets):
     plugins = []
     for t in targets:
@@ -76,6 +68,4 @@ mappers = struct(
     targets_to_ksp_annotation_processors = _targets_to_ksp_annotation_processors,
     targets_to_annotation_processors_java_plugin_info = _targets_to_annotation_processors_java_plugin_info,
     targets_to_transitive_runtime_jars = _targets_to_transitive_runtime_jars,
-    kt_plugin_to_processor = _kt_plugin_to_processor,
-    kt_plugin_to_processorpath = _kt_plugin_to_processorpath,
 )

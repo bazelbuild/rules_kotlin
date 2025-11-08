@@ -57,8 +57,6 @@ class KotlinBuilder
         DEPS_ARTIFACTS("--deps_artifacts"),
         SOURCES("--sources"),
         SOURCE_JARS("--source_jars"),
-        PROCESSOR_PATH("--processorpath"),
-        PROCESSORS("--processors"),
         STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
         STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
         COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
@@ -274,9 +272,6 @@ class KotlinBuilder
             argMap.optional(KotlinBuilderFlags.DEPS_ARTIFACTS) ?: emptyList(),
           )
           addAllDirectDependencies(argMap.mandatory(KotlinBuilderFlags.DIRECT_DEPENDENCIES))
-
-          addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
-          addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
 
           // Parse generic annotation processing configuration
           argMap
