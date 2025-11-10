@@ -82,6 +82,7 @@ filegroup(
     visibility = ["//:__subpackages__"],
 )
 
+# TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Must be run with `--config=deprecated`
 buildifier(
     name = "buildifier.check",
     exclude_patterns = [
