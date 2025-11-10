@@ -170,7 +170,9 @@ object BazelIntegrationTestRunner {
       override fun workspaceFlag(isBzlMod: Boolean): Array<String> = if (isBzlMod) {
         arrayOf(
           "--enable_bzlmod=true",
-          "--incompatible_disable_native_repo_rules=true",
+          // TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: enable when rules_android
+          // no longer uses local_config_platform
+          //"--incompatible_disable_native_repo_rules=true",
           "--incompatible_autoload_externally=",
         )
       } else if (major >= 7) {
