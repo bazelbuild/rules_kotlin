@@ -18,7 +18,6 @@ load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
     "http_file",
-    "http_jar",
 )
 load(
     "//kotlin/internal:defs.bzl",
@@ -71,25 +70,25 @@ def kotlin_repositories(
     )
 
     versions.use_repository(
-        http_jar,
+        http_file,
         name = "kotlinx_serialization_core_jvm",
         version = versions.KOTLINX_SERIALIZATION_CORE_JVM,
     )
 
     versions.use_repository(
-        http_jar,
+        http_file,
         name = "kotlinx_serialization_json",
         version = versions.KOTLINX_SERIALIZATION_JSON,
     )
 
     versions.use_repository(
-        http_jar,
+        http_file,
         name = "kotlinx_serialization_json_jvm",
         version = versions.KOTLINX_SERIALIZATION_JSON_JVM,
     )
 
     versions.use_repository(
-        http_jar,
+        http_file,
         name = "kotlin_build_tools_impl",
         version = versions.KOTLIN_BUILD_TOOLS_IMPL,
     )
