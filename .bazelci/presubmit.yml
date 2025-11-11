@@ -68,9 +68,6 @@ tasks:
       - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmAssociatesBasicVisibilityTest"
       - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmBasicAssertionTest"
     test_flags:
-      # Override the default worker strategy for remote builds (worker strategy
-      # cannot be used with remote builds)
-      - "--config=rbe"
       - "--strategy=KotlinCompile=remote"
   stardoc:
     name: Stardoc api documentation
