@@ -557,7 +557,7 @@ kt_jvm_library(
         ),
         "deps": attr.label_list(
             doc = "The list of libraries to be added to the compiler's plugin classpath",
-            providers = [JavaInfo],
+            providers = [[JavaInfo], [DefaultInfo]],
             cfg = "exec",
             aspects = [_kt_compiler_deps_aspect],
         ),
@@ -673,6 +673,7 @@ kt_plugin_cfg = rule(
                 [_KspPluginInfo],
                 [JavaInfo],
                 [JavaPluginInfo],
+                [DefaultInfo],
             ],
             cfg = "exec",
         ),
