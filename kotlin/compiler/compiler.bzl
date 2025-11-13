@@ -12,12 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
+load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLINC_ARTIFACTS")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
-# Re-export KOTLIN_STDLIBS for use by other BUILD files
-KOTLIN_STDLIBS = _KOTLIN_STDLIBS
+KOTLIN_STDLIBS = [
+    "//kotlin/compiler:annotations",
+    "//kotlin/compiler:kotlin-reflect",
+    "//kotlin/compiler:kotlin-stdlib",
+    "//kotlin/compiler:kotlin-stdlib-jdk7",
+    "//kotlin/compiler:kotlin-stdlib-jdk8",
+    "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+]
 
 def _import_artifacts(artifacts, rule_kind):
     _import_labels(artifacts.plugin, rule_kind)
