@@ -153,6 +153,14 @@ def kotlin_repositories(
 
     maybe(
         http_archive,
+        name = "bazel_features",
+        sha256 = versions.BAZEL_FEATURES.sha256,
+        strip_prefix = versions.BAZEL_FEATURES.strip_prefix_template.format(version = versions.BAZEL_FEATURES.version),
+        urls = [url.format(version = versions.BAZEL_FEATURES.version) for url in versions.BAZEL_FEATURES.url_templates],
+    )
+
+    maybe(
+        http_archive,
         name = "com_google_protobuf",
         sha256 = versions.COM_GOOGLE_PROTOBUF.sha256,
         strip_prefix = versions.COM_GOOGLE_PROTOBUF.strip_prefix_template.format(version = versions.COM_GOOGLE_PROTOBUF.version),

@@ -77,6 +77,10 @@ register_toolchains(
 
 kotlin_repositories()
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
 register_toolchains("//bzl:experimental_toolchain")
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
