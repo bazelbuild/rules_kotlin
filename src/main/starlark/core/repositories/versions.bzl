@@ -59,8 +59,8 @@ versions = struct(
         ],
     ),
     RULES_PROTO = version(
-        version = "7.1.0",
-        sha256 = "14a225870ab4e91869652cfd69ef2028277fc1dc4910d65d353b62d6e0ae21f4",
+        version = "7.0.2",
+        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
         strip_prefix_template = "rules_proto-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
@@ -88,11 +88,11 @@ versions = struct(
         sha256 = "6550f1117d7c9590cc9a5075b92682a218c8e1df4093d7e683d73cc481733dd1",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.1.20",
+        version = "2.2.21",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
         ],
-        sha256 = "6e94896e321603e3bfe89fef02478e44d1d64a3d25d49d0694892ffc01c60acf",
+        sha256 = "458b63ef8fc50a0a3180fe688ec1b995745992a05c495dac61e58d1088927a80",
     ),
     RULES_ANDROID = version(
         version = "0.6.4",
