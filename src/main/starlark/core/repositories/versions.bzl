@@ -51,19 +51,11 @@ versions = struct(
         ],
     ),
     COM_GOOGLE_PROTOBUF = version(
-        version = "29.0",
-        sha256 = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
+        version = "33.1",
+        sha256 = "fda132cb0c86400381c0af1fe98bd0f775cb566cb247cdcc105e344e00acc30e",
         strip_prefix_template = "protobuf-{version}",
         url_templates = [
             "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.tar.gz",
-        ],
-    ),
-    RULES_PROTO = version(
-        version = "7.1.0",
-        sha256 = "14a225870ab4e91869652cfd69ef2028277fc1dc4910d65d353b62d6e0ae21f4",
-        strip_prefix_template = "rules_proto-{version}",
-        url_templates = [
-            "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
         ],
     ),
     PINTEREST_KTLINT = version(

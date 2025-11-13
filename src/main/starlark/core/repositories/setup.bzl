@@ -12,8 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+# note that the following line is what is minimally required from protobuf for the java rules
+# consider using the protobuf_deps() public API from @com_google_protobuf//:protobuf_deps.bzl
+load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
+load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
 load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
@@ -31,8 +38,8 @@ def kt_configure():
         artifacts = [
             "com.google.code.findbugs:jsr305:3.0.2",
             "junit:junit:4.13-beta-3",
-            "com.google.protobuf:protobuf-java:4.29.0",
-            "com.google.protobuf:protobuf-java-util:4.29.0",
+            "com.google.protobuf:protobuf-java:4.33.0",
+            "com.google.protobuf:protobuf-java-util:4.33.0",
             "com.google.guava:guava:27.1-jre",
             "com.google.truth:truth:0.45",
             "com.google.auto.service:auto-service:1.1.1",
@@ -57,7 +64,3 @@ def kt_configure():
             "https://repo1.maven.org/maven2",
         ],
     )
-
-    rules_proto_dependencies()
-    rules_proto_toolchains()
-    rules_proto_setup()

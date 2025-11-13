@@ -167,14 +167,6 @@ def kotlin_repositories(
         urls = [url.format(version = versions.COM_GOOGLE_PROTOBUF.version) for url in versions.COM_GOOGLE_PROTOBUF.url_templates],
     )
 
-    maybe(
-        http_archive,
-        name = "rules_proto",
-        sha256 = versions.RULES_PROTO.sha256,
-        strip_prefix = versions.RULES_PROTO.strip_prefix_template.format(version = versions.RULES_PROTO.version),
-        urls = [url.format(version = versions.RULES_PROTO.version) for url in versions.RULES_PROTO.url_templates],
-    )
-
 def kotlinc_version(release, sha256):
     return version(
         version = release,
