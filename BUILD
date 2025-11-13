@@ -41,6 +41,7 @@ test_suite(
         "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
         "//src/test/kotlin/io/bazel/worker:worker_tests",
         "//src/test/starlark:convert_tests",
+        "//src/test/starlark:resource_strip_prefix_tests",
     ],
 )
 
@@ -52,6 +53,7 @@ test_suite(
         "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
         "//src/test/kotlin/io/bazel/worker:local_worker_tests",
         "//src/test/starlark:convert_tests",
+        "//src/test/starlark:resource_strip_prefix_tests",
     ],
 )
 
