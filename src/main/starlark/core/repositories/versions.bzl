@@ -28,23 +28,23 @@ versions = struct(
     # 2. Download dependencies and Configure rules
     # --> 3. Configure dependencies <--
     BAZEL_SKYLIB = version(
-        version = "1.7.1",
-        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
+        version = "1.8.2",
+        sha256 = "6e78f0e57de26801f6f564fa7c4a48dc8b36873e416257a92bbb0937eeac8446",
         url_templates = [
             "https://github.com/bazelbuild/bazel-skylib/releases/download/{version}/bazel-skylib-{version}.tar.gz",
         ],
     ),
     BAZEL_FEATURES = version(
-        version = "1.25.0",
-        sha256 = "4fd9922d464686820ffd8fcefa28ccffa147f7cdc6b6ac0d8b07fde565c65d66",
+        version = "1.37.0",
+        sha256 = "adc8ddf121917f197f75c5245dfa8d7b1619f10a1002e25062b093b7957f2798",
         strip_prefix_template = "bazel_features-{version}",
         url_templates = [
             "https://github.com/bazel-contrib/bazel_features/releases/download/v{version}/bazel_features-v{version}.tar.gz",
         ],
     ),
     RULES_JVM_EXTERNAL = version(
-        version = "6.6",
-        sha256 = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",
+        version = "6.8",
+        sha256 = "704a0197e4e966f96993260418f2542568198490456c21814f647ae7091f56f2",
         strip_prefix_template = "rules_jvm_external-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
@@ -59,8 +59,8 @@ versions = struct(
         ],
     ),
     RULES_PROTO = version(
-        version = "7.0.2",
-        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
+        version = "7.1.0",
+        sha256 = "14a225870ab4e91869652cfd69ef2028277fc1dc4910d65d353b62d6e0ae21f4",
         strip_prefix_template = "rules_proto-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
@@ -103,11 +103,11 @@ versions = struct(
         sha256 = "4135e2fa37a94bb36c7801e33faef2934c9fe4f9a84d0035eacc4154c2c30e44",
     ),
     RULES_JAVA = version(
-        version = "8.9.0",
+        version = "8.16.1",
         url_templates = [
             "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
         ],
-        sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
+        sha256 = "1b30698d89dccd9dc01b1a4ad7e9e5c6e669cdf1918dbb050334e365b40a1b5e",
     ),
     RULES_LICENSE = version(
         version = "1.0.0",

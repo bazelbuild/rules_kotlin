@@ -37,6 +37,10 @@ http_archive(
 
 kotlin_repositories()
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
 ##### rules_java setup for rules_android #####
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
 

@@ -34,6 +34,8 @@ bazel_features_deps()
 
 kotlin_repositories()
 
+bazel_features_deps()
+
 ##### rules_java setup for rules_android #####
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
 
