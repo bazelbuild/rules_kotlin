@@ -1,0 +1,9 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "printer",
+    srcs = glob(["*.kt"]),
+    resource_strip_prefix = "resourcez",
+    resources = glob(["resourcez/**"]),
+    visibility = ["//visibility:public"],
+)

@@ -47,6 +47,7 @@ java_binary(
         "//kotlin/compiler:symbol-processing-cmdline",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
+        "@kotlin_build_tools_impl//jar",
         "@kotlinx_serialization_core_jvm//jar",
         "@kotlinx_serialization_json//jar",
         "@kotlinx_serialization_json_jvm//jar",
@@ -55,6 +56,7 @@ java_binary(
         "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlinx_serialization_core_jvm//jar)",
         "-D@com_github_jetbrains_kotlinx...serialization-json=$(rlocationpath @kotlinx_serialization_json//jar)",
         "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath @kotlinx_serialization_json_jvm//jar)",
+        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_build_tools_impl//jar)",
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
@@ -76,6 +78,14 @@ java_binary(
 
 java_binary(
     name = "jdeps_merger",
+    data = [
+        "@com_github_jetbrains_kotlin//:annotations",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
+        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
+        "@com_github_jetbrains_kotlin//:kotlinx-coroutines-core-jvm",
+        "@com_github_jetbrains_kotlin//:trove4j",
+    ],
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],

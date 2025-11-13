@@ -93,6 +93,13 @@ def kotlin_repositories(
         urls = [url.format(version = versions.KOTLINX_SERIALIZATION_JSON_JVM.version) for url in versions.KOTLINX_SERIALIZATION_JSON_JVM.url_templates],
     )
 
+    maybe(
+        http_jar,
+        name = "kotlin_build_tools_impl",
+        sha256 = versions.KOTLIN_BUILD_TOOLS_IMPL.sha256,
+        urls = [url.format(version = versions.KOTLIN_BUILD_TOOLS_IMPL.version) for url in versions.KOTLIN_BUILD_TOOLS_IMPL.url_templates],
+    )
+
     if is_bzlmod:
         return
 

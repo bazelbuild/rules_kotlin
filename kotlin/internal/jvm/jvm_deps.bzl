@@ -21,11 +21,19 @@ load("//kotlin/internal/utils:sets.bzl", _sets = "sets")
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
-def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps = []):
+def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
-    dep_infos = [_java_info(d) for d in deps] + [toolchains.kt.jvm_stdlibs]
-
-    associates = _associate_utils.get_associates(ctx, toolchains = toolchains, associates = associate_deps)
+    associates = _associate_utils.get_associates(
+        ctx,
+        toolchains = toolchains,
+        associates = associate_deps,
+    )
+    dep_infos = (
+        deps_java_infos +
+        [_java_info(d) for d in deps] +
+        associates.dep_infos +
+        [toolchains.kt.jvm_stdlibs]
+    )
 
     # Reduced classpath, exclude transitive deps from compilation
     if (toolchains.kt.experimental_prune_transitive_deps and
@@ -48,7 +56,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps, exports = [], runtime_deps 
 
     return struct(
         module_name = associates.module_name,
-        deps = dep_infos + associates.dep_infos,
+        deps = dep_infos,
         exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),

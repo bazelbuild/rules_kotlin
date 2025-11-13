@@ -18,14 +18,14 @@ def _ktlint_config_impl(ctx):
 ktlint_config = rule(
     _ktlint_config_impl,
     attrs = {
+        "android_rules_enabled": attr.bool(
+            doc = "Turn on Android Kotlin Style Guide compatibility",
+            default = False,
+        ),
         "editorconfig": attr.label(
             doc = "Editor config file to use",
             mandatory = False,
             allow_single_file = True,
-        ),
-        "android_rules_enabled": attr.bool(
-            doc = "Turn on Android Kotlin Style Guide compatibility",
-            default = False,
         ),
         "experimental_rules_enabled": attr.bool(
             doc = "Turn on experimental rules (ktlint-ruleset-experimental)",

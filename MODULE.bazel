@@ -10,11 +10,14 @@ bazel_dep(name = "rules_proto", version = "6.0.2", repo_name = "rules_proto")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "py_absl")
 bazel_dep(name = "rules_cc", version = "0.0.16")
 bazel_dep(name = "platforms", version = "0.0.11")
-bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_python", version = "0.23.1")
-bazel_dep(name = "rules_android", version = "0.6.1")
+bazel_dep(name = "rules_android", version = "0.6.4")
 bazel_dep(name = "bazel_features", version = "1.25.0")
+bazel_dep(name = "rules_shell", version = "0.4.1")
+
+bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2", dev_dependency = True)
 bazel_dep(name = "bazel_worker_api", version = "0.0.4")
 bazel_dep(name = "bazel_worker_java", version = "0.0.4")
 
@@ -28,6 +31,7 @@ use_repo(
     "com_github_jetbrains_kotlin",
     "com_github_jetbrains_kotlin_git",
     "com_github_pinterest_ktlint",
+    "kotlin_build_tools_impl",
     "kotlinx_serialization_core_jvm",
     "kotlinx_serialization_json",
     "kotlinx_serialization_json_jvm",
@@ -76,6 +80,7 @@ maven.install(
         "com.squareup.moshi:moshi:1.15.1",
         "com.squareup.moshi:moshi-kotlin:1.15.1",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.1",
+        "org.codehaus.plexus:plexus-utils:3.0.24",
     ],
     fail_if_repin_required = True,
     fetch_sources = True,
@@ -106,16 +111,16 @@ use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 bazel_dep(name = "rules_pkg", version = "1.0.1")
 bazel_dep(name = "stardoc", version = "0.8.0", repo_name = "io_bazel_stardoc")
 
-bazel_dep(name = "rules_testing", version = "0.5.0", dev_dependency = True)
-bazel_dep(name = "rules_bazel_integration_test", version = "0.25.0", dev_dependency = True)
+bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
+bazel_dep(name = "rules_bazel_integration_test", version = "0.34.0", dev_dependency = True)
 
 bazel_binaries = use_extension("@rules_bazel_integration_test//:extensions.bzl", "bazel_binaries", dev_dependency = True)
 bazel_binaries.download(version_file = "//:.bazelversion")
-bazel_binaries.download(version = "8.1.0")
+bazel_binaries.download(version = "8.2.1")
 use_repo(
     bazel_binaries,
     "bazel_binaries",
     "bazel_binaries_bazelisk",
     "build_bazel_bazel_.bazelversion",
-    "build_bazel_bazel_8_1_0",
+    "build_bazel_bazel_8_2_1",
 )

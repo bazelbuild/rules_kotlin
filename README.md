@@ -32,7 +32,11 @@ Also, `kt_jvm_*` rules support the following standard `java_*` rules attributes:
   * `resources`
   * `resources_strip_prefix`
   * `exports`
-  
+
+Additionally, `kt_jvm_binary` and `kt_jvm_test` support environment variable configuration:
+  * `env` - Dictionary of environment variables to set when the target is executed with `bazel run` or `bazel test`
+  * `env_inherit` - List of environment variable names to inherit from the shell environment
+
 Android rules also support custom_package for `R.java` generation, `manifest=`, `resource_files`, etc.
 
 Other features:
@@ -124,8 +128,8 @@ in your `WORKSPACE` file (or import from a `.bzl` file:
 ```python
 rules_kotlin_extensions = use_extension("@rules_kotlin//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
 rules_kotlin_extensions.kotlinc_version(
-    version = "1.6.21", # just the numeric version
-    sha256 = "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba"
+    version = "2.1.20",
+    sha256 = "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a"
 )
 use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
 ```
@@ -136,8 +140,8 @@ load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_v
 
 kotlin_repositories(
     compiler_release = kotlinc_version(
-        release = "1.6.21", # just the numeric version
-        sha256 = "632166fed89f3f430482f5aa07f2e20b923b72ef688c8f5a7df3aa1502c6d8ba"
+        release = "2.1.20",
+        sha256 = "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a"
     )
 )
 ```
@@ -147,48 +151,30 @@ _(e.g. Maven artifacts)_
 
 Third party (external) artifacts can be brought in with systems such as [`rules_jvm_external`](https://github.com/bazelbuild/rules_jvm_external) or [`bazel_maven_repository`](https://github.com/square/bazel_maven_repository) or [`bazel-deps`](https://github.com/johnynek/bazel-deps), but make sure the version you use doesn't naively use `java_import`, as this will cause bazel to make an interface-only (`ijar`), or ABI jar, and the native `ijar` tool does not know about kotlin metadata with respect to inlined functions, and will remove method bodies inappropriately.  Recent versions of `rules_jvm_external` and `bazel_maven_repository` are known to work with Kotlin.
 
-# Development Setup Guide
-As of 1.5.0, to use the rules directly from the rules_kotlin workspace (i.e. not the release artifact)
- require the use of `release_archive` repository. This repository will build and configure the current
-workspace to use `rules_kotlin` in the same manner as the released binary artifact.
+## Development Setup
 
-In the project's `WORKSPACE`, change the setup:
+For local development of rules_kotlin:
+
+#### With Bzlmod
 
 ```python
-
-# Use local check-out of repo rules (or a commit-archive from github via http_archive or git_repository)
-local_repository(
-    name = "rules_kotlin",
+local_path_override(
+    module_name = "rules_kotlin",
     path = "../path/to/rules_kotlin_clone/",
 )
-
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
-
-kotlin_repositories()
-
-load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-
-kt_register_toolchains()
 ```
 
-To use rules_kotlin from head without cloning the repository, (caveat emptor, of course), change the
-rules to this:
+#### From HEAD (Bzlmod)
 
 ```python
-# Download master or specific revisions
-http_archive(
-    name = "rules_kotlin",
-    strip_prefix = "rules_kotlin-master",
-    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/refs/heads/master.zip"],
+_RULES_KOTLIN_COMMIT = "HEAD_COMMIT_SHA"
+
+archive_override(
+    module_name = "rules_kotlin",
+    integrity = "sha256-...",
+    strip_prefix = "rules_kotlin-%s" % _RULES_KOTLIN_COMMIT,
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.tar.gz" % _RULES_KOTLIN_COMMIT],
 )
-
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-
-kotlin_repositories()
-
-load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
-
-kt_register_toolchains()
 ```
 
 # Debugging native actions

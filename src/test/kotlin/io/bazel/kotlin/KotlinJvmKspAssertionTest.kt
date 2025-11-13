@@ -120,4 +120,65 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
             )
         }
     }
+
+    @Test
+    fun testKSPJarIncludesGeneratedClasses() {
+      jarTestCase(
+        name = "ksp_generate_bytecode.jar",
+        description = "KSP should include generated classes from processors",
+      ) {
+        // Entries should contain the generated class files
+        assertContainsEntries(
+          "META-INF/",
+          "META-INF/MANIFEST.MF",
+          "src/",
+          "src/test/",
+          "src/test/data/",
+          "src/test/data/jvm/",
+          "src/test/data/jvm/ksp/",
+          "src/test/data/jvm/ksp/BytecodeExample\$GeneratedDefinition\$.class",
+          "META-INF/services/",
+          "META-INF/src_test_data_jvm_ksp-ksp_generate_bytecode.kotlin_module",
+          "src/test/data/jvm/ksp/BytecodeExample.class",
+          "META-INF/services/src.test.data.jvm.ksp.BytecodeExample\$GeneratedDefinition\$"
+        )
+      }
+    }
+
+  @Test
+  fun testKSPJarDoesNotGenerateClasses() {
+    jarTestCase(
+      name = "ksp_bytecode_plugin_generates_no_classes_with_other_plugins.jar",
+      description = "KSP plugin doesn't generate class files from processor when relevant annotation isn't applied in conjunction with other plugins.",
+    ) {
+      // Entries should contain no generated class files from KSP itself (e.g the bytecode generator plugin)
+      assertContainsExactEntries(
+        "META-INF/",
+        "META-INF/MANIFEST.MF",
+        "META-INF/src_test_data_jvm_ksp-ksp_bytecode_plugin_generates_no_classes_with_other_plugins.kotlin_module",
+        "src/",
+        "src/test/",
+        "src/test/data/",
+        "src/test/data/jvm/",
+        "src/test/data/jvm/ksp/",
+        "src/test/data/jvm/ksp/CoffeeBean.class",
+        "src/test/data/jvm/ksp/CoffeeApp.class",
+        "src/test/data/jvm/ksp/CoffeeApp\$CoffeeShop.class",
+        "src/test/data/jvm/ksp/CoffeeApp\$Companion.class",
+        "src/test/data/jvm/ksp/CoffeeMaker.class",
+        "src/test/data/jvm/ksp/CoffeeMaker_Factory.class",
+        "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop.class",
+        "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop\$Builder.class",
+        "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop\$CoffeeShopImpl.class",
+        "src/test/data/jvm/ksp/DripCoffeeModule.class",
+        "src/test/data/jvm/ksp/DripCoffeeModule_ProvideHeaterFactory.class",
+        "src/test/data/jvm/ksp/ElectricHeater.class",
+        "src/test/data/jvm/ksp/Heater.class",
+      )
+
+      assertDoesNotContainEntries(
+        "src/test/data/jvm/ksp/CoffeeApp\$GeneratedDefinition\$.class",
+      )
+    }
+  }
 }

@@ -1,3 +1,4 @@
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("//kotlin:lint.bzl", "ktlint_config")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -40,6 +41,7 @@ test_suite(
         "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
         "//src/test/kotlin/io/bazel/worker:worker_tests",
         "//src/test/starlark:convert_tests",
+        "//src/test/starlark:resource_strip_prefix_tests",
     ],
 )
 
@@ -51,6 +53,7 @@ test_suite(
         "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
         "//src/test/kotlin/io/bazel/worker:local_worker_tests",
         "//src/test/starlark:convert_tests",
+        "//src/test/starlark:resource_strip_prefix_tests",
     ],
 )
 
@@ -80,4 +83,44 @@ filegroup(
         ":rules_kotlin_release",
     ],
     visibility = ["//:__subpackages__"],
+)
+
+buildifier(
+    name = "buildifier.check",
+    exclude_patterns = [
+        "./.git/*",
+        "./.ijwb/*",
+    ],
+    lint_mode = "warn",
+    lint_warnings = [
+        "+unsorted-dict-items",
+        "-confusing-name",
+        "-constant-glob",
+        "-duplicated-name",
+        "-function-docstring",
+        "-function-docstring-args",
+        "-function-docstring-header",
+        "-module-docstring",
+        "-name-conventions",
+        "-no-effect",
+        "-constant-glob",
+        "-provider-params",
+        "-print",
+        "-rule-impl-return",
+        "-bzl-visibility",
+        "-unnamed-macro",
+        "-uninitialized",
+        "-unreachable",
+    ],
+)
+
+buildifier(
+    name = "buildifier.fix",
+    exclude_patterns = [
+        "./.git/*",
+    ],
+    lint_mode = "fix",
+    lint_warnings = [
+        "+unsorted-dict-items",
+    ],
 )

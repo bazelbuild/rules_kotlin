@@ -1,5 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library", "java_plugin")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -74,14 +74,6 @@ java_binary(
     runtime_deps = ["@kotlin_rules_maven//:org_pantsbuild_jarjar"],
 )
 
-# TODO(bazelbuild/rules_kotlin/issues/273): Remove android_sdk import.
-java_import(
-    name = "android_sdk",
-    jars = ["@rules_android//tools/android:android_jar"],
-    neverlink = 1,
-    visibility = ["//visibility:public"],
-)
-
 bzl_library(
     name = "bzl",
     srcs = [
@@ -99,7 +91,7 @@ release_archive(
         "java_stub_template.txt",
     ],
     src_map = {
-        "jarjar_runner_deploy.jar": "jarjar.jar",
         "BUILD.release.bazel": "BUILD.bazel",
+        "jarjar_runner_deploy.jar": "jarjar.jar",
     },
 )

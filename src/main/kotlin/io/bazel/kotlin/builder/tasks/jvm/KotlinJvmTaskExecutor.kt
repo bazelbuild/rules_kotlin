@@ -33,7 +33,7 @@ const val X_FRIENDS_PATH_SEPARATOR = ","
 class KotlinJvmTaskExecutor
   @Inject
   internal constructor(
-    private val compiler: KotlinToolchain.KotlincInvoker,
+    private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
     private val plugins: InternalCompilerPlugins,
   ) {
     private fun combine(
@@ -54,6 +54,8 @@ class KotlinJvmTaskExecutor
       context: CompilationTaskContext,
       task: JvmCompilationTask,
     ) {
+      val compiler = compilerBuilder.build(context.info.buildToolsApi)
+
       val preprocessedTask =
         task
           .preProcessingSteps(context)
@@ -92,6 +94,9 @@ class KotlinJvmTaskExecutor
                             }
                             if (info.removePrivateClassesInAbiJar) {
                               flag("removePrivateClasses", "true")
+                            }
+                            if (info.removeDebugInfo) {
+                              flag("removeDebugInfo", "true")
                             }
                           }
                           given(outputs.jar).empty {
@@ -144,6 +149,9 @@ class KotlinJvmTaskExecutor
           }
           if (outputs.generatedKspSrcJar.isNotEmpty()) {
             context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
+          }
+          if (outputs.generatedKspClassesJar.isNotEmpty()) {
+            context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
           }
         }
       }
