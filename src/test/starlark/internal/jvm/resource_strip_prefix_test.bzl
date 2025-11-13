@@ -17,8 +17,6 @@ def _strip_resource_prefix_test_impl(ctx):
 
     arguments = file_write_actions[0].content
 
-    print("chuj " + arguments)
-
     pkg = ctx.attr.pkg
 
     # The only line should be of the form:
