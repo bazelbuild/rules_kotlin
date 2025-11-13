@@ -27,6 +27,9 @@ kt_jvm_test(
 kt_jvm_library(
     name = "WorkerEnvironment",
     srcs = ["WorkerEnvironment.kt"],
+    deps = [
+        "//src/main/kotlin/io/bazel/worker:worker_protocol_java_proto",
+    ],
 )
 
 kt_jvm_test(
