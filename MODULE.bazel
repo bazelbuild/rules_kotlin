@@ -16,10 +16,10 @@ bazel_dep(name = "rules_python", version = "0.23.1")
 bazel_dep(name = "rules_android", version = "0.6.4")
 bazel_dep(name = "bazel_features", version = "1.25.0")
 bazel_dep(name = "rules_shell", version = "0.4.1")
+bazel_dep(name = "bazel_worker_api", version = "0.0.6")
+bazel_dep(name = "bazel_worker_java", version = "0.0.6")
 
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2", dev_dependency = True)
-bazel_dep(name = "bazel_worker_api", version = "0.0.4")
-bazel_dep(name = "bazel_worker_java", version = "0.0.4")
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
@@ -60,10 +60,12 @@ maven.install(
     name = "kotlin_rules_maven",
     artifacts = [
         "com.google.code.findbugs:jsr305:3.0.2",
+        "com.google.code.gson:gson:2.10.1",
+        "com.google.errorprone:error_prone_annotations:2.23.0",
         "junit:junit:4.13-beta-3",
         "com.google.protobuf:protobuf-java:4.29.0",
         "com.google.protobuf:protobuf-java-util:4.29.0",
-        "com.google.guava:guava:27.1-jre",
+        "com.google.guava:guava:33.0.0-jre",
         "com.google.truth:truth:0.45",
         "com.google.auto.service:auto-service:1.1.1",
         "com.google.auto.service:auto-service-annotations:1.1.1",
