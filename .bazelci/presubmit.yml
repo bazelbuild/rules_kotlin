@@ -37,6 +37,8 @@ tasks:
     test_flags: ${{ integration_shard_flags }}
     test_targets:
       - //examples:all
+    environment:
+      ANDROID_NDK_HOME: /opt/android-ndk-r25b
   rbe_ubuntu2404:
     test_targets:
       - "--"

@@ -17,3 +17,6 @@ INFO: Elapsed time: 0.771s, Critical Path: 0.00s
 INFO: 1 process: 1 internal.
 INFO: Build completed successfully, 1 total action
 ```
+
+## Installing
+`$ bazel mobile-install //app:compose_example_app --android_platforms=//:arm64-v8a -- --launch_activity=cm.ben.android.bazel.compose.example.ui.MainActivity`

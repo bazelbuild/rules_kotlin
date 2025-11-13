@@ -1,0 +1,8 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary")
+
+kt_jvm_binary(
+    name = "main",
+    srcs = glob(["*.kt"]),
+    main_class = "MainKt",
+    deps = ["@nested//:printer"],
+)
