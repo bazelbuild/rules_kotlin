@@ -9,11 +9,6 @@ alias(
     actual = "@bazel_tools//src/main/protobuf:deps_java_proto",
 )
 
-alias(
-    name = "worker_protocol_java_proto",
-    actual = "@bazel_tools//src/main/protobuf:worker_protocol_java_proto",
-)
-
 proto_library(
     name = "kotlin_model_proto",
     srcs = [":kotlin_model.proto"],
@@ -30,6 +25,5 @@ java_library(
     exports = [
         ":deps_java_proto",
         ":kotlin_model_java_proto",
-        ":worker_protocol_java_proto",
     ],
 )

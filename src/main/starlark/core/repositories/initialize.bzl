@@ -22,6 +22,7 @@ load(
 )
 load(":setup.bzl", "kt_configure")
 load(":versions.bzl", _versions = "versions")
+load(":workspace_compat.bzl", "workspace_compat")
 
 # exports
 versions = _versions
@@ -39,4 +40,5 @@ def kotlin_repositories(
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
     _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_release = compiler_release, ksp_compiler_release = ksp_compiler_release)
+    workspace_compat()
     kt_configure()
