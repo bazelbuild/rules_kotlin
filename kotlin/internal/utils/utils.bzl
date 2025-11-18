@@ -21,7 +21,9 @@ def _derive_module_name(ctx):
 
 def _init_builder_args(ctx, rule_kind, module_name, kotlinc_options = None):
     """Initialize an arg object for a task that will be executed by the Kotlin Builder."""
-    toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
+
+    # TODO: workaround until inline, ctx = kctx for all calls
+    toolchain = ctx.toolchains.kt
 
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
