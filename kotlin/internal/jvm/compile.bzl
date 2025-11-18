@@ -469,6 +469,8 @@ def _run_kt_builder_action(
     args.add_all("--kotlin_friend_paths", kctx.compile_deps.associate_jars, omit_if_empty = True)
     args.add("--instrument_coverage", kctx.coverage_instrumented)
 
+    plugins = _new_plugins_from(kctx.plugins + _exported_plugins(kctx.deps))
+
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(
         "--processors",
@@ -488,26 +490,26 @@ def _run_kt_builder_action(
 
     args.add_all(
         "--stubs_plugin_classpath",
-        kctx.plugins.stubs_phase.classpath,
+        plugins.stubs_phase.classpath,
         omit_if_empty = True,
     )
 
     args.add_all(
         "--stubs_plugin_options",
-        kctx.plugins.stubs_phase.options,
+        plugins.stubs_phase.options,
         map_each = _format_compile_plugin_options,
         omit_if_empty = True,
     )
 
     args.add_all(
         "--compiler_plugin_classpath",
-        kctx.plugins.compile_phase.classpath,
+        plugins.compile_phase.classpath,
         omit_if_empty = True,
     )
 
     args.add_all(
         "--compiler_plugin_options",
-        kctx.plugins.compile_phase.options,
+        plugins.compile_phase.options,
         map_each = _format_compile_plugin_options,
         omit_if_empty = True,
     )
@@ -548,8 +550,8 @@ def _run_kt_builder_action(
                 kctx.compile_deps.compile_jars,
                 kctx.transitive_runtime_jars,
                 kctx.deps_artifacts,
-                kctx.plugins.stubs_phase.classpath,
-                kctx.plugins.compile_phase.classpath,
+                plugins.stubs_phase.classpath,
+                plugins.compile_phase.classpath,
             ],
         ),
         tools = [
@@ -602,7 +604,6 @@ def _kt_compilation_ctx(
         raw_ctx_do_not_use = ctx,  # TODO: workaround for java_common.compile
         actions = ctx.actions,
         attr = struct(
-            plugins = plugins,  # TODO: workaround to not change semantics atm
             tags = ctx.attr.tags,  # TODO: do not depend on current tags
         ),
         label = ctx.label,  # TODO: do not depend on current label name
@@ -611,8 +612,9 @@ def _kt_compilation_ctx(
         kotlinc_options = kotlinc_options or toolchains.kt.kotlinc_options,
         javac_options = javac_options or toolchains.kt.javac_options,
         srcs = _partitioned_srcs(srcs),
-        transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + deps),
-        plugins = _new_plugins_from(plugins + _exported_plugins(deps)),
+        deps = deps,
+        plugins = plugins, 
+        transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(plugins + deps),
         deps_artifacts = _deps_artifacts(toolchains, deps + associates),
         compile_deps = compile_deps,
         coverage_instrumented = ctx.coverage_instrumented(),
@@ -882,12 +884,12 @@ def _run_kt_java_builder_actions(
     # Build Java
     # If there is Java source or KAPT/KSP generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
-    ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(kctx.attr.plugins)
+    ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(kctx.plugins)
     if kctx.srcs.java or generated_kapt_src_jars or kctx.srcs.src_jars or ksp_generated_java_src_jars:
         javac_opts = javac_options_to_flags(kctx.javac_options)
         javac_opts.extend([
             flag
-            for plugin in kctx.attr.plugins
+            for plugin in kctx.plugins
             if JavacOptions in plugin
             for flag in javac_options_to_flags(plugin[JavacOptions])
         ])
@@ -901,9 +903,9 @@ def _run_kt_java_builder_actions(
             source_files = kctx.srcs.java,
             source_jars = generated_kapt_src_jars + kctx.srcs.src_jars + generated_ksp_src_jars,
             output = kctx.actions.declare_file(kctx.label.name + "-java.jar"),
-            deps = kctx.compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in kctx.attr.plugins if JavaInfo in p],
+            deps = kctx.compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in kctx.plugins if JavaInfo in p],
             java_toolchain = kctx.toolchains.java,
-            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(kctx.attr.plugins),
+            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(kctx.plugins),
             javac_opts = javac_opts,
             neverlink = kctx.neverlink,
             strict_deps = kctx.toolchains.kt.experimental_strict_kotlin_deps,
