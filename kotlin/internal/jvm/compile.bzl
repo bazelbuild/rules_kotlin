@@ -384,56 +384,43 @@ def _run_merge_jdeps_action(kctx, jdeps, outputs):
         toolchain = _TOOLCHAIN_TYPE,
     )
 
-def _run_kapt_builder_actions(kctx, annotation_processors):
-    """Runs KAPT using the KotlinBuilder tool
-    Returns:
-        A struct containing KAPT outputs
-    """
-    ap_generated_src_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-gensrc.jar")
-    kapt_generated_stub_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-generated-stub.jar")
-    kapt_generated_class_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-generated-class.jar")
-
+def _run_kapt_builder_actions(
+        kctx,
+        annotation_processors,
+        generated_java_srcjar,
+        generated_class_jar,
+        generated_stub_jar):
+    """Runs KAPT using the KotlinBuilder tool."""
     _run_kt_builder_action(
         kctx,
         generated_src_jars = [],
         annotation_processors = annotation_processors,
         outputs = {
-            "generated_java_srcjar": ap_generated_src_jar,
-            "kapt_generated_class_jar": kapt_generated_class_jar,
-            "kapt_generated_stub_jar": kapt_generated_stub_jar,
+            "generated_java_srcjar": generated_java_srcjar,
+            "kapt_generated_class_jar": generated_class_jar,
+            "kapt_generated_stub_jar": generated_stub_jar,
         },
         build_kotlin = False,
         mnemonic = "KotlinKapt",
     )
 
-    return struct(
-        ap_generated_src_jar = ap_generated_src_jar,
-        kapt_generated_stub_jar = kapt_generated_stub_jar,
-        kapt_generated_class_jar = kapt_generated_class_jar,
-    )
-
-def _run_ksp_builder_actions(kctx, annotation_processors):
-    """Runs KSP using the KotlinBuilder tool
-
-    Returns:
-        A struct containing KSP outputs
-    """
-    ksp_generated_java_srcjar = kctx.actions.declare_file(kctx.label.name + "-ksp-kt-gensrc.jar")
-    ksp_generated_classes_jar = kctx.actions.declare_file(kctx.label.name + "-ksp-kt-genclasses.jar")
-
+def _run_ksp_builder_actions(
+        kctx,
+        annotation_processors,
+        generated_java_srcjar,
+        generated_class_jar):
+    """Runs KSP using the KotlinBuilder tool."""
     _run_kt_builder_action(
         kctx,
         generated_src_jars = [],
         outputs = {
-            "ksp_generated_classes_jar": ksp_generated_classes_jar,
-            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
+            "ksp_generated_classes_jar": generated_class_jar,
+            "ksp_generated_java_srcjar": generated_java_srcjar,
         },
         build_kotlin = False,
         annotation_processors = annotation_processors,
         mnemonic = "KotlinKsp",
     )
-
-    return struct(ksp_generated_class_jar = ksp_generated_classes_jar, ksp_generated_src_jar = ksp_generated_java_srcjar)
 
 def _run_kt_builder_action(
         kctx,
@@ -813,13 +800,23 @@ def _run_kt_java_builder_actions(
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
-        kapt_outputs = _run_kapt_builder_actions(kctx, annotation_processors)
-        generated_kapt_src_jars.append(kapt_outputs.ap_generated_src_jar)
-        output_jars.append(kapt_outputs.kapt_generated_class_jar)
+        kapt_generated_src_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-gensrc.jar")
+        kapt_generated_stub_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-generated-stub.jar")
+        kapt_generated_class_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-generated-class.jar")
+        _run_kapt_builder_actions(
+            kctx,
+            annotation_processors = annotation_processors,
+            generated_java_srcjar = kapt_generated_src_jar,
+            generated_stub_jar = kapt_generated_stub_jar,
+            generated_class_jar = kapt_generated_class_jar,
+        )
+
+        generated_kapt_src_jars.append(kapt_generated_src_jar)
+        output_jars.append(kapt_generated_class_jar)
         kt_stubs_for_java.append(
             JavaInfo(
-                compile_jar = kapt_outputs.kapt_generated_stub_jar,
-                output_jar = kapt_outputs.kapt_generated_stub_jar,
+                compile_jar = kapt_generated_stub_jar,
+                output_jar = kapt_generated_stub_jar,
                 neverlink = True,
             ),
         )
@@ -828,10 +825,16 @@ def _run_kt_java_builder_actions(
     ksp_generated_class_jar = None
     ksp_generated_src_jar = None
     if has_kt_sources and ksp_annotation_processors:
-        ksp_outputs = _run_ksp_builder_actions(kctx, ksp_annotation_processors)
-        ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
+        ksp_generated_src_jar = kctx.actions.declare_file(kctx.label.name + "-ksp-kt-gensrc.jar")
+        ksp_generated_class_jar = kctx.actions.declare_file(kctx.label.name + "-ksp-kt-genclasses.jar")
+        _run_ksp_builder_actions(
+            kctx,
+            annotation_processors = ksp_annotation_processors,
+            generated_java_srcjar = ksp_generated_src_jar,
+            generated_class_jar = ksp_generated_class_jar,
+        )
+
         output_jars.append(ksp_generated_class_jar)
-        ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
         generated_ksp_src_jars.append(ksp_generated_src_jar)
 
     java_infos = []
