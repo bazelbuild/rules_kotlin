@@ -135,7 +135,7 @@ def _kt_android_produce_jar_actions(
         toolchains = _compile.compiler_toolchains(ctx),
         associate_deps = associates,
         deps = deps,
-        deps_java_infos = android_java_infos,
+        additional_deps = android_java_infos,
         exports = exports,
         runtime_deps = runtime_deps,
     )

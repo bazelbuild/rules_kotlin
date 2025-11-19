@@ -54,9 +54,6 @@ def _collect_associates(ctx, toolchains, associate):
         abi_jars_set = abi_jars_set,
     )
 
-def _java_info(target):
-    return target[JavaInfo] if JavaInfo in target else None
-
 def _get_associates(ctx, toolchains, associates):
     """Creates a struct of associates meta data"""
     if not associates:
@@ -64,7 +61,7 @@ def _get_associates(ctx, toolchains, associates):
             module_name = _utils.derive_module_name(ctx),
             jars = depset(),
             abi_jar_set = _sets.new(),
-            dep_infos = [],
+            deps = [],
         )
     elif ctx.attr.module_name:
         fail("If associates have been set then module_name cannot be provided")
@@ -72,13 +69,13 @@ def _get_associates(ctx, toolchains, associates):
         jars = []
         abi_jar_set = {}
         module_names = []
-        java_infos = []
+        deps = []
         for a in associates:
             jar_bundle = _collect_associates(ctx = ctx, toolchains = toolchains, associate = a)
             jars.append(jar_bundle.jars)
             abi_jar_set = jar_bundle.abi_jars_set
             module_names.append(a[_KtJvmInfo].module_name)
-            java_infos.append(_java_info(a))
+            deps.append(a)
         module_names = list(_sets.copy_of(module_names))
 
         if len(module_names) > 1:
@@ -92,7 +89,7 @@ def _get_associates(ctx, toolchains, associates):
             jars = depset(transitive = jars),
             abi_jar_set = abi_jar_set,
             module_name = module_names[0],
-            dep_infos = java_infos,
+            deps = deps,
         )
 
 associate_utils = struct(
