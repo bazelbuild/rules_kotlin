@@ -436,8 +436,26 @@ def _run_kt_builder_action(
     if build_kotlin and annotation_processors:
         fail("Error: The `_run_kt_builder_action` should either be called to build or to process annotations~")
 
-    # TODO: inline this, only usage and requires workaround with ducktyping the kctx
-    args = _utils.init_args(kctx, kctx.rule_kind, kctx.compile_deps.module_name, kctx.kotlinc_options)
+    args = kctx.actions.args()
+    args.set_param_file_format("multiline")
+    args.use_param_file("--flagfile=%s", use_always = True)
+
+    args.add("--target_label", kctx.label)
+    args.add("--rule_kind", kctx.rule_kind)
+    args.add("--kotlin_module_name", kctx.compile_deps.module_name)
+
+    kotlin_jvm_target = kctx.kotlinc_options.jvm_target if (kctx.kotlinc_options and kctx.kotlinc_options.jvm_target) else kctx.toolchains.kt.jvm_target
+    args.add("--kotlin_jvm_target", kotlin_jvm_target)
+    args.add("--kotlin_api_version", kctx.toolchains.kt.api_version)
+    args.add("--kotlin_language_version", kctx.toolchains.kt.language_version)
+
+    debug = kctx.toolchains.kt.debug
+    for tag in kctx.attr.tags:
+        if tag == "trace":
+            debug = debug + [tag]
+        if tag == "timings":
+            debug = debug + [tag]
+    args.add_all("--kotlin_debug_tags", debug, omit_if_empty = False)
 
     for f, path in outputs.items():
         args.add("--" + f, path)
@@ -600,7 +618,7 @@ def _kt_compilation_ctx(
         javac_options = javac_options or toolchains.kt.javac_options,
         srcs = _partitioned_srcs(srcs),
         deps = deps,
-        plugins = plugins, 
+        plugins = plugins,
         transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(plugins + deps),
         deps_artifacts = _deps_artifacts(toolchains, deps + associates),
         compile_deps = compile_deps,
