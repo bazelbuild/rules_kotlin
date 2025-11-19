@@ -627,6 +627,7 @@ def _kt_compilation_ctx(
         deps,
         associates,
         plugins,
+        resource_jars,
         neverlink):
     """
     Creates a new compilation context. The context stores all data that needs
@@ -663,6 +664,7 @@ def _kt_compilation_ctx(
         coverage_instrumented = ctx.coverage_instrumented(),
         target_cpu = ctx.var.get("TARGET_CPU", "UNKNOWN CPU"),  # required for progress message, worth the dependency?
         workspace_name = ctx.workspace_name,  # required for kotlin builder's REPOSITORY_NAME env variable
+        resource_jars = resource_jars,
         neverlink = neverlink,
     )
 
@@ -715,6 +717,12 @@ def _kt_jvm_produce_output_jar_actions(
         A struct containing the providers JavaInfo (`java`) and `kt` (KtJvmInfo). This struct is not intended to be
         used as a legacy provider -- rather the caller should transform the result.
     """
+    extrea_resource_jars = []
+
+    # If this rule has any resources declared setup a zipper action to turn them into a jar.
+    if len(ctx.files.resources) + len(extra_resources) > 0:
+        extrea_resource_jars.append(_build_resourcejar_action(ctx, extra_resources))
+
     kctx = _kt_compilation_ctx(
         ctx,
         rule_kind = rule_kind,
@@ -728,6 +736,7 @@ def _kt_jvm_produce_output_jar_actions(
         associates = ctx.attr.associates,
         plugins = ctx.attr.plugins,
         compile_deps = compile_deps,
+        resource_jars = ctx.files.resource_jars + extrea_resource_jars,
         neverlink = getattr(ctx.attr, "neverlink", False),
     )
 
@@ -748,25 +757,11 @@ def _kt_jvm_produce_output_jar_actions(
         annotation_processors = annotation_processors,
         ksp_annotation_processors = ksp_annotation_processors,
         compile_jar = compile_jar,
+        output_jar = outputs.jar,
         output_jdeps = output_jdeps,
     )
-    output_jars = outputs_struct.output_jars
     generated_src_jars = outputs_struct.generated_src_jars
     annotation_processing = outputs_struct.annotation_processing
-
-    # If this rule has any resources declared setup a zipper action to turn them into a jar.
-    if len(ctx.files.resources) + len(extra_resources) > 0:
-        output_jars.append(_build_resourcejar_action(ctx, extra_resources))
-    output_jars.extend(ctx.files.resource_jars)
-
-    # Merge outputs into final runtime jar.
-    output_jar = outputs.jar
-    _fold_jars_action(
-        kctx,
-        output_jar = output_jar,
-        action_type = "Runtime",
-        input_jars = output_jars,
-    )
 
     source_jar = java_common.pack_sources(
         ctx.actions,
@@ -788,7 +783,7 @@ def _kt_jvm_produce_output_jar_actions(
         generated_class_jar = annotation_processing.class_jar
 
     java_info = JavaInfo(
-        output_jar = output_jar,
+        output_jar = outputs.jar,
         compile_jar = compile_jar,
         source_jar = source_jar,
         jdeps = output_jdeps,
@@ -823,7 +818,7 @@ def _kt_jvm_produce_output_jar_actions(
             outputs = struct(
                 jdeps = output_jdeps,
                 jars = [struct(
-                    class_jar = output_jar,
+                    class_jar = outputs.jar,
                     ijar = compile_jar,
                     source_jars = [source_jar],
                 )],
@@ -832,7 +827,7 @@ def _kt_jvm_produce_output_jar_actions(
             transitive_source_jars = java_info.transitive_source_jars,
             annotation_processing = annotation_processing,
             additional_generated_source_jars = generated_src_jars,
-            all_output_jars = output_jars,
+            all_output_jars = outputs.jar,
         ),
     )
 
@@ -843,6 +838,7 @@ def _run_kt_java_builder_actions(
         annotation_processors,
         ksp_annotation_processors,
         compile_jar,
+        output_jar,
         output_jdeps):
     """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 
@@ -989,6 +985,14 @@ def _run_kt_java_builder_actions(
         input_jars = compile_jars,
     )
 
+    # Merge outputs into final runtime jar.
+    _fold_jars_action(
+        kctx,
+        output_jar = output_jar,
+        action_type = "Runtime",
+        input_jars = output_jars + kctx.resource_jars,
+    )
+
     if kctx.toolchains.kt.jvm_emit_jdeps:
         jdeps = []
         for java_info in java_infos:
@@ -1020,7 +1024,6 @@ def _run_kt_java_builder_actions(
         )
 
     return struct(
-        output_jars = output_jars,
         generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
         annotation_processing = annotation_processing,
     )
