@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package src.test.data.jvm.ksp
+package coffee
 
-import com.squareup.moshi.JsonClass
+import javax.inject.Inject
 
-@JsonClass(generateAdapter = true)
-data class CoffeeAppModel(val id: Int)
+internal class Thermosiphon @Inject
+constructor(private val heater: Heater) : Pump {
+
+  override fun pump() {
+    if (heater.isHot) {
+      println("=> => pumping => =>")
+    }
+  }
+}

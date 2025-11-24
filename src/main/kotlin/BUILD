@@ -32,6 +32,12 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "tree_artifact_packager",
+    actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:package_tree_artifacts",
+    visibility = ["//visibility:public"],
+)
+
 release_archive(
     name = "pkg",
     srcs = [
@@ -42,6 +48,7 @@ release_archive(
     src_map = {
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:package_tree_artifacts_deploy.jar": "tree_artifact_packager_impl.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
     deps = [

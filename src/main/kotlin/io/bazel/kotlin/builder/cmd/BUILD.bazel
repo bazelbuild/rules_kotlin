@@ -1,3 +1,4 @@
+load("@rules_java//java:java_binary.bzl", "java_binary")
 load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
 
@@ -19,8 +20,6 @@ kt_bootstrap_binary(
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-compiler",
-        "//kotlin/compiler:symbol-processing-api",
-        "//kotlin/compiler:symbol-processing-cmdline",
         "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
@@ -41,8 +40,6 @@ kt_bootstrap_binary(
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar)",
-        "-D@com_github_google_ksp...symbol-processing-api=$(rlocationpath //kotlin/compiler:symbol-processing-api)",
-        "-D@com_github_google_ksp...symbol-processing-cmdline=$(rlocationpath //kotlin/compiler:symbol-processing-cmdline)",
         "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
         "-XX:-MaxFDLimit",
     ],
@@ -74,4 +71,20 @@ kt_bootstrap_binary(
     shade_rules = "//src/main/kotlin:shade.jarjar",
     visibility = ["//src:__subpackages__"],
     runtime_deps = [":merge_jdeps_lib"],
+)
+
+kt_bootstrap_library(
+    name = "package_tree_artifacts_lib",
+    srcs = ["PackageTreeArtifacts.kt"],
+    visibility = ["//src:__subpackages__"],
+    deps = [],
+)
+
+# Simple java_binary for tree artifact packager (no shading needed for this standalone tool)
+java_binary(
+    name = "package_tree_artifacts",
+    data = _KOTLIN_STDLIBS,
+    main_class = "io.bazel.kotlin.builder.cmd.PackageTreeArtifactsKt",
+    visibility = ["//src:__subpackages__"],
+    runtime_deps = [":package_tree_artifacts_lib"] + _KOTLIN_STDLIBS,
 )

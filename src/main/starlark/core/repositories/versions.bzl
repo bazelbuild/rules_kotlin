@@ -81,11 +81,11 @@ versions = struct(
         sha256 = "a623871f1cd9c938946948b70ef9170879f0758043885bbd30c32f024e511714",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "2.2.21-2.0.4",
+        version = "2.3.2",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "6550f1117d7c9590cc9a5075b92682a218c8e1df4093d7e683d73cc481733dd1",
+        sha256 = "4eaca9be080685b68842d63bcf3e3786e5daea2d7e13e47f4bbf7a5f1238dc17",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
         version = "2.2.21",
@@ -137,6 +137,13 @@ versions = struct(
             "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/{version}/kotlinx-serialization-json-jvm-{version}.jar",
         ],
         sha256 = "8769e5647557e3700919c32d508f5c5dad53c5d8234cd10846354fbcff14aa24",
+    ),
+    KOTLINX_COROUTINES_CORE_JVM = version(
+        version = "1.10.2",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/{version}/kotlinx-coroutines-core-jvm-{version}.jar",
+        ],
+        sha256 = "5ca175b38df331fd64155b35cd8cae1251fa9ee369709b36d42e0a288ccce3fd",
     ),
     use_repository = _use_repository,
 )

@@ -34,8 +34,6 @@ def kt_rules_test(name, **kwargs):
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin:jdeps-gen",
-        "//kotlin/compiler:symbol-processing-api",
-        "//kotlin/compiler:symbol-processing-cmdline",
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-compiler",

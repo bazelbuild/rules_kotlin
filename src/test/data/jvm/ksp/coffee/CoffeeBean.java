@@ -1,4 +1,4 @@
-package src.test.data.jvm.ksp;
+package coffee;
 
 public class CoffeeBean {
     public Boolean isGood() {
