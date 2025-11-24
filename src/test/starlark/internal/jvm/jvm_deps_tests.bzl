@@ -239,17 +239,17 @@ def _abi_test(name, impl):
         impl = impl,
         target = name + "_subject",
         attr_values = {
-            "associate_jar": util.empty_file(name + "associate.jar"),
             "associate_abi_jar": util.empty_file(name + "associate_abi.jar"),
-            "direct_dep_jar": util.empty_file(name + "direct_dep.jar"),
+            "associate_jar": util.empty_file(name + "associate.jar"),
             "direct_dep_abi_jar": util.empty_file(name + "direct_dep_abi.jar"),
+            "direct_dep_jar": util.empty_file(name + "direct_dep.jar"),
             "jvm_jar": util.empty_file(name + "jvm.jar"),
         },
         attrs = {
-            "associate_jar": attr.label(allow_files = True),
             "associate_abi_jar": attr.label(allow_files = True),
-            "direct_dep_jar": attr.label(allow_files = True),
+            "associate_jar": attr.label(allow_files = True),
             "direct_dep_abi_jar": attr.label(allow_files = True),
+            "direct_dep_jar": attr.label(allow_files = True),
             "jvm_jar": attr.label(allow_files = True),
         },
     )
@@ -266,6 +266,113 @@ def _transitive_from_exports_test(name):
 def _transitive_from_associates_test(name):
     _abi_test(name, _transitive_from_associates_test_impl)
 
+def _dep_infos_ordering_test_impl(env, target):
+    """Test that user deps take precedence over stdlib in dep_infos ordering.
+
+    This is a regression test for https://github.com/bazelbuild/rules_kotlin/issues/1368
+    where the stdlib was placed first in the classpath, causing it to shadow user
+    dependencies with conflicting classes (e.g., org.jetbrains.annotations.NotNull).
+    """
+    user_dep_java_info = JavaInfo(
+        compile_jar = _file(env.ctx.attr.user_dep_jar),
+        output_jar = _file(env.ctx.attr.user_dep_jar),
+    )
+
+    associate_java_info = JavaInfo(
+        compile_jar = _file(env.ctx.attr.associate_jar),
+        output_jar = _file(env.ctx.attr.associate_jar),
+    )
+
+    stdlib_java_info = JavaInfo(
+        compile_jar = _file(env.ctx.attr.jvm_jar),
+        output_jar = _file(env.ctx.attr.jvm_jar),
+    )
+
+    associate_deps = [
+        {
+            JavaInfo: associate_java_info,
+            _KtJvmInfo: _KtJvmInfo(
+                module_name = "associate_name",
+            ),
+        },
+    ]
+
+    user_deps = [
+        {
+            JavaInfo: user_dep_java_info,
+        },
+    ]
+
+    fake_ctx = struct(
+        label = target.label,
+        attr = struct(
+            module_name = "",
+            tags = [],
+        ),
+    )
+
+    toolchains = struct(
+        kt = struct(
+            experimental_remove_private_classes_in_abi_jars = False,
+            experimental_prune_transitive_deps = False,
+            experimental_strict_associate_dependencies = False,
+            jvm_stdlibs = stdlib_java_info,
+        ),
+    )
+
+    result = _jvm_deps_utils.jvm_deps(
+        ctx = fake_ctx,
+        toolchains = toolchains,
+        associate_deps = associate_deps,
+        deps = user_deps,
+    )
+
+    # Assert the ordering: result.deps should be [user_deps, associates, stdlib]
+    env.expect.that_int(len(result.deps)).equals(3)
+
+    # Verify compile_jars contains all deps in correct order
+    classpath_list = result.compile_jars.to_list()
+    user_dep_file = _file(env.ctx.attr.user_dep_jar)
+    stdlib_file = _file(env.ctx.attr.jvm_jar)
+
+    # Find indices of user dep and stdlib in classpath
+    user_dep_idx = -1
+    stdlib_idx = -1
+    for idx, jar in enumerate(classpath_list):
+        if jar == user_dep_file:
+            user_dep_idx = idx
+        if jar == stdlib_file:
+            stdlib_idx = idx
+
+    # Both should be found
+    env.expect.that_bool(user_dep_idx >= 0).equals(True)
+    env.expect.that_bool(stdlib_idx >= 0).equals(True)
+
+    # User dep should come before stdlib in the classpath
+    env.expect.that_bool(user_dep_idx < stdlib_idx).equals(True)
+
+def _dep_infos_ordering_test(name):
+    util.helper_target(
+        native.filegroup,
+        name = name + "_subject",
+        srcs = [],
+    )
+    analysis_test(
+        name = name,
+        impl = _dep_infos_ordering_test_impl,
+        target = name + "_subject",
+        attr_values = {
+            "associate_jar": util.empty_file(name + "associate.jar"),
+            "jvm_jar": util.empty_file(name + "jvm.jar"),
+            "user_dep_jar": util.empty_file(name + "user_dep.jar"),
+        },
+        attrs = {
+            "associate_jar": attr.label(allow_files = True),
+            "jvm_jar": attr.label(allow_files = True),
+            "user_dep_jar": attr.label(allow_files = True),
+        },
+    )
+
 def jvm_deps_test_suite(name):
     test_suite(
         name,
@@ -274,5 +381,6 @@ def jvm_deps_test_suite(name):
             _fat_abi_test,
             _transitive_from_exports_test,
             _transitive_from_associates_test,
+            _dep_infos_ordering_test,
         ],
     )

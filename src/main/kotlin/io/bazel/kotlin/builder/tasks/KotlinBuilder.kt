@@ -80,6 +80,7 @@ class KotlinBuilder
         ABI_JAR("--abi_jar"),
         ABI_JAR_INTERNAL_AS_PRIVATE("--treat_internal_as_private_in_abi_jar"),
         ABI_JAR_REMOVE_PRIVATE_CLASSES("--remove_private_classes_in_abi_jar"),
+        ABI_JAR_REMOVE_DEBUG_INFO("--remove_debug_info_in_abi_jar"),
         GENERATED_JAVA_SRC_JAR("--generated_java_srcjar"),
         GENERATED_JAVA_STUB_JAR("--kapt_generated_stub_jar"),
         GENERATED_CLASS_JAR("--kapt_generated_class_jar"),
@@ -88,6 +89,7 @@ class KotlinBuilder
         REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
         INSTRUMENT_COVERAGE("--instrument_coverage"),
         KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
+        KSP_GENERATED_CLASSES_JAR("--ksp_generated_classes_jar"),
         BUILD_TOOLS_API("--build_tools_api"),
         INCREMENTAL_COMPILATION("--incremental_compilation"),
       }
@@ -103,7 +105,9 @@ class KotlinBuilder
       try {
         @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
         when (compileContext.info.platform) {
-          Platform.JVM -> executeJvmTask(compileContext, taskContext.directory, argMap)
+          Platform.JVM,
+          Platform.ANDROID,
+          -> executeJvmTask(compileContext, taskContext.directory, argMap)
           Platform.UNRECOGNIZED -> throw IllegalStateException(
             "unrecognized platform: ${compileContext.info}",
           )
@@ -142,16 +146,11 @@ class KotlinBuilder
         addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
 
         label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
-        argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).split("_").also {
-          check(it.size == 3 && it[0] == "kt") { "invalid rule kind $it" }
-          platform =
-            checkNotNull(Platform.valueOf(it[1].uppercase())) {
-              "unrecognized platform ${it[1]}"
-            }
-          ruleKind =
-            checkNotNull(RuleKind.valueOf(it[2].uppercase())) {
-              "unrecognized rule kind ${it[2]}"
-            }
+        argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).also {
+          val splitRuleKind = it.split("_")
+          require(splitRuleKind[0] == "kt") { "Invalid rule kind $it" }
+          platform = Platform.valueOf(splitRuleKind[1].uppercase())
+          ruleKind = RuleKind.valueOf(splitRuleKind.last().uppercase())
         }
         moduleName =
           argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
@@ -171,6 +170,9 @@ class KotlinBuilder
         }
         argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_PRIVATE_CLASSES)?.let {
           removePrivateClassesInAbiJar = it == "true"
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
+          removeDebugInfo = it == "true"
         }
         argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
           buildToolsApi = it == "true"
@@ -225,6 +227,9 @@ class KotlinBuilder
           }
           argMap.optionalSingle(KotlinBuilderFlags.KSP_GENERATED_JAVA_SRCJAR)?.let {
             generatedKspSrcJar = it
+          }
+          argMap.optionalSingle(KotlinBuilderFlags.KSP_GENERATED_CLASSES_JAR)?.let {
+            generatedKspClassesJar = it
           }
         }
 

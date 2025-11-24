@@ -3,10 +3,10 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 version = provider(
     fields = {
-        "url_templates": "list of string templates with the placeholder {version}",
-        "version": "the version in the form \\D+.\\D+.\\D+(.*)",
         "sha256": "sha256 checksum for the version being downloaded.",
         "strip_prefix_template": "string template with the placeholder {version}.",
+        "url_templates": "list of string templates with the placeholder {version}",
+        "version": "the version in the form \\D+.\\D+.\\D+(.*)",
     },
 )
 
@@ -74,39 +74,39 @@ versions = struct(
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.1.21",
+        version = "2.2.21",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "1ba08a8b45da99339a0601134cc037b54cf85e9bc0edbe76dcbd27c2d684a977",
+        sha256 = "a623871f1cd9c938946948b70ef9170879f0758043885bbd30c32f024e511714",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "2.1.21-2.0.1",
+        version = "2.2.21-2.0.4",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "44e965bb067b2bb5cd9184dab2c3dea6e3eab747d341c07645bb4c88f09e49c8",
+        sha256 = "6550f1117d7c9590cc9a5075b92682a218c8e1df4093d7e683d73cc481733dd1",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.1.21",
+        version = "2.2.21",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
         ],
-        sha256 = "e6c7f18a3228f56ca91400a54ddad21e1d789a9f9a07263b560c8c95347c63cd",
+        sha256 = "458b63ef8fc50a0a3180fe688ec1b995745992a05c495dac61e58d1088927a80",
     ),
     KOTLIN_BUILD_TOOLS_API = version(
-        version = "2.1.21",
+        version = "2.2.21",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/{version}/kotlin-build-tools-api-{version}.jar",
         ],
-        sha256 = "06bb6b3671d4bc3ba74c0e0efabbdcd555ccc2d4cc2ef67cd309c5738c8d1e54",
+        sha256 = "31645ca52239b221ebd060a00fff8d8516ffdc88bbd9f4e4cd7ddb41a7068c70",
     ),
     KOTLIN_COMPILER_EMBEDDABLE = version(
-        version = "2.1.21",
+        version = "2.2.21",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/{version}/kotlin-compiler-embeddable-{version}.jar",
         ],
-        sha256 = "67a2e3673765f097725608cc7c843b0d8fdd94bd9af41327211361614aa57d49",
+        sha256 = "9588fa696ac5507af764fd5660df6894185e12704ec1bc3f5cb772af4987f295",
     ),
     RULES_ANDROID = version(
         version = "0.6.4",

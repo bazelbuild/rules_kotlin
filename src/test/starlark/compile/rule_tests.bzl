@@ -93,13 +93,21 @@ def _test_neverlink_deps(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
-                "source_jar": Want(
-                    attr = attr.label(allow_single_file = True),
-                    value = got + srcjar_ext,
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
                 ),
                 "inputs": Want(
                     attr = attr.label_list(allow_empty = True, allow_files = True),
                     value = [got_src, have],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [],
+                ),
+                "source_jar": Want(
+                    attr = attr.label(allow_single_file = True),
+                    value = got + srcjar_ext,
                 ),
                 "transitive_compile_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
@@ -109,26 +117,96 @@ def _test_neverlink_deps(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
                 ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [],
-                ),
             },
         )
 
     return _case
 
-def _test_deps_core(
+def _test_runfiles(
         rule_under_test,
         compile_mnemonic,
         srcjar_ext = ".srcjar",
         additional_compile_libs = [],
         **kwargs):
     def _case(test):
+        transitive_data_file = test.artifact("transitive_data.file")
+        transitive_data = test.have(
+            rule_under_test,
+            name = "transitive_data",
+            srcs = [],
+            deps = [],
+            data = [transitive_data_file],
+            **kwargs
+        )
+        data_file = test.artifact("data.file")
+        data = test.have(
+            rule_under_test,
+            name = "data",
+            srcs = [],
+            runtime_deps = [transitive_data],
+            data = [data_file],
+            **kwargs
+        )
+
+        got = test.got(
+            rule_under_test,
+            name = "got",
+            srcs = [
+                test.artifact("gave.kt"),
+            ],
+            deps = [
+                data,
+            ],
+            **kwargs
+        )
+        test.claim(
+            got = got,
+            what = _outputs,
+            wants = {
+                "class_jar": Want(
+                    attr = attr.label(allow_single_file = True),
+                    value = got + ".jar",
+                ),
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
+                ),
+                "inputs": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [data],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [
+                        data_file,
+                        transitive_data_file,
+                    ],
+                ),
+                "source_jar": Want(
+                    attr = attr.label(allow_single_file = True),
+                    value = got + srcjar_ext,
+                ),
+                "transitive_compile_deps": Want(
+                    attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
+                    value = [data, got] + additional_compile_libs,
+                ),
+                "transitive_runtime_deps": Want(
+                    attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
+                    value = [got],
+                ),
+            },
+        )
+
+    return _case
+
+def _test_deps(
+        rule_under_test,
+        compile_mnemonic,
+        srcjar_ext = ".srcjar",
+        additional_compile_libs = [],
+        **kwargs):
+    def _case(test):
+        have_data = test.artifact("some.file")
         have = test.have(
             rule_under_test,
             name = "have",
@@ -136,6 +214,9 @@ def _test_deps_core(
                 test.artifact("hold.kt"),
             ],
             deps = [
+            ],
+            data = [
+                have_data,
             ],
             **kwargs
         )
@@ -159,13 +240,23 @@ def _test_deps_core(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
-                "source_jar": Want(
-                    attr = attr.label(allow_single_file = True),
-                    value = got + srcjar_ext,
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
                 ),
                 "inputs": Want(
                     attr = attr.label_list(allow_empty = True, allow_files = True),
                     value = [have],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [
+                        have_data,
+                    ],
+                ),
+                "source_jar": Want(
+                    attr = attr.label(allow_single_file = True),
+                    value = got + srcjar_ext,
                 ),
                 "transitive_compile_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
@@ -174,14 +265,6 @@ def _test_deps_core(
                 "transitive_runtime_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
-                ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [],
                 ),
             },
         )
@@ -218,6 +301,18 @@ def _test_no_deps(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
+                ),
+                "inputs": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [have_src],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [have_data],
+                ),
                 "source_jar": Want(
                     attr = attr.label(allow_single_file = True),
                     value = got + srcjar_ext,
@@ -229,18 +324,6 @@ def _test_no_deps(
                 "transitive_runtime_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
-                ),
-                "inputs": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [have_src],
-                ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [have_data],
                 ),
             },
         )
@@ -298,6 +381,18 @@ def _test_exports(
                     attr = attr.label(allow_single_file = True),
                     value = got + ".jar",
                 ),
+                "compile_mnemonic": Want(
+                    attr = attr.string(),
+                    value = compile_mnemonic,
+                ),
+                "inputs": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [have_src, have_library],
+                ),
+                "runfiles": Want(
+                    attr = attr.label_list(allow_empty = True, allow_files = True),
+                    value = [have_data],
+                ),
                 "source_jar": Want(
                     attr = attr.label(allow_single_file = True),
                     value = got + srcjar_ext,
@@ -309,18 +404,6 @@ def _test_exports(
                 "transitive_runtime_deps": Want(
                     attr = attr.label_list(providers = [[JavaInfo], [KtJvmInfo]]),
                     value = [got],
-                ),
-                "inputs": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [have_src, have_library],
-                ),
-                "compile_mnemonic": Want(
-                    attr = attr.string(),
-                    value = compile_mnemonic,
-                ),
-                "runfiles": Want(
-                    attr = attr.label_list(allow_empty = True, allow_files = True),
-                    value = [have_data],
                 ),
             },
         )
@@ -338,13 +421,14 @@ def test_core():
         compile_mnemonic = COMPILE_MNEMONIC,
     )
     return dict(
-        test_deps_core_kt_jvm_binary = _test_deps_core(**binary),
+        test_deps_core_kt_jvm_binary = _test_deps(**binary),
         test_neverlink_deps_core_kt_jvm_binary = _test_neverlink_deps(**binary),
         test_no_deps_core_kt_jvm_binary = _test_no_deps(**binary),
-        test_deps_core_kt_jvm_library = _test_deps_core(**library),
+        test_deps_core_kt_jvm_library = _test_deps(**library),
         test_neverlink_deps_core_kt_jvm_library = _test_neverlink_deps(**library),
         test_no_deps_core_kt_jvm_library = _test_no_deps(**library),
         test_exports_core_kt_jvm_library = _test_exports(**library),
+        test_runfiles_core = _test_runfiles(**library),
     )
 
 def test_jvm():
@@ -360,10 +444,11 @@ def test_jvm():
         ],
     )
     return dict(
-        test_deps_kt_jvm_library = _test_deps_core(**library),
+        test_deps_kt_jvm_library = _test_deps(**library),
         test_neverlink_deps_kt_jvm_library = _test_neverlink_deps(**library),
         test_no_deps_kt_jvm_library = _test_no_deps(**library),
         test_exports_kt_jvm_library = _test_exports(**library),
+        test_runfiles = _test_runfiles(**library),
     )
 
 def test_suite(name):

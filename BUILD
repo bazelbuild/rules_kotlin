@@ -41,6 +41,7 @@ test_suite(
         "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests",
         "//src/test/kotlin/io/bazel/worker:worker_tests",
         "//src/test/starlark:convert_tests",
+        "//src/test/starlark:resource_strip_prefix_tests",
     ],
 )
 
@@ -52,6 +53,7 @@ test_suite(
         "//src/test/kotlin/io/bazel/kotlin:local_assertion_tests",
         "//src/test/kotlin/io/bazel/worker:local_worker_tests",
         "//src/test/starlark:convert_tests",
+        "//src/test/starlark:resource_strip_prefix_tests",
     ],
 )
 
@@ -87,9 +89,29 @@ buildifier(
     name = "buildifier.check",
     exclude_patterns = [
         "./.git/*",
+        "./.ijwb/*",
     ],
     lint_mode = "warn",
-    mode = "diff",
+    lint_warnings = [
+        "+unsorted-dict-items",
+        "-confusing-name",
+        "-constant-glob",
+        "-duplicated-name",
+        "-function-docstring",
+        "-function-docstring-args",
+        "-function-docstring-header",
+        "-module-docstring",
+        "-name-conventions",
+        "-no-effect",
+        "-constant-glob",
+        "-provider-params",
+        "-print",
+        "-rule-impl-return",
+        "-bzl-visibility",
+        "-unnamed-macro",
+        "-uninitialized",
+        "-unreachable",
+    ],
 )
 
 buildifier(
@@ -98,4 +120,7 @@ buildifier(
         "./.git/*",
     ],
     lint_mode = "fix",
+    lint_warnings = [
+        "+unsorted-dict-items",
+    ],
 )

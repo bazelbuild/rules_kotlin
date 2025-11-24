@@ -32,4 +32,13 @@ object JdepsGenConfigurationKeys {
     CompilerConfigurationKey.create(
       JdepsGenCommandLineProcessor.DIRECT_DEPENDENCIES_OPTION.description,
     )
+
+  /**
+   * Full classpath used for compilation (includes all transitive dependencies and stdlib).
+   * Used for mapping canonical filesystem paths back to original classpath paths.
+   */
+  val FULL_CLASSPATH: CompilerConfigurationKey<List<String>> =
+    CompilerConfigurationKey.create(
+      JdepsGenCommandLineProcessor.FULL_CLASSPATH_OPTION.description,
+    )
 }

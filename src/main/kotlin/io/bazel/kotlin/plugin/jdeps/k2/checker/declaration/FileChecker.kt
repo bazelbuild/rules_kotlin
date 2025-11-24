@@ -22,11 +22,8 @@ import org.jetbrains.kotlin.name.ClassId
 internal class FileChecker(
   private val classUsageRecorder: ClassUsageRecorder,
 ) : FirFileChecker(MppCheckerKind.Common) {
-  override fun check(
-    declaration: FirFile,
-    context: CheckerContext,
-    reporter: DiagnosticReporter,
-  ) {
+  context(context: CheckerContext, reporter: DiagnosticReporter)
+  override fun check(declaration: FirFile) {
     declaration.imports.filterIsInstance<FirResolvedImport>().forEach { import ->
       // check for classlike import (class, interface, object, enum, annotation, etc)
       if (import.resolvesToClass(context)) {

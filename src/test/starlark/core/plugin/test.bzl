@@ -94,16 +94,16 @@ def _test_kt_plugin_cfg(test):
         impl = _provider_test_impl,
         target = cfg,
         attr_values = {
-            "want_plugin": plugin,
             "want_deps": [cfg_dep],
             "want_options": [
                 "extra=annotation",
             ],
+            "want_plugin": plugin,
         },
         attrs = {
-            "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
-            "want_options": attr.string_list(),
             "want_deps": attr.label_list(providers = [JavaInfo]),
+            "want_options": attr.string_list(),
+            "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
         },
     )
 
@@ -179,6 +179,118 @@ def _test_compile_configuration(test):
             "want_inputs": [
                 plugin_jar,
                 dep_jar,
+            ],
+        },
+        attrs = {
+            "on_action_mnemonic": attr.string(),
+            "want_flags": attr.string_list_dict(),
+            "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
+        },
+    )
+
+def _test_compile_multiple_configurations(test):
+    plugin_jar = test.artifact(
+        name = "plugin.jar",
+    )
+
+    plugin = test.have(
+        kt_compiler_plugin,
+        name = "plugin",
+        id = "test.stub",
+        options = {
+            "annotation": "plugin.StubForTesting",
+        },
+        deps = [
+            test.have(
+                kt_jvm_import,
+                name = "plugin_jar",
+                jars = [
+                    plugin_jar,
+                ],
+            ),
+        ],
+    )
+
+    dep_a_jar = test.artifact(
+        name = "a_dep.jar",
+    )
+    dep_b_jar = test.artifact(
+        name = "b_dep.jar",
+    )
+
+    cfg_a = test.have(
+        kt_plugin_cfg,
+        name = "cfg_a",
+        plugin = plugin,
+        options = {
+            "-Dop": ["koo"],
+        },
+        deps = [
+            test.have(
+                kt_jvm_import,
+                name = "dep_a_jar",
+                jars = [
+                    dep_a_jar,
+                ],
+            ),
+        ],
+    )
+
+    cfg_b = test.have(
+        kt_plugin_cfg,
+        name = "cfg_b",
+        plugin = plugin,
+        options = {
+            "-Dop": ["zubzub"],
+        },
+        deps = [
+            test.have(
+                kt_jvm_import,
+                name = "dep_b_jar",
+                jars = [
+                    dep_b_jar,
+                ],
+            ),
+        ],
+    )
+
+    got = test.got(
+        kt_jvm_library,
+        name = "got_library",
+        srcs = [
+            test.artifact(
+                name = "got_library.kt",
+            ),
+        ],
+        plugins = [
+            plugin,
+            cfg_a,
+            cfg_b,
+        ],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _action_test_impl,
+        target = got,
+        attr_values = {
+            "on_action_mnemonic": "KotlinCompile",
+            "want_flags": {
+                "--compiler_plugin_options": [
+                    "test.stub:annotation=plugin.StubForTesting",
+                    "test.stub:-Dop=koo",
+                    "test.stub:-Dop=zubzub",
+                ],
+                "--stubs_plugin_options": [
+                    "test.stub:annotation=plugin.StubForTesting",
+                    "test.stub:-Dop=koo",
+                    "test.stub:-Dop=zubzub",
+                ],
+            },
+            "want_inputs": [
+                plugin_jar,
+                dep_a_jar,
+                dep_b_jar,
             ],
         },
         attrs = {
@@ -327,49 +439,6 @@ def _test_library_multiple_plugins_with_same_id(test):
         },
     )
 
-def _test_cfg_without_plugin(test):
-    adee, _ = plugin_for(
-        test,
-        name = "Adee",
-        id = "adee.see",
-    )
-    adee_cfg = test.have(
-        kt_plugin_cfg,
-        name = "adee_cfg",
-        plugin = adee,
-        options = {
-            "-Dop": ["compile_only"],
-        },
-    )
-
-    got = test.got(
-        kt_jvm_library,
-        name = "got_library",
-        srcs = [
-            test.artifact(
-                name = "got_library.kt",
-            ),
-        ],
-        plugins = [
-            adee_cfg,
-        ],
-    )
-
-    analysis_test(
-        name = test.name,
-        impl = _expect_failure,
-        expect_failure = True,
-        target = got,
-        attr_values = {
-            "want_failures": [
-                "has plugin configurations without corresponding plugins: [\"%s: adee.see\"]" % Label(adee_cfg),
-            ],
-        },
-        attrs = {
-            "want_failures": attr.string_list(),
-        },
-    )
-
 def test_suite(name):
     suite(
         name,
@@ -377,5 +446,5 @@ def test_suite(name):
         test_compile_configuration = _test_compile_configuration,
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
-        test_cfg_without_plugin = _test_cfg_without_plugin,
+        test_compile_multiple_configurations = _test_compile_multiple_configurations,
     )

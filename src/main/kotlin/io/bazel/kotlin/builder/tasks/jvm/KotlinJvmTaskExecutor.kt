@@ -63,7 +63,7 @@ class KotlinJvmTaskExecutor
 
       context.execute("compile classes") {
         preprocessedTask.apply {
-          sequenceOf(
+          listOf(
             runCatching {
               if (context.info.incrementalCompilation) {
                 context.execute("create classpath snapshots", ::createClasspathSnapshots)
@@ -83,6 +83,9 @@ class KotlinJvmTaskExecutor
                             inputs.directDependenciesList.forEach {
                               flag("direct_dependencies", it)
                             }
+                            inputs.classpathList.forEach {
+                              flag("full_classpath", it)
+                            }
                             flag("strict_kotlin_deps", info.strictKotlinDeps)
                           }
                         }.given(outputs.jar)
@@ -97,6 +100,9 @@ class KotlinJvmTaskExecutor
                             }
                             if (info.removePrivateClassesInAbiJar) {
                               flag("removePrivateClasses", "true")
+                            }
+                            if (info.removeDebugInfo) {
+                              flag("removeDebugInfo", "true")
                             }
                           }
                           given(outputs.jar).empty {
@@ -149,6 +155,9 @@ class KotlinJvmTaskExecutor
           }
           if (outputs.generatedKspSrcJar.isNotEmpty()) {
             context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
+          }
+          if (outputs.generatedKspClassesJar.isNotEmpty()) {
+            context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
           }
         }
       }

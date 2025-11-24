@@ -18,11 +18,11 @@ load("//kotlin/internal:defs.bzl", _KT_COMPILER_REPO = "KT_COMPILER_REPO")
 
 KOTLIN_STDLIBS = [
     "//kotlin/compiler:annotations",
+    "//kotlin/compiler:kotlin-reflect",
     "//kotlin/compiler:kotlin-stdlib",
     "//kotlin/compiler:kotlin-stdlib-jdk7",
     "//kotlin/compiler:kotlin-stdlib-jdk8",
     "//kotlin/compiler:kotlinx-coroutines-core-jvm",
-    "//kotlin/compiler:trove4j",
 ]
 
 def _import_artifacts(artifacts, rule_kind):

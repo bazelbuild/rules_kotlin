@@ -17,6 +17,7 @@ package tests.smoke.kapt.java;
 
 
 import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 
 @AutoValue
 public abstract class TestAutoValue {
@@ -32,5 +33,4 @@ public abstract class TestAutoValue {
 
         abstract TestAutoValue build();
     }
-
 }

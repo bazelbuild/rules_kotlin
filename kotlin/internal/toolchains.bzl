@@ -82,12 +82,13 @@ def _kotlin_toolchain_impl(ctx):
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
-            "supports-workers": "1",
             "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
+            "supports-workers": "1",
         },
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
         experimental_treat_internal_as_private_in_abi_jars = ctx.attr.experimental_treat_internal_as_private_in_abi_jars,
         experimental_remove_private_classes_in_abi_jars = ctx.attr.experimental_remove_private_classes_in_abi_jars,
+        experimental_remove_debug_info_in_abi_jars = ctx.attr.experimental_remove_debug_info_in_abi_jars,
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
@@ -110,42 +111,6 @@ _kt_toolchain = rule(
     doc = """The kotlin toolchain. This should not be created directly `define_kt_toolchain` should be used. The
     rules themselves define the toolchain using that macro.""",
     attrs = {
-        "kotlin_home": attr.label(
-            doc = "the filegroup defining the kotlin home",
-            default = Label("@" + _KT_COMPILER_REPO + "//:home"),
-            allow_files = True,
-        ),
-        "kotlinbuilder": attr.label(
-            doc = "the kotlin builder executable",
-            default = Label("//src/main/kotlin:build"),
-            executable = True,
-            allow_files = True,
-            cfg = "exec",
-        ),
-        "jdeps_merger": attr.label(
-            doc = "the jdeps merger executable",
-            default = Label("//src/main/kotlin:jdeps_merger"),
-            executable = True,
-            allow_files = True,
-            cfg = "exec",
-        ),
-        "language_version": attr.string(
-            doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
-            default = "2.1",
-            values = [
-                "1.1",
-                "1.2",
-                "1.3",
-                "1.4",
-                "1.5",
-                "1.6",
-                "1.7",
-                "1.8",
-                "1.9",
-                "2.0",
-                "2.1",
-            ],
-        ),
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
             default = "2.1",
@@ -161,6 +126,8 @@ _kt_toolchain = rule(
                 "1.9",
                 "2.0",
                 "2.1",
+                "2.2",
+                "2.3",
             ],
         ),
         "debug": attr.string_list(
@@ -169,6 +136,84 @@ _kt_toolchain = rule(
             enabled via the defines `kt_timings=1` and `kt_trace=1`. These can also be enabled on a per target bases by
             using `tags` attribute defined directly on the rules.""",
             allow_empty = True,
+        ),
+        "experimental_build_tools_api": attr.label(
+            doc = "Enables experimental support for Build Tools API integration",
+            default = Label("//kotlin/settings:experimental_build_tools_api"),
+        ),
+        "experimental_incremental_compilation": attr.label(
+            doc = "Enables experimental support for incremental compilation",
+            default = Label("//kotlin/settings:experimental_incremental_compilation"),
+        ),
+        "experimental_multiplex_workers": attr.bool(
+            doc = """Run workers in multiplex mode.""",
+            default = False,
+        ),
+        "experimental_reduce_classpath_mode": attr.string(
+            doc = "Removes unneeded dependencies from the classpath",
+            default = "NONE",
+            values = [
+                "NONE",
+                "KOTLINBUILDER_REDUCED",
+            ],
+        ),
+        "experimental_remove_debug_info_in_abi_jars": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:removeDebugInfo=true
+            Can be disabled for an individual target using the tag.
+            `kt_remove_debug_info_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
+        "experimental_remove_private_classes_in_abi_jars": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:removePrivateClasses=true
+            Can be disabled for an individual target using the tag.
+            `kt_remove_private_classes_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
+        "experimental_report_unused_deps": attr.string(
+            doc = "Report unused dependencies",
+            default = "off",
+            values = [
+                "off",
+                "warn",
+                "error",
+            ],
+        ),
+        "experimental_strict_kotlin_deps": attr.string(
+            doc = "Report strict deps violations",
+            default = "off",
+            values = [
+                "off",
+                "warn",
+                "error",
+            ],
+        ),
+        "experimental_treat_internal_as_private_in_abi_jars": attr.bool(
+            doc = """This applies the following compiler plugin option:
+              plugin:org.jetbrains.kotlin.jvm.abi:treatInternalAsPrivate=true
+            Can be disabled for an individual target using the tag.
+            `kt_treat_internal_as_private_in_abi_plugin_incompatible`""",
+            default = False,
+        ),
+        "experimental_use_abi_jars": attr.bool(
+            doc = """Compile using abi jars. Can be disabled for an individual target using the tag
+            `kt_abi_plugin_incompatible`""",
+            default = False,
+        ),
+        "jacocorunner": attr.label(
+            default = Label("@remote_java_tools//:jacoco_coverage_runner"),
+        ),
+        "javac_options": attr.label(
+            doc = "Compiler options for javac",
+            providers = [JavacOptions],
+        ),
+        "jdeps_merger": attr.label(
+            doc = "the jdeps merger executable",
+            default = Label("//src/main/kotlin:jdeps_merger"),
+            executable = True,
+            allow_files = True,
+            cfg = "exec",
         ),
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
@@ -200,68 +245,40 @@ _kt_toolchain = rule(
                 "21",
             ],
         ),
-        "experimental_multiplex_workers": attr.bool(
-            doc = """Run workers in multiplex mode.""",
-            default = False,
+        "kotlin_home": attr.label(
+            doc = "the filegroup defining the kotlin home",
+            default = Label("@" + _KT_COMPILER_REPO + "//:home"),
+            allow_files = True,
         ),
-        "experimental_use_abi_jars": attr.bool(
-            doc = """Compile using abi jars. Can be disabled for an individual target using the tag
-            `kt_abi_plugin_incompatible`""",
-            default = False,
+        "kotlinbuilder": attr.label(
+            doc = "the kotlin builder executable",
+            default = Label("//src/main/kotlin:build"),
+            executable = True,
+            allow_files = True,
+            cfg = "exec",
         ),
-        "experimental_treat_internal_as_private_in_abi_jars": attr.bool(
-            doc = """This applies the following compiler plugin option:
-              plugin:org.jetbrains.kotlin.jvm.abi:treatInternalAsPrivate=true
-            Can be disabled for an individual target using the tag.
-            `kt_treat_internal_as_private_in_abi_plugin_incompatible`""",
-            default = False,
+        "kotlinc_options": attr.label(
+            doc = "Compiler options for kotlinc",
+            providers = [KotlincOptions],
         ),
-        "experimental_remove_private_classes_in_abi_jars": attr.bool(
-            doc = """This applies the following compiler plugin option:
-              plugin:org.jetbrains.kotlin.jvm.abi:removePrivateClasses=true
-            Can be disabled for an individual target using the tag.
-            `kt_remove_private_classes_in_abi_plugin_incompatible`""",
-            default = False,
-        ),
-        "experimental_strict_kotlin_deps": attr.string(
-            doc = "Report strict deps violations",
-            default = "off",
+        "language_version": attr.string(
+            doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
+            default = "2.1",
             values = [
-                "off",
-                "warn",
-                "error",
+                "1.1",
+                "1.2",
+                "1.3",
+                "1.4",
+                "1.5",
+                "1.6",
+                "1.7",
+                "1.8",
+                "1.9",
+                "2.0",
+                "2.1",
+                "2.2",
+                "2.3",
             ],
-        ),
-        "experimental_report_unused_deps": attr.string(
-            doc = "Report unused dependencies",
-            default = "off",
-            values = [
-                "off",
-                "warn",
-                "error",
-            ],
-        ),
-        "experimental_reduce_classpath_mode": attr.string(
-            doc = "Removes unneeded dependencies from the classpath",
-            default = "NONE",
-            values = [
-                "NONE",
-                "KOTLINBUILDER_REDUCED",
-            ],
-        ),
-        "experimental_build_tools_api": attr.label(
-            doc = "Enables experimental support for Build Tools API integration",
-            default = False,
-            default = Label("//kotlin/settings:experimental_build_tools_api"),
-        ),
-        "experimental_incremental_compilation": attr.label(
-            doc = "TODO",
-            default = False,
-            default = Label("//kotlin/settings:experimental_incremental_compilation"),
-        ),
-        "javac_options": attr.label(
-            doc = "Compiler options for javac",
-            providers = [JavacOptions],
         ),
         "_empty_jar": attr.label(
             doc = """Empty jar for exporting JavaInfos.""",
@@ -269,18 +286,11 @@ _kt_toolchain = rule(
             cfg = "target",
             default = Label("//third_party:empty.jar"),
         ),
-        "kotlinc_options": attr.label(
-            doc = "Compiler options for kotlinc",
-            providers = [KotlincOptions],
-        ),
         "_empty_jdeps": attr.label(
             doc = """Empty jdeps for exporting JavaInfos.""",
             allow_single_file = True,
             cfg = "target",
             default = Label("//third_party:empty.jdeps"),
-        ),
-        "jacocorunner": attr.label(
-            default = Label("@remote_java_tools//:jacoco_coverage_runner"),
         ),
         "_experimental_prune_transitive_deps": attr.label(
             doc = """If enabled, compilation is performed against only direct dependencies.
@@ -329,6 +339,7 @@ def define_kt_toolchain(
         experimental_use_abi_jars = False,
         experimental_treat_internal_as_private_in_abi_jars = False,
         experimental_remove_private_classes_in_abi_jars = False,
+        experimental_remove_debug_info_in_abi_jars = False,
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
@@ -359,6 +370,7 @@ def define_kt_toolchain(
         }),
         experimental_treat_internal_as_private_in_abi_jars = experimental_treat_internal_as_private_in_abi_jars,
         experimental_remove_private_classes_in_abi_jars = experimental_remove_private_classes_in_abi_jars,
+        experimental_remove_debug_info_in_abi_jars = experimental_remove_debug_info_in_abi_jars,
         experimental_multiplex_workers = experimental_multiplex_workers,
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
