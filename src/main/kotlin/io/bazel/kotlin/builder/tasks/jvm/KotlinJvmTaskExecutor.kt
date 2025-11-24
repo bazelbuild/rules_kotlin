@@ -65,9 +65,6 @@ class KotlinJvmTaskExecutor
         preprocessedTask.apply {
           listOf(
             runCatching {
-              if (context.info.incrementalCompilation) {
-                context.execute("create classpath snapshots", ::createClasspathSnapshots)
-              }
               context.execute("kotlinc") {
                 if (compileKotlin) {
                   compileKotlin(
@@ -139,6 +136,10 @@ class KotlinJvmTaskExecutor
               context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
             } else {
               context.execute("create jar", ::createOutputJar)
+            }
+            // Generate classpath snapshot for incremental compilation
+            if (context.info.incrementalCompilation && outputs.classpathSnapshot.isNotEmpty()) {
+              context.execute("create classpath snapshot", ::createOutputClasspathSnapshot)
             }
           }
           if (outputs.abijar.isNotEmpty()) {

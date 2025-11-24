@@ -27,10 +27,13 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.UUID
 
-fun stripNonKotlinArgument(arg: String, args: MutableList<String>): String? {
-    val index = args.indexOf(arg)
-    if (index < 0 || index + 1 >= args.size) return null
-    return args.removeAt(index + 1).also { args.removeAt(index) }
+fun stripNonKotlinArgument(
+  arg: String,
+  args: MutableList<String>,
+): String? {
+  val index = args.indexOf(arg)
+  if (index < 0 || index + 1 >= args.size) return null
+  return args.removeAt(index + 1).also { args.removeAt(index) }
 }
 
 @Suppress("unused")
@@ -46,78 +49,87 @@ class BuildToolsAPICompiler {
 
     // Set of vararg arguments into BuildToolsAPICompiler not to be passed to the compiler.
     // Allows keeping the reflection-based invocation consistent with BazelK2KVMCompiler
-    val snapshots = stripNonKotlinArgument("-snapshot", mutableArgs)
-      ?.split(":")
-      ?.map { File(it) }
-      .orEmpty()
+    val snapshots =
+      stripNonKotlinArgument("-snapshot", mutableArgs)
+        ?.split(":")
+        ?.map { File(it) }
+        .orEmpty()
 
     // A manufactured strategy for delineating running KSP plugins and compiling Kotlin.
-    // label: The Bazel label
+    // incrementalDir: Base directory for incremental compilation caches (inside Bazel's output tree)
     // incrementalId: Used to delineate Kotlin tasks within a label (i.e. KSP vs Kotlin vs Kapt)
-    val label = stripNonKotlinArgument("-label", mutableArgs)!!
+    val incrementalDir = stripNonKotlinArgument("-incremental_dir", mutableArgs)!!
     val incrementalId = stripNonKotlinArgument("-incremental_id", mutableArgs)!!
 
     // The incremental directory is roughly analogous to a Gradle transform cache directory. Must be unique per compilation target.
-    val incrementalDirectory = Paths.get("").toAbsolutePath().parent.resolve("_kotlin_incremental/$label/$incrementalId").toFile()
+    // It is derived from the output jar path to keep it inside Bazel's output tree. This ensures:
+    // - The cache is cleaned with `bazel clean`
+    // - Different configurations get separate caches automatically
+    // - Paths are deterministic and target-specific
+    val incrementalDirectory = Paths.get(incrementalDir).resolve(incrementalId).toFile()
 
     val kotlinService = CompilationService.loadImplementation(this.javaClass.classLoader!!)
     // The execution configuration. Controls in-process vs daemon execution strategies. Default is in-process.
     val executionConfig = kotlinService.makeCompilerExecutionStrategyConfiguration()
     // The compilation configuration. Controls everything related to incremental compilation.
-    val compilationConfig = kotlinService.makeJvmCompilationConfiguration().apply {
-      useIncrementalCompilation(
-        // The working directory is where Kotlin stores incremental data. This must be unique per compilation target.
-        workingDirectory = incrementalDirectory,
-        // For Bazel, this will always be ToBeCalculated. We don't have a way to get the sources changes from the last build.
-        sourcesChanges = SourcesChanges.ToBeCalculated,
-        approachParameters = ClasspathSnapshotBasedIncrementalCompilationApproachParameters(
-          /**
-           * The classpath snapshots files actual at the moment of compilation
-           */
-          // TODO: Track this with Bazel
-          newClasspathSnapshotFiles = snapshots,
+    val compilationConfig =
+      kotlinService.makeJvmCompilationConfiguration().apply {
+        useIncrementalCompilation(
+          // The working directory is where Kotlin stores incremental data. This must be unique per compilation target.
+          workingDirectory = incrementalDirectory,
+          // For Bazel, this will always be ToBeCalculated. We don't have a way to get the sources changes from the last build.
+          sourcesChanges = SourcesChanges.ToBeCalculated,
+          approachParameters =
+            ClasspathSnapshotBasedIncrementalCompilationApproachParameters(
+              // The classpath snapshots files actual at the moment of compilation.
+              // These are tracked by Bazel as inputs from dependencies.
+              newClasspathSnapshotFiles = snapshots,
+              // The shrunk classpath snapshot, a result of the previous compilation.
+              // Could point to a non-existent file. At the successful end of the compilation,
+              // the shrunk version of the [newClasspathSnapshotFiles] will be stored at this path.
+              // Note: This is stored in the incremental directory and not tracked by Bazel.
+              shrunkClasspathSnapshot =
+                incrementalDirectory
+                  .resolve(
+                    "shrunk-classpath-snapshot.bin",
+                  ).apply {
+                    parentFile?.createDirectory()
+                  },
+            ),
+          options =
+            makeClasspathSnapshotBasedIncrementalCompilationConfiguration().apply {
+              // NOTE: The following settings are to enable "relocatable" compilation caches. I was never able to
+              //       determine how to work with these without resulting in sporadic failures.
+              //       Notably, turning these on requires all input files to be passed with absolute, not relative paths.
+              // setRootProjectDir(incrementalDir.resolve("_main").toFile())
+              // setBuildDir(incrementalDir.resolve("_kotlin_incremental").toFile())
+              // useOutputDirs(emptyList())
 
-          /**
-           * The shrunk classpath snapshot, a result of the previous compilation. Could point to a non-existent file.
-           * At the successful end of the compilation, the shrunk version of the [newClasspathSnapshotFiles] will be stored at this path.
-           */
-          // TODO: Track this with Bazel
-          shrunkClasspathSnapshot = incrementalDirectory.resolve("shrunk-classpath-snapshot.bin").apply { parentFile?.createDirectory() }
-        ),
+              // An indicator whether incremental compilation will analyze Java files precisely for better changes detection
+              usePreciseJavaTracking(true)
 
-        options = makeClasspathSnapshotBasedIncrementalCompilationConfiguration().apply {
+              // Incremental compilation uses the PersistentHashMap of the intellij platform for storing caches.
+              // An indicator whether the changes should remain in memory and not being flushed to the disk until we could mark the compilation as successful.
+              keepIncrementalCompilationCachesInMemory(true)
 
-          // NOTE: The following settings are to enable "relocatable" compilation caches. I was never able to
-          //       determine how to work with these without resulting in sporadic failures.
-          //       Notably, turning these on requires all input files to be passed with absolute, not relative paths.
-          // setRootProjectDir(incrementalDir.resolve("_main").toFile())
-          // setBuildDir(incrementalDir.resolve("_kotlin_incremental").toFile())
-          // useOutputDirs(emptyList())
+              // I don't believe we will ever need to force non-incremental
+              forceNonIncrementalMode(false)
 
-          // An indicator whether incremental compilation will analyze Java files precisely for better changes detection
-          usePreciseJavaTracking(true)
-
-          // Incremental compilation uses the PersistentHashMap of the intellij platform for storing caches.
-          // An indicator whether the changes should remain in memory and not being flushed to the disk until we could mark the compilation as successful.
-          keepIncrementalCompilationCachesInMemory(true)
-
-          // I don't believe we will ever need to force non-incremental
-          forceNonIncrementalMode(false)
-
-          // Classpath snapshots and changes will be tracked by Bazel
-          assureNoClasspathSnapshotsChanges(false)
-        }
+              // Classpath snapshots and changes will be tracked by Bazel
+              assureNoClasspathSnapshotsChanges(false)
+            },
+        )
+        // useLogger(BasicKotlinLogger(true, "/tmp/kotlin_log/$label.log"))
+        useKotlinScriptFilenameExtensions(listOf("kts"))
+      }
+    val result =
+      kotlinService.compileJvm(
+        ProjectId.ProjectUUID(UUID.randomUUID()),
+        executionConfig,
+        compilationConfig,
+        emptyList(),
+        mutableArgs.toList(),
       )
-      // useLogger(BasicKotlinLogger(true, "/tmp/kotlin_log/$label.log"))
-      useKotlinScriptFilenameExtensions(listOf("kts"))
-    }
-    val result = kotlinService.compileJvm(
-      ProjectId.ProjectUUID(UUID.randomUUID()),
-      executionConfig,
-      compilationConfig,
-      emptyList(),
-      mutableArgs.toList()
-    )
 
     // BTAPI returns a different type than K2JVMCompiler (CompilationResult vs ExitCode).
     return when (result) {
@@ -128,4 +140,3 @@ class BuildToolsAPICompiler {
     }
   }
 }
-

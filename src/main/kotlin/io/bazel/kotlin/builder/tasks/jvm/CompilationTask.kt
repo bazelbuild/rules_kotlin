@@ -92,11 +92,6 @@ fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): Co
       overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
     ).flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
     .flag("-module-name", info.moduleName)
-    .apply {
-      if (info.buildToolsApi) {
-        flag("-label", info.label)
-      }
-    }
 }
 
 internal fun JvmCompilationTask.plugins(
@@ -334,9 +329,11 @@ private fun JvmCompilationTask.runKspPlugin(
       .apply {
         if (info.incrementalCompilation) {
           flag("-incremental_id", "ksp")
+          if (directories.incrementalBaseDir.isNotEmpty()) {
+            flag("-incremental_dir", directories.incrementalBaseDir)
+          }
         }
-      }
-      .list()
+      }.list()
       .let { args ->
         context.executeCompilerTask(
           args,
@@ -463,18 +460,29 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
   }
 }
 
-internal fun JvmCompilationTask.createClasspathSnapshots() {
-  inputs.classpathList.forEach {
-    ClasspathSnapshotGenerator(Paths.get(it), Paths.get("$it.snapshot"), SnapshotGranularity.CLASS_MEMBER_LEVEL).run()
+/**
+ * Creates a classpath snapshot for the output jar.
+ * This snapshot is tracked by Bazel as an output and used by downstream targets.
+ */
+internal fun JvmCompilationTask.createOutputClasspathSnapshot() {
+  if (outputs.classpathSnapshot.isEmpty()) {
+    return
   }
+  ClasspathSnapshotGenerator(
+    Paths.get(outputs.jar),
+    Paths.get(outputs.classpathSnapshot),
+    SnapshotGranularity.CLASS_MEMBER_LEVEL,
+  ).run()
 }
 
-internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
-  return inputs.classpathList.map { it: String ->
-    "$it.snapshot"
-  }
-}
-
+/**
+ * Gets the classpath snapshot paths for incremental compilation.
+ * Only returns tracked snapshots from dependencies - external jars without snapshots are excluded.
+ * The incremental compiler will treat jars without snapshots as unchanged.
+ */
+internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> =
+  // Only use tracked snapshots from dependencies that actually exist
+  inputs.classpathSnapshotsList
 
 val ROOT: String by lazy {
   FileSystems
@@ -483,7 +491,6 @@ val ROOT: String by lazy {
     .toAbsolutePath()
     .toString() + File.separator
 }
-
 
 /**
  * Compiles Kotlin sources to classes. Does not compile Java sources.
@@ -504,24 +511,21 @@ fun JvmCompilationTask.compileKotlin(
           options = inputs.compilerPluginOptionsList,
           classpath = inputs.compilerPluginClasspathList,
         )
-      )
-      .values(inputs.javaSourcesList)
+    ).values(inputs.javaSourcesList)
       .values(inputs.kotlinSourcesList)
       .flag("-d", directories.classes)
       .apply {
         if (info.incrementalCompilation) {
           flag("-incremental_id", "kotlin")
-          flag("-snapshot")
-          paths(
-            createClasspathSnapshotsPaths(),
-          ) {
-            it
-              .map(Path::toString)
-              .joinToString(File.pathSeparator)
+          if (directories.incrementalBaseDir.isNotEmpty()) {
+            flag("-incremental_dir", directories.incrementalBaseDir)
+          }
+          val snapshots = createClasspathSnapshotsPaths()
+          if (snapshots.isNotEmpty()) {
+            flag("-snapshot", snapshots.joinToString(File.pathSeparator))
           }
         }
-      }
-      .list()
+      }.list()
       .let {
         context.whenTracing {
           context.printLines("compileKotlin arguments:\n", it)

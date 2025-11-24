@@ -13,9 +13,9 @@ object CompilerModes {
    * Use the BuildTools API compiler (default)
    */
   const val BUILD_TOOLS = "BUILD_TOOLS"
-  
+
   /**
    * Use incremental compilation with BuildTools
    */
   const val INCREMENTAL = "INCREMENTAL"
-} 
+}
