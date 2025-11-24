@@ -76,7 +76,7 @@ def _get_associates(ctx, toolchains, associates):
         for a in associates:
             jar_bundle = _collect_associates(ctx = ctx, toolchains = toolchains, associate = a)
             jars.append(jar_bundle.jars)
-            abi_jar_set = jar_bundle.abi_jars_set
+            abi_jar_set = _sets.add_all(abi_jar_set, jar_bundle.abi_jars_set)
             module_names.append(a[_KtJvmInfo].module_name)
             java_infos.append(_java_info(a))
         module_names = list(_sets.copy_of(module_names))
