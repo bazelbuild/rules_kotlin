@@ -12,15 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
-# note that the following line is what is minimally required from protobuf for the java rules
-# consider using the protobuf_deps() public API from @com_google_protobuf//:protobuf_deps.bzl
-load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
-load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
-load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
 load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
