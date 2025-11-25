@@ -8,9 +8,9 @@ module(
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "rules_java", version = "8.16.1")
-bazel_dep(name = "rules_android", version = "0.6.4")
+bazel_dep(name = "rules_android", version = "0.6.6")
 bazel_dep(name = "bazel_features", version = "1.37.0")
-bazel_dep(name = "protobuf", version = "33.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "31.1", repo_name = "com_google_protobuf")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "py_absl")
 bazel_dep(name = "rules_cc", version = "0.2.14")
 

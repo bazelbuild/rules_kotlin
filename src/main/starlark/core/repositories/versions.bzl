@@ -51,11 +51,11 @@ versions = struct(
         ],
     ),
     COM_GOOGLE_PROTOBUF = version(
-        version = "33.1",
-        sha256 = "fda132cb0c86400381c0af1fe98bd0f775cb566cb247cdcc105e344e00acc30e",
+        version = "31.1",
+        sha256 = "554e847e46c705bfc44fb2d0ae5bf78f34395fcbfd86ba747338b570eef26771",
         strip_prefix_template = "protobuf-{version}",
         url_templates = [
-            "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.tar.gz",
+            "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.zip",
         ],
     ),
     PINTEREST_KTLINT = version(
@@ -87,12 +87,12 @@ versions = struct(
         sha256 = "458b63ef8fc50a0a3180fe688ec1b995745992a05c495dac61e58d1088927a80",
     ),
     RULES_ANDROID = version(
-        version = "0.6.4",
+        version = "0.6.6",
         url_templates = [
             "https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz",
         ],
         strip_prefix_template = "rules_android-{version}",
-        sha256 = "4135e2fa37a94bb36c7801e33faef2934c9fe4f9a84d0035eacc4154c2c30e44",
+        sha256 = "f8f8bca6df61ea6070a0a8abc4054940b19c9fdb4fabb864e40d29d124f517f9",
     ),
     RULES_JAVA = version(
         version = "8.16.1",
