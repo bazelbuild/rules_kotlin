@@ -90,6 +90,8 @@ message CompilationTaskInfo {
     bool build_tools_api = 14;
     // Debug info is stripped in abi.jar generation
     bool remove_debug_info = 15;
+    // Enable incremental compilation.
+    bool incremental_compilation = 16;
 }
 
 // Nested messages not marked with stable could be refactored.
@@ -112,6 +114,8 @@ message JvmCompilationTask {
     string java_classes = 8;
     // The destination directory for code coverage metadata.
     string coverage_metadata_classes = 9;
+    // Base directory for incremental compilation caches (inside Bazel's output tree).
+    string incremental_base_dir = 10;
   }
 
   // Outputs produced by the builder.
@@ -133,6 +137,8 @@ message JvmCompilationTask {
     string generated_ksp_src_jar = 8;
     // The path to the jar containing the generated KSP classes
     string generated_ksp_classes_jar = 9;
+    // The path to the classpath snapshot file for incremental compilation.
+    string classpath_snapshot = 10;
   }
 
   message Inputs {
@@ -168,6 +174,8 @@ message JvmCompilationTask {
       repeated string javac_flags = 15;
       // JDeps dependency artifacts
       repeated string deps_artifacts = 16;
+      // Classpath snapshot files from dependencies for incremental compilation.
+      repeated string classpath_snapshots = 17;
   }
 
   CompilationTaskInfo info = 1;

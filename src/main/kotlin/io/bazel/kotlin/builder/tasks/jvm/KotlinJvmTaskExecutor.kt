@@ -137,6 +137,10 @@ class KotlinJvmTaskExecutor
             } else {
               context.execute("create jar", ::createOutputJar)
             }
+            // Generate classpath snapshot for incremental compilation
+            if (context.info.incrementalCompilation && outputs.classpathSnapshot.isNotEmpty()) {
+              context.execute("create classpath snapshot", ::createOutputClasspathSnapshot)
+            }
           }
           if (outputs.abijar.isNotEmpty()) {
             context.execute("create abi jar", ::createAbiJar)

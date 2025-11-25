@@ -48,6 +48,8 @@ def kt_rules_test(name, **kwargs):
         "@kotlinx_serialization_json//jar",
         "@kotlinx_serialization_json_jvm//jar",
         "@kotlin_build_tools_impl//jar",
+        "@kotlin_compiler_embeddable//jar",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

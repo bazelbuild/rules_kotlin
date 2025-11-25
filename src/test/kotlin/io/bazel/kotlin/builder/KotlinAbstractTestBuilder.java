@@ -245,7 +245,9 @@ abstract class KotlinAbstractTestBuilder<T> {
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:symbol-processing-cmdline").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//jar").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//jar").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//jar").singleCompileJar())
+                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//jar").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlin_compiler_embeddable//jar").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar())
         );
     }
 }

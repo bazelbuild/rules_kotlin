@@ -109,11 +109,17 @@ kt_rules_test(
     ],
 )
 
+kt_rules_test(
+    name = "KotlinBuilderIncrementalDirTest",
+    srcs = ["jvm/KotlinBuilderIncrementalDirTest.java"],
+)
+
 test_suite(
     name = "tasks_tests",
     tests = [
         ":JdepsMergerTest",
         ":JdepsParserTest",
+        ":KotlinBuilderIncrementalDirTest",
         ":KotlinBuilderJvmAbiTest",
         ":KotlinBuilderJvmBasicTest",
         ":KotlinBuilderJvmCoverageTest",
