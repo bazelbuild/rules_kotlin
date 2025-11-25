@@ -19,11 +19,8 @@ import org.jetbrains.kotlin.fir.types.resolvedType
 internal class QualifiedAccessChecker(
   private val classUsageRecorder: ClassUsageRecorder,
 ) : FirQualifiedAccessExpressionChecker(MppCheckerKind.Common) {
-  override fun check(
-    expression: FirQualifiedAccessExpression,
-    context: CheckerContext,
-    reporter: DiagnosticReporter,
-  ) {
+  context(context: CheckerContext, reporter: DiagnosticReporter)
+  override fun check(expression: FirQualifiedAccessExpression) {
     // track function's owning class
     val resolvedCallableSymbol = expression.toResolvedCallableSymbol()
     resolvedCallableSymbol?.containerSource?.binaryClass()?.let {

@@ -28,6 +28,10 @@ load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 
 def kt_configure():
     """Setup dependencies."""
+    rules_proto_dependencies()
+    rules_proto_toolchains()
+    rules_proto_setup()
+
     protobuf_deps()
 
     bazel_skylib_workspace()

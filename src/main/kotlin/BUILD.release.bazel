@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLIN_STDLIBS")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 
 java_import(
@@ -78,14 +79,7 @@ java_binary(
 
 java_binary(
     name = "jdeps_merger",
-    data = [
-        "@com_github_jetbrains_kotlin//:annotations",
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib",
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk7",
-        "@com_github_jetbrains_kotlin//:kotlin-stdlib-jdk8",
-        "@com_github_jetbrains_kotlin//:kotlinx-coroutines-core-jvm",
-        "@com_github_jetbrains_kotlin//:trove4j",
-    ],
+    data = KOTLIN_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],

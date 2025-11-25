@@ -26,7 +26,7 @@ _COMMON_ATTRS = {
         default = [],
         providers = [[JavaInfo], [JavaInfo, KtJvmInfo]],
     ),
-    "kotlinc_opts": attr.string_dict(doc = "Options to pass to the kotlinc compiler as key: value pairs."),
+    "kotlinc_opts": attr.string_list(doc = "Options to pass to the kotlinc compiler."),
     "module_name": attr.string(
         doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
                                `//some/package/path:label_name` is translated to

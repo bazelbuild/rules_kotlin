@@ -41,8 +41,7 @@ def compile_kotlin_for_jvm(
     args.add("-language-version", toolchain_info.language_version)
     args.add("-module-name", module_name)
     args.add_joined("-cp", classpath, join_with = path_separator)
-    for (k, v) in kotlinc_opts.items():
-        args.add(k, v)
+    args.add_all(kotlinc_opts)
     args.add_all(srcs)
 
     actions.run(

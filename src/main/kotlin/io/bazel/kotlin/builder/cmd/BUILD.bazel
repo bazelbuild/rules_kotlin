@@ -19,7 +19,6 @@ kt_bootstrap_binary(
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-compiler",
-        "//kotlin/compiler:kotlin-reflect",
         "//kotlin/compiler:symbol-processing-api",
         "//kotlin/compiler:symbol-processing-cmdline",
         "//src/main/kotlin:jdeps-gen",

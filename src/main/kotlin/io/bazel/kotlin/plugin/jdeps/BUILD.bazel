@@ -25,6 +25,9 @@ kt_bootstrap_library(
         "k2/checker/declaration/*.kt",
         "k2/checker/expression/*.kt",
     ]),
+    kotlinc_opts = [
+        "-Xcontext-parameters",
+    ],
     visibility = ["//src:__subpackages__"],
     deps = [
         "//kotlin/compiler:kotlin-compiler",
