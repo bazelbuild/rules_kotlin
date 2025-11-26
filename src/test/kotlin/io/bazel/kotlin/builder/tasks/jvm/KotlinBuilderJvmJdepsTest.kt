@@ -455,13 +455,7 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
       .setRuleLabel(dependingTarget.label())
       .setSuccess(true)
       .addExplicitDep(connectionNotFoundExceptionDep.singleCompileJar())
-      .apply {
-        if (!enableK2Compiler) {
-          // TODO(https://github.com/bazelbuild/rules_kotlin/issues/1246): Uncomment for 2.1.20.
-          //  See https://youtrack.jetbrains.com/issue/KTIJ-25347/K2-IDE.-Different-resolve-of-types-from-type-aliases-of-stdlib-jvm-comparing-to-K1
-          addExplicitDep(KOTLIN_STDLIB_DEP.singleCompileJar())
-        }
-      }.buildSorted()
+      .buildSorted()
 
     assertThat(jdeps).isEqualTo(expected)
   }
