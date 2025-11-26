@@ -95,6 +95,13 @@ def kotlin_repositories(
 
     maybe(
         http_jar,
+        name = "kotlinx_coroutines_core_jvm",
+        sha256 = versions.KOTLINX_COROUTINES_CORE_JVM.sha256,
+        urls = [url.format(version = versions.KOTLINX_COROUTINES_CORE_JVM.version) for url in versions.KOTLINX_COROUTINES_CORE_JVM.url_templates],
+    )
+
+    maybe(
+        http_jar,
         name = "kotlin_build_tools_impl",
         sha256 = versions.KOTLIN_BUILD_TOOLS_IMPL.sha256,
         urls = [url.format(version = versions.KOTLIN_BUILD_TOOLS_IMPL.version) for url in versions.KOTLIN_BUILD_TOOLS_IMPL.url_templates],

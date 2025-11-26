@@ -53,6 +53,7 @@ KOTLINC_ARTIFACTS = struct(
             "kotlin-test": "lib/kotlin-test.jar",
             "kotlin-test-sources": "lib/kotlin-test-sources.jar",
             "kotlin-test-testng-sources": "lib/kotlin-test-testng-sources.jar",
+            "kotlinx-coroutines-core-jvm": "lib/kotlinx-coroutines-core-jvm.jar",
         },
         compile = {
             "annotations": "lib/annotations-13.0.jar",
@@ -70,7 +71,6 @@ KOTLINC_ARTIFACTS = struct(
             "kotlin-scripting-compiler": "lib/kotlin-scripting-compiler.jar",
             "kotlin-scripting-compiler-impl": "lib/kotlin-scripting-compiler-impl.jar",
             "kotlin-scripting-jvm": "lib/kotlin-scripting-jvm.jar",
-            "kotlinx-coroutines-core-jvm": "lib/kotlinx-coroutines-core-jvm.jar",
             "scripting-compiler": "lib/scripting-compiler.jar",
         },
     ),

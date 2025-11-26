@@ -382,6 +382,61 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
         toolchain = _TOOLCHAIN_TYPE,
     )
 
+def _package_tree_artifacts_to_jar(ctx, rule_kind, toolchains, output_jar, input_dirs, action_type):
+    """Package tree artifacts (directories) into a JAR using zipper.
+
+    This function packages files from tree artifact directories into a JAR,
+    stripping the tree artifact root path so files appear at their proper
+    relative paths within the JAR.
+
+    Args:
+        ctx: Rule context
+        rule_kind: The rule kind (e.g., kt_jvm_library)
+        toolchains: Compiler toolchains struct
+        output_jar: Output JAR file
+        input_dirs: List of tree artifact directories to package
+        action_type: Description for the action (e.g., "KspGenSrc")
+    """
+
+    zipper_args_file = ctx.actions.declare_file(ctx.label.name + "_" + action_type.lower() + "_zipper_args")
+    manifest_file = ctx.actions.declare_file(ctx.label.name + "_" + action_type.lower() + "_MANIFEST.MF")
+
+    # Use portable tree artifact packager tool to generate zipper args
+    # This tool walks directory trees and creates the args file with proper path mappings
+    args = ctx.actions.args()
+    args.add(zipper_args_file)
+    args.add(manifest_file)
+
+    # Don't expand tree artifact directories into individual files
+    args.add_all(input_dirs, expand_directories = False)
+
+    ctx.actions.run(
+        mnemonic = "Create" + action_type + "ZipperArgs",
+        inputs = input_dirs,
+        outputs = [zipper_args_file, manifest_file],
+        executable = toolchains.kt.tree_artifact_packager.files_to_run,
+        arguments = [args],
+        progress_message = "Creating zipper args for %s" % action_type,
+        toolchain = _TOOLCHAIN_TYPE,
+    )
+
+    # Run zipper to create the JAR
+    ctx.actions.run(
+        mnemonic = "KotlinPackageJar" + action_type,
+        inputs = input_dirs + [zipper_args_file, manifest_file],
+        outputs = [output_jar],
+        executable = ctx.executable._zipper,
+        arguments = [
+            "c",
+            output_jar.path,
+            "@" + zipper_args_file.path,
+        ],
+        progress_message = "Packaging Kotlin %s jar %%{label} from %d directories" % (
+            action_type,
+            len(input_dirs),
+        ),
+    )
+
 def _run_kapt_builder_actions(
         ctx,
         rule_kind,
@@ -436,7 +491,7 @@ def _run_ksp_builder_actions(
         annotation_processors,
         transitive_runtime_jars,
         plugins):
-    """Runs KSP using the KotlinBuilder tool
+    """Runs KSP2 as a standalone tool (not through KotlinBuilder)
 
     Returns:
         A struct containing KSP outputs
@@ -444,23 +499,148 @@ def _run_ksp_builder_actions(
     ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-gensrc.jar")
     ksp_generated_classes_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-genclasses.jar")
 
-    _run_kt_builder_action(
-        ctx = ctx,
+    # Declare output directories
+    ksp_kotlin_output_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-kotlin")
+    ksp_java_output_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-java")
+    ksp_class_output_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-classes")
+    ksp_resource_output_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-resources")
+    ksp_caches_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-caches")
+
+    # KSP2 cannot process srcjars directly - they need to be unpacked first
+    unpacked_srcjars_dir = None
+    additional_inputs = []
+    if srcs.src_jars:
+        unpacked_srcjars_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-unpacked-srcjars")
+
+        # Merge all srcjars into a single jar using single_jar, then extract with zipper
+        # This is fully portable across all platforms
+        merged_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-merged-sources.jar")
+
+        # First, merge all srcjars into one using single_jar
+        merge_args = ctx.actions.args()
+        merge_args.add_all(["--normalize", "--dont_change_compression", "--exclude_build_data"])
+        merge_args.add("--output", merged_srcjar)
+        merge_args.add_all(srcs.src_jars, before_each = "--sources")
+
+        ctx.actions.run(
+            mnemonic = "MergeSrcjarsForKsp",
+            inputs = srcs.src_jars,
+            outputs = [merged_srcjar],
+            executable = toolchains.java.single_jar,
+            arguments = [merge_args],
+            progress_message = "Merging %d srcjars for KSP2" % len(srcs.src_jars),
+        )
+
+        # Then extract the merged srcjar using zipper (portable across all platforms)
+        ctx.actions.run(
+            mnemonic = "UnpackSrcjarsForKsp",
+            inputs = [merged_srcjar],
+            outputs = [unpacked_srcjars_dir],
+            executable = ctx.executable._zipper,
+            arguments = ["x", merged_srcjar.path, "-d", unpacked_srcjars_dir.path],
+            progress_message = "Unpacking sources for KSP2 processing",
+        )
+
+        additional_inputs.append(unpacked_srcjars_dir)
+
+    # Build arguments for KSP2
+    args = ctx.actions.args()
+    args.add("-jvm-target", toolchains.kt.jvm_target)
+    args.add("-module-name", compile_deps.module_name)
+
+    # KSP2 requires source-roots to be provided as DIRECTORIES, not individual files
+    # Extract unique directory paths from source files
+    all_source_files = srcs.kt + srcs.java
+    source_root_dirs = {}
+    for f in all_source_files:
+        # Get the directory containing the file, or "." for root-level files
+        dir_path = f.dirname if f.dirname else "."
+        source_root_dirs[dir_path] = True
+
+    # Add unpacked srcjars directory to source roots if it exists
+    if unpacked_srcjars_dir:
+        source_root_dirs[unpacked_srcjars_dir.path] = True
+
+    source_roots = source_root_dirs.keys()
+    if source_roots:
+        args.add("-source-roots", ":".join(source_roots))
+    else:
+        # Provide current directory as source root if no source files
+        args.add("-source-roots", ".")
+
+    if srcs.java:
+        # Java source roots should also be directories
+        java_source_root_dirs = {}
+        for f in srcs.java:
+            dir_path = f.dirname if f.dirname else "."
+            java_source_root_dirs[dir_path] = True
+        args.add("-java-source-roots", ":".join(java_source_root_dirs.keys()))
+
+    # Project base dir should be execution root so all paths work correctly
+    args.add("-project-base-dir", ".")
+    args.add("-output-base-dir", ctx.bin_dir.path)
+    args.add("-caches-dir", ksp_caches_dir.path)
+    args.add("-class-output-dir", ksp_class_output_dir.path)
+    args.add("-kotlin-output-dir", ksp_kotlin_output_dir.path)
+    args.add("-java-output-dir", ksp_java_output_dir.path)
+    args.add("-resource-output-dir", ksp_resource_output_dir.path)
+
+    args.add("-language-version", toolchains.kt.language_version)
+    args.add("-api-version", toolchains.kt.api_version)
+
+    # Add JDK home for Java symbol resolution
+    args.add("-jdk-home", toolchains.java_runtime.java_home)
+
+    # Enable Java annotation processing
+    args.add("-map-annotation-arguments-in-java=true")
+
+    # Add libraries (classpath)
+    if compile_deps.compile_jars:
+        args.add_joined("-libraries", compile_deps.compile_jars, join_with = ":")
+
+    # Add processor JARs as positional arguments at the end
+    # These are passed last as the <processor classpath> positional argument to KSP2
+    if transitive_runtime_jars:
+        args.add_all(transitive_runtime_jars)
+
+    # Invoke KSP2 via java_binary wrapper
+    ctx.actions.run(
+        mnemonic = "KotlinKsp2",
+        inputs = depset(
+            direct = srcs.all_srcs + additional_inputs,
+            transitive = [compile_deps.compile_jars, transitive_runtime_jars, toolchains.java_runtime.files],
+        ),
+        outputs = [
+            ksp_caches_dir,
+            ksp_kotlin_output_dir,
+            ksp_java_output_dir,
+            ksp_class_output_dir,
+            ksp_resource_output_dir,
+        ],
+        executable = ctx.executable._ksp2_tool,
+        arguments = [args],
+        progress_message = "Running KSP2 for %{label}",
+        toolchain = "@bazel_tools//tools/jdk:toolchain_type",
+    )
+
+    # Package generated sources into srcjar using zipper
+    _package_tree_artifacts_to_jar(
+        ctx,
         rule_kind = rule_kind,
         toolchains = toolchains,
-        srcs = srcs,
-        generated_src_jars = [],
-        compile_deps = compile_deps,
-        deps_artifacts = deps_artifacts,
-        annotation_processors = annotation_processors,
-        transitive_runtime_jars = transitive_runtime_jars,
-        plugins = plugins,
-        outputs = {
-            "ksp_generated_classes_jar": ksp_generated_classes_jar,
-            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
-        },
-        build_kotlin = False,
-        mnemonic = "KotlinKsp",
+        output_jar = ksp_generated_java_srcjar,
+        input_dirs = [ksp_kotlin_output_dir, ksp_java_output_dir],
+        action_type = "KspGenSrc",
+    )
+
+    # Package generated classes into jar using zipper
+    _package_tree_artifacts_to_jar(
+        ctx,
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        output_jar = ksp_generated_classes_jar,
+        input_dirs = [ksp_class_output_dir, ksp_resource_output_dir],
+        action_type = "KspGenClass",
     )
 
     return struct(ksp_generated_class_jar = ksp_generated_classes_jar, ksp_generated_src_jar = ksp_generated_java_srcjar)

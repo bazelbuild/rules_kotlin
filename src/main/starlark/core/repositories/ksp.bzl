@@ -1,7 +1,7 @@
 _JARS_INSIDE_REPO = [
-    "symbol-processing",
+    "symbol-processing-aa",
+    "symbol-processing-common-deps",
     "symbol-processing-api",
-    "symbol-processing-cmdline",
 ]
 
 def _ksp_compiler_plugin_repository_impl(repository_ctx):
