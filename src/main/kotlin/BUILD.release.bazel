@@ -74,7 +74,7 @@ java_binary(
     runtime_deps = [
         ":worker",
         "@bazel_tools//tools/jdk:JacocoCoverage",
-    ],
+    ] + KOTLIN_STDLIBS,
 )
 
 java_binary(
