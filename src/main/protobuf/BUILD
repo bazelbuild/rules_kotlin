@@ -5,23 +5,23 @@ load("@rules_java//java:java_library.bzl", "java_library")
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
-  name = "deps_proto",
-  srcs = [":deps.proto"],
+    name = "deps_proto",
+    srcs = [":deps.proto"],
 )
 
 java_proto_library(
-  name = "deps_java_proto",
-  deps = [":deps_proto"],
+    name = "deps_java_proto",
+    deps = [":deps_proto"],
 )
 
 proto_library(
-  name = "worker_protocol_proto",
-  srcs = [":worker_protocol.proto"],
+    name = "worker_protocol_proto",
+    srcs = [":worker_protocol.proto"],
 )
 
 java_proto_library(
-  name = "worker_protocol_java_proto",
-  deps = [":worker_protocol_proto"],
+    name = "worker_protocol_java_proto",
+    deps = [":worker_protocol_proto"],
 )
 
 proto_library(
