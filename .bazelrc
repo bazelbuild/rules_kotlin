@@ -4,11 +4,9 @@ common --incompatible_disallow_empty_glob=false
 common --java_runtime_version=remotejdk_17
 common --tool_java_runtime_version=remotejdk_17
 
-common --incompatible_disable_native_repo_rules=true
-common --incompatible_autoload_externally=
-
-# TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Remove when all rules support not using native repo rules.
-common:deprecated --incompatible_disable_native_repo_rules=false
+# TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Uncomment when all rules support not using native repo rules.
+# common --incompatible_disable_native_repo_rules=true
+# common --incompatible_autoload_externally=
 
 build --strategy=KotlinCompile=worker
 build --test_output=all
