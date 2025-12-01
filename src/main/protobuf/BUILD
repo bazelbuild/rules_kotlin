@@ -4,14 +4,24 @@ load("@rules_java//java:java_library.bzl", "java_library")
 
 package(default_visibility = ["//visibility:public"])
 
-alias(
-    name = "deps_java_proto",
-    actual = "@bazel_tools//src/main/protobuf:deps_java_proto",
+proto_library(
+  name = "deps_proto",
+  srcs = [":deps.proto"],
 )
 
-alias(
-    name = "worker_protocol_java_proto",
-    actual = "@bazel_tools//src/main/protobuf:worker_protocol_java_proto",
+java_proto_library(
+  name = "deps_java_proto",
+  deps = [":deps_proto"],
+)
+
+proto_library(
+  name = "worker_protocol_proto",
+  srcs = [":worker_protocol.proto"],
+)
+
+java_proto_library(
+  name = "worker_protocol_java_proto",
+  deps = [":worker_protocol_proto"],
 )
 
 proto_library(
