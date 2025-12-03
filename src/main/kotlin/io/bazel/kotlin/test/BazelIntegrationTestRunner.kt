@@ -58,8 +58,9 @@ object BazelIntegrationTestRunner {
         if (workspace.hasModule()) {
           yield(
             listOf(
+              Flag("--enable_bzlmod=true"),
               Flag("--override_module=rules_kotlin=$unpack"),
-              Flag("--enable_workspace=false") { v -> v >= Version.Known(7, 0, 0) },
+              Flag("--enable_workspace=false") { v -> v >= Version.of(7, 0, 0) },
             ),
           )
         }
@@ -67,7 +68,8 @@ object BazelIntegrationTestRunner {
           yield(
             listOf(
               Flag("--override_repository=rules_kotlin=$unpack"),
-              Flag("--enable_workspace=true") { v -> v < Version.Known(7, 0, 0) },
+              Flag("--enable_bzlmod=false"),
+              Flag("--enable_workspace=true") { v -> v >= Version.of(7, 0, 0) },
             ),
           )
         }
@@ -97,10 +99,10 @@ object BazelIntegrationTestRunner {
       ),
     )
 
-    val systemFlagSets = workspaceFlags * version.resolveBazelRc(workspace)
-    val commandFlagSets = deprecationFlags * experimentFlags
+    val startupFlagSets = version.resolveBazelRc(workspace)
+    val commandFlagSets = workspaceFlags * deprecationFlags * experimentFlags
 
-    systemFlagSets.asStringsFor(version).forEach { systemFlags ->
+    startupFlagSets.asStringsFor(version).forEach { systemFlags ->
       commandFlagSets.asStringsFor(version).forEach { commandFlags ->
         bazel.run(
           workspace,
@@ -111,7 +113,6 @@ object BazelIntegrationTestRunner {
           workspace,
           *systemFlags,
           "info",
-          *commandFlags,
         ).onFailThrow()
         bazel.run(
           workspace,
@@ -172,6 +173,11 @@ object BazelIntegrationTestRunner {
     resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
 
   sealed class Version : Comparable<Version> {
+    companion object {
+      fun of(major:Int, minor:Int=0, patch:Int = 0) = Known(major, minor, patch)
+    }
+
+
     override fun compareTo(other: Version): Int = 1
 
     abstract fun resolveBazelRc(workspace: Path): FlagSets
@@ -268,7 +274,7 @@ object BazelIntegrationTestRunner {
   fun Path.run(inDirectory: Path, vararg args: String): Result<ProcessResult> =
     ProcessBuilder().command(this.toString(), *args).directory(inDirectory.toFile()).start()
       .let { process ->
-        println("Running ${args.joinToString(" ")}...")
+        println("Running [${fileName} ${args.joinToString(" ")}]...")
         val executor = Executors.newCachedThreadPool();
         try {
           val stdOut = executor.submit(process.inputStream.streamTo(System.out))
