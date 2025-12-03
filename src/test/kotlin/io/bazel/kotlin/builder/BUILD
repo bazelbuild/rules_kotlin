@@ -44,11 +44,11 @@ java_library(
     ],
     exports = _COMMON_DEPS,
     runtime_deps = [
-        "//kotlin/compiler:kotlin-reflect",
         "//kotlin/compiler:kotlin-stdlib",
         "@bazel_tools//tools/jdk:JacocoCoverage",
     ],
     deps = _COMMON_DEPS + [
+        "//kotlin/compiler:kotlin-reflect",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//third_party:autovalue",
         "//third_party:dagger",

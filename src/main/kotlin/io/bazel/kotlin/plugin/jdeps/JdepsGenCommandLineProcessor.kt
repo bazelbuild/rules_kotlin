@@ -24,6 +24,14 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
         required = false,
         allowMultipleOccurrences = true,
       )
+    val FULL_CLASSPATH_OPTION: CliOption =
+      CliOption(
+        "full_classpath",
+        "<List>",
+        "Full classpath used for compilation (includes all transitive dependencies and stdlib)",
+        required = false,
+        allowMultipleOccurrences = true,
+      )
     val STRICT_KOTLIN_DEPS_OPTION: CliOption =
       CliOption("strict_kotlin_deps", "<String>", "Report strict deps violations", required = true)
   }
@@ -36,6 +44,7 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
         OUTPUT_JDEPS_FILE_OPTION,
         TARGET_LABEL_OPTION,
         DIRECT_DEPENDENCIES_OPTION,
+        FULL_CLASSPATH_OPTION,
         STRICT_KOTLIN_DEPS_OPTION,
       )
 
@@ -50,6 +59,11 @@ class JdepsGenCommandLineProcessor : CommandLineProcessor {
       DIRECT_DEPENDENCIES_OPTION ->
         configuration.appendList(
           JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES,
+          value,
+        )
+      FULL_CLASSPATH_OPTION ->
+        configuration.appendList(
+          JdepsGenConfigurationKeys.FULL_CLASSPATH,
           value,
         )
       STRICT_KOTLIN_DEPS_OPTION ->
