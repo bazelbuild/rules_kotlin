@@ -5,6 +5,12 @@ module(
     repo_name = "rules_kotlin",
 )
 
+proto_version = "4.33.1"
+
+proto_version_parts = proto_version.split(".")
+
+proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
+
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 
@@ -59,8 +65,8 @@ maven.install(
     artifacts = [
         "com.google.code.findbugs:jsr305:3.0.2",
         "junit:junit:4.13-beta-3",
-        "com.google.protobuf:protobuf-java:4.31.1",
-        "com.google.protobuf:protobuf-java-util:4.31.1",
+        "com.google.protobuf:protobuf-java:{}".format(proto_version),
+        "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
         "com.google.guava:guava:27.1-jre",
         "com.google.truth:truth:0.45",
         "com.google.auto.service:auto-service:1.1.1",
