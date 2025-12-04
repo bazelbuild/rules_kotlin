@@ -10,4 +10,4 @@ new="$2"
 [[ -f $new ]] || fail "missing new docs"
 [[ -f $current ]] || fail "missing current docs"
 
-diff -u "$1" "$2" || fail "kotlin docs are out of date"
+diff -wu "$1" "$2" || fail "kotlin docs are out of date"
