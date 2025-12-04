@@ -611,7 +611,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 <pre>
 load("@rules_kotlin//kotlin:repositories.doc.bzl", "versions")
 
-versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-kwargs">**kwargs</a>)
+versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-kwargs">kwargs</a>)
 </pre>
 
 
@@ -621,9 +621,9 @@ versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a hre
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
+| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
-| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 
