@@ -108,11 +108,13 @@ object BazelIntegrationTestRunner {
           workspace,
           *systemFlags,
           "shutdown",
+          *commandFlags,
         ).onFailThrow()
         bazel.run(
           workspace,
           *systemFlags,
           "info",
+          *commandFlags,
         ).onFailThrow()
         bazel.run(
           workspace,
