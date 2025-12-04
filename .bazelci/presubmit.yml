@@ -71,9 +71,7 @@ tasks:
       - "--strategy=KotlinCompile=remote"
   stardoc:
     name: Stardoc api documentation
-    <<: *ubuntu2404
-    build_flags:
-      - "--enable_bzlmod=true"
+    platform: rbe_ubuntu1604
     build_targets:
       - //kotlin:stardoc
     test_targets:
