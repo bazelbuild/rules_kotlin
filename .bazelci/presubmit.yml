@@ -42,7 +42,7 @@ matrix:
   test_flags:
     - ["--enable_bzlmod=true"]
 validate_config: 1
-bazel: 7.7.1
+bazel: 8.4.2
 buildifier:
   version: 8.2.0
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
