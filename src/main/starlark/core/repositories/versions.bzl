@@ -117,6 +117,14 @@ versions = struct(
         ],
         sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
     ),
+    BAZEL_WORKER_API = version(
+        version = "0.0.6",
+        sha256 = "5aac6ae6a23015cc7984492a114dc539effc244ec5ac7f8f6b1539c15fb376eb",
+        strip_prefix_template = "bazel-worker-api-{version}",
+        url_templates = [
+            "https://github.com/bazelbuild/bazel-worker-api/releases/download/v{version}/bazel-worker-api-v{version}.tar.gz",
+        ],
+    ),
     KOTLINX_SERIALIZATION_CORE_JVM = version(
         version = "1.8.1",
         url_templates = [

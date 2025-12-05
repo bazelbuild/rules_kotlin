@@ -37,10 +37,12 @@ def kt_configure():
         fetch_sources = True,
         artifacts = [
             "com.google.code.findbugs:jsr305:3.0.2",
+            "com.google.code.gson:gson:2.10.1",
+            "com.google.errorprone:error_prone_annotations:2.23.0",
             "junit:junit:4.13-beta-3",
             "com.google.protobuf:protobuf-java:{}".format(proto_version),
             "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
-            "com.google.guava:guava:27.1-jre",
+            "com.google.guava:guava:33.0.0-jre",
             "com.google.truth:truth:0.45",
             "com.google.auto.service:auto-service:1.1.1",
             "com.google.auto.service:auto-service-annotations:1.1.1",
