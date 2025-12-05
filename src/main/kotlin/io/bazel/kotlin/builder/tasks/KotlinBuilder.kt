@@ -30,13 +30,18 @@ import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
 import io.bazel.worker.WorkerContext
 import java.io.File
+import java.io.FileOutputStream
 import java.net.URLClassLoader
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.ServiceLoader
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 import java.util.regex.Pattern
+import java.util.zip.ZipFile
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -94,20 +99,15 @@ class KotlinBuilder
         KSP_GENERATED_CLASSES_JAR("--ksp_generated_classes_jar"),
         BUILD_TOOLS_API("--build_tools_api"),
 
-        // KSP2 mode flags
+        // KSP2 mode flags - simplified: inputs are sources/srcjars, outputs are jars
         KSP2_MODE("--ksp2_mode"),
         KSP2_MODULE_NAME("--ksp2_module_name"),
-        KSP2_SOURCE_ROOTS("--ksp2_source_roots"),
-        KSP2_JAVA_SOURCE_ROOTS("--ksp2_java_source_roots"),
+        KSP2_SOURCES("--ksp2_sources"),
+        KSP2_SOURCE_JARS("--ksp2_source_jars"),
         KSP2_LIBRARIES("--ksp2_libraries"),
         KSP2_PROCESSOR_CLASSPATH("--ksp2_processor_classpath"),
-        KSP2_PROJECT_BASE_DIR("--ksp2_project_base_dir"),
-        KSP2_OUTPUT_BASE_DIR("--ksp2_output_base_dir"),
-        KSP2_CACHES_DIR("--ksp2_caches_dir"),
-        KSP2_CLASS_OUTPUT_DIR("--ksp2_class_output_dir"),
-        KSP2_KOTLIN_OUTPUT_DIR("--ksp2_kotlin_output_dir"),
-        KSP2_JAVA_OUTPUT_DIR("--ksp2_java_output_dir"),
-        KSP2_RESOURCE_OUTPUT_DIR("--ksp2_resource_output_dir"),
+        KSP2_GENERATED_SOURCES_OUTPUT("--ksp2_generated_sources_output"),
+        KSP2_GENERATED_CLASSES_OUTPUT("--ksp2_generated_classes_output"),
         KSP2_LANGUAGE_VERSION("--ksp2_language_version"),
         KSP2_API_VERSION("--ksp2_api_version"),
         KSP2_JVM_TARGET("--ksp2_jvm_target"),
@@ -349,45 +349,126 @@ class KotlinBuilder
     ) = "_kotlinc/${moduleName}_jvm/$dirName"
 
     /**
-     * Execute KSP2 processing using reflection.
+     * Execute KSP2 processing entirely within the worker.
      *
-     * KSP2 JARs are passed via the processor classpath at runtime (not bundled with the builder),
-     * so we must use reflection to load all KSP2 classes from the URLClassLoader.
-     * This follows the same pattern as KotlincInvoker in KotlinToolchain.kt.
+     * This method handles:
+     * 1. Staging source files to a temporary directory (for worker isolation)
+     * 2. Unpacking srcjars to a temporary directory
+     * 3. Running KSP2 via reflection
+     * 4. Packaging generated sources/classes into output JARs
+     *
+     * All temporary directories are created inside the worker's working directory,
+     * avoiding tree artifacts and minimizing action count.
      */
     @Suppress("UNCHECKED_CAST")
     private fun executeKsp2Task(
       taskContext: WorkerContext.TaskContext,
       argMap: ArgMap,
-    ): Int =
+    ): Int {
+      val workingDir = taskContext.directory
+      val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.KSP2_MODULE_NAME)
+
+      // Create temporary directories for KSP2 processing
+      val kspWorkDir = workingDir.resolve("_ksp2/$moduleName")
+      val stagedSourcesDir = kspWorkDir.resolve("staged_sources")
+      val kotlinOutputDir = kspWorkDir.resolve("kotlin_out")
+      val javaOutputDir = kspWorkDir.resolve("java_out")
+      val classOutputDir = kspWorkDir.resolve("class_out")
+      val resourceOutputDir = kspWorkDir.resolve("resource_out")
+      val cachesDir = kspWorkDir.resolve("caches")
+
+      listOf(
+        stagedSourcesDir,
+        kotlinOutputDir,
+        javaOutputDir,
+        classOutputDir,
+        resourceOutputDir,
+        cachesDir,
+      ).forEach {
+        Files.createDirectories(it)
+      }
+
       try {
-        // Processor classpath includes KSP2 runtime JARs and user processors
+        // Stage source files to isolated directory
+        val sourceRoots = mutableSetOf<String>()
+        val javaSourceRoots = mutableSetOf<String>()
+
+        // Stage individual source files
+        val sources = argMap.optional(KotlinBuilderFlags.KSP2_SOURCES) ?: emptyList()
+        for (source in sources) {
+          val sourceFile = File(source)
+          val targetFile = stagedSourcesDir.resolve(source).toFile()
+          targetFile.parentFile?.mkdirs()
+          sourceFile.copyTo(targetFile, overwrite = true)
+
+          // Track source roots (directories containing sources)
+          val sourceRoot =
+            if (sourceFile.parentFile != null) {
+              stagedSourcesDir.resolve(sourceFile.parentFile.path).toString()
+            } else {
+              stagedSourcesDir.toString()
+            }
+          sourceRoots.add(sourceRoot)
+          if (source.endsWith(".java")) {
+            javaSourceRoots.add(sourceRoot)
+          }
+        }
+
+        // Unpack srcjars directly
+        val srcjars = argMap.optional(KotlinBuilderFlags.KSP2_SOURCE_JARS) ?: emptyList()
+        for (srcjar in srcjars) {
+          ZipFile(srcjar).use { zip ->
+            zip.entries().asSequence().forEach { entry ->
+              if (!entry.isDirectory) {
+                val targetFile = stagedSourcesDir.resolve(entry.name).toFile()
+                targetFile.parentFile?.mkdirs()
+                zip.getInputStream(entry).use { input ->
+                  targetFile.outputStream().use { output ->
+                    input.copyTo(output)
+                  }
+                }
+                // Track source root for srcjar contents
+                val parentDir = targetFile.parentFile?.path ?: stagedSourcesDir.toString()
+                sourceRoots.add(parentDir)
+                if (entry.name.endsWith(".java")) {
+                  javaSourceRoots.add(parentDir)
+                }
+              }
+            }
+          }
+        }
+
+        // If no sources, add a placeholder source root
+        if (sourceRoots.isEmpty()) {
+          sourceRoots.add(stagedSourcesDir.toString())
+        }
+
+        // Load KSP2 via reflection
         val processorClasspath =
           argMap.optional(KotlinBuilderFlags.KSP2_PROCESSOR_CLASSPATH) ?: emptyList()
         val processorUrls = processorClasspath.map { File(it).toURI().toURL() }.toTypedArray()
         val kspClassLoader = URLClassLoader(processorUrls, ClassLoader.getSystemClassLoader())
 
-        // Load KSP2 classes via reflection
         val symbolProcessorProviderClass =
           kspClassLoader.loadClass("com.google.devtools.ksp.processing.SymbolProcessorProvider")
-        val kspJvmConfigClass =
-          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPJvmConfig")
         val kspJvmConfigBuilderClass =
           kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPJvmConfig\$Builder")
         val kspGradleLoggerClass =
           kspClassLoader.loadClass("com.google.devtools.ksp.processing.KspGradleLogger")
         val kotlinSymbolProcessingClass =
           kspClassLoader.loadClass("com.google.devtools.ksp.impl.KotlinSymbolProcessing")
+        val kspConfigClass =
+          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPConfig")
+        val kspLoggerClass =
+          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPLogger")
 
-        // Find SymbolProcessorProvider implementations via ServiceLoader
+        // Find processor implementations
         val processors =
           ServiceLoader.load(symbolProcessorProviderClass, kspClassLoader).toList()
 
-        // Build KSP2 configuration using reflection
+        // Build KSP2 configuration
         val configBuilder = kspJvmConfigBuilderClass.getConstructor().newInstance()
 
-        // Helper to set Kotlin properties via setter methods
-        // Kotlin var properties compile to setXxx/getXxx methods
         fun setProperty(
           name: String,
           value: Any?,
@@ -400,53 +481,26 @@ class KotlinBuilder
           setter.invoke(configBuilder, value)
         }
 
-        setProperty(
-          "moduleName",
-          argMap.mandatorySingle(KotlinBuilderFlags.KSP2_MODULE_NAME),
-        )
-
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_SOURCE_ROOTS)?.let { roots ->
-          setProperty(
-            "sourceRoots",
-            roots.split(":").filter { it.isNotEmpty() }.map { File(it) },
-          )
+        setProperty("moduleName", moduleName)
+        setProperty("sourceRoots", sourceRoots.map { File(it) })
+        if (javaSourceRoots.isNotEmpty()) {
+          setProperty("javaSourceRoots", javaSourceRoots.map { File(it) })
         }
 
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_JAVA_SOURCE_ROOTS)?.let { roots ->
-          setProperty(
-            "javaSourceRoots",
-            roots.split(":").filter { it.isNotEmpty() }.map { File(it) },
-          )
+        argMap.optional(KotlinBuilderFlags.KSP2_LIBRARIES)?.let { libs ->
+          setProperty("libraries", libs.map { File(it) })
         }
 
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_LIBRARIES)?.let { libs ->
-          setProperty(
-            "libraries",
-            libs.split(":").filter { it.isNotEmpty() }.map { File(it) },
-          )
-        }
+        setProperty("kotlinOutputDir", kotlinOutputDir.toFile())
+        setProperty("javaOutputDir", javaOutputDir.toFile())
+        setProperty("classOutputDir", classOutputDir.toFile())
+        setProperty("resourceOutputDir", resourceOutputDir.toFile())
+        setProperty("cachesDir", cachesDir.toFile())
+        // projectBaseDir and outputBaseDir must share the same root as output directories
+        // to allow KSP2 to compute relative paths correctly
+        setProperty("projectBaseDir", kspWorkDir.toFile())
+        setProperty("outputBaseDir", kspWorkDir.toFile())
 
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_KOTLIN_OUTPUT_DIR)?.let {
-          setProperty("kotlinOutputDir", File(it))
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_JAVA_OUTPUT_DIR)?.let {
-          setProperty("javaOutputDir", File(it))
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_CLASS_OUTPUT_DIR)?.let {
-          setProperty("classOutputDir", File(it))
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_RESOURCE_OUTPUT_DIR)?.let {
-          setProperty("resourceOutputDir", File(it))
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_CACHES_DIR)?.let {
-          setProperty("cachesDir", File(it))
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_PROJECT_BASE_DIR)?.let {
-          setProperty("projectBaseDir", File(it))
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.KSP2_OUTPUT_BASE_DIR)?.let {
-          setProperty("outputBaseDir", File(it))
-        }
         argMap.optionalSingle(KotlinBuilderFlags.KSP2_JVM_TARGET)?.let {
           setProperty("jvmTarget", it)
         }
@@ -459,25 +513,15 @@ class KotlinBuilder
         argMap.optionalSingle(KotlinBuilderFlags.KSP2_JDK_HOME)?.let {
           setProperty("jdkHome", File(it))
         }
-
         setProperty("mapAnnotationArgumentsInJava", true)
 
-        // Build the config
+        // Build and run KSP2
         val buildMethod = kspJvmConfigBuilderClass.getMethod("build")
         val config = buildMethod.invoke(configBuilder)
 
-        // Create logger (logging level WARN = 1)
         val loggerConstructor = kspGradleLoggerClass.getConstructor(Int::class.java)
-        val logger = loggerConstructor.newInstance(1)
+        val logger = loggerConstructor.newInstance(1) // WARN level
 
-        // Load base interfaces for constructor lookup
-        // KotlinSymbolProcessing constructor takes KSPConfig (base), List, KSPLogger (base)
-        val kspConfigClass =
-          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPConfig")
-        val kspLoggerClass =
-          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPLogger")
-
-        // Create KotlinSymbolProcessing instance
         val kspConstructor =
           kotlinSymbolProcessingClass.getConstructor(
             kspConfigClass,
@@ -486,20 +530,83 @@ class KotlinBuilder
           )
         val ksp = kspConstructor.newInstance(config, processors, logger)
 
-        // Execute KSP2
         val executeMethod = kotlinSymbolProcessingClass.getMethod("execute")
         val exitCode = executeMethod.invoke(ksp)
 
-        // Get exit code value
         val exitCodeClass = exitCode.javaClass
         val codeField = exitCodeClass.getDeclaredField("code")
         codeField.isAccessible = true
         val code = codeField.getInt(exitCode)
 
-        taskContext.info { "KSP2 completed with exit code: $code" }
-        code
+        if (code != 0) {
+          taskContext.error { "KSP2 failed with exit code: $code" }
+          return code
+        }
+
+        // Package generated sources into srcjar
+        val generatedSourcesOutput =
+          argMap.mandatorySingle(KotlinBuilderFlags.KSP2_GENERATED_SOURCES_OUTPUT)
+        packageDirectoriesToJar(
+          outputPath = generatedSourcesOutput,
+          directories = listOf(kotlinOutputDir, javaOutputDir),
+        )
+
+        // Package generated classes/resources into jar
+        val generatedClassesOutput =
+          argMap.mandatorySingle(KotlinBuilderFlags.KSP2_GENERATED_CLASSES_OUTPUT)
+        packageDirectoriesToJar(
+          outputPath = generatedClassesOutput,
+          directories = listOf(classOutputDir, resourceOutputDir),
+        )
+
+        taskContext.info { "KSP2 completed successfully" }
+        return 0
       } catch (e: Exception) {
         taskContext.error(e) { "KSP2 execution failed" }
-        1
+        return 1
+      } finally {
+        // Clean up temporary directories
+        try {
+          kspWorkDir.toFile().deleteRecursively()
+        } catch (_: Exception) {
+          // Ignore cleanup errors
+        }
       }
+    }
+
+    /**
+     * Package files from directories into a JAR file.
+     */
+    private fun packageDirectoriesToJar(
+      outputPath: String,
+      directories: List<Path>,
+    ) {
+      val manifest =
+        Manifest().apply {
+          mainAttributes.putValue("Manifest-Version", "1.0")
+          mainAttributes.putValue("Created-By", "rules_kotlin KSP2")
+        }
+
+      JarOutputStream(FileOutputStream(outputPath), manifest).use { jar ->
+        val addedEntries = mutableSetOf<String>()
+
+        for (dir in directories) {
+          if (!Files.exists(dir)) continue
+
+          Files.walk(dir).use { stream ->
+            stream.forEach { path ->
+              if (Files.isRegularFile(path)) {
+                val relativePath = dir.relativize(path).toString().replace('\\', '/')
+                if (relativePath !in addedEntries) {
+                  addedEntries.add(relativePath)
+                  jar.putNextEntry(JarEntry(relativePath))
+                  Files.copy(path, jar)
+                  jar.closeEntry()
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
