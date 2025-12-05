@@ -382,7 +382,7 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
         toolchain = _TOOLCHAIN_TYPE,
     )
 
-def _package_tree_artifacts_to_jar(ctx, rule_kind, toolchains, output_jar, input_dirs, action_type):
+def _package_tree_artifacts_to_jar(ctx, toolchains, output_jar, input_dirs, action_type):
     """Package tree artifacts (directories) into a JAR using zipper.
 
     This function packages files from tree artifact directories into a JAR,
@@ -391,7 +391,6 @@ def _package_tree_artifacts_to_jar(ctx, rule_kind, toolchains, output_jar, input
 
     Args:
         ctx: Rule context
-        rule_kind: The rule kind (e.g., kt_jvm_library)
         toolchains: Compiler toolchains struct
         output_jar: Output JAR file
         input_dirs: List of tree artifact directories to package
@@ -483,14 +482,10 @@ def _run_kapt_builder_actions(
 
 def _run_ksp_builder_actions(
         ctx,
-        rule_kind,
         toolchains,
         srcs,
         compile_deps,
-        deps_artifacts,
-        annotation_processors,
-        transitive_runtime_jars,
-        plugins):
+        transitive_runtime_jars):
     """Runs KSP2 via the KotlinBuilder with worker support.
 
     Returns:
@@ -695,7 +690,6 @@ def _run_ksp_builder_actions(
     # Package generated sources into srcjar using zipper
     _package_tree_artifacts_to_jar(
         ctx,
-        rule_kind = rule_kind,
         toolchains = toolchains,
         output_jar = ksp_generated_java_srcjar,
         input_dirs = [ksp_kotlin_output_dir, ksp_java_output_dir],
@@ -705,7 +699,6 @@ def _run_ksp_builder_actions(
     # Package generated classes into jar using zipper
     _package_tree_artifacts_to_jar(
         ctx,
-        rule_kind = rule_kind,
         toolchains = toolchains,
         output_jar = ksp_generated_classes_jar,
         input_dirs = [ksp_class_output_dir, ksp_resource_output_dir],
@@ -1082,14 +1075,10 @@ def _run_kt_java_builder_actions(
     if has_kt_sources and ksp_annotation_processors:
         ksp_outputs = _run_ksp_builder_actions(
             ctx,
-            rule_kind = rule_kind,
             toolchains = toolchains,
             srcs = srcs,
             compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
-            annotation_processors = ksp_annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
         )
         ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
         output_jars.append(ksp_generated_class_jar)

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_java//java:defs.bzl", "java_binary")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load(
     "//kotlin/internal:defs.bzl",
@@ -43,20 +42,4 @@ def kt_configure_ksp():
     kt_jvm_import(
         name = "symbol-processing-api",
         jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-api.jar",
-    )
-
-    # KSP2 standalone tool wrapper (kept for backwards compatibility)
-    java_binary(
-        name = "ksp2_jvm",
-        main_class = "com.google.devtools.ksp.cmdline.KSPJvmMain",
-        runtime_deps = [
-            ":symbol-processing-aa",
-            ":symbol-processing-common-deps",
-            ":symbol-processing-api",
-            ":kotlin-stdlib",
-            ":kotlin-stdlib-jdk7",
-            ":kotlin-stdlib-jdk8",
-            ":kotlinx-coroutines-core-jvm",
-        ],
-        jvm_flags = ["-Dksp.logging=debug"],
     )
