@@ -93,8 +93,8 @@ def kotlin_repositories(
         version = versions.KOTLINX_COROUTINES_CORE_JVM,
     )
 
-    maybe(
-        http_jar,
+    versions.use_repository(
+        http_file,
         name = "kotlin_build_tools_impl",
         version = versions.KOTLIN_BUILD_TOOLS_IMPL,
     )

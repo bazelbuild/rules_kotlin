@@ -349,8 +349,11 @@ class KotlinBuilder
     ) = "_kotlinc/${moduleName}_jvm/$dirName"
 
     /**
-     * Execute KSP2 processing using reflection to load KSP2 classes dynamically.
-     * The processor classpath must include both KSP2 API JARs and user processor JARs.
+     * Execute KSP2 processing using reflection.
+     *
+     * KSP2 JARs are passed via the processor classpath at runtime (not bundled with the builder),
+     * so we must use reflection to load all KSP2 classes from the URLClassLoader.
+     * This follows the same pattern as KotlincInvoker in KotlinToolchain.kt.
      */
     @Suppress("UNCHECKED_CAST")
     private fun executeKsp2Task(
@@ -358,129 +361,140 @@ class KotlinBuilder
       argMap: ArgMap,
     ): Int =
       try {
-        // Processor classpath should include both KSP2 runtime JARs and user processors
+        // Processor classpath includes KSP2 runtime JARs and user processors
         val processorClasspath =
           argMap.optional(KotlinBuilderFlags.KSP2_PROCESSOR_CLASSPATH) ?: emptyList()
         val processorUrls = processorClasspath.map { File(it).toURI().toURL() }.toTypedArray()
-        val kspClassLoader = URLClassLoader(processorUrls, this.javaClass.classLoader)
+        val kspClassLoader = URLClassLoader(processorUrls, ClassLoader.getSystemClassLoader())
 
-        // Load the SymbolProcessorProvider class and find implementations via ServiceLoader
-        val providerClass =
+        // Load KSP2 classes via reflection
+        val symbolProcessorProviderClass =
           kspClassLoader.loadClass("com.google.devtools.ksp.processing.SymbolProcessorProvider")
-        val processors = ServiceLoader.load(providerClass, kspClassLoader).toList()
+        val kspJvmConfigClass =
+          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPJvmConfig")
+        val kspJvmConfigBuilderClass =
+          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPJvmConfig\$Builder")
+        val kspGradleLoggerClass =
+          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KspGradleLogger")
+        val kotlinSymbolProcessingClass =
+          kspClassLoader.loadClass("com.google.devtools.ksp.impl.KotlinSymbolProcessing")
+
+        // Find SymbolProcessorProvider implementations via ServiceLoader
+        val processors =
+          ServiceLoader.load(symbolProcessorProviderClass, kspClassLoader).toList()
 
         // Build KSP2 configuration using reflection
-        val configBuilderClass =
-          kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPJvmConfig\$Builder")
-        val configBuilder = configBuilderClass.getDeclaredConstructor().newInstance()
+        val configBuilder = kspJvmConfigBuilderClass.getConstructor().newInstance()
 
-        // Helper to set properties on the builder via reflection
-        fun setBuilderProperty(
+        // Helper to set Kotlin properties via setter methods
+        // Kotlin var properties compile to setXxx/getXxx methods
+        fun setProperty(
           name: String,
-          value: Any,
+          value: Any?,
         ) {
+          if (value == null) return
+          val setterName = "set${name.replaceFirstChar { c -> c.uppercase() }}"
           val setter =
-            configBuilderClass.methods.find {
-              it.name ==
-                "set${name.replaceFirstChar { c -> c.uppercase() }}"
-            }
-              ?: throw NoSuchMethodException("No setter for $name")
+            kspJvmConfigBuilderClass.methods.find { it.name == setterName }
+              ?: throw NoSuchMethodException("No setter $setterName found")
           setter.invoke(configBuilder, value)
         }
 
-        // Configure KSP2
-        setBuilderProperty(
+        setProperty(
           "moduleName",
           argMap.mandatorySingle(KotlinBuilderFlags.KSP2_MODULE_NAME),
         )
 
         argMap.optionalSingle(KotlinBuilderFlags.KSP2_SOURCE_ROOTS)?.let { roots ->
-          setBuilderProperty(
+          setProperty(
             "sourceRoots",
             roots.split(":").filter { it.isNotEmpty() }.map { File(it) },
           )
         }
 
         argMap.optionalSingle(KotlinBuilderFlags.KSP2_JAVA_SOURCE_ROOTS)?.let { roots ->
-          setBuilderProperty(
+          setProperty(
             "javaSourceRoots",
             roots.split(":").filter { it.isNotEmpty() }.map { File(it) },
           )
         }
 
         argMap.optionalSingle(KotlinBuilderFlags.KSP2_LIBRARIES)?.let { libs ->
-          setBuilderProperty(
+          setProperty(
             "libraries",
             libs.split(":").filter { it.isNotEmpty() }.map { File(it) },
           )
         }
 
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_KOTLIN_OUTPUT_DIR)
-          ?.let { setBuilderProperty("kotlinOutputDir", File(it)) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_JAVA_OUTPUT_DIR)
-          ?.let { setBuilderProperty("javaOutputDir", File(it)) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_CLASS_OUTPUT_DIR)
-          ?.let { setBuilderProperty("classOutputDir", File(it)) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_RESOURCE_OUTPUT_DIR)
-          ?.let { setBuilderProperty("resourceOutputDir", File(it)) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_CACHES_DIR)
-          ?.let { setBuilderProperty("cachesDir", File(it)) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_PROJECT_BASE_DIR)
-          ?.let { setBuilderProperty("projectBaseDir", File(it)) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_OUTPUT_BASE_DIR)
-          ?.let { setBuilderProperty("outputBaseDir", File(it)) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_JVM_TARGET)
-          ?.let { setBuilderProperty("jvmTarget", it) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_LANGUAGE_VERSION)
-          ?.let { setBuilderProperty("languageVersion", it) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_API_VERSION)
-          ?.let { setBuilderProperty("apiVersion", it) }
-        argMap
-          .optionalSingle(KotlinBuilderFlags.KSP2_JDK_HOME)
-          ?.let { setBuilderProperty("jdkHome", File(it)) }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_KOTLIN_OUTPUT_DIR)?.let {
+          setProperty("kotlinOutputDir", File(it))
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_JAVA_OUTPUT_DIR)?.let {
+          setProperty("javaOutputDir", File(it))
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_CLASS_OUTPUT_DIR)?.let {
+          setProperty("classOutputDir", File(it))
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_RESOURCE_OUTPUT_DIR)?.let {
+          setProperty("resourceOutputDir", File(it))
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_CACHES_DIR)?.let {
+          setProperty("cachesDir", File(it))
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_PROJECT_BASE_DIR)?.let {
+          setProperty("projectBaseDir", File(it))
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_OUTPUT_BASE_DIR)?.let {
+          setProperty("outputBaseDir", File(it))
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_JVM_TARGET)?.let {
+          setProperty("jvmTarget", it)
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_LANGUAGE_VERSION)?.let {
+          setProperty("languageVersion", it)
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_API_VERSION)?.let {
+          setProperty("apiVersion", it)
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.KSP2_JDK_HOME)?.let {
+          setProperty("jdkHome", File(it))
+        }
 
-        setBuilderProperty("mapAnnotationArgumentsInJava", true)
+        setProperty("mapAnnotationArgumentsInJava", true)
 
         // Build the config
-        val buildMethod = configBuilderClass.getMethod("build")
+        val buildMethod = kspJvmConfigBuilderClass.getMethod("build")
         val config = buildMethod.invoke(configBuilder)
 
-        // Create logger (KspGradleLogger with LOGGING_LEVEL_WARN = 1)
-        val loggerClass =
-          kspClassLoader.loadClass(
-            "com.google.devtools.ksp.processing.KspGradleLogger",
-          )
-        val logger =
-          loggerClass
-            .getDeclaredConstructor(Int::class.java)
-            .newInstance(1)
+        // Create logger (logging level WARN = 1)
+        val loggerConstructor = kspGradleLoggerClass.getConstructor(Int::class.java)
+        val logger = loggerConstructor.newInstance(1)
 
-        // Create and execute KotlinSymbolProcessing
-        val kspClass =
-          kspClassLoader.loadClass("com.google.devtools.ksp.impl.KotlinSymbolProcessing")
+        // Load base interfaces for constructor lookup
+        // KotlinSymbolProcessing constructor takes KSPConfig (base), List, KSPLogger (base)
         val kspConfigClass =
           kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPConfig")
         val kspLoggerClass =
           kspClassLoader.loadClass("com.google.devtools.ksp.processing.KSPLogger")
+
+        // Create KotlinSymbolProcessing instance
         val kspConstructor =
-          kspClass.getDeclaredConstructor(kspConfigClass, List::class.java, kspLoggerClass)
+          kotlinSymbolProcessingClass.getConstructor(
+            kspConfigClass,
+            List::class.java,
+            kspLoggerClass,
+          )
         val ksp = kspConstructor.newInstance(config, processors, logger)
 
-        // Execute and get exit code
-        val executeMethod = kspClass.getMethod("execute")
+        // Execute KSP2
+        val executeMethod = kotlinSymbolProcessingClass.getMethod("execute")
         val exitCode = executeMethod.invoke(ksp)
-        val codeMethod = exitCode.javaClass.getMethod("getCode")
-        val code = codeMethod.invoke(exitCode) as Int
+
+        // Get exit code value
+        val exitCodeClass = exitCode.javaClass
+        val codeField = exitCodeClass.getDeclaredField("code")
+        codeField.isAccessible = true
+        val code = codeField.getInt(exitCode)
 
         taskContext.info { "KSP2 completed with exit code: $code" }
         code
