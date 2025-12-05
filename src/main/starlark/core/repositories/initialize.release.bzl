@@ -145,15 +145,10 @@ def kotlin_repositories(
         urls = [url.format(version = versions.BAZEL_FEATURES.version) for url in versions.BAZEL_FEATURES.url_templates],
     )
 
-    maybe(
+    versions.use_repository(
         http_archive,
         name = "com_google_protobuf",
         version = versions.COM_GOOGLE_PROTOBUF,
-    )
-    versions.use_repository(
-        http_archive,
-        name = "rules_proto",
-        version = versions.RULES_PROTO,
     )
 
 def kotlinc_version(release, sha256):
