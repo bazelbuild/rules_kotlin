@@ -78,6 +78,7 @@ def _kotlin_toolchain_impl(ctx):
             ),
         ],
         jdeps_merger = ctx.attr.jdeps_merger,
+        ksp2 = ctx.attr.ksp2,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
@@ -255,6 +256,13 @@ _kt_toolchain = rule(
         "kotlinc_options": attr.label(
             doc = "Compiler options for kotlinc",
             providers = [KotlincOptions],
+        ),
+        "ksp2": attr.label(
+            doc = "the KSP2 worker executable",
+            default = Label("//src/main/kotlin:ksp2"),
+            executable = True,
+            allow_files = True,
+            cfg = "exec",
         ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",

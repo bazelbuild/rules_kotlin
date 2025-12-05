@@ -71,3 +71,23 @@ kt_bootstrap_binary(
     visibility = ["//src:__subpackages__"],
     runtime_deps = [":merge_jdeps_lib"],
 )
+
+kt_bootstrap_library(
+    name = "ksp2_lib",
+    srcs = ["Ksp2.kt"],
+    visibility = ["//src:__subpackages__"],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "//src/main/kotlin/io/bazel/worker",
+    ],
+)
+
+kt_bootstrap_binary(
+    name = "ksp2",
+    data = _KOTLIN_STDLIBS,
+    main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
+    shade_rules = "//src/main/kotlin:shade.jarjar",
+    visibility = ["//src:__subpackages__"],
+    runtime_deps = [":ksp2_lib"],
+)
