@@ -14,10 +14,21 @@ def _setup(env, target):
         compile_jar = _file(env.ctx.attr.associate_abi_jar),
         output_jar = _file(env.ctx.attr.associate_jar),
     )
+    associate_deps_java_info2 = JavaInfo(
+        compile_jar = _file(env.ctx.attr.associate_abi_jar2),
+        output_jar = _file(env.ctx.attr.associate_jar2),
+    )
 
+    # More than 1 associate should be allowed if they resolve to the same module
     associate_deps = [
         {
             JavaInfo: associate_deps_java_info,
+            _KtJvmInfo: _KtJvmInfo(
+                module_name = "associate_name",
+            ),
+        },
+        {
+            JavaInfo: associate_deps_java_info2,
             _KtJvmInfo: _KtJvmInfo(
                 module_name = "associate_name",
             ),
@@ -84,7 +95,9 @@ def _strict_abi_test_impl(env, target):
 
     # but FULL FAT associate jars and not the ABI associate jar
     classpath.contains(_file(env.ctx.attr.associate_jar).short_path)
+    classpath.contains(_file(env.ctx.attr.associate_jar2).short_path)
     classpath.not_contains(_file(env.ctx.attr.associate_abi_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.associate_abi_jar2).short_path)
 
 def _fat_abi_test_impl(env, target):
     arrangment = _setup(env, target)
@@ -116,7 +129,9 @@ def _fat_abi_test_impl(env, target):
 
     # but ABI associate jars and not the FULL FAT associate jar
     classpath.contains(_file(env.ctx.attr.associate_abi_jar).short_path)
+    classpath.contains(_file(env.ctx.attr.associate_abi_jar2).short_path)
     classpath.not_contains(_file(env.ctx.attr.associate_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.associate_jar2).short_path)
 
 def _transitive_from_exports_test_impl(env, target):
     arrangment_dict = _structs.to_dict(_setup(env, target))
@@ -240,14 +255,18 @@ def _abi_test(name, impl):
         target = name + "_subject",
         attr_values = {
             "associate_abi_jar": util.empty_file(name + "associate_abi.jar"),
+            "associate_abi_jar2": util.empty_file(name + "associate_abi2.jar"),
             "associate_jar": util.empty_file(name + "associate.jar"),
+            "associate_jar2": util.empty_file(name + "associate2.jar"),
             "direct_dep_abi_jar": util.empty_file(name + "direct_dep_abi.jar"),
             "direct_dep_jar": util.empty_file(name + "direct_dep.jar"),
             "jvm_jar": util.empty_file(name + "jvm.jar"),
         },
         attrs = {
             "associate_abi_jar": attr.label(allow_files = True),
+            "associate_abi_jar2": attr.label(allow_files = True),
             "associate_jar": attr.label(allow_files = True),
+            "associate_jar2": attr.label(allow_files = True),
             "direct_dep_abi_jar": attr.label(allow_files = True),
             "direct_dep_jar": attr.label(allow_files = True),
             "jvm_jar": attr.label(allow_files = True),

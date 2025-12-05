@@ -426,7 +426,7 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-no_reflect"></a>no_reflect |  Don't automatically include the Kotlin reflection dependency in the classpath. Values: unset = use kotlinc default, 'true' = enable, 'false' = disable.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-warn"></a>warn |  Control warning behaviour.   | String | optional |  `"report"`  |
 | <a id="kt_kotlinc_options-x_backend_threads"></a>x_backend_threads |  When using the IR backend, run lowerings by file in N parallel threads. 0 means use a thread per processor core. Default value is 1.   | Integer | optional |  `1`  |
-| <a id="kt_kotlinc_options-x_jdk_release"></a>x_jdk_release |  Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer. The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–21. This also sets the value of '-jvm-target' to be equal to the selected JDK version.   | String | optional |  `""`  |
+| <a id="kt_kotlinc_options-x_jdk_release"></a>x_jdk_release |  Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer. The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9-21. This also sets the value of '-jvm-target' to be equal to the selected JDK version.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_lambdas"></a>x_lambdas |  Change codegen behavior of lambdas. Empty string means use kotlinc default (indy for Kotlin 2.0+, class for earlier versions).   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_optin"></a>x_optin |  Define APIs to opt-in to.   | List of strings | optional |  `[]`  |
 | <a id="kt_kotlinc_options-x_sam_conversions"></a>x_sam_conversions |  Change codegen behavior of SAM/functional interfaces. Empty string means use kotlinc default (indy for Kotlin 2.0+, class for earlier versions).   | String | optional |  `""`  |
@@ -666,7 +666,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 <pre>
 load("@rules_kotlin//kotlin:repositories.doc.bzl", "versions")
 
-versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-kwargs">**kwargs</a>)
+versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-kwargs">kwargs</a>)
 </pre>
 
 
@@ -676,9 +676,9 @@ versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a hre
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
+| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
-| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 

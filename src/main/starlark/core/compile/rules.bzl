@@ -141,11 +141,13 @@ def _kt_jvm_binary_impl(ctx):
     runtime_jars = depset([ctx.outputs.class_jar], transitive = [j.transitive_runtime_jars for j in java_info_deps])
     executable = ctx.outputs.executable
 
+    # Always use ":" as the path separator for the launcher script since it's a bash script.
+    # Using the host path separator (";") on Windows would cause bash to interpret it as a command separator.
     launch_runfiles = kt_tools.launch(
         main_class = ctx.attr.main_class,
         executable_output = executable,
         actions = ctx.actions,
-        path_separator = ctx.configuration.host_path_separator,
+        path_separator = ":",
         workspace_prefix = ctx.workspace_name + "/",
         jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in ctx.attr.jvm_flags]),
         runtime_jars = runtime_jars,

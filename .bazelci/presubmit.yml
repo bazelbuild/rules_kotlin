@@ -1,45 +1,65 @@
 ---
+# Common task configurations.
+.unittests: &unittests
+  build_flags: ${{ test_flags }}
+  test_flags: ${{ test_flags }}
+  test_targets:
+    - "//src/..."
+  build_targets:
+    - "//src/..."
+
+.integration_tests: &integration_tests
+  name: "Integration Tests"
+  platform: ${{ platform.name }}
+  environment:
+    ANDROID_NDK_HOME: ${{ platform.android_ndk_home }}
+  test_flags: ${{ integration_shard_flags }}
+  test_targets:
+    - //examples:all
+
+# Common platform configurations.
+.ubuntu2404: &ubuntu2404
+  platform: ubuntu2404
+  environment:
+    ANDROID_NDK_HOME: /opt/android-ndk-r25b
+
+.ubuntu2204: &ubuntu2204
+  platform: ubuntu2204
+  environment:
+    ANDROID_NDK_HOME: /opt/android-ndk-r25b
+
+.macos: &macos
+  platform: macos
+  environment:
+    ANDROID_NDK_HOME: /Users/buildkite/android-ndk-r25b
+
+# bazelci pipeline
 matrix:
-  unittest_platform:
-    - ubuntu2404
-    - ubuntu2204
-  integration_platform:
-    - ubuntu2404
-    - ubuntu2204
   integration_shard_flags:
     - ["--test_tag_filters=shard_0"]
     - ["--test_tag_filters=shard_1"]
     - ["--test_tag_filters=shard_2"]
-    # - macos
-    # - windows re-enable when rules_bazel_integration_test can support custom test runner on windows.
   test_flags:
-    - []
+    - ["--enable_bzlmod=true"]
 validate_config: 1
-bazel: 8.4.2
+bazel: 7.6.1
 buildifier:
   version: 8.2.0
   # no lint warnings for the moment. They are basically a smoke alarm in hell.
   # keep this argument in sync with .pre-commit-config.yaml
   warnings: "+unsorted-dict-items,-confusing-name,-constant-glob,-duplicated-name,-function-docstring,-function-docstring-args,-function-docstring-header,-module-docstring,-name-conventions,-no-effect,-constant-glob,-provider-params,-print,-rule-impl-return,-bzl-visibility,-unnamed-macro,-uninitialized,-unreachable"
 tasks:
-  unittests:
-    name: "Unit Tests"
-    platform: ${{ unittest_platform }}
-    build_flags: ${{ test_flags }}
-    test_flags: ${{ test_flags }}
-    test_targets:
-      - "//src/..."
-    build_targets:
-      - "//src/..."
-  integration_tests:
-    name: "Integration Tests"
-    platform: ${{ integration_platform }}
-    test_flags: ${{ integration_shard_flags }}
-    test_targets:
-      - //examples:all
-    environment:
-      ANDROID_NDK_HOME: /opt/android-ndk-r25b
-  rbe_ubuntu2404:
+  macos_unittests:
+    <<: [ *macos, *unittests ]
+  ubuntu2404_unittests:
+    <<: [*ubuntu2404, *unittests]
+  ubuntu2404_integration_tests:
+    <<: [*ubuntu2404, *integration_tests]
+  ubuntu2204_unittests:
+    <<: [*ubuntu2204, *unittests]
+  ubuntu2204_integration_tests:
+    <<: [*ubuntu2204, *integration_tests]
+  rbe_ubuntu1604:
     test_targets:
       - "--"
       - "//src/test/kotlin/io/bazel/kotlin/builder:builder_tests"
@@ -48,21 +68,17 @@ tasks:
       - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmAssociatesBasicVisibilityTest"
       - "//src/test/kotlin/io/bazel/kotlin:KotlinJvmBasicAssertionTest"
     test_flags:
-      # Override the default worker strategy for remote builds (worker strategy
-      # cannot be used with remote builds)
       - "--strategy=KotlinCompile=remote"
   stardoc:
     name: Stardoc api documentation
-    platform: ubuntu2404
-    build_flags:
-      - "--enable_bzlmod=true"
+    platform: rbe_ubuntu1604
     build_targets:
       - //kotlin:stardoc
     test_targets:
       - //docs:are_docs_up_to_date_test
   ktlint:
     name: KtLint
-    platform: ubuntu2404
+    <<: *ubuntu2404
     test_targets:
       - //...
     test_flags:

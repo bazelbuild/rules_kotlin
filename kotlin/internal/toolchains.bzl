@@ -72,11 +72,7 @@ def _kotlin_toolchain_impl(ctx):
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
-        builder_args = [
-            "--wrapper_script_flag=--main_advice_classpath=%s" % (
-                ctx.configuration.host_path_separator.join([f.path for f in ctx.files.jvm_stdlibs])
-            ),
-        ],
+        builder_args = [],
         jdeps_merger = ctx.attr.jdeps_merger,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
