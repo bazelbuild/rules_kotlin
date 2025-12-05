@@ -31,6 +31,12 @@ java_import(
 )
 
 java_import(
+    name = "ksp2_invoker",
+    jars = ["ksp2_invoker.jar"],
+    visibility = ["//visibility:public"],
+)
+
+java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],
 )
