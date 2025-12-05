@@ -95,14 +95,7 @@ class KotlinBuilder
       taskContext: WorkerContext.TaskContext,
       args: List<String>,
     ): Int {
-      check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
-      val lines =
-        FLAGFILE_RE.matchEntire(args[0])?.groups?.get(1)?.let {
-          Files.readAllLines(FileSystems.getDefault().getPath(it.value), StandardCharsets.UTF_8)
-        } ?: args
-
-      val argMap = ArgMaps.from(lines)
-      val (_, compileContext) = buildContext(taskContext, argMap)
+      val (argMap, compileContext) = buildContext(taskContext, args)
       var success = false
       var status = 0
       try {
@@ -130,8 +123,15 @@ class KotlinBuilder
 
     private fun buildContext(
       ctx: WorkerContext.TaskContext,
-      argMap: ArgMap,
+      args: List<String>,
     ): Pair<ArgMap, CompilationTaskContext> {
+      check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
+      val lines =
+        FLAGFILE_RE.matchEntire(args[0])?.groups?.get(1)?.let {
+          Files.readAllLines(FileSystems.getDefault().getPath(it.value), StandardCharsets.UTF_8)
+        } ?: args
+
+      val argMap = ArgMaps.from(lines)
       val info = buildTaskInfo(argMap).build()
       val context =
         CompilationTaskContext(info, ctx.asPrintStream())
