@@ -576,6 +576,7 @@ class KotlinBuilder
 
     /**
      * Package files from directories into a JAR file.
+     * Includes directory entries for compatibility with tools that expect them.
      */
     private fun packageDirectoriesToJar(
       outputPath: String,
@@ -595,8 +596,31 @@ class KotlinBuilder
 
           Files.walk(dir).use { stream ->
             stream.forEach { path ->
-              if (Files.isRegularFile(path)) {
-                val relativePath = dir.relativize(path).toString().replace('\\', '/')
+              val relativePath = dir.relativize(path).toString().replace('\\', '/')
+              if (relativePath.isEmpty()) return@forEach
+
+              if (Files.isDirectory(path)) {
+                // Add directory entry (must end with /)
+                val dirEntry = "$relativePath/"
+                if (dirEntry !in addedEntries) {
+                  addedEntries.add(dirEntry)
+                  jar.putNextEntry(JarEntry(dirEntry))
+                  jar.closeEntry()
+                }
+              } else if (Files.isRegularFile(path)) {
+                // Ensure parent directories are added first
+                val parts = relativePath.split("/")
+                var parentPath = ""
+                for (i in 0 until parts.size - 1) {
+                  parentPath += parts[i] + "/"
+                  if (parentPath !in addedEntries) {
+                    addedEntries.add(parentPath)
+                    jar.putNextEntry(JarEntry(parentPath))
+                    jar.closeEntry()
+                  }
+                }
+
+                // Add file entry
                 if (relativePath !in addedEntries) {
                   addedEntries.add(relativePath)
                   jar.putNextEntry(JarEntry(relativePath))
