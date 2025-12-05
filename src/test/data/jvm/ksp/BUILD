@@ -1,3 +1,5 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_java//java:defs.bzl", "java_binary", "java_plugin")
 load("//kotlin:core.bzl", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
 
@@ -58,7 +60,7 @@ kt_ksp_plugin(
 
 kt_jvm_library(
     name = "ksp_kotlin_resources",
-    srcs = ["CoffeeAppModel.kt"],
+    srcs = ["coffee/CoffeeAppModel.kt"],
     plugins = [":moshi"],
     deps = [
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
@@ -69,7 +71,7 @@ kt_jvm_library(
 
 kt_jvm_library(
     name = "ksp_kotlin_resources_missing_plugin",
-    srcs = ["CoffeeAppModel.kt"],
+    srcs = ["coffee/CoffeeAppModel.kt"],
     deps = [
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
@@ -80,8 +82,13 @@ kt_jvm_library(
 kt_jvm_library(
     name = "ksp_kotlin_resources_multiple_plugins",
     srcs = [
-        "CoffeeAppModel.kt",
-        "DripCoffeeModule.kt",
+        "coffee/CoffeeAppModel.kt",
+        "coffee/DripCoffeeModule.kt",
+        "coffee/ElectricHeater.kt",
+        "coffee/Heater.kt",
+        "coffee/Pump.kt",
+        "coffee/PumpModule.kt",
+        "coffee/Thermosiphon.kt",
     ],
     plugins = [
         ":dagger",
@@ -98,8 +105,13 @@ kt_jvm_library(
 kt_jvm_library(
     name = "ksp_kotlin_resources_multiple_plugins_no_java_gen",
     srcs = [
-        "CoffeeAppModel.kt",
-        "DripCoffeeModule.kt",
+        "coffee/CoffeeAppModel.kt",
+        "coffee/DripCoffeeModule.kt",
+        "coffee/ElectricHeater.kt",
+        "coffee/Heater.kt",
+        "coffee/Pump.kt",
+        "coffee/PumpModule.kt",
+        "coffee/Thermosiphon.kt",
     ],
     plugins = [
         ":dagger_no_java",
@@ -116,35 +128,77 @@ kt_jvm_library(
 kt_jvm_library(
     name = "ksp_mixed_resources",
     srcs = [
-        "CoffeeApp.kt",
-        "CoffeeBean.java",
-        "CoffeeMaker.kt",
-        "DripCoffeeModule.kt",
+        "coffee/CoffeeApp.kt",
+        "coffee/CoffeeAppJavaModel.java",
+        "coffee/CoffeeAppModel.kt",
+        "coffee/CoffeeBean.java",
+        "coffee/CoffeeMaker.kt",
+        "coffee/DripCoffeeModule.kt",
+        "coffee/ElectricHeater.kt",
+        "coffee/Heater.kt",
+        "coffee/Pump.kt",
+        "coffee/PumpModule.kt",
+        "coffee/Thermosiphon.kt",
+        ":chai_lib_src",
+        ":tea_lib_src",
     ],
-    plugins = [":dagger"],
-    deps = ["@kotlin_rules_maven//:com_google_dagger_dagger"],
+    plugins = [
+        ":dagger",
+        ":moshi",
+        ":autovalue",
+    ],
+    deps = [
+        ":generated_lib",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven//:com_google_dagger_dagger",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+    ],
+)
+
+kt_jvm_library(
+    name = "ksp_only_java",
+    srcs = [
+        "coffee/CoffeeAppService.java",
+        "coffee/CoffeeAppServiceUsage.kt",
+    ],
+    plugins = [":autoservice"],
+    deps = ["@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp"],
 )
 
 kt_jvm_library(
     name = "ksp_mixed_resources_multiple_plugins",
     srcs = [
-        "CoffeeApp.kt",
-        "CoffeeAppModel.kt",
-        "CoffeeAppService.java",
-        "CoffeeMaker.kt",
-        "DripCoffeeModule.kt",
+        "coffee/CoffeeApp.kt",
+        "coffee/CoffeeAppJavaModel.java",
+        "coffee/CoffeeAppModel.kt",
+        "coffee/CoffeeAppService.java",
+        "coffee/CoffeeMaker.kt",
+        "coffee/DripCoffeeModule.kt",
+        "coffee/ElectricHeater.kt",
+        "coffee/Heater.kt",
+        "coffee/Pump.kt",
+        "coffee/PumpModule.kt",
+        "coffee/Thermosiphon.kt",
+        ":chai_lib_src",
+        ":tea_lib_src",
     ],
     plugins = [
         ":autoservice",
+        ":autovalue",
         ":dagger",
         ":moshi",
     ],
     deps = [
+        ":generated_lib",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven//:com_google_dagger_dagger",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
         "@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
@@ -162,18 +216,34 @@ kt_jvm_library(
     # these files don't have relevant annotations, and don't generate the bytecode/generated classes
     # from generate_bytecode_plugin
     srcs = [
-        "CoffeeApp.kt",
-        "CoffeeBean.java",
-        "CoffeeMaker.kt",
-        "DripCoffeeModule.kt",
+        "coffee/CoffeeApp.kt",
+        "coffee/CoffeeAppJavaModel.java",
+        "coffee/CoffeeAppModel.kt",
+        "coffee/CoffeeBean.java",
+        "coffee/CoffeeMaker.kt",
+        "coffee/DripCoffeeModule.kt",
+        "coffee/ElectricHeater.kt",
+        "coffee/Heater.kt",
+        "coffee/Pump.kt",
+        "coffee/PumpModule.kt",
+        "coffee/Thermosiphon.kt",
+        ":chai_lib_src",
+        ":tea_lib_src",
     ],
     plugins = [
         ":generate_bytecode_plugin",
+        ":autovalue",
         ":dagger",
+        ":moshi",
     ],
     deps = [
+        ":generated_lib",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
         "@kotlin_rules_maven//:com_google_dagger_dagger",
         "@kotlin_rules_maven//:com_google_dagger_dagger_compiler",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
     ],
 )
 
@@ -188,6 +258,135 @@ filegroup(
         ":ksp_kotlin_resources_multiple_plugins_no_java_gen.jar",
         ":ksp_mixed_resources.jar",
         ":ksp_mixed_resources_multiple_plugins.jar",
+        ":ksp_only_java.jar",
     ],
     visibility = ["//visibility:public"],
+)
+
+# AutoValue java_plugin for the coffee app integration test
+java_plugin(
+    name = "autovalue",
+    generates_api = True,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = ["@kotlin_rules_maven//:com_google_auto_value_auto_value"],
+)
+
+# Generate srcjars for the coffee app integration test
+genrule(
+    name = "tea_lib_src",
+    outs = ["tea_lib_src.srcjar"],
+    cmd = """
+cat << EOF > TeaPot.kt
+package tea
+object TeaPot {
+    fun isEmpty() = true
+}
+EOF
+$(JAVABASE)/bin/jar -cf $@ TeaPot.kt
+rm TeaPot.kt
+""",
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
+)
+
+genrule(
+    name = "chai_lib_src",
+    outs = ["chai_lib_src.srcjar"],
+    cmd = """
+cat << EOF > ChaiCup.kt
+package chai
+object ChaiCup {
+    fun isEmpty() = true
+}
+EOF
+$(JAVABASE)/bin/jar -cf $@ ChaiCup.kt
+rm ChaiCup.kt
+""",
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
+)
+
+genrule(
+    name = "generated_module_src",
+    outs = ["generated_module_src.srcjar"],
+    cmd = """
+cat << EOF > GeneratedModule.kt
+package generated
+
+import dagger.Provides
+import dagger.Module
+
+@Module
+object GeneratedModule {
+    @Provides
+    fun provideString() = "Hello Coffee"
+}
+EOF
+$(JAVABASE)/bin/jar -cf $@ GeneratedModule.kt
+rm GeneratedModule.kt
+""",
+    toolchains = ["@bazel_tools//tools/jdk:current_host_java_runtime"],
+)
+
+kt_jvm_library(
+    name = "generated_lib",
+    srcs = [":generated_module_src"],
+    plugins = [":dagger"],
+    deps = ["@kotlin_rules_maven//:com_google_dagger_dagger"],
+)
+
+kt_jvm_library(
+    name = "coffee_lib",
+    srcs = glob([
+        "coffee/*.kt",
+        "coffee/*.java",
+    ]) + [
+        ":chai_lib_src",
+        ":tea_lib_src",
+    ],
+    plugins = [
+        ":dagger",
+        ":moshi",
+        ":autovalue",
+        ":autoservice",
+    ],
+    deps = [
+        ":generated_lib",
+        "@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven//:com_google_dagger_dagger",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+    ],
+)
+
+java_binary(
+    name = "coffee_app",
+    main_class = "coffee.CoffeeApp",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":coffee_lib"],
+)
+
+build_test(
+    name = "coffee_app_test",
+    targets = [
+        ":coffee_app",
+        ":coffee_app_deploy.jar",
+    ],
+)
+
+kt_jvm_library(
+    name = "raw_ksp_coffee_app_lib",
+    srcs = ["coffee/CoffeeAppModel.kt"],
+    plugins = [":moshi"],
+    deps = [
+        "@kotlin_rules_maven//:com_google_auto_service_auto_service_annotations",
+        "@kotlin_rules_maven//:com_google_auto_value_auto_value_annotations",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+    ],
+)
+
+build_test(
+    name = "raw_ksp_lib_test",
+    targets = [":raw_ksp_coffee_app_lib"],
 )

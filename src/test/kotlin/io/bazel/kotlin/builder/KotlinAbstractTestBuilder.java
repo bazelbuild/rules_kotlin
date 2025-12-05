@@ -227,13 +227,7 @@ abstract class KotlinAbstractTestBuilder<T> {
     }
 
     static KotlinToolchain toolchainForTest() {
-        FileSystem fd = FileSystems.getDefault();
-        Path javaHome = fd.getPath(System.getProperty("java.home"));
-        if (javaHome.endsWith(fd.getPath("jre"))) {
-            javaHome = javaHome.getParent();
-        }
         return KotlinToolchain.createToolchain(
-                javaHome,
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),
@@ -241,8 +235,6 @@ abstract class KotlinAbstractTestBuilder<T> {
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:symbol-processing-api").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:symbol-processing-cmdline").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar())

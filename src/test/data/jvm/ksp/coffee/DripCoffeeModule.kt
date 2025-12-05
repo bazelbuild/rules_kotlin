@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package src.test.data.jvm.ksp;
+package coffee
 
-import com.google.auto.service.AutoService;
+import dagger.Module
+import dagger.Provides
+import javax.inject.Singleton
 
-@AutoService(Object.class)
-public class CoffeeAppService {
+@Module(includes = arrayOf(PumpModule::class))
+internal class DripCoffeeModule {
+  @Provides
+  @Singleton
+  fun provideHeater(): Heater {
+    return ElectricHeater()
+  }
 }

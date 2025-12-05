@@ -16,7 +16,14 @@ def _derive_module_name(ctx):
     found in the label."""
     module_name = getattr(ctx.attr, "module_name", "")
     if module_name == "":
-        module_name = (ctx.label.package.lstrip("/").replace("/", "_") + "-" + ctx.label.name.replace("/", "_"))
+        package = ctx.label.package.lstrip("/").replace("/", "_")
+        name = ctx.label.name.replace("/", "_")
+
+        # Only add separator if package is not empty to avoid leading dash
+        if package:
+            module_name = package + "-" + name
+        else:
+            module_name = name
     return module_name
 
 def _init_builder_args(ctx, rule_kind, module_name, kotlinc_options = None):

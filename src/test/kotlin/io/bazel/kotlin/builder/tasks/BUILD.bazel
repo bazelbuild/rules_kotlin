@@ -109,6 +109,17 @@ kt_rules_test(
     ],
 )
 
+kt_rules_test(
+    name = "Ksp2TaskTest",
+    srcs = ["Ksp2TaskTest.kt"],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "//src/main/kotlin/io/bazel/kotlin/builder/utils",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
+
 test_suite(
     name = "tasks_tests",
     tests = [
@@ -121,5 +132,6 @@ test_suite(
         ":KotlinBuilderJvmKaptTest",
         ":KotlinBuilderJvmStrictDepsTest",
         ":KotlinJvmTaskExecutorTest",
+        ":Ksp2TaskTest",
     ],
 )
