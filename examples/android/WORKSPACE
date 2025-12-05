@@ -37,7 +37,20 @@ http_archive(
     urls = [url.format(version = versions.BAZEL_SKYLIB.version) for url in versions.BAZEL_SKYLIB.url_templates],
 )
 
-# Android rules dependencies
+# kotlin_repositories must be called first to set up com_google_protobuf
+kotlin_repositories()
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+# protobuf_deps() must be called BEFORE loading from @rules_java
+# to create proto_bazel_features repository
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
+# Android rules dependencies - must come AFTER protobuf_deps()
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
 
 rules_android_prereqs()
@@ -46,12 +59,6 @@ rules_android_prereqs()
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
 
 rules_java_dependencies()
-
-# note that the following line is what is minimally required from protobuf for the java rules
-# consider using the protobuf_deps() public API from @com_google_protobuf//:protobuf_deps.bzl
-load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
-
-proto_bazel_features(name = "proto_bazel_features")
 
 # register toolchains
 load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
@@ -81,8 +88,6 @@ register_toolchains(
     "@rules_android//toolchains/android:android_default_toolchain",
     "@rules_android//toolchains/android_sdk:android_sdk_tools",
 )
-
-kotlin_repositories()
 
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
