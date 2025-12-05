@@ -18,9 +18,7 @@ load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
     "http_file",
-    "http_jar",
 )
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(
     "//kotlin/internal:defs.bzl",
     _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
@@ -64,114 +62,96 @@ def kotlin_repositories(
         strip_version = ksp_compiler_release.version,
     )
 
-    maybe(
+    versions.use_repository(
         http_file,
         name = "com_github_pinterest_ktlint",
-        sha256 = versions.PINTEREST_KTLINT.sha256,
-        urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],
+        version = versions.PINTEREST_KTLINT,
         executable = True,
     )
 
-    maybe(
-        http_jar,
+    versions.use_repository(
+        http_file,
         name = "kotlinx_serialization_core_jvm",
-        sha256 = versions.KOTLINX_SERIALIZATION_CORE_JVM.sha256,
-        urls = [url.format(version = versions.KOTLINX_SERIALIZATION_CORE_JVM.version) for url in versions.KOTLINX_SERIALIZATION_CORE_JVM.url_templates],
+        version = versions.KOTLINX_SERIALIZATION_CORE_JVM,
     )
 
-    maybe(
-        http_jar,
+    versions.use_repository(
+        http_file,
         name = "kotlinx_serialization_json",
-        sha256 = versions.KOTLINX_SERIALIZATION_JSON.sha256,
-        urls = [url.format(version = versions.KOTLINX_SERIALIZATION_JSON.version) for url in versions.KOTLINX_SERIALIZATION_JSON.url_templates],
+        version = versions.KOTLINX_SERIALIZATION_JSON,
     )
 
-    maybe(
-        http_jar,
+    versions.use_repository(
+        http_file,
         name = "kotlinx_serialization_json_jvm",
-        sha256 = versions.KOTLINX_SERIALIZATION_JSON_JVM.sha256,
-        urls = [url.format(version = versions.KOTLINX_SERIALIZATION_JSON_JVM.version) for url in versions.KOTLINX_SERIALIZATION_JSON_JVM.url_templates],
+        version = versions.KOTLINX_SERIALIZATION_JSON_JVM,
     )
 
-    maybe(
-        http_jar,
+    versions.use_repository(
+        http_file,
         name = "kotlinx_coroutines_core_jvm",
-        sha256 = versions.KOTLINX_COROUTINES_CORE_JVM.sha256,
-        urls = [url.format(version = versions.KOTLINX_COROUTINES_CORE_JVM.version) for url in versions.KOTLINX_COROUTINES_CORE_JVM.url_templates],
+        version = versions.KOTLINX_COROUTINES_CORE_JVM,
     )
 
     maybe(
         http_jar,
         name = "kotlin_build_tools_impl",
-        sha256 = versions.KOTLIN_BUILD_TOOLS_IMPL.sha256,
-        urls = [url.format(version = versions.KOTLIN_BUILD_TOOLS_IMPL.version) for url in versions.KOTLIN_BUILD_TOOLS_IMPL.url_templates],
+        version = versions.KOTLIN_BUILD_TOOLS_IMPL,
     )
 
     if is_bzlmod:
         return
 
-    maybe(
+    versions.use_repository(
         http_archive,
         name = "py_absl",
-        sha256 = "8a3d0830e4eb4f66c4fa907c06edf6ce1c719ced811a12e26d9d3162f8471758",
-        urls = [
-            "https://github.com/abseil/abseil-py/archive/refs/tags/v2.1.0.tar.gz",
-        ],
-        strip_prefix = "abseil-py-2.1.0",
+        version = versions.PY_ABSL,
     )
 
-    maybe(
+    versions.use_repository(
+        http_archive,
+        name = "py_absl",
+        version = versions.PY_ABSL,
+    )
+
+    versions.use_repository(
         http_archive,
         name = "rules_cc",
-        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.16/rules_cc-0.0.16.tar.gz"],
-        sha256 = "bbf1ae2f83305b7053b11e4467d317a7ba3517a12cef608543c1b1c5bf48a4df",
-        strip_prefix = "rules_cc-0.0.16",
+        version = versions.RULES_CC,
     )
-
-    maybe(
+    versions.use_repository(
         http_archive,
         name = "rules_license",
-        sha256 = versions.RULES_LICENSE.sha256,
-        urls = [url.format(version = versions.RULES_LICENSE.version) for url in versions.RULES_LICENSE.url_templates],
+        version = versions.RULES_LICENSE,
     )
-
-    maybe(
+    versions.use_repository(
         http_archive,
         name = "rules_android",
-        sha256 = versions.RULES_ANDROID.sha256,
-        strip_prefix = versions.RULES_ANDROID.strip_prefix_template.format(version = versions.RULES_ANDROID.version),
-        urls = [url.format(version = versions.RULES_ANDROID.version) for url in versions.RULES_ANDROID.url_templates],
+        version = versions.RULES_ANDROID,
     )
 
-    maybe(
+    versions.use_repository(
         http_archive,
         name = "rules_java",
-        sha256 = versions.RULES_JAVA.sha256,
-        urls = [url.format(version = versions.RULES_JAVA.version) for url in versions.RULES_JAVA.url_templates],
+        version = versions.RULES_JAVA,
     )
 
     # See note in versions.bzl before updating bazel_skylib
-    maybe(
+    versions.use_repository(
         http_archive,
         name = "bazel_skylib",
-        sha256 = versions.BAZEL_SKYLIB.sha256,
-        urls = [url.format(version = versions.BAZEL_SKYLIB.version) for url in versions.BAZEL_SKYLIB.url_templates],
+        version = versions.BAZEL_SKYLIB,
     )
 
-    maybe(
+    versions.use_repository(
         http_archive,
         name = "com_google_protobuf",
-        sha256 = versions.COM_GOOGLE_PROTOBUF.sha256,
-        strip_prefix = versions.COM_GOOGLE_PROTOBUF.strip_prefix_template.format(version = versions.COM_GOOGLE_PROTOBUF.version),
-        urls = [url.format(version = versions.COM_GOOGLE_PROTOBUF.version) for url in versions.COM_GOOGLE_PROTOBUF.url_templates],
+        version = versions.COM_GOOGLE_PROTOBUF,
     )
-
-    maybe(
+    versions.use_repository(
         http_archive,
         name = "rules_proto",
-        sha256 = versions.RULES_PROTO.sha256,
-        strip_prefix = versions.RULES_PROTO.strip_prefix_template.format(version = versions.RULES_PROTO.version),
-        urls = [url.format(version = versions.RULES_PROTO.version) for url in versions.RULES_PROTO.url_templates],
+        version = versions.RULES_PROTO,
     )
 
 def kotlinc_version(release, sha256):

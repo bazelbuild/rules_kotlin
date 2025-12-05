@@ -229,15 +229,15 @@ abstract class KotlinAbstractTestBuilder<T> {
     static KotlinToolchain toolchainForTest() {
         return KotlinToolchain.createToolchain(
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//jar").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//jar").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//jar").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//jar").singleCompileJar())
+                new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar())
         );
     }
 }

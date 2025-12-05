@@ -420,7 +420,7 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-x_enable_incremental_compilation"></a>x_enable_incremental_compilation |  Enable incremental compilation   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_explicit_api_mode"></a>x_explicit_api_mode |  Enable explicit API mode for Kotlin libraries.   | String | optional |  `"off"`  |
 | <a id="kt_kotlinc_options-x_inline_classes"></a>x_inline_classes |  Enable experimental inline classes   | Boolean | optional |  `False`  |
-| <a id="kt_kotlinc_options-x_jdk_release"></a>x_jdk_release |  Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer. The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–21. This also sets the value of '-jvm-target' to be equal to the selected JDK version.   | String | optional |  `""`  |
+| <a id="kt_kotlinc_options-x_jdk_release"></a>x_jdk_release |  Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer. The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9-21. This also sets the value of '-jvm-target' to be equal to the selected JDK version.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jspecify_annotations"></a>x_jspecify_annotations |  Controls how JSpecify annotations are treated. Options are 'default', 'ignore', 'warn', and 'strict'.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jsr_305"></a>x_jsr_305 |  Specifies how to handle JSR-305 annotations in Kotlin code. Options are 'default', 'ignore', 'warn', and 'strict'.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jvm_default"></a>x_jvm_default |  Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.   | String | optional |  `"off"`  |
@@ -611,7 +611,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 <pre>
 load("@rules_kotlin//kotlin:repositories.doc.bzl", "versions")
 
-versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-kwargs">**kwargs</a>)
+versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-kwargs">kwargs</a>)
 </pre>
 
 
@@ -621,9 +621,9 @@ versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a hre
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
+| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
-| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 
