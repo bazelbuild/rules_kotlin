@@ -140,9 +140,7 @@ def kotlin_repositories(
     versions.use_repository(
         http_archive,
         name = "bazel_features",
-        sha256 = versions.BAZEL_FEATURES.sha256,
-        strip_prefix = versions.BAZEL_FEATURES.strip_prefix_template.format(version = versions.BAZEL_FEATURES.version),
-        urls = [url.format(version = versions.BAZEL_FEATURES.version) for url in versions.BAZEL_FEATURES.url_templates],
+        version = versions.BAZEL_FEATURES,
     )
 
     versions.use_repository(
