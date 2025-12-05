@@ -137,7 +137,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
             ctx,
             toolchains = _compile.compiler_toolchains(ctx),
             deps = deps,
-            deps_java_infos = (
+            additional_deps = (
                 ([resources_ctx.r_java] if resources_ctx.r_java else []) +
                 [
                     JavaInfo(

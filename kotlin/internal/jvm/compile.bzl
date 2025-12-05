@@ -243,9 +243,9 @@ def _new_plugin_from(all_cfgs, plugins_for_phase):
     )
 
 # INTERNAL ACTIONS #####################################################################################################
-def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action_type = ""):
+def _fold_jars_action(kctx, output_jar, input_jars, action_type = ""):
     """Set up an action to Fold the input jars into a normalized output jar."""
-    args = ctx.actions.args()
+    args = kctx.actions.args()
     args.add_all([
         "--normalize",
         "--compression",
@@ -254,16 +254,16 @@ def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action
     ])
     args.add_all([
         "--deploy_manifest_lines",
-        "Target-Label: %s" % str(ctx.label),
-        "Injecting-Rule-Kind: %s" % rule_kind,
+        "Target-Label: %s" % str(kctx.label),
+        "Injecting-Rule-Kind: %s" % kctx.rule_kind,
     ])
     args.add("--output", output_jar)
     args.add_all(input_jars, before_each = "--sources")
-    ctx.actions.run(
+    kctx.actions.run(
         mnemonic = "KotlinFoldJars" + action_type,
         inputs = input_jars,
         outputs = [output_jar],
-        executable = toolchains.java.single_jar,
+        executable = kctx.toolchains.java.single_jar,
         arguments = [args],
         progress_message = "Merging Kotlin output jar %%{label}%s from %d inputs" % (
             "" if not action_type else " (%s)" % action_type,
@@ -342,19 +342,19 @@ def _build_resourcejar_action(ctx, extra_resources = {}):
     )
     return resources_jar_output
 
-def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
+def _run_merge_jdeps_action(kctx, jdeps, outputs):
     """Creates a Jdeps merger action invocation."""
-    args = ctx.actions.args()
+    args = kctx.actions.args()
     args.set_param_file_format("multiline")
     args.use_param_file("--flagfile=%s", use_always = True)
 
-    args.add("--target_label", ctx.label)
+    args.add("--target_label", kctx.label)
 
     for f, path in outputs.items():
         args.add("--" + f, path)
 
     args.add_all("--inputs", jdeps, omit_if_empty = True)
-    args.add("--report_unused_deps", toolchains.kt.experimental_report_unused_deps)
+    args.add("--report_unused_deps", kctx.toolchains.kt.experimental_report_unused_deps)
 
     mnemonic = "JdepsMerge"
     progress_message = "%s %%{label} { jdeps: %d }" % (
@@ -363,19 +363,21 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     )
 
     inputs = depset(jdeps)
-    if not toolchains.kt.experimental_report_unused_deps == "off":
+    if not kctx.toolchains.kt.experimental_report_unused_deps == "off":
         # For sandboxing to work, and for this action to be deterministic, the compile jars need to be passed as inputs
-        inputs = depset(jdeps, transitive = [depset([], transitive = [dep.transitive_compile_time_jars for dep in deps])])
+        inputs = depset(jdeps, transitive = [
+            depset([], transitive = [dep.transitive_compile_time_jars for dep in _java_infos(kctx.deps) + kctx.additional_deps]),
+        ])
 
-    ctx.actions.run(
+    kctx.actions.run(
         mnemonic = mnemonic,
         inputs = inputs,
-        tools = [toolchains.kt.jdeps_merger.files_to_run, toolchains.kt.jvm_stdlibs.compile_jars],
+        tools = [kctx.toolchains.kt.jdeps_merger.files_to_run, kctx.toolchains.kt.jvm_stdlibs.compile_jars],
         outputs = [f for f in outputs.values()],
-        executable = toolchains.kt.jdeps_merger.files_to_run.executable,
-        execution_requirements = toolchains.kt.execution_requirements,
+        executable = kctx.toolchains.kt.jdeps_merger.files_to_run.executable,
+        execution_requirements = kctx.toolchains.kt.execution_requirements,
         arguments = [
-            ctx.actions.args().add_all(toolchains.kt.builder_args),
+            kctx.actions.args().add_all(kctx.toolchains.kt.builder_args),
             args,
         ],
         progress_message = progress_message,
@@ -383,127 +385,130 @@ def _run_merge_jdeps_action(ctx, toolchains, jdeps, outputs, deps):
     )
 
 def _run_kapt_builder_actions(
-        ctx,
-        rule_kind,
-        toolchains,
-        srcs,
-        compile_deps,
-        deps_artifacts,
+        kctx,
         annotation_processors,
-        transitive_runtime_jars,
-        plugins):
-    """Runs KAPT using the KotlinBuilder tool
-    Returns:
-        A struct containing KAPT outputs
-    """
-    ap_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-gensrc.jar")
-    kapt_generated_stub_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-stub.jar")
-    kapt_generated_class_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-class.jar")
-
+        generated_java_srcjar,
+        generated_class_jar,
+        generated_stub_jar):
+    """Runs KAPT using the KotlinBuilder tool."""
     _run_kt_builder_action(
-        ctx = ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
-        srcs = srcs,
+        kctx,
         generated_src_jars = [],
-        compile_deps = compile_deps,
-        deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
-        transitive_runtime_jars = transitive_runtime_jars,
-        plugins = plugins,
         outputs = {
-            "generated_java_srcjar": ap_generated_src_jar,
-            "kapt_generated_class_jar": kapt_generated_class_jar,
-            "kapt_generated_stub_jar": kapt_generated_stub_jar,
+            "generated_java_srcjar": generated_java_srcjar,
+            "kapt_generated_class_jar": generated_class_jar,
+            "kapt_generated_stub_jar": generated_stub_jar,
         },
         build_kotlin = False,
         mnemonic = "KotlinKapt",
     )
 
-    return struct(
-        ap_generated_src_jar = ap_generated_src_jar,
-        kapt_generated_stub_jar = kapt_generated_stub_jar,
-        kapt_generated_class_jar = kapt_generated_class_jar,
-    )
-
 def _run_ksp_builder_actions(
-        ctx,
-        rule_kind,
-        toolchains,
-        srcs,
-        compile_deps,
-        deps_artifacts,
+        kctx,
         annotation_processors,
-        transitive_runtime_jars,
-        plugins):
-    """Runs KSP using the KotlinBuilder tool
-
-    Returns:
-        A struct containing KSP outputs
-    """
-    ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-gensrc.jar")
-    ksp_generated_classes_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-genclasses.jar")
-
+        generated_java_srcjar,
+        generated_class_jar):
+    """Runs KSP using the KotlinBuilder tool."""
     _run_kt_builder_action(
-        ctx = ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
-        srcs = srcs,
+        kctx,
         generated_src_jars = [],
-        compile_deps = compile_deps,
-        deps_artifacts = deps_artifacts,
-        annotation_processors = annotation_processors,
-        transitive_runtime_jars = transitive_runtime_jars,
-        plugins = plugins,
         outputs = {
-            "ksp_generated_classes_jar": ksp_generated_classes_jar,
-            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
+            "ksp_generated_classes_jar": generated_class_jar,
+            "ksp_generated_java_srcjar": generated_java_srcjar,
         },
         build_kotlin = False,
+        annotation_processors = annotation_processors,
         mnemonic = "KotlinKsp",
     )
 
-    return struct(ksp_generated_class_jar = ksp_generated_classes_jar, ksp_generated_src_jar = ksp_generated_java_srcjar)
+def _java_infos(target_list):
+    return [target[JavaInfo] for target in target_list if JavaInfo in target]
+
+# copied from kotlin/internal/jvm/jvm_deps.bzl
+def _classpath(kctx):
+    dep_infos = (
+        kctx.additional_deps +
+        _java_infos(kctx.deps) +
+        _java_infos(kctx.associates.deps)
+    )
+
+    # Reduced classpath, exclude transitive deps from compilation
+    if (kctx.toolchains.kt.experimental_prune_transitive_deps and
+        not "kt_experimental_prune_transitive_deps_incompatible" in kctx.attr.tags):
+        transitive = [
+            d.compile_jars
+            for d in dep_infos
+        ]
+    else:
+        transitive = [
+            d.compile_jars
+            for d in dep_infos
+        ] + [
+            d.transitive_compile_time_jars
+            for d in dep_infos
+        ]
+
+    compile_depset_list = depset(transitive = transitive + [kctx.associates.jars]).to_list()
+    compile_depset_list_filtered = [jar for jar in compile_depset_list if not _sets.contains(kctx.associates.abi_jar_set, jar)]
+
+    return depset(compile_depset_list_filtered)
 
 def _run_kt_builder_action(
-        ctx,
+        kctx,
         mnemonic,
-        rule_kind,
-        toolchains,
-        srcs,
-        generated_src_jars,
-        compile_deps,
-        deps_artifacts,
-        annotation_processors,
-        transitive_runtime_jars,
-        plugins,
+        generated_src_jars,  # TODO: rename this to addtional_src_jars
         outputs,
+        annotation_processors,
         build_kotlin = True):
     """Creates a KotlinBuilder action invocation."""
     if not mnemonic:
         fail("Error: A `mnemonic` must be provided for every invocation of `_run_kt_builder_action`!")
 
-    kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
-    javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    if build_kotlin and annotation_processors:
+        fail("Error: The `_run_kt_builder_action` should either be called to build or to process annotations~")
 
-    args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
+    classpath = _classpath(kctx)
+
+    args = kctx.actions.args()
+    args.set_param_file_format("multiline")
+    args.use_param_file("--flagfile=%s", use_always = True)
+
+    args.add("--target_label", kctx.label)
+    args.add("--rule_kind", kctx.rule_kind)
+    args.add("--kotlin_module_name", kctx.module_name)
+
+    kotlin_jvm_target = kctx.kotlinc_options.jvm_target if (kctx.kotlinc_options and kctx.kotlinc_options.jvm_target) else kctx.toolchains.kt.jvm_target
+    args.add("--kotlin_jvm_target", kotlin_jvm_target)
+    args.add("--kotlin_api_version", kctx.toolchains.kt.api_version)
+    args.add("--kotlin_language_version", kctx.toolchains.kt.language_version)
+
+    debug = kctx.toolchains.kt.debug
+    for tag in kctx.attr.tags:
+        if tag == "trace":
+            debug = debug + [tag]
+        if tag == "timings":
+            debug = debug + [tag]
+    args.add_all("--kotlin_debug_tags", debug, omit_if_empty = False)
 
     for f, path in outputs.items():
         args.add("--" + f, path)
 
     # Unwrap kotlinc_options/javac_options options or default to the ones being provided by the toolchain
-    args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kotlinc_options))
-    args.add_all("--javacopts", javac_options_to_flags(javac_options))
-    args.add_all("--direct_dependencies", _java_infos_to_compile_jars(compile_deps.deps))
-    args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
-    args.add_all("--classpath", compile_deps.compile_jars)
-    args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
-    args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
-    args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
-    args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
-    args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
-    args.add_all("--kotlin_friend_paths", compile_deps.associate_jars, omit_if_empty = True)
-    args.add("--instrument_coverage", ctx.coverage_instrumented())
+    args.add_all("--kotlin_passthrough_flags", kotlinc_options_to_flags(kctx.kotlinc_options))
+    args.add_all("--javacopts", javac_options_to_flags(kctx.javac_options))
+    args.add_all("--direct_dependencies", _java_infos_to_compile_jars(_java_infos(kctx.deps) + kctx.additional_deps))
+    args.add("--strict_kotlin_deps", kctx.toolchains.kt.experimental_strict_kotlin_deps)
+    args.add_all("--classpath", classpath)
+    args.add("--reduced_classpath_mode", kctx.toolchains.kt.experimental_reduce_classpath_mode)
+    args.add("--build_tools_api", kctx.toolchains.kt.experimental_build_tools_api)
+    args.add_all("--sources", kctx.srcs.all_srcs, omit_if_empty = True)
+    args.add_all("--source_jars", kctx.srcs.src_jars + generated_src_jars, omit_if_empty = True)
+    args.add_all("--deps_artifacts", kctx.deps_artifacts, omit_if_empty = True)
+    args.add_all("--kotlin_friend_paths", kctx.associates.jars, omit_if_empty = True)
+    args.add("--instrument_coverage", kctx.coverage_instrumented)
+
+    plugins = _new_plugins_from(kctx.plugins + _exported_plugins(kctx.deps))
 
     # Collect and prepare plugin descriptor for the worker.
     args.add_all(
@@ -548,11 +553,11 @@ def _run_kt_builder_action(
         omit_if_empty = True,
     )
 
-    if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
+    if not "kt_remove_private_classes_in_abi_plugin_incompatible" in kctx.attr.tags and kctx.toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
         args.add("--remove_private_classes_in_abi_jar", "true")
 
-    if not "kt_treat_internal_as_private_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_treat_internal_as_private_in_abi_jars == True:
-        if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
+    if not "kt_treat_internal_as_private_in_abi_plugin_incompatible" in kctx.attr.tags and kctx.toolchains.kt.experimental_treat_internal_as_private_in_abi_jars == True:
+        if not "kt_remove_private_classes_in_abi_plugin_incompatible" in kctx.attr.tags and kctx.toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
             args.add("--treat_internal_as_private_in_abi_jar", "true")
         else:
             fail(
@@ -562,52 +567,106 @@ def _run_kt_builder_action(
                 "\nAdditionally ensure the target does not contain the kt_remove_private_classes_in_abi_plugin_incompatible tag.",
             )
 
-    if not "kt_remove_debug_info_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_debug_info_in_abi_jars == True:
+    if not "kt_remove_debug_info_in_abi_plugin_incompatible" in kctx.attr.tags and kctx.toolchains.kt.experimental_remove_debug_info_in_abi_jars == True:
         args.add("--remove_debug_info_in_abi_jar", "true")
 
     args.add("--build_kotlin", build_kotlin)
 
     progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
         mnemonic,
-        len(srcs.kt),
-        len(srcs.java),
-        len(srcs.src_jars),
-        ctx.var.get("TARGET_CPU", "UNKNOWN CPU"),
+        len(kctx.srcs.kt),
+        len(kctx.srcs.java),
+        len(kctx.srcs.src_jars),
+        kctx.target_cpu,
     )
 
-    ctx.actions.run(
+    kctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars,
+            kctx.srcs.all_srcs + kctx.srcs.src_jars + generated_src_jars,
             transitive = [
-                compile_deps.associate_jars,
-                compile_deps.compile_jars,
-                transitive_runtime_jars,
-                deps_artifacts,
+                classpath,
+                kctx.associates.jars,
+                kctx.transitive_runtime_jars,
+                kctx.deps_artifacts,
                 plugins.stubs_phase.classpath,
                 plugins.compile_phase.classpath,
             ],
         ),
         tools = [
-            toolchains.kt.kotlinbuilder.files_to_run,
-            toolchains.kt.kotlin_home.files_to_run,
+            kctx.toolchains.kt.kotlinbuilder.files_to_run,
+            kctx.toolchains.kt.kotlin_home.files_to_run,
         ],
         outputs = [f for f in outputs.values()],
-        executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
+        executable = kctx.toolchains.kt.kotlinbuilder.files_to_run.executable,
         execution_requirements = _utils.add_dicts(
-            toolchains.kt.execution_requirements,
+            kctx.toolchains.kt.execution_requirements,
             {"worker-key-mnemonic": mnemonic},
         ),
-        arguments = [ctx.actions.args().add_all(toolchains.kt.builder_args), args],
+        arguments = [kctx.actions.args().add_all(kctx.toolchains.kt.builder_args), args],
         progress_message = progress_message,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
-            "REPOSITORY_NAME": _utils.builder_workspace_name(ctx),
+            "REPOSITORY_NAME": _utils.builder_workspace_name(kctx),
         },
         toolchain = _TOOLCHAIN_TYPE,
     )
 
 # MAIN ACTIONS #########################################################################################################
+
+def _kt_compilation_ctx(
+        ctx,
+        rule_kind,
+        kt_toolchain,
+        java_toolchain,
+        java_runtime,
+        kotlinc_options,
+        javac_options,
+        compile_deps,
+        srcs,  # TODO: passed in as file, migrate to targets instead
+        deps,
+        associates,
+        plugins,
+        resource_jars,
+        neverlink):
+    """
+    Creates a new compilation context. The context stores all data that needs
+    to be accessed by compilation actions and makes sure that actions can only
+    access passed in values and not arbitrary rule attributes.
+    """
+    toolchains = struct(
+        kt = kt_toolchain,
+        java = java_toolchain,
+        java_runtime = java_runtime,
+    )
+
+    return struct(
+        raw_ctx_do_not_use = ctx,  # TODO: workaround for java_common.compile
+        actions = ctx.actions,
+        attr = struct(
+            tags = ctx.attr.tags,  # TODO: do not depend on current tags
+        ),
+        label = ctx.label,  # TODO: do not depend on current label name
+        rule_kind = rule_kind,
+        toolchains = toolchains,
+        kotlinc_options = kotlinc_options or toolchains.kt.kotlinc_options,
+        javac_options = javac_options or toolchains.kt.javac_options,
+        srcs = _partitioned_srcs(srcs),
+        deps = deps + associates,
+        additional_deps = compile_deps.additional_deps + [toolchains.kt.jvm_stdlibs],  # TODO: add dedicated api for stdlibs
+        runtime_deps = compile_deps.runtime_deps,
+        exports = compile_deps.exports,
+        plugins = plugins,
+        associates = compile_deps.associates,
+        module_name = compile_deps.module_name,
+        transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(plugins + deps),
+        deps_artifacts = _deps_artifacts(toolchains, deps + associates),
+        coverage_instrumented = ctx.coverage_instrumented(),
+        target_cpu = ctx.var.get("TARGET_CPU", "UNKNOWN CPU"),  # required for progress message, worth the dependency?
+        workspace_name = ctx.workspace_name,  # required for kotlin builder's REPOSITORY_NAME env variable
+        resource_jars = resource_jars,
+        neverlink = neverlink,
+    )
 
 def _kt_jvm_produce_jar_actions(ctx, rule_kind, extra_resources = {}):
     """Setup The actions to compile a jar and if any resources or resource_jars were provided to merge these in with the
@@ -658,72 +717,65 @@ def _kt_jvm_produce_output_jar_actions(
         A struct containing the providers JavaInfo (`java`) and `kt` (KtJvmInfo). This struct is not intended to be
         used as a legacy provider -- rather the caller should transform the result.
     """
-    toolchains = _compiler_toolchains(ctx)
-    srcs = _partitioned_srcs(ctx.files.srcs)
+    extrea_resource_jars = []
+
+    # If this rule has any resources declared setup a zipper action to turn them into a jar.
+    if len(ctx.files.resources) + len(extra_resources) > 0:
+        extrea_resource_jars.append(_build_resourcejar_action(ctx, extra_resources))
+
+    kctx = _kt_compilation_ctx(
+        ctx,
+        rule_kind = rule_kind,
+        kt_toolchain = ctx.toolchains[_TOOLCHAIN_TYPE],
+        java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain),
+        java_runtime = find_java_runtime_toolchain(ctx, ctx.attr._host_javabase),
+        kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else None,
+        javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else None,
+        srcs = ctx.files.srcs,
+        deps = ctx.attr.deps,
+        associates = ctx.attr.associates,
+        plugins = ctx.attr.plugins,
+        compile_deps = compile_deps,
+        resource_jars = ctx.files.resource_jars + extrea_resource_jars,
+        neverlink = getattr(ctx.attr, "neverlink", False),
+    )
 
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
-    transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
-    plugins = _new_plugins_from(ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps))
-
-    deps_artifacts = _deps_artifacts(toolchains, ctx.attr.deps + ctx.attr.associates)
 
     generated_src_jars = []
     annotation_processing = None
     compile_jar = ctx.actions.declare_file(ctx.label.name + ".abi.jar")
     output_jdeps = None
-    if toolchains.kt.jvm_emit_jdeps:
+    if kctx.toolchains.kt.jvm_emit_jdeps:
         output_jdeps = ctx.actions.declare_file(ctx.label.name + ".jdeps")
 
     outputs_struct = _run_kt_java_builder_actions(
-        ctx = ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
-        srcs = srcs,
+        kctx,
         generated_kapt_src_jars = [],
         generated_ksp_src_jars = [],
-        compile_deps = compile_deps,
-        deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
         ksp_annotation_processors = ksp_annotation_processors,
-        transitive_runtime_jars = transitive_runtime_jars,
-        plugins = plugins,
         compile_jar = compile_jar,
+        output_jar = outputs.jar,
         output_jdeps = output_jdeps,
     )
-    output_jars = outputs_struct.output_jars
     generated_src_jars = outputs_struct.generated_src_jars
     annotation_processing = outputs_struct.annotation_processing
-
-    # If this rule has any resources declared setup a zipper action to turn them into a jar.
-    if len(ctx.files.resources) + len(extra_resources) > 0:
-        output_jars.append(_build_resourcejar_action(ctx, extra_resources))
-    output_jars.extend(ctx.files.resource_jars)
-
-    # Merge outputs into final runtime jar.
-    output_jar = outputs.jar
-    _fold_jars_action(
-        ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
-        output_jar = output_jar,
-        action_type = "Runtime",
-        input_jars = output_jars,
-    )
 
     source_jar = java_common.pack_sources(
         ctx.actions,
         output_source_jar = outputs.srcjar,
-        sources = srcs.kt + srcs.java,
-        source_jars = srcs.src_jars + generated_src_jars,
-        java_toolchain = toolchains.java,
+        sources = kctx.srcs.kt + kctx.srcs.java,
+        source_jars = kctx.srcs.src_jars + generated_src_jars,
+        java_toolchain = kctx.toolchains.java,
     )
 
     generated_source_jar = java_common.pack_sources(
         ctx.actions,
         output_source_jar = ctx.actions.declare_file(ctx.label.name + "-gensrc.jar"),
         source_jars = generated_src_jars,
-        java_toolchain = toolchains.java,
+        java_toolchain = kctx.toolchains.java,
     ) if generated_src_jars else None
 
     generated_class_jar = None
@@ -731,14 +783,14 @@ def _kt_jvm_produce_output_jar_actions(
         generated_class_jar = annotation_processing.class_jar
 
     java_info = JavaInfo(
-        output_jar = output_jar,
+        output_jar = outputs.jar,
         compile_jar = compile_jar,
         source_jar = source_jar,
         jdeps = output_jdeps,
-        deps = compile_deps.deps,
-        runtime_deps = compile_deps.runtime_deps,
-        exports = compile_deps.exports,
-        neverlink = getattr(ctx.attr, "neverlink", False),
+        deps = _java_infos(kctx.deps) + kctx.additional_deps,
+        runtime_deps = _java_infos(kctx.runtime_deps),
+        exports = _java_infos(kctx.exports),
+        neverlink = kctx.neverlink,
         generated_source_jar = generated_source_jar,
         generated_class_jar = generated_class_jar,
     )
@@ -756,8 +808,8 @@ def _kt_jvm_produce_output_jar_actions(
         kt = _KtJvmInfo(
             srcs = ctx.files.srcs,
             module_name = compile_deps.module_name,
-            module_jars = compile_deps.associate_jars,
-            language_version = toolchains.kt.api_version,
+            module_jars = compile_deps.associates.jars,
+            language_version = kctx.toolchains.kt.api_version,
             exported_compiler_plugins = _collect_plugins_for_export(
                 getattr(ctx.attr, "exported_compiler_plugins", []),
                 getattr(ctx.attr, "exports", []),
@@ -766,7 +818,7 @@ def _kt_jvm_produce_output_jar_actions(
             outputs = struct(
                 jdeps = output_jdeps,
                 jars = [struct(
-                    class_jar = output_jar,
+                    class_jar = outputs.jar,
                     ijar = compile_jar,
                     source_jars = [source_jar],
                 )],
@@ -775,24 +827,18 @@ def _kt_jvm_produce_output_jar_actions(
             transitive_source_jars = java_info.transitive_source_jars,
             annotation_processing = annotation_processing,
             additional_generated_source_jars = generated_src_jars,
-            all_output_jars = output_jars,
+            all_output_jars = outputs.jar,
         ),
     )
 
 def _run_kt_java_builder_actions(
-        ctx,
-        rule_kind,
-        toolchains,
-        srcs,
+        kctx,
         generated_kapt_src_jars,
         generated_ksp_src_jars,
-        compile_deps,
-        deps_artifacts,
         annotation_processors,
         ksp_annotation_processors,
-        transitive_runtime_jars,
-        plugins,
         compile_jar,
+        output_jar,
         output_jdeps):
     """Runs the necessary KotlinBuilder and JavaBuilder actions to compile a jar
 
@@ -802,27 +848,27 @@ def _run_kt_java_builder_actions(
     compile_jars = []
     output_jars = []
     kt_stubs_for_java = []
-    has_kt_sources = srcs.kt or srcs.src_jars
+    has_kt_sources = kctx.srcs.kt or kctx.srcs.src_jars
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
-        kapt_outputs = _run_kapt_builder_actions(
-            ctx,
-            rule_kind = rule_kind,
-            toolchains = toolchains,
-            srcs = srcs,
-            compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
+        kapt_generated_src_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-gensrc.jar")
+        kapt_generated_stub_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-generated-stub.jar")
+        kapt_generated_class_jar = kctx.actions.declare_file(kctx.label.name + "-kapt-generated-class.jar")
+        _run_kapt_builder_actions(
+            kctx,
             annotation_processors = annotation_processors,
-            transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
+            generated_java_srcjar = kapt_generated_src_jar,
+            generated_stub_jar = kapt_generated_stub_jar,
+            generated_class_jar = kapt_generated_class_jar,
         )
-        generated_kapt_src_jars.append(kapt_outputs.ap_generated_src_jar)
-        output_jars.append(kapt_outputs.kapt_generated_class_jar)
+
+        generated_kapt_src_jars.append(kapt_generated_src_jar)
+        output_jars.append(kapt_generated_class_jar)
         kt_stubs_for_java.append(
             JavaInfo(
-                compile_jar = kapt_outputs.kapt_generated_stub_jar,
-                output_jar = kapt_outputs.kapt_generated_stub_jar,
+                compile_jar = kapt_generated_stub_jar,
+                output_jar = kapt_generated_stub_jar,
                 neverlink = True,
             ),
         )
@@ -831,29 +877,25 @@ def _run_kt_java_builder_actions(
     ksp_generated_class_jar = None
     ksp_generated_src_jar = None
     if has_kt_sources and ksp_annotation_processors:
-        ksp_outputs = _run_ksp_builder_actions(
-            ctx,
-            rule_kind = rule_kind,
-            toolchains = toolchains,
-            srcs = srcs,
-            compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
+        ksp_generated_src_jar = kctx.actions.declare_file(kctx.label.name + "-ksp-kt-gensrc.jar")
+        ksp_generated_class_jar = kctx.actions.declare_file(kctx.label.name + "-ksp-kt-genclasses.jar")
+        _run_ksp_builder_actions(
+            kctx,
             annotation_processors = ksp_annotation_processors,
-            transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
+            generated_java_srcjar = ksp_generated_src_jar,
+            generated_class_jar = ksp_generated_class_jar,
         )
-        ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
+
         output_jars.append(ksp_generated_class_jar)
-        ksp_generated_src_jar = ksp_outputs.ksp_generated_src_jar
         generated_ksp_src_jars.append(ksp_generated_src_jar)
 
     java_infos = []
 
     # Build Kotlin
     if has_kt_sources:
-        kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
-        if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
-            kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
+        kt_runtime_jar = kctx.actions.declare_file(kctx.label.name + "-kt.jar")
+        if not "kt_abi_plugin_incompatible" in kctx.attr.tags and kctx.toolchains.kt.experimental_use_abi_jars == True:
+            kt_compile_jar = kctx.actions.declare_file(kctx.label.name + "-kt.abi.jar")
             outputs = {
                 "abi_jar": kt_compile_jar,
                 "output": kt_runtime_jar,
@@ -865,70 +907,63 @@ def _run_kt_java_builder_actions(
             }
 
         kt_jdeps = None
-        if toolchains.kt.jvm_emit_jdeps:
-            kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
+        if kctx.toolchains.kt.jvm_emit_jdeps:
+            kt_jdeps = kctx.actions.declare_file(kctx.label.name + "-kt.jdeps")
             outputs["kotlin_output_jdeps"] = kt_jdeps
 
         _run_kt_builder_action(
-            ctx = ctx,
-            rule_kind = rule_kind,
-            toolchains = toolchains,
-            srcs = srcs,
+            kctx,
             generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
-            compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
-            annotation_processors = [],
-            transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
             outputs = outputs,
+            annotation_processors = [],
             build_kotlin = True,
             mnemonic = "KotlinCompile",
         )
 
         compile_jars.append(kt_compile_jar)
         output_jars.append(kt_runtime_jar)
-        if not annotation_processors or not srcs.kt:
+        if not annotation_processors or not kctx.srcs.kt:
             kt_stubs_for_java.append(JavaInfo(compile_jar = kt_compile_jar, output_jar = kt_runtime_jar, neverlink = True))
 
         kt_java_info = JavaInfo(
             output_jar = kt_runtime_jar,
             compile_jar = kt_compile_jar,
             jdeps = kt_jdeps,
-            deps = compile_deps.deps,
-            runtime_deps = compile_deps.runtime_deps,
-            exports = compile_deps.exports,
-            neverlink = getattr(ctx.attr, "neverlink", False),
+            deps = _java_infos(kctx.deps) + kctx.additional_deps,
+            runtime_deps = _java_infos(kctx.runtime_deps),
+            exports = _java_infos(kctx.exports),
+            neverlink = kctx.neverlink,
         )
         java_infos.append(kt_java_info)
 
     # Build Java
     # If there is Java source or KAPT/KSP generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
-    ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(ctx.attr.plugins)
-    if srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars:
-        javac_opts = javac_options_to_flags(ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options)
+    ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(kctx.plugins)
+    if kctx.srcs.java or generated_kapt_src_jars or kctx.srcs.src_jars or ksp_generated_java_src_jars:
+        javac_opts = javac_options_to_flags(kctx.javac_options)
         javac_opts.extend([
             flag
-            for plugin in ctx.attr.plugins
+            for plugin in kctx.plugins
             if JavacOptions in plugin
             for flag in javac_options_to_flags(plugin[JavacOptions])
         ])
 
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
         # annotation processors in `deps` also.
-        if len(srcs.kt) > 0:
+        if len(kctx.srcs.kt) > 0:
             javac_opts.append("-proc:none")
         java_info = java_common.compile(
-            ctx,
-            source_files = srcs.java,
-            source_jars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars,
-            output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
-            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
-            java_toolchain = toolchains.java,
-            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
+            kctx.raw_ctx_do_not_use,
+            source_files = kctx.srcs.java,
+            source_jars = generated_kapt_src_jars + kctx.srcs.src_jars + generated_ksp_src_jars,
+            output = kctx.actions.declare_file(kctx.label.name + "-java.jar"),
+            deps = kt_stubs_for_java + _java_infos(kctx.deps + kctx.plugins) + kctx.additional_deps,
+            java_toolchain = kctx.toolchains.java,
+            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(kctx.plugins),
             javac_opts = javac_opts,
-            neverlink = getattr(ctx.attr, "neverlink", False),
-            strict_deps = toolchains.kt.experimental_strict_kotlin_deps,
+            neverlink = kctx.neverlink,
+            strict_deps = kctx.toolchains.kt.experimental_strict_kotlin_deps,
         )
         ap_generated_src_jar = java_info.annotation_processing.source_jar
         java_outputs = java_info.java_outputs if hasattr(java_info, "java_outputs") else java_info.outputs.jars
@@ -944,15 +979,21 @@ def _run_kt_java_builder_actions(
 
     # Merge ABI jars into final compile jar.
     _fold_jars_action(
-        ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
+        kctx,
         output_jar = compile_jar,
         action_type = "Abi",
         input_jars = compile_jars,
     )
 
-    if toolchains.kt.jvm_emit_jdeps:
+    # Merge outputs into final runtime jar.
+    _fold_jars_action(
+        kctx,
+        output_jar = output_jar,
+        action_type = "Runtime",
+        input_jars = output_jars + kctx.resource_jars,
+    )
+
+    if kctx.toolchains.kt.jvm_emit_jdeps:
         jdeps = []
         for java_info in java_infos:
             if java_info.outputs.jdeps:
@@ -960,16 +1001,14 @@ def _run_kt_java_builder_actions(
 
         if jdeps:
             _run_merge_jdeps_action(
-                ctx = ctx,
-                toolchains = toolchains,
+                kctx,
                 jdeps = jdeps,
-                deps = compile_deps.deps,
                 outputs = {"output": output_jdeps},
             )
         else:
-            ctx.actions.symlink(
+            kctx.actions.symlink(
                 output = output_jdeps,
-                target_file = toolchains.kt.empty_jdeps,
+                target_file = kctx.toolchains.kt.empty_jdeps,
             )
 
     annotation_processing = None
@@ -985,7 +1024,6 @@ def _run_kt_java_builder_actions(
         )
 
     return struct(
-        output_jars = output_jars,
         generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
         annotation_processing = annotation_processing,
     )
