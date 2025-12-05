@@ -78,7 +78,6 @@ def _kotlin_toolchain_impl(ctx):
             ),
         ],
         jdeps_merger = ctx.attr.jdeps_merger,
-        tree_artifact_packager = ctx.attr.tree_artifact_packager,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
@@ -275,13 +274,6 @@ _kt_toolchain = rule(
                 "2.2",
                 "2.3",
             ],
-        ),
-        "tree_artifact_packager": attr.label(
-            doc = "the tree artifact packager executable for creating JARs from directory tree artifacts",
-            default = Label("//src/main/kotlin:tree_artifact_packager"),
-            executable = True,
-            allow_files = True,
-            cfg = "exec",
         ),
         "_empty_jar": attr.label(
             doc = """Empty jar for exporting JavaInfos.""",

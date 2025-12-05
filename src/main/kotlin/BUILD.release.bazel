@@ -26,11 +26,6 @@ java_import(
 )
 
 java_import(
-    name = "tree_artifact_packager_worker",
-    jars = ["tree_artifact_packager_impl.jar"],
-)
-
-java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],
 )
@@ -87,15 +82,4 @@ java_binary(
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdeps",
     visibility = ["//visibility:public"],
     runtime_deps = [":jdeps_merger_worker"],
-)
-
-java_binary(
-    name = "tree_artifact_packager",
-    data = KOTLIN_STDLIBS,
-    jvm_flags = [
-        "-XX:-MaxFDLimit",
-    ],
-    main_class = "io.bazel.kotlin.builder.cmd.PackageTreeArtifactsKt",
-    visibility = ["//visibility:public"],
-    runtime_deps = [":tree_artifact_packager_worker"],
 )
