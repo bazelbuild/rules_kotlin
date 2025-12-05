@@ -491,7 +491,7 @@ def _run_ksp_builder_actions(
         annotation_processors,
         transitive_runtime_jars,
         plugins):
-    """Runs KSP2 as a worker-enabled tool with flagfile support.
+    """Runs KSP2 via the KotlinBuilder with worker support.
 
     Returns:
         A struct containing KSP outputs
@@ -586,13 +586,17 @@ def _run_ksp_builder_actions(
 
         additional_inputs.append(unpacked_srcjars_dir)
 
-    # Build arguments for KSP2 worker using flagfile format (-- prefixed flags)
+    # Build arguments for KSP2 via the builder (flagfile format)
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
     args.use_param_file("--flagfile=%s", use_always = True)
 
-    args.add("--jvm_target", toolchains.kt.jvm_target)
-    args.add("--module_name", compile_deps.module_name)
+    # Enable KSP2 mode in the builder
+    args.add("--ksp2_mode", "true")
+
+    # KSP2 configuration (all flags prefixed with --ksp2_)
+    args.add("--ksp2_jvm_target", toolchains.kt.jvm_target)
+    args.add("--ksp2_module_name", compile_deps.module_name)
 
     # KSP2 requires source-roots to be provided as DIRECTORIES, not individual files
     # Use the staged sources directory which contains only the declared source files
@@ -612,11 +616,11 @@ def _run_ksp_builder_actions(
 
     source_roots = source_root_dirs.keys()
     if source_roots:
-        args.add("--source_roots", ":".join(source_roots))
+        args.add("--ksp2_source_roots", ":".join(source_roots))
     else:
         # No source roots - this can happen if target only has srcjars that were unpacked
         # KSP2 still needs a source root, use "." as fallback (it won't find any files there)
-        args.add("--source_roots", ".")
+        args.add("--ksp2_source_roots", ".")
 
     if srcs.java and ksp_staged_sources_dir:
         # Java source roots should also be directories within staged sources
@@ -625,39 +629,52 @@ def _run_ksp_builder_actions(
             dir_path = f.dirname if f.dirname else "."
             staged_dir_path = ksp_staged_sources_dir.path + "/" + dir_path
             java_source_root_dirs[staged_dir_path] = True
-        args.add("--java_source_roots", ":".join(java_source_root_dirs.keys()))
+        args.add("--ksp2_java_source_roots", ":".join(java_source_root_dirs.keys()))
 
     # Project base dir should be execution root so all paths work correctly
-    args.add("--project_base_dir", ".")
-    args.add("--output_base_dir", ctx.bin_dir.path)
-    args.add("--caches_dir", ksp_caches_dir.path)
-    args.add("--class_output_dir", ksp_class_output_dir.path)
-    args.add("--kotlin_output_dir", ksp_kotlin_output_dir.path)
-    args.add("--java_output_dir", ksp_java_output_dir.path)
-    args.add("--resource_output_dir", ksp_resource_output_dir.path)
+    args.add("--ksp2_project_base_dir", ".")
+    args.add("--ksp2_output_base_dir", ctx.bin_dir.path)
+    args.add("--ksp2_caches_dir", ksp_caches_dir.path)
+    args.add("--ksp2_class_output_dir", ksp_class_output_dir.path)
+    args.add("--ksp2_kotlin_output_dir", ksp_kotlin_output_dir.path)
+    args.add("--ksp2_java_output_dir", ksp_java_output_dir.path)
+    args.add("--ksp2_resource_output_dir", ksp_resource_output_dir.path)
 
-    args.add("--language_version", toolchains.kt.language_version)
-    args.add("--api_version", toolchains.kt.api_version)
+    args.add("--ksp2_language_version", toolchains.kt.language_version)
+    args.add("--ksp2_api_version", toolchains.kt.api_version)
 
     # Add JDK home for Java symbol resolution
-    args.add("--jdk_home", toolchains.java_runtime.java_home)
+    args.add("--ksp2_jdk_home", toolchains.java_runtime.java_home)
 
     # Add libraries (classpath)
     if compile_deps.compile_jars:
-        args.add_joined("--libraries", compile_deps.compile_jars, join_with = ":")
+        args.add_joined("--ksp2_libraries", compile_deps.compile_jars, join_with = ":")
 
-    # Add processor JARs
-    # These are passed as --processor_classpath for the worker to forward to KSP2
+    # Collect KSP2 API JARs (needed by the builder to load KSP2 classes via reflection)
+    ksp2_api_jars = depset(
+        ctx.attr._ksp2_symbol_processing_api[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_symbol_processing_common_deps[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_kotlinx_coroutines[JavaInfo].runtime_output_jars,
+    )
+
+    # Add processor JARs - includes both KSP2 API JARs and user processor JARs
+    # The builder loads KSP2 classes dynamically from this classpath
+    args.add_all("--ksp2_processor_classpath", ksp2_api_jars)
     if transitive_runtime_jars:
-        args.add_all("--processor_classpath", transitive_runtime_jars)
+        args.add_all("--ksp2_processor_classpath", transitive_runtime_jars)
 
-    # Invoke KSP2 via worker-enabled tool
+    # Run KSP2 via the KotlinBuilder (same worker as kotlinc)
     ctx.actions.run(
         mnemonic = "KotlinKsp2",
         inputs = depset(
             direct = additional_inputs,
-            transitive = [compile_deps.compile_jars, transitive_runtime_jars, toolchains.java_runtime.files],
+            transitive = [compile_deps.compile_jars, transitive_runtime_jars, toolchains.java_runtime.files, ksp2_api_jars],
         ),
+        tools = [
+            toolchains.kt.kotlinbuilder.files_to_run,
+            toolchains.kt.kotlin_home.files_to_run,
+        ],
         outputs = [
             ksp_caches_dir,
             ksp_kotlin_output_dir,
@@ -665,14 +682,14 @@ def _run_ksp_builder_actions(
             ksp_class_output_dir,
             ksp_resource_output_dir,
         ],
-        executable = ctx.executable._ksp2_tool,
+        executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
         execution_requirements = _utils.add_dicts(
             toolchains.kt.execution_requirements,
             {"worker-key-mnemonic": "KotlinKsp2"},
         ),
-        arguments = [args],
+        arguments = [ctx.actions.args().add_all(toolchains.kt.builder_args), args],
         progress_message = "Running KSP2 for %{label}",
-        toolchain = "@bazel_tools//tools/jdk:toolchain_type",
+        toolchain = _TOOLCHAIN_TYPE,
     )
 
     # Package generated sources into srcjar using zipper
