@@ -261,12 +261,6 @@ Additionally, you can add options for both tracing and timing of the bazel build
 KSP is officially supported as of `rules_kotlin` 1.8 and can be declared using the new
 `kt_ksp_plugin` rule. 
 
-Note:
-- KSP is [not yet thread safe](https://github.com/google/ksp/issues/1385) and will likely fail if you are using it in a build that has multiplex workers enabled. To work around this add the following flag to your Bazelrc:
-  ```
-  build --experimental_worker_max_multiplex_instances=KotlinKsp=1
-  ```
-
 ```python
 load("@rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
