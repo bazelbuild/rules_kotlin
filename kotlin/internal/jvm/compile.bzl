@@ -491,7 +491,7 @@ def _run_ksp_builder_actions(
         annotation_processors,
         transitive_runtime_jars,
         plugins):
-    """Runs KSP2 as a standalone tool (not through KotlinBuilder)
+    """Runs KSP2 as a worker-enabled tool with flagfile support.
 
     Returns:
         A struct containing KSP outputs
@@ -506,9 +506,52 @@ def _run_ksp_builder_actions(
     ksp_resource_output_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-resources")
     ksp_caches_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-caches")
 
+    # Stage source files to a dedicated directory for KSP2
+    # This is necessary because KSP2 workers run in the execroot (not sandboxed),
+    # so they would otherwise see ALL files in source directories, not just declared inputs.
+    # By staging files, we ensure KSP2 only processes the files that are part of this target.
+    all_source_files = srcs.kt + srcs.java
+    ksp_staged_sources_dir = None
+    additional_inputs = []
+
+    if all_source_files:
+        ksp_staged_sources_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-staged-sources")
+
+        # Use zipper to create a jar from source files, then extract to staging dir
+        # This preserves the directory structure relative to the execution root
+        staged_sources_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-staged-sources.jar")
+
+        # Create zipper args file for staging sources
+        stage_args = ctx.actions.args()
+        stage_args.add("c")
+        stage_args.add(staged_sources_jar)
+        for f in all_source_files:
+            # Add each file with its path preserved
+            stage_args.add(f.path + "=" + f.path)
+
+        ctx.actions.run(
+            mnemonic = "StageKspSources",
+            inputs = all_source_files,
+            outputs = [staged_sources_jar],
+            executable = ctx.executable._zipper,
+            arguments = [stage_args],
+            progress_message = "Staging %d source files for KSP2" % len(all_source_files),
+        )
+
+        # Extract staged sources
+        ctx.actions.run(
+            mnemonic = "UnpackKspStagedSources",
+            inputs = [staged_sources_jar],
+            outputs = [ksp_staged_sources_dir],
+            executable = ctx.executable._zipper,
+            arguments = ["x", staged_sources_jar.path, "-d", ksp_staged_sources_dir.path],
+            progress_message = "Unpacking staged sources for KSP2",
+        )
+
+        additional_inputs.append(ksp_staged_sources_dir)
+
     # KSP2 cannot process srcjars directly - they need to be unpacked first
     unpacked_srcjars_dir = None
-    additional_inputs = []
     if srcs.src_jars:
         unpacked_srcjars_dir = ctx.actions.declare_directory(ctx.label.name + "-ksp-unpacked-srcjars")
 
@@ -543,19 +586,25 @@ def _run_ksp_builder_actions(
 
         additional_inputs.append(unpacked_srcjars_dir)
 
-    # Build arguments for KSP2
+    # Build arguments for KSP2 worker using flagfile format (-- prefixed flags)
     args = ctx.actions.args()
-    args.add("-jvm-target", toolchains.kt.jvm_target)
-    args.add("-module-name", compile_deps.module_name)
+    args.set_param_file_format("multiline")
+    args.use_param_file("--flagfile=%s", use_always = True)
+
+    args.add("--jvm_target", toolchains.kt.jvm_target)
+    args.add("--module_name", compile_deps.module_name)
 
     # KSP2 requires source-roots to be provided as DIRECTORIES, not individual files
-    # Extract unique directory paths from source files
-    all_source_files = srcs.kt + srcs.java
+    # Use the staged sources directory which contains only the declared source files
     source_root_dirs = {}
-    for f in all_source_files:
-        # Get the directory containing the file, or "." for root-level files
-        dir_path = f.dirname if f.dirname else "."
-        source_root_dirs[dir_path] = True
+    if ksp_staged_sources_dir:
+        for f in all_source_files:
+            # Get the directory path within the staged sources directory
+            dir_path = f.dirname if f.dirname else "."
+
+            # Prepend the staged sources directory path
+            staged_dir_path = ksp_staged_sources_dir.path + "/" + dir_path
+            source_root_dirs[staged_dir_path] = True
 
     # Add unpacked srcjars directory to source roots if it exists
     if unpacked_srcjars_dir:
@@ -563,51 +612,50 @@ def _run_ksp_builder_actions(
 
     source_roots = source_root_dirs.keys()
     if source_roots:
-        args.add("-source-roots", ":".join(source_roots))
+        args.add("--source_roots", ":".join(source_roots))
     else:
-        # Provide current directory as source root if no source files
-        args.add("-source-roots", ".")
+        # No source roots - this can happen if target only has srcjars that were unpacked
+        # KSP2 still needs a source root, use "." as fallback (it won't find any files there)
+        args.add("--source_roots", ".")
 
-    if srcs.java:
-        # Java source roots should also be directories
+    if srcs.java and ksp_staged_sources_dir:
+        # Java source roots should also be directories within staged sources
         java_source_root_dirs = {}
         for f in srcs.java:
             dir_path = f.dirname if f.dirname else "."
-            java_source_root_dirs[dir_path] = True
-        args.add("-java-source-roots", ":".join(java_source_root_dirs.keys()))
+            staged_dir_path = ksp_staged_sources_dir.path + "/" + dir_path
+            java_source_root_dirs[staged_dir_path] = True
+        args.add("--java_source_roots", ":".join(java_source_root_dirs.keys()))
 
     # Project base dir should be execution root so all paths work correctly
-    args.add("-project-base-dir", ".")
-    args.add("-output-base-dir", ctx.bin_dir.path)
-    args.add("-caches-dir", ksp_caches_dir.path)
-    args.add("-class-output-dir", ksp_class_output_dir.path)
-    args.add("-kotlin-output-dir", ksp_kotlin_output_dir.path)
-    args.add("-java-output-dir", ksp_java_output_dir.path)
-    args.add("-resource-output-dir", ksp_resource_output_dir.path)
+    args.add("--project_base_dir", ".")
+    args.add("--output_base_dir", ctx.bin_dir.path)
+    args.add("--caches_dir", ksp_caches_dir.path)
+    args.add("--class_output_dir", ksp_class_output_dir.path)
+    args.add("--kotlin_output_dir", ksp_kotlin_output_dir.path)
+    args.add("--java_output_dir", ksp_java_output_dir.path)
+    args.add("--resource_output_dir", ksp_resource_output_dir.path)
 
-    args.add("-language-version", toolchains.kt.language_version)
-    args.add("-api-version", toolchains.kt.api_version)
+    args.add("--language_version", toolchains.kt.language_version)
+    args.add("--api_version", toolchains.kt.api_version)
 
     # Add JDK home for Java symbol resolution
-    args.add("-jdk-home", toolchains.java_runtime.java_home)
-
-    # Enable Java annotation processing
-    args.add("-map-annotation-arguments-in-java=true")
+    args.add("--jdk_home", toolchains.java_runtime.java_home)
 
     # Add libraries (classpath)
     if compile_deps.compile_jars:
-        args.add_joined("-libraries", compile_deps.compile_jars, join_with = ":")
+        args.add_joined("--libraries", compile_deps.compile_jars, join_with = ":")
 
-    # Add processor JARs as positional arguments at the end
-    # These are passed last as the <processor classpath> positional argument to KSP2
+    # Add processor JARs
+    # These are passed as --processor_classpath for the worker to forward to KSP2
     if transitive_runtime_jars:
-        args.add_all(transitive_runtime_jars)
+        args.add_all("--processor_classpath", transitive_runtime_jars)
 
-    # Invoke KSP2 via java_binary wrapper
+    # Invoke KSP2 via worker-enabled tool
     ctx.actions.run(
         mnemonic = "KotlinKsp2",
         inputs = depset(
-            direct = srcs.all_srcs + additional_inputs,
+            direct = additional_inputs,
             transitive = [compile_deps.compile_jars, transitive_runtime_jars, toolchains.java_runtime.files],
         ),
         outputs = [
@@ -618,6 +666,10 @@ def _run_ksp_builder_actions(
             ksp_resource_output_dir,
         ],
         executable = ctx.executable._ksp2_tool,
+        execution_requirements = _utils.add_dicts(
+            toolchains.kt.execution_requirements,
+            {"worker-key-mnemonic": "KotlinKsp2"},
+        ),
         arguments = [args],
         progress_message = "Running KSP2 for %{label}",
         toolchain = "@bazel_tools//tools/jdk:toolchain_type",

@@ -45,7 +45,7 @@ def kt_configure_ksp():
         jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-api.jar",
     )
 
-    # KSP2 standalone tool wrapper
+    # KSP2 standalone tool wrapper (kept for backwards compatibility)
     java_binary(
         name = "ksp2_jvm",
         main_class = "com.google.devtools.ksp.cmdline.KSPJvmMain",

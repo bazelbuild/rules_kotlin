@@ -99,3 +99,20 @@ java_binary(
     visibility = ["//visibility:public"],
     runtime_deps = [":tree_artifact_packager_worker"],
 )
+
+java_import(
+    name = "ksp2_worker",
+    jars = ["ksp2_worker.jar"],
+)
+
+java_binary(
+    name = "ksp2",
+    data = KOTLIN_STDLIBS,
+    jvm_flags = [
+        "-Dksp.logging=warn",
+        "-XX:-MaxFDLimit",
+    ],
+    main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":ksp2_worker"],
+)

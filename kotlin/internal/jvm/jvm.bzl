@@ -136,8 +136,8 @@ _implicit_deps = {
         default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
     ),
     "_ksp2_tool": attr.label(
-        doc = "KSP2 standalone tool",
-        default = Label("//kotlin/compiler:ksp2_jvm"),
+        doc = "KSP2 worker-enabled tool",
+        default = Label("//src/main/kotlin:ksp2"),
         executable = True,
         cfg = "exec",
     ),
