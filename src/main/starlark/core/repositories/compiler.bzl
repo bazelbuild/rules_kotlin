@@ -3,7 +3,7 @@ Defines kotlin compiler repositories.
 """
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "get_auth")
-load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "TEMPLATES")
+load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "GENERATED_OPTS_TEMPLATES", "TEMPLATES")
 
 def _kotlin_compiler_impl(repository_ctx):
     attr = repository_ctx.attr
@@ -39,15 +39,34 @@ def _kotlin_capabilities_impl(repository_ctx):
         attr._artifacts_template,
         executable = False,
     )
-    template = _get_capability_template(
+    template = _get_template_by_version(
         attr.compiler_version,
         [repository_ctx.path(ct) for ct in attr._capability_templates],
+        "capabilities",
     )
     repository_ctx.template(
         "capabilities.bzl",
         template,
         executable = False,
     )
+    generated_opts_template = _get_template_by_version(
+        attr.compiler_version,
+        [repository_ctx.path(ct) for ct in attr._generated_opts_templates],
+        "generated_opts",
+    )
+    if generated_opts_template:
+        repository_ctx.template(
+            "generated_opts.bzl",
+            generated_opts_template,
+            executable = False,
+        )
+    else:
+        # For older Kotlin versions without generated opts, create an empty stub
+        repository_ctx.file(
+            "generated_opts.bzl",
+            content = "# Generated options not available for this Kotlin version\nGENERATED_KOPTS = {}\n",
+            executable = False,
+        )
 
 def _coerce_int(string_value):
     digits = "".join([
@@ -63,25 +82,41 @@ def _version(version_string):
         for segment in version_string.split(".", 3)
     ])
 
-def _parse_version(basename):
-    if "capabilities" not in basename:
+def _parse_version(basename, prefix):
+    if prefix not in basename:
         return None
-    version_string = basename[len("capabilities_"):basename.find(".bzl")]
+    version_string = basename[len(prefix + "_"):basename.find(".bzl")]
     return _version(version_string)
 
-def _get_capability_template(compiler_version, templates):
+def _get_template_by_version(compiler_version, templates, prefix):
+    """Get the appropriate template file for a given compiler version.
+
+    Args:
+        compiler_version: The kotlin compiler version string
+        templates: List of template paths
+        prefix: Prefix for template files (e.g., "capabilities" or "generated_opts")
+
+    Returns:
+        The template path that best matches the compiler version, or None if no templates.
+    """
+    if not templates:
+        return None
+
     version_index = {}
     target = _version(compiler_version)
     if len(target) > 2:
         target = target[0:2]
     for template in templates:
-        version = _parse_version(template.basename)
+        version = _parse_version(template.basename, prefix)
         if not version:
             continue
 
         if target == version:
             return template
         version_index[version] = template
+
+    if not version_index:
+        return None
 
     last_version = sorted(version_index.keys(), reverse = True)[0]
 
@@ -90,7 +125,11 @@ def _get_capability_template(compiler_version, templates):
         return version_index[last_version]
 
     # Legacy
-    return version_index[(0, 0, 0)]
+    legacy_key = (0, 0, 0)
+    if legacy_key in version_index:
+        return version_index[legacy_key]
+
+    return None
 
 kotlin_capabilities_repository = repository_rule(
     implementation = _kotlin_capabilities_impl,
@@ -108,6 +147,10 @@ kotlin_capabilities_repository = repository_rule(
         "_capability_templates": attr.label_list(
             doc = "List of compiler capability templates.",
             default = TEMPLATES,
+        ),
+        "_generated_opts_templates": attr.label_list(
+            doc = "List of generated options templates.",
+            default = GENERATED_OPTS_TEMPLATES,
         ),
         "_template": attr.label(
             doc = "repository build file template",
