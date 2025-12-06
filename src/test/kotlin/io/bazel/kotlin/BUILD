@@ -49,6 +49,10 @@ kt_rules_e2e_test(
     name = "KotlinJvmKaptAssertionTest",
     srcs = ["KotlinJvmKaptAssertionTest.kt"],
     data = ["//src/test/data/jvm/kapt"],
+    deps = [
+        "//src/test/data/jvm/kapt:ap_kotlin_mixed_no_identifier",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+    ],
 )
 
 kt_rules_e2e_test(

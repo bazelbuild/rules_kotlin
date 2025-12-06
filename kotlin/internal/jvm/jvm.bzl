@@ -123,28 +123,17 @@ load(
 load("//kotlin/internal/utils:utils.bzl", "utils")
 
 _implicit_deps = {
-    "_singlejar": attr.label(
-        executable = True,
-        cfg = "exec",
-        default = Label("@bazel_tools//tools/jdk:singlejar"),
-        allow_files = True,
-    ),
-    "_zipper": attr.label(
-        executable = True,
-        cfg = "exec",
-        default = Label("@bazel_tools//tools/zip:zipper"),
-        allow_files = True,
-    ),
     "java_stub_template": attr.label(
         cfg = "exec",
         default = Label("//third_party:java_stub_template.txt"),
         allow_single_file = True,
     ),
-    "_toolchain": attr.label(
-        doc = """The Kotlin JVM Runtime. it's only purpose is to enable the Android native rules to discover the Kotlin
-        runtime for dexing""",
-        default = Label("//kotlin/compiler:kotlin-stdlib"),
-        cfg = "target",
+    "_host_javabase": attr.label(
+        default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+        cfg = "exec",
+    ),
+    "_java_toolchain": attr.label(
+        default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
     ),
     "_kt_toolchain": attr.label(
         doc = """The Kotlin toolchain. it's only purpose is to enable the Intellij
@@ -152,12 +141,23 @@ _implicit_deps = {
         default = Label("//kotlin/internal:current_toolchain"),
         cfg = "target",
     ),
-    "_java_toolchain": attr.label(
-        default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
-    ),
-    "_host_javabase": attr.label(
-        default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+    "_singlejar": attr.label(
+        executable = True,
         cfg = "exec",
+        default = Label("@bazel_tools//tools/jdk:singlejar"),
+        allow_files = True,
+    ),
+    "_toolchain": attr.label(
+        doc = """The Kotlin JVM Runtime. it's only purpose is to enable the Android native rules to discover the Kotlin
+        runtime for dexing""",
+        default = Label("//kotlin/compiler:kotlin-stdlib"),
+        cfg = "target",
+    ),
+    "_zipper": attr.label(
+        executable = True,
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/zip:zipper"),
+        allow_files = True,
     ),
 }
 
@@ -170,11 +170,17 @@ _runnable_implicit_deps = {
 _common_attr = utils.add_dicts(
     _implicit_deps,
     {
-        "srcs": attr.label_list(
-            doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
-        files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.""",
+        "associates": attr.label_list(
+            doc = """Kotlin deps who should be considered part of the same module/compilation-unit
+            for the purposes of "internal" access. Such deps must all share the same module space
+            and so a target cannot associate to two deps from two different modules.""",
             default = [],
-            allow_files = [".srcjar", ".kt", ".java"],
+            providers = [JavaInfo, _KtJvmInfo],
+        ),
+        "data": attr.label_list(
+            doc = """The list of files needed by this rule at runtime. See general comments about `data` at
+        [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
+            allow_files = True,
         ),
         "deps": attr.label_list(
             doc = """A list of dependencies of this rule.See general comments about `deps` at
@@ -185,38 +191,25 @@ _common_attr = utils.add_dicts(
             ],
             allow_files = False,
         ),
-        "runtime_deps": attr.label_list(
-            doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
-        appear on the runtime classpath, but unlike them, not on the compile-time classpath.""",
-            default = [],
-            allow_files = False,
+        "javac_opts": attr.label(
+            doc = """Javac options to be used when compiling this target. These opts if provided will
+            be used instead of the ones provided to the toolchain.""",
+            default = None,
+            providers = [_JavacOptions],
+            mandatory = False,
         ),
-        "resources": attr.label_list(
-            doc = """A list of files that should be include in a Java jar.""",
-            default = [],
-            allow_files = True,
+        "kotlinc_opts": attr.label(
+            doc = """Kotlinc options to be used when compiling this target. These opts if provided
+            will be used instead of the ones provided to the toolchain.""",
+            default = None,
+            providers = [_KotlincOptions],
+            mandatory = False,
         ),
-        "resource_strip_prefix": attr.string(
-            doc = """The path prefix to strip from Java resources, files residing under common prefix such as
-        `src/main/resources` or `src/test/resources` or `kotlin` will have stripping applied by convention.""",
-            default = "",
-        ),
-        "resource_jars": attr.label_list(
-            doc = """Set of archives containing Java resources. If specified, the contents of these jars are merged into
-        the output jar.""",
-            default = [],
-        ),
-        "data": attr.label_list(
-            doc = """The list of files needed by this rule at runtime. See general comments about `data` at
-        [Attributes common to all build rules](https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes).""",
-            allow_files = True,
-        ),
-        "associates": attr.label_list(
-            doc = """Kotlin deps who should be considered part of the same module/compilation-unit
-            for the purposes of "internal" access. Such deps must all share the same module space
-            and so a target cannot associate to two deps from two different modules.""",
-            default = [],
-            providers = [JavaInfo, _KtJvmInfo],
+        "module_name": attr.string(
+            doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
+        `//some/package/path:label_name` is translated to
+        `some_package_path-label_name`.""",
+            mandatory = False,
         ),
         "plugins": attr.label_list(
             default = [],
@@ -229,40 +222,40 @@ _common_attr = utils.add_dicts(
                 [_KtCompilerPluginInfo],
             ],
         ),
-        "module_name": attr.string(
-            doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
-        `//some/package/path:label_name` is translated to
-        `some_package_path-label_name`.""",
-            mandatory = False,
+        "resource_jars": attr.label_list(
+            doc = """Set of archives containing Java resources. If specified, the contents of these jars are merged into
+        the output jar.""",
+            default = [],
         ),
-        "kotlinc_opts": attr.label(
-            doc = """Kotlinc options to be used when compiling this target. These opts if provided
-            will be used instead of the ones provided to the toolchain.""",
-            default = None,
-            providers = [_KotlincOptions],
-            mandatory = False,
+        "resource_strip_prefix": attr.label(
+            doc = """The path prefix to strip from Java resources. Should be a label pointing to a directory.
+        Files residing under common prefix such as `src/main/resources` or `src/test/resources` or `kotlin`
+        will have stripping applied by convention if this is not specified.""",
+            allow_single_file = True,
+            #             providers = ["FileProvider"],
         ),
-        "javac_opts": attr.label(
-            doc = """Javac options to be used when compiling this target. These opts if provided will
-            be used instead of the ones provided to the toolchain.""",
-            default = None,
-            providers = [_JavacOptions],
-            mandatory = False,
+        "resources": attr.label_list(
+            doc = """A list of files that should be include in a Java jar.""",
+            default = [],
+            allow_files = True,
+        ),
+        "runtime_deps": attr.label_list(
+            doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
+        appear on the runtime classpath, but unlike them, not on the compile-time classpath.""",
+            default = [],
+            allow_files = False,
+        ),
+        "srcs": attr.label_list(
+            doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
+        files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.""",
+            default = [],
+            allow_files = [".srcjar", ".kt", ".java"],
         ),
         "_use_auto_exec_groups": attr.bool(default = False),
     },
 )
 
 _lib_common_attr = utils.add_dicts(_common_attr, {
-    "exports": attr.label_list(
-        doc = """\
-Exported libraries.
-
-Deps listed here will be made available to other rules, as if the parents explicitly depended on
-these deps. This is not true for regular (non-exported) deps.""",
-        default = [],
-        providers = [JavaInfo],
-    ),
     "exported_compiler_plugins": attr.label_list(
         doc = """\
 Exported compiler plugins.
@@ -272,6 +265,15 @@ of any targets that directly depend on this target. Like `java_plugin`s exported
 this is not transitive""",
         default = [],
         providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration]],
+    ),
+    "exports": attr.label_list(
+        doc = """\
+Exported libraries.
+
+Deps listed here will be made available to other rules, as if the parents explicitly depended on
+these deps. This is not true for regular (non-exported) deps.""",
+        default = [],
+        providers = [JavaInfo],
     ),
     "neverlink": attr.bool(
         doc = """If true only use this library for compilation and not at runtime.""",
@@ -292,6 +294,15 @@ this is not transitive""",
 })
 
 _runnable_common_attr = utils.add_dicts(_common_attr, _runnable_implicit_deps, {
+    "env": attr.string_dict(
+        doc = """Environment variables to set when this binary is executed with `bazel run`.
+Note: for Starlark rules, values are used as-is (no automatic $(location) / make variable expansion).""",
+        default = {},
+    ),
+    "env_inherit": attr.string_list(
+        doc = """Names of environment variables to inherit from the shell when executed with `bazel run`.""",
+        default = [],
+    ),
     "jvm_flags": attr.string_list(
         doc = """A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet
         support make variable substitution.""",
@@ -358,18 +369,21 @@ Setup a simple kotlin_test.
 `@rules_kotlin//kotlin/compiler:kotlin-test`.
 """,
     attrs = utils.add_dicts(_runnable_common_attr, {
-        "_bazel_test_runner": attr.label(
-            default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
-            allow_files = True,
+        "env": attr.string_dict(
+            doc = "Specifies additional environment variables to set when the target is executed by bazel test.",
+            default = {},
         ),
+        "env_inherit": attr.string_list(
+            doc = "Environment variables to inherit from the external environment.",
+        ),
+        "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
         "test_class": attr.string(
             doc = "The Java class to be loaded by the test runner.",
             default = "",
         ),
-        "main_class": attr.string(default = "com.google.testing.junit.runner.BazelTestRunner"),
-        "env": attr.string_dict(
-            doc = "Specifies additional environment variables to set when the target is executed by bazel test.",
-            default = {},
+        "_bazel_test_runner": attr.label(
+            default = Label("@bazel_tools//tools/jdk:TestRunner_deploy.jar"),
+            allow_files = True,
         ),
         "_lcov_merger": attr.label(
             default = Label("@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main"),
@@ -418,49 +432,11 @@ kt_jvm_import(
 ```
 """,
     attrs = {
-        "jars": attr.label_list(
-            doc = """\
-The jars listed here are equavalent to an export attribute. The label should be either to a single
-class jar, or one or more filegroup labels.  The filegroups, when resolved, must contain  only one jar
-containing classes, and (optionally) one peer file containing sources, named `<jarname>-sources.jar`.
-
-DEPRECATED - please use `jar` and `srcjar` attributes.""",
-            allow_files = True,
-            cfg = "target",
-        ),
-        "jar": attr.label(
-            doc = """The jar listed here is equivalent to an export attribute.""",
-            allow_single_file = True,
-            cfg = "target",
-        ),
-        "srcjar": attr.label(
-            doc = """The sources for the class jar.""",
-            allow_single_file = True,
-            cfg = "target",
-            # TODO(https://github.com/bazelbuild/intellij/issues/1616): Remove when the Intellij Aspect has the
-            #  correct null checks.
-            default = "//third_party:empty.jar",
-        ),
-        "runtime_deps": attr.label_list(
-            doc = """Additional runtime deps.""",
-            default = [],
-            mandatory = False,
-            providers = [JavaInfo],
-        ),
         "deps": attr.label_list(
             doc = """Compile and runtime dependencies""",
             default = [],
             mandatory = False,
             providers = [JavaInfo],
-        ),
-        "exports": attr.label_list(
-            doc = """\
-Exported libraries.
-
-Deps listed here will be made available to other rules, as if the parents explicitly depended on
-these deps. This is not true for regular (non-exported) deps.""",
-            default = [],
-            providers = [JavaInfo, _KtJvmInfo],
         ),
         "exported_compiler_plugins": attr.label_list(
             doc = """\
@@ -472,9 +448,47 @@ exported_plugins, this is not transitive""",
             default = [],
             providers = [[_KtCompilerPluginInfo], [KtPluginConfiguration], [_KspPluginInfo]],
         ),
+        "exports": attr.label_list(
+            doc = """\
+Exported libraries.
+
+Deps listed here will be made available to other rules, as if the parents explicitly depended on
+these deps. This is not true for regular (non-exported) deps.""",
+            default = [],
+            providers = [JavaInfo, _KtJvmInfo],
+        ),
+        "jar": attr.label(
+            doc = """The jar listed here is equivalent to an export attribute.""",
+            allow_single_file = True,
+            cfg = "target",
+        ),
+        "jars": attr.label_list(
+            doc = """\
+The jars listed here are equavalent to an export attribute. The label should be either to a single
+class jar, or one or more filegroup labels.  The filegroups, when resolved, must contain  only one jar
+containing classes, and (optionally) one peer file containing sources, named `<jarname>-sources.jar`.
+
+DEPRECATED - please use `jar` and `srcjar` attributes.""",
+            allow_files = True,
+            cfg = "target",
+        ),
         "neverlink": attr.bool(
             doc = """If true only use this library for compilation and not at runtime.""",
             default = False,
+        ),
+        "runtime_deps": attr.label_list(
+            doc = """Additional runtime deps.""",
+            default = [],
+            mandatory = False,
+            providers = [JavaInfo],
+        ),
+        "srcjar": attr.label(
+            doc = """The sources for the class jar.""",
+            allow_single_file = True,
+            cfg = "target",
+            # TODO(https://github.com/bazelbuild/intellij/issues/1616): Remove when the Intellij Aspect has the
+            #  correct null checks.
+            default = "//third_party:empty.jar",
         ),
     },
     implementation = _kt_jvm_import_impl,
@@ -485,14 +499,14 @@ _kt_compiler_deps_aspect = aspect(
     implementation = _kt_compiler_deps_aspect_impl,
     attr_aspects = ["deps", "runtime_deps", "exports"],
     attrs = {
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
-        ),
         "_jarjar": attr.label(
             executable = True,
             cfg = "exec",
             default = Label("//third_party:jarjar_runner"),
+        ),
+        "_kotlin_compiler_reshade_rules": attr.label(
+            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
+            allow_single_file = True,
         ),
     },
 )
@@ -532,6 +546,15 @@ kt_jvm_library(
 ```
 """,
     attrs = {
+        "compile_phase": attr.bool(
+            doc = "Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`",
+            default = True,
+        ),
+        "data": attr.label_list(
+            doc = "The list of data files to be used by compiler's plugin",
+            providers = [DefaultInfo],
+            cfg = "exec",
+        ),
         "deps": attr.label_list(
             doc = "The list of libraries to be added to the compiler's plugin classpath",
             providers = [JavaInfo],
@@ -554,10 +577,6 @@ Supports the following template values:
 """,
             default = {},
         ),
-        "compile_phase": attr.bool(
-            doc = "Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`",
-            default = True,
-        ),
         "stubs_phase": attr.bool(
             doc = "Runs the compiler plugin in kapt stub generation.",
             default = True,
@@ -567,14 +586,14 @@ Supports the following template values:
             dependencies, and will fail when running against a non-embeddable compiler.""",
             default = False,
         ),
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
-        ),
         "_jarjar": attr.label(
             executable = True,
             cfg = "exec",
             default = Label("//third_party:jarjar_runner"),
+        ),
+        "_kotlin_compiler_reshade_rules": attr.label(
+            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
+            allow_single_file = True,
         ),
     },
     implementation = _kt_compiler_plugin_impl,
@@ -604,6 +623,7 @@ kt_jvm_library(
     srcs = glob(["*.kt"]),
     plugins = ["//:moshi-kotlin-codegen"],
 )
+```
 """,
     attrs = {
         "deps": attr.label_list(
@@ -611,6 +631,10 @@ kt_jvm_library(
             providers = [JavaInfo],
             cfg = "exec",
             aspects = [_kt_compiler_deps_aspect],
+        ),
+        "generates_java": attr.bool(
+            doc = """Runs Java compilation action for plugin generating Java output.""",
+            default = False,
         ),
         "processor_class": attr.string(
             doc = " The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.",
@@ -625,10 +649,6 @@ kt_jvm_library(
             default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
             allow_single_file = True,
         ),
-        "generates_java": attr.bool(
-            doc = """Runs Java compilation action for plugin generating Java output.""",
-            default = False,
-        ),
     },
     implementation = _kt_ksp_plugin_impl,
     provides = [_KspPluginInfo],
@@ -642,13 +662,10 @@ kt_plugin_cfg = rule(
     This allows setting options and dependencies independently from the initial plugin definition.
     """,
     attrs = {
-        "plugin": attr.label(
-            doc = "The plugin to associate with this configuration",
-            providers = [_KtCompilerPluginInfo],
-            mandatory = True,
-        ),
-        "options": attr.string_list_dict(
-            doc = "A dictionary of flag to values to be used as plugin configuration options.",
+        "data": attr.label_list(
+            doc = "The list of data files to be used by compiler's plugin",
+            providers = [DefaultInfo],
+            cfg = "exec",
         ),
         "deps": attr.label_list(
             doc = "Dependencies for this configuration.",
@@ -657,6 +674,15 @@ kt_plugin_cfg = rule(
                 [JavaInfo],
                 [JavaPluginInfo],
             ],
+            cfg = "exec",
+        ),
+        "options": attr.string_list_dict(
+            doc = "A dictionary of flag to values to be used as plugin configuration options.",
+        ),
+        "plugin": attr.label(
+            doc = "The plugin to associate with this configuration",
+            providers = [_KtCompilerPluginInfo],
+            mandatory = True,
         ),
     },
 )

@@ -3,21 +3,21 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 version = provider(
     fields = {
-        "url_templates": "list of string templates with the placeholder {version}",
-        "version": "the version in the form \\D+.\\D+.\\D+(.*)",
         "sha256": "sha256 checksum for the version being downloaded.",
         "strip_prefix_template": "string template with the placeholder {version}.",
+        "url_templates": "list of string templates with the placeholder {version}",
+        "version": "the version in the form \\D+.\\D+.\\D+(.*)",
     },
 )
 
-def _use_repository(name, version, rule, **kwargs):
-    http_archive_arguments = dict(kwargs)
-    http_archive_arguments["sha256"] = version.sha256
-    http_archive_arguments["urls"] = [u.format(version = version.version) for u in version.url_templates]
+def _use_repository(rule, name, version, **kwargs):
+    rule_arguments = dict(kwargs)
+    rule_arguments["sha256"] = version.sha256
+    rule_arguments["urls"] = [u.format(version = version.version) for u in version.url_templates]
     if (hasattr(version, "strip_prefix_template")):
-        http_archive_arguments["strip_prefix"] = version.strip_prefix_template.format(version = version.version)
+        rule_arguments["strip_prefix"] = version.strip_prefix_template.format(version = version.version)
 
-    maybe(rule, name = name, **http_archive_arguments)
+    maybe(rule, name = name, **rule_arguments)
 
 versions = struct(
     # IMPORTANT! rules_kotlin does not use the bazel_skylib unittest in production
@@ -74,25 +74,25 @@ versions = struct(
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.1.21",
+        version = "2.2.21",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "1ba08a8b45da99339a0601134cc037b54cf85e9bc0edbe76dcbd27c2d684a977",
+        sha256 = "a623871f1cd9c938946948b70ef9170879f0758043885bbd30c32f024e511714",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "2.1.21-2.0.1",
+        version = "2.2.21-2.0.4",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
-        sha256 = "44e965bb067b2bb5cd9184dab2c3dea6e3eab747d341c07645bb4c88f09e49c8",
+        sha256 = "6550f1117d7c9590cc9a5075b92682a218c8e1df4093d7e683d73cc481733dd1",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.1.20",
+        version = "2.2.21",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
         ],
-        sha256 = "6e94896e321603e3bfe89fef02478e44d1d64a3d25d49d0694892ffc01c60acf",
+        sha256 = "458b63ef8fc50a0a3180fe688ec1b995745992a05c495dac61e58d1088927a80",
     ),
     RULES_ANDROID = version(
         version = "0.6.4",
@@ -137,6 +137,20 @@ versions = struct(
             "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/{version}/kotlinx-serialization-json-jvm-{version}.jar",
         ],
         sha256 = "8769e5647557e3700919c32d508f5c5dad53c5d8234cd10846354fbcff14aa24",
+    ),
+    PY_ABSL = version(
+        version = "2.1.0",
+        sha256 = "8a3d0830e4eb4f66c4fa907c06edf6ce1c719ced811a12e26d9d3162f8471758",
+        url_templates = [
+            "https://github.com/abseil/abseil-py/archive/refs/tags/v{version}.tar.gz",
+        ],
+        strip_prefix_template = "abseil-py-{version}",
+    ),
+    RULES_CC = version(
+        version = "0.0.16",
+        url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
+        sha256 = "bbf1ae2f83305b7053b11e4467d317a7ba3517a12cef608543c1b1c5bf48a4df",
+        strip_prefix_template = "rules_cc-{version}",
     ),
     use_repository = _use_repository,
 )

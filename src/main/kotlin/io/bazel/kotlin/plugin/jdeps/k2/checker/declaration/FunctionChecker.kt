@@ -14,11 +14,8 @@ internal class FunctionChecker(
    * Tracks the value parameters of a function declaration. Return type & type parameters are
    * tracked in [CallableChecker].
    */
-  override fun check(
-    declaration: FirFunction,
-    context: CheckerContext,
-    reporter: DiagnosticReporter,
-  ) {
+  context(context: CheckerContext, reporter: DiagnosticReporter)
+  override fun check(declaration: FirFunction) {
     // function parameters
     declaration.valueParameters.forEach { valueParam ->
       valueParam.returnTypeRef.let { classUsageRecorder.recordTypeRef(it, context) }

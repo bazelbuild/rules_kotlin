@@ -29,10 +29,10 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         associates = associate_deps,
     )
     dep_infos = (
-        [toolchains.kt.jvm_stdlibs] +
-        associates.dep_infos +
         deps_java_infos +
-        [_java_info(d) for d in deps]
+        [_java_info(d) for d in deps] +
+        associates.dep_infos +
+        [toolchains.kt.jvm_stdlibs]
     )
 
     # Reduced classpath, exclude transitive deps from compilation

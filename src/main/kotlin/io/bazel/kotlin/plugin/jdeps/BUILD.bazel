@@ -25,6 +25,9 @@ kt_bootstrap_library(
         "k2/checker/declaration/*.kt",
         "k2/checker/expression/*.kt",
     ]),
+    kotlinc_opts = [
+        "-Xcontext-parameters",
+    ],
     visibility = ["//src:__subpackages__"],
     deps = [
         "//kotlin/compiler:kotlin-compiler",
@@ -38,8 +41,8 @@ kt_bootstrap_library(
 generate_jvm_service(
     name = "jdeps-gen-services",
     services = {
-        "io.bazel.kotlin.plugin.jdeps.JdepsGenComponentRegistrar": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",
         "io.bazel.kotlin.plugin.jdeps.JdepsGenCommandLineProcessor": "org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor",
+        "io.bazel.kotlin.plugin.jdeps.JdepsGenComponentRegistrar": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",
     },
 )
 

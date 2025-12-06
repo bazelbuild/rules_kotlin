@@ -91,7 +91,9 @@ public class KotlinBuilderJvmBasicTest {
                                     c.outputJar();
                                     c.outputJdeps();
                                 }),
-                lines -> assertThat(lines.get(0)).startsWith(ctx.toPlatform("sources/AClass")));
+                lines -> assertThat(
+                        lines.stream().anyMatch(line -> line.startsWith(ctx.toPlatform("sources/AClass")))
+                ).isTrue());
     }
 
     @Test

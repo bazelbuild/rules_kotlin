@@ -15,8 +15,6 @@
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
-    "KtCompilerPluginOption",
-    "KtPluginConfiguration",
     _KspPluginInfo = "KspPluginInfo",
     _KtCompilerPluginInfo = "KtCompilerPluginInfo",
     _KtJvmInfo = "KtJvmInfo",
@@ -30,6 +28,7 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
+load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
 load("//third_party:jarjar.bzl", "jarjar_action")
 
 # borrowed from skylib to avoid adding that to the release.
@@ -72,10 +71,20 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
     java_bin_path = java_runtime.java_executable_runfiles_path
 
+    # Normalize java_bin_path like rules_java does: prepend workspace name for relative paths
+    if not _is_absolute(java_bin_path):
+        java_bin_path = ctx.workspace_name + "/" + java_bin_path
+
+    # Construct JAVABIN substitution with ${JAVA_RUNFILES}/ prefix for relative paths
+    # This works in both runfiles-enabled and manifest-only modes
+    prefix = "" if _is_absolute(java_bin_path) else "${JAVA_RUNFILES}/"
+    java_bin = "JAVABIN=${JAVABIN:-" + prefix + java_bin_path + "}"
+
     # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
-    # Enable the security manager past deprecation.
+    # Enable the security manager past deprecation until permanently disabled: https://openjdk.org/jeps/486
     # On bazel 6, this check isn't possible...
-    if getattr(java_runtime, "version", 0) >= 17:
+    _java_runtime_version = getattr(java_runtime, "version", 0)
+    if _java_runtime_version >= 17 and _java_runtime_version < 24:
         jvm_flags = jvm_flags + " -Djava.security.manager=allow"
 
     if ctx.configuration.coverage_enabled:
@@ -96,17 +105,17 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
             output = ctx.outputs.executable,
             substitutions = {
                 "%classpath%": classpath,
-                "%runfiles_manifest_only%": "",
                 "%java_start_class%": "com.google.testing.coverage.JacocoCoverageRunner",
-                "%javabin%": "JAVABIN=" + java_bin_path,
+                "%javabin%": java_bin,
                 "%jvm_flags%": jvm_flags,
-                "%set_jacoco_metadata%": "export JACOCO_METADATA_JAR=\"$JAVA_RUNFILES/{}/{}\"".format(ctx.workspace_name, jacoco_metadata_file.short_path),
-                "%set_jacoco_main_class%": """export JACOCO_MAIN_CLASS={}""".format(main_class),
-                "%set_jacoco_java_runfiles_root%": """export JACOCO_JAVA_RUNFILES_ROOT=$JAVA_RUNFILES/{}/""".format(ctx.workspace_name),
-                "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=YES""",
-                "%workspace_prefix%": ctx.workspace_name + "/",
-                "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
                 "%needs_runfiles%": "0" if _is_absolute(java_bin_path) else "1",
+                "%runfiles_manifest_only%": "",
+                "%set_jacoco_java_runfiles_root%": """export JACOCO_JAVA_RUNFILES_ROOT=$JAVA_RUNFILES/{}/""".format(ctx.workspace_name),
+                "%set_jacoco_main_class%": """export JACOCO_MAIN_CLASS={}""".format(main_class),
+                "%set_jacoco_metadata%": "export JACOCO_METADATA_JAR=\"$JAVA_RUNFILES/{}/{}\"".format(ctx.workspace_name, jacoco_metadata_file.short_path),
+                "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=YES""",
+                "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
+                "%workspace_prefix%": ctx.workspace_name + "/",
             },
             is_executable = True,
         )
@@ -121,17 +130,17 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
         output = ctx.outputs.executable,
         substitutions = {
             "%classpath%": classpath,
-            "%runfiles_manifest_only%": "",
             "%java_start_class%": main_class,
-            "%javabin%": "JAVABIN=" + java_bin_path,
+            "%javabin%": java_bin,
             "%jvm_flags%": jvm_flags,
-            "%set_jacoco_metadata%": "",
-            "%set_jacoco_main_class%": "",
-            "%set_jacoco_java_runfiles_root%": "",
-            "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=NO""",
-            "%workspace_prefix%": ctx.workspace_name + "/",
-            "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
             "%needs_runfiles%": "0" if _is_absolute(java_bin_path) else "1",
+            "%runfiles_manifest_only%": "",
+            "%set_jacoco_java_runfiles_root%": "",
+            "%set_jacoco_main_class%": "",
+            "%set_jacoco_metadata%": "",
+            "%set_java_coverage_new_implementation%": """export JAVA_COVERAGE_NEW_IMPLEMENTATION=NO""",
+            "%test_runtime_classpath_file%": "export TEST_RUNTIME_CLASSPATH_FILE=${JAVA_RUNFILES}",
+            "%workspace_prefix%": ctx.workspace_name + "/",
         },
         is_executable = True,
     )
@@ -224,13 +233,13 @@ def kt_jvm_library_impl(ctx):
         )
     return _make_providers(
         ctx,
-        _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else _compile.export_only_providers(
+        providers = _compile.kt_jvm_produce_jar_actions(ctx, "kt_jvm_library") if ctx.attr.srcs or ctx.attr.resources else _compile.export_only_providers(
             ctx = ctx,
             actions = ctx.actions,
             outputs = ctx.outputs,
             attr = ctx.attr,
         ),
-        runfiles_targets = ctx.attr.deps + ctx.attr.exports,
+        runfiles_targets = ctx.attr.deps + ctx.attr.exports + ctx.attr.runtime_deps + ctx.attr.data,
     )
 
 def kt_jvm_binary_impl(ctx):
@@ -251,11 +260,15 @@ def kt_jvm_binary_impl(ctx):
     return _make_providers(
         ctx,
         providers,
-        runfiles_targets = ctx.attr.deps,
-        transitive_files = depset(
+        ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
+        depset(
             order = "default",
             transitive = [providers.java.transitive_runtime_jars],
             direct = ctx.files._java_runtime,
+        ),
+        RunEnvironmentInfo(
+            environment = ctx.attr.env,
+            inherited_environment = ctx.attr.env_inherit,
         ),
     )
 
@@ -308,20 +321,20 @@ def kt_jvm_junit_test_impl(ctx):
     return _make_providers(
         ctx,
         providers,
-        ctx.attr.deps,
+        ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
         depset(
             order = "default",
             transitive = [runtime_jars, depset(coverage_runfiles), depset(coverage_metadata)],
             direct = ctx.files._java_runtime,
         ),
         # adds common test variables, including TEST_WORKSPACE.
-        testing.TestEnvironment(environment = ctx.attr.env),
+        testing.TestEnvironment(environment = ctx.attr.env, inherited_environment = ctx.attr.env_inherit),
     )
 
 _KtCompilerPluginClasspathInfo = provider(
     fields = {
-        "reshaded_infos": "list reshaded JavaInfos of a compiler library",
         "infos": "list JavaInfos of a compiler library",
+        "reshaded_infos": "list reshaded JavaInfos of a compiler library",
     },
 )
 
@@ -392,36 +405,8 @@ def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
         ],
     )
 
-def _resolve_plugin_options(id, string_list_dict, expand_location):
-    """
-    Resolves plugin options from a string dict to a dict of strings.
-
-    Args:
-        id: the plugin id
-        string_list_dict: a dict of list[string].
-    Returns:
-        a dict of strings
-    """
-    options = []
-    for (k, vs) in string_list_dict.items():
-        for v in vs:
-            if "=" in k:
-                fail("kotlin compiler option keys cannot contain the = symbol")
-            value = k + "=" + expand_location(v) if v else k
-            options.append(KtCompilerPluginOption(id = id, value = value))
-    return options
-
-# This is naive reference implementation for resolving configurations.
-# A more complicated plugin will need to provide its own implementation.
-def _resolve_plugin_cfg(info, options, deps, expand_location):
-    ji = java_common.merge([dep[JavaInfo] for dep in deps if JavaInfo in dep])
-    classpath = depset(ji.runtime_output_jars, transitive = [ji.transitive_runtime_jars])
-    return KtPluginConfiguration(
-        id = info.id,
-        options = _resolve_plugin_options(info.id, options, expand_location),
-        classpath = classpath,
-        data = depset(),
-    )
+def _expand_location_with_data_deps(ctx):
+    return lambda targets: ctx.expand_location(targets, ctx.attr.data)
 
 def kt_compiler_plugin_impl(ctx):
     plugin_id = ctx.attr.id
@@ -444,7 +429,7 @@ def kt_compiler_plugin_impl(ctx):
     classpath = depset(info.runtime_output_jars, transitive = [info.transitive_runtime_jars])
 
     # TODO(1035): Migrate kt_compiler_plugin.options to string_list_dict
-    options = _resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, ctx.expand_location)
+    options = plugin_common.resolve_plugin_options(plugin_id, {k: [v] for (k, v) in ctx.attr.options.items()}, _expand_location_with_data_deps(ctx))
 
     return [
         DefaultInfo(files = classpath),
@@ -454,13 +439,16 @@ def kt_compiler_plugin_impl(ctx):
             options = options,
             stubs = ctx.attr.stubs_phase,
             compile = ctx.attr.compile_phase,
-            resolve_cfg = _resolve_plugin_cfg,
+            resolve_cfg = plugin_common.resolve_cfg,
+            merge_cfgs = plugin_common.merge_cfgs,
         ),
     ]
 
 def kt_plugin_cfg_impl(ctx):
     plugin = ctx.attr.plugin[_KtCompilerPluginInfo]
-    return plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, ctx.expand_location)
+    return [
+        plugin,
+    ] + plugin.resolve_cfg(plugin, ctx.attr.options, ctx.attr.deps, _expand_location_with_data_deps(ctx))
 
 def kt_ksp_plugin_impl(ctx):
     deps = ctx.attr.deps

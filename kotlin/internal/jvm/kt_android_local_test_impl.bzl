@@ -173,7 +173,9 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
     # Append the security manager override
     jvm_flags = []
     java_runtime = ctx.toolchains[_JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime
-    if java_runtime.version >= 17:
+
+    _java_runtime_version = getattr(java_runtime, "version", 0)
+    if _java_runtime_version >= 17 and _java_runtime_version < 24:
         jvm_flags.append("-Djava.security.manager=allow")
 
     return _ProviderInfo(

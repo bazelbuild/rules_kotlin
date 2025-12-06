@@ -2,11 +2,11 @@ load("@rules_java//java:defs.bzl", "JavaInfo")
 load(":common.bzl", "KtJvmInfo", "TYPE")
 
 _COMMON_ATTRS = {
-    "srcs": attr.label_list(
-        doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
-                       files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.""",
+    "class_jar": attr.output(doc = "jar containing .kt and .java class files"),
+    "data": attr.label_list(
+        doc = """A list of files that should be include the runfiles.""",
         default = [],
-        allow_files = [".kt", ".java"],
+        allow_files = True,
     ),
     "deps": attr.label_list(
         doc = """A list of dependencies of this rule. See general comments about `deps` at
@@ -26,9 +26,21 @@ _COMMON_ATTRS = {
         default = [],
         providers = [[JavaInfo], [JavaInfo, KtJvmInfo]],
     ),
+    "kotlinc_opts": attr.string_list(doc = "Options to pass to the kotlinc compiler."),
+    "module_name": attr.string(
+        doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
+                               `//some/package/path:label_name` is translated to
+                               `some_package_path-label_name`.""",
+        mandatory = False,
+    ),
     "neverlink": attr.bool(
         doc = """If true only use this library for compilation and not at runtime.""",
         default = False,
+    ),
+    "resources": attr.label_list(
+        doc = """A list of files that should be include in a Java jar.""",
+        default = [],
+        allow_files = True,
     ),
     "runtime_deps": attr.label_list(
         doc = """Libraries to make available to the final binary or test at runtime only. Like ordinary deps, these will
@@ -36,25 +48,13 @@ _COMMON_ATTRS = {
         default = [],
         allow_files = False,
     ),
-    "resources": attr.label_list(
-        doc = """A list of files that should be include in a Java jar.""",
-        default = [],
-        allow_files = True,
-    ),
-    "data": attr.label_list(
-        doc = """A list of files that should be include the runfiles.""",
-        default = [],
-        allow_files = True,
-    ),
-    "kotlinc_opts": attr.string_dict(doc = "Options to pass to the kotlinc compiler as key: value pairs."),
-    "module_name": attr.string(
-        doc = """The name of the module, if not provided the module name is derived from the label. --e.g.,
-                               `//some/package/path:label_name` is translated to
-                               `some_package_path-label_name`.""",
-        mandatory = False,
-    ),
-    "class_jar": attr.output(doc = "jar containing .kt and .java class files"),
     "source_jar": attr.output(doc = "jar containing .kt and .java sources"),
+    "srcs": attr.label_list(
+        doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
+                       files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.""",
+        default = [],
+        allow_files = [".kt", ".java"],
+    ),
 }
 
 def _kt_jvm_library_impl(ctx):
@@ -110,7 +110,7 @@ def _kt_jvm_library_impl(ctx):
                 files = ctx.files.data,
             ).merge_all([
                 d[DefaultInfo].default_runfiles
-                for d in ctx.attr.deps + ctx.attr.exports
+                for d in ctx.attr.deps + ctx.attr.exports + ctx.attr.data + ctx.attr.runtime_deps
                 if DefaultInfo in d
             ]),
         ),
@@ -141,11 +141,13 @@ def _kt_jvm_binary_impl(ctx):
     runtime_jars = depset([ctx.outputs.class_jar], transitive = [j.transitive_runtime_jars for j in java_info_deps])
     executable = ctx.outputs.executable
 
+    # Always use ":" as the path separator for the launcher script since it's a bash script.
+    # Using the host path separator (";") on Windows would cause bash to interpret it as a command separator.
     launch_runfiles = kt_tools.launch(
         main_class = ctx.attr.main_class,
         executable_output = executable,
         actions = ctx.actions,
-        path_separator = ctx.configuration.host_path_separator,
+        path_separator = ":",
         workspace_prefix = ctx.workspace_name + "/",
         jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in ctx.attr.jvm_flags]),
         runtime_jars = runtime_jars,
@@ -166,7 +168,7 @@ def _kt_jvm_binary_impl(ctx):
                 transitive_files = launch_runfiles,
             ).merge_all([
                 d[DefaultInfo].default_runfiles
-                for d in ctx.attr.deps
+                for d in ctx.attr.deps + ctx.attr.data + ctx.attr.runtime_deps
                 if DefaultInfo in d
             ]),
             executable = executable,
@@ -178,9 +180,9 @@ _kt_jvm_binary = rule(
     attrs = {
         k: v
         for (k, v) in _COMMON_ATTRS.items() + {
+            "deploy_jar": attr.output(doc = "jar containing all dependencies."),
             "jvm_flags": attr.string_list(default = []),
             "main_class": attr.string(mandatory = True, doc = ""),
-            "deploy_jar": attr.output(doc = "jar containing all dependencies."),
         }.items()
     },
     toolchains = [

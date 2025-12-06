@@ -16,23 +16,69 @@ abstract class BaseJdepsGenExtension(
   ) {
     val directDeps = configuration.getList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES)
     val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
-    val explicitDeps = createDepsMap(explicitClassesCanonicalPaths)
+    val fullClasspath = configuration.getList(JdepsGenConfigurationKeys.FULL_CLASSPATH)
 
-    doWriteJdeps(directDeps, targetLabel, explicitDeps, implicitClassesCanonicalPaths)
+    // Create mapping from canonical paths to original classpath paths
+    val canonicalToClasspath = createCanonicalToClasspathMap(fullClasspath)
+
+    val explicitDeps = createDepsMap(explicitClassesCanonicalPaths, canonicalToClasspath)
+
+    doWriteJdeps(
+      directDeps,
+      targetLabel,
+      explicitDeps,
+      implicitClassesCanonicalPaths,
+      canonicalToClasspath,
+    )
 
     doStrictDeps(configuration, targetLabel, directDeps, explicitDeps)
   }
 
   /**
-   * Returns a map of jars to classes loaded from those jars.
+   * Creates a mapping from canonical filesystem paths to original classpath paths.
+   * This ensures jdeps uses the same paths that were on the compiler's classpath.
+   * When multiple classpath entries point to the same canonical file, prefer runfiles paths.
    */
-  private fun createDepsMap(classes: Set<String>): Map<String, List<String>> {
+  private fun createCanonicalToClasspathMap(classpathEntries: List<String>): Map<String, String> {
+    val mapping = mutableMapOf<String, String>()
+
+    // Create canonical -> original mapping
+    // Process entries and prefer runfiles paths over execroot paths
+    classpathEntries.forEach { classpathPath ->
+      try {
+        val canonicalPath = File(classpathPath).canonicalPath
+        val existing = mapping[canonicalPath]
+        // Only update if no existing entry, or if current path is a runfiles path
+        // and existing is not
+        if (existing == null ||
+          (classpathPath.contains("/runfiles/") && !existing.contains("/runfiles/"))
+        ) {
+          mapping[canonicalPath] = classpathPath
+        }
+      } catch (e: Exception) {
+        // If we can't resolve, just use the original path for both
+        mapping[classpathPath] = classpathPath
+      }
+    }
+    return mapping
+  }
+
+  /**
+   * Returns a map of jars to classes loaded from those jars.
+   * Uses the canonical-to-classpath mapping to preserve original classpath paths.
+   */
+  private fun createDepsMap(
+    classes: Set<String>,
+    canonicalToClasspath: Map<String, String>,
+  ): Map<String, List<String>> {
     val jarsToClasses = mutableMapOf<String, MutableList<String>>()
     classes.forEach {
       val parts = it.split("!/")
-      val jarPath = parts[0]
-      if (jarPath.endsWith(".jar")) {
-        jarsToClasses.computeIfAbsent(jarPath) { ArrayList() }.add(parts[1])
+      val canonicalJarPath = parts[0]
+      if (canonicalJarPath.endsWith(".jar")) {
+        // Map back to original classpath path
+        val classpathJarPath = canonicalToClasspath[canonicalJarPath] ?: canonicalJarPath
+        jarsToClasses.computeIfAbsent(classpathJarPath) { ArrayList() }.add(parts[1])
       }
     }
     return jarsToClasses
@@ -43,8 +89,9 @@ abstract class BaseJdepsGenExtension(
     targetLabel: String,
     explicitDeps: Map<String, List<String>>,
     implicitClassesCanonicalPaths: Set<String>,
+    canonicalToClasspath: Map<String, String>,
   ) {
-    val implicitDeps = createDepsMap(implicitClassesCanonicalPaths)
+    val implicitDeps = createDepsMap(implicitClassesCanonicalPaths, canonicalToClasspath)
 
     // Build and write out deps.proto
     val jdepsOutput = configuration.getNotNull(JdepsGenConfigurationKeys.OUTPUT_JDEPS)

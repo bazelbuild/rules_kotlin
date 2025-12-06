@@ -1,0 +1,5 @@
+load(":kapt_test.bzl", "test_suite")
+
+test_suite(
+    name = "kapt",
+)

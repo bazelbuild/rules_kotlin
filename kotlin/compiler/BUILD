@@ -14,6 +14,7 @@ load("//src/main/starlark/release:packager.bzl", "release_archive")
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load(":compiler.bzl", "kt_configure_compiler")
+load(":kapt.bzl", "kapt_compiler_plugin")
 load(":ksp.bzl", "kt_configure_ksp")
 
 package(default_visibility = ["//visibility:public"])
@@ -30,4 +31,9 @@ release_archive(
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
+)
+
+kapt_compiler_plugin(
+    name = "kapt",
+    id = "org.jetbrains.kotlin.kapt3",
 )

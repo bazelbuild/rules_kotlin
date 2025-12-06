@@ -11,11 +11,8 @@ import org.jetbrains.kotlin.fir.declarations.toAnnotationClassLikeSymbol
 internal class BasicDeclarationChecker(
   private val classUsageRecorder: ClassUsageRecorder,
 ) : FirBasicDeclarationChecker(MppCheckerKind.Common) {
-  override fun check(
-    declaration: FirDeclaration,
-    context: CheckerContext,
-    reporter: DiagnosticReporter,
-  ) {
+  context(context: CheckerContext, reporter: DiagnosticReporter)
+  override fun check(declaration: FirDeclaration) {
     declaration.annotations.forEach { annotation ->
       annotation.toAnnotationClassLikeSymbol(context.session)?.let {
         classUsageRecorder.recordClass(it, context)

@@ -16,6 +16,23 @@ load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_O
 load("//src/main/starlark/core/options:convert.bzl", "convert")
 load("//src/main/starlark/core/options:derive.bzl", "derive")
 
+_ALLOWED_SUPPRESS_LEVELS = [
+    "error",
+    "warning",
+    "disabled",
+]
+
+def _map_warning_level(values):
+    if not values:
+        return None
+
+    args = []
+    for k, v in values.items():
+        if v not in _ALLOWED_SUPPRESS_LEVELS:
+            fail("Error: Suppress key '{}' has an invalid value of '{}'".format(k, v))
+        args.append("-Xwarning-level={}:{}".format(k, v))
+    return args
+
 def _map_optin_class_to_flag(values):
     return ["-opt-in=%s" % v for v in values]
 
@@ -35,19 +52,6 @@ def _map_jdk_release_to_flag(version):
     return ["-Xjdk-release=%s" % version]
 
 _KOPTS_ALL = {
-    "warn": struct(
-        args = dict(
-            default = "report",
-            doc = "Control warning behaviour.",
-            values = ["off", "report", "error"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "off": ["-nowarn"],
-            "report": None,
-            "error": ["-Werror"],
-        },
-    ),
     "include_stdlibs": struct(
         args = dict(
             default = "all",
@@ -57,52 +61,41 @@ _KOPTS_ALL = {
         type = attr.string,
         value_to_flag = {
             "all": None,
-            "stdlib": ["-no-reflect"],
             "none": ["-no-stdlib"],
+            "stdlib": ["-no-reflect"],
         },
     ),
-    "x_skip_prerelease_check": struct(
-        flag = "-Xskip-prerelease-check",
+    "java_parameters": struct(
         args = dict(
             default = False,
-            doc = "Suppress errors thrown when using pre-release classes.",
+            doc = "Generate metadata for Java 1.8+ reflection on method parameters.",
         ),
         type = attr.bool,
         value_to_flag = {
-            True: ["-Xskip-prerelease-check"],
+            True: ["-java-parameters"],
         },
     ),
-    "x_context_receivers": struct(
-        flag = "-Xcontext-receivers",
+    "jvm_target": struct(
         args = dict(
-            default = False,
-            doc = "Enable experimental context receivers.",
+            default = "",
+            doc = "The target version of the generated JVM bytecode",
+            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "21"],
         ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xcontext-receivers"],
-        },
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_jvm_target_to_flag,
     ),
-    "x_suppress_version_warnings": struct(
-        flag = "-Xsuppress-version-warnings",
+    "warn": struct(
         args = dict(
-            default = False,
-            doc = "Suppress warnings about outdated, inconsistent, or experimental language or API versions.",
+            default = "report",
+            doc = "Control warning behaviour.",
+            values = ["off", "report", "error"],
         ),
-        type = attr.bool,
+        type = attr.string,
         value_to_flag = {
-            True: ["-Xsuppress-version-warnings"],
-        },
-    ),
-    "x_inline_classes": struct(
-        flag = "-Xinline-classes",
-        args = dict(
-            default = False,
-            doc = "Enable experimental inline classes",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xinline-classes"],
+            "error": ["-Werror"],
+            "off": ["-nowarn"],
+            "report": None,
         },
     ),
     "x_allow_result_return_type": struct(
@@ -116,6 +109,168 @@ _KOPTS_ALL = {
             True: ["-Xallow-result-return-type"],
         },
     ),
+    "x_annotation_default_target": struct(
+        args = dict(
+            default = "off",
+            doc = """Change the default annotation targets for constructor properties:
+-Xannotation-default-target=first-only: use the first of the following allowed targets: '@param:', '@property:', '@field:';
+-Xannotation-default-target=first-only-warn: same as first-only, and raise warnings when both '@param:' and either '@property:' or '@field:' are allowed;
+-Xannotation-default-target=param-property: use '@param:' target if applicable, and also use the first of either '@property:' or '@field:';
+default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1 and before.""",
+            values = ["off", "first-only", "first-only-warn", "param-property"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "first-only": ["-Xannotation-default-target=first-only"],
+            "first-only-warn": ["-Xannotation-default-target=first-only-warn"],
+            "off": None,
+            "param-property": ["-Xannotation-default-target=param-property"],
+        },
+    ),
+    "x_assertions": struct(
+        args = dict(
+            default = "",
+            doc = "Configures how assertions are handled. The 'jvm' option enables assertions in JVM code.",
+            values = ["jvm"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "default": None,
+            "jvm": ["-Xassertions=jvm"],
+        },
+        map_value_to_flag = None,
+    ),
+    "x_backend_threads": struct(
+        # 1.6.20, 1.7
+        flag = "-Xbackend-threads",
+        args = dict(
+            default = 1,
+            doc = "When using the IR backend, run lowerings by file in N parallel threads. 0 means use a thread per processor core. Default value is 1.",
+        ),
+        type = attr.int,
+        value_to_flag = None,
+        map_value_to_flag = _map_backend_threads_to_flag,
+    ),
+    "x_consistent_data_class_copy_visibility": struct(
+        args = dict(
+            default = False,
+            doc = "The effect of this compiler flag is the same as applying @ConsistentCopyVisibility annotation to all data classes in the module. See https://youtrack.jetbrains.com/issue/KT-11914",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xconsistent-data-class-copy-visibility"],
+        },
+    ),
+    "x_context_parameters": struct(
+        flag = "-Xcontext-parameters",
+        args = dict(
+            default = False,
+            doc = "Enable experimental context parameters (Kotlin 2.2+).",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xcontext-parameters"],
+        },
+    ),
+    "x_context_receivers": struct(
+        flag = "-Xcontext-receivers",
+        args = dict(
+            default = False,
+            doc = "Enable experimental context receivers.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xcontext-receivers"],
+        },
+    ),
+    "x_emit_jvm_type_annotations": struct(
+        flag = "-Xemit-jvm-type-annotations",
+        args = dict(
+            default = False,
+            doc = "Basic support for type annotations in JVM bytecode.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xemit-jvm-type-annotations"],
+        },
+    ),
+    "x_enable_incremental_compilation": struct(
+        args = dict(
+            default = False,
+            doc = "Enable incremental compilation",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xenable-incremental-compilation"],
+        },
+    ),
+    "x_explicit_api_mode": struct(
+        flag = "-Xexplicit-api",
+        args = dict(
+            default = "off",
+            doc = "Enable explicit API mode for Kotlin libraries.",
+            values = ["off", "warning", "strict"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "off": None,
+            "strict": ["-Xexplicit-api=strict"],
+            "warning": ["-Xexplicit-api=warning"],
+        },
+    ),
+    "x_inline_classes": struct(
+        flag = "-Xinline-classes",
+        args = dict(
+            default = False,
+            doc = "Enable experimental inline classes",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xinline-classes"],
+        },
+    ),
+    "x_jdk_release": struct(
+        args = dict(
+            default = "",
+            doc = """Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer.
+                     The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9-21.
+                     This also sets the value of '-jvm-target' to be equal to the selected JDK version.""",
+            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "21"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_jdk_release_to_flag,
+    ),
+    "x_jspecify_annotations": struct(
+        args = dict(
+            default = "",
+            doc = "Controls how JSpecify annotations are treated. Options are 'default', 'ignore', 'warn', and 'strict'.",
+            values = ["default", "ignore", "warn", "strict"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "default": None,
+            "ignore": ["-Xjspecify-annotations=ignore"],
+            "strict": ["-Xjspecify-annotations=strict"],
+            "warn": ["-Xjspecify-annotations=warn"],
+        },
+        map_value_to_flag = None,
+    ),
+    "x_jsr_305": struct(
+        args = dict(
+            default = "",
+            doc = "Specifies how to handle JSR-305 annotations in Kotlin code. Options are 'default', 'ignore', 'warn', and 'strict'.",
+            values = ["default", "ignore", "warn", "strict"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "default": None,
+            "ignore": ["-Xjsr305=ignore"],
+            "strict": ["-Xjsr305=strict"],
+            "warn": ["-Xjsr305=warn"],
+        },
+        map_value_to_flag = None,
+    ),
     "x_jvm_default": struct(
         flag = "-Xjvm-default",
         args = dict(
@@ -125,12 +280,36 @@ _KOPTS_ALL = {
         ),
         type = attr.string,
         value_to_flag = {
-            "off": None,
-            "enable": ["-Xjvm-default=enable"],
-            "disable": ["-Xjvm-default=disable"],
-            "compatibility": ["-Xjvm-default=compatibility"],
-            "all-compatibility": ["-Xjvm-default=all-compatibility"],
             "all": ["-Xjvm-default=all"],
+            "all-compatibility": ["-Xjvm-default=all-compatibility"],
+            "compatibility": ["-Xjvm-default=compatibility"],
+            "disable": ["-Xjvm-default=disable"],
+            "enable": ["-Xjvm-default=enable"],
+            "off": None,
+        },
+    ),
+    "x_lambdas": struct(
+        flag = "-Xlambdas",
+        args = dict(
+            default = "class",
+            doc = "Change codegen behavior of lambdas",
+            values = ["class", "indy"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "class": ["-Xlambdas=class"],
+            "indy": ["-Xlambdas=indy"],
+        },
+    ),
+    "x_multi_platform": struct(
+        flag = "-Xmulti-platform",
+        args = dict(
+            default = False,
+            doc = "Enable experimental language support for multi-platform projects",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xmulti-platform"],
         },
     ),
     "x_no_call_assertions": struct(
@@ -142,6 +321,28 @@ _KOPTS_ALL = {
         type = attr.bool,
         value_to_flag = {
             True: ["-Xno-call-assertions"],
+        },
+    ),
+    "x_no_optimize": struct(
+        flag = "-Xno-optimize",
+        args = dict(
+            default = False,
+            doc = "Disable optimizations",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xno-optimize"],
+        },
+    ),
+    "x_no_optimized_callable_references": struct(
+        flag = "-Xno-optimized-callable-references",
+        args = dict(
+            default = False,
+            doc = "Do not use optimized callable reference superclasses. Available from 1.4.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xno-optimized-callable-references"],
         },
     ),
     "x_no_param_assertions": struct(
@@ -166,68 +367,34 @@ _KOPTS_ALL = {
             True: ["-Xno-receiver-assertions"],
         },
     ),
-    "x_no_optimized_callable_references": struct(
-        flag = "-Xno-optimized-callable-references",
+    "x_no_source_debug_extension": struct(
         args = dict(
             default = False,
-            doc = "Do not use optimized callable reference superclasses. Available from 1.4.",
+            doc = "Do not generate @kotlin.jvm.internal.SourceDebugExtension annotation on a class with the copy of SMAP",
         ),
         type = attr.bool,
         value_to_flag = {
-            True: ["-Xno-optimized-callable-references"],
+            True: ["-Xno-source-debug-extension"],
         },
     ),
-    "x_explicit_api_mode": struct(
-        flag = "-Xexplicit-api",
+    "x_optin": struct(
         args = dict(
-            default = "off",
-            doc = "Enable explicit API mode for Kotlin libraries.",
-            values = ["off", "warning", "strict"],
+            default = [],
+            doc = "Define APIs to opt-in to.",
         ),
-        type = attr.string,
-        value_to_flag = {
-            "off": None,
-            "warning": ["-Xexplicit-api=warning"],
-            "strict": ["-Xexplicit-api=strict"],
-        },
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_optin_class_to_flag,
     ),
-    "x_annotation_default_target": struct(
-        args = dict(
-            default = "off",
-            doc = """Change the default annotation targets for constructor properties:
--Xannotation-default-target=first-only: use the first of the following allowed targets: '@param:', '@property:', '@field:';
--Xannotation-default-target=first-only-warn: same as first-only, and raise warnings when both '@param:' and either '@property:' or '@field:' are allowed;
--Xannotation-default-target=param-property: use '@param:' target if applicable, and also use the first of either '@property:' or '@field:';
-default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1 and before.""",
-            values = ["off", "first-only", "first-only-warn", "param-property"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "off": None,
-            "first-only": ["-Xannotation-default-target=first-only"],
-            "first-only-warn": ["-Xannotation-default-target=first-only-warn"],
-            "param-property": ["-Xannotation-default-target=param-property"],
-        },
-    ),
-    "java_parameters": struct(
+    "x_report_perf": struct(
+        flag = "-Xreport-perf",
         args = dict(
             default = False,
-            doc = "Generate metadata for Java 1.8+ reflection on method parameters.",
+            doc = "Report detailed performance statistics",
         ),
         type = attr.bool,
         value_to_flag = {
-            True: ["-java-parameters"],
-        },
-    ),
-    "x_multi_platform": struct(
-        flag = "-Xmulti-platform",
-        args = dict(
-            default = False,
-            doc = "Enable experimental language support for multi-platform projects",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xmulti-platform"],
+            True: ["-Xreport-perf"],
         },
     ),
     "x_sam_conversions": struct(
@@ -243,38 +410,47 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
             "indy": ["-Xsam-conversions=indy"],
         },
     ),
-    "x_lambdas": struct(
-        flag = "-Xlambdas",
-        args = dict(
-            default = "class",
-            doc = "Change codegen behavior of lambdas",
-            values = ["class", "indy"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "class": ["-Xlambdas=class"],
-            "indy": ["-Xlambdas=indy"],
-        },
-    ),
-    "x_emit_jvm_type_annotations": struct(
-        flag = "-Xemit-jvm-type-annotations",
+    "x_skip_prerelease_check": struct(
+        flag = "-Xskip-prerelease-check",
         args = dict(
             default = False,
-            doc = "Basic support for type annotations in JVM bytecode.",
+            doc = "Suppress errors thrown when using pre-release classes.",
         ),
         type = attr.bool,
         value_to_flag = {
-            True: ["-Xemit-jvm-type-annotations"],
+            True: ["-Xskip-prerelease-check"],
         },
     ),
-    "x_optin": struct(
+    "x_suppress_version_warnings": struct(
+        flag = "-Xsuppress-version-warnings",
+        args = dict(
+            default = False,
+            doc = "Suppress warnings about outdated, inconsistent, or experimental language or API versions.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xsuppress-version-warnings"],
+        },
+    ),
+    "x_suppress_warning": struct(
         args = dict(
             default = [],
-            doc = "Define APIs to opt-in to.",
+            doc = "Suppress specific warnings globally",
         ),
         type = attr.string_list,
-        value_to_flag = None,
-        map_value_to_flag = _map_optin_class_to_flag,
+        value_to_flag = {
+            derive.info: derive.repeated_values_for("-Xsuppress-warning="),
+        },
+    ),
+    "x_type_enhancement_improvements_strict_mode": struct(
+        args = dict(
+            default = False,
+            doc = "Enables strict mode for type enhancement improvements, enforcing stricter type checking and enhancements.",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xtype-enhancement-improvements-strict-mode"],
+        },
     ),
     "x_use_fir": struct(
         # 1.6
@@ -286,6 +462,16 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
         type = attr.bool,
         value_to_flag = {
             True: ["-Xuse-fir"],
+        },
+    ),
+    "x_use_fir_lt": struct(
+        args = dict(
+            default = False,
+            doc = "Compile using LightTree parser with Front-end IR. Warning: this feature is far from being production-ready",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-Xuse-fir-lt"],
         },
     ),
     "x_use_k2": struct(
@@ -300,163 +486,14 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
             True: ["-Xuse-k2"],
         },
     ),
-    "x_no_optimize": struct(
-        flag = "-Xno-optimize",
+    "x_warning_level": struct(
         args = dict(
-            default = False,
-            doc = "Disable optimizations",
+            default = {},
+            doc = "Suppress specific warnings globally. Ex: 'OPTION': '(error|warning|disabled)'",
         ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xno-optimize"],
-        },
-    ),
-    "x_backend_threads": struct(
-        # 1.6.20, 1.7
-        flag = "-Xbackend-threads",
-        args = dict(
-            default = 1,
-            doc = "When using the IR backend, run lowerings by file in N parallel threads. 0 means use a thread per processor core. Default value is 1.",
-        ),
-        type = attr.int,
+        type = attr.string_dict,
         value_to_flag = None,
-        map_value_to_flag = _map_backend_threads_to_flag,
-    ),
-    "x_enable_incremental_compilation": struct(
-        args = dict(
-            default = False,
-            doc = "Enable incremental compilation",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xenable-incremental-compilation"],
-        },
-    ),
-    "x_report_perf": struct(
-        flag = "-Xreport-perf",
-        args = dict(
-            default = False,
-            doc = "Report detailed performance statistics",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xreport-perf"],
-        },
-    ),
-    "x_use_fir_lt": struct(
-        args = dict(
-            default = False,
-            doc = "Compile using LightTree parser with Front-end IR. Warning: this feature is far from being production-ready",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xuse-fir-lt"],
-        },
-    ),
-    "x_no_source_debug_extension": struct(
-        args = dict(
-            default = False,
-            doc = "Do not generate @kotlin.jvm.internal.SourceDebugExtension annotation on a class with the copy of SMAP",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xno-source-debug-extension"],
-        },
-    ),
-    "x_type_enhancement_improvements_strict_mode": struct(
-        args = dict(
-            default = False,
-            doc = "Enables strict mode for type enhancement improvements, enforcing stricter type checking and enhancements.",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xtype-enhancement-improvements-strict-mode"],
-        },
-    ),
-    "x_jsr_305": struct(
-        args = dict(
-            default = "",
-            doc = "Specifies how to handle JSR-305 annotations in Kotlin code. Options are 'default', 'ignore', 'warn', and 'strict'.",
-            values = ["default", "ignore", "warn", "strict"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "default": None,
-            "ignore": ["-Xjsr305=ignore"],
-            "warn": ["-Xjsr305=warn"],
-            "strict": ["-Xjsr305=strict"],
-        },
-        map_value_to_flag = None,
-    ),
-    "x_assertions": struct(
-        args = dict(
-            default = "",
-            doc = "Configures how assertions are handled. The 'jvm' option enables assertions in JVM code.",
-            values = ["jvm"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "default": None,
-            "jvm": ["-Xassertions=jvm"],
-        },
-        map_value_to_flag = None,
-    ),
-    "x_jspecify_annotations": struct(
-        args = dict(
-            default = "",
-            doc = "Controls how JSpecify annotations are treated. Options are 'default', 'ignore', 'warn', and 'strict'.",
-            values = ["default", "ignore", "warn", "strict"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "default": None,
-            "ignore": ["-Xjspecify-annotations=ignore"],
-            "warn": ["-Xjspecify-annotations=warn"],
-            "strict": ["-Xjspecify-annotations=strict"],
-        },
-        map_value_to_flag = None,
-    ),
-    "x_consistent_data_class_copy_visibility": struct(
-        args = dict(
-            default = False,
-            doc = "The effect of this compiler flag is the same as applying @ConsistentCopyVisibility annotation to all data classes in the module. See https://youtrack.jetbrains.com/issue/KT-11914",
-        ),
-        type = attr.bool,
-        value_to_flag = {
-            True: ["-Xconsistent-data-class-copy-visibility"],
-        },
-    ),
-    "jvm_target": struct(
-        args = dict(
-            default = "",
-            doc = "The target version of the generated JVM bytecode",
-            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_jvm_target_to_flag,
-    ),
-    "x_jdk_release": struct(
-        args = dict(
-            default = "",
-            doc = """Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer.
-                     The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–21.
-                     This also sets the value of '-jvm-target' to be equal to the selected JDK version.""",
-            values = ["1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17"],
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_jdk_release_to_flag,
-    ),
-    "x_suppress_warning": struct(
-        args = dict(
-            default = [],
-            doc = "Suppress specific warnings globally",
-        ),
-        type = attr.string_list,
-        value_to_flag = {
-            derive.info: derive.repeated_values_for("-Xsuppress-warning="),
-        },
+        map_value_to_flag = _map_warning_level,
     ),
 }
 
