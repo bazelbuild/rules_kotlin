@@ -33,7 +33,7 @@ object WriteKotlincCapabilities {
   fun main(vararg args: String) {
     // TODO: Replace with a real option parser
     val options = args.asSequence()
-      .flatMap { t -> t.split("=", limit = 1) }
+      .flatMap { t -> t.split("=", limit = 2) }
       .chunked(2)
       .fold(mutableMapOf<String, MutableList<String>>()) { m, (key, value) ->
         m.apply {
@@ -126,6 +126,30 @@ object WriteKotlincCapabilities {
     "-no-stdlib",
     "-script",
     "-script-templates",
+    // Flags that should be controlled by rules_kotlin, not user configuration
+    "-Xfriend-paths",  // Internal module visibility - managed by rules_kotlin
+    "-Xjava-source-roots",  // Managed by rules_kotlin based on deps
+    "-Xjavac-arguments",  // Use kt_javac_options instead
+  )
+
+  /**
+   * Known enumerated values for flags that have restricted choices.
+   * These values are extracted from kotlinc documentation and used to
+   * validate at analysis time rather than compilation time.
+   */
+  private val enumeratedFlagValues = mapOf(
+    "-jvm-default" to listOf("enable", "no-compatibility", "disable"),
+    "-Xassertions" to listOf("always-enable", "always-disable", "jvm", "legacy"),
+    "-Xlambdas" to listOf("class", "indy"),
+    "-Xsam-conversions" to listOf("class", "indy"),
+    "-Xstring-concat" to listOf("indy-with-constants", "indy", "inline"),
+    "-Xwhen-expressions" to listOf("indy", "inline"),
+    "-Xserialize-ir" to listOf("none", "inline", "all"),
+    "-Xabi-stability" to listOf("stable", "unstable"),
+    "-Xjspecify-annotations" to listOf("ignore", "strict", "warn"),
+    "-Xsupport-compatqual-checker-framework-annotations" to listOf("enable", "disable"),
+    // Deprecated flag - include for backward compatibility
+    "-Xjvm-default" to listOf("disable", "all-compatibility", "all"),
   )
 
   fun String.increment() = "$this  "
@@ -394,6 +418,7 @@ def _map_string_list_flag(flag):
     fun starlarkAttrName(): String {
       return flag
         .removePrefix("-")
+        .replace(Regex("^X"), "x_")  // -Xfoo -> x_foo (add underscore after x)
         .replace("-", "_")
         .lowercase()
     }
@@ -401,43 +426,65 @@ def _map_string_list_flag(flag):
     /**
      * Generate the struct string for this option in _KOPTS format.
      * Boolean options become tristate strings (None/"true"/"false").
+     * String options with enumerated values use the values list for analysis-time validation.
      */
-    fun asOptStructString(indent: String): String = when (type) {
-      is StarlarkType.Bool -> """
-        struct(
-            flag = ${flag.bzlQuote()},
-            args = dict(
-                doc = ${doc.bzlQuote()} + "\nValues: unset = use kotlinc default, 'true' = enable, 'false' = disable.",
-                values = ["true", "false"],
-            ),
-            type = attr.string,
-            value_to_flag = {"true": ["$flag"]},
-        )
-        """.trimIndent().prependIndent(indent)
-      is StarlarkType.Str -> """
-        struct(
-            flag = ${flag.bzlQuote()},
-            args = dict(
-                doc = ${doc.bzlQuote()},
-                default = ${default?.bzlQuote() ?: "\"\""},
-            ),
-            type = attr.string,
-            value_to_flag = None,
-            map_value_to_flag = _map_string_flag(${flag.bzlQuote()}),
-        )
-        """.trimIndent().prependIndent(indent)
-      is StarlarkType.StrList -> """
-        struct(
-            flag = ${flag.bzlQuote()},
-            args = dict(
-                doc = ${doc.bzlQuote()},
-                default = [],
-            ),
-            type = attr.string_list,
-            value_to_flag = None,
-            map_value_to_flag = _map_string_list_flag(${flag.bzlQuote()}),
-        )
-        """.trimIndent().prependIndent(indent)
+    fun asOptStructString(indent: String): String {
+      val enumValues = enumeratedFlagValues[flag]
+      return when (type) {
+        is StarlarkType.Bool -> """
+          struct(
+              flag = ${flag.bzlQuote()},
+              args = dict(
+                  doc = ${doc.bzlQuote()} + "\nValues: unset = use kotlinc default, 'true' = enable, 'false' = disable.",
+                  values = ["true", "false"],
+              ),
+              type = attr.string,
+              value_to_flag = {"true": ["$flag"]},
+          )
+          """.trimIndent().prependIndent(indent)
+        is StarlarkType.Str -> if (enumValues != null) {
+          // Enumerated string option - add values list for analysis-time validation
+          val valuesStr = enumValues.joinToString(", ") { "\"$it\"" }
+          """
+          struct(
+              flag = ${flag.bzlQuote()},
+              args = dict(
+                  doc = ${doc.bzlQuote()},
+                  values = ["", $valuesStr],
+              ),
+              type = attr.string,
+              value_to_flag = None,
+              map_value_to_flag = _map_string_flag(${flag.bzlQuote()}),
+          )
+          """.trimIndent().prependIndent(indent)
+        } else {
+          // Free-form string option
+          """
+          struct(
+              flag = ${flag.bzlQuote()},
+              args = dict(
+                  doc = ${doc.bzlQuote()},
+                  default = ${default?.bzlQuote() ?: "\"\""},
+              ),
+              type = attr.string,
+              value_to_flag = None,
+              map_value_to_flag = _map_string_flag(${flag.bzlQuote()}),
+          )
+          """.trimIndent().prependIndent(indent)
+        }
+        is StarlarkType.StrList -> """
+          struct(
+              flag = ${flag.bzlQuote()},
+              args = dict(
+                  doc = ${doc.bzlQuote()},
+                  default = [],
+              ),
+              type = attr.string_list,
+              value_to_flag = None,
+              map_value_to_flag = _map_string_list_flag(${flag.bzlQuote()}),
+          )
+          """.trimIndent().prependIndent(indent)
+      }
     }
   }
 

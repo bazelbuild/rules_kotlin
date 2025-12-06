@@ -60,6 +60,13 @@ def _kotlin_capabilities_impl(repository_ctx):
             generated_opts_template,
             executable = False,
         )
+    else:
+        # For older Kotlin versions without generated opts, create an empty stub
+        repository_ctx.file(
+            "generated_opts.bzl",
+            content = "# Generated options not available for this Kotlin version\nGENERATED_KOPTS = {}\n",
+            executable = False,
+        )
 
 def _coerce_int(string_value):
     digits = "".join([

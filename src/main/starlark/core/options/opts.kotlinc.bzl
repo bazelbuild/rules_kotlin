@@ -34,12 +34,6 @@ def _map_warning_level(values):
         args.append("-Xwarning-level={}:{}".format(k, v))
     return args
 
-def _passthrough_args(values):
-    """Pass through extra kotlinc args as-is."""
-    if not values:
-        return None
-    return values
-
 def _map_optin_class_to_flag(values):
     return ["-opt-in=%s" % v for v in values]
 
@@ -61,18 +55,6 @@ def _map_jdk_release_to_flag(version):
 # Manual overrides for options that need custom handling.
 # These take precedence over GENERATED_KOPTS.
 _MANUAL_KOPTS = {
-    # Escape hatch for arbitrary compiler args - not in kotlinc
-    "extra_kotlinc_args": struct(
-        args = dict(
-            default = [],
-            doc = """Pass extra arguments directly to kotlinc. Use this for experimental flags or new flags not yet supported by rules_kotlin.
-WARNING: These arguments are not validated and may conflict with other options. Use at your own risk.
-Example: ["-Xwhen-guards", "-Xnew-experimental-flag=value"]""",
-        ),
-        type = attr.string_list,
-        value_to_flag = None,
-        map_value_to_flag = _passthrough_args,
-    ),
     # Custom handling for stdlib inclusion - not a direct kotlinc flag
     "include_stdlibs": struct(
         args = dict(
