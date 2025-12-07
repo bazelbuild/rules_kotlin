@@ -1,3 +1,7 @@
+def basename_of(path):
+    """Extract basename from a path string."""
+    return path.split("/")[-1]
+
 def values_for_flag_of(action_subject, flag):
     return action_subject.argv().transform(desc = "parsed()", loop = _curry_denormalise_flags_with(flag))
 
