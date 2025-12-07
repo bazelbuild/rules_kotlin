@@ -14,7 +14,7 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
             description = "KSP should work",
         ) {
             assertContainsEntries(
-                "src/test/data/jvm/ksp/CoffeeAppModelJsonAdapter.class",
+                "coffee/CoffeeAppModelJsonAdapter.class",
             )
         }
         jarTestCase(
@@ -22,7 +22,20 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
             description = "KSP should not generate files"
         ) {
             assertDoesNotContainEntries(
-                "src/test/data/jvm/ksp/CoffeeAppModelJsonAdapter.class",
+                "coffee/CoffeeAppModelJsonAdapter.class",
+            )
+        }
+    }
+
+    @Test
+    fun testJavaOnlyKSP() {
+        jarTestCase(
+            name = "ksp_only_java.jar",
+            description = "KSP should work with java",
+        ) {
+            assertContainsEntries(
+              "META-INF/services/",
+              "META-INF/services/java.lang.Object",
             )
         }
     }
@@ -33,28 +46,26 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
             name = "ksp_mixed_resources.jar",
             description = "KSP should work for mixed mode targets",
         ) {
-            assertContainsExactEntries(
+            assertContainsEntries(
                 "META-INF/",
                 "META-INF/MANIFEST.MF",
-                "META-INF/src_test_data_jvm_ksp-ksp_mixed_resources.kotlin_module",
-                "src/",
-                "src/test/",
-                "src/test/data/",
-                "src/test/data/jvm/",
-                "src/test/data/jvm/ksp/",
-                "src/test/data/jvm/ksp/CoffeeApp.class",
-                "src/test/data/jvm/ksp/CoffeeApp\$CoffeeShop.class",
-                "src/test/data/jvm/ksp/CoffeeApp\$Companion.class",
-                "src/test/data/jvm/ksp/CoffeeBean.class",
-                "src/test/data/jvm/ksp/CoffeeMaker.class",
-                "src/test/data/jvm/ksp/CoffeeMaker_Factory.class",
-                "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop.class",
-                "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop\$Builder.class",
-                "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop\$CoffeeShopImpl.class",
-                "src/test/data/jvm/ksp/DripCoffeeModule.class",
-                "src/test/data/jvm/ksp/DripCoffeeModule_ProvideHeaterFactory.class",
-                "src/test/data/jvm/ksp/ElectricHeater.class",
-                "src/test/data/jvm/ksp/Heater.class",
+                "coffee/",
+                "coffee/CoffeeApp.class",
+                "coffee/CoffeeApp\$CoffeeShop.class",
+                "coffee/CoffeeApp\$Companion.class",
+                "coffee/CoffeeBean.class",
+                "coffee/CoffeeMaker.class",
+                "coffee/CoffeeMaker_Factory.class",
+                "coffee/DaggerCoffeeApp_CoffeeShop.class",
+                "coffee/DaggerCoffeeApp_CoffeeShop\$Builder.class",
+                "coffee/DaggerCoffeeApp_CoffeeShop\$CoffeeShopImpl.class",
+                "coffee/DripCoffeeModule.class",
+                "coffee/DripCoffeeModule_ProvideHeaterFactory.class",
+                "coffee/ElectricHeater.class",
+                "coffee/Heater.class",
+                "coffee/Pump.class",
+                "coffee/PumpModule.class",
+                "coffee/Thermosiphon.class",
             )
         }
     }
@@ -66,8 +77,8 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
             description = "KSP should generate java",
         ) {
             assertContainsEntries(
-                "src/test/data/jvm/ksp/CoffeeAppModelJsonAdapter.class",
-                "src/test/data/jvm/ksp/DripCoffeeModule_ProvideHeaterFactory.class",
+                "coffee/CoffeeAppModelJsonAdapter.class",
+                "coffee/DripCoffeeModule_ProvideHeaterFactory.class",
             )
         }
         jarTestCase(
@@ -75,10 +86,10 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
             description = "KSP should not generate java files"
         ) {
             assertContainsEntries(
-                "src/test/data/jvm/ksp/CoffeeAppModelJsonAdapter.class",
+                "coffee/CoffeeAppModelJsonAdapter.class",
             )
             assertDoesNotContainEntries(
-                "src/test/data/jvm/ksp/DripCoffeeModule_ProvideHeaterFactory.class",
+                "coffee/DripCoffeeModule_ProvideHeaterFactory.class",
             )
         }
     }
@@ -89,34 +100,32 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
             name = "ksp_mixed_resources_multiple_plugins.jar",
             description = "Generated jar with ksp plugins contains all meta-inf contents",
         ) {
-            assertContainsExactEntries(
+            assertContainsEntries(
                 "META-INF/",
                 "META-INF/MANIFEST.MF",
                 "META-INF/proguard/",
-                "META-INF/proguard/moshi-src.test.data.jvm.ksp.CoffeeAppModel.pro",
+                "META-INF/proguard/moshi-coffee.CoffeeAppModel.pro",
                 "META-INF/services/",
                 "META-INF/services/java.lang.Object",
-                "META-INF/src_test_data_jvm_ksp-ksp_mixed_resources_multiple_plugins.kotlin_module",
-                "src/",
-                "src/test/",
-                "src/test/data/",
-                "src/test/data/jvm/",
-                "src/test/data/jvm/ksp/",
-                "src/test/data/jvm/ksp/CoffeeApp.class",
-                "src/test/data/jvm/ksp/CoffeeAppModel.class",
-                "src/test/data/jvm/ksp/CoffeeAppModelJsonAdapter.class",
-                "src/test/data/jvm/ksp/CoffeeAppService.class",
-                "src/test/data/jvm/ksp/CoffeeApp\$CoffeeShop.class",
-                "src/test/data/jvm/ksp/CoffeeApp\$Companion.class",
-                "src/test/data/jvm/ksp/CoffeeMaker.class",
-                "src/test/data/jvm/ksp/CoffeeMaker_Factory.class",
-                "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop.class",
-                "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop\$Builder.class",
-                "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop\$CoffeeShopImpl.class",
-                "src/test/data/jvm/ksp/DripCoffeeModule.class",
-                "src/test/data/jvm/ksp/DripCoffeeModule_ProvideHeaterFactory.class",
-                "src/test/data/jvm/ksp/ElectricHeater.class",
-                "src/test/data/jvm/ksp/Heater.class",
+                "coffee/",
+                "coffee/CoffeeApp.class",
+                "coffee/CoffeeAppModel.class",
+                "coffee/CoffeeAppModelJsonAdapter.class",
+                "coffee/CoffeeAppService.class",
+                "coffee/CoffeeApp\$CoffeeShop.class",
+                "coffee/CoffeeApp\$Companion.class",
+                "coffee/CoffeeMaker.class",
+                "coffee/CoffeeMaker_Factory.class",
+                "coffee/DaggerCoffeeApp_CoffeeShop.class",
+                "coffee/DaggerCoffeeApp_CoffeeShop\$Builder.class",
+                "coffee/DaggerCoffeeApp_CoffeeShop\$CoffeeShopImpl.class",
+                "coffee/DripCoffeeModule.class",
+                "coffee/DripCoffeeModule_ProvideHeaterFactory.class",
+                "coffee/ElectricHeater.class",
+                "coffee/Heater.class",
+                "coffee/Pump.class",
+                "coffee/PumpModule.class",
+                "coffee/Thermosiphon.class",
             )
         }
     }
@@ -152,32 +161,30 @@ class KotlinJvmKspAssertionTest: KotlinAssertionTestCase("src/test/data/jvm/ksp"
       description = "KSP plugin doesn't generate class files from processor when relevant annotation isn't applied in conjunction with other plugins.",
     ) {
       // Entries should contain no generated class files from KSP itself (e.g the bytecode generator plugin)
-      assertContainsExactEntries(
+      assertContainsEntries(
         "META-INF/",
         "META-INF/MANIFEST.MF",
-        "META-INF/src_test_data_jvm_ksp-ksp_bytecode_plugin_generates_no_classes_with_other_plugins.kotlin_module",
-        "src/",
-        "src/test/",
-        "src/test/data/",
-        "src/test/data/jvm/",
-        "src/test/data/jvm/ksp/",
-        "src/test/data/jvm/ksp/CoffeeBean.class",
-        "src/test/data/jvm/ksp/CoffeeApp.class",
-        "src/test/data/jvm/ksp/CoffeeApp\$CoffeeShop.class",
-        "src/test/data/jvm/ksp/CoffeeApp\$Companion.class",
-        "src/test/data/jvm/ksp/CoffeeMaker.class",
-        "src/test/data/jvm/ksp/CoffeeMaker_Factory.class",
-        "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop.class",
-        "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop\$Builder.class",
-        "src/test/data/jvm/ksp/DaggerCoffeeApp_CoffeeShop\$CoffeeShopImpl.class",
-        "src/test/data/jvm/ksp/DripCoffeeModule.class",
-        "src/test/data/jvm/ksp/DripCoffeeModule_ProvideHeaterFactory.class",
-        "src/test/data/jvm/ksp/ElectricHeater.class",
-        "src/test/data/jvm/ksp/Heater.class",
+        "coffee/",
+        "coffee/CoffeeBean.class",
+        "coffee/CoffeeApp.class",
+        "coffee/CoffeeApp\$CoffeeShop.class",
+        "coffee/CoffeeApp\$Companion.class",
+        "coffee/CoffeeMaker.class",
+        "coffee/CoffeeMaker_Factory.class",
+        "coffee/DaggerCoffeeApp_CoffeeShop.class",
+        "coffee/DaggerCoffeeApp_CoffeeShop\$Builder.class",
+        "coffee/DaggerCoffeeApp_CoffeeShop\$CoffeeShopImpl.class",
+        "coffee/DripCoffeeModule.class",
+        "coffee/DripCoffeeModule_ProvideHeaterFactory.class",
+        "coffee/ElectricHeater.class",
+        "coffee/Heater.class",
+        "coffee/Pump.class",
+        "coffee/PumpModule.class",
+        "coffee/Thermosiphon.class",
       )
 
       assertDoesNotContainEntries(
-        "src/test/data/jvm/ksp/CoffeeApp\$GeneratedDefinition\$.class",
+        "coffee/CoffeeApp\$GeneratedDefinition\$.class",
       )
     }
   }

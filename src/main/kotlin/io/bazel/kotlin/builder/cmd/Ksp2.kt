@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Bazel Authors. All rights reserved.
+ * Copyright 2025 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,18 @@
  *
  */
 
-package io.bazel.kotlin.builder.tasks.jvm
+package io.bazel.kotlin.builder.cmd
 
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import io.bazel.kotlin.builder.DaggerKsp2Component
+import io.bazel.worker.Worker
+import kotlin.system.exitProcess
 
-class InternalCompilerPlugins constructor(
-  val jvmAbiGen: KotlinToolchain.CompilerPlugin,
-  val skipCodeGen: KotlinToolchain.CompilerPlugin,
-  val kapt: KotlinToolchain.CompilerPlugin,
-  val jdeps: KotlinToolchain.CompilerPlugin,
-)
+object Ksp2 {
+  @JvmStatic
+  fun main(args: Array<String>) {
+    Worker
+      .from(args.toList()) {
+        start(DaggerKsp2Component.builder().build().work())
+      }.run(::exitProcess)
+  }
+}
