@@ -250,59 +250,23 @@ kt_jvm_library(
 )
 ```
 
-Additionally, you can add options for both tracing and timing of the bazel build using the `kt_trace` and `kt_timings` flags, for example:
-* `bazel build --define=kt_trace=1`
-* `bazel build --define=kt_timings=1`
+### Lambda Bytecode Generation
 
-`kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
-
-## Lambda and SAM Conversion Bytecode
-
-**Important:** `rules_kotlin` defaults to `x_lambdas = "class"` and `x_sam_conversions = "class"`, which generates lambda bytecode as anonymous inner classes. This differs from Kotlin 2.x and Gradle, which default to `"indy"` (invokedynamic instructions).
-
-This difference can cause compatibility issues with third-party bytecode analysis tools (e.g., JobRunr, certain reflection libraries) that expect `invokedynamic`-based lambdas.
-
-### Configuring for Gradle-Compatible Bytecode
-
-To generate bytecode matching Kotlin 2.x/Gradle behavior, configure your toolchain:
+Note: `kt_kotlinc_options` defaults `x_lambdas` and `x_sam_conversions` to `"class"`, which differs from Kotlin 2.x and Gradle's default of `"indy"` (invokedynamic). If you encounter issues with bytecode analysis tools expecting invokedynamic-based lambdas, configure these options:
 
 ```python
-load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options", "define_kt_toolchain")
-
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
     x_lambdas = "indy",
     x_sam_conversions = "indy",
 )
-
-define_kt_toolchain(
-    name = "kotlin_toolchain",
-    kotlinc_options = "//:kt_kotlinc_options",
-)
 ```
 
-Or override at the target level:
+Additionally, you can add options for both tracing and timing of the bazel build using the `kt_trace` and `kt_timings` flags, for example:
+* `bazel build --define=kt_trace=1`
+* `bazel build --define=kt_timings=1`
 
-```python
-load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
-
-kt_kotlinc_options(
-    name = "indy_kotlinc_options",
-    x_lambdas = "indy",
-    x_sam_conversions = "indy",
-)
-
-kt_jvm_library(
-    name = "my_lib",
-    srcs = ["MyClass.kt"],
-    kotlinc_opts = "//:indy_kotlinc_options",
-)
-```
-
-**Note:** The `"class"` default is retained for backwards compatibility and deterministic builds. Consider the trade-offs before switching to `"indy"`:
-- `"class"`: Predictable class files, easier debugging, works with all JVM versions
-- `"indy"`: Matches Kotlin/Gradle defaults, required for some bytecode tools, more compact bytecode
+`kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
 
 # KSP (Kotlin Symbol Processing)
 
