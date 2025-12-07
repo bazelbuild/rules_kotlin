@@ -13,7 +13,10 @@
 # limitations under the License.
 
 load("//kotlin:jvm.bzl", "kt_jvm_import")
-load("//kotlin/internal:defs.bzl", _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO")
+load(
+    "//kotlin/internal:defs.bzl",
+    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
+)
 
 _KSP_COMPILER_PLUGIN_REPO_PREFIX = "@" + _KSP_COMPILER_PLUGIN_REPO + "//:"
 
@@ -27,16 +30,16 @@ def kt_configure_ksp():
         fail("kt_configure_ksp must be called in kotlin/compiler not %s" % native.package_name())
 
     kt_jvm_import(
-        name = "symbol-processing",
-        jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing.jar",
+        name = "symbol-processing-aa",
+        jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-aa.jar",
+    )
+
+    kt_jvm_import(
+        name = "symbol-processing-common-deps",
+        jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-common-deps.jar",
     )
 
     kt_jvm_import(
         name = "symbol-processing-api",
         jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-api.jar",
-    )
-
-    kt_jvm_import(
-        name = "symbol-processing-cmdline",
-        jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-cmdline.jar",
     )

@@ -89,6 +89,12 @@ def kotlin_repositories(
 
     versions.use_repository(
         http_file,
+        name = "kotlinx_coroutines_core_jvm",
+        version = versions.KOTLINX_COROUTINES_CORE_JVM,
+    )
+
+    versions.use_repository(
+        http_file,
         name = "kotlin_build_tools_impl",
         version = versions.KOTLIN_BUILD_TOOLS_IMPL,
     )
