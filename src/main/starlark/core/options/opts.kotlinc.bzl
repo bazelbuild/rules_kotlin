@@ -122,9 +122,9 @@ _MANUAL_KOPTS = {
     "x_lambdas": struct(
         flag = "-Xlambdas",
         args = dict(
-            default = "",
-            doc = "Change codegen behavior of lambdas. Empty string means use kotlinc default (indy for Kotlin 2.0+, class for earlier versions).",
-            values = ["", "class", "indy"],
+            default = "class",
+            doc = """Change codegen behavior of lambdas. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.""",
+            values = ["class", "indy"],
         ),
         type = attr.string,
         value_to_flag = {
@@ -146,9 +146,9 @@ _MANUAL_KOPTS = {
     "x_sam_conversions": struct(
         flag = "-Xsam-conversions",
         args = dict(
-            default = "",
-            doc = "Change codegen behavior of SAM/functional interfaces. Empty string means use kotlinc default (indy for Kotlin 2.0+, class for earlier versions).",
-            values = ["", "class", "indy"],
+            default = "class",
+            doc = """Change codegen behavior of SAM/functional interfaces. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.""",
+            values = ["class", "indy"],
         ),
         type = attr.string,
         value_to_flag = {

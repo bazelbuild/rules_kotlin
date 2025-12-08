@@ -60,9 +60,7 @@ genrule(
     ]],
     outs = ["kotlin.md"],
     cmd = """
-    for md in $(SRCS); do
-      cat "$$md" >> $@
-    done
+    cat $(SRCS) >> $@
     """,
     executable = True,
     visibility = [

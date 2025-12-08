@@ -13,26 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package src.test.data.jvm.ksp
-
-import dagger.Module
-import dagger.Provides
-import javax.inject.Singleton
-
-@Module
-internal class DripCoffeeModule {
-  @Provides
-  @Singleton
-  fun provideHeater(): Heater {
-    return ElectricHeater()
-  }
-}
-
-internal interface Heater {
-  val isHot: Boolean
-  fun on()
-  fun off()
-}
+package coffee
 
 internal class ElectricHeater : Heater {
   override var isHot: Boolean = false

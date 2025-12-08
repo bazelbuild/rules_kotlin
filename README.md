@@ -250,6 +250,18 @@ kt_jvm_library(
 )
 ```
 
+### Lambda Bytecode Generation
+
+Note: `kt_kotlinc_options` defaults `x_lambdas` and `x_sam_conversions` to `"class"`, which differs from Kotlin 2.x and Gradle's default of `"indy"` (invokedynamic). If you encounter issues with bytecode analysis tools expecting invokedynamic-based lambdas, configure these options:
+
+```python
+kt_kotlinc_options(
+    name = "kt_kotlinc_options",
+    x_lambdas = "indy",
+    x_sam_conversions = "indy",
+)
+```
+
 Additionally, you can add options for both tracing and timing of the bazel build using the `kt_trace` and `kt_timings` flags, for example:
 * `bazel build --define=kt_trace=1`
 * `bazel build --define=kt_timings=1`
@@ -260,12 +272,6 @@ Additionally, you can add options for both tracing and timing of the bazel build
 
 KSP is officially supported as of `rules_kotlin` 1.8 and can be declared using the new
 `kt_ksp_plugin` rule. 
-
-Note:
-- KSP is [not yet thread safe](https://github.com/google/ksp/issues/1385) and will likely fail if you are using it in a build that has multiplex workers enabled. To work around this add the following flag to your Bazelrc:
-  ```
-  build --experimental_worker_max_multiplex_instances=KotlinKsp=1
-  ```
 
 ```python
 load("@rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")

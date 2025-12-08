@@ -4,3 +4,12 @@ load(":convert_test.bzl", "convert_test_suite")
 convert_test_suite(name = "convert_tests")
 
 strip_resource_prefix_test_suite(name = "resource_strip_prefix_tests")
+
+test_suite(
+    name = "starlark_tests",
+    tests = [
+        ":convert_tests",
+        ":resource_strip_prefix_tests",
+        "//src/test/starlark/ksp:ksp_tests",
+    ],
+)

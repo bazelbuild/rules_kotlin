@@ -135,6 +135,26 @@ _implicit_deps = {
     "_java_toolchain": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
     ),
+    "_ksp2_kotlinx_coroutines": attr.label(
+        doc = "kotlinx-coroutines-core-jvm JAR required by KSP2",
+        default = Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
+        cfg = "exec",
+    ),
+    "_ksp2_symbol_processing_aa": attr.label(
+        doc = "KSP2 symbol-processing-aa JAR for processor classpath",
+        default = Label("//kotlin/compiler:symbol-processing-aa"),
+        cfg = "exec",
+    ),
+    "_ksp2_symbol_processing_api": attr.label(
+        doc = "KSP2 symbol-processing-api JAR for processor classpath",
+        default = Label("//kotlin/compiler:symbol-processing-api"),
+        cfg = "exec",
+    ),
+    "_ksp2_symbol_processing_common_deps": attr.label(
+        doc = "KSP2 symbol-processing-common-deps JAR for processor classpath",
+        default = Label("//kotlin/compiler:symbol-processing-common-deps"),
+        cfg = "exec",
+    ),
     "_kt_toolchain": attr.label(
         doc = """The Kotlin toolchain. it's only purpose is to enable the Intellij
         to discover Kotlin language version""",

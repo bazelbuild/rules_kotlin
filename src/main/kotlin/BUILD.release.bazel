@@ -26,6 +26,17 @@ java_import(
 )
 
 java_import(
+    name = "ksp2_worker",
+    jars = ["ksp2_worker.jar"],
+)
+
+java_import(
+    name = "ksp2_invoker",
+    jars = ["ksp2_invoker.jar"],
+    visibility = ["//visibility:public"],
+)
+
+java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],
 )
@@ -44,8 +55,6 @@ java_binary(
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:kotlin-reflect",
-        "//kotlin/compiler:symbol-processing-api",
-        "//kotlin/compiler:symbol-processing-cmdline",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
         "@kotlin_build_tools_impl//file",
@@ -64,8 +73,6 @@ java_binary(
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
-        "-D@com_github_google_ksp...symbol-processing-api=$(rlocationpath //kotlin/compiler:symbol-processing-api)",
-        "-D@com_github_google_ksp...symbol-processing-cmdline=$(rlocationpath //kotlin/compiler:symbol-processing-cmdline)",
         "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
         "-XX:-MaxFDLimit",
     ],
@@ -86,4 +93,15 @@ java_binary(
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdeps",
     visibility = ["//visibility:public"],
     runtime_deps = [":jdeps_merger_worker"],
+)
+
+java_binary(
+    name = "ksp2",
+    data = KOTLIN_STDLIBS,
+    jvm_flags = [
+        "-XX:-MaxFDLimit",
+    ],
+    main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":ksp2_worker"],
 )
