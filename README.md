@@ -250,6 +250,18 @@ kt_jvm_library(
 )
 ```
 
+### Lambda Bytecode Generation
+
+Note: `kt_kotlinc_options` defaults `x_lambdas` and `x_sam_conversions` to `"class"`, which differs from Kotlin 2.x and Gradle's default of `"indy"` (invokedynamic). If you encounter issues with bytecode analysis tools expecting invokedynamic-based lambdas, configure these options:
+
+```python
+kt_kotlinc_options(
+    name = "kt_kotlinc_options",
+    x_lambdas = "indy",
+    x_sam_conversions = "indy",
+)
+```
+
 Additionally, you can add options for both tracing and timing of the bazel build using the `kt_trace` and `kt_timings` flags, for example:
 * `bazel build --define=kt_trace=1`
 * `bazel build --define=kt_timings=1`

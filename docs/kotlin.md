@@ -424,7 +424,7 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-x_jspecify_annotations"></a>x_jspecify_annotations |  Controls how JSpecify annotations are treated. Options are 'default', 'ignore', 'warn', and 'strict'.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jsr_305"></a>x_jsr_305 |  Specifies how to handle JSR-305 annotations in Kotlin code. Options are 'default', 'ignore', 'warn', and 'strict'.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jvm_default"></a>x_jvm_default |  Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.   | String | optional |  `"off"`  |
-| <a id="kt_kotlinc_options-x_lambdas"></a>x_lambdas |  Change codegen behavior of lambdas   | String | optional |  `"class"`  |
+| <a id="kt_kotlinc_options-x_lambdas"></a>x_lambdas |  Change codegen behavior of lambdas. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.   | String | optional |  `"class"`  |
 | <a id="kt_kotlinc_options-x_multi_platform"></a>x_multi_platform |  Enable experimental language support for multi-platform projects   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_no_call_assertions"></a>x_no_call_assertions |  Don't generate not-null assertions for arguments of platform types   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_no_optimize"></a>x_no_optimize |  Disable optimizations   | Boolean | optional |  `False`  |
@@ -433,7 +433,7 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-x_no_source_debug_extension"></a>x_no_source_debug_extension |  Do not generate @kotlin.jvm.internal.SourceDebugExtension annotation on a class with the copy of SMAP   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_optin"></a>x_optin |  Define APIs to opt-in to.   | List of strings | optional |  `[]`  |
 | <a id="kt_kotlinc_options-x_report_perf"></a>x_report_perf |  Report detailed performance statistics   | Boolean | optional |  `False`  |
-| <a id="kt_kotlinc_options-x_sam_conversions"></a>x_sam_conversions |  Change codegen behavior of SAM/functional interfaces   | String | optional |  `"class"`  |
+| <a id="kt_kotlinc_options-x_sam_conversions"></a>x_sam_conversions |  Change codegen behavior of SAM/functional interfaces. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.   | String | optional |  `"class"`  |
 | <a id="kt_kotlinc_options-x_skip_prerelease_check"></a>x_skip_prerelease_check |  Suppress errors thrown when using pre-release classes.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_suppress_version_warnings"></a>x_suppress_version_warnings |  Suppress warnings about outdated, inconsistent, or experimental language or API versions.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_suppress_warning"></a>x_suppress_warning |  Suppress specific warnings globally   | List of strings | optional |  `[]`  |

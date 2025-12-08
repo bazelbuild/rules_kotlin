@@ -292,7 +292,7 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
         flag = "-Xlambdas",
         args = dict(
             default = "class",
-            doc = "Change codegen behavior of lambdas",
+            doc = """Change codegen behavior of lambdas. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.""",
             values = ["class", "indy"],
         ),
         type = attr.string,
@@ -401,7 +401,7 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
         flag = "-Xsam-conversions",
         args = dict(
             default = "class",
-            doc = "Change codegen behavior of SAM/functional interfaces",
+            doc = """Change codegen behavior of SAM/functional interfaces. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.""",
             values = ["class", "indy"],
         ),
         type = attr.string,
