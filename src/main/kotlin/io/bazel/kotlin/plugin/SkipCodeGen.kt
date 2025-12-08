@@ -33,6 +33,8 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
  */
 @OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 class SkipCodeGen : CompilerPluginRegistrar() {
+  override val pluginId: String = COMPILER_PLUGIN_ID
+
   override val supportsK2: Boolean
     get() = false
 
@@ -41,7 +43,7 @@ class SkipCodeGen : CompilerPluginRegistrar() {
   }
 
   companion object {
-    val COMPILER_PLUGIN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"
+    const val COMPILER_PLUGIN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"
   }
 
   /**

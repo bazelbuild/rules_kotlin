@@ -68,7 +68,7 @@ private fun FirResolvedImport.resolveToFun(context: CheckerContext): FirCallable
       memberRequiredPhase = null,
     )
 
-  return classMemberScope?.getFunctions(funName)?.orEmpty()?.firstOrNull()
+  return classMemberScope.getFunctions(funName).firstOrNull()
 }
 
 private fun FirResolvedImport.classId(): ClassId? {

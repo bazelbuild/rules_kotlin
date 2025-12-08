@@ -64,11 +64,12 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 maven_install(
     name = "maven_rules_kotlin_example",
     artifacts = [
-        "com.google.dagger:dagger:2.56.2",
-        "com.google.dagger:dagger-compiler:2.56.2",
-        "com.google.dagger:dagger-producers:2.56.2",
+        "com.google.dagger:dagger:2.57.2",
+        "com.google.dagger:dagger-compiler:2.57.2",
+        "com.google.dagger:dagger-producers:2.57.2",
         "javax.inject:javax.inject:1",
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2",
+        "org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0-RC2",
     ],
     repositories = [
         "https://repo1.maven.org/maven2",
