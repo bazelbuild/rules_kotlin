@@ -18,6 +18,7 @@ load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
     "http_file",
+    "http_jar",
 )
 load(
     "//kotlin/internal:defs.bzl",
@@ -94,19 +95,19 @@ def kotlin_repositories(
     )
 
     versions.use_repository(
-        http_file,
+        http_jar,
         name = "kotlin_build_tools_impl",
         version = versions.KOTLIN_BUILD_TOOLS_IMPL,
     )
 
     versions.use_repository(
-        http_file,
+        http_jar,
         name = "kotlin_build_tools_api",
         version = versions.KOTLIN_BUILD_TOOLS_API,
     )
 
     versions.use_repository(
-        http_file,
+        http_jar,
         name = "kotlin_compiler_embeddable",
         version = versions.KOTLIN_COMPILER_EMBEDDABLE,
     )
