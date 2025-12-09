@@ -438,42 +438,105 @@ def _run_kapt_builder_actions(
 
 def _run_ksp_builder_actions(
         ctx,
-        rule_kind,
         toolchains,
         srcs,
         compile_deps,
-        deps_artifacts,
-        annotation_processors,
-        transitive_runtime_jars,
-        plugins):
-    """Runs KSP using the KotlinBuilder tool
+        transitive_runtime_jars):
+    """Runs KSP2 via a dedicated KSP2 worker.
+
+    The worker handles all staging, KSP2 execution, and output packaging internally.
+    This eliminates tree artifacts and reduces the action count to a single action.
 
     Returns:
-        A struct containing KSP outputs
+        A struct containing KSP outputs (two JAR files: sources and classes)
     """
-    ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-gensrc.jar")
-    ksp_generated_classes_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-kt-genclasses.jar")
 
-    _run_kt_builder_action(
-        ctx = ctx,
-        rule_kind = rule_kind,
-        toolchains = toolchains,
-        srcs = srcs,
-        generated_src_jars = [],
-        compile_deps = compile_deps,
-        deps_artifacts = deps_artifacts,
-        annotation_processors = annotation_processors,
-        transitive_runtime_jars = transitive_runtime_jars,
-        plugins = plugins,
-        outputs = {
-            "ksp_generated_classes_jar": ksp_generated_classes_jar,
-            "ksp_generated_java_srcjar": ksp_generated_java_srcjar,
-        },
-        build_kotlin = False,
-        mnemonic = "KotlinKsp",
+    # Output JARs - the worker creates these directly
+    ksp_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-ksp-gensrc.jar")
+    ksp_generated_classes_jar = ctx.actions.declare_file(ctx.label.name + "-ksp-genclasses.jar")
+
+    # Build arguments for KSP2 worker (flagfile format)
+    args = ctx.actions.args()
+    args.set_param_file_format("multiline")
+    args.use_param_file("--flagfile=%s", use_always = True)
+
+    args.add("--module_name", compile_deps.module_name)
+
+    # Pass source files directly - worker will stage them internally
+    all_source_files = srcs.kt + srcs.java
+    if all_source_files:
+        args.add_all("--sources", all_source_files)
+
+    # Pass srcjars - worker will unpack them internally
+    if srcs.src_jars:
+        args.add_all("--source_jars", srcs.src_jars)
+
+    # Output JAR paths
+    args.add("--generated_sources_output", ksp_generated_java_srcjar.path)
+    args.add("--generated_classes_output", ksp_generated_classes_jar.path)
+
+    # Compiler settings
+    args.add("--jvm_target", toolchains.kt.jvm_target)
+    args.add("--language_version", toolchains.kt.language_version)
+    args.add("--api_version", toolchains.kt.api_version)
+    args.add("--jdk_home", toolchains.java_runtime.java_home)
+
+    # Add libraries (classpath)
+    if compile_deps.compile_jars:
+        args.add_all("--libraries", compile_deps.compile_jars)
+
+    # Collect KSP2 API JARs (needed by the worker to load KSP2 classes via reflection)
+    ksp2_api_jars = depset(
+        ctx.attr._ksp2_symbol_processing_api[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_symbol_processing_common_deps[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_kotlinx_coroutines[JavaInfo].runtime_output_jars,
     )
 
-    return struct(ksp_generated_class_jar = ksp_generated_classes_jar, ksp_generated_src_jar = ksp_generated_java_srcjar)
+    # Get the KSP2 invoker JAR (contains Ksp2Invoker class loaded via reflection)
+    ksp2_invoker_jars = toolchains.kt.ksp2_invoker[JavaInfo].runtime_output_jars
+
+    # Add processor JARs - includes KSP2 API JARs, invoker JAR, and user processor JARs
+    args.add_all("--processor_classpath", ksp2_invoker_jars)
+    args.add_all("--processor_classpath", ksp2_api_jars)
+    if transitive_runtime_jars:
+        args.add_all("--processor_classpath", transitive_runtime_jars)
+
+    # Run KSP2 via dedicated worker (separate from kotlinc worker)
+    # Single action: staging + KSP2 + packaging all happen in the worker
+    ctx.actions.run(
+        mnemonic = "KotlinKsp2",
+        inputs = depset(
+            direct = all_source_files + srcs.src_jars + ksp2_invoker_jars,
+            transitive = [
+                compile_deps.compile_jars,
+                transitive_runtime_jars,
+                toolchains.java_runtime.files,
+                ksp2_api_jars,
+            ],
+        ),
+        tools = [
+            toolchains.kt.ksp2.files_to_run,
+            toolchains.kt.jvm_stdlibs.compile_jars,
+        ],
+        outputs = [ksp_generated_java_srcjar, ksp_generated_classes_jar],
+        executable = toolchains.kt.ksp2.files_to_run.executable,
+        execution_requirements = _utils.add_dicts(
+            toolchains.kt.execution_requirements,
+            {"worker-key-mnemonic": "KotlinKsp2"},
+        ),
+        arguments = [
+            ctx.actions.args().add_all(toolchains.kt.builder_args),
+            args,
+        ],
+        progress_message = "Running KSP2 for %{label}",
+        toolchain = _TOOLCHAIN_TYPE,
+    )
+
+    return struct(
+        ksp_generated_class_jar = ksp_generated_classes_jar,
+        ksp_generated_src_jar = ksp_generated_java_srcjar,
+    )
 
 def _run_kt_builder_action(
         ctx,
@@ -857,14 +920,10 @@ def _run_kt_java_builder_actions(
     if has_kt_sources and ksp_annotation_processors:
         ksp_outputs = _run_ksp_builder_actions(
             ctx,
-            rule_kind = rule_kind,
             toolchains = toolchains,
             srcs = srcs,
             compile_deps = compile_deps,
-            deps_artifacts = deps_artifacts,
-            annotation_processors = ksp_annotation_processors,
             transitive_runtime_jars = transitive_runtime_jars,
-            plugins = plugins,
         )
         ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
         output_jars.append(ksp_generated_class_jar)

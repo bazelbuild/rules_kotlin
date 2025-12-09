@@ -63,6 +63,7 @@ def kt_bootstrap_binary(
         shade_rules,
         jvm_flags = [],
         data = [],
+        final_runtime_deps = [],
         visibility = ["//visibility:public"]):
     raw = name + "_raw"
     jar_jared = name + "_jarjar"
@@ -93,5 +94,5 @@ def kt_bootstrap_binary(
         ],
         main_class = main_class,
         visibility = visibility,
-        runtime_deps = [":" + jar_jared],
+        runtime_deps = [":" + jar_jared] + final_runtime_deps,
     )

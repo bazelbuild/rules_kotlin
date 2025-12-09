@@ -14,6 +14,7 @@ import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.function.Predicate
 import java.util.zip.GZIPInputStream
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -50,74 +51,98 @@ object BazelIntegrationTestRunner {
       }
     }
 
-    unpack.resolve("MODULE.bazel")
-
     val version = bazel.run(workspace, "--version").parseVersion()
 
-    val bazelrc = version.resolveBazelRc(workspace)
+    val workspaceFlags = FlagSets(
+      sequence {
+        if (workspace.hasModule()) {
+          yield(
+            listOf(
+              Flag("--enable_bzlmod=true"),
+              Flag("--override_module=rules_kotlin=$unpack"),
+              Flag("--enable_workspace=false") { v -> v >= Version.of(7, 0, 0) },
+            ),
+          )
+        }
+        if (workspace.hasWorkspace()) {
+          yield(
+            listOf(
+              Flag("--override_repository=rules_kotlin=$unpack"),
+              Flag("--enable_bzlmod=false"),
+              Flag("--enable_workspace=true") { v -> v >= Version.of(7, 0, 0) },
+            ),
+          )
+        }
+      }.toList(),
+    )
 
-    listOf(true, false).filter { bzlmod ->
-      bzlmod && workspace.hasModule() || !bzlmod && workspace.hasWorkspace()
-    }.forEach { bzlmod ->
-      listOf(true, false).forEach { buildToolsApi ->
-        println("Starting bzlmod $bzlmod test")
-        val overrideFlag =
-          if (bzlmod) "--override_module=rules_kotlin=$unpack" else "--override_repository=rules_kotlin=$unpack"
+    val deprecationFlags = FlagSets(
+      listOf(
+        listOf(
+          // TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: enable when rules_android
+          // no longer uses local_config_platform
+          Flag("--incompatible_disable_native_repo_rules=true") { false },
+          Flag("--incompatible_autoload_externally=") { v -> v > Version.Known(8, 0, 0) },
+          Flag("--incompatible_disallow_empty_glob=false"),
+        ),
+      ),
+    )
+
+    val experimentFlags = FlagSets(
+      listOf(
+        listOf(
+          Flag("--@rules_kotlin//kotlin/settings:experimental_build_tools_api=false"),
+        ),
+        listOf(
+          Flag("--@rules_kotlin//kotlin/settings:experimental_build_tools_api=true"),
+        ),
+      ),
+    )
+
+    val startupFlagSets = version.resolveBazelRc(workspace)
+    val commandFlagSets = workspaceFlags * deprecationFlags * experimentFlags
+
+    startupFlagSets.asStringsFor(version).forEach { systemFlags ->
+      commandFlagSets.asStringsFor(version).forEach { commandFlags ->
         bazel.run(
           workspace,
-          "--bazelrc=$bazelrc",
-          "clean",
-          "--expunge",
-          "--async",
-        ).onFailThrow()
-        bazel.run(
-          workspace,
-          "--bazelrc=$bazelrc",
+          *systemFlags,
           "shutdown",
+          *commandFlags,
         ).onFailThrow()
         bazel.run(
           workspace,
-          "--bazelrc=$bazelrc",
+          *systemFlags,
           "info",
-          *version.workspaceFlag(bzlmod),
-          overrideFlag,
+          *commandFlags,
         ).onFailThrow()
         bazel.run(
           workspace,
-          "--bazelrc=$bazelrc",
+          *systemFlags,
           "build",
-          overrideFlag,
-          "--incompatible_disallow_empty_glob=false",
-          "--@rules_kotlin//kotlin/settings:experimental_build_tools_api=${buildToolsApi}",
+          *commandFlags,
           "//...",
-          *version.workspaceFlag(bzlmod),
         ).onFailThrow()
         bazel.run(
           workspace,
-          "--bazelrc=$bazelrc",
+          *systemFlags,
           "query",
-          overrideFlag,
-          "--incompatible_disallow_empty_glob=false",
+          *commandFlags,
           "@rules_kotlin//...",
-          *version.workspaceFlag(bzlmod),
         ).onFailThrow()
         bazel.run(
           workspace,
-          "--bazelrc=$bazelrc",
+          *systemFlags,
           "query",
-          *version.workspaceFlag(bzlmod),
-          overrideFlag,
-          "--incompatible_disallow_empty_glob=false",
+          *commandFlags,
           "kind(\".*_test\", \"//...\")",
         ).ok { process ->
           if (process.stdOut.isNotEmpty()) {
             bazel.run(
               workspace,
-              "--bazelrc=$bazelrc",
+              *systemFlags,
               "test",
-              *version.workspaceFlag(bzlmod),
-              overrideFlag,
-              "--@rules_kotlin//kotlin/settings:experimental_build_tools_api=${buildToolsApi}",
+              *commandFlags,
               "--test_output=all",
               "//...",
             ).onFailThrow()
@@ -127,53 +152,87 @@ object BazelIntegrationTestRunner {
     }
   }
 
+  class Flag(val value: String, val condition: Predicate<Version>) {
+    constructor(value: String) : this(value, { true })
+  }
+
+  class FlagSets(val sets: List<List<Flag>>) {
+
+    operator fun times(other: FlagSets): FlagSets = FlagSets(
+      sets.flatMap { set ->
+        other.sets.map { otherSet -> otherSet + set }
+      },
+    )
+
+    fun asStringsFor(v: Version): List<Array<String>> =
+      sets.map { set ->
+        set.filter { it.condition.test(v) }.map { flag -> flag.value }.toTypedArray()
+      }
+  }
+
   fun Path.hasModule() = resolve("MODULE").exists() || resolve("MODULE.bazel").exists()
   private fun Path.hasWorkspace() =
     resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
 
-  sealed class Version {
-    abstract fun resolveBazelRc(workspace: Path): Path;
+  sealed class Version : Comparable<Version> {
+    companion object {
+      fun of(major:Int, minor:Int=0, patch:Int = 0) = Known(major, minor, patch)
+    }
 
-    abstract fun workspaceFlag(isBzlMod: Boolean): Array<String>
+
+    override fun compareTo(other: Version): Int = 1
+
+    abstract fun resolveBazelRc(workspace: Path): FlagSets
+
 
     class Head : Version() {
-      override fun resolveBazelRc(workspace: Path): Path {
-        workspace.resolve(".bazelrc.head").takeIf(Path::exists)?.let {
-          return it
-        }
-        workspace.resolve(".bazelrc").takeIf(Path::exists)?.let {
-          return it
-        }
-        return workspace.resolve("/dev/null")
-      }
+      override fun compareTo(other: Version): Int = (other as? Head)?.let { 0 } ?: 1
 
-      override fun workspaceFlag(isBzlMod: Boolean): Array<String> = arrayOf("--enable_bzlmod=$isBzlMod", "--enable_workspace=${!isBzlMod}")
+      override fun resolveBazelRc(workspace: Path) = FlagSets(
+        listOf(
+          sequenceOf(".bazelrc.head", ".bazelrc")
+            .map(workspace::resolve)
+            .filter(Path::exists)
+            .map { Flag("--bazelrc=$it") }
+            .toList()
+            .takeIf { it.isNotEmpty() }
+            ?: listOf(Flag("--bazelrc=/dev/null")),
+        ),
+      )
     }
 
     class Known(private val major: Int, private val minor: Int, private val patch: Int) :
       Version() {
-      override fun resolveBazelRc(workspace: Path): Path {
-        sequence {
-          val parts = mutableListOf(major, minor, patch)
-          (parts.size downTo 0).forEach { index ->
-            yield("." + parts.subList(0, index).joinToString("-"))
+      override fun compareTo(other: Version): Int {
+        return (other as? Known)?.let {
+          return when {
+            other.major > major -> -1
+            other.major < major -> 1
+            other.minor > minor -> -1
+            other.minor < minor -> 1
+            other.patch > patch -> -1
+            other.patch < patch -> 1
+            else -> 0
           }
-        }
-          .map { suffix -> workspace.resolve(".bazelrc${suffix}") }
-          .find(Path::exists)
-          ?.let { bazelrc ->
-            return bazelrc
-          }
-        return workspace.resolve("/dev/null")
+        } ?: -1
       }
 
-      override fun workspaceFlag(isBzlMod: Boolean): Array<String> = if (isBzlMod) {
-        arrayOf("--enable_bzlmod=true")
-      } else if (major >= 7) {
-        arrayOf("--enable_workspace=true", "--enable_bzlmod=false")
-      } else {
-        arrayOf("--enable_bzlmod=false")
-      }
+      override fun resolveBazelRc(workspace: Path) = FlagSets(
+        listOf(
+          sequence {
+            val parts = mutableListOf(major, minor, patch)
+            (parts.size downTo 0).forEach { index ->
+              yield("." + parts.subList(0, index).joinToString("-"))
+            }
+          }
+            .map { suffix -> workspace.resolve(".bazelrc${suffix}") }
+            .filter(Path::exists)
+            .map { p -> Flag("--bazelrc=$p") }
+            .toList()
+            .takeIf { it.isNotEmpty() }
+            ?: listOf(Flag("--bazelrc=/dev/null")),
+        ),
+      )
     }
   }
 
@@ -194,7 +253,6 @@ object BazelIntegrationTestRunner {
               patch = result.groups["patch"]?.value?.toInt() ?: 0,
             )
           }
-
         }
       throw IllegalStateException("Bazel version not available")
     }
@@ -218,7 +276,7 @@ object BazelIntegrationTestRunner {
   fun Path.run(inDirectory: Path, vararg args: String): Result<ProcessResult> =
     ProcessBuilder().command(this.toString(), *args).directory(inDirectory.toFile()).start()
       .let { process ->
-        println("Running ${args.joinToString(" ")}...")
+        println("Running [${fileName} ${args.joinToString(" ")}]...")
         val executor = Executors.newCachedThreadPool();
         try {
           val stdOut = executor.submit(process.inputStream.streamTo(System.out))

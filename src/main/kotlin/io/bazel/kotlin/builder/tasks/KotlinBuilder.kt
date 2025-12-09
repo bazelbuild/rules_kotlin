@@ -88,8 +88,6 @@ class KotlinBuilder
         STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
         REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
         INSTRUMENT_COVERAGE("--instrument_coverage"),
-        KSP_GENERATED_JAVA_SRCJAR("--ksp_generated_java_srcjar"),
-        KSP_GENERATED_CLASSES_JAR("--ksp_generated_classes_jar"),
         BUILD_TOOLS_API("--build_tools_api"),
         INCREMENTAL_COMPILATION("--incremental_compilation"),
         CLASSPATH_SNAPSHOT("--classpath_snapshot"),
@@ -110,6 +108,7 @@ class KotlinBuilder
           Platform.JVM,
           Platform.ANDROID,
           -> executeJvmTask(compileContext, taskContext.directory, argMap)
+
           Platform.UNRECOGNIZED -> throw IllegalStateException(
             "unrecognized platform: ${compileContext.info}",
           )
@@ -226,12 +225,6 @@ class KotlinBuilder
           argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR)?.let { abijar = it }
           argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
             generatedClassJar = it
-          }
-          argMap.optionalSingle(KotlinBuilderFlags.KSP_GENERATED_JAVA_SRCJAR)?.let {
-            generatedKspSrcJar = it
-          }
-          argMap.optionalSingle(KotlinBuilderFlags.KSP_GENERATED_CLASSES_JAR)?.let {
-            generatedKspClassesJar = it
           }
           argMap.optionalSingle(KotlinBuilderFlags.CLASSPATH_SNAPSHOT)?.let {
             classpathSnapshot = it

@@ -37,8 +37,6 @@ class KotlinToolchain private constructor(
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
-  val kspSymbolProcessingApi: CompilerPlugin,
-  val kspSymbolProcessingCommandLine: CompilerPlugin,
 ) {
   companion object {
     private val JVM_ABI_PLUGIN by lazy {
@@ -80,20 +78,6 @@ class KotlinToolchain private constructor(
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@com_github_jetbrains_kotlin...kotlin-compiler",
-        ).toPath()
-    }
-
-    private val KSP_SYMBOL_PROCESSING_API by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_google_ksp...symbol-processing-api",
-        ).toPath()
-    }
-
-    private val KSP_SYMBOL_PROCESSING_CMDLINE by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_google_ksp...symbol-processing-cmdline",
         ).toPath()
     }
 
@@ -162,7 +146,6 @@ class KotlinToolchain private constructor(
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
       createToolchain(
-        JAVA_HOME,
         KOTLINC.verified().absoluteFile,
         COMPILER.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
@@ -170,8 +153,6 @@ class KotlinToolchain private constructor(
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
         KAPT_PLUGIN.verified().absoluteFile,
-        KSP_SYMBOL_PROCESSING_API.toFile(),
-        KSP_SYMBOL_PROCESSING_CMDLINE.toFile(),
         KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
         KOTLINX_SERIALIZATION_JSON.toFile(),
         KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
@@ -181,7 +162,6 @@ class KotlinToolchain private constructor(
 
     @JvmStatic
     fun createToolchain(
-      javaHome: Path,
       kotlinc: File,
       buildTools: File,
       compiler: File,
@@ -189,8 +169,6 @@ class KotlinToolchain private constructor(
       skipCodeGenFile: File,
       jdepsGenFile: File,
       kaptFile: File,
-      kspSymbolProcessingApi: File,
-      kspSymbolProcessingCommandLine: File,
       kotlinxSerializationCoreJvm: File,
       kotlinxSerializationJson: File,
       kotlinxSerializationJsonJvm: File,
@@ -208,8 +186,6 @@ class KotlinToolchain private constructor(
           jvmAbiGenFile,
           skipCodeGenFile,
           jdepsGenFile,
-          kspSymbolProcessingApi,
-          kspSymbolProcessingCommandLine,
           kotlinxSerializationCoreJvm,
           kotlinxSerializationJson,
           kotlinxSerializationJsonJvm,
@@ -235,16 +211,6 @@ class KotlinToolchain private constructor(
           CompilerPlugin(
             kaptFile.path,
             "org.jetbrains.kotlin.kapt3",
-          ),
-        kspSymbolProcessingApi =
-          CompilerPlugin(
-            kspSymbolProcessingApi.absolutePath,
-            "com.google.devtools.ksp.symbol-processing",
-          ),
-        kspSymbolProcessingCommandLine =
-          CompilerPlugin(
-            kspSymbolProcessingCommandLine.absolutePath,
-            "com.google.devtools.ksp.symbol-processing",
           ),
       )
   }
@@ -284,8 +250,6 @@ class KotlinToolchain private constructor(
       jvmAbiGen,
       skipCodeGen,
       jdepsGen,
-      kspSymbolProcessingApi,
-      kspSymbolProcessingCommandLine,
     )
 
   data class CompilerPlugin(
