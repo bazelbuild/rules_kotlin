@@ -26,6 +26,17 @@ java_import(
 )
 
 java_import(
+    name = "ksp2_worker",
+    jars = ["ksp2_worker.jar"],
+)
+
+java_import(
+    name = "ksp2_invoker",
+    jars = ["ksp2_invoker.jar"],
+    visibility = ["//visibility:public"],
+)
+
+java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],
 )
@@ -44,28 +55,24 @@ java_binary(
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:kotlin-reflect",
-        "//kotlin/compiler:symbol-processing-api",
-        "//kotlin/compiler:symbol-processing-cmdline",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
-        "@kotlin_build_tools_impl//jar",
-        "@kotlinx_serialization_core_jvm//jar",
-        "@kotlinx_serialization_json//jar",
-        "@kotlinx_serialization_json_jvm//jar",
+        "@kotlin_build_tools_impl//file",
+        "@kotlinx_serialization_core_jvm//file",
+        "@kotlinx_serialization_json//file",
+        "@kotlinx_serialization_json_jvm//file",
     ],
     jvm_flags = [
-        "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlinx_serialization_core_jvm//jar)",
-        "-D@com_github_jetbrains_kotlinx...serialization-json=$(rlocationpath @kotlinx_serialization_json//jar)",
-        "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath @kotlinx_serialization_json_jvm//jar)",
-        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_build_tools_impl//jar)",
+        "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlinx_serialization_core_jvm//file)",
+        "-D@com_github_jetbrains_kotlinx...serialization-json=$(rlocationpath @kotlinx_serialization_json//file)",
+        "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath @kotlinx_serialization_json_jvm//file)",
+        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_build_tools_impl//file)",
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
-        "-D@com_github_google_ksp...symbol-processing-api=$(rlocationpath //kotlin/compiler:symbol-processing-api)",
-        "-D@com_github_google_ksp...symbol-processing-cmdline=$(rlocationpath //kotlin/compiler:symbol-processing-cmdline)",
         "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
         "-XX:-MaxFDLimit",
     ],
@@ -74,7 +81,7 @@ java_binary(
     runtime_deps = [
         ":worker",
         "@bazel_tools//tools/jdk:JacocoCoverage",
-    ],
+    ] + KOTLIN_STDLIBS,
 )
 
 java_binary(
@@ -86,4 +93,15 @@ java_binary(
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdeps",
     visibility = ["//visibility:public"],
     runtime_deps = [":jdeps_merger_worker"],
+)
+
+java_binary(
+    name = "ksp2",
+    data = KOTLIN_STDLIBS,
+    jvm_flags = [
+        "-XX:-MaxFDLimit",
+    ],
+    main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":ksp2_worker"],
 )

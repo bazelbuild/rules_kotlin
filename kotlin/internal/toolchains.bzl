@@ -72,12 +72,10 @@ def _kotlin_toolchain_impl(ctx):
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
-        builder_args = [
-            "--wrapper_script_flag=--main_advice_classpath=%s" % (
-                ctx.configuration.host_path_separator.join([f.path for f in ctx.files.jvm_stdlibs])
-            ),
-        ],
+        builder_args = [],
         jdeps_merger = ctx.attr.jdeps_merger,
+        ksp2 = ctx.attr.ksp2,
+        ksp2_invoker = ctx.attr.ksp2_invoker,
         kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
@@ -255,6 +253,19 @@ _kt_toolchain = rule(
         "kotlinc_options": attr.label(
             doc = "Compiler options for kotlinc",
             providers = [KotlincOptions],
+        ),
+        "ksp2": attr.label(
+            doc = "the KSP2 worker executable",
+            default = Label("//src/main/kotlin:ksp2"),
+            executable = True,
+            allow_files = True,
+            cfg = "exec",
+        ),
+        "ksp2_invoker": attr.label(
+            doc = "the KSP2 invoker library JAR (loaded at runtime in KSP2 classloader)",
+            default = Label("//src/main/kotlin:ksp2_invoker"),
+            allow_files = True,
+            cfg = "exec",
         ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",

@@ -420,11 +420,11 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-x_enable_incremental_compilation"></a>x_enable_incremental_compilation |  Enable incremental compilation   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_explicit_api_mode"></a>x_explicit_api_mode |  Enable explicit API mode for Kotlin libraries.   | String | optional |  `"off"`  |
 | <a id="kt_kotlinc_options-x_inline_classes"></a>x_inline_classes |  Enable experimental inline classes   | Boolean | optional |  `False`  |
-| <a id="kt_kotlinc_options-x_jdk_release"></a>x_jdk_release |  Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer. The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–21. This also sets the value of '-jvm-target' to be equal to the selected JDK version.   | String | optional |  `""`  |
+| <a id="kt_kotlinc_options-x_jdk_release"></a>x_jdk_release |  Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer. The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9-21. This also sets the value of '-jvm-target' to be equal to the selected JDK version.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jspecify_annotations"></a>x_jspecify_annotations |  Controls how JSpecify annotations are treated. Options are 'default', 'ignore', 'warn', and 'strict'.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jsr_305"></a>x_jsr_305 |  Specifies how to handle JSR-305 annotations in Kotlin code. Options are 'default', 'ignore', 'warn', and 'strict'.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-x_jvm_default"></a>x_jvm_default |  Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.   | String | optional |  `"off"`  |
-| <a id="kt_kotlinc_options-x_lambdas"></a>x_lambdas |  Change codegen behavior of lambdas   | String | optional |  `"class"`  |
+| <a id="kt_kotlinc_options-x_lambdas"></a>x_lambdas |  Change codegen behavior of lambdas. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.   | String | optional |  `"class"`  |
 | <a id="kt_kotlinc_options-x_multi_platform"></a>x_multi_platform |  Enable experimental language support for multi-platform projects   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_no_call_assertions"></a>x_no_call_assertions |  Don't generate not-null assertions for arguments of platform types   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_no_optimize"></a>x_no_optimize |  Disable optimizations   | Boolean | optional |  `False`  |
@@ -433,7 +433,7 @@ Define kotlin compiler options.
 | <a id="kt_kotlinc_options-x_no_source_debug_extension"></a>x_no_source_debug_extension |  Do not generate @kotlin.jvm.internal.SourceDebugExtension annotation on a class with the copy of SMAP   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_optin"></a>x_optin |  Define APIs to opt-in to.   | List of strings | optional |  `[]`  |
 | <a id="kt_kotlinc_options-x_report_perf"></a>x_report_perf |  Report detailed performance statistics   | Boolean | optional |  `False`  |
-| <a id="kt_kotlinc_options-x_sam_conversions"></a>x_sam_conversions |  Change codegen behavior of SAM/functional interfaces   | String | optional |  `"class"`  |
+| <a id="kt_kotlinc_options-x_sam_conversions"></a>x_sam_conversions |  Change codegen behavior of SAM/functional interfaces. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.   | String | optional |  `"class"`  |
 | <a id="kt_kotlinc_options-x_skip_prerelease_check"></a>x_skip_prerelease_check |  Suppress errors thrown when using pre-release classes.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_suppress_version_warnings"></a>x_suppress_version_warnings |  Suppress warnings about outdated, inconsistent, or experimental language or API versions.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-x_suppress_warning"></a>x_suppress_warning |  Suppress specific warnings globally   | List of strings | optional |  `[]`  |
@@ -601,7 +601,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
 | <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "a623871f1cd9c938946948b70ef9170879f0758043885bbd30c32f024e511714", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.2.21")` |
-| <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "6550f1117d7c9590cc9a5075b92682a218c8e1df4093d7e683d73cc481733dd1", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.2.21-2.0.4")` |
+| <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "24cb0d869ab2ae9fcf630a747b6b7e662e4be26e8b83b9272f6f3c24813e0c5a", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.3")` |
 
 
 <a id="versions.use_repository"></a>
@@ -611,7 +611,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 <pre>
 load("@rules_kotlin//kotlin:repositories.doc.bzl", "versions")
 
-versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-kwargs">**kwargs</a>)
+versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-kwargs">**kwargs</a>)
 </pre>
 
 
@@ -621,9 +621,9 @@ versions.use_repository(<a href="#versions.use_repository-name">name</a>, <a hre
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
+| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
-| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 

@@ -34,8 +34,6 @@ def kt_rules_test(name, **kwargs):
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin:jdeps-gen",
-        "//kotlin/compiler:symbol-processing-api",
-        "//kotlin/compiler:symbol-processing-cmdline",
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-compiler",
@@ -44,10 +42,10 @@ def kt_rules_test(name, **kwargs):
         "//kotlin/compiler:kotlin-stdlib-jdk8",
         "//kotlin/compiler:kotlin-annotation-processing",
         "@rules_kotlin//kotlin/compiler:kotlin-reflect",
-        "@kotlinx_serialization_core_jvm//jar",
-        "@kotlinx_serialization_json//jar",
-        "@kotlinx_serialization_json_jvm//jar",
-        "@kotlin_build_tools_impl//jar",
+        "@kotlinx_serialization_core_jvm//file",
+        "@kotlinx_serialization_json//file",
+        "@kotlinx_serialization_json_jvm//file",
+        "@kotlin_build_tools_impl//file",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)
