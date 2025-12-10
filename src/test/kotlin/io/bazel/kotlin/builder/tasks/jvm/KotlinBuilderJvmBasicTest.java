@@ -92,7 +92,8 @@ public class KotlinBuilderJvmBasicTest {
                                     c.outputJdeps();
                                 }),
                 lines -> assertThat(
-                        lines.stream().anyMatch(line -> line.startsWith(ctx.toPlatform("sources/AClass")))
+                        // BTAPI outputs errors as "e: file:///path/to/sources/AClass.kt:..."
+                        lines.stream().anyMatch(line -> line.contains(ctx.toPlatform("sources/AClass")))
                 ).isTrue());
     }
 

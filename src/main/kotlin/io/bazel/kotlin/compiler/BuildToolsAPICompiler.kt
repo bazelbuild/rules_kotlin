@@ -40,14 +40,21 @@ class BuildToolsAPICompiler {
         // useLogger(BasicKotlinLogger(true, "/tmp/kotlin_log/$label.log"))
       }
 
+    // Redirect System.err to our errStream during compilation to capture error output.
+    val originalErr = System.err
+    System.setErr(errStream)
     val result =
-      kotlinService.compileJvm(
-        ProjectId.ProjectUUID(UUID.randomUUID()),
-        executionConfig,
-        compilationConfig,
-        emptyList(),
-        args.toList(),
-      )
+      try {
+        kotlinService.compileJvm(
+          ProjectId.ProjectUUID(UUID.randomUUID()),
+          executionConfig,
+          compilationConfig,
+          emptyList(),
+          args.toList(),
+        )
+      } finally {
+        System.setErr(originalErr)
+      }
 
     // BTAPI returns a different type than K2JVMCompiler (CompilationResult vs ExitCode).
     return when (result) {

@@ -33,10 +33,3 @@ bool_flag(
     build_setting_default = False,
     visibility = ["//visibility:public"],
 )
-
-# --@rules_kotlin//kotlin/settings:experimental_build_tools_api=True
-bool_flag(
-    name = "experimental_build_tools_api",
-    build_setting_default = False,
-    visibility = ["//visibility:public"],
-)
