@@ -34,8 +34,8 @@ register_toolchains("@androidsdk//:all")
 
 bazel_dep(name = "bazel_features", version = "1.25.0")
 bazel_dep(name = "rules_shell", version = "0.4.1")
-bazel_dep(name = "bazel_worker_api", version = "0.0.6")
-bazel_dep(name = "bazel_worker_java", version = "0.0.6")
+bazel_dep(name = "bazel_worker_api", version = "0.0.8")
+bazel_dep(name = "bazel_worker_java", version = "0.0.8")
 
 # TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Update when fixed version is available.
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.1", dev_dependency = True)
