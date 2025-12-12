@@ -20,20 +20,17 @@ package io.bazel.kotlin.builder.tasks
 import io.bazel.worker.Status
 import io.bazel.worker.Work
 import io.bazel.worker.WorkerContext
-import javax.inject.Inject
 
-class CompileKotlin
-  @Inject
-  constructor(
-    private val builder: KotlinBuilder,
-  ) : Work {
-    override fun invoke(
-      ctx: WorkerContext.TaskContext,
-      args: Iterable<String>,
-    ): Status =
-      if (builder.build(ctx, args.toList()) != 0) {
-        Status.ERROR
-      } else {
-        Status.SUCCESS
-      }
-  }
+class CompileKotlin(
+  private val builder: KotlinBuilder,
+) : Work {
+  override fun invoke(
+    ctx: WorkerContext.TaskContext,
+    args: Iterable<String>,
+  ): Status =
+    if (builder.build(ctx, args.toList()) != 0) {
+      Status.ERROR
+    } else {
+      Status.SUCCESS
+    }
+}
