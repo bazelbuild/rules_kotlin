@@ -278,6 +278,7 @@ object WriteKotlincCapabilities {
     }
 
     companion object {
+      @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
       fun mapFrom(clazz: Class<*>) = when (clazz.canonicalName) {
         java.lang.Boolean.TYPE.canonicalName, java.lang.Boolean::class.java.canonicalName -> Bool()
         java.lang.String::class.java.canonicalName -> Str()

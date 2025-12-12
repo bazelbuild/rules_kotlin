@@ -16,11 +16,11 @@
 package io.bazel.kotlin.compiler
 
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
-import org.jetbrains.kotlin.buildtools.api.CompilationService
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import org.jetbrains.kotlin.buildtools.api.ProjectId
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.cli.common.ExitCode
-import java.util.UUID
+import java.nio.file.Path
 
 @Suppress("unused")
 class BuildToolsAPICompiler {
@@ -31,23 +31,25 @@ class BuildToolsAPICompiler {
   ): ExitCode {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
 
-    val kotlinService = CompilationService.loadImplementation(this.javaClass.classLoader!!)
-    // The execution configuration. Controls in-process vs daemon execution strategies. Default is in-process.
-    val executionConfig = kotlinService.makeCompilerExecutionStrategyConfiguration()
-    // The compilation configuration. Controls everything related to incremental compilation.
-    val compilationConfig =
-      kotlinService.makeJvmCompilationConfiguration().apply {
-        // useLogger(BasicKotlinLogger(true, "/tmp/kotlin_log/$label.log"))
-      }
+    val kotlinToolchains = KotlinToolchains.loadImplementation(this.javaClass.classLoader!!)
 
-    val result =
-      kotlinService.compileJvm(
-        ProjectId.ProjectUUID(UUID.randomUUID()),
-        executionConfig,
-        compilationConfig,
+    // Create compilation operation with empty sources and dummy destination
+    // (the actual sources/destination will be set via applyArgumentStrings)
+    val operation =
+      kotlinToolchains.jvm.createJvmCompilationOperation(
         emptyList(),
-        args.toList(),
+        Path.of("."),
       )
+
+    // Apply raw CLI arguments - this parses the args and sets all compiler options
+    // TODO: we can use actual typed API after we get rid of BazelK2JVMCompiler and use BTAPI exclusively
+    operation.compilerArguments.applyArgumentStrings(args.toList())
+
+    // Execute the compilation
+    val result =
+      kotlinToolchains.createBuildSession().use { session ->
+        session.executeOperation(operation)
+      }
 
     // BTAPI returns a different type than K2JVMCompiler (CompilationResult vs ExitCode).
     return when (result) {

@@ -6,7 +6,6 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirQualifiedAccessExpressionChecker
-import org.jetbrains.kotlin.fir.declarations.FirConstructor
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
 import org.jetbrains.kotlin.fir.expressions.arguments
@@ -28,12 +27,11 @@ internal class QualifiedAccessChecker(
     }
 
     // track return type
-    val isExplicitReturnType: Boolean = expression is FirConstructor
     resolvedCallableSymbol?.resolvedReturnTypeRef?.let {
       classUsageRecorder.recordTypeRef(
         it,
         context,
-        isExplicit = isExplicitReturnType,
+        isExplicit = false,
         collectTypeArguments = false,
       )
     }

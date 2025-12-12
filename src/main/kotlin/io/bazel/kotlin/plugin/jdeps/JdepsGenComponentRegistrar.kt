@@ -14,6 +14,8 @@ import java.nio.file.Paths
 
 @OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 class JdepsGenComponentRegistrar : CompilerPluginRegistrar() {
+  override val pluginId: String = "io.bazel.kotlin.plugin.jdeps.JdepsGenComponentRegistrar"
+
   override val supportsK2: Boolean
     get() = true
 

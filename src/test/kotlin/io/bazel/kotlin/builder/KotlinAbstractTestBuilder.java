@@ -106,10 +106,10 @@ abstract class KotlinAbstractTestBuilder<T> {
                         KotlinToolchainInfo.newBuilder()
                                 .setCommon(
                                         KotlinToolchainInfo.Common.newBuilder()
-                                                .setApiVersion("1.8")
+                                                .setApiVersion("2.0")
                                                 .setCoroutines("enabled")
-                                                .setLanguageVersion("1.8"))
-                                .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("1.8")));
+                                                .setLanguageVersion("2.0"))
+                                .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("11")));
         try {
             this.instanceRoot = Files.createTempDirectory(BAZEL_TEST_DIR, label);
         } catch (IOException e) {
