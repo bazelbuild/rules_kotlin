@@ -1,15 +1,8 @@
-load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 
-sh_test(
-    name = "are_docs_up_to_date_test",
-    srcs = ["are_docs_up_to_date_test.sh"],
-    args = [
-        "$(location kotlin.md)",
-        "$(location //kotlin:stardoc)",
-    ],
-    data = [
-        "kotlin.md",
-        "//kotlin:stardoc",
-    ],
-    tags = ["manual"],
+write_source_files(
+    name = "write_docs",
+    files = {
+        "kotlin.md": "//kotlin:stardoc",
+    },
 )
