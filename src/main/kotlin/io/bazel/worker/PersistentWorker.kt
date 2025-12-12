@@ -17,111 +17,59 @@
 
 package io.bazel.worker
 
-import com.google.devtools.build.lib.worker.WorkerProtocol.WorkRequest
-import com.google.devtools.build.lib.worker.WorkerProtocol.WorkResponse
-import src.main.kotlin.io.bazel.worker.GcScheduler
-import java.io.InputStream
+import com.google.devtools.build.lib.worker.ProtoWorkerMessageProcessor
+import com.google.devtools.build.lib.worker.WorkRequestHandler
+import com.google.devtools.build.lib.worker.WorkerProtocol
+import java.io.IOException
+import java.io.PrintWriter
 import java.time.Duration
-import java.util.concurrent.ExecutorCompletionService
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * PersistentWorker satisfies Bazel persistent worker protocol for executing work.
  *
  * Supports multiplex (https://docs.bazel.build/versions/master/multiplex-worker.html) provided
  * the work is thread/coroutine safe.
- *
- * @param executor thread pool for executing tasks.
- * @param captureIO to avoid writing stdout and stderr while executing.
- * @param cpuTimeBasedGcScheduler to trigger gc cleanup.
  */
-class PersistentWorker(
-  private val captureIO: () -> IO,
-  private val executor: ExecutorService,
-  private val cpuTimeBasedGcScheduler: GcScheduler,
-) : Worker {
-  constructor(
-    executor: ExecutorService,
-    captureIO: () -> IO,
-  ) : this(
-    captureIO,
-    executor,
-    GcScheduler {},
-  )
-
-  constructor() : this(
-    IO.Companion::capture,
-    Executors.newCachedThreadPool(),
-    CpuTimeBasedGcScheduler(Duration.ofSeconds(10)),
-  )
-
-  override fun start(execute: Work) =
-    WorkerContext.run {
-      captureIO().use { io ->
-        val running = AtomicLong(0)
-        val completion = ExecutorCompletionService<WorkResponse>(executor)
-        val producer =
-          executor.submit {
-            io.input.readRequestAnd { request ->
-              running.incrementAndGet()
-              completion.submit {
-                doTask(
+class PersistentWorker : Worker {
+  override fun start(execute: Work): Int {
+    return WorkerContext.run {
+      val realStdErr = System.err
+      try {
+        val workerHandler: WorkRequestHandler =
+          WorkRequestHandler
+            .WorkRequestHandlerBuilder(
+              WorkRequestHandler.WorkRequestCallback {
+                request: WorkerProtocol.WorkRequest,
+                pw: PrintWriter,
+                ->
+                return@WorkRequestCallback doTask(
                   name = "request ${request.requestId}",
                   task = request.workTo(execute),
-                ).asResponseTo(request.requestId, io)
-              }
-            }
-          }
-        val consumer =
-          executor.submit {
-            while (!producer.isDone || running.get() > 0) {
-              // poll time is how long before checking producer liveliness. Too long, worker hangs
-              // when being shutdown -- too short, and it starves the process.
-              completion.poll(1, TimeUnit.SECONDS)?.run {
-                running.decrementAndGet()
-                get().writeDelimitedTo(io.output)
-                io.output.flush()
-              }
-              cpuTimeBasedGcScheduler.maybePerformGc()
-            }
-          }
-        producer.get()
-        consumer.get()
-        io.output.close()
+                ).asResponse(pw)
+              },
+              realStdErr,
+              ProtoWorkerMessageProcessor(System.`in`, System.out),
+            ).setCpuUsageBeforeGc(Duration.ofSeconds(10))
+            .build()
+        workerHandler.processRequests()
+      } catch (e: IOException) {
+        this.error(e, { "Unknown IO exception" })
+        e.printStackTrace(realStdErr)
+        return@run 1
       }
       return@run 0
     }
-
-  private fun WorkRequest.workTo(execute: Work): (sub: WorkerContext.TaskContext) -> Status =
-    { ctx -> execute(ctx, argumentsList.toList()) }
-
-  private fun InputStream.readRequestAnd(action: (WorkRequest) -> Unit) {
-    while (true) {
-      WorkRequest
-        .parseDelimitedFrom(this)
-        ?.run(action)
-        ?: return
-    }
   }
 
-  private fun TaskResult.asResponseTo(
-    id: Int,
-    io: IO,
-  ): WorkResponse =
-    WorkResponse
-      .newBuilder()
-      .apply {
-        val cap = io.readCapturedAsUtf8String()
-        // append whatever falls through standard out.
-        output =
-          listOf(
-            log.out.toString(),
-            cap,
-          ).joinToString("\n").trim()
-        exitCode = status.exit
-        requestId = id
-      }.build()
+  private fun WorkerProtocol.WorkRequest.workTo(
+    execute: Work,
+  ): (sub: WorkerContext.TaskContext) -> Status =
+    { ctx ->
+      execute(ctx, argumentsList.toList())
+    }
+
+  private fun TaskResult.asResponse(pw: PrintWriter): Int {
+    pw.print(log.out.toString())
+    return status.exit
+  }
 }
