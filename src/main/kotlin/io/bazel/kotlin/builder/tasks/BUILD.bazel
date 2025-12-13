@@ -31,7 +31,6 @@ kt_bootstrap_library(
         "//src/main/kotlin/io/bazel/worker",
         "//src/main/protobuf:deps_java_proto",
         "//src/main/protobuf:kotlin_model_java_proto",
-        "//src/main/protobuf:worker_protocol_java_proto",
         "@kotlin_build_tools_api//jar",
         "@kotlin_build_tools_impl//jar",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",

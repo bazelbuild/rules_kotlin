@@ -19,11 +19,6 @@ proto_library(
     srcs = [":worker_protocol.proto"],
 )
 
-java_proto_library(
-    name = "worker_protocol_java_proto",
-    deps = [":worker_protocol_proto"],
-)
-
 proto_library(
     name = "kotlin_model_proto",
     srcs = [":kotlin_model.proto"],
@@ -40,6 +35,5 @@ java_library(
     exports = [
         ":deps_java_proto",
         ":kotlin_model_java_proto",
-        ":worker_protocol_java_proto",
     ],
 )
