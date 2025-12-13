@@ -35,6 +35,7 @@ import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.ObjectOutputStream
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Files.isDirectory
 import java.nio.file.Files.walk
@@ -362,6 +363,38 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
 }
 
 /**
+ * Creates a classpath snapshot for the output jar.
+ * This snapshot is tracked by Bazel as an output and used by downstream targets.
+ */
+internal fun JvmCompilationTask.createOutputClasspathSnapshot() {
+  if (outputs.classpathSnapshot.isEmpty()) {
+    return
+  }
+  ClasspathSnapshotGenerator(
+    Paths.get(outputs.jar),
+    Paths.get(outputs.classpathSnapshot),
+    SnapshotGranularity.CLASS_MEMBER_LEVEL,
+  ).run()
+}
+
+/**
+ * Gets the classpath snapshot paths for incremental compilation.
+ * Only returns tracked snapshots from dependencies - external jars without snapshots are excluded.
+ * The incremental compiler will treat jars without snapshots as unchanged.
+ */
+internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> =
+  // Only use tracked snapshots from dependencies that actually exist
+  inputs.classpathSnapshotsList
+
+val ROOT: String by lazy {
+  FileSystems
+    .getDefault()
+    .getPath("")
+    .toAbsolutePath()
+    .toString() + File.separator
+}
+
+/**
  * Compiles Kotlin sources to classes. Does not compile Java sources.
  */
 fun JvmCompilationTask.compileKotlin(
@@ -383,7 +416,18 @@ fun JvmCompilationTask.compileKotlin(
     ).values(inputs.javaSourcesList)
       .values(inputs.kotlinSourcesList)
       .flag("-d", directories.classes)
-      .list()
+      .apply {
+        if (info.incrementalCompilation) {
+          flag("-incremental_id", "kotlin")
+          if (directories.incrementalBaseDir.isNotEmpty()) {
+            flag("-incremental_dir", directories.incrementalBaseDir)
+          }
+          val snapshots = createClasspathSnapshotsPaths()
+          if (snapshots.isNotEmpty()) {
+            flag("-snapshot", snapshots.joinToString(File.pathSeparator))
+          }
+        }
+      }.list()
       .let {
         context.whenTracing {
           context.printLines("compileKotlin arguments:\n", it)

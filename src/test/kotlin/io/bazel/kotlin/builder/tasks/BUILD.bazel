@@ -110,6 +110,11 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "KotlinBuilderIncrementalDirTest",
+    srcs = ["jvm/KotlinBuilderIncrementalDirTest.java"],
+)
+
+kt_rules_test(
     name = "Ksp2TaskTest",
     srcs = ["Ksp2TaskTest.kt"],
     deps = [
@@ -125,6 +130,7 @@ test_suite(
     tests = [
         ":JdepsMergerTest",
         ":JdepsParserTest",
+        ":KotlinBuilderIncrementalDirTest",
         ":KotlinBuilderJvmAbiTest",
         ":KotlinBuilderJvmBasicTest",
         ":KotlinBuilderJvmCoverageTest",

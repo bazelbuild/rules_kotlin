@@ -116,6 +116,20 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    private val KOTLIN_EMBEDDED by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@kotlin_compiler_embeddable...kotlin-embedded",
+        ).toPath()
+    }
+
+    private val KOTLIN_DAEMON by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin...daemon-client",
+        ).toPath()
+    }
+
     private val JAVA_HOME by lazy {
       FileSystems
         .getDefault()
@@ -142,6 +156,8 @@ class KotlinToolchain private constructor(
         KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
         KOTLINX_SERIALIZATION_JSON.toFile(),
         KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
+        KOTLIN_EMBEDDED.toFile(),
+        KOTLIN_DAEMON.toFile(),
       )
 
     @JvmStatic
@@ -156,6 +172,8 @@ class KotlinToolchain private constructor(
       kotlinxSerializationCoreJvm: File,
       kotlinxSerializationJson: File,
       kotlinxSerializationJsonJvm: File,
+      kotlinEmbedded: File,
+      kotlinDaemon: File,
     ): KotlinToolchain =
       KotlinToolchain(
         listOf(
@@ -171,6 +189,8 @@ class KotlinToolchain private constructor(
           kotlinxSerializationCoreJvm,
           kotlinxSerializationJson,
           kotlinxSerializationJsonJvm,
+          kotlinEmbedded,
+          kotlinDaemon,
         ),
         jvmAbiGen =
           CompilerPlugin(
@@ -250,6 +270,9 @@ class KotlinToolchain private constructor(
       val exitCodeClass =
         toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
+      toolchain.classLoader.loadClass(
+        "org.jetbrains.kotlin.buildtools.internal.CompilationServiceProxy",
+      )
       compiler = compilerClass.getConstructor().newInstance()
       execMethod =
         compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)

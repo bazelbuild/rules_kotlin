@@ -25,6 +25,7 @@ import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 
+import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.function.BiConsumer;
@@ -90,6 +91,15 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     @SafeVarargs
     public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
         return executeTask(component().jvmTaskExecutor()::execute, setup);
+    }
+
+    /**
+     * Sets up a task without actually executing it. Useful for testing task configuration
+     * without running compilation.
+     */
+    @SafeVarargs
+    public final void setupTask(Consumer<TaskBuilder>... setup) {
+        Stream.of(setup).forEach(it -> it.accept(taskBuilderInstance));
     }
 
     private static KotlinBuilderTestComponent component() {
@@ -248,6 +258,17 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         public TaskBuilder incrementalData() {
             taskBuilder.getOutputsBuilder()
                     .setGeneratedClassJar(instanceRoot().resolve("incremental.jar").toAbsolutePath().toString());
+            return this;
+        }
+
+        public TaskBuilder incrementalCompilation() {
+            taskBuilder.getInfoBuilder().setIncrementalCompilation(true);
+            taskBuilder.getInfoBuilder().setBuildToolsApi(true);
+            // Set incremental base dir relative to output jar path
+            Path outputJarPath = instanceRoot().resolve("jar_file.jar").toAbsolutePath();
+            String jarName = "jar_file";
+            Path incrementalBaseDir = outputJarPath.getParent().resolve("_kotlin_incremental/" + jarName);
+            taskBuilder.getDirectoriesBuilder().setIncrementalBaseDir(incrementalBaseDir.toString());
             return this;
         }
 

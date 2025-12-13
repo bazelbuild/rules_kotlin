@@ -117,6 +117,16 @@ def _fail_if_invalid_associate_deps(associate_deps, deps):
 def _java_infos_to_compile_jars(java_infos):
     return depset(transitive = [j.compile_jars for j in java_infos])
 
+def _collect_classpath_snapshots(targets):
+    """Collects classpath snapshot files from KtJvmInfo providers."""
+    snapshots = []
+    for t in targets:
+        if _KtJvmInfo in t and t[_KtJvmInfo] != None:
+            snapshot = t[_KtJvmInfo].classpath_snapshot
+            if snapshot:
+                snapshots.append(snapshot)
+    return snapshots
+
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
     plugins = []
@@ -541,7 +551,8 @@ def _run_kt_builder_action(
         transitive_runtime_jars,
         plugins,
         outputs,
-        build_kotlin = True):
+        build_kotlin = True,
+        classpath_snapshots = []):
     """Creates a KotlinBuilder action invocation."""
     if not mnemonic:
         fail("Error: A `mnemonic` must be provided for every invocation of `_run_kt_builder_action`!")
@@ -562,6 +573,7 @@ def _run_kt_builder_action(
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
     args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
+    args.add("--incremental_compilation", toolchains.kt.experimental_incremental_compilation)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
@@ -630,6 +642,10 @@ def _run_kt_builder_action(
 
     args.add("--build_kotlin", build_kotlin)
 
+    # Add classpath snapshots for incremental compilation
+    if classpath_snapshots:
+        args.add_all("--classpath_snapshots", classpath_snapshots, omit_if_empty = True)
+
     progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
         mnemonic,
         len(srcs.kt),
@@ -641,7 +657,7 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars,
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots,
             transitive = [
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,
@@ -757,6 +773,7 @@ def _kt_jvm_produce_output_jar_actions(
     output_jars = outputs_struct.output_jars
     generated_src_jars = outputs_struct.generated_src_jars
     annotation_processing = outputs_struct.annotation_processing
+    classpath_snapshot = outputs_struct.classpath_snapshot
 
     # If this rule has any resources declared setup a zipper action to turn them into a jar.
     if len(ctx.files.resources) + len(extra_resources) > 0:
@@ -839,6 +856,7 @@ def _kt_jvm_produce_output_jar_actions(
             annotation_processing = annotation_processing,
             additional_generated_source_jars = generated_src_jars,
             all_output_jars = output_jars,
+            classpath_snapshot = classpath_snapshot,
         ),
     )
 
@@ -866,6 +884,12 @@ def _run_kt_java_builder_actions(
     output_jars = []
     kt_stubs_for_java = []
     has_kt_sources = srcs.kt or srcs.src_jars
+    classpath_snapshot = None
+
+    # Collect classpath snapshots from deps for incremental compilation
+    classpath_snapshots = []
+    if toolchains.kt.experimental_incremental_compilation:
+        classpath_snapshots = _collect_classpath_snapshots(ctx.attr.deps + getattr(ctx.attr, "associates", []))
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
@@ -928,6 +952,11 @@ def _run_kt_java_builder_actions(
             kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
             outputs["kotlin_output_jdeps"] = kt_jdeps
 
+        # Declare classpath snapshot output for incremental compilation
+        if toolchains.kt.experimental_incremental_compilation:
+            classpath_snapshot = ctx.actions.declare_file(ctx.label.name + ".snapshot")
+            outputs["classpath_snapshot"] = classpath_snapshot
+
         _run_kt_builder_action(
             ctx = ctx,
             rule_kind = rule_kind,
@@ -942,6 +971,7 @@ def _run_kt_java_builder_actions(
             outputs = outputs,
             build_kotlin = True,
             mnemonic = "KotlinCompile",
+            classpath_snapshots = classpath_snapshots,
         )
 
         compile_jars.append(kt_compile_jar)
@@ -1047,6 +1077,7 @@ def _run_kt_java_builder_actions(
         output_jars = output_jars,
         generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
         annotation_processing = annotation_processing,
+        classpath_snapshot = classpath_snapshot,
     )
 
 def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source_jar):
@@ -1117,6 +1148,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
                 getattr(attr, "exported_compiler_plugins", []),
                 getattr(attr, "exports", []),
             ),
+            classpath_snapshot = None,
         ),
         instrumented_files = coverage_common.instrumented_files_info(
             ctx,
