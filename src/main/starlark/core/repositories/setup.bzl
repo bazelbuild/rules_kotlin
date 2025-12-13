@@ -30,7 +30,7 @@ def kt_configure():
     bazel_skylib_workspace()
 
     # keep in sync with MODULE.bazel and `proto_version` variable there.
-    proto_version = "4.33.1"
+    proto_version = "4.31.1"
 
     maven_install(
         name = "kotlin_rules_maven",
