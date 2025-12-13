@@ -28,42 +28,34 @@ versions = struct(
     # 2. Download dependencies and Configure rules
     # --> 3. Configure dependencies <--
     BAZEL_SKYLIB = version(
-        version = "1.7.1",
-        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
+        version = "1.8.2",
+        sha256 = "6e78f0e57de26801f6f564fa7c4a48dc8b36873e416257a92bbb0937eeac8446",
         url_templates = [
             "https://github.com/bazelbuild/bazel-skylib/releases/download/{version}/bazel-skylib-{version}.tar.gz",
         ],
     ),
     BAZEL_FEATURES = version(
-        version = "1.25.0",
-        sha256 = "4fd9922d464686820ffd8fcefa28ccffa147f7cdc6b6ac0d8b07fde565c65d66",
+        version = "1.37.0",
+        sha256 = "adc8ddf121917f197f75c5245dfa8d7b1619f10a1002e25062b093b7957f2798",
         strip_prefix_template = "bazel_features-{version}",
         url_templates = [
             "https://github.com/bazel-contrib/bazel_features/releases/download/v{version}/bazel_features-v{version}.tar.gz",
         ],
     ),
     RULES_JVM_EXTERNAL = version(
-        version = "6.6",
-        sha256 = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",
+        version = "6.9",
+        sha256 = "3c41eae4226a7dfdce7b213bc541557b8475c92da71e2233ec7c306630243a65",
         strip_prefix_template = "rules_jvm_external-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
         ],
     ),
     COM_GOOGLE_PROTOBUF = version(
-        version = "29.0",
-        sha256 = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
+        version = "33.1",
+        sha256 = "801c7d44b2ec2ffaaf94555eda48a2239ef21e6602808ca8d22a9005fc2c03ef",
         strip_prefix_template = "protobuf-{version}",
         url_templates = [
-            "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.tar.gz",
-        ],
-    ),
-    RULES_PROTO = version(
-        version = "7.0.2",
-        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
-        strip_prefix_template = "rules_proto-{version}",
-        url_templates = [
-            "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
+            "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.zip",
         ],
     ),
     PINTEREST_KTLINT = version(
@@ -95,19 +87,19 @@ versions = struct(
         sha256 = "458b63ef8fc50a0a3180fe688ec1b995745992a05c495dac61e58d1088927a80",
     ),
     RULES_ANDROID = version(
-        version = "0.6.4",
+        version = "0.6.6",
         url_templates = [
             "https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz",
         ],
         strip_prefix_template = "rules_android-{version}",
-        sha256 = "4135e2fa37a94bb36c7801e33faef2934c9fe4f9a84d0035eacc4154c2c30e44",
+        sha256 = "f8f8bca6df61ea6070a0a8abc4054940b19c9fdb4fabb864e40d29d124f517f9",
     ),
     RULES_JAVA = version(
-        version = "8.9.0",
+        version = "9.3.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
         ],
-        sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
+        sha256 = "6ef26d4f978e8b4cf5ce1d47532d70cb62cd18431227a1c8007c8f7843243c06",
     ),
     RULES_LICENSE = version(
         version = "1.0.0",
@@ -155,9 +147,9 @@ versions = struct(
         strip_prefix_template = "abseil-py-{version}",
     ),
     RULES_CC = version(
-        version = "0.0.16",
+        version = "0.2.14",
         url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
-        sha256 = "bbf1ae2f83305b7053b11e4467d317a7ba3517a12cef608543c1b1c5bf48a4df",
+        sha256 = "a2fdfde2ab9b2176bd6a33afca14458039023edb1dd2e73e6823810809df4027",
         strip_prefix_template = "rules_cc-{version}",
     ),
     KOTLINX_COROUTINES_CORE_JVM = version(

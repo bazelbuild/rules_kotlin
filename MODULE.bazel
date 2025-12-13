@@ -11,15 +11,23 @@ proto_version_parts = proto_version.split(".")
 
 proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
 
-bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_proto", version = "6.0.2", repo_name = "rules_proto")
-bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "py_absl")
-bazel_dep(name = "rules_cc", version = "0.0.16")
-bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
-bazel_dep(name = "rules_java", version = "8.9.0")
-bazel_dep(name = "rules_python", version = "0.23.1")
+bazel_dep(name = "rules_java", version = "9.3.0")
 bazel_dep(name = "rules_android", version = "0.6.6")
+bazel_dep(name = "bazel_features", version = "1.37.0")
+bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
+bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "py_absl")
+bazel_dep(name = "rules_cc", version = "0.2.14")
+bazel_dep(name = "bazel_worker_api", version = "0.0.8")
+bazel_dep(name = "bazel_worker_java", version = "0.0.8")
+
+# End of dependencies shared with MODULE.release.bazel
+bazel_dep(name = "rules_python", version = "1.6.0", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
+
+# TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Update when fixed version is available.
+bazel_dep(name = "buildifier_prebuilt", version = "8.2.1.1", dev_dependency = True)
 
 remote_android_extensions = use_extension(
     "@rules_android//bzlmod_extensions:android_extensions.bzl",
@@ -31,14 +39,6 @@ android_sdk_repository_extension = use_extension("@rules_android//rules/android_
 use_repo(android_sdk_repository_extension, "androidsdk")
 
 register_toolchains("@androidsdk//:all")
-
-bazel_dep(name = "bazel_features", version = "1.25.0")
-bazel_dep(name = "rules_shell", version = "0.4.1")
-bazel_dep(name = "bazel_worker_api", version = "0.0.8")
-bazel_dep(name = "bazel_worker_java", version = "0.0.8")
-
-# TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Update when fixed version is available.
-bazel_dep(name = "buildifier_prebuilt", version = "8.2.1", dev_dependency = True)
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
@@ -62,11 +62,8 @@ register_toolchains("//src/main/starlark/core/compile/cli")
 register_toolchains("//kotlin/internal:default_toolchain")
 
 # Development dependencies
-# TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
-# we need to sort out a few cases around how these rules are consumed in various ways.
-
-bazel_dep(name = "rules_jvm_external", version = "6.6")
-bazel_dep(name = "bazel_ci_rules", version = "1.0.0")
+bazel_dep(name = "rules_jvm_external", version = "6.9", dev_dependency = True)
+bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
 
 rbe_preconfig = use_repo_rule("@bazel_ci_rules//:rbe_repo.bzl", "rbe_preconfig")
 
@@ -131,19 +128,18 @@ maven.override(
 )
 use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 
-bazel_dep(name = "rules_pkg", version = "1.0.1")
-bazel_dep(name = "stardoc", version = "0.8.0", repo_name = "io_bazel_stardoc")
-
+bazel_dep(name = "rules_pkg", version = "1.1.0", dev_dependency = True)
+bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True, repo_name = "io_bazel_stardoc")
 bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
 bazel_dep(name = "rules_bazel_integration_test", version = "0.34.0", dev_dependency = True)
 
 bazel_binaries = use_extension("@rules_bazel_integration_test//:extensions.bzl", "bazel_binaries", dev_dependency = True)
 bazel_binaries.download(version_file = "//:.bazelversion")
-bazel_binaries.download(version = "8.2.1")
+bazel_binaries.download(version = "8.4.2")
 use_repo(
     bazel_binaries,
     "bazel_binaries",
     "bazel_binaries_bazelisk",
     "build_bazel_bazel_.bazelversion",
-    "build_bazel_bazel_8_2_1",
+    "build_bazel_bazel_8_4_2",
 )
