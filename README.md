@@ -77,9 +77,21 @@ http_archive(
 load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
 kotlin_repositories() # if you want the default. Otherwise see custom kotlinc distribution below
 
+# Required: Initialize bazel_features (needed by rules_kotlin transitive dependencies)
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+bazel_features_deps()
+
+# Required: Initialize protobuf dependencies (creates proto_bazel_features repository
+# needed by rules_java's java:defs.bzl)
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
+
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 kt_register_toolchains() # to use the default toolchain, otherwise see toolchains below
 ```
+
+**Note:** The `bazel_features_deps()` and `protobuf_deps()` calls are required to avoid
+WORKSPACE cycle errors with recent versions of rules_java and protobuf.
 
 ## `BUILD` files
 
@@ -144,6 +156,9 @@ kotlin_repositories(
         sha256 = "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a"
     )
 )
+
+# Don't forget to also call bazel_features_deps() and protobuf_deps() as shown
+# in the basic WORKSPACE setup above, followed by kt_register_toolchains()
 ```
 
 ## Third party dependencies 
@@ -336,6 +351,9 @@ kotlin_repositories(
         sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
     ),
 )
+
+# Don't forget to also call bazel_features_deps() and protobuf_deps() as shown
+# in the basic WORKSPACE setup above, followed by kt_register_toolchains()
 ```
 
 # Kotlin compiler plugins
