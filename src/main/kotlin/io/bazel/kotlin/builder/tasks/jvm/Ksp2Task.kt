@@ -242,8 +242,6 @@ class Ksp2Task
           outputPath = generatedClassesOutput,
           directories = listOf(classOutputDir, resourceOutputDir),
         )
-
-        taskContext.info { "KSP2 completed successfully" }
         return 0
       } catch (e: Exception) {
         taskContext.error(e) { "KSP2 execution failed" }
