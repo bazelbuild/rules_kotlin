@@ -74,11 +74,11 @@ versions = struct(
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.2.21",
+        version = "2.3.0",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "a623871f1cd9c938946948b70ef9170879f0758043885bbd30c32f024e511714",
+        sha256 = "ea16ab1cab29d419bf41b60ecc0e305d449fa661d9c05fbcc5b2a6672505456a",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "2.3.3",
@@ -88,11 +88,11 @@ versions = struct(
         sha256 = "24cb0d869ab2ae9fcf630a747b6b7e662e4be26e8b83b9272f6f3c24813e0c5a",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.2.21",
+        version = "2.3.0",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
         ],
-        sha256 = "458b63ef8fc50a0a3180fe688ec1b995745992a05c495dac61e58d1088927a80",
+        sha256 = "93a5e8ffb1000801c832a862b23bd9766f444e6f6c185c32b1fb57877fb5cea3",
     ),
     RULES_ANDROID = version(
         version = "0.6.4",
@@ -116,6 +116,14 @@ versions = struct(
             "https://github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
         ],
         sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
+    ),
+    BAZEL_WORKER_API = version(
+        version = "0.0.8",
+        sha256 = "a58c8c1e53aec7d66498168b0525bfd87add4d3cfd18e3ed03d5bed929dd68fc",
+        strip_prefix_template = "bazel-worker-api-{version}",
+        url_templates = [
+            "https://github.com/bazelbuild/bazel-worker-api/releases/download/v{version}/bazel-worker-api-v{version}.tar.gz",
+        ],
     ),
     KOTLINX_SERIALIZATION_CORE_JVM = version(
         version = "1.8.1",

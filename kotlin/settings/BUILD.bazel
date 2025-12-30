@@ -45,6 +45,6 @@ bool_flag(
 
 bool_flag(
     name = "experimental_build_tools_api",
-    build_setting_default = False,
+    build_setting_default = True,
     visibility = ["//visibility:public"],
 )

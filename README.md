@@ -107,9 +107,9 @@ load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", "1.4", "1.5" "1.6", "1.7", "1.8", or "1.9"
-    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.6", "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "18", "19", "20" or "21"
-    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.1", "1.2", "1.3", "1.4", "1.5" "1.6", "1.7", "1.8", or "1.9"
+    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
+    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "18", "19", "20", "21", or "22"
+    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
 )
 ```
 
@@ -267,6 +267,24 @@ Additionally, you can add options for both tracing and timing of the bazel build
 * `bazel build --define=kt_timings=1`
 
 `kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
+
+# Build Tools API
+
+The Build Tools API is a modern compilation interface provided by JetBrains for invoking the Kotlin compiler. It offers better integration and is required for incremental compilation support.
+
+**This feature is enabled by default.**
+
+To disable the Build Tools API and use the legacy compilation approach, add the following flag to your build:
+
+```bash
+bazel build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false //your:target
+```
+
+Or add it to your `.bazelrc` file:
+
+```
+build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false
+```
 
 # KSP (Kotlin Symbol Processing)
 
