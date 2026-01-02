@@ -90,7 +90,6 @@ def _kotlin_toolchain_impl(ctx):
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
-        experimental_build_tools_api = ctx.attr.experimental_build_tools_api[BuildSettingInfo].value,
         experimental_incremental_compilation = ctx.attr.experimental_incremental_compilation[BuildSettingInfo].value,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
@@ -134,10 +133,6 @@ _kt_toolchain = rule(
             enabled via the defines `kt_timings=1` and `kt_trace=1`. These can also be enabled on a per target bases by
             using `tags` attribute defined directly on the rules.""",
             allow_empty = True,
-        ),
-        "experimental_build_tools_api": attr.label(
-            doc = "Enables experimental support for Build Tools API integration",
-            default = Label("//kotlin/settings:experimental_build_tools_api"),
         ),
         "experimental_incremental_compilation": attr.label(
             doc = "Enables experimental support for incremental compilation",
@@ -355,7 +350,6 @@ def define_kt_toolchain(
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
         experimental_multiplex_workers = None,
-        experimental_build_tools_api = None,
         experimental_incremental_compilation = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
@@ -386,7 +380,6 @@ def define_kt_toolchain(
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
-        experimental_build_tools_api = experimental_build_tools_api,
         experimental_incremental_compilation = experimental_incremental_compilation,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,

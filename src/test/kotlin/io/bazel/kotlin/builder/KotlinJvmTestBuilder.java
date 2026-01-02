@@ -263,7 +263,6 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
         public TaskBuilder incrementalCompilation() {
             taskBuilder.getInfoBuilder().setIncrementalCompilation(true);
-            taskBuilder.getInfoBuilder().setBuildToolsApi(true);
             // Set incremental base dir relative to output jar path
             Path outputJarPath = instanceRoot().resolve("jar_file.jar").toAbsolutePath();
             String jarName = "jar_file";

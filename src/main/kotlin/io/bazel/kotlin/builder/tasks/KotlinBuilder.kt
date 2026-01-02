@@ -88,7 +88,6 @@ class KotlinBuilder
         STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
         REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
         INSTRUMENT_COVERAGE("--instrument_coverage"),
-        BUILD_TOOLS_API("--build_tools_api"),
         INCREMENTAL_COMPILATION("--incremental_compilation"),
         CLASSPATH_SNAPSHOT("--classpath_snapshot"),
         CLASSPATH_SNAPSHOTS("--classpath_snapshots"),
@@ -174,9 +173,6 @@ class KotlinBuilder
         }
         argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
           removeDebugInfo = it == "true"
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
-          buildToolsApi = it == "true"
         }
         argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)?.let {
           incrementalCompilation = it == "true"

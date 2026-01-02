@@ -97,22 +97,4 @@ public class KotlinBuilderIncrementalDirTest {
         assertThat(task.getDirectories().getIncrementalBaseDir()).isEmpty();
     }
 
-    @Test
-    public void testIncrementalCompilationEnabledAlsoEnablesBuildToolsApi() {
-        ctx.resetForNext();
-        // Set up task configuration without running compilation
-        ctx.setupTask(
-                c -> {
-                    c.compileKotlin();
-                    c.addSource("AClass.kt", "package something;\nclass AClass{}");
-                    c.outputJar();
-                    c.outputJdeps();
-                    c.incrementalCompilation();
-                });
-        JvmCompilationTask task = ctx.buildTask();
-
-        // Verify build tools API is enabled when incremental compilation is enabled
-        assertThat(task.getInfo().getBuildToolsApi()).isTrue();
-        assertThat(task.getInfo().getIncrementalCompilation()).isTrue();
-    }
 }

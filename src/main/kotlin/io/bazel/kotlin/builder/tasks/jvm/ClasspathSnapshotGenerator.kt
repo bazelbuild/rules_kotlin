@@ -1,7 +1,9 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
-import org.jetbrains.kotlin.buildtools.api.CompilationService
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import java.io.FileInputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -26,16 +28,24 @@ class ClasspathSnapshotGenerator(
 
     val timeSpent =
       measureTimeMillis {
-        val compilationService =
-          CompilationService.loadImplementation(this.javaClass.classLoader!!)
-        val snapshot =
-          compilationService.calculateClasspathSnapshot(
-            inputJar.toFile(),
-            granularity.toClassSnapshotGranularity,
-          )
+        val toolchains = KotlinToolchains.loadImplementation(this.javaClass.classLoader!!)
+        val jvmToolchain = toolchains.jvm
+
+        // Create classpath snapshotting operation
+        val snapshotOperation = jvmToolchain.createClasspathSnapshottingOperation(inputJar)
+        snapshotOperation.set(
+          JvmClasspathSnapshottingOperation.GRANULARITY,
+          granularity.toClassSnapshotGranularity,
+        )
+
+        // Execute the operation and save the snapshot
+        val snapshot = toolchains.createBuildSession().use { session ->
+          session.executeOperation(snapshotOperation)
+        }
+
         // TODO : make things atomic / avoid race conditions
         val hash = hashFile(inputJar)
-        snapshot.saveSnapshot(outputSnapshot.toFile())
+        snapshot.saveSnapshot(outputSnapshot)
         hashPath.toFile().writeText(hash)
       }
 

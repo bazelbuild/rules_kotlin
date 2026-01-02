@@ -50,7 +50,6 @@ classpath_snapshot_enabled_test = analysistest.make(
     _classpath_snapshot_enabled_test_impl,
     config_settings = {
         str(Label("//kotlin/settings:experimental_incremental_compilation")): True,
-        str(Label("//kotlin/settings:experimental_build_tools_api")): True,
     },
 )
 
@@ -114,7 +113,6 @@ classpath_snapshot_propagation_test = analysistest.make(
     _classpath_snapshot_propagation_test_impl,
     config_settings = {
         str(Label("//kotlin/settings:experimental_incremental_compilation")): True,
-        str(Label("//kotlin/settings:experimental_build_tools_api")): True,
     },
 )
 
