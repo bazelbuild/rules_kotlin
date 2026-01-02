@@ -39,8 +39,8 @@ load("@rules_kotlin//kotlin:toolchains.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name= "custom_toolchain",
-    api_version = "1.6",
-    language_version = "1.6",
+    api_version = "2.1",
+    language_version = "2.1",
 )
 ```
 and then register it in the `WORKSPACE`:

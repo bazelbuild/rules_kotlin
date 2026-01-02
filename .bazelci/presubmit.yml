@@ -75,7 +75,7 @@ tasks:
     build_targets:
       - //kotlin:stardoc
     test_targets:
-      - //docs:are_docs_up_to_date_test
+      - //docs/...
   ktlint:
     name: KtLint
     <<: *ubuntu2404
