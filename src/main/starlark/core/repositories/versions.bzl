@@ -108,6 +108,13 @@ versions = struct(
         ],
         sha256 = "8dbd882fa58c3d17e683a27390288315f8b490f8e3e3b1be4dc3e280d37e285a",
     ),
+    KOTLIN_DAEMON_EMBEDDABLE = version(
+        version = "2.3.0",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/{version}/kotlin-daemon-embeddable-{version}.jar",
+        ],
+        sha256 = "39bcb02d8c293aa678554c8b49d7ff84657021709283c6186e3a40806af9bd10",
+    ),
     RULES_ANDROID = version(
         version = "0.6.4",
         url_templates = [

@@ -34,9 +34,9 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
-# --@rules_kotlin//kotlin/settings:experimental_incremental_compilation=True
+# --@rules_kotlin//kotlin/settings:experimental_incremental_compilation=False
 bool_flag(
     name = "experimental_incremental_compilation",
-    build_setting_default = False,
+    build_setting_default = True,
     visibility = ["//visibility:public"],
 )

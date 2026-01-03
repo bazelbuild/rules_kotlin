@@ -112,6 +112,13 @@ class KotlinToolchain private constructor(
     private val BUILD_TOOLS_API by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin...build-tools-api",
+        ).toPath()
+    }
+
+    private val BUILD_TOOLS_IMPL by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
           "@com_github_jetbrains_kotlin...build-tools-impl",
         ).toPath()
     }
@@ -119,14 +126,14 @@ class KotlinToolchain private constructor(
     private val KOTLIN_EMBEDDED by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@kotlin_compiler_embeddable...kotlin-embedded",
+          "@kotlin_daemon_embeddable...kotlin-daemon-embeddable",
         ).toPath()
     }
 
     private val KOTLIN_DAEMON by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...daemon-client",
+          "@com_github_jetbrains_kotlin...kotlin-daemon-client",
         ).toPath()
     }
 
@@ -156,6 +163,7 @@ class KotlinToolchain private constructor(
         KOTLINC.verified().absoluteFile,
         KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
+        BUILD_TOOLS_IMPL.verified().absoluteFile,
         COMPILER.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
@@ -172,7 +180,8 @@ class KotlinToolchain private constructor(
     fun createToolchain(
       kotlinc: File,
       kotlinCompilerEmbeddable: File,
-      buildTools: File,
+      buildToolsApi: File,
+      buildToolsImpl: File,
       compiler: File,
       jvmAbiGenFile: File,
       skipCodeGenFile: File,
@@ -189,7 +198,8 @@ class KotlinToolchain private constructor(
           kotlinc,
           kotlinCompilerEmbeddable,
           compiler,
-          buildTools,
+          buildToolsApi,
+          buildToolsImpl,
           // plugins *must* be preloaded. Not doing so causes class conflicts
           // (and a NoClassDef err) in the compiler extension interfaces.
           // This may cause issues in accepting user defined compiler plugins.
