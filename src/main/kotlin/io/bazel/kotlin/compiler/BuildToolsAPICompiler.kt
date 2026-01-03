@@ -31,24 +31,53 @@ class BuildToolsAPICompiler {
   ): ExitCode {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
 
+    // Parse source files and output directory from arguments
+    // Source files are positional arguments (don't start with -)
+    // Output directory comes after -d flag
+    val argsList = args.toList()
+    val sourceFiles = mutableListOf<Path>()
+    var outputDir = Path.of(".")
+    var i = 0
+    while (i < argsList.size) {
+      val arg = argsList[i]
+      when {
+        arg == "-d" && i + 1 < argsList.size -> {
+          outputDir = Path.of(argsList[i + 1])
+          i += 2
+        }
+        !arg.startsWith("-") && (arg.endsWith(".kt") || arg.endsWith(".java")) -> {
+          sourceFiles.add(Path.of(arg))
+          i++
+        }
+        else -> i++
+      }
+    }
+
     val kotlinToolchains = KotlinToolchains.loadImplementation(this.javaClass.classLoader!!)
 
-    // Create compilation operation with empty sources and dummy destination
-    // (the actual sources/destination will be set via applyArgumentStrings)
+    // Create compilation operation with parsed sources and output directory
     val operation =
       kotlinToolchains.jvm.createJvmCompilationOperation(
-        emptyList(),
-        Path.of("."),
+        sourceFiles,
+        outputDir,
       )
 
-    // Apply raw CLI arguments - this parses the args and sets all compiler options
-    // TODO: we can use actual typed API after we get rid of BazelK2JVMCompiler and use BTAPI exclusively
-    operation.compilerArguments.applyArgumentStrings(args.toList())
+    // Apply raw CLI arguments - this handles flags like -cp, -api-version, etc.
+    operation.compilerArguments.applyArgumentStrings(argsList)
 
-    // Execute the compilation
+    // Execute the compilation, redirecting stdout/stderr to the provided stream
+    val oldOut = System.out
+    val oldErr = System.err
+    System.setOut(errStream)
+    System.setErr(errStream)
     val result =
-      kotlinToolchains.createBuildSession().use { session ->
-        session.executeOperation(operation)
+      try {
+        kotlinToolchains.createBuildSession().use { session ->
+          session.executeOperation(operation)
+        }
+      } finally {
+        System.setOut(oldOut)
+        System.setErr(oldErr)
       }
 
     // BTAPI returns a different type than K2JVMCompiler (CompilationResult vs ExitCode).
