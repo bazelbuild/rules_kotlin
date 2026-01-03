@@ -229,6 +229,7 @@ abstract class KotlinAbstractTestBuilder<T> {
     static KotlinToolchain toolchainForTest() {
         return KotlinToolchain.createToolchain(
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlin_compiler_embeddable//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),

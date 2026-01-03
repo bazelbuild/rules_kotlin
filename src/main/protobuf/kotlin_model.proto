@@ -86,8 +86,6 @@ message CompilationTaskInfo {
     bool treat_internal_as_private_in_abi_jar = 12;
     // Private classes are removed in abi.jar generation
     bool remove_private_classes_in_abi_jar = 13;
-    // New Build Tools API. Required for incremental compilation.
-    bool build_tools_api = 14;
     // Debug info is stripped in abi.jar generation
     bool remove_debug_info = 15;
 }

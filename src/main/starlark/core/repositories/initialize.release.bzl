@@ -99,6 +99,12 @@ def kotlin_repositories(
         version = versions.KOTLIN_BUILD_TOOLS_IMPL,
     )
 
+    versions.use_repository(
+        http_file,
+        name = "kotlin_compiler_embeddable",
+        version = versions.KOTLIN_COMPILER_EMBEDDABLE,
+    )
+
     if is_bzlmod:
         return
 

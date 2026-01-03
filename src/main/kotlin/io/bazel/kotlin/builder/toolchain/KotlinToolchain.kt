@@ -116,6 +116,13 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    private val KOTLIN_COMPILER_EMBEDDABLE by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin...kotlin-compiler-embeddable",
+        ).toPath()
+    }
+
     private val JAVA_HOME by lazy {
       FileSystems
         .getDefault()
@@ -133,8 +140,9 @@ class KotlinToolchain private constructor(
     fun createToolchain(): KotlinToolchain =
       createToolchain(
         KOTLINC.verified().absoluteFile,
-        COMPILER.verified().absoluteFile,
+        KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
+        COMPILER.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
@@ -147,6 +155,7 @@ class KotlinToolchain private constructor(
     @JvmStatic
     fun createToolchain(
       kotlinc: File,
+      kotlinCompilerEmbeddable: File,
       buildTools: File,
       compiler: File,
       jvmAbiGenFile: File,
@@ -160,6 +169,7 @@ class KotlinToolchain private constructor(
       KotlinToolchain(
         listOf(
           kotlinc,
+          kotlinCompilerEmbeddable,
           compiler,
           buildTools,
           // plugins *must* be preloaded. Not doing so causes class conflicts
@@ -275,14 +285,10 @@ class KotlinToolchain private constructor(
     constructor(
       private val toolchain: KotlinToolchain,
     ) {
-      fun build(useExperimentalBuildToolsAPI: Boolean): KotlincInvoker {
-        val clazz =
-          if (useExperimentalBuildToolsAPI) {
-            "io.bazel.kotlin.compiler.BuildToolsAPICompiler"
-          } else {
-            "io.bazel.kotlin.compiler.BazelK2JVMCompiler"
-          }
-        return KotlincInvoker(toolchain = toolchain, clazz = clazz)
-      }
+      fun build(): KotlincInvoker =
+        KotlincInvoker(
+          toolchain = toolchain,
+          clazz = "io.bazel.kotlin.compiler.BuildToolsAPICompiler",
+        )
     }
 }

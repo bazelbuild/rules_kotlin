@@ -94,6 +94,13 @@ versions = struct(
         ],
         sha256 = "93a5e8ffb1000801c832a862b23bd9766f444e6f6c185c32b1fb57877fb5cea3",
     ),
+    KOTLIN_COMPILER_EMBEDDABLE = version(
+        version = "2.3.0",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/{version}/kotlin-compiler-embeddable-{version}.jar",
+        ],
+        sha256 = "8dbd882fa58c3d17e683a27390288315f8b490f8e3e3b1be4dc3e280d37e285a",
+    ),
     RULES_ANDROID = version(
         version = "0.6.4",
         url_templates = [
