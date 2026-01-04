@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load(
+    "@bazel_skylib//lib:sets.bzl",
+    _sets = "sets",
+)
+load(
     "@rules_java//java:defs.bzl",
     "JavaInfo",
     "java_common",
@@ -40,10 +44,6 @@ load(
     "//kotlin/internal/jvm:plugins.bzl",
     "is_ksp_processor_generating_java",
     _plugin_mappers = "mappers",
-)
-load(
-    "//kotlin/internal/utils:sets.bzl",
-    _sets = "sets",
 )
 load(
     "//kotlin/internal/utils:utils.bzl",
@@ -105,13 +105,13 @@ def _compiler_toolchains(ctx):
 def _fail_if_invalid_associate_deps(associate_deps, deps):
     """Verifies associates not included in target deps."""
     diff = _sets.intersection(
-        _sets.copy_of([x.label for x in associate_deps]),
-        _sets.copy_of([x.label for x in deps]),
+        _sets.make([x.label for x in associate_deps]),
+        _sets.make([x.label for x in deps]),
     )
-    if diff:
+    if _sets.length(diff) > 0:
         fail(
             "\n------\nTargets should only be put in associates= or deps=, not both:\n%s" %
-            ",\n ".join(["    %s" % x for x in list(diff)]),
+            ",\n ".join(["    %s" % x for x in _sets.to_list(diff)]),
         )
 
 def _java_infos_to_compile_jars(java_infos):
@@ -665,7 +665,6 @@ def _run_kt_builder_action(
         progress_message = progress_message,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
-            "REPOSITORY_NAME": _utils.builder_workspace_name(ctx),
         },
         toolchain = _TOOLCHAIN_TYPE,
     )

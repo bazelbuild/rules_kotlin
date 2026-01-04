@@ -30,4 +30,5 @@ bzl_library(
     name = "utils",
     srcs = glob(["*.bzl"]),
     visibility = ["//kotlin:__subpackages__"],
+    deps = ["@bazel_skylib//lib:dicts"],
 )
