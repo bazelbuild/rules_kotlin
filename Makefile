@@ -30,8 +30,7 @@ deps.regen:
 	scripts/regen_deps
 
 docs.regen:
-	bazel build //kotlin:stardoc
-	cp bazel-bin/kotlin/kotlin.md docs/kotlin.md
+	bazel run //docs:write_docs
 
 proto.regen:
 	scripts/gen_proto_jars
