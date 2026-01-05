@@ -73,7 +73,7 @@ tasks:
     name: Stardoc api documentation
     platform: rbe_ubuntu2404
     build_targets:
-      - //kotlin:stardoc
+      - //docs:stardoc
     test_targets:
       - //docs/...
   ktlint:

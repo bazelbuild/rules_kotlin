@@ -37,7 +37,10 @@ release_archive(
 bzl_library(
     name = "internal",
     srcs = glob(["*.bzl"]),
-    visibility = ["//kotlin:__subpackages__"],
+    visibility = [
+        "//docs:__pkg__",
+        "//kotlin:__subpackages__",
+    ],
     deps = [
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",

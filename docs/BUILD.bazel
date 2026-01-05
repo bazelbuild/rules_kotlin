@@ -1,8 +1,40 @@
 load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+
+[
+    stardoc(
+        name = doc,
+        out = "%s.md" % doc,
+        input = "//kotlin:%s.bzl" % doc,
+        deps = [
+            "//kotlin/internal",
+        ],
+    )
+    for doc in [
+        "jvm",
+        "lint",
+        "core",
+        "repositories.doc",
+    ]
+]
+
+genrule(
+    name = "stardoc",
+    srcs = [doc for doc in [
+        "jvm",
+        "lint",
+        "core",
+        "repositories.doc",
+    ]],
+    outs = ["kotlin.md.generated"],
+    cmd = """
+    cat $(SRCS) >> $@
+    """,
+)
 
 write_source_files(
     name = "write_docs",
     files = {
-        "kotlin.md": "//kotlin:stardoc",
+        "kotlin.md": ":stardoc",
     },
 )
