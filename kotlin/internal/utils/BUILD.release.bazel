@@ -18,4 +18,5 @@ bzl_library(
     name = "utils",
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
+    deps = ["@bazel_skylib//lib:dicts"],
 )

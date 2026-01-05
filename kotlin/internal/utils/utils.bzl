@@ -1,14 +1,8 @@
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "//kotlin/internal:defs.bzl",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
-
-def _restore_label(l):
-    """Restore a label struct to a canonical label string."""
-    lbl = l.workspace_root
-    if lbl.startswith("external/"):
-        lbl = lbl.replace("external/", "@")
-    return lbl + "//" + l.package + ":" + l.name
 
 # TODO unexport this once init builder args can take care of associates.
 def _derive_module_name(ctx):
@@ -53,39 +47,8 @@ def _init_builder_args(ctx, rule_kind, module_name, kotlinc_options = None):
 
     return args
 
-# Copied from https://github.com/bazelbuild/bazel-skylib/blob/master/lib/dicts.bzl
-# Remove it if we add a dependency on skylib.
-def _add_dicts(*dictionaries):
-    """Returns a new `dict` that has all the entries of the given dictionaries.
-    If the same key is present in more than one of the input dictionaries, the
-    last of them in the argument list overrides any earlier ones.
-    This function is designed to take zero or one arguments as well as multiple
-    dictionaries, so that it follows arithmetic identities and callers can avoid
-    special cases for their inputs: the sum of zero dictionaries is the empty
-    dictionary, and the sum of a single dictionary is a copy of itself.
-    Args:
-      *dictionaries: Zero or more dictionaries to be added.
-    Returns:
-      A new `dict` that has all the entries of the given dictionaries.
-    """
-    result = {}
-    for d in dictionaries:
-        result.update(d)
-    return result
-
-# TODO(issue/432): Remove when the toolchain dependencies are passed via flag.
-_BUILDER_REPOSITORY_LABEL = Label("//kotlin/internal/utils:utils.bzl")
-
-def _builder_workspace_name(ctx):
-    lbl = _BUILDER_REPOSITORY_LABEL.workspace_root
-    if lbl == "":
-        lbl = ctx.workspace_name
-    return lbl.replace("external/", "")
-
 utils = struct(
-    add_dicts = _add_dicts,
+    add_dicts = dicts.add,
     init_args = _init_builder_args,
-    restore_label = _restore_label,
     derive_module_name = _derive_module_name,
-    builder_workspace_name = _builder_workspace_name,
 )

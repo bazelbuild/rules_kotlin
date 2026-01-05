@@ -31,6 +31,7 @@ bzl_library(
     visibility = ["//kotlin:__subpackages__"],
     deps = [
         "//third_party:bzl",
+        "@bazel_skylib//lib:sets",
         "@bazel_skylib//rules:common_settings",
         "@rules_java//java:rules",
     ],

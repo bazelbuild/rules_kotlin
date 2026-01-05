@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//lib:sets.bzl", _sets = "sets")
 load(
     "@rules_java//java:defs.bzl",
     "JavaInfo",
 )
 load("//kotlin/internal/jvm:associates.bzl", _associate_utils = "associate_utils")
-load("//kotlin/internal/utils:sets.bzl", _sets = "sets")
 
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
