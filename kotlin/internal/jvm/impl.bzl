@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//:features.bzl", "bazel_features")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_java//java:defs.bzl", "JavaInfo", "JavaPluginInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
@@ -31,11 +33,10 @@ load(
 load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
 load("//third_party:jarjar.bzl", "jarjar_action")
 
-# borrowed from skylib to avoid adding that to the release.
-def _is_absolute(path):
-    return path.startswith("/") or (len(path) > 2 and path[1] == ":")
+# Toolchain type for the Windows launcher maker
+_LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
 
-def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), *additional_providers):
+def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), executable = None, *additional_providers):
     files = [ctx.outputs.jar]
     if providers.java.outputs.jdeps:
         files.append(providers.java.outputs.jdeps)
@@ -54,38 +55,153 @@ def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(
                 for d in runfiles_targets
                 if DefaultInfo in d and d[DefaultInfo].default_runfiles
             ]),
+            executable = executable,
         ),
     ] + list(additional_providers)
 
-def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
+def _short_path(file):
+    return file.short_path
+
+def _is_windows(ctx):
+    """Check if the target platform is Windows."""
+    windows_constraint = ctx.attr._windows_constraint[platform_common.ConstraintValueInfo]
+    return ctx.target_platform_has_constraint(windows_constraint)
+
+def _is_absolute_target_platform_path(ctx, path):
+    """Check if path is absolute, accounting for Windows drive letters."""
+    if _is_windows(ctx):
+        return len(path) > 2 and path[1] == ":"
+    return path.startswith("/")
+
+def _find_launcher_maker(ctx):
+    """Find the launcher maker binary, preferring the toolchain approach."""
+    if bazel_features.rules._has_launcher_maker_toolchain:
+        return ctx.toolchains[_LAUNCHER_MAKER_TOOLCHAIN_TYPE].binary
+    return ctx.executable._windows_launcher_maker
+
+def _get_executable(ctx):
+    """Declare executable file, adding .exe extension on Windows."""
+    executable_name = ctx.label.name
+    if _is_windows(ctx):
+        executable_name = executable_name + ".exe"
+    return ctx.actions.declare_file(executable_name)
+
+def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, main_class, jvm_flags_for_launcher, runfiles_enabled, coverage_main_class = None):
+    """Create a Windows exe launcher using the launcher_maker tool."""
+    java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
+
+    # Tokenize JVM flags for Windows launcher (handles quoted arguments properly)
+    tokenized_jvm_flags = []
+    for flag in jvm_flags_for_launcher:
+        tokenized_jvm_flags.extend(ctx.tokenize(flag))
+
+    launch_info = ctx.actions.args().use_param_file("%s", use_always = True).set_param_file_format("multiline")
+    launch_info.add("binary_type=Java")
+    launch_info.add(ctx.workspace_name, format = "workspace_name=%s")
+    launch_info.add("1" if runfiles_enabled else "0", format = "symlink_runfiles_enabled=%s")
+    launch_info.add(java_executable, format = "java_bin_path=%s")
+    launch_info.add(main_class, format = "java_start_class=%s")
+    if coverage_main_class:
+        launch_info.add(coverage_main_class, format = "jacoco_main_class=%s")
+    launch_info.add_joined(classpath, map_each = _short_path, join_with = ";", format_joined = "classpath=%s", omit_if_empty = False)
+    launch_info.add_joined(tokenized_jvm_flags, join_with = "\t", format_joined = "jvm_flags=%s", omit_if_empty = False)
+
+    # Use java_home_runfiles_path directly (same as rules_java)
+    launch_info.add(java_runtime.java_home_runfiles_path, format = "jar_bin_path=%s/bin/jar.exe")
+
+    launcher_artifact = ctx.executable._launcher
+    ctx.actions.run(
+        executable = _find_launcher_maker(ctx),
+        inputs = [launcher_artifact],
+        outputs = [executable],
+        arguments = [launcher_artifact.path, launch_info, executable.path],
+        use_default_shell_env = True,
+        toolchain = _LAUNCHER_MAKER_TOOLCHAIN_TYPE if bazel_features.rules._has_launcher_maker_toolchain else None,
+        mnemonic = "JavaLauncherMaker",
+    )
+
+def _write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
     """Macro that writes out a launcher script shell script.
       Args:
         rjars: All of the runtime jars required to launch this java target.
         main_class: the main class to launch.
         jvm_flags: The flags that should be passed to the jvm.
-        args: Args that should be passed to the Binary.
+        is_test: Whether this is a test target (enables security manager for test runner).
+      Returns:
+        A struct with:
+          - coverage_metadata: List of coverage metadata files (may be empty)
+          - executable: The declared executable file (only set on Windows, None otherwise)
     """
-    jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in jvm_flags])
-    template = ctx.attr.java_stub_template.files.to_list()[0]
-
     java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
     java_bin_path = java_runtime.java_executable_runfiles_path
 
-    # Normalize java_bin_path like rules_java does: prepend workspace name for relative paths
-    if not _is_absolute(java_bin_path):
+    # Normalize java_bin_path (same logic as rules_java's _get_java_executable)
+    if not _is_absolute_target_platform_path(ctx, java_bin_path):
         java_bin_path = ctx.workspace_name + "/" + java_bin_path
+    java_bin_path = paths.normalize(java_bin_path)
+
+    # Following rules_java: enable security manager for tests on Java 17-23
+    # See https://github.com/bazelbuild/rules_java/blob/7ff9193af58807c9b77f3b7cd56063c9b8a9f028/java/bazel/rules/bazel_java_binary.bzl#L78-L81
+    _java_runtime_version = getattr(java_runtime, "version", 0)
+    jvm_flags_list = [ctx.expand_location(f, ctx.attr.data) for f in jvm_flags]
+    if is_test and _java_runtime_version >= 17 and _java_runtime_version < 24:
+        jvm_flags_list.append("-Djava.security.manager=allow")
+
+    # Windows: use native exe launcher with explicitly declared executable
+    if _is_windows(ctx):
+        # Explicitly declare the executable with .exe extension (required for Windows)
+        executable = _get_executable(ctx)
+
+        # On Windows, symlink runfiles are typically disabled (manifest-based runfiles are used instead).
+        # ctx.configuration.runfiles_enabled() is internal to rules_java and not available here.
+        runfiles_enabled = True
+        coverage_enabled = ctx.configuration.coverage_enabled
+        if coverage_enabled:
+            jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
+            classpath = rjars.to_list() + jacocorunner.files.to_list()
+            jacoco_metadata_file = ctx.actions.declare_file(
+                "%s.jacoco_metadata.txt" % ctx.attr.name,
+                sibling = executable,
+            )
+            ctx.actions.write(jacoco_metadata_file, "\n".join([
+                jar.short_path.replace("../", "external/")
+                for jar in rjars.to_list()
+            ]))
+            jvm_flags_list.extend([
+                "-ea",
+                "-Dbazel.test_suite=" + main_class,
+            ])
+            _create_windows_exe_launcher(
+                ctx,
+                executable = executable,
+                java_executable = java_bin_path,
+                classpath = classpath,
+                main_class = "com.google.testing.coverage.JacocoCoverageRunner",
+                jvm_flags_for_launcher = jvm_flags_list,
+                runfiles_enabled = runfiles_enabled,
+                coverage_main_class = main_class,
+            )
+            return struct(coverage_metadata = [jacoco_metadata_file], executable = executable)
+
+        _create_windows_exe_launcher(
+            ctx,
+            executable = executable,
+            java_executable = java_bin_path,
+            classpath = rjars.to_list(),
+            main_class = main_class,
+            jvm_flags_for_launcher = jvm_flags_list,
+            runfiles_enabled = runfiles_enabled,
+        )
+        return struct(coverage_metadata = [], executable = executable)
+
+    # Unix: use shell script template
+    jvm_flags_str = " ".join(jvm_flags_list)
+    template = ctx.attr.java_stub_template.files.to_list()[0]
 
     # Construct JAVABIN substitution with ${JAVA_RUNFILES}/ prefix for relative paths
     # This works in both runfiles-enabled and manifest-only modes
-    prefix = "" if _is_absolute(java_bin_path) else "${JAVA_RUNFILES}/"
+    prefix = "" if _is_absolute_target_platform_path(ctx, java_bin_path) else "${JAVA_RUNFILES}/"
     java_bin = "JAVABIN=${JAVABIN:-" + prefix + java_bin_path + "}"
-
-    # Following https://github.com/bazelbuild/bazel/blob/6d5b084025a26f2f6d5041f7a9e8d302c590bc80/src/main/starlark/builtins_bzl/bazel/java/bazel_java_binary.bzl#L66-L67
-    # Enable the security manager past deprecation until permanently disabled: https://openjdk.org/jeps/486
-    # On bazel 6, this check isn't possible...
-    _java_runtime_version = getattr(java_runtime, "version", 0)
-    if _java_runtime_version >= 17 and _java_runtime_version < 24:
-        jvm_flags = jvm_flags + " -Djava.security.manager=allow"
 
     if ctx.configuration.coverage_enabled:
         jacocorunner = ctx.toolchains[_TOOLCHAIN_TYPE].jacocorunner
@@ -107,8 +223,8 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
                 "%classpath%": classpath,
                 "%java_start_class%": "com.google.testing.coverage.JacocoCoverageRunner",
                 "%javabin%": java_bin,
-                "%jvm_flags%": jvm_flags,
-                "%needs_runfiles%": "0" if _is_absolute(java_bin_path) else "1",
+                "%jvm_flags%": jvm_flags_str,
+                "%needs_runfiles%": "0" if _is_absolute_target_platform_path(ctx, java_runtime.java_executable_exec_path) else "1",
                 "%runfiles_manifest_only%": "",
                 "%set_jacoco_java_runfiles_root%": """export JACOCO_JAVA_RUNFILES_ROOT=$JAVA_RUNFILES/{}/""".format(ctx.workspace_name),
                 "%set_jacoco_main_class%": """export JACOCO_MAIN_CLASS={}""".format(main_class),
@@ -119,7 +235,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
             },
             is_executable = True,
         )
-        return [jacoco_metadata_file]
+        return struct(coverage_metadata = [jacoco_metadata_file], executable = None)
 
     classpath = ctx.configuration.host_path_separator.join(
         ["${RUNPATH}%s" % (j.short_path) for j in rjars.to_list()],
@@ -132,8 +248,8 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
             "%classpath%": classpath,
             "%java_start_class%": main_class,
             "%javabin%": java_bin,
-            "%jvm_flags%": jvm_flags,
-            "%needs_runfiles%": "0" if _is_absolute(java_bin_path) else "1",
+            "%jvm_flags%": jvm_flags_str,
+            "%needs_runfiles%": "0" if _is_absolute_target_platform_path(ctx, java_runtime.java_executable_exec_path) else "1",
             "%runfiles_manifest_only%": "",
             "%set_jacoco_java_runfiles_root%": "",
             "%set_jacoco_main_class%": "",
@@ -144,7 +260,7 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags):
         },
         is_executable = True,
     )
-    return []
+    return struct(coverage_metadata = [], executable = None)
 
 # buildifier: disable=unused-variable
 def _is_source_jar_stub(jar):
@@ -248,7 +364,7 @@ def kt_jvm_binary_impl(ctx):
     if hasattr(ctx.fragments.java, "default_jvm_opts"):
         jvm_flags = ctx.fragments.java.default_jvm_opts
     jvm_flags.extend(ctx.attr.jvm_flags)
-    _write_launcher_action(
+    launcher_result = _write_launcher_action(
         ctx,
         providers.java.transitive_runtime_jars,
         ctx.attr.main_class,
@@ -257,15 +373,18 @@ def kt_jvm_binary_impl(ctx):
     if len(ctx.attr.srcs) == 0 and len(ctx.attr.deps) > 0:
         fail("deps without srcs is invalid. To add runtime classpath and resources, use runtime_deps.", attr = "deps")
 
+    # Get java runtime files from toolchain for runfiles (needed for Windows launcher)
+    java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
+
     return _make_providers(
         ctx,
         providers,
         ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
         depset(
             order = "default",
-            transitive = [providers.java.transitive_runtime_jars],
-            direct = ctx.files._java_runtime,
+            transitive = [providers.java.transitive_runtime_jars, java_runtime.files],
         ),
+        launcher_result.executable,
         RunEnvironmentInfo(
             environment = ctx.attr.env,
             inherited_environment = ctx.attr.env_inherit,
@@ -308,7 +427,7 @@ def kt_jvm_junit_test_impl(ctx):
         jvm_flags = ctx.fragments.java.default_jvm_opts
 
     jvm_flags.extend(ctx.attr.jvm_flags)
-    coverage_metadata = _write_launcher_action(
+    launcher_result = _write_launcher_action(
         ctx,
         runtime_jars,
         main_class = ctx.attr.main_class,
@@ -316,7 +435,11 @@ def kt_jvm_junit_test_impl(ctx):
             "-ea",
             "-Dbazel.test_suite=%s" % test_class,
         ] + jvm_flags,
+        is_test = True,
     )
+
+    # Get java runtime files from toolchain for runfiles (needed for Windows launcher)
+    java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
 
     return _make_providers(
         ctx,
@@ -324,9 +447,9 @@ def kt_jvm_junit_test_impl(ctx):
         ctx.attr.deps + ctx.attr.runtime_deps + ctx.attr.data,
         depset(
             order = "default",
-            transitive = [runtime_jars, depset(coverage_runfiles), depset(coverage_metadata)],
-            direct = ctx.files._java_runtime,
+            transitive = [runtime_jars, depset(coverage_runfiles), depset(launcher_result.coverage_metadata), java_runtime.files],
         ),
+        launcher_result.executable,
         # adds common test variables, including TEST_WORKSPACE.
         testing.TestEnvironment(environment = ctx.attr.env, inherited_environment = ctx.attr.env_inherit),
     )

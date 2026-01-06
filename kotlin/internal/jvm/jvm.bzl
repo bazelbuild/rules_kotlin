@@ -92,6 +92,7 @@ kt_jvm_binary(
 ```
 """
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(
@@ -121,6 +122,9 @@ load(
     _kt_ksp_plugin_impl = "kt_ksp_plugin_impl",
 )
 load("//kotlin/internal/utils:utils.bzl", "utils")
+
+# Toolchain type for the Windows launcher maker
+_LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
 
 _implicit_deps = {
     "java_stub_template": attr.label(
@@ -181,11 +185,29 @@ _implicit_deps = {
     ),
 }
 
-_runnable_implicit_deps = {
-    "_java_runtime": attr.label(
-        default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
-    ),
-}
+_runnable_implicit_deps = utils.add_dicts(
+    {
+        "_java_runtime": attr.label(
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+        ),
+        "_launcher": attr.label(
+            default = "@bazel_tools//tools/launcher:launcher",
+            cfg = "target",
+            executable = True,
+        ),
+        "_windows_constraint": attr.label(
+            default = "@platforms//os:windows",
+        ),
+    },
+    # Only add _windows_launcher_maker when the toolchain is not available (legacy fallback)
+    {} if bazel_features.rules._has_launcher_maker_toolchain else {
+        "_windows_launcher_maker": attr.label(
+            default = "@bazel_tools//tools/launcher:launcher_maker",
+            cfg = "exec",
+            executable = True,
+        ),
+    },
+)
 
 _common_attr = utils.add_dicts(
     _implicit_deps,
@@ -344,7 +366,7 @@ _common_toolchains = [
 
 _runnable_common_toolchains = [
     _JAVA_RUNTIME_TOOLCHAIN_TYPE,
-]
+] + ([config_common.toolchain_type(_LAUNCHER_MAKER_TOOLCHAIN_TYPE, mandatory = False)] if bazel_features.rules._has_launcher_maker_toolchain else [])
 
 kt_jvm_library = rule(
     doc = """This rule compiles and links Kotlin and Java sources into a .jar file.""",

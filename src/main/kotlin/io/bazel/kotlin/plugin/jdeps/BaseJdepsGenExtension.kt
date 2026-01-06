@@ -74,10 +74,17 @@ abstract class BaseJdepsGenExtension(
     val jarsToClasses = mutableMapOf<String, MutableList<String>>()
     classes.forEach {
       val parts = it.split("!/")
-      val canonicalJarPath = parts[0]
-      if (canonicalJarPath.endsWith(".jar")) {
+      val jarPath = parts[0]
+      if (jarPath.endsWith(".jar")) {
+        // Canonicalize the path for proper lookup (handles K2's forward-slash paths on Windows)
+        val canonicalJarPath =
+          try {
+            File(jarPath).canonicalPath
+          } catch (e: Exception) {
+            jarPath
+          }
         // Map back to original classpath path
-        val classpathJarPath = canonicalToClasspath[canonicalJarPath] ?: canonicalJarPath
+        val classpathJarPath = canonicalToClasspath[canonicalJarPath] ?: jarPath
         jarsToClasses.computeIfAbsent(classpathJarPath) { ArrayList() }.add(parts[1])
       }
     }
