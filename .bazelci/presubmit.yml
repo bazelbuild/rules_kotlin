@@ -17,6 +17,20 @@
   test_targets:
     - //examples:all
 
+.integration_tests_no_android: &integration_tests_no_android
+  name: "Integration Tests (no android)"
+  platform: ${{ platform.name }}
+  test_flags: ${{ integration_shard_flags }}
+  test_targets:
+    - //examples:all
+    # See https://github.com/bazelbuild/rules_android_ndk/issues/107
+    - "-//examples:android"
+    - "-//examples:jetpack_compose"
+    # Not related to android, but fails on windows with
+    # cl : Command line error D8022 : cannot open 'bazel-out/x64_windows-opt-exec-ST-a828a81199fe/bin/external/
+    # com_google_protobuf/src/google/protobuf/compiler/_objs/code_generator_lite/code_generator_lite.obj.params'
+    - "-//examples:deps"
+
 # Common platform configurations.
 .ubuntu2404: &ubuntu2404
   platform: ubuntu2404
@@ -33,14 +47,19 @@
   environment:
     ANDROID_NDK_HOME: /Users/buildkite/android-ndk-r25b
 
+.windows: &windows
+  platform: windows
+  environment:
+    ANDROID_NDK_HOME: C:\android_ndk\r25b
+
 # bazelci pipeline
 matrix:
   integration_shard_flags:
-    - ["--test_tag_filters=shard_0"]
-    - ["--test_tag_filters=shard_1"]
-    - ["--test_tag_filters=shard_2"]
+    - [ "--test_tag_filters=shard_0" ]
+    - [ "--test_tag_filters=shard_1" ]
+    - [ "--test_tag_filters=shard_2" ]
   test_flags:
-    - ["--enable_bzlmod=true"]
+    - [ "--enable_bzlmod=true" ]
 validate_config: 1
 bazel: 8.4.2
 buildifier:
@@ -52,13 +71,17 @@ tasks:
   macos_unittests:
     <<: [ *macos, *unittests ]
   ubuntu2404_unittests:
-    <<: [*ubuntu2404, *unittests]
+    <<: [ *ubuntu2404, *unittests ]
   ubuntu2404_integration_tests:
-    <<: [*ubuntu2404, *integration_tests]
+    <<: [ *ubuntu2404, *integration_tests ]
   ubuntu2204_unittests:
-    <<: [*ubuntu2204, *unittests]
+    <<: [ *ubuntu2204, *unittests ]
   ubuntu2204_integration_tests:
-    <<: [*ubuntu2204, *integration_tests]
+    <<: [ *ubuntu2204, *integration_tests ]
+  windows_integration_tests:
+    <<: [ *windows, *integration_tests_no_android ]
+  windows_unittests:
+    <<: [ *windows, *unittests ]
   rbe_ubuntu2404:
     test_targets:
       - "--"

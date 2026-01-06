@@ -196,7 +196,7 @@ object BazelIntegrationTestRunner {
             .map { Flag("--bazelrc=$it") }
             .toList()
             .takeIf { it.isNotEmpty() }
-            ?: listOf(Flag("--bazelrc=/dev/null")),
+            ?: emptyList(),
         ),
       )
     }
@@ -222,7 +222,8 @@ object BazelIntegrationTestRunner {
           sequence {
             val parts = mutableListOf(major, minor, patch)
             (parts.size downTo 0).forEach { index ->
-              yield("." + parts.subList(0, index).joinToString("-"))
+              val versionSuffix = parts.subList(0, index).joinToString("-")
+              yield(if (versionSuffix.isEmpty()) "" else ".$versionSuffix")
             }
           }
             .map { suffix -> workspace.resolve(".bazelrc${suffix}") }
@@ -230,7 +231,7 @@ object BazelIntegrationTestRunner {
             .map { p -> Flag("--bazelrc=$p") }
             .toList()
             .takeIf { it.isNotEmpty() }
-            ?: listOf(Flag("--bazelrc=/dev/null")),
+            ?: emptyList(),
         ),
       )
     }
