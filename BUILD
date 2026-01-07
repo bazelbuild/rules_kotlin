@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# RELEASE-CONTENT-END
+
 # Dev-only: load statements (filtered out in release)
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("//kotlin:lint.bzl", "ktlint_config")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
+# RELEASE-CONTENT-START
 exports_files(glob(
     ["*.tgz"],
     allow_empty = True,
