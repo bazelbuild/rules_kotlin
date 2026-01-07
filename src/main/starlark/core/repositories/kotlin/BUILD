@@ -1,4 +1,18 @@
+# RELEASE-CONTENT-START
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+bzl_library(
+    name = "kotlin",
+    srcs = glob([
+        "*.bzl",
+    ]),
+    visibility = [
+        "//visibility:public",
+    ],
+)
+# RELEASE-CONTENT-END
+
+# Dev-only: packaging rule
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 release_archive(
@@ -9,14 +23,6 @@ release_archive(
         "templates.bzl",
     ]),
     src_map = {
-        "BUILD.release.bazel": "BUILD",
+        "BUILD": "BUILD",
     },
-)
-
-bzl_library(
-    name = "kotlin",
-    srcs = glob(["*.bzl"]),
-    visibility = [
-        "//visibility:public",
-    ],
 )

@@ -1,5 +1,4 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
+# RELEASE-CONTENT-START
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,34 +12,15 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//kotlin/internal:toolchains.bzl", "kt_configure_toolchains")
-load("//src/main/starlark/release:packager.bzl", "release_archive")
 
-# Configures the toolchains
 kt_configure_toolchains()
-
-release_archive(
-    name = "pkg",
-    srcs = glob(
-        ["*.bzl"],
-    ),
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
-    deps = [
-        "//kotlin/internal/jvm:pkg",
-        "//kotlin/internal/lint:pkg",
-        "//kotlin/internal/utils:pkg",
-    ],
-)
 
 bzl_library(
     name = "internal",
     srcs = glob(["*.bzl"]),
-    visibility = [
-        "//docs:__pkg__",
-        "//kotlin:__subpackages__",
-    ],
+    visibility = ["//visibility:public"],
     deps = [
         "//kotlin/internal/jvm",
         "//kotlin/internal/lint",
@@ -48,7 +28,25 @@ bzl_library(
         "//src/main/starlark",
         "//src/main/starlark/core/compile",
         "//src/main/starlark/core/options",
+        "//src/main/starlark/core/plugin",
         "@rules_java//java:rules",
         "@rules_java//java/private:proto_support",
+    ],
+)
+# RELEASE-CONTENT-END
+
+# Dev-only: packaging rule
+load("//src/main/starlark/release:packager.bzl", "release_archive")
+
+release_archive(
+    name = "pkg",
+    srcs = glob(["*.bzl"]),
+    src_map = {
+        "BUILD": "BUILD.bazel",
+    },
+    deps = [
+        "//kotlin/internal/jvm:pkg",
+        "//kotlin/internal/lint:pkg",
+        "//kotlin/internal/utils:pkg",
     ],
 )

@@ -1,3 +1,4 @@
+# RELEASE-CONTENT-START
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+bzl_library(
+    name = "repositories",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/main/starlark/core/repositories/kotlin",
+        "@bazel_skylib//lib:versions",
+    ],
+)
+# RELEASE-CONTENT-END
+
+# Dev-only: packaging rule
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 release_archive(
@@ -21,26 +35,16 @@ release_archive(
         "BUILD.com_github_jetbrains_kotlin.bazel",
         "BUILD.kotlin_capabilities.bazel",
         "bzlmod_impl.bzl",
+        "bzlmod_setup.bzl",
         "compiler.bzl",
         "ksp.bzl",
         "versions.bzl",
     ],
     src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-        "bzlmod_setup.release.bzl": "bzlmod_setup.bzl",
-        "initialize.release.bzl": "initialize.bzl",
+        "BUILD": "BUILD.bazel",
+        "initialize.bzl": "initialize.bzl",
     },
     deps = [
         "//src/main/starlark/core/repositories/kotlin:pkg",
-    ],
-)
-
-bzl_library(
-    name = "repositories",
-    srcs = glob(["*.bzl"]),
-    visibility = ["//:__subpackages__"],
-    deps = [
-        "//src/main/starlark/core/repositories/kotlin",
-        "@bazel_skylib//lib:versions",
     ],
 )

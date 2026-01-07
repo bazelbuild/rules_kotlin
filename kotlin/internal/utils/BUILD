@@ -1,6 +1,5 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# RELEASE-CONTENT-START
+# Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +12,17 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+bzl_library(
+    name = "utils",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//visibility:public"],
+    deps = ["@bazel_skylib//lib:dicts"],
+)
+# RELEASE-CONTENT-END
+
+# Dev-only: packaging rule
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
 release_archive(
@@ -22,13 +32,6 @@ release_archive(
         exclude = ["packager.bzl"],
     ),
     src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
+        "BUILD": "BUILD.bazel",
     },
-)
-
-bzl_library(
-    name = "utils",
-    srcs = glob(["*.bzl"]),
-    visibility = ["//kotlin:__subpackages__"],
-    deps = ["@bazel_skylib//lib:dicts"],
 )

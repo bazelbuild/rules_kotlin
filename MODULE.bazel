@@ -1,6 +1,7 @@
+# RELEASE-CONTENT-START
 module(
     name = "rules_kotlin",
-    version = "2.2.0",
+    version = "2.2.2",
     compatibility_level = 1,
     repo_name = "rules_kotlin",
 )
@@ -11,15 +12,42 @@ proto_version_parts = proto_version.split(".")
 
 proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
 
+bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_android", version = "0.6.6")
+bazel_dep(name = "bazel_features", version = "1.25.0")
 bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_proto", version = "6.0.2", repo_name = "rules_proto")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "py_absl")
 bazel_dep(name = "rules_cc", version = "0.0.16")
-bazel_dep(name = "platforms", version = "0.0.11")
-bazel_dep(name = "bazel_skylib", version = "1.8.2")
-bazel_dep(name = "rules_java", version = "8.9.0")
-bazel_dep(name = "rules_python", version = "0.23.1")
-bazel_dep(name = "rules_android", version = "0.6.6")
+bazel_dep(name = "bazel_worker_api", version = "0.0.8")
+bazel_dep(name = "bazel_worker_java", version = "0.0.8")
+
+rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
+use_repo(rules_java_toolchains, "remote_java_tools")
+
+rules_kotlin_extensions = use_extension(
+    "//src/main/starlark/core/repositories:bzlmod_setup.bzl",
+    "rules_kotlin_extensions",
+)
+use_repo(
+    rules_kotlin_extensions,
+    "com_github_google_ksp",
+    "com_github_jetbrains_kotlin",
+    "com_github_pinterest_ktlint",
+    "kotlin_build_tools_impl",
+    "kotlinx_serialization_core_jvm",
+    "kotlinx_serialization_json",
+    "kotlinx_serialization_json_jvm",
+)
+
+register_toolchains("//kotlin/internal:default_toolchain")
+# RELEASE-CONTENT-END
+
+# Dev-only: additional dependencies and configuration
+bazel_dep(name = "rules_python", version = "0.23.1", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.4.1", dev_dependency = True)
 
 remote_android_extensions = use_extension(
     "@rules_android//bzlmod_extensions:android_extensions.bzl",
@@ -32,36 +60,18 @@ use_repo(android_sdk_repository_extension, "androidsdk")
 
 register_toolchains("@androidsdk//:all")
 
-bazel_dep(name = "bazel_features", version = "1.25.0")
-bazel_dep(name = "rules_shell", version = "0.4.1")
-bazel_dep(name = "bazel_worker_api", version = "0.0.8")
-bazel_dep(name = "bazel_worker_java", version = "0.0.8")
-
 # TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Update when fixed version is available.
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.1", dev_dependency = True)
 
-rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
-use_repo(rules_java_toolchains, "remote_java_tools")
-
-rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
+# Dev-only: additional repos for rules_kotlin_extensions
 use_repo(
     rules_kotlin_extensions,
-    "com_github_google_ksp",
-    "com_github_jetbrains_kotlin",
     "com_github_jetbrains_kotlin_git",
-    "com_github_pinterest_ktlint",
-    "kotlin_build_tools_impl",
     "kotlinx_coroutines_core_jvm",
-    "kotlinx_serialization_core_jvm",
-    "kotlinx_serialization_json",
-    "kotlinx_serialization_json_jvm",
 )
 
 register_toolchains("//src/main/starlark/core/compile/cli")
 
-register_toolchains("//kotlin/internal:default_toolchain")
-
-# Development dependencies
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
 # we need to sort out a few cases around how these rules are consumed in various ways.
 
