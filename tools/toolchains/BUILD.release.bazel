@@ -1,13 +1,4 @@
 load("@com_google_protobuf//bazel/toolchains:proto_lang_toolchain.bzl", "proto_lang_toolchain")
-load("//src/main/starlark/release:packager.bzl", "release_archive")
-
-release_archive(
-    name = "pkg",
-    package_dir = "tools/toolchains",
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
-)
 
 proto_lang_toolchain(
     name = "protoc_java_toolchain",

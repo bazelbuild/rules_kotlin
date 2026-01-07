@@ -10,12 +10,17 @@ bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_android", version = "0.6.4")
 bazel_dep(name = "bazel_features", version = "1.25.0")
+
+# toolchains_protoc must be registered before protobuf
+# See https://github.com/aspect-build/toolchains_protoc
+bazel_dep(name = "toolchains_protoc", version = "0.6.0")
 bazel_dep(name = "protobuf", version = "29.0", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_proto", version = "6.0.2", repo_name = "rules_proto")
+bazel_dep(name = "rules_proto", version = "7.1.0", repo_name = "rules_proto")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "py_absl")
 bazel_dep(name = "rules_cc", version = "0.0.16")
 bazel_dep(name = "bazel_worker_api", version = "0.0.8")
 bazel_dep(name = "bazel_worker_java", version = "0.0.8")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
@@ -35,4 +40,28 @@ use_repo(
     "kotlin_build_tools_impl",
 )
 
+protoc = use_extension("@toolchains_protoc//protoc:extensions.bzl", "protoc")
+protoc.toolchain(
+    version = "v33.0",
+)
+use_repo(protoc, "toolchains_protoc_hub")
+
+register_toolchains("@toolchains_protoc_hub//:all")
+
+register_toolchains("//tools/toolchains:all")
+
 register_toolchains("//kotlin/internal:default_toolchain")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "kotlin_rules_maven",
+    artifacts = [
+        "com.google.protobuf:protobuf-java:4.33.0",
+    ],
+    repositories = [
+        "https://maven-central.storage.googleapis.com/repos/central/data/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(maven, "kotlin_rules_maven")
