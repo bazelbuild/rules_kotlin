@@ -69,6 +69,7 @@ release_archive(
         "//src/main/kotlin:pkg",
         "//src/main/starlark:pkg",
         "//third_party:pkg",
+        "//tools/toolchains:pkg",
     ],
 )
 
