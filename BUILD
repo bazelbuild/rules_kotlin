@@ -1,6 +1,4 @@
-load("@buildifier_prebuilt//:rules.bzl", "buildifier")
-load("//kotlin:lint.bzl", "ktlint_config")
-
+# RELEASE-CONTENT-START
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +12,17 @@ load("//kotlin:lint.bzl", "ktlint_config")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Dev-only: load statements (filtered out in release)
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("//kotlin:lint.bzl", "ktlint_config")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
+
+exports_files(glob(
+    ["*.tgz"],
+    allow_empty = True,
+))
+# RELEASE-CONTENT-END
 
 exports_files([
     "scripts/noop.sh",
@@ -57,12 +65,12 @@ test_suite(
     ],
 )
 
-# Release target.
+# Dev-only: release target
 release_archive(
     name = "rules_kotlin_release",
     src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-        "MODULE.release.bazel": "MODULE.bazel",
+        "BUILD": "BUILD.bazel",
+        "MODULE.bazel": "MODULE.bazel",
     },
     deps = [
         "//kotlin:pkg",

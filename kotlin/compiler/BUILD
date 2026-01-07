@@ -1,5 +1,4 @@
-load("//src/main/starlark/release:packager.bzl", "release_archive")
-
+# RELEASE-CONTENT-START
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,7 @@ load("//src/main/starlark/release:packager.bzl", "release_archive")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":compiler.bzl", "kt_configure_compiler")
 load(":kapt.bzl", "kapt_compiler_plugin")
 load(":ksp.bzl", "kt_configure_ksp")
@@ -25,15 +25,24 @@ kt_configure_compiler()
 # Configures the KSP plugins
 kt_configure_ksp()
 
-release_archive(
-    name = "pkg",
+bzl_library(
+    name = "compiler",
     srcs = glob(["*.bzl"]),
-    src_map = {
-        "BUILD.release.bazel": "BUILD.bazel",
-    },
 )
 
 kapt_compiler_plugin(
     name = "kapt",
     id = "org.jetbrains.kotlin.kapt3",
+)
+# RELEASE-CONTENT-END
+
+# Dev-only: packaging rule
+load("//src/main/starlark/release:packager.bzl", "release_archive")
+
+release_archive(
+    name = "pkg",
+    srcs = glob(["*.bzl"]),
+    src_map = {
+        "BUILD": "BUILD.bazel",
+    },
 )
