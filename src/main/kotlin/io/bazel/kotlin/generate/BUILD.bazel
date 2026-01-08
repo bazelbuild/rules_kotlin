@@ -19,6 +19,8 @@ kt_jvm_library(
     deps = [
         ":kotlinc_jar",
         "//kotlin/compiler:kotlin-reflect",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_arguments_description",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
     ],
 )
 
