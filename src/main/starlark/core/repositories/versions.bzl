@@ -95,12 +95,12 @@ versions = struct(
         sha256 = "93a5e8ffb1000801c832a862b23bd9766f444e6f6c185c32b1fb57877fb5cea3",
     ),
     RULES_ANDROID = version(
-        version = "0.6.4",
+        version = "0.7.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz",
         ],
         strip_prefix_template = "rules_android-{version}",
-        sha256 = "4135e2fa37a94bb36c7801e33faef2934c9fe4f9a84d0035eacc4154c2c30e44",
+        sha256 = "ef1a446260b7f620e2aae11d4c96389369eb865ade01fcdd389a8196168b8d9b",
     ),
     RULES_JAVA = version(
         version = "8.9.0",
