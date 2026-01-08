@@ -10,6 +10,6 @@ kt_jvm_binary(
         "MESSAGE": "Environment variables are working!",
     },
     # Inherit environment variables from the shell
-    env_inherit = ["HOME"],
+    # env_inherit = ["HOME"],
     main_class = "com.example.MainKt",
 )
