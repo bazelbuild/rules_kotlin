@@ -1,4 +1,4 @@
-# Copyright 2025 The Bazel Authors. All rights reserved.
+# Copyright 2026 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,5 +22,9 @@ TEMPLATES = [
     Label("capabilities_1.9.bzl.com_github_jetbrains_kotlin.bazel"),
     Label("capabilities_2.0.bzl.com_github_jetbrains_kotlin.bazel"),
     Label("capabilities_2.1.bzl.com_github_jetbrains_kotlin.bazel"),
+    Label("capabilities_2.3.bzl.com_github_jetbrains_kotlin.bazel"),
     Label("capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel"),
+]
+GENERATED_OPTS_TEMPLATES = [
+    Label("generated_opts_2.3.bzl.com_github_jetbrains_kotlin.bazel"),
 ]
