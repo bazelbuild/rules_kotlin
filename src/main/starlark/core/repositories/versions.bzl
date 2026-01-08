@@ -35,8 +35,8 @@ versions = struct(
         ],
     ),
     BAZEL_FEATURES = version(
-        version = "1.25.0",
-        sha256 = "4fd9922d464686820ffd8fcefa28ccffa147f7cdc6b6ac0d8b07fde565c65d66",
+        version = "1.30.0",
+        sha256 = "a660027f5a87f13224ab54b8dc6e191693c554f2692fcca46e8e29ee7dabc43b",
         strip_prefix_template = "bazel_features-{version}",
         url_templates = [
             "https://github.com/bazel-contrib/bazel_features/releases/download/v{version}/bazel_features-v{version}.tar.gz",
@@ -103,11 +103,11 @@ versions = struct(
         sha256 = "ef1a446260b7f620e2aae11d4c96389369eb865ade01fcdd389a8196168b8d9b",
     ),
     RULES_JAVA = version(
-        version = "8.9.0",
+        version = "8.6.3",
         url_templates = [
             "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
         ],
-        sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
+        sha256 = "6d8c6d5cd86fed031ee48424f238fa35f33abc9921fd97dd4ae1119a29fc807f",
     ),
     RULES_LICENSE = version(
         version = "1.0.0",
