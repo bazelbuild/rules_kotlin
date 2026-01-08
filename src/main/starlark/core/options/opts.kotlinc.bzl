@@ -75,6 +75,27 @@ _KOPTS_ALL = {
             True: ["-java-parameters"],
         },
     ),
+    "jvm_default": struct(
+        flag = "-jvm-default",
+        args = dict(
+            default = "off",
+            doc = """Specifies how to generate JVM default methods for interface declarations with bodies.
+This is the stable replacement for x_jvm_default (-Xjvm-default). Available from Kotlin 2.2.
+Options:
+- 'off': Don't pass the flag (uses compiler default, which is 'enable' in Kotlin 2.2+).
+- 'enable': Generate default methods and DefaultImpls for compatibility.
+- 'no-compatibility': Generate default methods without DefaultImpls classes.
+- 'disable': Do not generate JVM default methods (was the default up to Kotlin 2.1).""",
+            values = ["off", "enable", "no-compatibility", "disable"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "disable": ["-jvm-default=disable"],
+            "enable": ["-jvm-default=enable"],
+            "no-compatibility": ["-jvm-default=no-compatibility"],
+            "off": None,
+        },
+    ),
     "jvm_target": struct(
         args = dict(
             default = "",
@@ -275,7 +296,12 @@ default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1
         flag = "-Xjvm-default",
         args = dict(
             default = "off",
-            doc = "Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.",
+            doc = """DEPRECATED: Use jvm_default instead for Kotlin 2.2+.
+Specifies that a JVM default method should be generated for non-abstract Kotlin interface member.
+Migration to jvm_default:
+- x_jvm_default=all -> jvm_default=no-compatibility
+- x_jvm_default=all-compatibility -> jvm_default=enable
+- x_jvm_default=disable -> jvm_default=disable""",
             values = ["off", "enable", "disable", "compatibility", "all-compatibility", "all"],
         ),
         type = attr.string,
