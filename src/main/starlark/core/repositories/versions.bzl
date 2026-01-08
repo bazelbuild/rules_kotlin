@@ -103,11 +103,11 @@ versions = struct(
         sha256 = "ef1a446260b7f620e2aae11d4c96389369eb865ade01fcdd389a8196168b8d9b",
     ),
     RULES_JAVA = version(
-        version = "8.6.3",
+        version = "8.9.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_java/releases/download/{version}/rules_java-{version}.tar.gz",
         ],
-        sha256 = "6d8c6d5cd86fed031ee48424f238fa35f33abc9921fd97dd4ae1119a29fc807f",
+        sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
     ),
     RULES_LICENSE = version(
         version = "1.0.0",
