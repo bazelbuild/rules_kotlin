@@ -1,3 +1,5 @@
+common --java_runtime_version=remotejdk_21
+common --tool_java_runtime_version=remotejdk_21
 common --incompatible_enable_android_toolchain_resolution
 common --enable_workspace=true
 common --enable_bzlmod=false

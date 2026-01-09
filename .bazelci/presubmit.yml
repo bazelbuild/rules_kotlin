@@ -29,7 +29,7 @@
     ANDROID_NDK_HOME: /opt/android-ndk-r25b
 
 .macos: &macos
-  platform: macos
+  platform: macos_arm64
   environment:
     ANDROID_NDK_HOME: /Users/buildkite/android-ndk-r25b
 
