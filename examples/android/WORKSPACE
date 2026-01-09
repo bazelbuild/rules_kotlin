@@ -49,19 +49,6 @@ load("@bazel_features//:deps.bzl", "bazel_features_deps")
 bazel_features_deps()
 
 http_archive(
-    name = "rules_cc",
-    sha256 = versions.RULES_CC.sha256,
-    strip_prefix = versions.RULES_CC.strip_prefix_template.format(version = versions.RULES_CC.version),
-    urls = [url.format(version = versions.RULES_CC.version) for url in versions.RULES_CC.url_templates],
-)
-
-load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
-
-rules_cc_dependencies()
-
-rules_cc_toolchains()
-
-http_archive(
     name = "rules_java",
     sha256 = versions.RULES_JAVA.sha256,
     urls = [url.format(version = versions.RULES_JAVA.version) for url in versions.RULES_JAVA.url_templates],
