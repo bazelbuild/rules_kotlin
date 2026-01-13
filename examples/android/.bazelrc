@@ -21,3 +21,6 @@ build:android_worker \
   --strategy=JavaSourceJar=remote,local \
   --strategy=Turbine=remote,local \
   --strategy=PackageAndroidResources=local
+
+common --incompatible_enable_proto_toolchain_resolution
+common --@com_google_protobuf//bazel/toolchains:prefer_prebuilt_protoc=true
