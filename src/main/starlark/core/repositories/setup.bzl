@@ -15,22 +15,12 @@
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
-load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
-load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 
 def kt_configure():
     """Setup dependencies."""
-    rules_proto_dependencies()
-    rules_proto_toolchains()
-    rules_proto_setup()
-
     protobuf_deps()
 
     bazel_skylib_workspace()
-
-    # keep in sync with MODULE.bazel and `proto_version` variable there.
-    proto_version = "4.33.1"
 
     maven_install(
         name = "kotlin_rules_maven",
@@ -40,8 +30,6 @@ def kt_configure():
             "com.google.code.gson:gson:2.10.1",
             "com.google.errorprone:error_prone_annotations:2.23.0",
             "junit:junit:4.13-beta-3",
-            "com.google.protobuf:protobuf-java:{}".format(proto_version),
-            "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
             "com.google.guava:guava:33.0.0-jre",
             "com.google.truth:truth:0.45",
             "com.google.auto.service:auto-service:1.1.1",

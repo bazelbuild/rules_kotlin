@@ -5,16 +5,7 @@ module(
     repo_name = "rules_kotlin",
 )
 
-proto_version = "4.33.0"
-
-proto_version_parts = proto_version.split(".")
-
-proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
-
-# toolchains_protoc must be registered before protobufg
-# See https://github.com/aspect-build/toolchains_protoc
-bazel_dep(name = "toolchains_protoc", version = "0.6.0")
-bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_proto", version = "7.1.0", repo_name = "rules_proto")
 bazel_dep(name = "rules_cc", version = "0.0.16")  # needed by rbe_preconfig
 bazel_dep(name = "platforms", version = "0.0.11")
@@ -63,16 +54,6 @@ register_toolchains("//src/main/starlark/core/compile/cli")
 
 register_toolchains("//kotlin/internal:default_toolchain")
 
-protoc = use_extension("@toolchains_protoc//protoc:extensions.bzl", "protoc")
-protoc.toolchain(
-    version = "v33.0",
-)
-use_repo(protoc, "toolchains_protoc_hub")
-
-register_toolchains("@toolchains_protoc_hub//:all")
-
-register_toolchains("//tools/toolchains:all")
-
 # Development dependencies
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
 # we need to sort out a few cases around how these rules are consumed in various ways.
@@ -95,8 +76,6 @@ maven.install(
         "com.google.code.gson:gson:2.10.1",
         "com.google.errorprone:error_prone_annotations:2.23.0",
         "junit:junit:4.13-beta-3",
-        "com.google.protobuf:protobuf-java:{}".format(proto_version),
-        "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
         "com.google.guava:guava:33.0.0-jre",
         "com.google.truth:truth:0.45",
         "com.google.auto.service:auto-service:1.1.1",
