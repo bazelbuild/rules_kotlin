@@ -366,15 +366,15 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
  * Creates a classpath snapshot for the output jar.
  * This snapshot is tracked by Bazel as an output and used by downstream targets.
  */
-internal fun JvmCompilationTask.createOutputClasspathSnapshot() {
+internal fun JvmCompilationTask.createOutputClasspathSnapshot(snapshotInvoker: KotlinToolchain.ClasspathSnapshotInvoker) {
   if (outputs.classpathSnapshot.isEmpty()) {
     return
   }
-  ClasspathSnapshotGenerator(
-    Paths.get(outputs.jar),
-    Paths.get(outputs.classpathSnapshot),
-    SnapshotGranularity.CLASS_MEMBER_LEVEL,
-  ).run()
+  snapshotInvoker.generate(
+    outputs.jar,
+    outputs.classpathSnapshot,
+    "CLASS_MEMBER_LEVEL",
+  )
 }
 
 /**
@@ -416,18 +416,7 @@ fun JvmCompilationTask.compileKotlin(
     ).values(inputs.javaSourcesList)
       .values(inputs.kotlinSourcesList)
       .flag("-d", directories.classes)
-      .apply {
-        if (info.incrementalCompilation) {
-          flag("-incremental_id", "kotlin")
-          if (directories.incrementalBaseDir.isNotEmpty()) {
-            flag("-incremental_dir", directories.incrementalBaseDir)
-          }
-          val snapshots = createClasspathSnapshotsPaths()
-          if (snapshots.isNotEmpty()) {
-            flag("-snapshot", snapshots.joinToString(File.pathSeparator))
-          }
-        }
-      }.list()
+      .list()
       .let {
         context.whenTracing {
           context.printLines("compileKotlin arguments:\n", it)

@@ -198,6 +198,7 @@ def kt_jvm_import_impl(ctx):
         outputs = struct(
             jars = [artifact],
         ),
+        classpath_snapshot = None,
     )
 
     return [

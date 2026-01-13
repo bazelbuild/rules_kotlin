@@ -139,7 +139,7 @@ class KotlinJvmTaskExecutor
             }
             // Generate classpath snapshot for incremental compilation
             if (context.info.incrementalCompilation && outputs.classpathSnapshot.isNotEmpty()) {
-              context.execute("create classpath snapshot", ::createOutputClasspathSnapshot)
+              context.execute("create classpath snapshot") { createOutputClasspathSnapshot(compilerBuilder.buildSnapshotInvoker()) }
             }
           }
           if (outputs.abijar.isNotEmpty()) {

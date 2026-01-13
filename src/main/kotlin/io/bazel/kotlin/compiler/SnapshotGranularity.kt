@@ -1,4 +1,4 @@
-package io.bazel.kotlin.builder.tasks.jvm
+package io.bazel.kotlin.compiler
 
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 

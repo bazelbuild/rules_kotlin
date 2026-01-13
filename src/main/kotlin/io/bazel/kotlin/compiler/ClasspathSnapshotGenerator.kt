@@ -1,9 +1,10 @@
-package io.bazel.kotlin.builder.tasks.jvm
+package io.bazel.kotlin.compiler
 
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.PARSE_INLINED_LOCAL_CLASSES
 import java.io.FileInputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -37,11 +38,13 @@ class ClasspathSnapshotGenerator(
           JvmClasspathSnapshottingOperation.GRANULARITY,
           granularity.toClassSnapshotGranularity,
         )
+        snapshotOperation.set(PARSE_INLINED_LOCAL_CLASSES, true)
 
         // Execute the operation and save the snapshot
-        val snapshot = toolchains.createBuildSession().use { session ->
-          session.executeOperation(snapshotOperation)
-        }
+        val snapshot =
+          toolchains.createBuildSession().use { session ->
+            session.executeOperation(snapshotOperation)
+          }
 
         // TODO : make things atomic / avoid race conditions
         val hash = hashFile(inputJar)
@@ -72,5 +75,26 @@ class ClasspathSnapshotGenerator(
       }
     }
     return digest.digest().joinToString("") { "%02x".format(it) }
+  }
+
+  companion object {
+    /**
+     * Static entry point that can be invoked via reflection.
+     * @param inputJar path to the input jar file
+     * @param outputSnapshot path to the output snapshot file
+     * @param granularity "CLASS_LEVEL" or "CLASS_MEMBER_LEVEL"
+     */
+    @JvmStatic
+    fun generate(
+      inputJar: String,
+      outputSnapshot: String,
+      granularity: String,
+    ) {
+      ClasspathSnapshotGenerator(
+        Path.of(inputJar),
+        Path.of(outputSnapshot),
+        SnapshotGranularity.valueOf(granularity),
+      ).run()
+    }
   }
 }
