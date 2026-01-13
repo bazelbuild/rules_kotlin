@@ -35,6 +35,16 @@ def _map_string_list_flag(flag):
     return mapper
 
 GENERATED_KOPTS = {
+    "api_version": struct(
+        flag = "-api-version",
+        args = dict(
+            doc = "Allow using declarations from only the specified version of bundled libraries.",
+            default = "",
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-api-version"),
+    ),
     "java_parameters": struct(
         flag = "-java-parameters",
         args = dict(
@@ -58,15 +68,15 @@ GENERATED_KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-jvm-default"),
     ),
-    "jvm_target": struct(
-        flag = "-jvm-target",
+    "language_version": struct(
+        flag = "-language-version",
         args = dict(
-            doc = "The target version of the generated JVM bytecode (1.8 and 9–25), with 1.8 as the default.",
+            doc = "Provide source compatibility with the specified version of Kotlin.",
             default = "",
         ),
         type = attr.string,
         value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-jvm-target"),
+        map_value_to_flag = _map_string_flag("-language-version"),
     ),
     "no_reflect": struct(
         flag = "-no-reflect",
@@ -75,6 +85,68 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-no-reflect"]},
+    ),
+    "nowarn": struct(
+        flag = "-nowarn",
+        args = dict(
+            doc = "Don't generate any warnings.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-nowarn"]},
+    ),
+    "opt_in": struct(
+        flag = "-opt-in",
+        args = dict(
+            doc = "Enable API usages that require opt-in with an opt-in requirement marker with the given fully qualified name.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-opt-in"),
+    ),
+    "progressive": struct(
+        flag = "-progressive",
+        args = dict(
+            doc = """Enable progressive compiler mode.
+    In this mode, deprecations and bug fixes for unstable code take effect immediately
+    instead of going through a graceful migration cycle.
+    Code written in progressive mode is backward compatible; however, code written without
+    progressive mode enabled may cause compilation errors in progressive mode.""",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-progressive"]},
+    ),
+    "verbose": struct(
+        flag = "-verbose",
+        args = dict(
+            doc = "Enable verbose logging output.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-verbose"]},
+    ),
+    "version": struct(
+        flag = "-version",
+        args = dict(
+            doc = "Display the compiler version.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-version"]},
+    ),
+    "werror": struct(
+        flag = "-Werror",
+        args = dict(
+            doc = "Report an error if there are any warnings.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Werror"]},
+    ),
+    "wextra": struct(
+        flag = "-Wextra",
+        args = dict(
+            doc = "Enable extra checkers for K2.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Wextra"]},
     ),
     "x_abi_stability": struct(
         flag = "-Xabi-stability",
@@ -99,13 +171,53 @@ GENERATED_KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_string_list_flag("-Xadd-modules"),
     ),
-    "x_allow_no_source_files": struct(
-        flag = "-Xallow-no-source-files",
+    "x_allow_any_scripts_in_source_roots": struct(
+        flag = "-Xallow-any-scripts-in-source-roots",
         args = dict(
-            doc = "Allow the set of source files to be empty.",
+            doc = "Allow compiling scripts along with regular Kotlin sources.",
         ),
         type = attr.bool,
-        value_to_flag = {True: ["-Xallow-no-source-files"]},
+        value_to_flag = {True: ["-Xallow-any-scripts-in-source-roots"]},
+    ),
+    "x_allow_condition_implies_returns_contracts": struct(
+        flag = "-Xallow-condition-implies-returns-contracts",
+        args = dict(
+            doc = "Allow contracts that specify a limited conditional returns postcondition.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xallow-condition-implies-returns-contracts"]},
+    ),
+    "x_allow_contracts_on_more_functions": struct(
+        flag = "-Xallow-contracts-on-more-functions",
+        args = dict(
+            doc = "Allow contracts on some operators and accessors, and allow checks for erased types.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xallow-contracts-on-more-functions"]},
+    ),
+    "x_allow_holdsin_contract": struct(
+        flag = "-Xallow-holdsin-contract",
+        args = dict(
+            doc = "Allow contracts that specify a condition that holds true inside a lambda argument.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xallow-holdsin-contract"]},
+    ),
+    "x_allow_kotlin_package": struct(
+        flag = "-Xallow-kotlin-package",
+        args = dict(
+            doc = "Allow compiling code in the 'kotlin' package, and allow not requiring 'kotlin.stdlib' in 'module-info'.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xallow-kotlin-package"]},
+    ),
+    "x_allow_reified_type_in_catch": struct(
+        flag = "-Xallow-reified-type-in-catch",
+        args = dict(
+            doc = "Allow 'catch' parameters to have reified types.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xallow-reified-type-in-catch"]},
     ),
     "x_allow_unstable_dependencies": struct(
         flag = "-Xallow-unstable-dependencies",
@@ -114,6 +226,28 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xallow-unstable-dependencies"]},
+    ),
+    "x_annotation_default_target": struct(
+        flag = "-Xannotation-default-target",
+        args = dict(
+            doc = """Change the default annotation targets for constructor properties:
+    -Xannotation-default-target=first-only:      use the first of the following allowed targets: '@param:', '@property:', '@field:';
+    -Xannotation-default-target=first-only-warn: same as first-only, and raise warnings when both '@param:' and either '@property:' or '@field:' are allowed;
+    -Xannotation-default-target=param-property:  use '@param:' target if applicable, and also use the first of either '@property:' or '@field:';
+    default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1 and before.""",
+            default = "",
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-Xannotation-default-target"),
+    ),
+    "x_annotation_target_all": struct(
+        flag = "-Xannotation-target-all",
+        args = dict(
+            doc = "Enable experimental language support for @all: annotation use-site target.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xannotation-target-all"]},
     ),
     "x_annotations_in_metadata": struct(
         flag = "-Xannotations-in-metadata",
@@ -150,6 +284,25 @@ GENERATED_KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-Xbackend-threads"),
     ),
+    "x_check_phase_conditions": struct(
+        flag = "-Xcheck-phase-conditions",
+        args = dict(
+            doc = "Check pre- and postconditions of IR lowering phases.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xcheck-phase-conditions"]},
+    ),
+    "x_common_sources": struct(
+        flag = "-Xcommon-sources",
+        args = dict(
+            doc = """Sources of the common module that need to be compiled together with this module in multiplatform mode.
+    They should be a subset of sources passed as free arguments.""",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xcommon-sources"),
+    ),
     "x_compile_builtins_as_part_of_stdlib": struct(
         flag = "-Xcompile-builtins-as-part-of-stdlib",
         args = dict(
@@ -158,13 +311,58 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xcompile-builtins-as-part-of-stdlib"]},
     ),
-    "x_compile_java": struct(
-        flag = "-Xcompile-java",
+    "x_compiler_plugin_order": struct(
+        flag = "-Xcompiler-plugin-order",
         args = dict(
-            doc = "Reuse 'javac' analysis and compile Java source files.",
+            doc = """Specify an execution order constraint for compiler plugins.
+    Order constraint can be specified using the 'pluginId' of compiler plugins.
+    The first specified plugin will be executed before the second plugin.
+    Multiple constraints can be specified by repeating this option. Cycles in constraints will cause an error.""",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xcompiler-plugin-order"),
+    ),
+    "x_consistent_data_class_copy_visibility": struct(
+        flag = "-Xconsistent-data-class-copy-visibility",
+        args = dict(
+            doc = "The effect of this compiler flag is the same as applying @ConsistentCopyVisibility annotation to all data classes in the module. See https://youtrack.jetbrains.com/issue/KT-11914",
         ),
         type = attr.bool,
-        value_to_flag = {True: ["-Xcompile-java"]},
+        value_to_flag = {True: ["-Xconsistent-data-class-copy-visibility"]},
+    ),
+    "x_context_parameters": struct(
+        flag = "-Xcontext-parameters",
+        args = dict(
+            doc = "Enable experimental context parameters.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xcontext-parameters"]},
+    ),
+    "x_context_receivers": struct(
+        flag = "-Xcontext-receivers",
+        args = dict(
+            doc = "Enable experimental context receivers.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xcontext-receivers"]},
+    ),
+    "x_context_sensitive_resolution": struct(
+        flag = "-Xcontext-sensitive-resolution",
+        args = dict(
+            doc = "Enable experimental context-sensitive resolution.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xcontext-sensitive-resolution"]},
+    ),
+    "x_data_flow_based_exhaustiveness": struct(
+        flag = "-Xdata-flow-based-exhaustiveness",
+        args = dict(
+            doc = "Enable `when` exhaustiveness improvements that rely on data-flow analysis.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xdata-flow-based-exhaustiveness"]},
     ),
     "x_debug": struct(
         flag = "-Xdebug",
@@ -176,23 +374,49 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xdebug"]},
     ),
-    "x_default_script_extension": struct(
-        flag = "-Xdefault-script-extension",
+    "x_detailed_perf": struct(
+        flag = "-Xdetailed-perf",
         args = dict(
-            doc = "Compile expressions and unrecognized scripts passed with the -script argument as scripts with the given filename extension.",
-            default = "",
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xdefault-script-extension"),
-    ),
-    "x_disable_standard_script": struct(
-        flag = "-Xdisable-standard-script",
-        args = dict(
-            doc = "Disable standard Kotlin scripting support.",
+            doc = """Enable more detailed performance statistics (Experimental).
+    For Native, the performance report includes execution time and lines processed per second for every individual lowering.
+    For WASM and JS, the performance report includes execution time and lines per second for each lowering of the first stage of compilation.""",
         ),
         type = attr.bool,
-        value_to_flag = {True: ["-Xdisable-standard-script"]},
+        value_to_flag = {True: ["-Xdetailed-perf"]},
+    ),
+    "x_direct_java_actualization": struct(
+        flag = "-Xdirect-java-actualization",
+        args = dict(
+            doc = "Enable experimental direct Java actualization support.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xdirect-java-actualization"]},
+    ),
+    "x_disable_default_scripting_plugin": struct(
+        flag = "-Xdisable-default-scripting-plugin",
+        args = dict(
+            doc = "Don't enable the scripting plugin by default.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xdisable-default-scripting-plugin"]},
+    ),
+    "x_disable_phases": struct(
+        flag = "-Xdisable-phases",
+        args = dict(
+            doc = "Disable backend phases.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xdisable-phases"),
+    ),
+    "x_dont_warn_on_error_suppression": struct(
+        flag = "-Xdont-warn-on-error-suppression",
+        args = dict(
+            doc = "Don't report warnings when errors are suppressed. This only affects K2.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xdont-warn-on-error-suppression"]},
     ),
     "x_emit_jvm_type_annotations": struct(
         flag = "-Xemit-jvm-type-annotations",
@@ -201,6 +425,14 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xemit-jvm-type-annotations"]},
+    ),
+    "x_enable_incremental_compilation": struct(
+        flag = "-Xenable-incremental-compilation",
+        args = dict(
+            doc = "Enable incremental compilation.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xenable-incremental-compilation"]},
     ),
     "x_enhance_type_parameter_types_to_def_not_null": struct(
         flag = "-Xenhance-type-parameter-types-to-def-not-null",
@@ -219,6 +451,90 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xenhanced-coroutines-debugging"]},
     ),
+    "x_expect_actual_classes": struct(
+        flag = "-Xexpect-actual-classes",
+        args = dict(
+            doc = """'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta.
+    Kotlin reports a warning every time you use one of them. You can use this flag to mute the warning.""",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xexpect-actual-classes"]},
+    ),
+    "x_explicit_api": struct(
+        flag = "-Xexplicit-api",
+        args = dict(
+            doc = """Force the compiler to report errors on all public API declarations without an explicit visibility or a return type.
+    Use the 'warning' level to issue warnings instead of errors.""",
+            values = ["", "strict", "warning", "disable"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-Xexplicit-api"),
+    ),
+    "x_explicit_backing_fields": struct(
+        flag = "-Xexplicit-backing-fields",
+        args = dict(
+            doc = "Enable experimental language support for explicit backing fields.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xexplicit-backing-fields"]},
+    ),
+    "x_fragment_dependency": struct(
+        flag = "-Xfragment-dependency",
+        args = dict(
+            doc = """Declare common klib dependencies for the specific fragment.
+    This argument is required for any HMPP module except the platform leaf module: it takes dependencies from -cp/-libraries.
+    The argument should be used only if the new compilation scheme is enabled with -Xseparate-kmp-compilation
+    """,
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xfragment-dependency"),
+    ),
+    "x_fragment_friend_dependency": struct(
+        flag = "-Xfragment-friend-dependency",
+        args = dict(
+            doc = """Declare common klib friend dependencies for the specific fragment.
+    This argument can be specified for any HMPP module except the platform leaf module: it takes dependencies from the platform specific friend module arguments.
+    The argument should be used only if the new compilation scheme is enabled with -Xseparate-kmp-compilation
+    """,
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xfragment-friend-dependency"),
+    ),
+    "x_fragment_refines": struct(
+        flag = "-Xfragment-refines",
+        args = dict(
+            doc = "Declare that <fromModuleName> refines <onModuleName> with the dependsOn/refines relation.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xfragment-refines"),
+    ),
+    "x_fragment_sources": struct(
+        flag = "-Xfragment-sources",
+        args = dict(
+            doc = "Add sources to a specific fragment of a multiplatform compilation.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xfragment-sources"),
+    ),
+    "x_fragments": struct(
+        flag = "-Xfragments",
+        args = dict(
+            doc = "Declare all known fragments of a multiplatform compilation.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xfragments"),
+    ),
     "x_generate_strict_metadata_version": struct(
         flag = "-Xgenerate-strict-metadata-version",
         args = dict(
@@ -227,6 +543,14 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xgenerate-strict-metadata-version"]},
     ),
+    "x_ignore_const_optimization_errors": struct(
+        flag = "-Xignore-const-optimization-errors",
+        args = dict(
+            doc = "Ignore all compilation exceptions while optimizing some constant expressions.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xignore-const-optimization-errors"]},
+    ),
     "x_indy_allow_annotated_lambdas": struct(
         flag = "-Xindy-allow-annotated-lambdas",
         args = dict(
@@ -234,6 +558,14 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xindy-allow-annotated-lambdas"]},
+    ),
+    "x_inline_classes": struct(
+        flag = "-Xinline-classes",
+        args = dict(
+            doc = "Enable experimental inline classes.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xinline-classes"]},
     ),
     "x_ir_do_not_clear_binding_context": struct(
         flag = "-Xir-do-not-clear-binding-context",
@@ -278,7 +610,7 @@ GENERATED_KOPTS = {
         args = dict(
             doc = """Specify the behavior of 'jspecify' annotations.
     The default value is 'strict'.""",
-            values = ["", "ignore", "strict", "warn"],
+            default = "",
         ),
         type = attr.string,
         value_to_flag = None,
@@ -308,7 +640,7 @@ GENERATED_KOPTS = {
     -Xjvm-default=disable            -> -jvm-default=disable
     -Xjvm-default=all-compatibility  -> -jvm-default=enable
     -Xjvm-default=all                -> -jvm-default=no-compatibility""",
-            values = ["", "disable", "all-compatibility", "all"],
+            values = ["", "all", "all-compatibility", "disable"],
         ),
         type = attr.string,
         value_to_flag = None,
@@ -330,16 +662,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xjvm-expose-boxed"]},
-    ),
-    "x_klib": struct(
-        flag = "-Xklib",
-        args = dict(
-            doc = "Paths to cross-platform libraries in the .klib format.",
-            default = "",
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xklib"),
     ),
     "x_lambdas": struct(
         flag = "-Xlambdas",
@@ -366,15 +688,47 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xlink-via-signatures"]},
     ),
-    "x_module_path": struct(
-        flag = "-Xmodule-path",
+    "x_list_phases": struct(
+        flag = "-Xlist-phases",
         args = dict(
-            doc = "Paths to Java 9+ modules.",
+            doc = "List backend phases.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xlist-phases"]},
+    ),
+    "x_metadata_klib": struct(
+        flag = "-Xmetadata-klib",
+        args = dict(
+            doc = "Produce a klib that only contains the metadata of declarations.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xmetadata-klib"]},
+    ),
+    "x_metadata_version": struct(
+        flag = "-Xmetadata-version",
+        args = dict(
+            doc = "Change the metadata version of the generated binary files.",
             default = "",
         ),
         type = attr.string,
         value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xmodule-path"),
+        map_value_to_flag = _map_string_flag("-Xmetadata-version"),
+    ),
+    "x_multi_dollar_interpolation": struct(
+        flag = "-Xmulti-dollar-interpolation",
+        args = dict(
+            doc = "Enable experimental multi-dollar interpolation.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xmulti-dollar-interpolation"]},
+    ),
+    "x_multi_platform": struct(
+        flag = "-Xmulti-platform",
+        args = dict(
+            doc = "Enable language support for multiplatform projects.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xmulti-platform"]},
     ),
     "x_multifile_parts_inherit": struct(
         flag = "-Xmultifile-parts-inherit",
@@ -384,6 +738,35 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xmultifile-parts-inherit"]},
     ),
+    "x_name_based_destructuring": struct(
+        flag = "-Xname-based-destructuring",
+        args = dict(
+            doc = """Enables the following destructuring features:
+    -Xname-based-destructuring=only-syntax:   Enables syntax for positional destructuring with square brackets and the full form of name-based destructuring with parentheses;
+    -Xname-based-destructuring=name-mismatch: Reports warnings when short form positional destructuring of data classes uses names that don't match the property names;
+    -Xname-based-destructuring=complete:      Enables short-form name-based destructuring with parentheses;""",
+            default = "",
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-Xname-based-destructuring"),
+    ),
+    "x_nested_type_aliases": struct(
+        flag = "-Xnested-type-aliases",
+        args = dict(
+            doc = "Enable experimental language support for nested type aliases.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xnested-type-aliases"]},
+    ),
+    "x_new_inference": struct(
+        flag = "-Xnew-inference",
+        args = dict(
+            doc = "Enable the new experimental generic type inference algorithm.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xnew-inference"]},
+    ),
     "x_no_call_assertions": struct(
         flag = "-Xno-call-assertions",
         args = dict(
@@ -391,6 +774,22 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xno-call-assertions"]},
+    ),
+    "x_no_check_actual": struct(
+        flag = "-Xno-check-actual",
+        args = dict(
+            doc = "Do not check for the presence of the 'actual' modifier in multiplatform projects.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xno-check-actual"]},
+    ),
+    "x_no_inline": struct(
+        flag = "-Xno-inline",
+        args = dict(
+            doc = "Disable method inlining.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xno-inline"]},
     ),
     "x_no_new_java_annotation_targets": struct(
         flag = "-Xno-new-java-annotation-targets",
@@ -424,14 +823,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xno-receiver-assertions"]},
     ),
-    "x_no_reset_jar_timestamps": struct(
-        flag = "-Xno-reset-jar-timestamps",
-        args = dict(
-            doc = "Don't reset jar entry timestamps to a fixed date.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xno-reset-jar-timestamps"]},
-    ),
     "x_no_source_debug_extension": struct(
         flag = "-Xno-source-debug-extension",
         args = dict(
@@ -448,6 +839,14 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xno-unified-null-checks"]},
     ),
+    "x_non_local_break_continue": struct(
+        flag = "-Xnon-local-break-continue",
+        args = dict(
+            doc = "Enable experimental non-local break and continue.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xnon-local-break-continue"]},
+    ),
     "x_nullability_annotations": struct(
         flag = "-Xnullability-annotations",
         args = dict(
@@ -462,26 +861,123 @@ GENERATED_KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_string_list_flag("-Xnullability-annotations"),
     ),
-    "x_output_builtins_metadata": struct(
-        flag = "-Xoutput-builtins-metadata",
+    "x_phases_to_dump": struct(
+        flag = "-Xphases-to-dump",
         args = dict(
-            doc = "Output builtins metadata as .kotlin_builtins files",
+            doc = "Dump the backend's state both before and after these phases.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xphases-to-dump"),
+    ),
+    "x_phases_to_dump_after": struct(
+        flag = "-Xphases-to-dump-after",
+        args = dict(
+            doc = "Dump the backend's state after these phases.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xphases-to-dump-after"),
+    ),
+    "x_phases_to_dump_before": struct(
+        flag = "-Xphases-to-dump-before",
+        args = dict(
+            doc = "Dump the backend's state before these phases.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xphases-to-dump-before"),
+    ),
+    "x_phases_to_validate": struct(
+        flag = "-Xphases-to-validate",
+        args = dict(
+            doc = "Validate the backend's state both before and after these phases.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xphases-to-validate"),
+    ),
+    "x_phases_to_validate_after": struct(
+        flag = "-Xphases-to-validate-after",
+        args = dict(
+            doc = "Validate the backend's state after these phases.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xphases-to-validate-after"),
+    ),
+    "x_phases_to_validate_before": struct(
+        flag = "-Xphases-to-validate-before",
+        args = dict(
+            doc = "Validate the backend's state before these phases.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xphases-to-validate-before"),
+    ),
+    "x_profile_phases": struct(
+        flag = "-Xprofile-phases",
+        args = dict(
+            doc = "Profile backend phases.",
         ),
         type = attr.bool,
-        value_to_flag = {True: ["-Xoutput-builtins-metadata"]},
+        value_to_flag = {True: ["-Xprofile-phases"]},
     ),
-    "x_profile": struct(
-        flag = "-Xprofile",
+    "x_render_internal_diagnostic_names": struct(
+        flag = "-Xrender-internal-diagnostic-names",
         args = dict(
-            doc = """Debug option: Run the compiler with the async profiler and save snapshots to `outputDir`; `command` is passed to the async profiler on start.
-    `profilerPath` is the path to libasyncProfiler.so; async-profiler.jar should be on the compiler classpath.
-    If it's not on the classpath, the compiler will attempt to load async-profiler.jar from the containing directory of profilerPath.
-    Example: -Xprofile=<PATH_TO_ASYNC_PROFILER>/async-profiler/build/libasyncProfiler.so:event=cpu,interval=1ms,threads,start:<SNAPSHOT_DIR_PATH>""",
-            default = "",
+            doc = "Render the internal names of warnings and errors.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xrender-internal-diagnostic-names"]},
+    ),
+    "x_repl": struct(
+        flag = "-Xrepl",
+        args = dict(
+            doc = "Run Kotlin REPL (deprecated)",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xrepl"]},
+    ),
+    "x_report_all_warnings": struct(
+        flag = "-Xreport-all-warnings",
+        args = dict(
+            doc = "Report all warnings even if errors are found.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xreport-all-warnings"]},
+    ),
+    "x_report_output_files": struct(
+        flag = "-Xreport-output-files",
+        args = dict(
+            doc = "Report the source-to-output file mapping.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xreport-output-files"]},
+    ),
+    "x_report_perf": struct(
+        flag = "-Xreport-perf",
+        args = dict(
+            doc = "Report detailed performance statistics.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xreport-perf"]},
+    ),
+    "x_return_value_checker": struct(
+        flag = "-Xreturn-value-checker",
+        args = dict(
+            doc = "Set improved unused return value checker mode. Use 'check' to run checker only and use 'full' to also enable automatic annotation insertion.",
+            values = ["", "check", "full", "disable"],
         ),
         type = attr.string,
         value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xprofile"),
+        map_value_to_flag = _map_string_flag("-Xreturn-value-checker"),
     ),
     "x_sam_conversions": struct(
         flag = "-Xsam-conversions",
@@ -506,15 +1002,13 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xsanitize-parentheses"]},
     ),
-    "x_script_resolver_environment": struct(
-        flag = "-Xscript-resolver-environment",
+    "x_separate_kmp_compilation": struct(
+        flag = "-Xseparate-kmp-compilation",
         args = dict(
-            doc = "Set the script resolver environment in key-value pairs (the value can be quoted and escaped).",
-            default = [],
+            doc = "Enables the separated compilation scheme, in which common source sets are analyzed against their own dependencies",
         ),
-        type = attr.string_list,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_list_flag("-Xscript-resolver-environment"),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xseparate-kmp-compilation"]},
     ),
     "x_serialize_ir": struct(
         flag = "-Xserialize-ir",
@@ -525,6 +1019,30 @@ GENERATED_KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-Xserialize-ir"),
+    ),
+    "x_skip_metadata_version_check": struct(
+        flag = "-Xskip-metadata-version-check",
+        args = dict(
+            doc = "Allow loading classes with bad metadata versions and pre-release classes.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xskip-metadata-version-check"]},
+    ),
+    "x_skip_prerelease_check": struct(
+        flag = "-Xskip-prerelease-check",
+        args = dict(
+            doc = "Allow loading pre-release classes.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xskip-prerelease-check"]},
+    ),
+    "x_stdlib_compilation": struct(
+        flag = "-Xstdlib-compilation",
+        args = dict(
+            doc = "Enables special features which are relevant only for stdlib compilation.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xstdlib-compilation"]},
     ),
     "x_string_concat": struct(
         flag = "-Xstring-concat",
@@ -545,11 +1063,20 @@ GENERATED_KOPTS = {
         args = dict(
             doc = """Specify the behavior for Checker Framework 'compatqual' annotations ('NullableDecl'/'NonNullDecl').
     The default value is 'enable'.""",
-            values = ["", "enable", "disable"],
+            default = "",
         ),
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-Xsupport-compatqual-checker-framework-annotations"),
+    ),
+    "x_suppress_api_version_greater_than_language_version_error": struct(
+        flag = "-Xsuppress-api-version-greater-than-language-version-error",
+        args = dict(
+            doc = """Suppress error about API version greater than language version.
+    Warning: This is temporary solution (see KT-63712) intended to be used only for stdlib build.""",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xsuppress-api-version-greater-than-language-version-error"]},
     ),
     "x_suppress_deprecated_jvm_target_warning": struct(
         flag = "-Xsuppress-deprecated-jvm-target-warning",
@@ -568,6 +1095,24 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xsuppress-missing-builtins-error"]},
     ),
+    "x_suppress_version_warnings": struct(
+        flag = "-Xsuppress-version-warnings",
+        args = dict(
+            doc = "Suppress warnings about outdated, inconsistent, or experimental language or API versions.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xsuppress-version-warnings"]},
+    ),
+    "x_suppress_warning": struct(
+        flag = "-Xsuppress-warning",
+        args = dict(
+            doc = """Suppress specified warning module-wide. This option is deprecated in favor of "-Xwarning-level" flag""",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xsuppress-warning"),
+    ),
     "x_type_enhancement_improvements_strict_mode": struct(
         flag = "-Xtype-enhancement-improvements-strict-mode",
         args = dict(
@@ -577,6 +1122,14 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xtype-enhancement-improvements-strict-mode"]},
+    ),
+    "x_unrestricted_builder_inference": struct(
+        flag = "-Xunrestricted-builder-inference",
+        args = dict(
+            doc = "Eliminate builder inference restrictions, for example by allowing type variables to be returned from builder inference calls.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xunrestricted-builder-inference"]},
     ),
     "x_use_14_inline_classes_mangling_scheme": struct(
         flag = "-Xuse-14-inline-classes-mangling-scheme",
@@ -594,6 +1147,31 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xuse-fast-jar-file-system"]},
     ),
+    "x_use_fir_experimental_checkers": struct(
+        flag = "-Xuse-fir-experimental-checkers",
+        args = dict(
+            doc = "Enable experimental frontend IR checkers that are not yet ready for production.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xuse-fir-experimental-checkers"]},
+    ),
+    "x_use_fir_ic": struct(
+        flag = "-Xuse-fir-ic",
+        args = dict(
+            doc = """Compile using frontend IR internal incremental compilation.
+    Warning: This feature is not yet production-ready.""",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xuse-fir-ic"]},
+    ),
+    "x_use_fir_lt": struct(
+        flag = "-Xuse-fir-lt",
+        args = dict(
+            doc = "Compile using the LightTree parser with the frontend IR.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xuse-fir-lt"]},
+    ),
     "x_use_inline_scopes_numbers": struct(
         flag = "-Xuse-inline-scopes-numbers",
         args = dict(
@@ -602,21 +1180,13 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xuse-inline-scopes-numbers"]},
     ),
-    "x_use_javac": struct(
-        flag = "-Xuse-javac",
+    "x_use_k2": struct(
+        flag = "-Xuse-k2",
         args = dict(
-            doc = "Use javac for Java source and class file analysis.",
+            doc = "Compile using the experimental K2 compiler pipeline. No compatibility guarantees are provided yet.",
         ),
         type = attr.bool,
-        value_to_flag = {True: ["-Xuse-javac"]},
-    ),
-    "x_use_k2_kapt": struct(
-        flag = "-Xuse-k2-kapt",
-        args = dict(
-            doc = "Enable the experimental support for K2 KAPT.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xuse-k2-kapt"]},
+        value_to_flag = {True: ["-Xuse-k2"]},
     ),
     "x_use_old_class_files_reading": struct(
         flag = "-Xuse-old-class-files-reading",
@@ -651,6 +1221,47 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xvalue-classes"]},
     ),
+    "x_verbose_phases": struct(
+        flag = "-Xverbose-phases",
+        args = dict(
+            doc = "Be verbose while performing the given backend phases.",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xverbose-phases"),
+    ),
+    "x_verify_ir": struct(
+        flag = "-Xverify-ir",
+        args = dict(
+            doc = "IR verification mode (no verification by default).",
+            values = ["", "none", "warning", "error"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-Xverify-ir"),
+    ),
+    "x_verify_ir_visibility": struct(
+        flag = "-Xverify-ir-visibility",
+        args = dict(
+            doc = "Check for visibility violations in IR when validating it before running any lowerings. Only has effect if '-Xverify-ir' is not 'none'.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xverify-ir-visibility"]},
+    ),
+    "x_warning_level": struct(
+        flag = "-Xwarning-level",
+        args = dict(
+            doc = """Set the severity of the given warning.
+    - `error` level raises the severity of a warning to error level (similar to -Werror but more granular)
+    - `disabled` level suppresses reporting of a warning (similar to -nowarn but more granular)
+    - `warning` level overrides -nowarn and -Werror for this specific warning (the warning will be reported/won't be considered as an error)""",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-Xwarning-level"),
+    ),
     "x_when_expressions": struct(
         flag = "-Xwhen-expressions",
         args = dict(
@@ -664,5 +1275,63 @@ GENERATED_KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-Xwhen-expressions"),
+    ),
+    "x_when_guards": struct(
+        flag = "-Xwhen-guards",
+        args = dict(
+            doc = "Enable experimental language support for when guards.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xwhen-guards"]},
+    ),
+    "x_xdebug_level_compiler_checks": struct(
+        flag = "-XXdebug-level-compiler-checks",
+        args = dict(
+            doc = "Enable debug level compiler checks. ATTENTION: these checks can slow compiler down or even crash it.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-XXdebug-level-compiler-checks"]},
+    ),
+    "x_xdump_model": struct(
+        flag = "-XXdump-model",
+        args = dict(
+            doc = "Dump compilation model to specified directory for use in modularized tests.",
+            default = "",
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-XXdump-model"),
+    ),
+    "x_xexplicit_return_types": struct(
+        flag = "-XXexplicit-return-types",
+        args = dict(
+            doc = """Force the compiler to report errors on all public API declarations without an explicit return type.
+    Use the 'warning' level to issue warnings instead of errors.
+    This flag partially enables functionality of `-Xexplicit-api` flag, so please don't use them altogether""",
+            values = ["", "strict", "warning", "disable"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-XXexplicit-return-types"),
+    ),
+    "x_xlanguage": struct(
+        flag = "-XXLanguage",
+        args = dict(
+            doc = """Enables/disables specified language feature.
+    Warning: this flag is not intended for production use. If you want to configure the language behaviour use the
+    -language-version or corresponding experimental feature flags.""",
+            default = [],
+        ),
+        type = attr.string_list,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_list_flag("-XXLanguage"),
+    ),
+    "x_xlenient_mode": struct(
+        flag = "-XXlenient-mode",
+        args = dict(
+            doc = "Lenient compiler mode. When actuals are missing, placeholder declarations are generated.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-XXlenient-mode"]},
     ),
 }

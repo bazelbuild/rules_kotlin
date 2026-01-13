@@ -130,27 +130,45 @@ object WriteKotlincCapabilities {
     "-Xfriend-paths",  // Internal module visibility - managed by rules_kotlin
     "-Xjava-source-roots",  // Managed by rules_kotlin based on deps
     "-Xjavac-arguments",  // Use kt_javac_options instead
+    // Flags handled in MANUAL_KOPTS with custom logic - suppress to avoid duplicates
+    "-jvm-target",  // Handled in MANUAL_KOPTS with specific allowed values
+    // Flags that don't make sense in rules_kotlin context
+    "-Xallow-no-source-files",  // Rules will fail before this flag is checked
+    "-Xcompile-java",  // Java compilation happens via the java builder
+    "-Xuse-javac",  // Java sources are compiled via a different pipeline
+    "-Xuse-k2-kapt",  // kapt is explicitly supported via rules
+    // Script-related flags - script compilation not supported by rules
+    "-Xdefault-script-extension",
+    "-Xdisable-standard-script",
+    "-Xscript-resolver-environment",
+    // Path-based flags that require explicit rule support
+    "-Xklib",  // Cross-platform libraries need to be in action inputs
+    "-Xmodule-path",  // Java 9+ modules need path handling
+    "-Xprofile",  // Requires path input and produces outputs that would be lost
+    // Flags that conflict with rules_kotlin behavior
+    "-Xno-reset-jar-timestamps",  // Rules explicitly zero out timestamps
+    "-Xoutput-builtins-metadata",  // Outputs would not be added to rule outputs
   )
 
   /**
-   * Known enumerated values for flags that have restricted choices.
-   * These values are extracted from kotlinc documentation and used to
-   * validate at analysis time rather than compilation time.
+   * Parse enumerated values from valueDescription.
+   * The format is typically {value1|value2|value3} or {value1/value2/value3}.
+   * Returns null if the valueDescription doesn't contain enumerated values.
    */
-  private val enumeratedFlagValues = mapOf(
-    "-jvm-default" to listOf("enable", "no-compatibility", "disable"),
-    "-Xassertions" to listOf("always-enable", "always-disable", "jvm", "legacy"),
-    "-Xlambdas" to listOf("class", "indy"),
-    "-Xsam-conversions" to listOf("class", "indy"),
-    "-Xstring-concat" to listOf("indy-with-constants", "indy", "inline"),
-    "-Xwhen-expressions" to listOf("indy", "inline"),
-    "-Xserialize-ir" to listOf("none", "inline", "all"),
-    "-Xabi-stability" to listOf("stable", "unstable"),
-    "-Xjspecify-annotations" to listOf("ignore", "strict", "warn"),
-    "-Xsupport-compatqual-checker-framework-annotations" to listOf("enable", "disable"),
-    // Deprecated flag - include for backward compatibility
-    "-Xjvm-default" to listOf("disable", "all-compatibility", "all"),
-  )
+  private fun parseEnumeratedValues(valueDescription: String?): List<String>? {
+    if (valueDescription.isNullOrBlank()) return null
+
+    // Match pattern like {value1|value2|value3} or {value1/value2/value3}
+    val match = Regex("^\\{([^}]+)}$").find(valueDescription.trim()) ?: return null
+    val content = match.groupValues[1]
+
+    // Split by | or / and filter out placeholders like <path>, <N>, etc.
+    val values = content.split(Regex("[|/]"))
+      .map { it.trim() }
+      .filter { it.isNotBlank() && !it.startsWith("<") && !it.endsWith(">") }
+
+    return if (values.size >= 2) values else null
+  }
 
   fun String.increment() = "$this  "
   fun String.decrement() = substring(0, (length - 2).coerceAtLeast(0))
@@ -262,32 +280,46 @@ object WriteKotlincCapabilities {
 
   /**
    * Extract compiler arguments from kotlin-compiler-arguments-description artifact.
-   * This collects arguments from all levels up to and including JVM arguments.
+   * This collects arguments from the path from topLevel to JVM arguments,
+   * including common compiler arguments.
    */
   private fun getArgumentsFromDescription(): Sequence<KotlincCapability> = sequence {
-    // Collect all arguments for JVM compilation (includes common + JVM specific)
-    val jvmLevel = findLevel(kotlinCompilerArguments.topLevel, CompilerArgumentsLevelNames.jvmCompilerArguments)
-    if (jvmLevel != null) {
-      yieldAll(collectArgumentsFromLevel(jvmLevel))
+    // Find the path from topLevel to jvmCompilerArguments
+    val path = findPathToLevel(
+      kotlinCompilerArguments.topLevel,
+      CompilerArgumentsLevelNames.jvmCompilerArguments,
+      mutableListOf()
+    )
+    if (path != null) {
+      // Collect arguments from all levels in the path (common + JVM specific)
+      for (level in path) {
+        yieldAll(collectArgumentsFromLevel(level))
+      }
     }
   }
 
   /**
-   * Find a specific level in the compiler arguments hierarchy.
+   * Find a path from the current level to the target level.
+   * Returns a list of levels from root to target (inclusive), or null if not found.
    */
-  private fun findLevel(level: KotlinCompilerArgumentsLevel, targetName: String): KotlinCompilerArgumentsLevel? {
-    if (level.name == targetName) return level
+  private fun findPathToLevel(
+    level: KotlinCompilerArgumentsLevel,
+    targetName: String,
+    currentPath: MutableList<KotlinCompilerArgumentsLevel>
+  ): List<KotlinCompilerArgumentsLevel>? {
+    currentPath.add(level)
+    if (level.name == targetName) return currentPath.toList()
     for (subLevel in level.nestedLevels) {
-      findLevel(subLevel, targetName)?.let { return it }
+      findPathToLevel(subLevel, targetName, currentPath)?.let { return it }
     }
+    currentPath.removeLast()
     return null
   }
 
   /**
-   * Collect all arguments from a level and its parent chain (merged arguments).
+   * Collect all arguments from a single level.
    */
   private fun collectArgumentsFromLevel(level: KotlinCompilerArgumentsLevel): Sequence<KotlincCapability> = sequence {
-    // Get arguments from this level and all merged levels
     for (arg in level.arguments) {
       yield(arg.toCapability())
     }
@@ -313,11 +345,15 @@ object WriteKotlincCapabilities {
       else -> StarlarkType.Str()
     }
 
+    // Extract enumerated values from valueDescription if available
+    val enumValues = parseEnumeratedValues(valueDescription.current)
+
     return KotlincCapability(
       flag = "-$name",
       doc = description.current,
       default = defaultValue,
       type = starlarkType,
+      enumeratedValues = enumValues,
       introducedVersion = releaseVersionsMetadata.introducedVersion.toString(),
       stabilizedVersion = releaseVersionsMetadata.stabilizedVersion?.toString(),
     )
@@ -396,6 +432,7 @@ def _map_string_list_flag(flag):
     val doc: String,
     private val default: String?,
     val type: StarlarkType,
+    val enumeratedValues: List<String>? = null,
     val introducedVersion: String? = null,
     val stabilizedVersion: String? = null,
   ) : Comparable<KotlincCapability> {
@@ -427,7 +464,6 @@ def _map_string_list_flag(flag):
      * String options with enumerated values use the values list for analysis-time validation.
      */
     fun asOptStructString(indent: String): String {
-      val enumValues = enumeratedFlagValues[flag]
       return when (type) {
         is StarlarkType.Bool -> """
           struct(
@@ -439,9 +475,9 @@ def _map_string_list_flag(flag):
               value_to_flag = {True: ["$flag"]},
           )
           """.trimIndent().prependIndent(indent)
-        is StarlarkType.Str -> if (enumValues != null) {
+        is StarlarkType.Str -> if (enumeratedValues != null) {
           // Enumerated string option - add values list for analysis-time validation
-          val valuesStr = enumValues.joinToString(", ") { "\"$it\"" }
+          val valuesStr = enumeratedValues.joinToString(", ") { "\"$it\"" }
           """
           struct(
               flag = ${flag.bzlQuote()},
