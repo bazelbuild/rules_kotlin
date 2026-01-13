@@ -51,19 +51,11 @@ versions = struct(
         ],
     ),
     COM_GOOGLE_PROTOBUF = version(
-        version = "29.0",
-        sha256 = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
+        version = "33.4",
+        sha256 = "bc670a4e34992c175137ddda24e76562bb928f849d712a0e3c2fb2e19249bea1",
         strip_prefix_template = "protobuf-{version}",
         url_templates = [
             "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.tar.gz",
-        ],
-    ),
-    RULES_PROTO = version(
-        version = "7.0.2",
-        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
-        strip_prefix_template = "rules_proto-{version}",
-        url_templates = [
-            "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
         ],
     ),
     PINTEREST_KTLINT = version(
@@ -145,14 +137,6 @@ versions = struct(
             "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/{version}/kotlinx-serialization-json-jvm-{version}.jar",
         ],
         sha256 = "8769e5647557e3700919c32d508f5c5dad53c5d8234cd10846354fbcff14aa24",
-    ),
-    PY_ABSL = version(
-        version = "2.1.0",
-        sha256 = "8a3d0830e4eb4f66c4fa907c06edf6ce1c719ced811a12e26d9d3162f8471758",
-        url_templates = [
-            "https://github.com/abseil/abseil-py/archive/refs/tags/v{version}.tar.gz",
-        ],
-        strip_prefix_template = "abseil-py-{version}",
     ),
     RULES_CC = version(
         version = "0.0.16",
