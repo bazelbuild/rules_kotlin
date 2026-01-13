@@ -1,6 +1,8 @@
 module(name = "nested_module_resources")
 
 bazel_dep(name = "rules_kotlin", version = "1.9.5")
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
+
 local_path_override(
     module_name = "rules_kotlin",
     path = "../..",
