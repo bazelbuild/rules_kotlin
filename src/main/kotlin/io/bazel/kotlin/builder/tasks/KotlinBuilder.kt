@@ -91,6 +91,8 @@ class KotlinBuilder
         INCREMENTAL_COMPILATION("--incremental_compilation"),
         CLASSPATH_SNAPSHOT("--classpath_snapshot"),
         CLASSPATH_SNAPSHOTS("--classpath_snapshots"),
+        SHRUNK_CLASSPATH_SNAPSHOT("--shrunk_classpath_snapshot"),
+        PREVIOUS_SHRUNK_CLASSPATH_SNAPSHOT("--previous_shrunk_classpath_snapshot"),
       }
     }
 
@@ -225,6 +227,9 @@ class KotlinBuilder
           argMap.optionalSingle(KotlinBuilderFlags.CLASSPATH_SNAPSHOT)?.let {
             classpathSnapshot = it
           }
+          argMap.optionalSingle(KotlinBuilderFlags.SHRUNK_CLASSPATH_SNAPSHOT)?.let {
+            shrunkClasspathSnapshot = it
+          }
         }
 
         with(root.directoriesBuilder) {
@@ -315,6 +320,9 @@ class KotlinBuilder
           addAllClasspathSnapshots(
             argMap.optional(KotlinBuilderFlags.CLASSPATH_SNAPSHOTS) ?: emptyList(),
           )
+          argMap.optionalSingle(KotlinBuilderFlags.PREVIOUS_SHRUNK_CLASSPATH_SNAPSHOT)?.let {
+            previousShrunkClasspathSnapshot = it
+          }
         }
 
         with(root.infoBuilder) {

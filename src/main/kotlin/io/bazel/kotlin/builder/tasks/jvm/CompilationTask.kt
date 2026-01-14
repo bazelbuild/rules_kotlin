@@ -386,6 +386,51 @@ internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> =
   // Only use tracked snapshots from dependencies that actually exist
   inputs.classpathSnapshotsList
 
+/**
+ * Creates incremental compilation arguments for the Build Tools API compiler.
+ * Returns an empty CompilationArgs if incremental compilation is not enabled.
+ */
+internal fun JvmCompilationTask.incrementalCompilationArgs(): CompilationArgs {
+  if (!info.incrementalCompilation) {
+    return CompilationArgs()
+  }
+
+  // IC working directory for caches
+  val icWorkingDir = if (directories.incrementalBaseDir.isNotEmpty()) {
+    Paths.get(directories.incrementalBaseDir).resolve("ic-caches")
+  } else {
+    return CompilationArgs() // No IC base dir, skip IC
+  }
+
+  // Shrunk classpath snapshot path (output, also potentially input from previous build)
+  val shrunkSnapshotPath = if (outputs.shrunkClasspathSnapshot.isNotEmpty()) {
+    outputs.shrunkClasspathSnapshot
+  } else {
+    icWorkingDir.resolve("shrunk-classpath-snapshot.bin").toString()
+  }
+
+  // Classpath snapshots from dependencies
+  val classpathSnapshots = inputs.classpathSnapshotsList.filter { it.isNotEmpty() }
+
+  // Root project dir for relocatable caches (use execution root)
+  val rootProjectDir = ROOT.trimEnd(File.separatorChar)
+
+  // Check if we should force recompilation (no previous snapshot)
+  val forceRecompilation = inputs.previousShrunkClasspathSnapshot.isEmpty() ||
+    !Paths.get(inputs.previousShrunkClasspathSnapshot).toFile().exists()
+
+  return CompilationArgs()
+    .flag("--ic-working-dir=$icWorkingDir")
+    .flag("--ic-shrunk-snapshot=$shrunkSnapshotPath")
+    .flag("--ic-root-project-dir=$rootProjectDir")
+    .given(classpathSnapshots.isNotEmpty()) {
+      flag("--ic-classpath-snapshots=${classpathSnapshots.joinToString(",")}")
+    }
+    .given(forceRecompilation) {
+      flag("--ic-force-recompilation")
+    }
+}
+
 val ROOT: String by lazy {
   FileSystems
     .getDefault()

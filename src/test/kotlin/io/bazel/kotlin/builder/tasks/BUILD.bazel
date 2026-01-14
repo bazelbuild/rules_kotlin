@@ -115,6 +115,18 @@ kt_rules_test(
 )
 
 kt_rules_test(
+    name = "IncrementalCompilationTest",
+    size = "large",
+    srcs = ["jvm/IncrementalCompilationTest.kt"],
+    deps = [
+        "//kotlin/compiler:kotlin-test",
+        "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
+
+kt_rules_test(
     name = "Ksp2TaskTest",
     srcs = ["Ksp2TaskTest.kt"],
     deps = [
@@ -128,6 +140,7 @@ kt_rules_test(
 test_suite(
     name = "tasks_tests",
     tests = [
+        ":IncrementalCompilationTest",
         ":JdepsMergerTest",
         ":JdepsParserTest",
         ":KotlinBuilderIncrementalDirTest",

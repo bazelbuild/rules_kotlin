@@ -140,6 +140,9 @@ message JvmCompilationTask {
     string generated_ksp_classes_jar = 9;
     // The path to the classpath snapshot file for incremental compilation.
     string classpath_snapshot = 10;
+    // The path to the shrunk classpath snapshot file for incremental compilation.
+    // This file stores a reduced version of the classpath snapshot based on actual usage.
+    string shrunk_classpath_snapshot = 11;
   }
 
   message Inputs {
@@ -177,6 +180,9 @@ message JvmCompilationTask {
       repeated string deps_artifacts = 16;
       // Classpath snapshot files from dependencies for incremental compilation.
       repeated string classpath_snapshots = 17;
+      // The path to the previous shrunk classpath snapshot (from the previous build).
+      // Empty string if this is the first build or incremental compilation is disabled.
+      string previous_shrunk_classpath_snapshot = 18;
   }
 
   CompilationTaskInfo info = 1;

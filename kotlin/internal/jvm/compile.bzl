@@ -955,6 +955,8 @@ def _run_kt_java_builder_actions(
         if toolchains.kt.experimental_incremental_compilation:
             classpath_snapshot = ctx.actions.declare_file(ctx.label.name + ".snapshot")
             outputs["classpath_snapshot"] = classpath_snapshot
+            # Note: shrunk_classpath_snapshot is stored in the IC working directory,
+            # not as a declared Bazel output, since it's an internal IC file.
 
         _run_kt_builder_action(
             ctx = ctx,

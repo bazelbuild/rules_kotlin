@@ -105,6 +105,8 @@ class KotlinJvmTaskExecutor
                           given(outputs.jar).empty {
                             plugin(plugins.skipCodeGen)
                           }
+                        }.given(info.incrementalCompilation) {
+                          append(incrementalCompilationArgs())
                         },
                     printOnFail = false,
                   )
