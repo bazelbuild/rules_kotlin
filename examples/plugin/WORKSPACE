@@ -28,6 +28,36 @@ http_archive(
     urls = [url.format(version = versions.BAZEL_SKYLIB.version) for url in versions.BAZEL_SKYLIB.url_templates],
 )
 
+http_archive(
+    name = "bazel_features",
+    sha256 = versions.BAZEL_FEATURES.sha256,
+    strip_prefix = versions.BAZEL_FEATURES.strip_prefix_template.format(version = versions.BAZEL_FEATURES.version),
+    urls = [url.format(version = versions.BAZEL_FEATURES.version) for url in versions.BAZEL_FEATURES.url_templates],
+)
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+http_archive(
+    name = "rules_cc",
+    sha256 = versions.RULES_CC.sha256,
+    strip_prefix = versions.RULES_CC.strip_prefix_template.format(version = versions.RULES_CC.version),
+    urls = [url.format(version = versions.RULES_CC.version) for url in versions.RULES_CC.url_templates],
+)
+
+load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
+
+rules_cc_dependencies()
+
+rules_cc_toolchains()
+
+http_archive(
+    name = "rules_java",
+    sha256 = versions.RULES_JAVA.sha256,
+    urls = [url.format(version = versions.RULES_JAVA.version) for url in versions.RULES_JAVA.url_templates],
+)
+
 # Android rules dependencies
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
 
