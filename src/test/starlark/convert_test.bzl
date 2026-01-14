@@ -29,6 +29,16 @@ _TEST_OPTS = {
     }),
 }
 
+# Test options for boolean behavior (like generated KOPTS)
+_BOOL_OPTS = {
+    "bool_opt": struct(
+        args = dict(
+            doc = "Test boolean",
+        ),
+        value_to_flag = {True: ["-Xtest-flag"]},
+    ),
+}
+
 def _convert_options_to_flags_empty_options_test(ctx):
     """Asserts that the converts return None when the
     attr_provider doesn't exist
@@ -76,9 +86,38 @@ convert_options_to_flags_test = unittest.make(
     _convert_options_to_flags_test,
 )
 
+def _bool_true_passes_flag_test(ctx):
+    """Tests that boolean True value passes the flag."""
+    env = unittest.begin(ctx)
+
+    attrs = struct(bool_opt = True)
+    flags = convert.kotlinc_options_to_flags(_BOOL_OPTS, attrs)
+
+    asserts.equals(env, ["-Xtest-flag"], flags)
+
+    return unittest.end(env)
+
+bool_true_passes_flag_test = unittest.make(_bool_true_passes_flag_test)
+
+def _bool_false_passes_no_flag_test(ctx):
+    """Tests that boolean False value does not pass any flag."""
+    env = unittest.begin(ctx)
+
+    attrs = struct(bool_opt = False)
+    flags = convert.kotlinc_options_to_flags(_BOOL_OPTS, attrs)
+
+    # False is not in value_to_flag, so no flag should be passed
+    asserts.equals(env, [], flags)
+
+    return unittest.end(env)
+
+bool_false_passes_no_flag_test = unittest.make(_bool_false_passes_no_flag_test)
+
 def convert_test_suite(name):
     unittest.suite(
         name,
         convert_options_to_flags_empty_options_test,
         convert_options_to_flags_test,
+        bool_true_passes_flag_test,
+        bool_false_passes_no_flag_test,
     )
