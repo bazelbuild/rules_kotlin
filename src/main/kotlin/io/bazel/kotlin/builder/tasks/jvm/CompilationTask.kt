@@ -366,15 +366,19 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
  * Creates a classpath snapshot for the output jar.
  * The snapshot is stored in the IC directory as a worker-local side-effect,
  * not as a Bazel-tracked output.
+ *
+ * This snapshot (output-classpath-snapshot.bin) is used by downstream targets
+ * that depend on this target. It is separate from BTAPI's internal shrunk
+ * dependencies snapshot (shrunk-classpath-snapshot.bin).
  */
 internal fun JvmCompilationTask.createOutputClasspathSnapshot(snapshotInvoker: KotlinToolchain.ClasspathSnapshotInvoker) {
   if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
     return
   }
-  // Write snapshot to IC directory
+  // Write snapshot to IC directory - use distinct name to avoid collision with BTAPI's internal snapshot
   val icDir = Paths.get(directories.incrementalBaseDir)
   Files.createDirectories(icDir)
-  val snapshotPath = icDir.resolve("shrunk-classpath-snapshot.bin").toString()
+  val snapshotPath = icDir.resolve("output-classpath-snapshot.bin").toString()
 
   snapshotInvoker.generate(
     outputs.jar,
@@ -434,9 +438,12 @@ internal fun JvmCompilationTask.ensureJdepsExists() {
 
 /**
  * Computes classpath snapshot paths from classpath JAR paths.
- * For each JAR at path/foo.jar or path/foo.abi.jar, the snapshot is at path/foo-ic/shrunk-classpath-snapshot.bin.
+ * For each JAR at path/foo.jar or path/foo.abi.jar, the snapshot is at path/foo-ic/output-classpath-snapshot.bin.
  * The IC directory is always derived from the main JAR name (without .abi suffix).
  * Only returns paths that actually exist (from previous builds).
+ *
+ * Note: This looks for output-classpath-snapshot.bin (the snapshot of the dep's output JAR),
+ * not shrunk-classpath-snapshot.bin (which is BTAPI's internal file).
  */
 internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
   if (!info.incrementalCompilation) {
@@ -450,7 +457,7 @@ internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
       val jarName = path.fileName.toString()
         .removeSuffix(".jar")
         .removeSuffix(".abi") // For ABI jars, remove .abi suffix too
-      val snapshotPath = path.resolveSibling("$jarName-ic/shrunk-classpath-snapshot.bin")
+      val snapshotPath = path.resolveSibling("$jarName-ic/output-classpath-snapshot.bin")
       if (snapshotPath.exists()) {
         snapshotPath.toString()
       } else {
@@ -464,9 +471,10 @@ internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
  * Returns an empty CompilationArgs if incremental compilation is not enabled.
  *
  * IC data is stored in worker-local directories derived from output JAR paths:
- * - IC working directory: <output_jar>-ic/
- * - Snapshot path: <output_jar>-ic/shrunk-classpath-snapshot.bin
- * - Dependencies' snapshots are found by computing paths from classpath JARs
+ * - IC working directory: <output_jar>-ic/ic-caches/
+ * - BTAPI's shrunk snapshot: <output_jar>-ic/shrunk-classpath-snapshot.bin (managed by BTAPI)
+ * - Our output snapshot: <output_jar>-ic/output-classpath-snapshot.bin (for downstream consumers)
+ * - Dependencies' snapshots: found at <dep_jar>-ic/output-classpath-snapshot.bin
  */
 internal fun JvmCompilationTask.incrementalCompilationArgs(): CompilationArgs {
   if (!info.incrementalCompilation) {

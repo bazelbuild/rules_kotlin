@@ -56,6 +56,7 @@ def ic_integration_test_suite(
         workspace_path: Path to test workspace directory (relative to repo root)
         tags: Additional test tags
     """
+
     # workspace_path is relative to repo root (e.g., "ic_tests/trivial_change")
     # But glob is relative to current BUILD file directory
     # So we need to strip the package prefix

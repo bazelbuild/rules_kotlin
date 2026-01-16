@@ -135,13 +135,13 @@ _kt_toolchain = rule(
             using `tags` attribute defined directly on the rules.""",
             allow_empty = True,
         ),
-        "experimental_incremental_compilation": attr.label(
-            doc = "Enables experimental support for incremental compilation",
-            default = Label("//kotlin/settings:experimental_incremental_compilation"),
-        ),
         "experimental_ic_enable_logging": attr.label(
             doc = "Enables verbose IC logging for debugging/testing",
             default = Label("//kotlin/settings:experimental_ic_enable_logging"),
+        ),
+        "experimental_incremental_compilation": attr.label(
+            doc = "Enables experimental support for incremental compilation",
+            default = Label("//kotlin/settings:experimental_incremental_compilation"),
         ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",

@@ -117,7 +117,6 @@ def _fail_if_invalid_associate_deps(associate_deps, deps):
 def _java_infos_to_compile_jars(java_infos):
     return depset(transitive = [j.compile_jars for j in java_infos])
 
-
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
     plugins = []
