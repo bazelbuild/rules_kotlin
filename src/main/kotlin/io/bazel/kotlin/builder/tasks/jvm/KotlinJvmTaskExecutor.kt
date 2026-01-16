@@ -54,7 +54,7 @@ class KotlinJvmTaskExecutor
       context: CompilationTaskContext,
       task: JvmCompilationTask,
     ) {
-      val compiler = compilerBuilder.build(context.info.buildToolsApi)
+      val compiler = compilerBuilder.build()
 
       val preprocessedTask =
         task
@@ -105,6 +105,8 @@ class KotlinJvmTaskExecutor
                           given(outputs.jar).empty {
                             plugin(plugins.skipCodeGen)
                           }
+                        }.given(info.incrementalCompilation) {
+                          append(incrementalCompilationArgs())
                         },
                     printOnFail = false,
                   )
@@ -131,11 +133,18 @@ class KotlinJvmTaskExecutor
             }
           }
 
+          // Ensure jdeps exists (restore from IC cache if compilation was skipped)
+          context.execute("ensure jdeps") { ensureJdepsExists() }
+
           if (outputs.jar.isNotEmpty()) {
             if (instrumentCoverage) {
               context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
             } else {
               context.execute("create jar", ::createOutputJar)
+            }
+            // Generate classpath snapshot for incremental compilation (stored in IC directory, not Bazel output)
+            if (context.info.incrementalCompilation) {
+              context.execute("create classpath snapshot") { createOutputClasspathSnapshot(compilerBuilder.buildSnapshotInvoker()) }
             }
           }
           if (outputs.abijar.isNotEmpty()) {

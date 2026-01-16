@@ -35,6 +35,7 @@ import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.ObjectOutputStream
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Files.isDirectory
 import java.nio.file.Files.walk
@@ -359,6 +360,168 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
     it.setJarOwner(info.label, info.bazelRuleKind)
     it.execute()
   }
+}
+
+/**
+ * Creates a classpath snapshot for the output jar.
+ * The snapshot is stored in the IC directory as a worker-local side-effect,
+ * not as a Bazel-tracked output.
+ *
+ * This snapshot (output-classpath-snapshot.bin) is used by downstream targets
+ * that depend on this target. It is separate from BTAPI's internal shrunk
+ * dependencies snapshot (shrunk-classpath-snapshot.bin).
+ */
+internal fun JvmCompilationTask.createOutputClasspathSnapshot(snapshotInvoker: KotlinToolchain.ClasspathSnapshotInvoker) {
+  if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
+    return
+  }
+  // Write snapshot to IC directory - use distinct name to avoid collision with BTAPI's internal snapshot
+  val icDir = Paths.get(directories.incrementalBaseDir)
+  Files.createDirectories(icDir)
+  val snapshotPath = icDir.resolve("output-classpath-snapshot.bin").toString()
+
+  snapshotInvoker.generate(
+    outputs.jar,
+    snapshotPath,
+    "CLASS_MEMBER_LEVEL",
+  )
+}
+
+/**
+ * Caches the jdeps file to IC directory for future incremental builds.
+ * This is called after successful compilation so the jdeps can be restored
+ * when IC skips compilation in future builds.
+ */
+internal fun JvmCompilationTask.cacheJdepsToIcDir() {
+  if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
+    return
+  }
+  if (outputs.jdeps.isEmpty()) {
+    return
+  }
+  val jdepsPath = Paths.get(outputs.jdeps)
+  if (!jdepsPath.exists()) {
+    return
+  }
+  val icDir = Paths.get(directories.incrementalBaseDir)
+  Files.createDirectories(icDir)
+  val cachedJdepsPath = icDir.resolve("cached.jdeps")
+  Files.copy(jdepsPath, cachedJdepsPath, StandardCopyOption.REPLACE_EXISTING)
+}
+
+/**
+ * Ensures the jdeps file exists. If IC skipped compilation and jdeps wasn't created,
+ * this restores the cached jdeps from IC directory or writes an empty jdeps.
+ */
+internal fun JvmCompilationTask.ensureJdepsExists() {
+  if (outputs.jdeps.isEmpty()) {
+    return
+  }
+  val jdepsPath = Paths.get(outputs.jdeps)
+  if (jdepsPath.exists()) {
+    // jdeps was created by the compiler, cache it for future IC builds
+    cacheJdepsToIcDir()
+    return
+  }
+  // jdeps wasn't created (IC skipped compilation), try to restore from cache
+  if (info.incrementalCompilation && directories.incrementalBaseDir.isNotEmpty()) {
+    val icDir = Paths.get(directories.incrementalBaseDir)
+    val cachedJdepsPath = icDir.resolve("cached.jdeps")
+    if (cachedJdepsPath.exists()) {
+      Files.copy(cachedJdepsPath, jdepsPath, StandardCopyOption.REPLACE_EXISTING)
+      return
+    }
+  }
+  // No cached jdeps, write an empty one
+  writeJdeps(outputs.jdeps, emptyJdeps(info.label))
+}
+
+/**
+ * Computes classpath snapshot paths from classpath JAR paths.
+ * For each JAR at path/foo.jar or path/foo.abi.jar, the snapshot is at path/foo-ic/output-classpath-snapshot.bin.
+ * The IC directory is always derived from the main JAR name (without .abi suffix).
+ * Only returns paths that actually exist (from previous builds).
+ *
+ * Note: This looks for output-classpath-snapshot.bin (the snapshot of the dep's output JAR),
+ * not shrunk-classpath-snapshot.bin (which is BTAPI's internal file).
+ */
+internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
+  if (!info.incrementalCompilation) {
+    return emptyList()
+  }
+  return inputs.classpathList
+    .mapNotNull { jarPath ->
+      val path = Paths.get(jarPath)
+      // Handle both main jars (foo.jar) and ABI jars (foo.abi.jar)
+      // IC directory is always derived from the main jar name
+      val jarName = path.fileName.toString()
+        .removeSuffix(".jar")
+        .removeSuffix(".abi") // For ABI jars, remove .abi suffix too
+      val snapshotPath = path.resolveSibling("$jarName-ic/output-classpath-snapshot.bin")
+      if (snapshotPath.exists()) {
+        snapshotPath.toString()
+      } else {
+        null
+      }
+    }
+}
+
+/**
+ * Creates incremental compilation arguments for the Build Tools API compiler.
+ * Returns an empty CompilationArgs if incremental compilation is not enabled.
+ *
+ * IC data is stored in worker-local directories derived from output JAR paths:
+ * - IC working directory: <output_jar>-ic/ic-caches/
+ * - BTAPI's shrunk snapshot: <output_jar>-ic/shrunk-classpath-snapshot.bin (managed by BTAPI)
+ * - Our output snapshot: <output_jar>-ic/output-classpath-snapshot.bin (for downstream consumers)
+ * - Dependencies' snapshots: found at <dep_jar>-ic/output-classpath-snapshot.bin
+ */
+internal fun JvmCompilationTask.incrementalCompilationArgs(): CompilationArgs {
+  if (!info.incrementalCompilation) {
+    return CompilationArgs()
+  }
+
+  // IC working directory is derived from output JAR: <jar>-ic/
+  if (directories.incrementalBaseDir.isEmpty()) {
+    return CompilationArgs() // No IC base dir, skip IC
+  }
+
+  val icBaseDir = Paths.get(directories.incrementalBaseDir)
+  val icWorkingDir = icBaseDir.resolve("ic-caches")
+
+  // Shrunk classpath snapshot path (stored in IC directory)
+  val shrunkSnapshotPath = icBaseDir.resolve("shrunk-classpath-snapshot.bin").toString()
+
+  // Compute classpath snapshot paths from classpath JARs
+  val classpathSnapshots = createClasspathSnapshotsPaths()
+
+  // Root project dir for relocatable caches (use execution root)
+  val rootProjectDir = ROOT.trimEnd(File.separatorChar)
+
+  // Check if we should force recompilation (no previous snapshot from this target)
+  val forceRecompilation = !Paths.get(shrunkSnapshotPath).toFile().exists()
+
+  return CompilationArgs()
+    .flag("--ic-working-dir=$icWorkingDir")
+    .flag("--ic-shrunk-snapshot=$shrunkSnapshotPath")
+    .flag("--ic-root-project-dir=$rootProjectDir")
+    .given(classpathSnapshots.isNotEmpty()) {
+      flag("--ic-classpath-snapshots=${classpathSnapshots.joinToString(",")}")
+    }
+    .given(forceRecompilation) {
+      flag("--ic-force-recompilation")
+    }
+    .given(info.icEnableLogging) {
+      flag("--ic-enable-logging")
+    }
+}
+
+val ROOT: String by lazy {
+  FileSystems
+    .getDefault()
+    .getPath("")
+    .toAbsolutePath()
+    .toString() + File.separator
 }
 
 /**
