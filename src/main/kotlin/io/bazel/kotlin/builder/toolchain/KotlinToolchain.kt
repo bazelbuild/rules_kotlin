@@ -178,21 +178,24 @@ class KotlinToolchain private constructor(
     ): ClassLoader {
       // Step 1: Create bootstrap classloader with just build-tools-api
       // Uses system classloader as parent (no IntelliJ class conflicts)
-      val bootstrapClassLoader = URLClassLoader(
-        arrayOf(buildToolsApiJar.toURI().toURL()),
-        ClassLoader.getSystemClassLoader(),
-      )
+      val bootstrapClassLoader =
+        URLClassLoader(
+          arrayOf(buildToolsApiJar.toURI().toURL()),
+          ClassLoader.getSystemClassLoader(),
+        )
 
       // Step 2: Get SharedApiClassesClassLoader from bootstrap
       // This returns a classloader that:
       // - Uses JDK classes as base
       // - Delegates org.jetbrains.kotlin.buildtools.api.* to bootstrap classloader
-      val sharedApiClassLoaderFactory = bootstrapClassLoader.loadClass(
-        "org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader",
-      )
-      val sharedApiClassLoader = sharedApiClassLoaderFactory
-        .getMethod("newInstance")
-        .invoke(null) as ClassLoader
+      val sharedApiClassLoaderFactory =
+        bootstrapClassLoader.loadClass(
+          "org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader",
+        )
+      val sharedApiClassLoader =
+        sharedApiClassLoaderFactory
+          .getMethod("newInstance")
+          .invoke(null) as ClassLoader
 
       // Step 3: Create implementation classloader with all jars
       // Uses SharedApiClassesClassLoader as parent for proper isolation
@@ -376,26 +379,33 @@ class KotlinToolchain private constructor(
     init {
       // Create fully isolated classloader - no preloaded compiler classes!
       // This avoids ClassCastException from mixing relocated/non-relocated IntelliJ classes.
-      val isolatedClassLoader = createIsolatedBuildToolsClassLoader(
-        buildToolsApiJar,
-        buildToolsImplJar,
-        compilerJar,
-        kotlinCompilerEmbeddableJar,
-        kotlincJar,
-      )
+      val isolatedClassLoader =
+        createIsolatedBuildToolsClassLoader(
+          buildToolsApiJar,
+          buildToolsImplJar,
+          compilerJar,
+          kotlinCompilerEmbeddableJar,
+          kotlincJar,
+        )
 
-      val clazz = isolatedClassLoader.loadClass(
-        "io.bazel.kotlin.compiler.ClasspathSnapshotGenerator",
-      )
-      generateMethod = clazz.getMethod(
-        "generate",
-        String::class.java,
-        String::class.java,
-        String::class.java,
-      )
+      val clazz =
+        isolatedClassLoader.loadClass(
+          "io.bazel.kotlin.compiler.ClasspathSnapshotGenerator",
+        )
+      generateMethod =
+        clazz.getMethod(
+          "generate",
+          String::class.java,
+          String::class.java,
+          String::class.java,
+        )
     }
 
-    fun generate(inputJar: String, outputSnapshot: String, granularity: String) {
+    fun generate(
+      inputJar: String,
+      outputSnapshot: String,
+      granularity: String,
+    ) {
       generateMethod.invoke(null, inputJar, outputSnapshot, granularity)
     }
   }

@@ -72,11 +72,12 @@ class BuildToolsAPICompiler {
         }
         arg.startsWith("--ic-classpath-snapshots=") -> {
           val snapshotsStr = arg.substringAfter("=")
-          icClasspathSnapshots = if (snapshotsStr.isNotEmpty()) {
-            snapshotsStr.split(",").map { Path.of(it) }
-          } else {
-            emptyList()
-          }
+          icClasspathSnapshots =
+            if (snapshotsStr.isNotEmpty()) {
+              snapshotsStr.split(",").map { Path.of(it) }
+            } else {
+              emptyList()
+            }
           i++
         }
         arg.startsWith("--ic-shrunk-snapshot=") -> {
@@ -116,21 +117,23 @@ class BuildToolsAPICompiler {
       // Derive shrunk snapshot path from working directory if not explicitly provided
       val shrunkSnapshot = icShrunkSnapshot ?: icWorkingDir.resolve("shrunk-classpath-snapshot.bin")
 
-      val icOptions = operation.createSnapshotBasedIcOptions().apply {
-        icRootProjectDir?.let { this[ROOT_PROJECT_DIR] = it }
-        this[MODULE_BUILD_DIR] = destination.parent ?: destination
-        this[FORCE_RECOMPILATION] = icForceRecompilation
-        // OUTPUT_DIRS should include both destination and working directory
-        this[OUTPUT_DIRS] = setOf(destination, icWorkingDir)
-      }
+      val icOptions =
+        operation.createSnapshotBasedIcOptions().apply {
+          icRootProjectDir?.let { this[ROOT_PROJECT_DIR] = it }
+          this[MODULE_BUILD_DIR] = destination.parent ?: destination
+          this[FORCE_RECOMPILATION] = icForceRecompilation
+          // OUTPUT_DIRS should include both destination and working directory
+          this[OUTPUT_DIRS] = setOf(destination, icWorkingDir)
+        }
 
-      operation[INCREMENTAL_COMPILATION] = JvmSnapshotBasedIncrementalCompilationConfiguration(
-        workingDirectory = icWorkingDir,
-        sourcesChanges = SourcesChanges.ToBeCalculated,
-        dependenciesSnapshotFiles = icClasspathSnapshots,
-        shrunkClasspathSnapshot = shrunkSnapshot,
-        options = icOptions,
-      )
+      operation[INCREMENTAL_COMPILATION] =
+        JvmSnapshotBasedIncrementalCompilationConfiguration(
+          workingDirectory = icWorkingDir,
+          sourcesChanges = SourcesChanges.ToBeCalculated,
+          dependenciesSnapshotFiles = icClasspathSnapshots,
+          shrunkClasspathSnapshot = shrunkSnapshot,
+          options = icOptions,
+        )
     }
 
     val logger = if (icEnableLogging) ICLogger(errStream) else null

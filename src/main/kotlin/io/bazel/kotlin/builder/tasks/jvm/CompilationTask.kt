@@ -371,7 +371,9 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
  * that depend on this target. It is separate from BTAPI's internal shrunk
  * dependencies snapshot (shrunk-classpath-snapshot.bin).
  */
-internal fun JvmCompilationTask.createOutputClasspathSnapshot(snapshotInvoker: KotlinToolchain.ClasspathSnapshotInvoker) {
+internal fun JvmCompilationTask.createOutputClasspathSnapshot(
+  snapshotInvoker: KotlinToolchain.ClasspathSnapshotInvoker,
+) {
   if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
     return
   }
@@ -454,9 +456,11 @@ internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
       val path = Paths.get(jarPath)
       // Handle both main jars (foo.jar) and ABI jars (foo.abi.jar)
       // IC directory is always derived from the main jar name
-      val jarName = path.fileName.toString()
-        .removeSuffix(".jar")
-        .removeSuffix(".abi") // For ABI jars, remove .abi suffix too
+      val jarName =
+        path.fileName
+          .toString()
+          .removeSuffix(".jar")
+          .removeSuffix(".abi") // For ABI jars, remove .abi suffix too
       val snapshotPath = path.resolveSibling("$jarName-ic/output-classpath-snapshot.bin")
       if (snapshotPath.exists()) {
         snapshotPath.toString()
@@ -507,11 +511,9 @@ internal fun JvmCompilationTask.incrementalCompilationArgs(): CompilationArgs {
     .flag("--ic-root-project-dir=$rootProjectDir")
     .given(classpathSnapshots.isNotEmpty()) {
       flag("--ic-classpath-snapshots=${classpathSnapshots.joinToString(",")}")
-    }
-    .given(forceRecompilation) {
+    }.given(forceRecompilation) {
       flag("--ic-force-recompilation")
-    }
-    .given(info.icEnableLogging) {
+    }.given(info.icEnableLogging) {
       flag("--ic-enable-logging")
     }
 }
