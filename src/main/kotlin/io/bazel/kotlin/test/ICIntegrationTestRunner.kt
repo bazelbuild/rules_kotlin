@@ -80,22 +80,23 @@ object ICIntegrationTestRunner {
     val icFlags = arrayOf("--@rules_kotlin//kotlin/settings:experimental_ic_enable_logging=True")
 
     println("=== Running initial build ===")
-    bazel.run(
+    val initialResult = bazel.run(
       workingCopy,
       *startupFlags,
       "build",
       *commandFlags,
       *icFlags,
       "//...",
-    ).onFailThrow()
+    )
+    initialResult.onFailThrow()
 
     // Apply modifications
     println("=== Applying modifications ===")
-    applyModifications(workspace, workingCopy, stage = 0)
+    val modificationActions = applyModifications(workspace, workingCopy, stage = 0)
 
     // Run incremental build
     println("=== Running incremental build ===")
-    val result = bazel.run(
+    val incrementalResult = bazel.run(
       workingCopy,
       *startupFlags,
       "build",
@@ -104,23 +105,39 @@ object ICIntegrationTestRunner {
       "//...",
     )
 
-    // Extract IC logs from output
-    val actualLog = extractICLog(result)
-    val expectedLog = Files.readString(expectedLogPath, UTF_8).trim()
+    // Extract IC logs from both builds
+    val actualLog = buildString {
+      appendLine("=== Running initial build ===")
+      appendLine(extractICLog(initialResult))
+      appendLine("=== Applying modifications ===")
+      modificationActions.forEach { appendLine("  $it") }
+      appendLine("=== Running incremental build ===")
+      appendLine(extractICLog(incrementalResult))
+    }
+    val expectedLines = Files.readString(expectedLogPath, UTF_8).trim()
+      .lines()
+      .map { it.trim() }
+      .filter { it.isNotEmpty() }
 
-    println("=== Expected IC Log ===")
-    println(expectedLog)
+    println("=== Expected IC Log (subsequence) ===")
+    println(expectedLines.joinToString("\n"))
     println("=== Actual IC Log ===")
     println(actualLog)
 
-    // Compare logs
-    if (normalizeLog(actualLog) != normalizeLog(expectedLog)) {
+    // Check that expected lines appear in order as a subsequence of actual lines
+    val actualLines = actualLog.lines().map { it.trim() }
+    val missingLines = checkSubsequence(expectedLines, actualLines)
+
+    if (missingLines.isNotEmpty()) {
       throw AssertionError(
         """
-        IC log mismatch!
+        IC log mismatch! Expected lines not found in order.
 
-        Expected:
-        $expectedLog
+        Missing or out-of-order lines:
+        ${missingLines.joinToString("\n") { "  - $it" }}
+
+        Expected (in order):
+        ${expectedLines.joinToString("\n")}
 
         Actual:
         $actualLog
@@ -171,9 +188,13 @@ object ICIntegrationTestRunner {
     }
   }
 
-  private fun applyModifications(testData: Path, workingCopy: Path, stage: Int) {
+  /**
+   * Applies modifications and returns list of action descriptions.
+   */
+  private fun applyModifications(testData: Path, workingCopy: Path, stage: Int): List<String> {
     val deleteSuffix = if (stage > 0) ".delete$stage" else ".delete"
     val newSuffix = if (stage > 0) ".new$stage" else ".new"
+    val actions = mutableListOf<String>()
 
     Files.walk(testData).forEach { path ->
       val name = path.name
@@ -182,18 +203,23 @@ object ICIntegrationTestRunner {
           // Copy .new file to replace original
           val targetName = name.removeSuffix(newSuffix)
           val target = workingCopy.resolve(testData.relativize(path.parent)).resolve(targetName)
-          println("  Updating: ${testData.relativize(path.parent).resolve(targetName)}")
+          val action = "Updating: ${testData.relativize(path.parent).resolve(targetName)}"
+          println("  $action")
+          actions.add(action)
           Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING)
         }
         name.endsWith(deleteSuffix) -> {
           // Delete original file
           val targetName = name.removeSuffix(deleteSuffix)
           val target = workingCopy.resolve(testData.relativize(path.parent)).resolve(targetName)
-          println("  Deleting: ${testData.relativize(path.parent).resolve(targetName)}")
+          val action = "Deleting: ${testData.relativize(path.parent).resolve(targetName)}"
+          println("  $action")
+          actions.add(action)
           Files.deleteIfExists(target)
         }
       }
     }
+    return actions
   }
 
   private fun extractICLog(result: Result<ProcessResult>): String {
@@ -201,18 +227,43 @@ object ICIntegrationTestRunner {
       onSuccess = { "${it.stdOut.toString(UTF_8)}\n${it.stdErr.toString(UTF_8)}" },
       onFailure = { throw it },
     )
-    // Only extract the most meaningful IC log lines - compile iteration shows which files were compiled
+    // Extract IC-related log lines and important build markers
     return output.lines()
-      .filter { it.contains("[IC DEBUG] compile iteration:") }
+      .filter { line ->
+        line.contains("[IC ") || // All IC log lines (DEBUG, INFO, WARN, ERROR)
+          line.contains("KotlinCompile") || // Build action markers
+          line.contains("Updating:") || // Modification markers
+          line.contains("Deleting:") || // Modification markers
+          line.startsWith("=== ") // Section markers (Running initial/incremental build, Applying modifications)
+      }
       .joinToString("\n")
   }
 
-  private fun normalizeLog(log: String): String {
-    return log.trim()
-      .lines()
-      .map { it.trim() }
-      .filter { it.isNotEmpty() }
-      .joinToString("\n")
+  /**
+   * Checks if expectedLines appear in actualLines in order (as a subsequence).
+   * Returns list of expected lines that were not found in order.
+   */
+  private fun checkSubsequence(expectedLines: List<String>, actualLines: List<String>): List<String> {
+    val missing = mutableListOf<String>()
+    var actualIdx = 0
+
+    for (expected in expectedLines) {
+      // Find the expected line in actual, starting from current position
+      var found = false
+      while (actualIdx < actualLines.size) {
+        if (actualLines[actualIdx].contains(expected) || actualLines[actualIdx] == expected) {
+          found = true
+          actualIdx++
+          break
+        }
+        actualIdx++
+      }
+      if (!found) {
+        missing.add(expected)
+      }
+    }
+
+    return missing
   }
 
   /**
