@@ -429,6 +429,9 @@ internal fun JvmCompilationTask.incrementalCompilationArgs(): CompilationArgs {
     .given(forceRecompilation) {
       flag("--ic-force-recompilation")
     }
+    .given(info.icEnableLogging) {
+      flag("--ic-enable-logging")
+    }
 }
 
 val ROOT: String by lazy {

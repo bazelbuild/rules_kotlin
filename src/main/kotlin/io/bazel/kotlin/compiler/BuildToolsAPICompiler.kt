@@ -56,6 +56,7 @@ class BuildToolsAPICompiler {
     var icShrunkSnapshot: Path? = null
     var icRootProjectDir: Path? = null
     var icForceRecompilation = false
+    var icEnableLogging = false
 
     var i = 0
     while (i < argsList.size) {
@@ -88,6 +89,10 @@ class BuildToolsAPICompiler {
         }
         arg == "--ic-force-recompilation" -> {
           icForceRecompilation = true
+          i++
+        }
+        arg == "--ic-enable-logging" -> {
+          icEnableLogging = true
           i++
         }
         !arg.startsWith("-") && (arg.endsWith(".kt") || arg.endsWith(".java")) -> {
@@ -128,11 +133,13 @@ class BuildToolsAPICompiler {
       )
     }
 
+    val logger = if (icEnableLogging) ICLogger(errStream) else null
+
     // Execute the compilation
     try {
       val result =
         kotlinToolchains.createBuildSession().use { session ->
-          session.executeOperation(operation)
+          session.executeOperation(operation, logger = logger)
         }
 
       return when (result) {

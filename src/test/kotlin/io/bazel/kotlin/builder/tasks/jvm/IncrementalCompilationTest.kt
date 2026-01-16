@@ -207,6 +207,7 @@ class IncrementalCompilationTest {
                 platform = Platform.JVM
                 ruleKind = RuleKind.LIBRARY
                 incrementalCompilation = true
+                icEnableLogging = true
                 addDebug("trace")
                 addDebug("timings")
                 toolchainInfoBuilder.apply {

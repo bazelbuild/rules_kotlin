@@ -91,6 +91,7 @@ def _kotlin_toolchain_impl(ctx):
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
         experimental_incremental_compilation = ctx.attr.experimental_incremental_compilation[BuildSettingInfo].value,
+        experimental_ic_enable_logging = ctx.attr.experimental_ic_enable_logging[BuildSettingInfo].value,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -137,6 +138,10 @@ _kt_toolchain = rule(
         "experimental_incremental_compilation": attr.label(
             doc = "Enables experimental support for incremental compilation",
             default = Label("//kotlin/settings:experimental_incremental_compilation"),
+        ),
+        "experimental_ic_enable_logging": attr.label(
+            doc = "Enables verbose IC logging for debugging/testing",
+            default = Label("//kotlin/settings:experimental_ic_enable_logging"),
         ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",
@@ -351,6 +356,7 @@ def define_kt_toolchain(
         experimental_reduce_classpath_mode = None,
         experimental_multiplex_workers = None,
         experimental_incremental_compilation = None,
+        experimental_ic_enable_logging = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
         jvm_stdlibs = None,
@@ -381,6 +387,7 @@ def define_kt_toolchain(
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
         experimental_incremental_compilation = experimental_incremental_compilation,
+        experimental_ic_enable_logging = experimental_ic_enable_logging,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],

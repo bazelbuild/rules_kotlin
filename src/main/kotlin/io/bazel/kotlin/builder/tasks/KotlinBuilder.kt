@@ -89,6 +89,7 @@ class KotlinBuilder
         REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
         INSTRUMENT_COVERAGE("--instrument_coverage"),
         INCREMENTAL_COMPILATION("--incremental_compilation"),
+        IC_ENABLE_LOGGING("--ic_enable_logging"),
         CLASSPATH_SNAPSHOT("--classpath_snapshot"),
         CLASSPATH_SNAPSHOTS("--classpath_snapshots"),
         SHRUNK_CLASSPATH_SNAPSHOT("--shrunk_classpath_snapshot"),
@@ -178,6 +179,9 @@ class KotlinBuilder
         }
         argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)?.let {
           incrementalCompilation = it == "true"
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.IC_ENABLE_LOGGING)?.let {
+          icEnableLogging = it == "true"
         }
         this
       }

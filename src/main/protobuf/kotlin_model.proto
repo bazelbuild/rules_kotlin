@@ -93,6 +93,8 @@ message CompilationTaskInfo {
     bool remove_debug_info = 15;
     // Enable incremental compilation.
     bool incremental_compilation = 16;
+    // Enable verbose IC logging (for debugging/testing).
+    bool ic_enable_logging = 17;
 }
 
 // Nested messages not marked with stable could be refactored.
