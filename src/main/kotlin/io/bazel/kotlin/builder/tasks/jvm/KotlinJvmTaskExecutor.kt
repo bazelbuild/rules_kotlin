@@ -133,14 +133,17 @@ class KotlinJvmTaskExecutor
             }
           }
 
+          // Ensure jdeps exists (restore from IC cache if compilation was skipped)
+          context.execute("ensure jdeps") { ensureJdepsExists() }
+
           if (outputs.jar.isNotEmpty()) {
             if (instrumentCoverage) {
               context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
             } else {
               context.execute("create jar", ::createOutputJar)
             }
-            // Generate classpath snapshot for incremental compilation
-            if (context.info.incrementalCompilation && outputs.classpathSnapshot.isNotEmpty()) {
+            // Generate classpath snapshot for incremental compilation (stored in IC directory, not Bazel output)
+            if (context.info.incrementalCompilation) {
               context.execute("create classpath snapshot") { createOutputClasspathSnapshot(compilerBuilder.buildSnapshotInvoker()) }
             }
           }

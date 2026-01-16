@@ -364,60 +364,134 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
 
 /**
  * Creates a classpath snapshot for the output jar.
- * This snapshot is tracked by Bazel as an output and used by downstream targets.
+ * The snapshot is stored in the IC directory as a worker-local side-effect,
+ * not as a Bazel-tracked output.
  */
 internal fun JvmCompilationTask.createOutputClasspathSnapshot(snapshotInvoker: KotlinToolchain.ClasspathSnapshotInvoker) {
-  if (outputs.classpathSnapshot.isEmpty()) {
+  if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
     return
   }
+  // Write snapshot to IC directory
+  val icDir = Paths.get(directories.incrementalBaseDir)
+  Files.createDirectories(icDir)
+  val snapshotPath = icDir.resolve("shrunk-classpath-snapshot.bin").toString()
+
   snapshotInvoker.generate(
     outputs.jar,
-    outputs.classpathSnapshot,
+    snapshotPath,
     "CLASS_MEMBER_LEVEL",
   )
 }
 
 /**
- * Gets the classpath snapshot paths for incremental compilation.
- * Only returns tracked snapshots from dependencies - external jars without snapshots are excluded.
- * The incremental compiler will treat jars without snapshots as unchanged.
+ * Caches the jdeps file to IC directory for future incremental builds.
+ * This is called after successful compilation so the jdeps can be restored
+ * when IC skips compilation in future builds.
  */
-internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> =
-  // Only use tracked snapshots from dependencies that actually exist
-  inputs.classpathSnapshotsList
+internal fun JvmCompilationTask.cacheJdepsToIcDir() {
+  if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
+    return
+  }
+  if (outputs.jdeps.isEmpty()) {
+    return
+  }
+  val jdepsPath = Paths.get(outputs.jdeps)
+  if (!jdepsPath.exists()) {
+    return
+  }
+  val icDir = Paths.get(directories.incrementalBaseDir)
+  Files.createDirectories(icDir)
+  val cachedJdepsPath = icDir.resolve("cached.jdeps")
+  Files.copy(jdepsPath, cachedJdepsPath, StandardCopyOption.REPLACE_EXISTING)
+}
+
+/**
+ * Ensures the jdeps file exists. If IC skipped compilation and jdeps wasn't created,
+ * this restores the cached jdeps from IC directory or writes an empty jdeps.
+ */
+internal fun JvmCompilationTask.ensureJdepsExists() {
+  if (outputs.jdeps.isEmpty()) {
+    return
+  }
+  val jdepsPath = Paths.get(outputs.jdeps)
+  if (jdepsPath.exists()) {
+    // jdeps was created by the compiler, cache it for future IC builds
+    cacheJdepsToIcDir()
+    return
+  }
+  // jdeps wasn't created (IC skipped compilation), try to restore from cache
+  if (info.incrementalCompilation && directories.incrementalBaseDir.isNotEmpty()) {
+    val icDir = Paths.get(directories.incrementalBaseDir)
+    val cachedJdepsPath = icDir.resolve("cached.jdeps")
+    if (cachedJdepsPath.exists()) {
+      Files.copy(cachedJdepsPath, jdepsPath, StandardCopyOption.REPLACE_EXISTING)
+      return
+    }
+  }
+  // No cached jdeps, write an empty one
+  writeJdeps(outputs.jdeps, emptyJdeps(info.label))
+}
+
+/**
+ * Computes classpath snapshot paths from classpath JAR paths.
+ * For each JAR at path/foo.jar or path/foo.abi.jar, the snapshot is at path/foo-ic/shrunk-classpath-snapshot.bin.
+ * The IC directory is always derived from the main JAR name (without .abi suffix).
+ * Only returns paths that actually exist (from previous builds).
+ */
+internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
+  if (!info.incrementalCompilation) {
+    return emptyList()
+  }
+  return inputs.classpathList
+    .mapNotNull { jarPath ->
+      val path = Paths.get(jarPath)
+      // Handle both main jars (foo.jar) and ABI jars (foo.abi.jar)
+      // IC directory is always derived from the main jar name
+      val jarName = path.fileName.toString()
+        .removeSuffix(".jar")
+        .removeSuffix(".abi") // For ABI jars, remove .abi suffix too
+      val snapshotPath = path.resolveSibling("$jarName-ic/shrunk-classpath-snapshot.bin")
+      if (snapshotPath.exists()) {
+        snapshotPath.toString()
+      } else {
+        null
+      }
+    }
+}
 
 /**
  * Creates incremental compilation arguments for the Build Tools API compiler.
  * Returns an empty CompilationArgs if incremental compilation is not enabled.
+ *
+ * IC data is stored in worker-local directories derived from output JAR paths:
+ * - IC working directory: <output_jar>-ic/
+ * - Snapshot path: <output_jar>-ic/shrunk-classpath-snapshot.bin
+ * - Dependencies' snapshots are found by computing paths from classpath JARs
  */
 internal fun JvmCompilationTask.incrementalCompilationArgs(): CompilationArgs {
   if (!info.incrementalCompilation) {
     return CompilationArgs()
   }
 
-  // IC working directory for caches
-  val icWorkingDir = if (directories.incrementalBaseDir.isNotEmpty()) {
-    Paths.get(directories.incrementalBaseDir).resolve("ic-caches")
-  } else {
+  // IC working directory is derived from output JAR: <jar>-ic/
+  if (directories.incrementalBaseDir.isEmpty()) {
     return CompilationArgs() // No IC base dir, skip IC
   }
 
-  // Shrunk classpath snapshot path (output, also potentially input from previous build)
-  val shrunkSnapshotPath = if (outputs.shrunkClasspathSnapshot.isNotEmpty()) {
-    outputs.shrunkClasspathSnapshot
-  } else {
-    icWorkingDir.resolve("shrunk-classpath-snapshot.bin").toString()
-  }
+  val icBaseDir = Paths.get(directories.incrementalBaseDir)
+  val icWorkingDir = icBaseDir.resolve("ic-caches")
 
-  // Classpath snapshots from dependencies
-  val classpathSnapshots = inputs.classpathSnapshotsList.filter { it.isNotEmpty() }
+  // Shrunk classpath snapshot path (stored in IC directory)
+  val shrunkSnapshotPath = icBaseDir.resolve("shrunk-classpath-snapshot.bin").toString()
+
+  // Compute classpath snapshot paths from classpath JARs
+  val classpathSnapshots = createClasspathSnapshotsPaths()
 
   // Root project dir for relocatable caches (use execution root)
   val rootProjectDir = ROOT.trimEnd(File.separatorChar)
 
-  // Check if we should force recompilation (no previous snapshot)
-  val forceRecompilation = inputs.previousShrunkClasspathSnapshot.isEmpty() ||
-    !Paths.get(inputs.previousShrunkClasspathSnapshot).toFile().exists()
+  // Check if we should force recompilation (no previous snapshot from this target)
+  val forceRecompilation = !Paths.get(shrunkSnapshotPath).toFile().exists()
 
   return CompilationArgs()
     .flag("--ic-working-dir=$icWorkingDir")

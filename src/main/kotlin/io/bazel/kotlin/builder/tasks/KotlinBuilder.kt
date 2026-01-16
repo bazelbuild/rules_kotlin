@@ -90,10 +90,8 @@ class KotlinBuilder
         INSTRUMENT_COVERAGE("--instrument_coverage"),
         INCREMENTAL_COMPILATION("--incremental_compilation"),
         IC_ENABLE_LOGGING("--ic_enable_logging"),
-        CLASSPATH_SNAPSHOT("--classpath_snapshot"),
-        CLASSPATH_SNAPSHOTS("--classpath_snapshots"),
-        SHRUNK_CLASSPATH_SNAPSHOT("--shrunk_classpath_snapshot"),
-        PREVIOUS_SHRUNK_CLASSPATH_SNAPSHOT("--previous_shrunk_classpath_snapshot"),
+        // Note: IC data (classpath snapshots) is managed by the worker internally.
+        // The worker derives snapshot paths from classpath JAR paths.
       }
     }
 
@@ -228,12 +226,8 @@ class KotlinBuilder
           argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
             generatedClassJar = it
           }
-          argMap.optionalSingle(KotlinBuilderFlags.CLASSPATH_SNAPSHOT)?.let {
-            classpathSnapshot = it
-          }
-          argMap.optionalSingle(KotlinBuilderFlags.SHRUNK_CLASSPATH_SNAPSHOT)?.let {
-            shrunkClasspathSnapshot = it
-          }
+          // Note: IC data (classpath snapshots) is stored in worker-local IC directories,
+          // not as Bazel-tracked outputs.
         }
 
         with(root.directoriesBuilder) {
@@ -263,12 +257,12 @@ class KotlinBuilder
           coverageMetadataClasses =
             getOutputDirPath(info, workingDir, moduleName, "coverage-metadata", outputJar)
               .toString()
-          // Store the incremental base directory for use by BuildToolsAPICompiler
+          // Derive IC base directory from output JAR path: <output_jar>-ic/
+          // This is a worker-local side-effect, not a Bazel-tracked output.
           if (info.incrementalCompilation && outputJar != null) {
             val outputPath = Paths.get(outputJar).toAbsolutePath()
-            val outputDir = outputPath.parent
             val jarName = outputPath.fileName.toString().removeSuffix(".jar")
-            incrementalBaseDir = outputDir.resolve("_kotlin_incremental/$jarName").toString()
+            incrementalBaseDir = outputPath.resolveSibling("$jarName-ic").toString()
           }
         }
 
@@ -321,12 +315,8 @@ class KotlinBuilder
             ?.also {
               addAllSourceJars(it)
             }
-          addAllClasspathSnapshots(
-            argMap.optional(KotlinBuilderFlags.CLASSPATH_SNAPSHOTS) ?: emptyList(),
-          )
-          argMap.optionalSingle(KotlinBuilderFlags.PREVIOUS_SHRUNK_CLASSPATH_SNAPSHOT)?.let {
-            previousShrunkClasspathSnapshot = it
-          }
+          // Note: IC data (classpath snapshots) is managed by the worker internally.
+          // The worker derives snapshot paths from classpath JAR paths.
         }
 
         with(root.infoBuilder) {
