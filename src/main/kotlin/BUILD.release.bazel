@@ -79,8 +79,10 @@ java_binary(
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     visibility = ["//visibility:public"],
     runtime_deps = [
-        ":worker",
+        # Added separately to make sure it comes first, otherwise buildifier sorts it
         "@bazel_tools//tools/jdk:JacocoCoverage",
+    ] + [
+        ":worker",
     ] + KOTLIN_STDLIBS,
 )
 
