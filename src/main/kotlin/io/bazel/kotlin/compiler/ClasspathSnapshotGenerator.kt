@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshotti
 import java.io.FileInputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import kotlin.io.path.exists
 import kotlin.system.measureTimeMillis
@@ -46,10 +47,17 @@ class ClasspathSnapshotGenerator(
             session.executeOperation(snapshotOperation)
           }
 
-        // TODO : make things atomic / avoid race conditions
+        // Write to temp files first, then atomically move to avoid race conditions
         val hash = hashFile(inputJar)
-        snapshot.saveSnapshot(outputSnapshot)
-        hashPath.toFile().writeText(hash)
+        val tempSnapshot = outputSnapshot.resolveSibling(outputSnapshot.fileName.toString() + ".tmp")
+        val tempHash = hashPath.resolveSibling(hashPath.fileName.toString() + ".tmp")
+
+        snapshot.saveSnapshot(tempSnapshot)
+        tempHash.toFile().writeText(hash)
+
+        // Atomically move temp files to final paths
+        Files.move(tempSnapshot, outputSnapshot, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+        Files.move(tempHash, hashPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
       }
 
     // TODO: Log impl

@@ -38,6 +38,12 @@ class KotlinToolchain private constructor(
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
+  // Individual jar files for use by buildSnapshotInvoker
+  internal val kotlincJar: File,
+  internal val kotlinCompilerEmbeddableJar: File,
+  internal val buildToolsApiJar: File,
+  internal val buildToolsImplJar: File,
+  internal val compilerJar: File,
 ) {
   companion object {
     private val JVM_ABI_PLUGIN by lazy {
@@ -287,6 +293,11 @@ class KotlinToolchain private constructor(
             kaptFile.path,
             "org.jetbrains.kotlin.kapt3",
           ),
+        kotlincJar = kotlinc,
+        kotlinCompilerEmbeddableJar = kotlinCompilerEmbeddable,
+        buildToolsApiJar = buildToolsApi,
+        buildToolsImplJar = buildToolsImpl,
+        compilerJar = compiler,
       )
   }
 
@@ -325,6 +336,11 @@ class KotlinToolchain private constructor(
       jvmAbiGen,
       skipCodeGen,
       jdepsGen,
+      kotlincJar,
+      kotlinCompilerEmbeddableJar,
+      buildToolsApiJar,
+      buildToolsImplJar,
+      compilerJar,
     )
 
   data class CompilerPlugin(
@@ -424,11 +440,11 @@ class KotlinToolchain private constructor(
 
       fun buildSnapshotInvoker(): ClasspathSnapshotInvoker =
         ClasspathSnapshotInvoker(
-          BUILD_TOOLS_API.verified().absoluteFile,
-          BUILD_TOOLS_IMPL.verified().absoluteFile,
-          COMPILER.verified().absoluteFile,
-          KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
-          KOTLINC.verified().absoluteFile,
+          toolchain.buildToolsApiJar,
+          toolchain.buildToolsImplJar,
+          toolchain.compilerJar,
+          toolchain.kotlinCompilerEmbeddableJar,
+          toolchain.kotlincJar,
         )
 
       fun getClassLoader(): ClassLoader = toolchain.classLoader
