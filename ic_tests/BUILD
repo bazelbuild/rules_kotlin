@@ -12,6 +12,24 @@ ic_integration_test_suite(
     workspace_path = "ic_tests/testdata/inline_function_change",
 )
 
+ic_integration_test_suite(
+    name = "plugin_options_change",
+    tags = ["manual"],
+    workspace_path = "ic_tests/testdata/plugin_options_change",
+)
+
+ic_integration_test_suite(
+    name = "kotlinc_flags_change",
+    tags = ["manual"],
+    workspace_path = "ic_tests/testdata/kotlinc_flags_change",
+)
+
+ic_integration_test_suite(
+    name = "jvm_target_change",
+    tags = ["manual"],
+    workspace_path = "ic_tests/testdata/jvm_target_change",
+)
+
 test_suite(
     name = "all",
     tags = ["ic"],

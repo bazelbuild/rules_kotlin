@@ -201,7 +201,11 @@ object ICIntegrationTestRunner {
       when {
         name.endsWith(newSuffix) -> {
           // Copy .new file to replace original
-          val targetName = name.removeSuffix(newSuffix)
+          var targetName = name.removeSuffix(newSuffix)
+          // Handle BUILD.bazel.txt -> BUILD.bazel rename (to match initial copy behavior)
+          if (targetName == "BUILD.bazel.txt") {
+            targetName = "BUILD.bazel"
+          }
           val target = workingCopy.resolve(testData.relativize(path.parent)).resolve(targetName)
           val action = "Updating: ${testData.relativize(path.parent).resolve(targetName)}"
           println("  $action")

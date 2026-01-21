@@ -479,8 +479,11 @@ internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
  * - BTAPI's shrunk snapshot: <output_jar>-ic/shrunk-classpath-snapshot.bin (managed by BTAPI)
  * - Our output snapshot: <output_jar>-ic/output-classpath-snapshot.bin (for downstream consumers)
  * - Dependencies' snapshots: found at <dep_jar>-ic/output-classpath-snapshot.bin
+ * - Args hash: <output_jar>-ic/args-hash.txt (for detecting compiler argument changes)
+ *
+ * @param currentArgs The current compiler arguments list, used to detect configuration changes
  */
-internal fun JvmCompilationTask.incrementalCompilationArgs(): CompilationArgs {
+internal fun JvmCompilationTask.incrementalCompilationArgs(currentArgs: List<String>): CompilationArgs {
   if (!info.incrementalCompilation) {
     return CompilationArgs()
   }
@@ -502,8 +505,20 @@ internal fun JvmCompilationTask.incrementalCompilationArgs(): CompilationArgs {
   // Root project dir for relocatable caches (use execution root)
   val rootProjectDir = ROOT.trimEnd(File.separatorChar)
 
-  // Check if we should force recompilation (no previous snapshot from this target)
-  val forceRecompilation = !Paths.get(shrunkSnapshotPath).toFile().exists()
+  // Compute current args hash and compare with previous
+  val currentArgsHash = computeArgsHash(currentArgs)
+  val previousArgsHash = loadArgsHash(icBaseDir)
+
+  // Force recompilation if:
+  // 1. No previous snapshot (first build)
+  // 2. Compiler arguments changed
+  val snapshotMissing = !Paths.get(shrunkSnapshotPath).toFile().exists()
+  val argsChanged = previousArgsHash != null && previousArgsHash != currentArgsHash
+  val forceRecompilation = snapshotMissing || argsChanged
+
+  // Store current hash for next build comparison
+  Files.createDirectories(icBaseDir)
+  storeArgsHash(icBaseDir, currentArgsHash)
 
   return CompilationArgs()
     .flag("--ic-working-dir=$icWorkingDir")
@@ -524,6 +539,47 @@ val ROOT: String by lazy {
     .getPath("")
     .toAbsolutePath()
     .toString() + File.separator
+}
+
+/**
+ * Computes a hash of compiler arguments for detecting configuration changes.
+ * Filters out path-specific args that change between builds (sandbox paths, output dirs).
+ */
+private fun computeArgsHash(args: List<String>): Long {
+  val filteredArgs = args.filter { arg ->
+    !arg.startsWith("-d ") &&
+      !arg.startsWith("-classpath") &&
+      !arg.startsWith("-cp") &&
+      !arg.contains("/sandbox/") &&
+      !arg.contains("/execroot/")
+  }.sorted()
+
+  var hash = 0L
+  for (arg in filteredArgs) {
+    hash = hash * 31 + arg.hashCode()
+  }
+  return hash
+}
+
+/**
+ * Stores the args hash in the IC directory for future comparison.
+ */
+private fun storeArgsHash(icBaseDir: Path, hash: Long) {
+  val hashFile = icBaseDir.resolve("args-hash.txt")
+  Files.writeString(hashFile, hash.toString())
+}
+
+/**
+ * Loads the previous args hash from the IC directory.
+ * Returns null if the hash file doesn't exist.
+ */
+private fun loadArgsHash(icBaseDir: Path): Long? {
+  val hashFile = icBaseDir.resolve("args-hash.txt")
+  return if (Files.exists(hashFile)) {
+    Files.readString(hashFile).trim().toLongOrNull()
+  } else {
+    null
+  }
 }
 
 /**
