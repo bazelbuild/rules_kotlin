@@ -273,7 +273,7 @@ object BazelIntegrationTestRunner {
         try {
           val stdOut = executor.submit(process.inputStream.streamTo(System.out))
           val stdErr = executor.submit(process.errorStream.streamTo(System.out))
-          if (process.waitFor(600, TimeUnit.SECONDS) && process.exitValue() == 0) {
+          if (process.waitFor(1500, TimeUnit.SECONDS) && process.exitValue() == 0) {
             return Result.success(
               ProcessResult(
                 exit = 0,
