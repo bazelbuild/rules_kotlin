@@ -36,10 +36,17 @@ def derive_metadata(directory):
         ],
     )
 
+_DEFAULT_ENV = {
+    # Bash binary for running test.sh scripts in workspaces.
+    # Can be overridden per-test via the env parameter.
+    "BIT_BASH_BINARY": "/bin/bash",
+}
+
 def example_integration_test_suite(
         name,
         metadata,
-        tags):
+        tags,
+        env = {}):
     for version in bazel_binaries.versions.all:
         if version in metadata.only or (not metadata.only and version not in metadata.exclude):
             clean_bazel_version = Label(version).name
@@ -53,6 +60,7 @@ def example_integration_test_suite(
                     "ANDROID_NDK_HOME",
                 ],
                 bazel_version = version,
+                env = dict(_DEFAULT_ENV, **env),
                 tags = tags + [clean_bazel_version, name],
                 test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",
                 workspace_files = metadata.workspace_files,
