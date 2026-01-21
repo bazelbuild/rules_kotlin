@@ -152,8 +152,8 @@ object BazelIntegrationTestRunner {
         // Run test script if it exists
         val testScript = workspace.resolve("test.sh")
         if (testScript.exists()) {
-          val bash = System.getenv("BIT_BASH_BINARY")
-            ?: throw AssertionError("BIT_BASH_BINARY environment variable not set")
+          val bashPathFile = BazelRunFiles.resolveVerifiedFromProperty(fs, "io.bazel.kotlin.test.bash_path")
+          val bash = Files.readString(bashPathFile).trim()
           println("Running test script [${testScript.fileName}]...")
           ProcessBuilder()
             .command(bash, testScript.toString())

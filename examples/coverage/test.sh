@@ -3,7 +3,7 @@
 # Runs after standard build/test cycle to verify coverage-specific functionality
 #
 # This script is executed by BazelIntegrationTestRunner using the bash binary
-# specified by BIT_BASH_BINARY (configured in integration.bzl).
+# from Bazel's shell toolchain.
 #
 # Environment variables provided by BazelIntegrationTestRunner:
 #   BIT_BAZEL_BINARY: path to the bazel binary
