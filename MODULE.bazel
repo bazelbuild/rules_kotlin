@@ -130,6 +130,16 @@ maven.override(
     coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk8",
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
 )
+maven.override(
+    name = "override_target_in_deps_protobuf_java",
+    coordinates = "com.google.protobuf:protobuf-java",
+    target = "@com_google_protobuf//:protobuf_java",
+)
+maven.override(
+    name = "override_target_in_deps_protobuf_java_util",
+    coordinates = "com.google.protobuf:protobuf-java-util",
+    target = "@com_google_protobuf//:protobuf_java_util",
+)
 use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 
 bazel_dep(name = "rules_pkg", version = "1.0.1")
