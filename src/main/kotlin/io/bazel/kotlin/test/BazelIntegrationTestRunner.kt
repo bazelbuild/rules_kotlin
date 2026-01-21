@@ -88,19 +88,8 @@ object BazelIntegrationTestRunner {
       ),
     )
 
-    val experimentFlags = FlagSets(
-      listOf(
-        listOf(
-          Flag("--@rules_kotlin//kotlin/settings:experimental_build_tools_api=false"),
-        ),
-        listOf(
-          Flag("--@rules_kotlin//kotlin/settings:experimental_build_tools_api=true"),
-        ),
-      ),
-    )
-
     val startupFlagSets = version.resolveBazelRc(workspace)
-    val commandFlagSets = workspaceFlags * deprecationFlags * experimentFlags
+    val commandFlagSets = workspaceFlags * deprecationFlags
 
     startupFlagSets.asStringsFor(version).forEach { systemFlags ->
       commandFlagSets.asStringsFor(version).forEach { commandFlags ->

@@ -54,7 +54,7 @@ class KotlinJvmTaskExecutor
       context: CompilationTaskContext,
       task: JvmCompilationTask,
     ) {
-      val compiler = compilerBuilder.build(context.info.buildToolsApi)
+      val compiler = compilerBuilder.build()
 
       val preprocessedTask =
         task
@@ -67,45 +67,63 @@ class KotlinJvmTaskExecutor
             runCatching {
               context.execute("kotlinc") {
                 if (compileKotlin) {
+                  // Build base args first to pass to incrementalCompilationArgs for hash computation
+                  val compilationArgs =
+                    baseArgs()
+                      .given(outputs.jdeps)
+                      .notEmpty {
+                        plugin(plugins.jdeps) {
+                          flag("output", outputs.jdeps)
+                          flag("target_label", info.label)
+                          inputs.directDependenciesList.forEach {
+                            flag("direct_dependencies", it)
+                          }
+                          inputs.classpathList.forEach {
+                            flag("full_classpath", it)
+                          }
+                          flag("strict_kotlin_deps", info.strictKotlinDeps)
+                        }
+                      }.given(outputs.jar)
+                      .notEmpty {
+                        append(codeGenArgs())
+                      }.given(outputs.abijar)
+                      .notEmpty {
+                        plugin(plugins.jvmAbiGen) {
+                          flag("outputDir", directories.abiClasses)
+                          if (info.treatInternalAsPrivateInAbiJar) {
+                            flag("treatInternalAsPrivate", "true")
+                          }
+                          if (info.removePrivateClassesInAbiJar) {
+                            flag("removePrivateClasses", "true")
+                          }
+                          if (info.removeDebugInfo) {
+                            flag("removeDebugInfo", "true")
+                          }
+                        }
+                        given(outputs.jar).empty {
+                          plugin(plugins.skipCodeGen)
+                        }
+                      }
+
+                  // Get args list for IC hash computation, including compiler plugin options
+                  // (plugins are added in compileKotlin, but we need them for the hash)
+                  val argsWithPlugins =
+                    (
+                      compilationArgs +
+                        plugins(
+                          options = inputs.compilerPluginOptionsList,
+                          classpath = inputs.compilerPluginClasspathList,
+                        )
+                    ).list()
+                  val finalArgs =
+                    compilationArgs.given(info.incrementalCompilation) {
+                      append(incrementalCompilationArgs(argsWithPlugins))
+                    }
+
                   compileKotlin(
                     context,
                     compiler,
-                    args =
-                      baseArgs()
-                        .given(outputs.jdeps)
-                        .notEmpty {
-                          plugin(plugins.jdeps) {
-                            flag("output", outputs.jdeps)
-                            flag("target_label", info.label)
-                            inputs.directDependenciesList.forEach {
-                              flag("direct_dependencies", it)
-                            }
-                            inputs.classpathList.forEach {
-                              flag("full_classpath", it)
-                            }
-                            flag("strict_kotlin_deps", info.strictKotlinDeps)
-                          }
-                        }.given(outputs.jar)
-                        .notEmpty {
-                          append(codeGenArgs())
-                        }.given(outputs.abijar)
-                        .notEmpty {
-                          plugin(plugins.jvmAbiGen) {
-                            flag("outputDir", directories.abiClasses)
-                            if (info.treatInternalAsPrivateInAbiJar) {
-                              flag("treatInternalAsPrivate", "true")
-                            }
-                            if (info.removePrivateClassesInAbiJar) {
-                              flag("removePrivateClasses", "true")
-                            }
-                            if (info.removeDebugInfo) {
-                              flag("removeDebugInfo", "true")
-                            }
-                          }
-                          given(outputs.jar).empty {
-                            plugin(plugins.skipCodeGen)
-                          }
-                        },
+                    args = finalArgs,
                     printOnFail = false,
                   )
                 } else {
@@ -131,11 +149,20 @@ class KotlinJvmTaskExecutor
             }
           }
 
+          // Ensure jdeps exists (restore from IC cache if compilation was skipped)
+          context.execute("ensure jdeps") { ensureJdepsExists() }
+
           if (outputs.jar.isNotEmpty()) {
             if (instrumentCoverage) {
               context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
             } else {
               context.execute("create jar", ::createOutputJar)
+            }
+            // Generate classpath snapshot for incremental compilation (stored in IC directory, not Bazel output)
+            if (context.info.incrementalCompilation) {
+              context.execute("create classpath snapshot") {
+                createOutputClasspathSnapshot(compilerBuilder.buildSnapshotInvoker())
+              }
             }
           }
           if (outputs.abijar.isNotEmpty()) {
