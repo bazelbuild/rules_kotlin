@@ -61,7 +61,7 @@ class ClasspathSnapshotGenerator(
       }
 
     // TODO: Log impl
-    // LOG.info("$timeSpent ms for input jar: $inputJar")
+//     LOG.info("$timeSpent ms for input jar: $inputJar")
   }
 
   private fun isSnapshotOutdated(): Boolean {

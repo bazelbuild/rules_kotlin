@@ -20,6 +20,8 @@ import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.builder.utils.verifiedPath
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
 import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
 import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
@@ -38,10 +40,6 @@ class KotlinToolchain private constructor(
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
-  // Individual jar files for use by buildSnapshotInvoker
-  internal val kotlincJar: File,
-  internal val kotlinCompilerEmbeddableJar: File,
-  internal val buildToolsApiJar: File,
   internal val buildToolsImplJar: File,
   internal val compilerJar: File,
 ) {
@@ -78,13 +76,6 @@ class KotlinToolchain private constructor(
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@rules_kotlin...jdeps-gen",
-        ).toPath()
-    }
-
-    internal val KOTLINC by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kotlin-compiler",
         ).toPath()
     }
 
@@ -164,64 +155,9 @@ class KotlinToolchain private constructor(
 
     private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
 
-    /**
-     * Creates an isolated classloader for Build Tools API operations.
-     *
-     * This avoids class conflicts between the preloaded compiler (which has
-     * non-relocated IntelliJ classes) and the Build Tools implementation
-     * (which expects relocated classes).
-     *
-     * Order matters! kotlin-compiler-embeddable must come before kotlinc so that:
-     * - Relocated IntelliJ classes (org.jetbrains.kotlin.com.intellij.*) come from embeddable
-     * - Regular kotlin.* classes can come from either (embeddable has them too, or kotlinc as fallback)
-     */
-    internal fun createIsolatedBuildToolsClassLoader(
-      buildToolsApiJar: File,
-      buildToolsImplJar: File,
-      compilerJar: File,
-      kotlinCompilerEmbeddableJar: File,
-      kotlincJar: File,
-    ): ClassLoader {
-      // Step 1: Create bootstrap classloader with just build-tools-api
-      // Uses system classloader as parent (no IntelliJ class conflicts)
-      val bootstrapClassLoader =
-        URLClassLoader(
-          arrayOf(buildToolsApiJar.toURI().toURL()),
-          ClassLoader.getSystemClassLoader(),
-        )
-
-      // Step 2: Get SharedApiClassesClassLoader from bootstrap
-      // This returns a classloader that:
-      // - Uses JDK classes as base
-      // - Delegates org.jetbrains.kotlin.buildtools.api.* to bootstrap classloader
-      val sharedApiClassLoaderFactory =
-        bootstrapClassLoader.loadClass(
-          "org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader",
-        )
-      val sharedApiClassLoader =
-        sharedApiClassLoaderFactory
-          .getMethod("newInstance")
-          .invoke(null) as ClassLoader
-
-      // Step 3: Create implementation classloader with all jars
-      // Uses SharedApiClassesClassLoader as parent for proper isolation
-      // Order: embeddable first (for relocated IntelliJ), then kotlinc (for kotlin.*)
-      return URLClassLoader(
-        arrayOf(
-          buildToolsApiJar.toURI().toURL(),
-          buildToolsImplJar.toURI().toURL(),
-          kotlinCompilerEmbeddableJar.toURI().toURL(),
-          kotlincJar.toURI().toURL(),
-          compilerJar.toURI().toURL(),
-        ),
-        sharedApiClassLoader,
-      )
-    }
-
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
       createToolchain(
-        KOTLINC.verified().absoluteFile,
         KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
         BUILD_TOOLS_IMPL.verified().absoluteFile,
@@ -239,7 +175,6 @@ class KotlinToolchain private constructor(
 
     @JvmStatic
     fun createToolchain(
-      kotlinc: File,
       kotlinCompilerEmbeddable: File,
       buildToolsApi: File,
       buildToolsImpl: File,
@@ -256,7 +191,6 @@ class KotlinToolchain private constructor(
     ): KotlinToolchain =
       KotlinToolchain(
         listOf(
-          kotlinc,
           kotlinCompilerEmbeddable,
           compiler,
           buildToolsApi,
@@ -293,9 +227,6 @@ class KotlinToolchain private constructor(
             kaptFile.path,
             "org.jetbrains.kotlin.kapt3",
           ),
-        kotlincJar = kotlinc,
-        kotlinCompilerEmbeddableJar = kotlinCompilerEmbeddable,
-        buildToolsApiJar = buildToolsApi,
         buildToolsImplJar = buildToolsImpl,
         compilerJar = compiler,
       )
@@ -329,20 +260,6 @@ class KotlinToolchain private constructor(
     )
   }
 
-  fun toolchainWithReflect(kotlinReflect: File? = null): KotlinToolchain =
-    KotlinToolchain(
-      baseJars + listOf(kotlinReflect ?: KOTLIN_REFLECT.toFile()),
-      kapt3Plugin,
-      jvmAbiGen,
-      skipCodeGen,
-      jdepsGen,
-      kotlincJar,
-      kotlinCompilerEmbeddableJar,
-      buildToolsApiJar,
-      buildToolsImplJar,
-      compilerJar,
-    )
-
   data class CompilerPlugin(
     val jarPath: String,
     val id: String,
@@ -350,20 +267,16 @@ class KotlinToolchain private constructor(
 
   open class KotlincInvoker internal constructor(
     toolchain: KotlinToolchain,
-    clazz: String,
   ) {
     private val compiler: Any
     private val execMethod: Method
     private val getCodeMethod: Method
 
     init {
-      val compilerClass = toolchain.classLoader.loadClass(clazz)
+      val compilerClass = toolchain.classLoader.loadClass("io.bazel.kotlin.compiler.BuildToolsAPICompiler")
       val exitCodeClass =
         toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
-      toolchain.classLoader.loadClass(
-        "org.jetbrains.kotlin.buildtools.internal.CompilationServiceProxy",
-      )
       compiler = compilerClass.getConstructor().newInstance()
       execMethod =
         compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
@@ -383,25 +296,20 @@ class KotlinToolchain private constructor(
     }
   }
 
+  @OptIn(ExperimentalBuildToolsApi::class)
   class ClasspathSnapshotInvoker internal constructor(
-    buildToolsApiJar: File,
     buildToolsImplJar: File,
     compilerJar: File,
-    kotlinCompilerEmbeddableJar: File,
-    kotlincJar: File,
   ) {
     private val generateMethod: Method
 
     init {
-      // Create fully isolated classloader - no preloaded compiler classes!
-      // This avoids ClassCastException from mixing relocated/non-relocated IntelliJ classes.
+      val urls = listOf(compilerJar, buildToolsImplJar).map { it.toURI().toURL() }.toTypedArray()
+
       val isolatedClassLoader =
-        createIsolatedBuildToolsClassLoader(
-          buildToolsApiJar,
-          buildToolsImplJar,
-          compilerJar,
-          kotlinCompilerEmbeddableJar,
-          kotlincJar,
+        URLClassLoader(
+          urls,
+          SharedApiClassesClassLoader(),
         )
 
       val clazz =
@@ -435,18 +343,12 @@ class KotlinToolchain private constructor(
       fun build(): KotlincInvoker =
         KotlincInvoker(
           toolchain = toolchain,
-          clazz = "io.bazel.kotlin.compiler.BuildToolsAPICompiler",
         )
 
       fun buildSnapshotInvoker(): ClasspathSnapshotInvoker =
         ClasspathSnapshotInvoker(
-          toolchain.buildToolsApiJar,
           toolchain.buildToolsImplJar,
           toolchain.compilerJar,
-          toolchain.kotlinCompilerEmbeddableJar,
-          toolchain.kotlincJar,
         )
-
-      fun getClassLoader(): ClassLoader = toolchain.classLoader
     }
 }
