@@ -81,7 +81,8 @@ java_binary(
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
-        "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
+        "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",  #TODO add missing dot
+        "-D@rules_kotlin...kotlin.compiler.annotations=$(rlocationpath //kotlin/compiler:annotations)",
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",

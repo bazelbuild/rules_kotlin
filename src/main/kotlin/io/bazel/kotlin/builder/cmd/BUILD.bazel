@@ -49,6 +49,9 @@ kt_bootstrap_binary(
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar)",
         "-D@rules_kotlin..kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
+        "-D@rules_kotlin..kotlin.compiler.kotlin-stdlib=$(rlocationpath //kotlin/compiler:kotlin-stdlib)",
+        "-D@rules_kotlin..kotlin.compiler.kotlin-coroutines=$(rlocationpath //kotlin/compiler:kotlinx-coroutines-core-jvm)",
+        "-D@rules_kotlin...kotlin.compiler.annotations=$(rlocationpath //kotlin/compiler:annotations)",  # todo cleanup
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",

@@ -42,6 +42,11 @@ class KotlinToolchain private constructor(
   val jdepsGen: CompilerPlugin,
   internal val buildToolsImplJar: File,
   internal val compilerJar: File,
+  internal val kotlinCompilerEmbeddableJar: File,
+  internal val kotlinStdlibJar: File,
+  internal val kotlinReflectJar: File,
+  internal val kotlinCoroutinesJar: File,
+  internal val annotationsJar: File,
 ) {
   companion object {
     private val JVM_ABI_PLUGIN by lazy {
@@ -86,6 +91,20 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    internal val KOTLIN_STDLIB by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@rules_kotlin..kotlin.compiler.kotlin-stdlib",
+        ).toPath()
+    }
+
+    internal val KOTLIN_COROUTINES by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@rules_kotlin..kotlin.compiler.kotlin-coroutines",
+        ).toPath()
+    }
+
     private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
@@ -121,17 +140,10 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
-    private val KOTLIN_EMBEDDED by lazy {
+    private val ANNOTATIONS by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@kotlin_daemon_embeddable...kotlin-daemon-embeddable",
-        ).toPath()
-    }
-
-    private val KOTLIN_DAEMON by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kotlin-daemon-client",
+          "@rules_kotlin...kotlin.compiler.annotations",
         ).toPath()
     }
 
@@ -169,8 +181,10 @@ class KotlinToolchain private constructor(
         KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
         KOTLINX_SERIALIZATION_JSON.toFile(),
         KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
-        KOTLIN_EMBEDDED.toFile(),
-        KOTLIN_DAEMON.toFile(),
+        KOTLIN_STDLIB.verified().absoluteFile,
+        KOTLIN_REFLECT.verified().absoluteFile,
+        KOTLIN_COROUTINES.verified().absoluteFile,
+        ANNOTATIONS.verified().absoluteFile,
       )
 
     @JvmStatic
@@ -186,8 +200,10 @@ class KotlinToolchain private constructor(
       kotlinxSerializationCoreJvm: File,
       kotlinxSerializationJson: File,
       kotlinxSerializationJsonJvm: File,
-      kotlinEmbedded: File,
-      kotlinDaemon: File,
+      kotlinStdlib: File,
+      kotlinReflect: File,
+      kotlinCoroutines: File,
+      annotations: File,
     ): KotlinToolchain =
       KotlinToolchain(
         listOf(
@@ -204,8 +220,6 @@ class KotlinToolchain private constructor(
           kotlinxSerializationCoreJvm,
           kotlinxSerializationJson,
           kotlinxSerializationJsonJvm,
-          kotlinEmbedded,
-          kotlinDaemon,
         ),
         jvmAbiGen =
           CompilerPlugin(
@@ -229,6 +243,11 @@ class KotlinToolchain private constructor(
           ),
         buildToolsImplJar = buildToolsImpl,
         compilerJar = compiler,
+        kotlinCompilerEmbeddableJar = kotlinCompilerEmbeddable,
+        kotlinStdlibJar = kotlinStdlib,
+        kotlinReflectJar = kotlinReflect,
+        kotlinCoroutinesJar = kotlinCoroutines,
+        annotationsJar = annotations,
       )
   }
 
@@ -330,7 +349,8 @@ class KotlinToolchain private constructor(
       outputSnapshot: String,
       granularity: String,
     ) {
-      generateMethod.invoke(null, inputJar, outputSnapshot, granularity)
+      System.err.println("DEBUG: generate called with inputJar=$inputJar, outputSnapshot=$outputSnapshot, granularity=$granularity")
+//      generateMethod.invoke(null, inputJar, outputSnapshot, granularity)
     }
   }
 
@@ -340,6 +360,27 @@ class KotlinToolchain private constructor(
     constructor(
       private val toolchain: KotlinToolchain,
     ) {
+      /** Build-tools-impl JAR for BTAPI */
+      val buildToolsImplJar: File get() = toolchain.buildToolsImplJar
+
+      /** Compiler JAR */
+      val compilerJar: File get() = toolchain.compilerJar
+
+      /** Kotlin compiler embeddable JAR for BTAPI classloader */
+      val kotlinCompilerEmbeddableJar: File get() = toolchain.kotlinCompilerEmbeddableJar
+
+      /** Kotlin stdlib JAR for BTAPI classloader */
+      val kotlinStdlibJar: File get() = toolchain.kotlinStdlibJar
+
+      val kotlinReflectJar: File get() = toolchain.kotlinReflectJar
+
+      val kotlinCoroutinesJar: File get() = toolchain.kotlinCoroutinesJar
+
+      val annotationsJar: File get() = toolchain.annotationsJar
+
+      /** All base JARs needed for the compiler classloader (includes kotlin-stdlib, etc.) */
+      val baseJars: List<File> get() = toolchain.baseJars
+
       fun build(): KotlincInvoker =
         KotlincInvoker(
           toolchain = toolchain,

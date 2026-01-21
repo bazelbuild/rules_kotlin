@@ -16,10 +16,14 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
+import io.bazel.kotlin.builder.toolchain.BtapiToolchainFactory
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,6 +34,7 @@ import javax.inject.Singleton
 const val X_FRIENDS_PATH_SEPARATOR = ","
 
 @Singleton
+@OptIn(ExperimentalBuildToolsApi::class)
 class KotlinJvmTaskExecutor
   @Inject
   internal constructor(
@@ -63,89 +68,39 @@ class KotlinJvmTaskExecutor
 
       context.execute("compile classes") {
         preprocessedTask.apply {
-          listOf(
-            runCatching {
-              context.execute("kotlinc") {
-                if (compileKotlin) {
-                  // Build base args first to pass to incrementalCompilationArgs for hash computation
-                  val compilationArgs =
-                    baseArgs()
-                      .given(outputs.jdeps)
-                      .notEmpty {
-                        plugin(plugins.jdeps) {
-                          flag("output", outputs.jdeps)
-                          flag("target_label", info.label)
-                          inputs.directDependenciesList.forEach {
-                            flag("direct_dependencies", it)
-                          }
-                          inputs.classpathList.forEach {
-                            flag("full_classpath", it)
-                          }
-                          flag("strict_kotlin_deps", info.strictKotlinDeps)
-                        }
-                      }.given(outputs.jar)
-                      .notEmpty {
-                        append(codeGenArgs())
-                      }.given(outputs.abijar)
-                      .notEmpty {
-                        plugin(plugins.jvmAbiGen) {
-                          flag("outputDir", directories.abiClasses)
-                          if (info.treatInternalAsPrivateInAbiJar) {
-                            flag("treatInternalAsPrivate", "true")
-                          }
-                          if (info.removePrivateClassesInAbiJar) {
-                            flag("removePrivateClasses", "true")
-                          }
-                          if (info.removeDebugInfo) {
-                            flag("removeDebugInfo", "true")
-                          }
-                        }
-                        given(outputs.jar).empty {
-                          plugin(plugins.skipCodeGen)
-                        }
-                      }
+          // Compile Kotlin using BtapiCompiler (direct BTAPI, no string parsing)
+          context.execute("kotlinc") {
+            if (compileKotlin) {
+              // Collect all plugin JARs for the classloader
+              val pluginJars = mutableListOf<File>()
+              pluginJars.add(File(plugins.jdeps.jarPath))
+              pluginJars.add(File(plugins.jvmAbiGen.jarPath))
+              pluginJars.add(File(plugins.skipCodeGen.jarPath))
+              // Note: kapt is NOT included here - KAPT uses the old compilation path
+              // User plugins from task
+              inputs.compilerPluginClasspathList.forEach { pluginJars.add(File(it)) }
 
-                  // Get args list for IC hash computation, including compiler plugin options
-                  // (plugins are added in compileKotlin, but we need them for the hash)
-                  val argsWithPlugins =
-                    (
-                      compilationArgs +
-                        plugins(
-                          options = inputs.compilerPluginOptionsList,
-                          classpath = inputs.compilerPluginClasspathList,
-                        )
-                    ).list()
-                  val finalArgs =
-                    compilationArgs.given(info.incrementalCompilation) {
-                      append(incrementalCompilationArgs(argsWithPlugins))
-                    }
+              val factory = BtapiToolchainFactory(
+                compilerBuilder.buildToolsImplJar,
+                compilerBuilder.kotlinCompilerEmbeddableJar,
+                compilerBuilder.kotlinStdlibJar,
+                compilerBuilder.kotlinReflectJar,
+                compilerBuilder.kotlinCoroutinesJar,
+                compilerBuilder.annotationsJar,
+                pluginJars,
+              )
+              val btapiCompiler = BtapiCompiler(factory.createToolchains(), System.err)
 
-                  compileKotlin(
-                    context,
-                    compiler,
-                    args = finalArgs,
-                    printOnFail = false,
-                  )
-                } else {
-                  emptyList()
-                }
+              val result = btapiCompiler.compile(this, plugins)
+              when (result) {
+                CompilationResult.COMPILATION_SUCCESS -> { /* success */ }
+                CompilationResult.COMPILATION_ERROR ->
+                  throw CompilationStatusException("Compilation failed", 1)
+                CompilationResult.COMPILATION_OOM_ERROR ->
+                  throw CompilationStatusException("Compilation failed with OOM", 3)
+                CompilationResult.COMPILER_INTERNAL_ERROR ->
+                  throw CompilationStatusException("Compiler internal error", 2)
               }
-            },
-          ).map {
-            (it.getOrNull() ?: emptyList()) to it.exceptionOrNull()
-          }.map {
-            when (it.second) {
-              // TODO(issue/296): remove when the CompilationStatusException is unified.
-              is CompilationStatusException ->
-                (it.second as CompilationStatusException).lines + it.first to it.second
-              else -> it
-            }
-          }.fold(Pair<List<String>, Throwable?>(emptyList(), null)) { acc, result ->
-            acc.first + result.first to combine(acc.second, result.second)
-          }.apply {
-            first.apply(context::printCompilerOutput)
-            second?.let {
-              throw it
             }
           }
 

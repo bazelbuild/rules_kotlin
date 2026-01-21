@@ -239,8 +239,10 @@ abstract class KotlinAbstractTestBuilder<T> {
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlin_daemon_embeddable//file").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-daemon-client").singleCompileJar())
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
         );
     }
 }
