@@ -117,6 +117,12 @@ def kotlin_repositories(
         version = versions.KOTLIN_DAEMON_EMBEDDABLE,
     )
 
+    versions.use_repository(
+        http_file,
+        name = "kotlin_annotation_processing_embeddable",
+        version = versions.KOTLIN_ANNOTATION_PROCESSING_EMBEDDABLE,
+    )
+
     if is_bzlmod:
         return
 

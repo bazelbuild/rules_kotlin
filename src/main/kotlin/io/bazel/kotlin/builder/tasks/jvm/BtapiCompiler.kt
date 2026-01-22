@@ -24,6 +24,8 @@ import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.SourcesChanges
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget
@@ -36,11 +38,14 @@ import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompil
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.ROOT_PROJECT_DIR
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.ObjectOutputStream
 import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.Base64
 
 /**
  * Compiler that uses the Kotlin Build Tools API directly from protobuf task data.
@@ -418,5 +423,204 @@ class BtapiCompiler(
     override fun lifecycle(msg: String) {
       out.println("[IC] $msg")
     }
+  }
+
+  /**
+   * Compiles Kotlin sources with KAPT (annotation processing) using the Build Tools API.
+   *
+   * This runs KAPT as a separate compilation phase before main compilation.
+   * KAPT generates stubs and processes annotations, producing:
+   * - Generated Java sources in directories.generatedJavaSources
+   * - Generated classes in directories.generatedClasses
+   * - Stubs in directories.stubs
+   *
+   * @param task The compilation task protobuf containing all compilation info
+   * @param plugins Internal compiler plugins (must include kapt)
+   * @param aptMode KAPT mode: "stubsAndApt" (default), "stubs", or "apt"
+   * @param verbose Whether to enable verbose KAPT output
+   * @return CompilationResult indicating success or failure
+   */
+  fun compileKapt(
+    task: JvmCompilationTask,
+    plugins: InternalCompilerPlugins,
+    aptMode: String = "stubsAndApt",
+    verbose: Boolean = false,
+  ): CompilationResult {
+    System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
+
+    // Redirect stderr to capture compiler error messages
+    val originalErr = System.err
+    System.setErr(out)
+
+    try {
+      // Collect sources from protobuf
+      val sources = (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
+        .map { Path.of(it) }
+      // KAPT outputs to generatedClasses directory
+      val outputDir = Path.of(task.directories.generatedClasses)
+
+      // Create BTAPI compilation operation
+      val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
+      val compilerArgs = operation.compilerArguments
+
+      // Configure base compiler arguments (classpath, JVM target, etc.)
+      configureCompilerArguments(compilerArgs, task)
+
+      // Build KAPT plugin using typed API
+      val kaptPlugin = buildKaptCompilerPlugin(task, plugins, aptMode, verbose)
+
+      // Build stubs plugins (non-KAPT plugins that run during KAPT phase)
+      val stubsPlugins = buildStubsPlugins(task, plugins)
+
+      // Set plugins via typed API
+      val allPlugins = listOf(kaptPlugin) + stubsPlugins
+      compilerArgs[CommonCompilerArguments.COMPILER_PLUGINS] = allPlugins
+
+      // Debug output - show plugin options explicitly (not comma-joined)
+      System.err.println("DEBUG: KAPT plugins count = ${allPlugins.size}")
+      allPlugins.forEach { plugin ->
+        System.err.println("DEBUG: Plugin ${plugin.pluginId}")
+        System.err.println("DEBUG:   classpath = ${plugin.classpath}")
+        plugin.rawArguments.forEach { opt ->
+          System.err.println("DEBUG:   -P plugin:${plugin.pluginId}:${opt.key}=${opt.value}")
+        }
+      }
+
+      // Execute the compilation (no IC for KAPT phase)
+      val result = toolchains.createBuildSession().use { session ->
+        session.executeOperation(operation, logger = if (verbose) createIcLogger(out) else null)
+      }
+
+      return result
+    } finally {
+      System.setErr(originalErr)
+    }
+  }
+
+  /**
+   * Builds the KAPT compiler plugin using the typed CompilerPlugin API.
+   */
+  private fun buildKaptCompilerPlugin(
+    task: JvmCompilationTask,
+    plugins: InternalCompilerPlugins,
+    aptMode: String,
+    verbose: Boolean,
+  ): CompilerPlugin {
+    val pluginId = plugins.kapt.id
+
+    // Create temp subdirectories for stubs and incremental data
+    val stubsDir = Files.createDirectories(Paths.get(task.directories.temp).resolve("stubs"))
+    val incrementalDataDir = Files.createDirectories(Paths.get(task.directories.temp).resolve("incrementalData"))
+
+    val options = mutableListOf<CompilerPluginOption>()
+
+    // Core KAPT directories
+    options.add(CompilerPluginOption("sources", task.directories.generatedJavaSources))
+    options.add(CompilerPluginOption("classes", task.directories.generatedClasses))
+    options.add(CompilerPluginOption("stubs", stubsDir.toString()))
+    options.add(CompilerPluginOption("incrementalData", incrementalDataDir.toString()))
+
+    // Javac arguments (encoded as Base64)
+    val javacArgs = mapOf(
+      "-target" to task.info.toolchainInfo.jvm.jvmTarget,
+      "-source" to task.info.toolchainInfo.jvm.jvmTarget,
+    )
+    options.add(CompilerPluginOption("javacArguments", encodeMapForKapt(javacArgs)))
+
+    // Other options
+    options.add(CompilerPluginOption("correctErrorTypes", "false"))
+    options.add(CompilerPluginOption("verbose", verbose.toString()))
+    options.add(CompilerPluginOption("aptMode", aptMode))
+
+    // Annotation processor classpath - one option per entry
+    task.inputs.processorpathsList.forEach { processorPath ->
+      options.add(CompilerPluginOption("apclasspath", processorPath))
+    }
+
+    // Processors list - one option per processor
+    task.inputs.processorsList.forEach { processor ->
+      options.add(CompilerPluginOption("processors", processor))
+    }
+
+    // Read kapt apoptions from the plugin options
+    val optionPrefix = "$pluginId:apoption="
+    val apOptions = (task.inputs.compilerPluginOptionsList + task.inputs.stubsPluginOptionsList)
+      .filter { o -> o.startsWith(optionPrefix) }
+      .associate { o ->
+        val kv = o.substring(optionPrefix.length).split(":", limit = 2)
+        kv[0] to kv[1]
+      }
+
+    if (apOptions.isNotEmpty()) {
+      options.add(CompilerPluginOption("apoptions", encodeMapForKapt(apOptions)))
+    }
+
+    return CompilerPlugin(
+      pluginId = pluginId,
+      classpath = listOf(Path.of(plugins.kapt.jarPath)),
+      rawArguments = options,
+      orderingRequirements = emptySet(),
+    )
+  }
+
+  /**
+   * Builds CompilerPlugin objects for non-KAPT stubs plugins that should run during KAPT phase.
+   */
+  private fun buildStubsPlugins(
+    task: JvmCompilationTask,
+    plugins: InternalCompilerPlugins,
+  ): List<CompilerPlugin> {
+    // Group plugin options by plugin ID
+    val pluginOptionsMap = mutableMapOf<String, MutableList<CompilerPluginOption>>()
+
+    task.inputs.stubsPluginOptionsList
+      .filterNot { it.startsWith(plugins.kapt.id) }
+      .forEach { optionStr ->
+        // Format is "pluginId:key=value"
+        val colonIdx = optionStr.indexOf(':')
+        if (colonIdx > 0) {
+          val pluginId = optionStr.substring(0, colonIdx)
+          val keyValue = optionStr.substring(colonIdx + 1)
+          val eqIdx = keyValue.indexOf('=')
+          if (eqIdx > 0) {
+            val key = keyValue.substring(0, eqIdx)
+            val value = keyValue.substring(eqIdx + 1)
+            pluginOptionsMap.getOrPut(pluginId) { mutableListOf() }
+              .add(CompilerPluginOption(key, value))
+          }
+        }
+      }
+
+    // Create CompilerPlugin for each plugin with options
+    // We need to find the classpath for each plugin from stubsPluginClasspathList
+    // For simplicity, we map all stubs classpath entries to plugins by matching plugin IDs
+    val stubsClasspath = task.inputs.stubsPluginClasspathList.map { Path.of(it) }
+
+    return pluginOptionsMap.map { (pluginId, options) ->
+      CompilerPlugin(
+        pluginId = pluginId,
+        classpath = stubsClasspath, // All stubs plugins share the classpath
+        rawArguments = options,
+        orderingRequirements = emptySet(),
+      )
+    }
+  }
+
+  /**
+   * Encodes a map to Base64 in the format expected by KAPT.
+   * Uses Java serialization (ObjectOutputStream) compatible with KAPT's decodeMap.
+   */
+  private fun encodeMapForKapt(options: Map<String, String>): String {
+    val os = ByteArrayOutputStream()
+    val oos = ObjectOutputStream(os)
+
+    oos.writeInt(options.size)
+    for ((key, value) in options.entries) {
+      oos.writeUTF(key)
+      oos.writeUTF(value)
+    }
+
+    oos.flush()
+    return Base64.getEncoder().encodeToString(os.toByteArray())
   }
 }

@@ -200,10 +200,12 @@ internal fun JvmCompilationTask.kaptArgs(
   }
 }
 
+@org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
   compiler: KotlinToolchain.KotlincInvoker,
+  btapiCompiler: BtapiCompiler? = null,
 ): JvmCompilationTask {
   if (
     (
@@ -216,7 +218,11 @@ internal fun JvmCompilationTask.runPlugins(
   } else {
     // KSP is now handled externally in Starlark, only KAPT runs through the builder
     if (!outputs.generatedClassJar.isNullOrEmpty()) {
-      return runKaptPlugin(context, plugins, compiler)
+      return if (btapiCompiler != null) {
+        runKaptPluginBtapi(context, plugins, btapiCompiler)
+      } else {
+        runKaptPlugin(context, plugins, compiler)
+      }
     } else {
       return this
     }
@@ -255,6 +261,43 @@ private fun JvmCompilationTask.runKaptPlugin(
         }
         return@let expandWithGeneratedSources()
       }
+  }
+}
+
+/**
+ * Runs KAPT using BtapiCompiler (Build Tools API).
+ *
+ * This is the new implementation that uses BTAPI directly instead of
+ * the string-based KotlincInvoker path.
+ */
+@org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+private fun JvmCompilationTask.runKaptPluginBtapi(
+  context: CompilationTaskContext,
+  plugins: InternalCompilerPlugins,
+  btapiCompiler: BtapiCompiler,
+): JvmCompilationTask {
+  return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
+    val result = btapiCompiler.compileKapt(
+      task = this,
+      plugins = plugins,
+      aptMode = "stubsAndApt",
+      verbose = context.whenTracing { true } == true,
+    )
+
+    when (result) {
+      org.jetbrains.kotlin.buildtools.api.CompilationResult.COMPILATION_SUCCESS -> {
+        context.whenTracing {
+          printLines("kapt btapi", listOf("KAPT completed successfully"))
+        }
+        expandWithGeneratedSources()
+      }
+      org.jetbrains.kotlin.buildtools.api.CompilationResult.COMPILATION_ERROR ->
+        throw io.bazel.kotlin.builder.toolchain.CompilationStatusException("KAPT failed", 1)
+      org.jetbrains.kotlin.buildtools.api.CompilationResult.COMPILATION_OOM_ERROR ->
+        throw io.bazel.kotlin.builder.toolchain.CompilationStatusException("KAPT failed with OOM", 3)
+      org.jetbrains.kotlin.buildtools.api.CompilationResult.COMPILER_INTERNAL_ERROR ->
+        throw io.bazel.kotlin.builder.toolchain.CompilationStatusException("KAPT compiler internal error", 2)
+    }
   }
 }
 

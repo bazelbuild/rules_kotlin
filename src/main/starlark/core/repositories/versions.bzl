@@ -74,7 +74,7 @@ versions = struct(
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.3.0",
+        version = "2.3.20-Beta1",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
@@ -88,32 +88,39 @@ versions = struct(
         sha256 = "24cb0d869ab2ae9fcf630a747b6b7e662e4be26e8b83b9272f6f3c24813e0c5a",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.3.0",
+        version = "2.3.20-Beta1",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
         ],
-        sha256 = "93a5e8ffb1000801c832a862b23bd9766f444e6f6c185c32b1fb57877fb5cea3",
+        sha256 = "7026a0ef96e4e9e8355c7af3e2a9ef32b93b0e143cd6b4a01fa9ab9b6135c4d3",
     ),
     KOTLIN_BUILD_TOOLS_API = version(
-        version = "2.3.0",
+        version = "2.3.20-Beta1",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/{version}/kotlin-build-tools-api-{version}.jar",
         ],
-        sha256 = "c6c09cf2853457249f707c86382112409d5a55f50b6b8568ba4f530dd003fedc",
+        sha256 = "e38d7bb8b9afe9c27f018e97dec60328ff3ec20b62b5e961f1c865b7628dfb4a",
     ),
     KOTLIN_COMPILER_EMBEDDABLE = version(
-        version = "2.3.0",
+        version = "2.3.20-Beta1",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/{version}/kotlin-compiler-embeddable-{version}.jar",
         ],
-        sha256 = "8dbd882fa58c3d17e683a27390288315f8b490f8e3e3b1be4dc3e280d37e285a",
+        sha256 = "dee0d35840adc614a08289105361c1562caa2c0f5fc29ca1f9bb928b1b2f7d31",
     ),
     KOTLIN_DAEMON_EMBEDDABLE = version(
-        version = "2.3.0",
+        version = "2.3.20-Beta1",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/{version}/kotlin-daemon-embeddable-{version}.jar",
         ],
-        sha256 = "39bcb02d8c293aa678554c8b49d7ff84657021709283c6186e3a40806af9bd10",
+        sha256 = "b7e19d1523ea6b8ab7540a891b222ce57e8d7a082c2b22e8a6c4fc47176c9607",
+    ),
+    KOTLIN_ANNOTATION_PROCESSING_EMBEDDABLE = version(
+        version = "2.3.20-Beta1",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/{version}/kotlin-annotation-processing-embeddable-{version}.jar",
+        ],
+        sha256 = "709775dcbcd5a27379aba6a08e66d1b85ebb82decbea82f6fd277b2d4e28fcd1",
     ),
     RULES_ANDROID = version(
         version = "0.6.4",

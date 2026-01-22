@@ -55,16 +55,57 @@ class KotlinJvmTaskExecutor
       }
     }
 
+    /**
+     * Checks if the task has KAPT processors that need to be run.
+     */
+    private fun JvmCompilationTask.hasKaptProcessors(): Boolean {
+      return inputs.processorsList.isNotEmpty() &&
+        inputs.kotlinSourcesList.isNotEmpty() &&
+        !outputs.generatedClassJar.isNullOrEmpty()
+    }
+
+    /**
+     * Creates a BtapiCompiler instance configured for KAPT.
+     *
+     * Plugin JARs are NOT loaded in the factory classloader - BTAPI loads plugins
+     * internally from CompilerPlugin.classpath specified via the typed API.
+     * This avoids classloader isolation issues where ComponentRegistrar interface
+     * would be loaded by different classloaders.
+     */
+    private fun createKaptBtapiCompiler(): BtapiCompiler {
+      // Don't add plugin JARs to factory classloader - BTAPI loads plugins from
+      // CompilerPlugin.classpath via CommonCompilerArguments.COMPILER_PLUGINS
+      val pluginJars = emptyList<File>()
+
+      val factory = BtapiToolchainFactory(
+        compilerBuilder.buildToolsImplJar,
+        compilerBuilder.kotlinCompilerEmbeddableJar,
+        compilerBuilder.kotlinStdlibJar,
+        compilerBuilder.kotlinReflectJar,
+        compilerBuilder.kotlinCoroutinesJar,
+        compilerBuilder.annotationsJar,
+        pluginJars,
+      )
+      return BtapiCompiler(factory.createToolchains(), System.err)
+    }
+
     fun execute(
       context: CompilationTaskContext,
       task: JvmCompilationTask,
     ) {
       val compiler = compilerBuilder.build()
 
+      // Create KAPT-enabled BtapiCompiler if KAPT is needed
+      val kaptBtapiCompiler = if (task.hasKaptProcessors()) {
+        createKaptBtapiCompiler()
+      } else {
+        null
+      }
+
       val preprocessedTask =
         task
           .preProcessingSteps(context)
-          .runPlugins(context, plugins, compiler)
+          .runPlugins(context, plugins, compiler, kaptBtapiCompiler)
 
       context.execute("compile classes") {
         preprocessedTask.apply {
@@ -76,7 +117,7 @@ class KotlinJvmTaskExecutor
               pluginJars.add(File(plugins.jdeps.jarPath))
               pluginJars.add(File(plugins.jvmAbiGen.jarPath))
               pluginJars.add(File(plugins.skipCodeGen.jarPath))
-              // Note: kapt is NOT included here - KAPT uses the old compilation path
+              // Note: kapt is NOT included here - it uses its own BtapiCompiler instance
               // User plugins from task
               inputs.compilerPluginClasspathList.forEach { pluginJars.add(File(it)) }
 
