@@ -24,8 +24,6 @@ import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Due to an inconsistency in the handling of -Xfriends-path, jvm uses a comma (property list
@@ -33,27 +31,13 @@ import javax.inject.Singleton
  */
 const val X_FRIENDS_PATH_SEPARATOR = ","
 
-@Singleton
 @OptIn(ExperimentalBuildToolsApi::class)
 class KotlinJvmTaskExecutor
-  @Inject
   internal constructor(
     private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
     private val plugins: InternalCompilerPlugins,
   ) {
-    private fun combine(
-      one: Throwable?,
-      two: Throwable?,
-    ): Throwable? {
-      return when {
-        one != null && two != null -> {
-          one.addSuppressed(two)
-          return one
-        }
-        one != null -> one
-        else -> two
-      }
-    }
+
 
     /**
      * Checks if the task has KAPT processors that need to be run.

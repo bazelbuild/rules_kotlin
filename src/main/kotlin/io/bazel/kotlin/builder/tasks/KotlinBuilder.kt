@@ -35,14 +35,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.regex.Pattern
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 @Suppress("MemberVisibilityCanBePrivate")
-class KotlinBuilder
-  @Inject
-  internal constructor(
+class KotlinBuilder(
     private val jvmTaskExecutor: KotlinJvmTaskExecutor,
   ) {
     companion object {

@@ -31,8 +31,6 @@ import java.net.URLClassLoader
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
-import javax.inject.Inject
-import javax.inject.Singleton
 
 class KotlinToolchain private constructor(
   private val baseJars: List<File>,
