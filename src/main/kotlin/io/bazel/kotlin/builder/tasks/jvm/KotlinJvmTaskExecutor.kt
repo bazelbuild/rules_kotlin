@@ -25,19 +25,11 @@ import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import java.io.File
 
-/**
- * Due to an inconsistency in the handling of -Xfriends-path, jvm uses a comma (property list
- * separator)
- */
-const val X_FRIENDS_PATH_SEPARATOR = ","
-
 @OptIn(ExperimentalBuildToolsApi::class)
-class KotlinJvmTaskExecutor
-  internal constructor(
+class KotlinJvmTaskExecutor(
     private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
     private val plugins: InternalCompilerPlugins,
   ) {
-
 
     /**
      * Checks if the task has KAPT processors that need to be run.
@@ -77,19 +69,13 @@ class KotlinJvmTaskExecutor
       context: CompilationTaskContext,
       task: JvmCompilationTask,
     ) {
-      val compiler = compilerBuilder.build()
-
       // Create KAPT-enabled BtapiCompiler if KAPT is needed
-      val kaptBtapiCompiler = if (task.hasKaptProcessors()) {
-        createKaptBtapiCompiler()
-      } else {
-        null
-      }
+      val kaptBtapiCompiler = createKaptBtapiCompiler()
 
       val preprocessedTask =
         task
           .preProcessingSteps(context)
-          .runPlugins(context, plugins, compiler, kaptBtapiCompiler)
+          .runPlugins(context, plugins, kaptBtapiCompiler)
 
       context.execute("compile classes") {
         preprocessedTask.apply {

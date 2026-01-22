@@ -17,19 +17,14 @@
 package io.bazel.kotlin.builder.toolchain
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
-import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.builder.utils.verifiedPath
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
-import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
-import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
-import java.io.PrintStream
 import java.lang.reflect.Method
 import java.net.URLClassLoader
 import java.nio.file.FileSystems
-import java.nio.file.Path
 import java.nio.file.Paths
 
 class KotlinToolchain private constructor(
@@ -161,10 +156,6 @@ class KotlinToolchain private constructor(
         }.verifiedPath()
     }
 
-    internal val NO_ARGS = arrayOf<Any>()
-
-    private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
-
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
       createToolchain(
@@ -249,69 +240,11 @@ class KotlinToolchain private constructor(
       )
   }
 
-  private fun createClassLoader(
-    javaHome: Path,
-    baseJars: List<File>,
-    classLoader: ClassLoader = ClassLoader.getSystemClassLoader(),
-  ): ClassLoader =
-    runCatching {
-      ClassPreloadingUtils.preloadClasses(
-        mutableListOf<File>().also {
-          it += baseJars
-          if (!isJdk9OrNewer) {
-            it += javaHome.resolveVerified("lib", "tools.jar")
-          }
-        },
-        Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
-        classLoader,
-        null,
-      )
-    }.onFailure {
-      throw RuntimeException("$javaHome, $baseJars", it)
-    }.getOrThrow()
-
-  val classLoader by lazy {
-    createClassLoader(
-      JAVA_HOME,
-      baseJars,
-    )
-  }
 
   data class CompilerPlugin(
     val jarPath: String,
     val id: String,
   )
-
-  open class KotlincInvoker internal constructor(
-    toolchain: KotlinToolchain,
-  ) {
-    private val compiler: Any
-    private val execMethod: Method
-    private val getCodeMethod: Method
-
-    init {
-      val compilerClass = toolchain.classLoader.loadClass("io.bazel.kotlin.compiler.BuildToolsAPICompiler")
-      val exitCodeClass =
-        toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
-
-      compiler = compilerClass.getConstructor().newInstance()
-      execMethod =
-        compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
-      getCodeMethod = exitCodeClass.getMethod("getCode")
-    }
-
-    // Kotlin error codes:
-    // 1 is a standard compilation error
-    // 2 is an internal error
-    // 3 is the script execution error
-    fun compile(
-      args: Array<String>,
-      out: PrintStream,
-    ): Int {
-      val exitCodeInstance = execMethod.invoke(compiler, out, args)
-      return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
-    }
-  }
 
   @OptIn(ExperimentalBuildToolsApi::class)
   class ClasspathSnapshotInvoker internal constructor(
@@ -352,10 +285,7 @@ class KotlinToolchain private constructor(
     }
   }
 
-  @Singleton
-  class KotlincInvokerBuilder
-    @Inject
-    constructor(
+  class KotlincInvokerBuilder(
       private val toolchain: KotlinToolchain,
     ) {
       /** Build-tools-impl JAR for BTAPI */
@@ -375,14 +305,6 @@ class KotlinToolchain private constructor(
       val kotlinCoroutinesJar: File get() = toolchain.kotlinCoroutinesJar
 
       val annotationsJar: File get() = toolchain.annotationsJar
-
-      /** All base JARs needed for the compiler classloader (includes kotlin-stdlib, etc.) */
-      val baseJars: List<File> get() = toolchain.baseJars
-
-      fun build(): KotlincInvoker =
-        KotlincInvoker(
-          toolchain = toolchain,
-        )
 
       fun buildSnapshotInvoker(): ClasspathSnapshotInvoker =
         ClasspathSnapshotInvoker(
