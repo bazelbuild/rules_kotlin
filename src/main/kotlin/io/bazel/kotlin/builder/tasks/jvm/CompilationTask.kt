@@ -20,6 +20,7 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.emptyJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.writeJdeps
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
@@ -30,6 +31,7 @@ import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask.Directories
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -112,18 +114,18 @@ private fun JvmCompilationTask.runKaptPluginBtapi(
     )
 
     when (result) {
-      org.jetbrains.kotlin.buildtools.api.CompilationResult.COMPILATION_SUCCESS -> {
+      CompilationResult.COMPILATION_SUCCESS -> {
         context.whenTracing {
           printLines("kapt btapi", listOf("KAPT completed successfully"))
         }
         expandWithGeneratedSources()
       }
-      org.jetbrains.kotlin.buildtools.api.CompilationResult.COMPILATION_ERROR ->
-        throw io.bazel.kotlin.builder.toolchain.CompilationStatusException("KAPT failed", 1)
-      org.jetbrains.kotlin.buildtools.api.CompilationResult.COMPILATION_OOM_ERROR ->
-        throw io.bazel.kotlin.builder.toolchain.CompilationStatusException("KAPT failed with OOM", 3)
-      org.jetbrains.kotlin.buildtools.api.CompilationResult.COMPILER_INTERNAL_ERROR ->
-        throw io.bazel.kotlin.builder.toolchain.CompilationStatusException("KAPT compiler internal error", 2)
+      CompilationResult.COMPILATION_ERROR ->
+        throw CompilationStatusException("KAPT failed", 1)
+      CompilationResult.COMPILATION_OOM_ERROR ->
+        throw CompilationStatusException("KAPT failed with OOM", 3)
+      CompilationResult.COMPILER_INTERNAL_ERROR ->
+        throw CompilationStatusException("KAPT compiler internal error", 2)
     }
   }
 }

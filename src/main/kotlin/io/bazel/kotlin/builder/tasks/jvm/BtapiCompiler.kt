@@ -70,6 +70,32 @@ class BtapiCompiler(
     task: JvmCompilationTask,
     plugins: InternalCompilerPlugins,
   ): CompilationResult {
+    val compilerPlugins = buildCompilerPlugins(task, plugins)
+    val logger = if (task.info.icEnableLogging) createIcLogger(out) else null
+
+    return executeCompilation(
+      task = task,
+      outputDir = Path.of(task.directories.classes),
+      compilerPlugins = compilerPlugins,
+      logger = logger,
+    ) { operation, compilerArgs ->
+      // Configure incremental compilation if enabled
+      if (task.info.incrementalCompilation && task.directories.incrementalBaseDir.isNotEmpty()) {
+//        configureIncrementalCompilation(operation, task, compilerArgs)
+      }
+    }
+  }
+
+  /**
+   * Common compilation execution logic shared by compile and compileKapt.
+   */
+  private fun executeCompilation(
+    task: JvmCompilationTask,
+    outputDir: Path,
+    compilerPlugins: List<CompilerPlugin>,
+    logger: KotlinLogger?,
+    additionalConfiguration: (org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation, JvmCompilerArguments) -> Unit = { _, _ -> },
+  ): CompilationResult {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
 
     // Redirect stderr to capture compiler error messages
@@ -80,7 +106,6 @@ class BtapiCompiler(
       // Collect sources from protobuf
       val sources = (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
         .map { Path.of(it) }
-      val outputDir = Path.of(task.directories.classes)
 
       // Create BTAPI compilation operation
       val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
@@ -90,10 +115,12 @@ class BtapiCompiler(
       configureCompilerArguments(compilerArgs, task)
 
       // Configure compiler plugins
-      val compilerPlugins = buildCompilerPlugins(task, plugins)
       if (compilerPlugins.isNotEmpty()) {
         compilerArgs[CommonCompilerArguments.COMPILER_PLUGINS] = compilerPlugins
       }
+
+      // Allow caller to do additional configuration
+      additionalConfiguration(operation, compilerArgs)
 
       // Debug: print final arguments and classloader info
       System.err.println("DEBUG: final args = ${compilerArgs.toArgumentStrings()}")
@@ -102,19 +129,20 @@ class BtapiCompiler(
       System.err.println("DEBUG: toolchains class = ${toolchains::class.java.name}")
       System.err.println("DEBUG: toolchains classloader = ${toolchains::class.java.classLoader}")
 
-      // Configure incremental compilation if enabled
-      if (task.info.incrementalCompilation && task.directories.incrementalBaseDir.isNotEmpty()) {
-//        configureIncrementalCompilation(operation, task, compilerArgs)
+      // Debug output for plugins
+      System.err.println("DEBUG: plugins count = ${compilerPlugins.size}")
+      compilerPlugins.forEach { plugin ->
+        System.err.println("DEBUG: Plugin ${plugin.pluginId}")
+        System.err.println("DEBUG:   classpath = ${plugin.classpath}")
+        plugin.rawArguments.forEach { opt ->
+          System.err.println("DEBUG:   -P plugin:${plugin.pluginId}:${opt.key}=${opt.value}")
+        }
       }
-
-      val logger = if (task.info.icEnableLogging) createIcLogger(out) else null
 
       // Execute the compilation
-      val result = toolchains.createBuildSession().use { session ->
+      return toolchains.createBuildSession().use { session ->
         session.executeOperation(operation, logger = logger)
       }
-
-      return result
     } finally {
       System.setErr(originalErr)
     }
@@ -495,55 +523,19 @@ class BtapiCompiler(
     aptMode: String = "stubsAndApt",
     verbose: Boolean = false,
   ): CompilationResult {
-    System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
+    // Build KAPT plugin and stubs plugins
+    val kaptPlugin = buildKaptCompilerPlugin(task, plugins, aptMode, verbose)
+    val stubsPlugins = buildStubsPlugins(task, plugins)
+    val compilerPlugins = listOf(kaptPlugin) + stubsPlugins
 
-    // Redirect stderr to capture compiler error messages
-    val originalErr = System.err
-    System.setErr(out)
+    val logger = if (verbose) createIcLogger(out) else null
 
-    try {
-      // Collect sources from protobuf
-      val sources = (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
-        .map { Path.of(it) }
-      // KAPT outputs to generatedClasses directory
-      val outputDir = Path.of(task.directories.generatedClasses)
-
-      // Create BTAPI compilation operation
-      val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
-      val compilerArgs = operation.compilerArguments
-
-      // Configure base compiler arguments (classpath, JVM target, etc.)
-      configureCompilerArguments(compilerArgs, task)
-
-      // Build KAPT plugin using typed API
-      val kaptPlugin = buildKaptCompilerPlugin(task, plugins, aptMode, verbose)
-
-      // Build stubs plugins (non-KAPT plugins that run during KAPT phase)
-      val stubsPlugins = buildStubsPlugins(task, plugins)
-
-      // Set plugins via typed API
-      val allPlugins = listOf(kaptPlugin) + stubsPlugins
-      compilerArgs[CommonCompilerArguments.COMPILER_PLUGINS] = allPlugins
-
-      // Debug output - show plugin options explicitly (not comma-joined)
-      System.err.println("DEBUG: KAPT plugins count = ${allPlugins.size}")
-      allPlugins.forEach { plugin ->
-        System.err.println("DEBUG: Plugin ${plugin.pluginId}")
-        System.err.println("DEBUG:   classpath = ${plugin.classpath}")
-        plugin.rawArguments.forEach { opt ->
-          System.err.println("DEBUG:   -P plugin:${plugin.pluginId}:${opt.key}=${opt.value}")
-        }
-      }
-
-      // Execute the compilation (no IC for KAPT phase)
-      val result = toolchains.createBuildSession().use { session ->
-        session.executeOperation(operation, logger = if (verbose) createIcLogger(out) else null)
-      }
-
-      return result
-    } finally {
-      System.setErr(originalErr)
-    }
+    return executeCompilation(
+      task = task,
+      outputDir = Path.of(task.directories.generatedClasses),
+      compilerPlugins = compilerPlugins,
+      logger = logger,
+    )
   }
 
   /**
@@ -578,7 +570,7 @@ class BtapiCompiler(
 
     // Other options
     options.add(CompilerPluginOption("correctErrorTypes", "false"))
-    options.add(CompilerPluginOption("verbose", verbose.toString()))
+    options.add(CompilerPluginOption("verbose", "true"))//verbose.toString()))
     options.add(CompilerPluginOption("aptMode", aptMode))
 
     // Annotation processor classpath - one option per entry
