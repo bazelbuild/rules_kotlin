@@ -89,10 +89,10 @@ class BtapiCompiler(
       // Configure compiler arguments directly from protobuf
       configureCompilerArguments(compilerArgs, task)
 
-      // Configure plugin options (plugins are in the classloader, just need options)
-      val pluginOptions = buildPluginOptions(task, plugins)
-      if (pluginOptions.isNotEmpty()) {
-//        compilerArgs.applyArgumentStrings(pluginOptions)
+      // Configure compiler plugins
+      val compilerPlugins = buildCompilerPlugins(task, plugins)
+      if (compilerPlugins.isNotEmpty()) {
+        compilerArgs[CommonCompilerArguments.COMPILER_PLUGINS] = compilerPlugins
       }
 
       // Debug: print final arguments and classloader info
@@ -192,93 +192,142 @@ class BtapiCompiler(
   }
 
   /**
-   * Builds plugin options for BTAPI. Plugins are loaded via classloader,
-   * so we only need to pass their options, not -Xplugin.
+   * Builds compiler plugins for BTAPI using the typed CompilerPlugin API.
    */
-  private fun buildPluginOptions(
+  private fun buildCompilerPlugins(
     task: JvmCompilationTask,
     plugins: InternalCompilerPlugins,
-  ): List<String> {
-    val args = mutableListOf<String>()
+  ): List<CompilerPlugin> {
+    val result = mutableListOf<CompilerPlugin>()
 
-    // JDeps plugin options
+    // JDeps plugin
     if (task.outputs.jdeps.isNotEmpty()) {
-      args.addAll(buildJdepsOptions(task, plugins.jdeps))
+      result.add(buildJdepsPlugin(task, plugins.jdeps))
     }
 
-    // JVM ABI Gen plugin options
+    // JVM ABI Gen plugin
     if (task.outputs.abijar.isNotEmpty()) {
-      args.addAll(buildAbiGenOptions(task, plugins.jvmAbiGen))
+      result.add(buildAbiGenPlugin(task, plugins.jvmAbiGen))
 
       // Skip code gen if only generating ABI jar (no main output jar)
       if (task.outputs.jar.isEmpty()) {
-        // skip-code-gen plugin has no options, just needs to be in classpath
+        result.add(buildSkipCodeGenPlugin(plugins.skipCodeGen))
       }
     }
 
-    // User plugin options from protobuf
-    task.inputs.compilerPluginOptionsList.forEach { opt ->
-      args.add("-P")
-      args.add("plugin:$opt")
-    }
+    // User plugins from protobuf
+    result.addAll(buildUserPlugins(task))
 
-    return args
+    return result
   }
 
   /**
-   * Builds jdeps plugin options.
+   * Builds the skip-code-gen plugin (has no options, just classpath).
    */
-  private fun buildJdepsOptions(
+  private fun buildSkipCodeGenPlugin(
+    skipCodeGen: KotlinToolchain.CompilerPlugin,
+  ): CompilerPlugin {
+    return CompilerPlugin(
+      pluginId = skipCodeGen.id,
+      classpath = listOf(Path.of(skipCodeGen.jarPath)),
+      rawArguments = emptyList(),
+      orderingRequirements = emptySet(),
+    )
+  }
+
+  /**
+   * Builds user-specified compiler plugins from protobuf options.
+   */
+  private fun buildUserPlugins(task: JvmCompilationTask): List<CompilerPlugin> {
+    // Group plugin options by plugin ID
+    val pluginOptionsMap = mutableMapOf<String, MutableList<CompilerPluginOption>>()
+
+    task.inputs.compilerPluginOptionsList.forEach { optionStr ->
+      // Format is "pluginId:key=value"
+      val colonIdx = optionStr.indexOf(':')
+      if (colonIdx > 0) {
+        val pluginId = optionStr.substring(0, colonIdx)
+        val keyValue = optionStr.substring(colonIdx + 1)
+        val eqIdx = keyValue.indexOf('=')
+        if (eqIdx > 0) {
+          val key = keyValue.substring(0, eqIdx)
+          val value = keyValue.substring(eqIdx + 1)
+          pluginOptionsMap.getOrPut(pluginId) { mutableListOf() }
+            .add(CompilerPluginOption(key, value))
+        }
+      }
+    }
+
+    // All user plugins share the same classpath
+    val userPluginClasspath = task.inputs.compilerPluginClasspathList.map { Path.of(it) }
+
+    return pluginOptionsMap.map { (pluginId, options) ->
+      CompilerPlugin(
+        pluginId = pluginId,
+        classpath = userPluginClasspath,
+        rawArguments = options,
+        orderingRequirements = emptySet(),
+      )
+    }
+  }
+
+  /**
+   * Builds jdeps plugin using the typed CompilerPlugin API.
+   */
+  private fun buildJdepsPlugin(
     task: JvmCompilationTask,
     jdeps: KotlinToolchain.CompilerPlugin,
-  ): List<String> {
-    val opts = mutableListOf<String>()
-    opts.add("-P")
-    opts.add("plugin:${jdeps.id}:output=${task.outputs.jdeps}")
-    opts.add("-P")
-    opts.add("plugin:${jdeps.id}:target_label=${task.info.label}")
+  ): CompilerPlugin {
+    val options = mutableListOf<CompilerPluginOption>()
+
+    options.add(CompilerPluginOption("output", task.outputs.jdeps))
+    options.add(CompilerPluginOption("target_label", task.info.label))
 
     task.inputs.directDependenciesList.forEach {
-      opts.add("-P")
-      opts.add("plugin:${jdeps.id}:direct_dependencies=$it")
+      options.add(CompilerPluginOption("direct_dependencies", it))
     }
 
     task.inputs.classpathList.forEach {
-      opts.add("-P")
-      opts.add("plugin:${jdeps.id}:full_classpath=$it")
+      options.add(CompilerPluginOption("full_classpath", it))
     }
 
-    opts.add("-P")
-    opts.add("plugin:${jdeps.id}:strict_kotlin_deps=${task.info.strictKotlinDeps}")
+    options.add(CompilerPluginOption("strict_kotlin_deps", task.info.strictKotlinDeps))
 
-    return opts
+    return CompilerPlugin(
+      pluginId = jdeps.id,
+      classpath = listOf(Path.of(jdeps.jarPath)),
+      rawArguments = options,
+      orderingRequirements = emptySet(),
+    )
   }
 
   /**
-   * Builds jvm-abi-gen plugin options.
+   * Builds jvm-abi-gen plugin using the typed CompilerPlugin API.
    */
-  private fun buildAbiGenOptions(
+  private fun buildAbiGenPlugin(
     task: JvmCompilationTask,
     abiGen: KotlinToolchain.CompilerPlugin,
-  ): List<String> {
-    val opts = mutableListOf<String>()
-    opts.add("-P")
-    opts.add("plugin:${abiGen.id}:outputDir=${task.directories.abiClasses}")
+  ): CompilerPlugin {
+    val options = mutableListOf<CompilerPluginOption>()
+
+    options.add(CompilerPluginOption("outputDir", task.directories.abiClasses))
 
     if (task.info.treatInternalAsPrivateInAbiJar) {
-      opts.add("-P")
-      opts.add("plugin:${abiGen.id}:treatInternalAsPrivate=true")
+      options.add(CompilerPluginOption("treatInternalAsPrivate", "true"))
     }
     if (task.info.removePrivateClassesInAbiJar) {
-      opts.add("-P")
-      opts.add("plugin:${abiGen.id}:removePrivateClasses=true")
+      options.add(CompilerPluginOption("removePrivateClasses", "true"))
     }
     if (task.info.removeDebugInfo) {
-      opts.add("-P")
-      opts.add("plugin:${abiGen.id}:removeDebugInfo=true")
+      options.add(CompilerPluginOption("removeDebugInfo", "true"))
     }
 
-    return opts
+    return CompilerPlugin(
+      pluginId = abiGen.id,
+      classpath = listOf(Path.of(abiGen.jarPath)),
+      rawArguments = options,
+      orderingRequirements = emptySet(),
+    )
   }
 
   /**
