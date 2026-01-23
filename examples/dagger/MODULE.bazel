@@ -1,0 +1,23 @@
+module(name = "dagger-example")
+
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_kotlin", version = "2.2.0")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "maven_rules_kotlin_example",
+    artifacts = [
+        "com.google.dagger:dagger:2.57.2",
+        "com.google.dagger:dagger-compiler:2.57.2",
+        "com.google.dagger:dagger-producers:2.57.2",
+        "javax.inject:javax.inject:1",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2",
+        "org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(maven, "maven_rules_kotlin_example")
