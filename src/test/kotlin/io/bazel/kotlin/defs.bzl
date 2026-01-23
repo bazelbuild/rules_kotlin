@@ -47,9 +47,7 @@ def kt_rules_test(name, **kwargs):
         "@kotlinx_serialization_json_jvm//file",
         "@kotlin_build_tools_api//file",
         "@kotlin_build_tools_impl//file",
-        "@kotlin_compiler_embeddable//file",
-        "@kotlin_daemon_embeddable//file",
-        "//kotlin/compiler:kotlin-daemon-client",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:compiler_embeddable",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

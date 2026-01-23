@@ -32,7 +32,6 @@ use_repo(
     "kotlin_build_tools_api",
     "kotlin_build_tools_impl",
     "kotlin_compiler_embeddable",
-    "kotlin_daemon_embeddable",
     "kotlinx_serialization_core_jvm",
     "kotlinx_serialization_json",
     "kotlinx_serialization_json_jvm",

@@ -113,12 +113,6 @@ def kotlin_repositories(
 
     versions.use_repository(
         http_file,
-        name = "kotlin_daemon_embeddable",
-        version = versions.KOTLIN_DAEMON_EMBEDDABLE,
-    )
-
-    versions.use_repository(
-        http_file,
         name = "kotlin_annotation_processing_embeddable",
         version = versions.KOTLIN_ANNOTATION_PROCESSING_EMBEDDABLE,
     )

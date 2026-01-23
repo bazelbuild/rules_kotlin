@@ -51,7 +51,7 @@ class KotlinJvmTaskExecutor(
     private fun createKaptBtapiCompiler(): BtapiCompiler {
       // Don't add plugin JARs to factory classloader - BTAPI loads plugins from
       // CompilerPlugin.classpath via CommonCompilerArguments.COMPILER_PLUGINS
-      val pluginJars = emptyList<File>()
+      val pluginJars = listOf(plugins.kapt.jarPath).map { File(it) }
 
       val factory = BtapiToolchainFactory(
         compilerBuilder.buildToolsImplJar,

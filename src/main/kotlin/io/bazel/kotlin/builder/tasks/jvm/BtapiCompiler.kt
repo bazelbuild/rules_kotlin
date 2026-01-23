@@ -122,24 +122,8 @@ class BtapiCompiler(
       // Allow caller to do additional configuration
       additionalConfiguration(operation, compilerArgs)
 
-      // Debug: print final arguments and classloader info
-      System.err.println("DEBUG: final args = ${compilerArgs.toArgumentStrings()}")
-      System.err.println("DEBUG: compilerArgs class = ${compilerArgs::class.java.name}")
-      System.err.println("DEBUG: compilerArgs classloader = ${compilerArgs::class.java.classLoader}")
-      System.err.println("DEBUG: toolchains class = ${toolchains::class.java.name}")
-      System.err.println("DEBUG: toolchains classloader = ${toolchains::class.java.classLoader}")
-
-      // Debug output for plugins
-      System.err.println("DEBUG: plugins count = ${compilerPlugins.size}")
-      compilerPlugins.forEach { plugin ->
-        System.err.println("DEBUG: Plugin ${plugin.pluginId}")
-        System.err.println("DEBUG:   classpath = ${plugin.classpath}")
-        plugin.rawArguments.forEach { opt ->
-          System.err.println("DEBUG:   -P plugin:${plugin.pluginId}:${opt.key}=${opt.value}")
-        }
-      }
-
       // Execute the compilation
+      // TODO: Keep build session per worker
       return toolchains.createBuildSession().use { session ->
         session.executeOperation(operation, logger = logger)
       }
@@ -158,6 +142,9 @@ class BtapiCompiler(
   ) {
     // Module name
     args[JvmCompilerArguments.MODULE_NAME] = task.info.moduleName
+    args[JvmCompilerArguments.NO_STDLIB] = true
+    args[JvmCompilerArguments.NO_REFLECT] = true
+
 
     // JVM target
     parseJvmTarget(task.info.toolchainInfo.jvm.jvmTarget)?.let {
@@ -174,8 +161,6 @@ class BtapiCompiler(
 
     // Classpath - convert to absolute paths and pass via applyArgumentStrings
     val classpath = computeClasspath(task).map { File(it).absolutePath }
-    System.err.println("DEBUG: classpath size = ${classpath.size}")
-    classpath.forEach { System.err.println("DEBUG: classpath entry = $it") }
     if (classpath.isNotEmpty()) {
       args[JvmCompilerArguments.CLASSPATH] = classpath.joinToString(File.pathSeparator)
     }

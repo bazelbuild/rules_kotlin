@@ -108,13 +108,6 @@ versions = struct(
         ],
         sha256 = "dee0d35840adc614a08289105361c1562caa2c0f5fc29ca1f9bb928b1b2f7d31",
     ),
-    KOTLIN_DAEMON_EMBEDDABLE = version(
-        version = "2.3.20-Beta1",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/{version}/kotlin-daemon-embeddable-{version}.jar",
-        ],
-        sha256 = "b7e19d1523ea6b8ab7540a891b222ce57e8d7a082c2b22e8a6c4fc47176c9607",
-    ),
     KOTLIN_ANNOTATION_PROCESSING_EMBEDDABLE = version(
         version = "2.3.20-Beta1",
         url_templates = [

@@ -80,21 +80,21 @@ class KotlinToolchain private constructor(
     private val KOTLIN_REFLECT by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@rules_kotlin..kotlin.compiler.kotlin-reflect",
+          "@rules_kotlin...kotlin.compiler.kotlin-reflect",
         ).toPath()
     }
 
     internal val KOTLIN_STDLIB by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@rules_kotlin..kotlin.compiler.kotlin-stdlib",
+          "@rules_kotlin...kotlin.compiler.kotlin-stdlib",
         ).toPath()
     }
 
     internal val KOTLIN_COROUTINES by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@rules_kotlin..kotlin.compiler.kotlin-coroutines",
+          "@rules_kotlin...kotlin.compiler.kotlin-coroutines",
         ).toPath()
     }
 
