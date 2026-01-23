@@ -200,6 +200,7 @@ abstract class KotlinAbstractTestBuilder<T> {
         return KotlinToolchain.createToolchain(
                 // Order matters
                 new File(Deps.Dep.fromLabel("@kotlin_compiler_embeddable//file").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),

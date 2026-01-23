@@ -49,7 +49,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * Recompilation is detected by comparing class file timestamps before and after compilation.
  */
 @RunWith(JUnit4::class)
-@Ignore("TODO: Incremental compilation is currently broken and needs to be fixed")
 class IncrementalCompilationTest {
 
     private lateinit var testDir: Path
@@ -72,6 +71,7 @@ class IncrementalCompilationTest {
     private val jvmTaskExecutor by lazy {
         val toolchain = KotlinToolchain.createToolchain(
             File(Deps.Dep.fromLabel("@kotlin_compiler_embeddable//file").singleCompileJar()),
+            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
             File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
             File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
             File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),

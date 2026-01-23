@@ -29,6 +29,7 @@ kt_bootstrap_binary(
         "@kotlinx_serialization_core_jvm//file",
         "@kotlinx_serialization_json//file",
         "@kotlinx_serialization_json_jvm//file",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
     ] + _KOTLIN_STDLIBS,
     final_runtime_deps = _KOTLIN_STDLIBS,
     jvm_flags = [
@@ -38,6 +39,7 @@ kt_bootstrap_binary(
         "-D@com_github_jetbrains_kotlin...build-tools-api=$(rlocationpath @kotlin_build_tools_api//file)",
         "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_build_tools_impl//file)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler-embeddable=$(rlocationpath @kotlin_compiler_embeddable//file)",
+        "-D@kotlin_rules_maven...kotlin-daemon-client=$(rlocationpath @kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client)",
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath @kotlin_annotation_processing_embeddable//file)",

@@ -37,6 +37,7 @@ class KotlinToolchain private constructor(
   internal val buildToolsImplJar: File,
   internal val compilerJar: File,
   internal val kotlinCompilerEmbeddableJar: File,
+  internal val kotlinDaemonEmbeddableJar: File,
   internal val kotlinStdlibJar: File,
   internal val kotlinReflectJar: File,
   internal val kotlinCoroutinesJar: File,
@@ -148,6 +149,13 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    internal val KOTLIN_DAEMON_EMBEDDABLE by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@kotlin_rules_maven...kotlin-daemon-client",
+        ).toPath()
+    }
+
     private val JAVA_HOME by lazy {
       FileSystems
         .getDefault()
@@ -161,6 +169,7 @@ class KotlinToolchain private constructor(
     fun createToolchain(): KotlinToolchain =
       createToolchain(
         KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
+        KOTLIN_DAEMON_EMBEDDABLE.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
         BUILD_TOOLS_IMPL.verified().absoluteFile,
         COMPILER.verified().absoluteFile,
@@ -180,6 +189,7 @@ class KotlinToolchain private constructor(
     @JvmStatic
     fun createToolchain(
       kotlinCompilerEmbeddable: File,
+      kotlinDaemonEmbeddable: File,
       buildToolsApi: File,
       buildToolsImpl: File,
       compiler: File,
@@ -198,6 +208,7 @@ class KotlinToolchain private constructor(
       KotlinToolchain(
         listOf(
           kotlinCompilerEmbeddable,
+          kotlinDaemonEmbeddable,
           compiler,
           buildToolsApi,
           buildToolsImpl,
@@ -234,6 +245,7 @@ class KotlinToolchain private constructor(
         buildToolsImplJar = buildToolsImpl,
         compilerJar = compiler,
         kotlinCompilerEmbeddableJar = kotlinCompilerEmbeddable,
+        kotlinDaemonEmbeddableJar = kotlinDaemonEmbeddable,
         kotlinStdlibJar = kotlinStdlib,
         kotlinReflectJar = kotlinReflect,
         kotlinCoroutinesJar = kotlinCoroutines,
@@ -298,6 +310,9 @@ class KotlinToolchain private constructor(
 
     /** Kotlin compiler embeddable JAR for BTAPI classloader */
     val kotlinCompilerEmbeddableJar: File get() = toolchain.kotlinCompilerEmbeddableJar
+
+    /** Kotlin daemon embeddable JAR for BTAPI classloader */
+    val kotlinDaemonEmbeddableJar: File get() = toolchain.kotlinDaemonEmbeddableJar
 
     /** Kotlin stdlib JAR for BTAPI classloader */
     val kotlinStdlibJar: File get() = toolchain.kotlinStdlibJar
