@@ -23,5 +23,8 @@ query --deleted_packages=examples/android,examples/android/app,examples/android/
 
 common --@rules_kotlin//kotlin/settings:experimental_incremental_compilation
 
+common --incompatible_enable_proto_toolchain_resolution
+common --@com_google_protobuf//bazel/toolchains:prefer_prebuilt_protoc=true
+
 # User-specific .bazelrc
 try-import %workspace%/user.bazelrc

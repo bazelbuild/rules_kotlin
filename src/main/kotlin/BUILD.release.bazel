@@ -49,12 +49,11 @@ java_import(
 java_binary(
     name = "build",
     data = [
-        ":jdeps-gen",
-        ":skip-code-gen",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-compiler",
-        "//kotlin/compiler:kotlin-reflect",
+        "//src/main/kotlin:jdeps-gen",
+        "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
         "@com_github_jetbrains_kotlin//:home",
         "@kotlin_annotation_processing_embeddable//file",
@@ -64,6 +63,12 @@ java_binary(
         "@kotlinx_serialization_core_jvm//file",
         "@kotlinx_serialization_json//file",
         "@kotlinx_serialization_json_jvm//file",
+        "//kotlin/compiler:annotations",
+        "//kotlin/compiler:kotlin-reflect",
+        "//kotlin/compiler:kotlin-stdlib",
+        "//kotlin/compiler:kotlin-stdlib-jdk7",
+        "//kotlin/compiler:kotlin-stdlib-jdk8",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
     jvm_flags = [
         "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlinx_serialization_core_jvm//file)",
@@ -78,7 +83,9 @@ java_binary(
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",
-        "-D@rules_kotlin...kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",  #TODO add missing dot
+        "-D@rules_kotlin...kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
+        "-D@rules_kotlin...kotlin.compiler.kotlin-stdlib=$(rlocationpath //kotlin/compiler:kotlin-stdlib)",
+        "-D@rules_kotlin...kotlin.compiler.kotlin-coroutines=$(rlocationpath //kotlin/compiler:kotlinx-coroutines-core-jvm)",
         "-D@rules_kotlin...kotlin.compiler.annotations=$(rlocationpath //kotlin/compiler:annotations)",
         "-XX:-MaxFDLimit",
     ],
