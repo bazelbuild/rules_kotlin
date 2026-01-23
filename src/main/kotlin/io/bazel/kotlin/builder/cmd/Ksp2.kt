@@ -17,7 +17,7 @@
 
 package io.bazel.kotlin.builder.cmd
 
-import io.bazel.kotlin.builder.DaggerKsp2Component
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task
 import io.bazel.worker.Worker
 import kotlin.system.exitProcess
 
@@ -26,7 +26,7 @@ object Ksp2 {
   fun main(args: Array<String>) {
     Worker
       .from(args.toList()) {
-        start(DaggerKsp2Component.builder().build().work())
+        start(Ksp2Task())
       }.run(::exitProcess)
   }
 }

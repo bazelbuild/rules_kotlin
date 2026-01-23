@@ -3,7 +3,6 @@ package io.bazel.kotlin.builder.tasks.jvm
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.build.lib.view.proto.Deps
 import com.google.devtools.build.lib.view.proto.Deps.Dependency
-import io.bazel.kotlin.builder.DaggerJdepsMergerTestComponent
 import io.bazel.kotlin.builder.tasks.MergeJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JdepsMerger.Companion.JdepsMergerFlags
 import io.bazel.kotlin.builder.utils.Flag
@@ -22,6 +21,7 @@ import java.nio.file.Path
 class JdepsMergerTest {
 
   private val wrkDir = Files.createTempDirectory("JdepsMergerEnvironmentTest")
+  private val merger = JdepsMerger()
 
   private fun jdeps(
     path: String,
@@ -55,7 +55,6 @@ class JdepsMergerTest {
 
   @Test
   fun `merge all deps`() {
-    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
     val kotlinJdeps = jdeps("kt.jdeps") {
       addDependency(
@@ -106,7 +105,6 @@ class JdepsMergerTest {
 
   @Test
   fun `merge conflicting deps`() {
-    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
     val kotlinJdeps = jdeps("kt.jdeps") {
       addDependency(
@@ -154,7 +152,6 @@ class JdepsMergerTest {
 
   @Test
   fun `unused deps report warning`() {
-    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
     val unusedKotlinDep = ktJvmLibrary("kotlin_dep")
     val kotlinJdeps = jdeps("kt.jdeps") {
@@ -206,7 +203,6 @@ class JdepsMergerTest {
 
   @Test
   fun `unused deps report error`() {
-    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
     val unusedKotlinDep = ktJvmLibrary("kotlin_dep")
     val kotlinJdeps = jdeps("kt.jdeps") {
@@ -259,7 +255,6 @@ class JdepsMergerTest {
 
   @Test
   fun `unused deps multiple jars for label`() {
-    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
     val unusedKotlinDepA = ktJvmLibrary("kotlin_dep", "_a")
     val unusedKotlinDepB = ktJvmLibrary("kotlin_dep", "_b")
@@ -301,7 +296,6 @@ class JdepsMergerTest {
 
   @Test
   fun `used deps multiple jars for label`() {
-    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
 
     val unusedKotlinDep = ktJvmLibrary("kotlin_dep", "_a")
     val usedKotlinDep = ktJvmLibrary("kotlin_dep", "_b")

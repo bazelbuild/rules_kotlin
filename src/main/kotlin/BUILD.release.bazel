@@ -90,7 +90,7 @@ java_binary(
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
-    main_class = "io.bazel.kotlin.builder.cmd.MergeJdeps",
+    main_class = "io.bazel.kotlin.builder.cmd.MergeJdepsMain",
     visibility = ["//visibility:public"],
     runtime_deps = [":jdeps_merger_worker"],
 )

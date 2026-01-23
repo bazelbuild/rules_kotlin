@@ -28,8 +28,6 @@ import java.lang.reflect.Method
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
-import javax.inject.Inject
-import javax.inject.Singleton
 
 class KotlinToolchain private constructor(
   private val baseJars: List<File>,
@@ -269,20 +267,17 @@ class KotlinToolchain private constructor(
     }
   }
 
-  @Singleton
-  class KotlincInvokerBuilder
-    @Inject
-    constructor(
-      private val toolchain: KotlinToolchain,
-    ) {
-      fun build(useExperimentalBuildToolsAPI: Boolean): KotlincInvoker {
-        val clazz =
-          if (useExperimentalBuildToolsAPI) {
-            "io.bazel.kotlin.compiler.BuildToolsAPICompiler"
-          } else {
-            "io.bazel.kotlin.compiler.BazelK2JVMCompiler"
-          }
-        return KotlincInvoker(toolchain = toolchain, clazz = clazz)
-      }
+  class KotlincInvokerBuilder(
+    private val toolchain: KotlinToolchain,
+  ) {
+    fun build(useExperimentalBuildToolsAPI: Boolean): KotlincInvoker {
+      val clazz =
+        if (useExperimentalBuildToolsAPI) {
+          "io.bazel.kotlin.compiler.BuildToolsAPICompiler"
+        } else {
+          "io.bazel.kotlin.compiler.BazelK2JVMCompiler"
+        }
+      return KotlincInvoker(toolchain = toolchain, clazz = clazz)
     }
+  }
 }
