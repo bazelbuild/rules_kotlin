@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget
-import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as BtapiKotlinVersion
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.FORCE_RECOMPILATION
@@ -46,6 +45,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Base64
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as BtapiKotlinVersion
 
 /**
  * Compiler that uses the Kotlin Build Tools API directly from protobuf task data.
@@ -94,7 +94,10 @@ class BtapiCompiler(
     outputDir: Path,
     compilerPlugins: List<CompilerPlugin>,
     logger: KotlinLogger?,
-    additionalConfiguration: (org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation, JvmCompilerArguments) -> Unit = { _, _ -> },
+    additionalConfiguration: (
+      org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation,
+      JvmCompilerArguments,
+    ) -> Unit = { _, _ -> },
   ): CompilationResult {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
 
@@ -104,8 +107,9 @@ class BtapiCompiler(
 
     try {
       // Collect sources from protobuf
-      val sources = (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
-        .map { Path.of(it) }
+      val sources =
+        (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
+          .map { Path.of(it) }
 
       // Create BTAPI compilation operation
       val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
@@ -145,7 +149,6 @@ class BtapiCompiler(
     args[JvmCompilerArguments.NO_STDLIB] = true
     args[JvmCompilerArguments.NO_REFLECT] = true
 
-
     // JVM target
     parseJvmTarget(task.info.toolchainInfo.jvm.jvmTarget)?.let {
       args[JvmCompilerArguments.JVM_TARGET] = it
@@ -182,23 +185,24 @@ class BtapiCompiler(
    * Handles reduced classpath mode when enabled.
    */
   private fun computeClasspath(task: JvmCompilationTask): List<String> {
-    val baseClasspath = when (task.info.reducedClasspathMode) {
-      "KOTLINBUILDER_REDUCED" -> {
-        val transitiveDepsForCompile = mutableSetOf<String>()
-        task.inputs.depsArtifactsList.forEach { jdepsPath ->
-          BufferedInputStream(Paths.get(jdepsPath).toFile().inputStream()).use {
-            val deps = Deps.Dependencies.parseFrom(it)
-            deps.dependencyList.forEach { dep ->
-              if (dep.kind == Deps.Dependency.Kind.EXPLICIT) {
-                transitiveDepsForCompile.add(dep.path)
+    val baseClasspath =
+      when (task.info.reducedClasspathMode) {
+        "KOTLINBUILDER_REDUCED" -> {
+          val transitiveDepsForCompile = mutableSetOf<String>()
+          task.inputs.depsArtifactsList.forEach { jdepsPath ->
+            BufferedInputStream(Paths.get(jdepsPath).toFile().inputStream()).use {
+              val deps = Deps.Dependencies.parseFrom(it)
+              deps.dependencyList.forEach { dep ->
+                if (dep.kind == Deps.Dependency.Kind.EXPLICIT) {
+                  transitiveDepsForCompile.add(dep.path)
+                }
               }
             }
           }
+          task.inputs.directDependenciesList + transitiveDepsForCompile
         }
-        task.inputs.directDependenciesList + transitiveDepsForCompile
+        else -> task.inputs.classpathList
       }
-      else -> task.inputs.classpathList
-    }
 
     // Add generated classes directory to classpath
     return baseClasspath + task.directories.generatedClasses
@@ -237,16 +241,13 @@ class BtapiCompiler(
   /**
    * Builds the skip-code-gen plugin (has no options, just classpath).
    */
-  private fun buildSkipCodeGenPlugin(
-    skipCodeGen: KotlinToolchain.CompilerPlugin,
-  ): CompilerPlugin {
-    return CompilerPlugin(
+  private fun buildSkipCodeGenPlugin(skipCodeGen: KotlinToolchain.CompilerPlugin): CompilerPlugin =
+    CompilerPlugin(
       pluginId = skipCodeGen.id,
       classpath = listOf(Path.of(skipCodeGen.jarPath)),
       rawArguments = emptyList(),
       orderingRequirements = emptySet(),
     )
-  }
 
   /**
    * Builds user-specified compiler plugins from protobuf options.
@@ -265,7 +266,8 @@ class BtapiCompiler(
         if (eqIdx > 0) {
           val key = keyValue.substring(0, eqIdx)
           val value = keyValue.substring(eqIdx + 1)
-          pluginOptionsMap.getOrPut(pluginId) { mutableListOf() }
+          pluginOptionsMap
+            .getOrPut(pluginId) { mutableListOf() }
             .add(CompilerPluginOption(key, value))
         }
       }
@@ -369,38 +371,59 @@ class BtapiCompiler(
     // Compute classpath snapshot paths
     val classpathSnapshots = task.createClasspathSnapshotsPaths().map { Path.of(it) }
 
-    val icOptions = operation.createSnapshotBasedIcOptions().apply {
-      this[ROOT_PROJECT_DIR] = Path.of(ROOT)
-      this[MODULE_BUILD_DIR] = Path.of(task.directories.classes).parent ?: Path.of(task.directories.classes)
-      this[FORCE_RECOMPILATION] = forceRecompilation
-      this[OUTPUT_DIRS] = setOf(Path.of(task.directories.classes), icWorkingDir)
-    }
+    val icOptions =
+      operation.createSnapshotBasedIcOptions().apply {
+        this[ROOT_PROJECT_DIR] = Path.of(ROOT)
+        this[MODULE_BUILD_DIR] =
+          Path.of(task.directories.classes).parent ?: Path.of(task.directories.classes)
+        this[FORCE_RECOMPILATION] = forceRecompilation
+        this[OUTPUT_DIRS] = setOf(Path.of(task.directories.classes), icWorkingDir)
+      }
 
-    operation[INCREMENTAL_COMPILATION] = JvmSnapshotBasedIncrementalCompilationConfiguration(
-      workingDirectory = icWorkingDir,
-      sourcesChanges = SourcesChanges.ToBeCalculated,
-      dependenciesSnapshotFiles = classpathSnapshots,
-      shrunkClasspathSnapshot = shrunkSnapshot,
-      options = icOptions,
-    )
+    operation[INCREMENTAL_COMPILATION] =
+      JvmSnapshotBasedIncrementalCompilationConfiguration(
+        workingDirectory = icWorkingDir,
+        sourcesChanges = SourcesChanges.ToBeCalculated,
+        dependenciesSnapshotFiles = classpathSnapshots,
+        shrunkClasspathSnapshot = shrunkSnapshot,
+        options = icOptions,
+      )
   }
 
   /**
    * Computes a hash of compiler configuration for detecting changes.
    */
-  private fun computeArgsHash(args: JvmCompilerArguments, task: JvmCompilationTask): Long {
+  private fun computeArgsHash(
+    args: JvmCompilerArguments,
+    task: JvmCompilationTask,
+  ): Long {
     // Hash relevant settings that would require recompilation if changed
     var hash = 0L
     hash = hash * 31 + task.info.moduleName.hashCode()
-    hash = hash * 31 + task.info.toolchainInfo.jvm.jvmTarget.hashCode()
-    hash = hash * 31 + task.info.toolchainInfo.common.apiVersion.hashCode()
-    hash = hash * 31 + task.info.toolchainInfo.common.languageVersion.hashCode()
-    hash = hash * 31 + task.info.passthroughFlagsList.sorted().hashCode()
-    hash = hash * 31 + task.inputs.compilerPluginOptionsList.sorted().hashCode()
+    hash = hash * 31 +
+      task.info.toolchainInfo.jvm.jvmTarget
+        .hashCode()
+    hash = hash * 31 +
+      task.info.toolchainInfo.common.apiVersion
+        .hashCode()
+    hash = hash * 31 +
+      task.info.toolchainInfo.common.languageVersion
+        .hashCode()
+    hash = hash * 31 +
+      task.info.passthroughFlagsList
+        .sorted()
+        .hashCode()
+    hash = hash * 31 +
+      task.inputs.compilerPluginOptionsList
+        .sorted()
+        .hashCode()
     return hash
   }
 
-  private fun storeArgsHash(icBaseDir: Path, hash: Long) {
+  private fun storeArgsHash(
+    icBaseDir: Path,
+    hash: Long,
+  ) {
     val hashFile = icBaseDir.resolve("args-hash.txt")
     Files.writeString(hashFile, hash.toString())
   }
@@ -462,30 +485,37 @@ class BtapiCompiler(
   /**
    * Creates a simple logger for IC debugging output.
    */
-  private fun createIcLogger(out: PrintStream): KotlinLogger = object : KotlinLogger {
-    override val isDebugEnabled: Boolean = true
+  private fun createIcLogger(out: PrintStream): KotlinLogger =
+    object : KotlinLogger {
+      override val isDebugEnabled: Boolean = true
 
-    override fun error(msg: String, throwable: Throwable?) {
-      out.println("[IC ERROR] $msg")
-      throwable?.printStackTrace(out)
-    }
+      override fun error(
+        msg: String,
+        throwable: Throwable?,
+      ) {
+        out.println("[IC ERROR] $msg")
+        throwable?.printStackTrace(out)
+      }
 
-    override fun warn(msg: String, throwable: Throwable?) {
-      out.println("[IC WARN] $msg")
-    }
+      override fun warn(
+        msg: String,
+        throwable: Throwable?,
+      ) {
+        out.println("[IC WARN] $msg")
+      }
 
-    override fun info(msg: String) {
-      out.println("[IC INFO] $msg")
-    }
+      override fun info(msg: String) {
+        out.println("[IC INFO] $msg")
+      }
 
-    override fun debug(msg: String) {
-      out.println("[IC DEBUG] $msg")
-    }
+      override fun debug(msg: String) {
+        out.println("[IC DEBUG] $msg")
+      }
 
-    override fun lifecycle(msg: String) {
-      out.println("[IC] $msg")
+      override fun lifecycle(msg: String) {
+        out.println("[IC] $msg")
+      }
     }
-  }
 
   /**
    * Compiles Kotlin sources with KAPT (annotation processing) using the Build Tools API.
@@ -536,7 +566,10 @@ class BtapiCompiler(
 
     // Create temp subdirectories for stubs and incremental data
     val stubsDir = Files.createDirectories(Paths.get(task.directories.temp).resolve("stubs"))
-    val incrementalDataDir = Files.createDirectories(Paths.get(task.directories.temp).resolve("incrementalData"))
+    val incrementalDataDir =
+      Files.createDirectories(
+        Paths.get(task.directories.temp).resolve("incrementalData"),
+      )
 
     val options = mutableListOf<CompilerPluginOption>()
 
@@ -547,15 +580,16 @@ class BtapiCompiler(
     options.add(CompilerPluginOption("incrementalData", incrementalDataDir.toString()))
 
     // Javac arguments (encoded as Base64)
-    val javacArgs = mapOf(
-      "-target" to task.info.toolchainInfo.jvm.jvmTarget,
-      "-source" to task.info.toolchainInfo.jvm.jvmTarget,
-    )
+    val javacArgs =
+      mapOf(
+        "-target" to task.info.toolchainInfo.jvm.jvmTarget,
+        "-source" to task.info.toolchainInfo.jvm.jvmTarget,
+      )
     options.add(CompilerPluginOption("javacArguments", encodeMapForKapt(javacArgs)))
 
     // Other options
     options.add(CompilerPluginOption("correctErrorTypes", "false"))
-    options.add(CompilerPluginOption("verbose", "true"))//verbose.toString()))
+    options.add(CompilerPluginOption("verbose", "true")) // verbose.toString()))
     options.add(CompilerPluginOption("aptMode", aptMode))
 
     // Annotation processor classpath - one option per entry
@@ -570,12 +604,13 @@ class BtapiCompiler(
 
     // Read kapt apoptions from the plugin options
     val optionPrefix = "$pluginId:apoption="
-    val apOptions = (task.inputs.compilerPluginOptionsList + task.inputs.stubsPluginOptionsList)
-      .filter { o -> o.startsWith(optionPrefix) }
-      .associate { o ->
-        val kv = o.substring(optionPrefix.length).split(":", limit = 2)
-        kv[0] to kv[1]
-      }
+    val apOptions =
+      (task.inputs.compilerPluginOptionsList + task.inputs.stubsPluginOptionsList)
+        .filter { o -> o.startsWith(optionPrefix) }
+        .associate { o ->
+          val kv = o.substring(optionPrefix.length).split(":", limit = 2)
+          kv[0] to kv[1]
+        }
 
     if (apOptions.isNotEmpty()) {
       options.add(CompilerPluginOption("apoptions", encodeMapForKapt(apOptions)))
@@ -611,7 +646,8 @@ class BtapiCompiler(
           if (eqIdx > 0) {
             val key = keyValue.substring(0, eqIdx)
             val value = keyValue.substring(eqIdx + 1)
-            pluginOptionsMap.getOrPut(pluginId) { mutableListOf() }
+            pluginOptionsMap
+              .getOrPut(pluginId) { mutableListOf() }
               .add(CompilerPluginOption(key, value))
           }
         }

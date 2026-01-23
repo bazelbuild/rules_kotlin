@@ -89,7 +89,7 @@ internal fun JvmCompilationTask.runPlugins(
   ) {
     return this
   } else {
-      return runKaptPluginBtapi(context, plugins, btapiCompiler)
+    return runKaptPluginBtapi(context, plugins, btapiCompiler)
   }
 }
 
@@ -104,14 +104,15 @@ private fun JvmCompilationTask.runKaptPluginBtapi(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
   btapiCompiler: BtapiCompiler,
-): JvmCompilationTask {
-  return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
-    val result = btapiCompiler.compileKapt(
-      task = this,
-      plugins = plugins,
-      aptMode = "stubsAndApt",
-      verbose = context.whenTracing { true } == true,
-    )
+): JvmCompilationTask =
+  context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
+    val result =
+      btapiCompiler.compileKapt(
+        task = this,
+        plugins = plugins,
+        aptMode = "stubsAndApt",
+        verbose = context.whenTracing { true } == true,
+      )
 
     when (result) {
       CompilationResult.COMPILATION_SUCCESS -> {
@@ -128,7 +129,6 @@ private fun JvmCompilationTask.runKaptPluginBtapi(
         throw CompilationStatusException("KAPT compiler internal error", 2)
     }
   }
-}
 
 /**
  * Produce the primary output jar.
@@ -455,4 +455,3 @@ private fun Iterator<String>.filterOutNonCompilableSources(): Iterator<String> {
   }
   return result.iterator()
 }
-

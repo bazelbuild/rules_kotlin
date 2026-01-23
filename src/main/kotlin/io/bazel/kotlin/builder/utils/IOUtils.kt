@@ -37,4 +37,3 @@ fun Path.verifiedPath(): Path =
     .toFile()
     .also { check(it.exists()) { "file did not exist: $this" } }
     .toPath()
-

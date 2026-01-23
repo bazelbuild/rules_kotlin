@@ -38,307 +38,307 @@ import java.util.regex.Pattern
 
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder(
-    private val jvmTaskExecutor: KotlinJvmTaskExecutor,
-  ) {
-    companion object {
-      @JvmStatic
-      private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
+  private val jvmTaskExecutor: KotlinJvmTaskExecutor,
+) {
+  companion object {
+    @JvmStatic
+    private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
 
-      enum class KotlinBuilderFlags(
-        override val flag: String,
-      ) : Flag {
-        TARGET_LABEL("--target_label"),
-        CLASSPATH("--classpath"),
-        DIRECT_DEPENDENCIES("--direct_dependencies"),
-        DEPS_ARTIFACTS("--deps_artifacts"),
-        SOURCES("--sources"),
-        SOURCE_JARS("--source_jars"),
-        PROCESSOR_PATH("--processorpath"),
-        PROCESSORS("--processors"),
-        STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
-        STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
-        COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
-        COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
-        OUTPUT("--output"),
-        RULE_KIND("--rule_kind"),
-        MODULE_NAME("--kotlin_module_name"),
-        PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
-        API_VERSION("--kotlin_api_version"),
-        LANGUAGE_VERSION("--kotlin_language_version"),
-        JVM_TARGET("--kotlin_jvm_target"),
-        OUTPUT_SRCJAR("--kotlin_output_srcjar"),
-        GENERATED_CLASSDIR("--kotlin_generated_classdir"),
-        FRIEND_PATHS("--kotlin_friend_paths"),
-        OUTPUT_JDEPS("--kotlin_output_jdeps"),
-        DEBUG("--kotlin_debug_tags"),
-        TASK_ID("--kotlin_task_id"),
-        ABI_JAR("--abi_jar"),
-        ABI_JAR_INTERNAL_AS_PRIVATE("--treat_internal_as_private_in_abi_jar"),
-        ABI_JAR_REMOVE_PRIVATE_CLASSES("--remove_private_classes_in_abi_jar"),
-        ABI_JAR_REMOVE_DEBUG_INFO("--remove_debug_info_in_abi_jar"),
-        GENERATED_JAVA_SRC_JAR("--generated_java_srcjar"),
-        GENERATED_JAVA_STUB_JAR("--kapt_generated_stub_jar"),
-        GENERATED_CLASS_JAR("--kapt_generated_class_jar"),
-        BUILD_KOTLIN("--build_kotlin"),
-        STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
-        REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
-        INSTRUMENT_COVERAGE("--instrument_coverage"),
-        INCREMENTAL_COMPILATION("--incremental_compilation"),
-        IC_ENABLE_LOGGING("--ic_enable_logging"),
+    enum class KotlinBuilderFlags(
+      override val flag: String,
+    ) : Flag {
+      TARGET_LABEL("--target_label"),
+      CLASSPATH("--classpath"),
+      DIRECT_DEPENDENCIES("--direct_dependencies"),
+      DEPS_ARTIFACTS("--deps_artifacts"),
+      SOURCES("--sources"),
+      SOURCE_JARS("--source_jars"),
+      PROCESSOR_PATH("--processorpath"),
+      PROCESSORS("--processors"),
+      STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
+      STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
+      COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
+      COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
+      OUTPUT("--output"),
+      RULE_KIND("--rule_kind"),
+      MODULE_NAME("--kotlin_module_name"),
+      PASSTHROUGH_FLAGS("--kotlin_passthrough_flags"),
+      API_VERSION("--kotlin_api_version"),
+      LANGUAGE_VERSION("--kotlin_language_version"),
+      JVM_TARGET("--kotlin_jvm_target"),
+      OUTPUT_SRCJAR("--kotlin_output_srcjar"),
+      GENERATED_CLASSDIR("--kotlin_generated_classdir"),
+      FRIEND_PATHS("--kotlin_friend_paths"),
+      OUTPUT_JDEPS("--kotlin_output_jdeps"),
+      DEBUG("--kotlin_debug_tags"),
+      TASK_ID("--kotlin_task_id"),
+      ABI_JAR("--abi_jar"),
+      ABI_JAR_INTERNAL_AS_PRIVATE("--treat_internal_as_private_in_abi_jar"),
+      ABI_JAR_REMOVE_PRIVATE_CLASSES("--remove_private_classes_in_abi_jar"),
+      ABI_JAR_REMOVE_DEBUG_INFO("--remove_debug_info_in_abi_jar"),
+      GENERATED_JAVA_SRC_JAR("--generated_java_srcjar"),
+      GENERATED_JAVA_STUB_JAR("--kapt_generated_stub_jar"),
+      GENERATED_CLASS_JAR("--kapt_generated_class_jar"),
+      BUILD_KOTLIN("--build_kotlin"),
+      STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
+      REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
+      INSTRUMENT_COVERAGE("--instrument_coverage"),
+      INCREMENTAL_COMPILATION("--incremental_compilation"),
+      IC_ENABLE_LOGGING("--ic_enable_logging"),
+      // Note: IC data (classpath snapshots) is managed by the worker internally.
+      // The worker derives snapshot paths from classpath JAR paths.
+    }
+  }
+
+  fun build(
+    taskContext: WorkerContext.TaskContext,
+    args: List<String>,
+  ): Int {
+    val (argMap, compileContext) = buildContext(taskContext, args)
+    var success = false
+    var status = 0
+    try {
+      @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
+      when (compileContext.info.platform) {
+        Platform.JVM,
+        Platform.ANDROID,
+        -> executeJvmTask(compileContext, taskContext.directory, argMap)
+
+        Platform.UNRECOGNIZED -> throw IllegalStateException(
+          "unrecognized platform: ${compileContext.info}",
+        )
+      }
+      success = true
+    } catch (ex: CompilationStatusException) {
+      taskContext.error { "Compilation failure: ${ex.message}" }
+      status = ex.status
+    } catch (throwable: Throwable) {
+      taskContext.error(throwable) { "Uncaught exception" }
+    } finally {
+      compileContext.finalize(success)
+    }
+    return status
+  }
+
+  private fun buildContext(
+    ctx: WorkerContext.TaskContext,
+    args: List<String>,
+  ): Pair<ArgMap, CompilationTaskContext> {
+    check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
+    val lines =
+      FLAGFILE_RE.matchEntire(args[0])?.groups?.get(1)?.let {
+        Files.readAllLines(FileSystems.getDefault().getPath(it.value), StandardCharsets.UTF_8)
+      } ?: args
+
+    val argMap = ArgMaps.from(lines)
+    val info = buildTaskInfo(argMap).build()
+    val context =
+      CompilationTaskContext(info, ctx.asPrintStream())
+    return Pair(argMap, context)
+  }
+
+  private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
+    with(CompilationTaskInfo.newBuilder()) {
+      addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
+
+      label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
+      argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).also {
+        val splitRuleKind = it.split("_")
+        require(splitRuleKind[0] == "kt") { "Invalid rule kind $it" }
+        platform = Platform.valueOf(splitRuleKind[1].uppercase())
+        ruleKind = RuleKind.valueOf(splitRuleKind.last().uppercase())
+      }
+      moduleName =
+        argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
+          check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
+        }
+      addAllPassthroughFlags(argMap.optional(KotlinBuilderFlags.PASSTHROUGH_FLAGS) ?: emptyList())
+
+      argMap.optional(KotlinBuilderFlags.FRIEND_PATHS)?.let(::addAllFriendPaths)
+      toolchainInfoBuilder.commonBuilder.apiVersion =
+        argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
+      toolchainInfoBuilder.commonBuilder.languageVersion =
+        argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
+      strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
+      reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
+      argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE)?.let {
+        treatInternalAsPrivateInAbiJar = it == "true"
+      }
+      argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_PRIVATE_CLASSES)?.let {
+        removePrivateClassesInAbiJar = it == "true"
+      }
+      argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
+        removeDebugInfo = it == "true"
+      }
+      argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)?.let {
+        incrementalCompilation = it == "true"
+      }
+      argMap.optionalSingle(KotlinBuilderFlags.IC_ENABLE_LOGGING)?.let {
+        icEnableLogging = it == "true"
+      }
+      this
+    }
+
+  private fun executeJvmTask(
+    context: CompilationTaskContext,
+    workingDir: Path,
+    argMap: ArgMap,
+  ) {
+    val task = buildJvmTask(context.info, workingDir, argMap)
+    context.whenTracing {
+      printProto("jvm task message:", task)
+    }
+    jvmTaskExecutor.execute(context, task)
+  }
+
+  private fun buildJvmTask(
+    info: CompilationTaskInfo,
+    workingDir: Path,
+    argMap: ArgMap,
+  ): JvmCompilationTask =
+    JvmCompilationTask.newBuilder().let { root ->
+      root.info = info
+
+      root.compileKotlin = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean()
+      root.instrumentCoverage =
+        argMap
+          .mandatorySingle(
+            KotlinBuilderFlags.INSTRUMENT_COVERAGE,
+          ).toBoolean()
+
+      with(root.outputsBuilder) {
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT)?.let { jar = it }
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
+
+        argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
+        argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
+          generatedJavaSrcJar = this
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR)?.apply {
+          generatedJavaStubJar = this
+        }
+        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR)?.let { abijar = it }
+        argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
+          generatedClassJar = it
+        }
+        // Note: IC data (classpath snapshots) is stored in worker-local IC directories,
+        // not as Bazel-tracked outputs.
+      }
+
+      with(root.directoriesBuilder) {
+        val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
+        val outputJar = argMap.optionalSingle(KotlinBuilderFlags.OUTPUT)
+        classes =
+          getOutputDirPath(info, workingDir, moduleName, "classes", outputJar).toString()
+        javaClasses =
+          getOutputDirPath(info, workingDir, moduleName, "java_classes", outputJar).toString()
+        if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) {
+          abiClasses =
+            getOutputDirPath(info, workingDir, moduleName, "abi_classes", outputJar).toString()
+        }
+        generatedClasses =
+          getOutputDirPath(info, workingDir, moduleName, "generated_classes", outputJar)
+            .toString()
+        temp =
+          getOutputDirPath(info, workingDir, moduleName, "temp", outputJar).toString()
+        generatedSources =
+          getOutputDirPath(info, workingDir, moduleName, "generated_sources", outputJar)
+            .toString()
+        generatedJavaSources =
+          getOutputDirPath(info, workingDir, moduleName, "generated_java_sources", outputJar)
+            .toString()
+        generatedStubClasses =
+          getOutputDirPath(info, workingDir, moduleName, "stubs", outputJar).toString()
+        coverageMetadataClasses =
+          getOutputDirPath(info, workingDir, moduleName, "coverage-metadata", outputJar)
+            .toString()
+        // Derive IC base directory from output JAR path: <output_jar>-ic/
+        // This is a worker-local side-effect, not a Bazel-tracked output.
+        if (info.incrementalCompilation && outputJar != null) {
+          val outputPath = Paths.get(outputJar).toAbsolutePath()
+          val jarName = outputPath.fileName.toString().removeSuffix(".jar")
+          incrementalBaseDir = outputPath.resolveSibling("$jarName-ic").toString()
+        }
+      }
+
+      with(root.inputsBuilder) {
+        addAllClasspath(argMap.mandatory(KotlinBuilderFlags.CLASSPATH))
+        addAllDepsArtifacts(
+          argMap.optional(KotlinBuilderFlags.DEPS_ARTIFACTS) ?: emptyList(),
+        )
+        addAllDirectDependencies(argMap.mandatory(KotlinBuilderFlags.DIRECT_DEPENDENCIES))
+
+        addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
+        addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
+
+        addAllStubsPluginOptions(
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
+        )
+        addAllStubsPluginClasspath(
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
+        )
+
+        addAllCompilerPluginOptions(
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
+        )
+        addAllCompilerPluginClasspath(
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
+        )
+
+        // Kotlin compiler always requires absolute path for source input in incremental mode
+        val useAbsolutePath =
+          argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION) == "true"
+        argMap
+          .optional(KotlinBuilderFlags.SOURCES)
+          ?.map {
+            if (useAbsolutePath) {
+              FileSystems
+                .getDefault()
+                .getPath(it)
+                .toAbsolutePath()
+                .toString()
+            } else {
+              it
+            }
+          }?.iterator()
+          ?.partitionJvmSources(
+            { addKotlinSources(it) },
+            { addJavaSources(it) },
+          )
+        argMap
+          .optional(KotlinBuilderFlags.SOURCE_JARS)
+          ?.also {
+            addAllSourceJars(it)
+          }
         // Note: IC data (classpath snapshots) is managed by the worker internally.
         // The worker derives snapshot paths from classpath JAR paths.
       }
+
+      with(root.infoBuilder) {
+        toolchainInfoBuilder.jvmBuilder.jvmTarget =
+          argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET)
+      }
+      root.build()
     }
 
-    fun build(
-      taskContext: WorkerContext.TaskContext,
-      args: List<String>,
-    ): Int {
-      val (argMap, compileContext) = buildContext(taskContext, args)
-      var success = false
-      var status = 0
-      try {
-        @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
-        when (compileContext.info.platform) {
-          Platform.JVM,
-          Platform.ANDROID,
-          -> executeJvmTask(compileContext, taskContext.directory, argMap)
-
-          Platform.UNRECOGNIZED -> throw IllegalStateException(
-            "unrecognized platform: ${compileContext.info}",
-          )
-        }
-        success = true
-      } catch (ex: CompilationStatusException) {
-        taskContext.error { "Compilation failure: ${ex.message}" }
-        status = ex.status
-      } catch (throwable: Throwable) {
-        taskContext.error(throwable) { "Uncaught exception" }
-      } finally {
-        compileContext.finalize(success)
-      }
-      return status
+  private fun getOutputDirPath(
+    info: CompilationTaskInfo,
+    workingDir: Path,
+    moduleName: String,
+    dirName: String,
+    outputJar: String?,
+  ): Path {
+    if (info.incrementalCompilation && outputJar != null) {
+      // Derive incremental directory from output jar path to keep it inside Bazel's output tree.
+      // This ensures the cache is cleaned with `bazel clean` and is configuration-specific.
+      val outputPath = Paths.get(outputJar).toAbsolutePath()
+      val outputDir = outputPath.parent
+      val jarName = outputPath.fileName.toString().removeSuffix(".jar")
+      val path = outputDir.resolve("_kotlin_incremental/$jarName/$dirName")
+      Files.createDirectories(path)
+      return path
     }
 
-    private fun buildContext(
-      ctx: WorkerContext.TaskContext,
-      args: List<String>,
-    ): Pair<ArgMap, CompilationTaskContext> {
-      check(args.isNotEmpty()) { "expected at least a single arg got: ${args.joinToString(" ")}" }
-      val lines =
-        FLAGFILE_RE.matchEntire(args[0])?.groups?.get(1)?.let {
-          Files.readAllLines(FileSystems.getDefault().getPath(it.value), StandardCharsets.UTF_8)
-        } ?: args
-
-      val argMap = ArgMaps.from(lines)
-      val info = buildTaskInfo(argMap).build()
-      val context =
-        CompilationTaskContext(info, ctx.asPrintStream())
-      return Pair(argMap, context)
-    }
-
-    private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
-      with(CompilationTaskInfo.newBuilder()) {
-        addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
-
-        label = argMap.mandatorySingle(KotlinBuilderFlags.TARGET_LABEL)
-        argMap.mandatorySingle(KotlinBuilderFlags.RULE_KIND).also {
-          val splitRuleKind = it.split("_")
-          require(splitRuleKind[0] == "kt") { "Invalid rule kind $it" }
-          platform = Platform.valueOf(splitRuleKind[1].uppercase())
-          ruleKind = RuleKind.valueOf(splitRuleKind.last().uppercase())
-        }
-        moduleName =
-          argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME).also {
-            check(it.isNotBlank()) { "--kotlin_module_name should not be blank" }
-          }
-        addAllPassthroughFlags(argMap.optional(KotlinBuilderFlags.PASSTHROUGH_FLAGS) ?: emptyList())
-
-        argMap.optional(KotlinBuilderFlags.FRIEND_PATHS)?.let(::addAllFriendPaths)
-        toolchainInfoBuilder.commonBuilder.apiVersion =
-          argMap.mandatorySingle(KotlinBuilderFlags.API_VERSION)
-        toolchainInfoBuilder.commonBuilder.languageVersion =
-          argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
-        strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
-        reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
-        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE)?.let {
-          treatInternalAsPrivateInAbiJar = it == "true"
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_PRIVATE_CLASSES)?.let {
-          removePrivateClassesInAbiJar = it == "true"
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
-          removeDebugInfo = it == "true"
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)?.let {
-          incrementalCompilation = it == "true"
-        }
-        argMap.optionalSingle(KotlinBuilderFlags.IC_ENABLE_LOGGING)?.let {
-          icEnableLogging = it == "true"
-        }
-        this
-      }
-
-    private fun executeJvmTask(
-      context: CompilationTaskContext,
-      workingDir: Path,
-      argMap: ArgMap,
-    ) {
-      val task = buildJvmTask(context.info, workingDir, argMap)
-      context.whenTracing {
-        printProto("jvm task message:", task)
-      }
-      jvmTaskExecutor.execute(context, task)
-    }
-
-    private fun buildJvmTask(
-      info: CompilationTaskInfo,
-      workingDir: Path,
-      argMap: ArgMap,
-    ): JvmCompilationTask =
-      JvmCompilationTask.newBuilder().let { root ->
-        root.info = info
-
-        root.compileKotlin = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_KOTLIN).toBoolean()
-        root.instrumentCoverage =
-          argMap
-            .mandatorySingle(
-              KotlinBuilderFlags.INSTRUMENT_COVERAGE,
-            ).toBoolean()
-
-        with(root.outputsBuilder) {
-          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT)?.let { jar = it }
-          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_SRCJAR)?.let { srcjar = it }
-
-          argMap.optionalSingle(KotlinBuilderFlags.OUTPUT_JDEPS)?.apply { jdeps = this }
-          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_SRC_JAR)?.apply {
-            generatedJavaSrcJar = this
-          }
-          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_JAVA_STUB_JAR)?.apply {
-            generatedJavaStubJar = this
-          }
-          argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR)?.let { abijar = it }
-          argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
-            generatedClassJar = it
-          }
-          // Note: IC data (classpath snapshots) is stored in worker-local IC directories,
-          // not as Bazel-tracked outputs.
-        }
-
-        with(root.directoriesBuilder) {
-          val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
-          val outputJar = argMap.optionalSingle(KotlinBuilderFlags.OUTPUT)
-          classes =
-            getOutputDirPath(info, workingDir, moduleName, "classes", outputJar).toString()
-          javaClasses =
-            getOutputDirPath(info, workingDir, moduleName, "java_classes", outputJar).toString()
-          if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) {
-            abiClasses =
-              getOutputDirPath(info, workingDir, moduleName, "abi_classes", outputJar).toString()
-          }
-          generatedClasses =
-            getOutputDirPath(info, workingDir, moduleName, "generated_classes", outputJar)
-              .toString()
-          temp =
-            getOutputDirPath(info, workingDir, moduleName, "temp", outputJar).toString()
-          generatedSources =
-            getOutputDirPath(info, workingDir, moduleName, "generated_sources", outputJar)
-              .toString()
-          generatedJavaSources =
-            getOutputDirPath(info, workingDir, moduleName, "generated_java_sources", outputJar)
-              .toString()
-          generatedStubClasses =
-            getOutputDirPath(info, workingDir, moduleName, "stubs", outputJar).toString()
-          coverageMetadataClasses =
-            getOutputDirPath(info, workingDir, moduleName, "coverage-metadata", outputJar)
-              .toString()
-          // Derive IC base directory from output JAR path: <output_jar>-ic/
-          // This is a worker-local side-effect, not a Bazel-tracked output.
-          if (info.incrementalCompilation && outputJar != null) {
-            val outputPath = Paths.get(outputJar).toAbsolutePath()
-            val jarName = outputPath.fileName.toString().removeSuffix(".jar")
-            incrementalBaseDir = outputPath.resolveSibling("$jarName-ic").toString()
-          }
-        }
-
-        with(root.inputsBuilder) {
-          addAllClasspath(argMap.mandatory(KotlinBuilderFlags.CLASSPATH))
-          addAllDepsArtifacts(
-            argMap.optional(KotlinBuilderFlags.DEPS_ARTIFACTS) ?: emptyList(),
-          )
-          addAllDirectDependencies(argMap.mandatory(KotlinBuilderFlags.DIRECT_DEPENDENCIES))
-
-          addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
-          addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
-
-          addAllStubsPluginOptions(
-            argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
-          )
-          addAllStubsPluginClasspath(
-            argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
-          )
-
-          addAllCompilerPluginOptions(
-            argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
-          )
-          addAllCompilerPluginClasspath(
-            argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
-          )
-
-          // Kotlin compiler always requires absolute path for source input in incremental mode
-          val useAbsolutePath =
-            argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION) == "true"
-          argMap
-            .optional(KotlinBuilderFlags.SOURCES)
-            ?.map {
-              if (useAbsolutePath) {
-                FileSystems
-                  .getDefault()
-                  .getPath(it)
-                  .toAbsolutePath()
-                  .toString()
-              } else {
-                it
-              }
-            }?.iterator()
-            ?.partitionJvmSources(
-              { addKotlinSources(it) },
-              { addJavaSources(it) },
-            )
-          argMap
-            .optional(KotlinBuilderFlags.SOURCE_JARS)
-            ?.also {
-              addAllSourceJars(it)
-            }
-          // Note: IC data (classpath snapshots) is managed by the worker internally.
-          // The worker derives snapshot paths from classpath JAR paths.
-        }
-
-        with(root.infoBuilder) {
-          toolchainInfoBuilder.jvmBuilder.jvmTarget =
-            argMap.mandatorySingle(KotlinBuilderFlags.JVM_TARGET)
-        }
-        root.build()
-      }
-
-    private fun getOutputDirPath(
-      info: CompilationTaskInfo,
-      workingDir: Path,
-      moduleName: String,
-      dirName: String,
-      outputJar: String?,
-    ): Path {
-      if (info.incrementalCompilation && outputJar != null) {
-        // Derive incremental directory from output jar path to keep it inside Bazel's output tree.
-        // This ensures the cache is cleaned with `bazel clean` and is configuration-specific.
-        val outputPath = Paths.get(outputJar).toAbsolutePath()
-        val outputDir = outputPath.parent
-        val jarName = outputPath.fileName.toString().removeSuffix(".jar")
-        val path = outputDir.resolve("_kotlin_incremental/$jarName/$dirName")
-        Files.createDirectories(path)
-        return path
-      }
-
-      return workingDir.resolveNewDirectories("_kotlinc/${moduleName}_jvm/$dirName")
-    }
+    return workingDir.resolveNewDirectories("_kotlinc/${moduleName}_jvm/$dirName")
   }
+}

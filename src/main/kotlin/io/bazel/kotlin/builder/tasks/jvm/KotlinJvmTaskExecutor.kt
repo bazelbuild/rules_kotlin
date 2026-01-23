@@ -27,33 +27,32 @@ import java.io.File
 
 @OptIn(ExperimentalBuildToolsApi::class)
 class KotlinJvmTaskExecutor(
-    private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
-    private val plugins: InternalCompilerPlugins,
-  ) {
+  private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
+  private val plugins: InternalCompilerPlugins,
+) {
+  /**
+   * Checks if the task has KAPT processors that need to be run.
+   */
+  private fun JvmCompilationTask.hasKaptProcessors(): Boolean =
+    inputs.processorsList.isNotEmpty() &&
+      inputs.kotlinSourcesList.isNotEmpty() &&
+      !outputs.generatedClassJar.isNullOrEmpty()
 
-    /**
-     * Checks if the task has KAPT processors that need to be run.
-     */
-    private fun JvmCompilationTask.hasKaptProcessors(): Boolean {
-      return inputs.processorsList.isNotEmpty() &&
-        inputs.kotlinSourcesList.isNotEmpty() &&
-        !outputs.generatedClassJar.isNullOrEmpty()
-    }
+  /**
+   * Creates a BtapiCompiler instance configured for KAPT.
+   *
+   * Plugin JARs are NOT loaded in the factory classloader - BTAPI loads plugins
+   * internally from CompilerPlugin.classpath specified via the typed API.
+   * This avoids classloader isolation issues where ComponentRegistrar interface
+   * would be loaded by different classloaders.
+   */
+  private fun createKaptBtapiCompiler(): BtapiCompiler {
+    // Don't add plugin JARs to factory classloader - BTAPI loads plugins from
+    // CompilerPlugin.classpath via CommonCompilerArguments.COMPILER_PLUGINS
+    val pluginJars = listOf(plugins.kapt.jarPath).map { File(it) }
 
-    /**
-     * Creates a BtapiCompiler instance configured for KAPT.
-     *
-     * Plugin JARs are NOT loaded in the factory classloader - BTAPI loads plugins
-     * internally from CompilerPlugin.classpath specified via the typed API.
-     * This avoids classloader isolation issues where ComponentRegistrar interface
-     * would be loaded by different classloaders.
-     */
-    private fun createKaptBtapiCompiler(): BtapiCompiler {
-      // Don't add plugin JARs to factory classloader - BTAPI loads plugins from
-      // CompilerPlugin.classpath via CommonCompilerArguments.COMPILER_PLUGINS
-      val pluginJars = listOf(plugins.kapt.jarPath).map { File(it) }
-
-      val factory = BtapiToolchainFactory(
+    val factory =
+      BtapiToolchainFactory(
         compilerBuilder.buildToolsImplJar,
         compilerBuilder.kotlinCompilerEmbeddableJar,
         compilerBuilder.kotlinStdlibJar,
@@ -62,36 +61,37 @@ class KotlinJvmTaskExecutor(
         compilerBuilder.annotationsJar,
         pluginJars,
       )
-      return BtapiCompiler(factory.createToolchains(), System.err)
-    }
+    return BtapiCompiler(factory.createToolchains(), System.err)
+  }
 
-    fun execute(
-      context: CompilationTaskContext,
-      task: JvmCompilationTask,
-    ) {
-      // Create KAPT-enabled BtapiCompiler if KAPT is needed
-      val kaptBtapiCompiler = createKaptBtapiCompiler()
+  fun execute(
+    context: CompilationTaskContext,
+    task: JvmCompilationTask,
+  ) {
+    // Create KAPT-enabled BtapiCompiler if KAPT is needed
+    val kaptBtapiCompiler = createKaptBtapiCompiler()
 
-      val preprocessedTask =
-        task
-          .preProcessingSteps(context)
-          .runPlugins(context, plugins, kaptBtapiCompiler)
+    val preprocessedTask =
+      task
+        .preProcessingSteps(context)
+        .runPlugins(context, plugins, kaptBtapiCompiler)
 
-      context.execute("compile classes") {
-        preprocessedTask.apply {
-          // Compile Kotlin using BtapiCompiler (direct BTAPI, no string parsing)
-          context.execute("kotlinc") {
-            if (compileKotlin) {
-              // Collect all plugin JARs for the classloader
-              val pluginJars = mutableListOf<File>()
-              pluginJars.add(File(plugins.jdeps.jarPath))
-              pluginJars.add(File(plugins.jvmAbiGen.jarPath))
-              pluginJars.add(File(plugins.skipCodeGen.jarPath))
-              // Note: kapt is NOT included here - it uses its own BtapiCompiler instance
-              // User plugins from task
-              inputs.compilerPluginClasspathList.forEach { pluginJars.add(File(it)) }
+    context.execute("compile classes") {
+      preprocessedTask.apply {
+        // Compile Kotlin using BtapiCompiler (direct BTAPI, no string parsing)
+        context.execute("kotlinc") {
+          if (compileKotlin) {
+            // Collect all plugin JARs for the classloader
+            val pluginJars = mutableListOf<File>()
+            pluginJars.add(File(plugins.jdeps.jarPath))
+            pluginJars.add(File(plugins.jvmAbiGen.jarPath))
+            pluginJars.add(File(plugins.skipCodeGen.jarPath))
+            // Note: kapt is NOT included here - it uses its own BtapiCompiler instance
+            // User plugins from task
+            inputs.compilerPluginClasspathList.forEach { pluginJars.add(File(it)) }
 
-              val factory = BtapiToolchainFactory(
+            val factory =
+              BtapiToolchainFactory(
                 compilerBuilder.buildToolsImplJar,
                 compilerBuilder.kotlinCompilerEmbeddableJar,
                 compilerBuilder.kotlinStdlibJar,
@@ -100,56 +100,56 @@ class KotlinJvmTaskExecutor(
                 compilerBuilder.annotationsJar,
                 pluginJars,
               )
-              val btapiCompiler = BtapiCompiler(factory.createToolchains(), System.err)
+            val btapiCompiler = BtapiCompiler(factory.createToolchains(), System.err)
 
-              val result = btapiCompiler.compile(this, plugins)
-              when (result) {
-                CompilationResult.COMPILATION_SUCCESS -> { /* success */ }
-                CompilationResult.COMPILATION_ERROR ->
-                  throw CompilationStatusException("Compilation failed", 1)
-                CompilationResult.COMPILATION_OOM_ERROR ->
-                  throw CompilationStatusException("Compilation failed with OOM", 3)
-                CompilationResult.COMPILER_INTERNAL_ERROR ->
-                  throw CompilationStatusException("Compiler internal error", 2)
-              }
+            val result = btapiCompiler.compile(this, plugins)
+            when (result) {
+              CompilationResult.COMPILATION_SUCCESS -> { /* success */ }
+              CompilationResult.COMPILATION_ERROR ->
+                throw CompilationStatusException("Compilation failed", 1)
+              CompilationResult.COMPILATION_OOM_ERROR ->
+                throw CompilationStatusException("Compilation failed with OOM", 3)
+              CompilationResult.COMPILER_INTERNAL_ERROR ->
+                throw CompilationStatusException("Compiler internal error", 2)
             }
           }
+        }
 
-          // Ensure jdeps exists (restore from IC cache if compilation was skipped)
-          context.execute("ensure jdeps") { ensureJdepsExists() }
+        // Ensure jdeps exists (restore from IC cache if compilation was skipped)
+        context.execute("ensure jdeps") { ensureJdepsExists() }
 
-          if (outputs.jar.isNotEmpty()) {
-            if (instrumentCoverage) {
-              context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
-            } else {
-              context.execute("create jar", ::createOutputJar)
+        if (outputs.jar.isNotEmpty()) {
+          if (instrumentCoverage) {
+            context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
+          } else {
+            context.execute("create jar", ::createOutputJar)
+          }
+          // Generate classpath snapshot for incremental compilation (stored in IC directory, not Bazel output)
+          if (context.info.incrementalCompilation) {
+            context.execute("create classpath snapshot") {
+              createOutputClasspathSnapshot(compilerBuilder.buildSnapshotInvoker())
             }
-            // Generate classpath snapshot for incremental compilation (stored in IC directory, not Bazel output)
-            if (context.info.incrementalCompilation) {
-              context.execute("create classpath snapshot") {
-                createOutputClasspathSnapshot(compilerBuilder.buildSnapshotInvoker())
-              }
-            }
           }
-          if (outputs.abijar.isNotEmpty()) {
-            context.execute("create abi jar", ::createAbiJar)
-          }
-          if (outputs.generatedJavaSrcJar.isNotEmpty()) {
-            context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)
-          }
-          if (outputs.generatedJavaStubJar.isNotEmpty()) {
-            context.execute("creating KAPT generated Kotlin stubs jar", ::createGeneratedStubJar)
-          }
-          if (outputs.generatedClassJar.isNotEmpty()) {
-            context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
-          }
-          if (outputs.generatedKspSrcJar.isNotEmpty()) {
-            context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
-          }
-          if (outputs.generatedKspClassesJar.isNotEmpty()) {
-            context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
-          }
+        }
+        if (outputs.abijar.isNotEmpty()) {
+          context.execute("create abi jar", ::createAbiJar)
+        }
+        if (outputs.generatedJavaSrcJar.isNotEmpty()) {
+          context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)
+        }
+        if (outputs.generatedJavaStubJar.isNotEmpty()) {
+          context.execute("creating KAPT generated Kotlin stubs jar", ::createGeneratedStubJar)
+        }
+        if (outputs.generatedClassJar.isNotEmpty()) {
+          context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
+        }
+        if (outputs.generatedKspSrcJar.isNotEmpty()) {
+          context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
+        }
+        if (outputs.generatedKspClassesJar.isNotEmpty()) {
+          context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
         }
       }
     }
   }
+}

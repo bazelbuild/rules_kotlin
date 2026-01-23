@@ -49,15 +49,28 @@ class ClasspathSnapshotGenerator(
 
         // Write to temp files first, then atomically move to avoid race conditions
         val hash = hashFile(inputJar)
-        val tempSnapshot = outputSnapshot.resolveSibling(outputSnapshot.fileName.toString() + ".tmp")
+        val tempSnapshot =
+          outputSnapshot.resolveSibling(
+            outputSnapshot.fileName.toString() + ".tmp",
+          )
         val tempHash = hashPath.resolveSibling(hashPath.fileName.toString() + ".tmp")
 
         snapshot.saveSnapshot(tempSnapshot)
         tempHash.toFile().writeText(hash)
 
         // Atomically move temp files to final paths
-        Files.move(tempSnapshot, outputSnapshot, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
-        Files.move(tempHash, hashPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+        Files.move(
+          tempSnapshot,
+          outputSnapshot,
+          StandardCopyOption.ATOMIC_MOVE,
+          StandardCopyOption.REPLACE_EXISTING,
+        )
+        Files.move(
+          tempHash,
+          hashPath,
+          StandardCopyOption.ATOMIC_MOVE,
+          StandardCopyOption.REPLACE_EXISTING,
+        )
       }
 
     // TODO: Log impl

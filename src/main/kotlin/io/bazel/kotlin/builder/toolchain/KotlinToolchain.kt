@@ -240,7 +240,6 @@ class KotlinToolchain private constructor(
       )
   }
 
-
   data class CompilerPlugin(
     val jarPath: String,
     val id: String,
@@ -280,36 +279,38 @@ class KotlinToolchain private constructor(
       outputSnapshot: String,
       granularity: String,
     ) {
-      System.err.println("DEBUG: generate called with inputJar=$inputJar, outputSnapshot=$outputSnapshot, granularity=$granularity")
+      System.err.println(
+        "DEBUG: generate called with inputJar=$inputJar, outputSnapshot=$outputSnapshot, granularity=$granularity",
+      )
 //      generateMethod.invoke(null, inputJar, outputSnapshot, granularity)
     }
   }
 
   class KotlincInvokerBuilder(
-      private val toolchain: KotlinToolchain,
-    ) {
-      /** Build-tools-impl JAR for BTAPI */
-      val buildToolsImplJar: File get() = toolchain.buildToolsImplJar
+    private val toolchain: KotlinToolchain,
+  ) {
+    /** Build-tools-impl JAR for BTAPI */
+    val buildToolsImplJar: File get() = toolchain.buildToolsImplJar
 
-      /** Compiler JAR */
-      val compilerJar: File get() = toolchain.compilerJar
+    /** Compiler JAR */
+    val compilerJar: File get() = toolchain.compilerJar
 
-      /** Kotlin compiler embeddable JAR for BTAPI classloader */
-      val kotlinCompilerEmbeddableJar: File get() = toolchain.kotlinCompilerEmbeddableJar
+    /** Kotlin compiler embeddable JAR for BTAPI classloader */
+    val kotlinCompilerEmbeddableJar: File get() = toolchain.kotlinCompilerEmbeddableJar
 
-      /** Kotlin stdlib JAR for BTAPI classloader */
-      val kotlinStdlibJar: File get() = toolchain.kotlinStdlibJar
+    /** Kotlin stdlib JAR for BTAPI classloader */
+    val kotlinStdlibJar: File get() = toolchain.kotlinStdlibJar
 
-      val kotlinReflectJar: File get() = toolchain.kotlinReflectJar
+    val kotlinReflectJar: File get() = toolchain.kotlinReflectJar
 
-      val kotlinCoroutinesJar: File get() = toolchain.kotlinCoroutinesJar
+    val kotlinCoroutinesJar: File get() = toolchain.kotlinCoroutinesJar
 
-      val annotationsJar: File get() = toolchain.annotationsJar
+    val annotationsJar: File get() = toolchain.annotationsJar
 
-      fun buildSnapshotInvoker(): ClasspathSnapshotInvoker =
-        ClasspathSnapshotInvoker(
-          toolchain.buildToolsImplJar,
-          toolchain.compilerJar,
-        )
-    }
+    fun buildSnapshotInvoker(): ClasspathSnapshotInvoker =
+      ClasspathSnapshotInvoker(
+        toolchain.buildToolsImplJar,
+        toolchain.compilerJar,
+      )
+  }
 }

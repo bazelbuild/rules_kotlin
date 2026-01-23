@@ -49,9 +49,15 @@ java_import(
 java_binary(
     name = "build",
     data = [
+        "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-compiler",
+        "//kotlin/compiler:kotlin-reflect",
+        "//kotlin/compiler:kotlin-stdlib",
+        "//kotlin/compiler:kotlin-stdlib-jdk7",
+        "//kotlin/compiler:kotlin-stdlib-jdk8",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
         "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
@@ -63,12 +69,6 @@ java_binary(
         "@kotlinx_serialization_core_jvm//file",
         "@kotlinx_serialization_json//file",
         "@kotlinx_serialization_json_jvm//file",
-        "//kotlin/compiler:annotations",
-        "//kotlin/compiler:kotlin-reflect",
-        "//kotlin/compiler:kotlin-stdlib",
-        "//kotlin/compiler:kotlin-stdlib-jdk7",
-        "//kotlin/compiler:kotlin-stdlib-jdk8",
-        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
     jvm_flags = [
         "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlinx_serialization_core_jvm//file)",
