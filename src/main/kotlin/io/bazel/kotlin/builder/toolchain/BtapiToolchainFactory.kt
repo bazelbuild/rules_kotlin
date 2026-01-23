@@ -28,7 +28,6 @@ import java.net.URLClassLoader
  * - build-tools-impl.jar (BTAPI implementation)
  * - kotlin-compiler-embeddable.jar (Kotlin compiler - has shaded stdlib)
  * - kotlin-stdlib.jar (non-shaded stdlib for build-tools-impl runtime)
- * - Plugin JARs (compiler plugins)
  */
 @OptIn(ExperimentalBuildToolsApi::class)
 class BtapiToolchainFactory(
@@ -38,7 +37,6 @@ class BtapiToolchainFactory(
   private val kotlinReflectJar: File,
   private val kotlinCoroutinesJar: File,
   private val annotationsJar: File,
-  private val pluginJars: List<File>,
 ) {
   /**
    * Creates a KotlinToolchains instance with the proper classloader setup.
@@ -51,7 +49,6 @@ class BtapiToolchainFactory(
     classpath.add(kotlinReflectJar)
     classpath.add(kotlinCoroutinesJar)
     classpath.add(annotationsJar)
-    classpath.addAll(pluginJars)
 
     val urls = classpath.map { it.toURI().toURL() }.toTypedArray()
 
