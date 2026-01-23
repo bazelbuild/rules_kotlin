@@ -24,6 +24,7 @@ import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import java.io.File
+import java.io.PrintStream
 
 @OptIn(ExperimentalBuildToolsApi::class)
 class KotlinJvmTaskExecutor(
@@ -46,7 +47,7 @@ class KotlinJvmTaskExecutor(
    * This avoids classloader isolation issues where ComponentRegistrar interface
    * would be loaded by different classloaders.
    */
-  private fun createKaptBtapiCompiler(): BtapiCompiler {
+  private fun createKaptBtapiCompiler(out: PrintStream): BtapiCompiler {
     // Don't add plugin JARs to factory classloader - BTAPI loads plugins from
     // CompilerPlugin.classpath via CommonCompilerArguments.COMPILER_PLUGINS
     val pluginJars = listOf(plugins.kapt.jarPath).map { File(it) }
@@ -61,7 +62,7 @@ class KotlinJvmTaskExecutor(
         compilerBuilder.annotationsJar,
         pluginJars,
       )
-    return BtapiCompiler(factory.createToolchains(), System.err)
+    return BtapiCompiler(factory.createToolchains(), out)
   }
 
   fun execute(
@@ -69,7 +70,7 @@ class KotlinJvmTaskExecutor(
     task: JvmCompilationTask,
   ) {
     // Create KAPT-enabled BtapiCompiler if KAPT is needed
-    val kaptBtapiCompiler = createKaptBtapiCompiler()
+    val kaptBtapiCompiler = createKaptBtapiCompiler(context.out)
 
     val preprocessedTask =
       task
@@ -80,7 +81,7 @@ class KotlinJvmTaskExecutor(
       preprocessedTask.apply {
         // Compile Kotlin using BtapiCompiler (direct BTAPI, no string parsing)
         context.execute("kotlinc") {
-          if (compileKotlin) {
+          if (compileKotlin && inputs.kotlinSourcesList.isNotEmpty()) {
             // Collect all plugin JARs for the classloader
             val pluginJars = mutableListOf<File>()
             pluginJars.add(File(plugins.jdeps.jarPath))
@@ -100,7 +101,7 @@ class KotlinJvmTaskExecutor(
                 compilerBuilder.annotationsJar,
                 pluginJars,
               )
-            val btapiCompiler = BtapiCompiler(factory.createToolchains(), System.err)
+            val btapiCompiler = BtapiCompiler(factory.createToolchains(), context.out)
 
             val result = btapiCompiler.compile(this, plugins)
             when (result) {

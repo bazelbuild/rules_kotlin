@@ -67,7 +67,7 @@ object WriteKotlincCapabilities {
               .filter { it.fileName.toString().startsWith("capabilities_") }
               .map { "Label(${it.fileName.bzlQuote()})" }
               .sorted()
-              .toArray(::arrayOfNulls),
+              .toArray { arrayOfNulls<String>(it) },
           ),
         )
       }.toString(),

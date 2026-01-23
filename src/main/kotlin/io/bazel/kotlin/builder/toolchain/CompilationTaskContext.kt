@@ -25,7 +25,7 @@ import java.nio.file.FileSystems
 
 class CompilationTaskContext(
   val info: CompilationTaskInfo,
-  private val out: PrintStream,
+  val out: PrintStream,
   private val executionRoot: String =
     FileSystems
       .getDefault()
