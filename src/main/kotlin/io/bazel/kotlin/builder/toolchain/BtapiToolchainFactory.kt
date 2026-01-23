@@ -34,6 +34,7 @@ import java.net.URLClassLoader
 class BtapiToolchainFactory(
   private val buildToolsImplJar: File,
   private val kotlinCompilerEmbeddableJar: File,
+  private val kotlinDaemonEmbeddableJar: File,
   private val kotlinStdlibJar: File,
   private val kotlinReflectJar: File,
   private val kotlinCoroutinesJar: File,
@@ -47,6 +48,7 @@ class BtapiToolchainFactory(
     val classpath = mutableListOf<File>()
     classpath.add(buildToolsImplJar)
     classpath.add(kotlinCompilerEmbeddableJar)
+    classpath.add(kotlinDaemonEmbeddableJar)
     classpath.add(kotlinStdlibJar)
     classpath.add(kotlinReflectJar)
     classpath.add(kotlinCoroutinesJar)

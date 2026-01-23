@@ -81,7 +81,7 @@ class BtapiCompiler(
     ) { operation, compilerArgs ->
       // Configure incremental compilation if enabled
       if (task.info.incrementalCompilation && task.directories.incrementalBaseDir.isNotEmpty()) {
-//        configureIncrementalCompilation(operation, task, compilerArgs)
+        configureIncrementalCompilation(operation, task, compilerArgs)
       }
     }
   }

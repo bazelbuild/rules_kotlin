@@ -50,6 +50,7 @@ def kt_rules_test(name, **kwargs):
         "@kotlin_build_tools_impl//file",
         "@kotlin_compiler_embeddable//file",
         "@kotlin_annotation_processing_embeddable//file",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

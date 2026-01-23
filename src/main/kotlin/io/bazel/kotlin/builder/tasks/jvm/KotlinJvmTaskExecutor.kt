@@ -56,6 +56,7 @@ class KotlinJvmTaskExecutor(
       BtapiToolchainFactory(
         compilerBuilder.buildToolsImplJar,
         compilerBuilder.kotlinCompilerEmbeddableJar,
+        compilerBuilder.kotlinDaemonEmbeddableJar,
         compilerBuilder.kotlinStdlibJar,
         compilerBuilder.kotlinReflectJar,
         compilerBuilder.kotlinCoroutinesJar,
@@ -95,6 +96,7 @@ class KotlinJvmTaskExecutor(
               BtapiToolchainFactory(
                 compilerBuilder.buildToolsImplJar,
                 compilerBuilder.kotlinCompilerEmbeddableJar,
+                compilerBuilder.kotlinDaemonEmbeddableJar,
                 compilerBuilder.kotlinStdlibJar,
                 compilerBuilder.kotlinReflectJar,
                 compilerBuilder.kotlinCoroutinesJar,
