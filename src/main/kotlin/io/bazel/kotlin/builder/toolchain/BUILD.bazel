@@ -31,6 +31,5 @@ kt_bootstrap_library(
         "//src/main/protobuf:kotlin_model_java_proto",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java",
         "@kotlin_rules_maven//:com_google_protobuf_protobuf_java_util",
-        "@kotlin_rules_maven//:javax_inject_javax_inject",
     ],
 )

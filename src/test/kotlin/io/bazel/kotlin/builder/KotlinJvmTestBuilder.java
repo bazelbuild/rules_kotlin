@@ -20,7 +20,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
+import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
+import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
@@ -56,7 +59,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     DirectoryType.COVERAGE_METADATA);
 
     private final TaskBuilder taskBuilderInstance = new TaskBuilder();
-    private static KotlinBuilderTestComponent component;
+    private static KotlinJvmTaskExecutor jvmTaskExecutor;
 
     @Override
     void setupForNext(CompilationTaskInfo.Builder taskInfo) {
@@ -89,16 +92,23 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     @SafeVarargs
     public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
-        return executeTask(component().jvmTaskExecutor()::execute, setup);
+        return executeTask(jvmTaskExecutor()::execute, setup);
     }
 
-    private static KotlinBuilderTestComponent component() {
-        if (component == null) {
-            component = DaggerKotlinBuilderTestComponent.builder()
-                    .toolchain(toolchainForTest())
-                    .build();
+    private static KotlinJvmTaskExecutor jvmTaskExecutor() {
+        if (jvmTaskExecutor == null) {
+            KotlinToolchain toolchain = toolchainForTest();
+            InternalCompilerPlugins plugins = new InternalCompilerPlugins(
+                    toolchain.getJvmAbiGen(),
+                    toolchain.getSkipCodeGen(),
+                    toolchain.getKapt3Plugin(),
+                    toolchain.getJdepsGen()
+            );
+            KotlinToolchain.KotlincInvokerBuilder compilerBuilder =
+                    new KotlinToolchain.KotlincInvokerBuilder(toolchain);
+            jvmTaskExecutor = new KotlinJvmTaskExecutor(compilerBuilder, plugins);
         }
-        return component;
+        return jvmTaskExecutor;
     }
 
     private Dep executeTask(
@@ -134,7 +144,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     }
 
     public void tearDown() {
-        component = null;
+        jvmTaskExecutor = null;
     }
 
     public class TaskBuilder {
