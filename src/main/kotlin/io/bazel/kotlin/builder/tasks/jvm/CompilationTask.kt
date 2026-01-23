@@ -456,9 +456,3 @@ private fun Iterator<String>.filterOutNonCompilableSources(): Iterator<String> {
   return result.iterator()
 }
 
-/**
- * Helper function to convert a list of values into a single comma-separated string.
- * Used for KAPT plugin options in Kotlin versions < 1.5.
- */
-private fun Pair<String, List<String>>.asKeyToCommaList() =
-  first to listOf(second.joinToString(","))

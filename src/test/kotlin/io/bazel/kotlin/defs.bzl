@@ -36,18 +36,20 @@ def kt_rules_test(name, **kwargs):
         "//src/main/kotlin:jdeps-gen",
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
-        "//kotlin/compiler:kotlin-compiler",
+        #         "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:kotlin-stdlib",
         "//kotlin/compiler:kotlin-stdlib-jdk7",
         "//kotlin/compiler:kotlin-stdlib-jdk8",
-        "//kotlin/compiler:kotlin-annotation-processing",
-        "@rules_kotlin//kotlin/compiler:kotlin-reflect",
+        #         "//kotlin/compiler:kotlin-annotation-processing",
+        "//kotlin/compiler:kotlin-reflect",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
         "@kotlinx_serialization_core_jvm//file",
         "@kotlinx_serialization_json//file",
         "@kotlinx_serialization_json_jvm//file",
         "@kotlin_build_tools_api//file",
         "@kotlin_build_tools_impl//file",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:compiler_embeddable",
+        "//src/main/kotlin/io/bazel/kotlin/builder/cmd:annotation_processing_embeddable",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

@@ -280,13 +280,5 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             taskBuilder.getDirectoriesBuilder().setIncrementalBaseDir(incrementalBaseDir.toString());
             return this;
         }
-
-        public TaskBuilder useK2() {
-            taskBuilder.getInfoBuilder()
-                    .getToolchainInfoBuilder()
-                    .getCommonBuilder()
-                    .setLanguageVersion("2.0");
-            return this;
-        }
     }
 }
