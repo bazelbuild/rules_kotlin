@@ -30,6 +30,8 @@ class KotlinJvmTaskExecutor(
   private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
   private val plugins: InternalCompilerPlugins,
 ) {
+  private val btapiCompiler by lazy { BtapiCompiler(compilerBuilder.createBtapiToolchains()) }
+
   /**
    * Checks if the task has KAPT processors that need to be run.
    */
@@ -42,8 +44,6 @@ class KotlinJvmTaskExecutor(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
-    val btapiCompiler = BtapiCompiler(compilerBuilder.createBtapiToolchains(), context.out)
-
     val preprocessedTask =
       task
         .preProcessingSteps(context)
@@ -54,7 +54,7 @@ class KotlinJvmTaskExecutor(
         // Compile Kotlin using BtapiCompiler (direct BTAPI, no string parsing)
         context.execute("kotlinc") {
           if (compileKotlin && inputs.kotlinSourcesList.isNotEmpty()) {
-            val result = btapiCompiler.compile(this, plugins)
+            val result = btapiCompiler.compile(this, plugins, context.out)
             when (result) {
               CompilationResult.COMPILATION_SUCCESS -> { /* success */ }
               CompilationResult.COMPILATION_ERROR ->

@@ -112,6 +112,7 @@ private fun JvmCompilationTask.runKaptPluginBtapi(
         plugins = plugins,
         aptMode = "stubsAndApt",
         verbose = context.whenTracing { true } == true,
+        out = context.out,
       )
 
     when (result) {

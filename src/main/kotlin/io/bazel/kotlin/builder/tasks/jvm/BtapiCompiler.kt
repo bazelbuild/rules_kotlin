@@ -57,8 +57,9 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as Btap
 @OptIn(ExperimentalBuildToolsApi::class)
 class BtapiCompiler(
   private val toolchains: KotlinToolchains,
-  private val out: PrintStream,
 ) {
+  private val buildSession by lazy { toolchains.createBuildSession() }
+
   /**
    * Compiles Kotlin sources using the Build Tools API.
    *
@@ -69,6 +70,7 @@ class BtapiCompiler(
   fun compile(
     task: JvmCompilationTask,
     plugins: InternalCompilerPlugins,
+    out: PrintStream,
   ): CompilationResult {
     val compilerPlugins = buildCompilerPlugins(task, plugins)
     val logger = if (task.info.icEnableLogging) createIcLogger(out) else null
@@ -78,6 +80,7 @@ class BtapiCompiler(
       outputDir = Path.of(task.directories.classes),
       compilerPlugins = compilerPlugins,
       logger = logger,
+      out = out,
     ) { operation, compilerArgs ->
       // Configure incremental compilation if enabled
       if (task.info.incrementalCompilation && task.directories.incrementalBaseDir.isNotEmpty()) {
@@ -94,6 +97,7 @@ class BtapiCompiler(
     outputDir: Path,
     compilerPlugins: List<CompilerPlugin>,
     logger: KotlinLogger?,
+    out: PrintStream,
     additionalConfiguration: (
       org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation,
       JvmCompilerArguments,
@@ -127,10 +131,7 @@ class BtapiCompiler(
       additionalConfiguration(operation, compilerArgs)
 
       // Execute the compilation
-      // TODO: Keep build session per worker
-      return toolchains.createBuildSession().use { session ->
-        session.executeOperation(operation, logger = logger)
-      }
+      return buildSession.executeOperation(operation, logger = logger)
     } finally {
       System.setErr(originalErr)
     }
@@ -537,6 +538,7 @@ class BtapiCompiler(
     plugins: InternalCompilerPlugins,
     aptMode: String = "stubsAndApt",
     verbose: Boolean = false,
+    out: PrintStream,
   ): CompilationResult {
     // Build KAPT plugin and stubs plugins
     val kaptPlugin = buildKaptCompilerPlugin(task, plugins, aptMode, verbose)
@@ -550,6 +552,7 @@ class BtapiCompiler(
       outputDir = Path.of(task.directories.generatedClasses),
       compilerPlugins = compilerPlugins,
       logger = logger,
+      out = out,
     )
   }
 
