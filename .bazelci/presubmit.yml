@@ -29,7 +29,7 @@
     ANDROID_NDK_HOME: /opt/android-ndk-r25b
 
 .macos: &macos
-  platform: macos
+  platform: macos_arm64
   environment:
     ANDROID_NDK_HOME: /Users/buildkite/android-ndk-r25b
 
@@ -73,7 +73,7 @@ tasks:
     name: Stardoc api documentation
     platform: rbe_ubuntu2404
     build_targets:
-      - //kotlin:stardoc
+      - //docs:stardoc
     test_targets:
       - //docs/...
   ktlint:

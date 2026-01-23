@@ -35,8 +35,8 @@ versions = struct(
         ],
     ),
     BAZEL_FEATURES = version(
-        version = "1.25.0",
-        sha256 = "4fd9922d464686820ffd8fcefa28ccffa147f7cdc6b6ac0d8b07fde565c65d66",
+        version = "1.30.0",
+        sha256 = "a660027f5a87f13224ab54b8dc6e191693c554f2692fcca46e8e29ee7dabc43b",
         strip_prefix_template = "bazel_features-{version}",
         url_templates = [
             "https://github.com/bazel-contrib/bazel_features/releases/download/v{version}/bazel_features-v{version}.tar.gz",
@@ -116,12 +116,12 @@ versions = struct(
         sha256 = "709775dcbcd5a27379aba6a08e66d1b85ebb82decbea82f6fd277b2d4e28fcd1",
     ),
     RULES_ANDROID = version(
-        version = "0.6.4",
+        version = "0.7.0",
         url_templates = [
             "https://github.com/bazelbuild/rules_android/releases/download/v{version}/rules_android-v{version}.tar.gz",
         ],
         strip_prefix_template = "rules_android-{version}",
-        sha256 = "4135e2fa37a94bb36c7801e33faef2934c9fe4f9a84d0035eacc4154c2c30e44",
+        sha256 = "ef1a446260b7f620e2aae11d4c96389369eb865ade01fcdd389a8196168b8d9b",
     ),
     RULES_JAVA = version(
         version = "8.9.0",

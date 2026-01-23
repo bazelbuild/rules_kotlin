@@ -1,5 +1,3 @@
-load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +12,13 @@ load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
+
+exports_files([
+    "jvm.bzl",
+    "lint.bzl",
+    "core.bzl",
+    "repositories.doc.bzl",
+])
 
 release_archive(
     name = "pkg",
@@ -30,40 +35,5 @@ release_archive(
         "//kotlin/compiler:pkg",
         "//kotlin/internal:pkg",
         "//kotlin/settings:pkg",
-    ],
-)
-
-[
-    stardoc(
-        name = doc,
-        out = "%s.md" % doc,
-        input = "%s.bzl" % doc,
-        deps = [
-            "//kotlin/internal",
-        ],
-    )
-    for doc in [
-        "jvm",
-        "lint",
-        "core",
-        "repositories.doc",
-    ]
-]
-
-genrule(
-    name = "stardoc",
-    srcs = [doc for doc in [
-        "jvm",
-        "lint",
-        "core",
-        "repositories.doc",
-    ]],
-    outs = ["kotlin.md"],
-    cmd = """
-    cat $(SRCS) >> $@
-    """,
-    executable = True,
-    visibility = [
-        "//visibility:public",
     ],
 )
