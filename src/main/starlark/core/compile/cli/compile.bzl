@@ -1,4 +1,9 @@
+load("@bazel_features//:features.bzl", "bazel_features")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//src/main/starlark/core/compile:common.bzl", "TYPE")
+
+# Toolchain type for the Windows launcher maker
+_LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
 
 def compile_kotlin_for_jvm(
         actions,
@@ -95,6 +100,73 @@ def write_jvm_launcher(toolchain_info, actions, path_separator, workspace_prefix
             "%workspace_prefix%": workspace_prefix,
         },
         is_executable = True,
+    )
+
+    return depset(
+        transitive = [
+            runtime_jars,
+            java_runtime.files,
+            toolchain_info.kotlin_stdlib.transitive_compile_time_jars,
+        ],
+    )
+
+def _short_path(file):
+    return file.short_path
+
+def _find_launcher_maker(ctx):
+    """Find the launcher maker binary, preferring the toolchain approach."""
+    if bazel_features.rules._has_launcher_maker_toolchain:
+        return ctx.toolchains[_LAUNCHER_MAKER_TOOLCHAIN_TYPE].binary
+    return ctx.executable._windows_launcher_maker
+
+def write_windows_jvm_launcher(
+        ctx,
+        toolchain_info,
+        runtime_jars,
+        main_class,
+        jvm_flags,
+        executable):
+    """Create a Windows exe launcher for core_kt_jvm_binary.
+
+    Returns:
+        A depset of files needed for runfiles (runtime jars, java runtime, kotlin stdlib).
+    """
+    java_runtime = toolchain_info.java_runtime
+
+    # Normalize java_bin_path
+    java_bin_path = java_runtime.java_executable_runfiles_path
+    if not (java_bin_path.startswith("/") or (len(java_bin_path) > 2 and java_bin_path[1] == ":")):
+        java_bin_path = ctx.workspace_name + "/" + java_bin_path
+    java_bin_path = paths.normalize(java_bin_path)
+
+    # Enable security manager for Java 17-23
+    _java_runtime_version = getattr(java_runtime, "version", 0)
+    jvm_flags_list = jvm_flags.split() if jvm_flags else []
+    if _java_runtime_version >= 17 and _java_runtime_version < 24:
+        jvm_flags_list.append("-Djava.security.manager=allow")
+
+    # Build classpath from runtime jars and kotlin stdlib
+    classpath = runtime_jars.to_list() + toolchain_info.kotlin_stdlib.transitive_compile_time_jars.to_list()
+
+    launch_info = ctx.actions.args().use_param_file("%s", use_always = True).set_param_file_format("multiline")
+    launch_info.add("binary_type=Java")
+    launch_info.add(ctx.workspace_name, format = "workspace_name=%s")
+    launch_info.add("1", format = "symlink_runfiles_enabled=%s")
+    launch_info.add(java_bin_path, format = "java_bin_path=%s")
+    launch_info.add(main_class, format = "java_start_class=%s")
+    launch_info.add_joined(classpath, map_each = _short_path, join_with = ";", format_joined = "classpath=%s", omit_if_empty = False)
+    launch_info.add_joined(jvm_flags_list, join_with = "\t", format_joined = "jvm_flags=%s", omit_if_empty = False)
+    launch_info.add(java_runtime.java_home_runfiles_path, format = "jar_bin_path=%s/bin/jar.exe")
+
+    launcher_artifact = ctx.executable._launcher
+    ctx.actions.run(
+        executable = _find_launcher_maker(ctx),
+        inputs = [launcher_artifact],
+        outputs = [executable],
+        arguments = [launcher_artifact.path, launch_info, executable.path],
+        use_default_shell_env = True,
+        toolchain = _LAUNCHER_MAKER_TOOLCHAIN_TYPE if bazel_features.rules._has_launcher_maker_toolchain else None,
+        mnemonic = "JavaLauncherMaker",
     )
 
     return depset(
