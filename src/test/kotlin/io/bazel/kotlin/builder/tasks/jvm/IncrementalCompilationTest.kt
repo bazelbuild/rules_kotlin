@@ -77,7 +77,7 @@
 //        DaggerKotlinBuilderTestComponent.builder()
 //            .toolchain(KotlinToolchain.createToolchain(
 //                File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
-//                File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/builder/cmd:compiler_embeddable").singleCompileJar()),
+//                File(Deps.Dep.fromLabel("@kotlin_compiler_embeddable//file").singleCompileJar()),
 //                File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
 //                File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
 //                File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),
@@ -88,7 +88,7 @@
 //                File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
 //                File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
 //                File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar()),
-//                File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/builder/cmd:compiler_embeddable").singleCompileJar()),
+//                File(Deps.Dep.fromLabel("@kotlin_compiler_embeddable//file").singleCompileJar()),
 //            ))
 //            .build()
 //    }
