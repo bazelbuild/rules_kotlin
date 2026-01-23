@@ -66,7 +66,7 @@ def kotlin_repositories(
         http_file,
         name = "com_github_pinterest_ktlint",
         version = versions.PINTEREST_KTLINT,
-        executable = True,
+        downloaded_file_path = "ktlint.jar",
     )
 
     versions.use_repository(
@@ -161,6 +161,18 @@ def kotlin_repositories(
         http_archive,
         name = "bazel_skylib",
         version = versions.BAZEL_SKYLIB,
+    )
+
+    versions.use_repository(
+        http_archive,
+        name = "bazel_features",
+        version = versions.BAZEL_FEATURES,
+    )
+
+    versions.use_repository(
+        http_archive,
+        name = "bazel_lib",
+        version = versions.BAZEL_LIB,
     )
 
     versions.use_repository(

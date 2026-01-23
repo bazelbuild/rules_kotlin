@@ -1,3 +1,5 @@
+common --enable_platform_specific_config
+
 common --enable_bzlmod=true
 common --incompatible_use_plus_in_repo_names
 common --incompatible_disallow_empty_glob=false
@@ -14,6 +16,10 @@ build --verbose_failures
 # Required for windows ci
 startup --windows_enable_symlinks
 common --enable_runfiles
+build:windows --cxxopt=/std:c++17
+build:windows --host_cxxopt=/std:c++17
+build:windows --cxxopt=/Zc:__cplusplus
+build:windows --host_cxxopt=/Zc:__cplusplus
 
 # To update these lines, execute
 # `bazel run @rules_bazel_integration_test//tools:update_deleted_packages`

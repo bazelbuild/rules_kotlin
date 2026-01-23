@@ -1,10 +1,8 @@
-load("//kotlin:jvm.bzl", "kt_jvm_binary")
+load("@rules_java//java:java_binary.bzl", "java_binary")
+load("//kotlin:jvm.bzl", "kt_jvm_library")
 
-kt_jvm_binary(
+java_binary(
     name = "BazelIntegrationTestRunner",
-    srcs = [
-        "BazelIntegrationTestRunner.kt",
-    ],
     data = [
         "//:rules_kotlin_release",
     ],
@@ -14,6 +12,14 @@ kt_jvm_binary(
     main_class = "io.bazel.kotlin.test.BazelIntegrationTestRunner",
     visibility = [
         "//visibility:public",
+    ],
+    runtime_deps = [":BazelIntegrationTestRunnerKt"],
+)
+
+kt_jvm_library(
+    name = "BazelIntegrationTestRunnerKt",
+    srcs = [
+        "BazelIntegrationTestRunner.kt",
     ],
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/utils",
