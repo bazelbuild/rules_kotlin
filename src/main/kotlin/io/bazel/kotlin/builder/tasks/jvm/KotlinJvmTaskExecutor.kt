@@ -16,7 +16,6 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import io.bazel.kotlin.builder.toolchain.BtapiToolchainFactory
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
@@ -43,16 +42,7 @@ class KotlinJvmTaskExecutor(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
-    val factory =
-      BtapiToolchainFactory(
-        compilerBuilder.buildToolsImplJar,
-        compilerBuilder.kotlinCompilerEmbeddableJar,
-        compilerBuilder.kotlinStdlibJar,
-        compilerBuilder.kotlinReflectJar,
-        compilerBuilder.kotlinCoroutinesJar,
-        compilerBuilder.annotationsJar,
-      )
-    val btapiCompiler = BtapiCompiler(factory.createToolchains(), context.out)
+    val btapiCompiler = BtapiCompiler(compilerBuilder.createBtapiToolchains(), context.out)
 
     val preprocessedTask =
       task

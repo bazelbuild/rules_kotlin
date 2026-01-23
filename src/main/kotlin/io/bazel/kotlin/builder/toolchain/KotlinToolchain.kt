@@ -20,6 +20,7 @@ import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.builder.utils.verifiedPath
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
 import java.io.File
 import java.lang.reflect.Method
@@ -312,5 +313,24 @@ class KotlinToolchain private constructor(
         toolchain.buildToolsImplJar,
         toolchain.compilerJar,
       )
+
+    @OptIn(ExperimentalBuildToolsApi::class)
+    fun createBtapiToolchains(): KotlinToolchains {
+      val classpath = mutableListOf<File>()
+      classpath.add(toolchain.buildToolsImplJar)
+      classpath.add(toolchain.kotlinCompilerEmbeddableJar)
+      classpath.add(toolchain.kotlinStdlibJar)
+      classpath.add(toolchain.kotlinReflectJar)
+      classpath.add(toolchain.kotlinCoroutinesJar)
+      classpath.add(toolchain.annotationsJar)
+
+      val urls = classpath.map { it.toURI().toURL() }.toTypedArray()
+
+      // SharedApiClassesClassLoader ensures API classes (from build-tools-api)
+      // are shared between the caller and the loaded implementation
+      val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
+
+      return KotlinToolchains.loadImplementation(classLoader)
+    }
   }
 }
