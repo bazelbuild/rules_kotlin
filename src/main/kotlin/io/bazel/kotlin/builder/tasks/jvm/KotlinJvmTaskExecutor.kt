@@ -22,8 +22,6 @@ import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import java.io.File
-import java.io.PrintStream
 
 @OptIn(ExperimentalBuildToolsApi::class)
 class KotlinJvmTaskExecutor(
