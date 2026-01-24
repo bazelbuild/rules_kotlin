@@ -6,7 +6,6 @@ kt_bootstrap_library(
     srcs = ["Build.kt"],
     visibility = ["//src:__subpackages__"],
     deps = [
-        "//src/main/kotlin/io/bazel/kotlin/builder",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
         "//src/main/kotlin/io/bazel/worker",
@@ -54,12 +53,10 @@ kt_bootstrap_binary(
 
 kt_bootstrap_library(
     name = "merge_jdeps_lib",
-    srcs = ["MergeJdeps.kt"],
+    srcs = ["MergeJdepsMain.kt"],
     visibility = ["//src:__subpackages__"],
     deps = [
-        "//src/main/kotlin/io/bazel/kotlin/builder",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
-        "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
         "//src/main/kotlin/io/bazel/worker",
     ],
 )
@@ -68,7 +65,7 @@ kt_bootstrap_binary(
     name = "merge_jdeps",
     data = _KOTLIN_STDLIBS,
     final_runtime_deps = _KOTLIN_STDLIBS,
-    main_class = "io.bazel.kotlin.builder.cmd.MergeJdeps",
+    main_class = "io.bazel.kotlin.builder.cmd.MergeJdepsMain",
     shade_rules = "//src/main/kotlin:shade.jarjar",
     visibility = ["//src:__subpackages__"],
     runtime_deps = [":merge_jdeps_lib"],
@@ -79,7 +76,6 @@ kt_bootstrap_library(
     srcs = ["Ksp2.kt"],
     visibility = ["//src:__subpackages__"],
     deps = [
-        "//src/main/kotlin/io/bazel/kotlin/builder",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//src/main/kotlin/io/bazel/worker",
     ],

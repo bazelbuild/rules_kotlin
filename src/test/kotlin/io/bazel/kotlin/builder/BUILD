@@ -16,7 +16,6 @@ load("@rules_java//java:defs.bzl", "java_library")
 package(default_visibility = ["//src:__subpackages__"])
 
 _COMMON_DEPS = [
-    "//src/main/kotlin/io/bazel/kotlin/builder",
     "//src/main/kotlin/io/bazel/kotlin/builder/toolchain",
     "//src/main/kotlin/io/bazel/kotlin/builder/utils:utils",
     "//src/main/protobuf:kotlin_model_java_proto",
@@ -33,9 +32,7 @@ java_library(
     srcs = [
         "Deps.java",
         "DirectoryType.java",
-        "JdepsMergerTestComponent.java",
         "KotlinAbstractTestBuilder.java",
-        "KotlinBuilderTestComponent.java",
         "KotlinJvmTestBuilder.java",
     ],
     data = [
@@ -51,8 +48,6 @@ java_library(
         "//kotlin/compiler:kotlin-reflect",
         "//src/main/kotlin/io/bazel/kotlin/builder/tasks",
         "//third_party:autovalue",
-        "//third_party:dagger",
-        "@kotlin_rules_maven//:javax_annotation_javax_annotation_api",
     ],
 )
 

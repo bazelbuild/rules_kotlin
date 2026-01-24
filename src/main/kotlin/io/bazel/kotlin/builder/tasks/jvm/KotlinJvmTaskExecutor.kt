@@ -20,8 +20,6 @@ import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Due to an inconsistency in the handling of -Xfriends-path, jvm uses a comma (property list
@@ -29,134 +27,131 @@ import javax.inject.Singleton
  */
 const val X_FRIENDS_PATH_SEPARATOR = ","
 
-@Singleton
-class KotlinJvmTaskExecutor
-  @Inject
-  internal constructor(
-    private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
-    private val plugins: InternalCompilerPlugins,
-  ) {
-    private fun combine(
-      one: Throwable?,
-      two: Throwable?,
-    ): Throwable? {
-      return when {
-        one != null && two != null -> {
-          one.addSuppressed(two)
-          return one
-        }
-        one != null -> one
-        else -> two
+class KotlinJvmTaskExecutor(
+  private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
+  private val plugins: InternalCompilerPlugins,
+) {
+  private fun combine(
+    one: Throwable?,
+    two: Throwable?,
+  ): Throwable? {
+    return when {
+      one != null && two != null -> {
+        one.addSuppressed(two)
+        return one
       }
+      one != null -> one
+      else -> two
     }
+  }
 
-    fun execute(
-      context: CompilationTaskContext,
-      task: JvmCompilationTask,
-    ) {
-      val compiler = compilerBuilder.build(context.info.buildToolsApi)
+  fun execute(
+    context: CompilationTaskContext,
+    task: JvmCompilationTask,
+  ) {
+    val compiler = compilerBuilder.build(context.info.buildToolsApi)
 
-      val preprocessedTask =
-        task
-          .preProcessingSteps(context)
-          .runPlugins(context, plugins, compiler)
+    val preprocessedTask =
+      task
+        .preProcessingSteps(context)
+        .runPlugins(context, plugins, compiler)
 
-      context.execute("compile classes") {
-        preprocessedTask.apply {
-          listOf(
-            runCatching {
-              context.execute("kotlinc") {
-                if (compileKotlin) {
-                  compileKotlin(
-                    context,
-                    compiler,
-                    args =
-                      baseArgs()
-                        .given(outputs.jdeps)
-                        .notEmpty {
-                          plugin(plugins.jdeps) {
-                            flag("output", outputs.jdeps)
-                            flag("target_label", info.label)
-                            inputs.directDependenciesList.forEach {
-                              flag("direct_dependencies", it)
-                            }
-                            inputs.classpathList.forEach {
-                              flag("full_classpath", it)
-                            }
-                            flag("strict_kotlin_deps", info.strictKotlinDeps)
+    context.execute("compile classes") {
+      preprocessedTask.apply {
+        listOf(
+          runCatching {
+            context.execute("kotlinc") {
+              if (compileKotlin) {
+                compileKotlin(
+                  context,
+                  compiler,
+                  args =
+                    baseArgs()
+                      .given(outputs.jdeps)
+                      .notEmpty {
+                        plugin(plugins.jdeps) {
+                          flag("output", outputs.jdeps)
+                          flag("target_label", info.label)
+                          inputs.directDependenciesList.forEach {
+                            flag("direct_dependencies", it)
                           }
-                        }.given(outputs.jar)
-                        .notEmpty {
-                          append(codeGenArgs())
-                        }.given(outputs.abijar)
-                        .notEmpty {
-                          plugin(plugins.jvmAbiGen) {
-                            flag("outputDir", directories.abiClasses)
-                            if (info.treatInternalAsPrivateInAbiJar) {
-                              flag("treatInternalAsPrivate", "true")
-                            }
-                            if (info.removePrivateClassesInAbiJar) {
-                              flag("removePrivateClasses", "true")
-                            }
-                            if (info.removeDebugInfo) {
-                              flag("removeDebugInfo", "true")
-                            }
+                          inputs.classpathList.forEach {
+                            flag("full_classpath", it)
                           }
-                          given(outputs.jar).empty {
-                            plugin(plugins.skipCodeGen)
+                          flag("strict_kotlin_deps", info.strictKotlinDeps)
+                        }
+                      }.given(outputs.jar)
+                      .notEmpty {
+                        append(codeGenArgs())
+                      }.given(outputs.abijar)
+                      .notEmpty {
+                        plugin(plugins.jvmAbiGen) {
+                          flag("outputDir", directories.abiClasses)
+                          if (info.treatInternalAsPrivateInAbiJar) {
+                            flag("treatInternalAsPrivate", "true")
                           }
-                        },
-                    printOnFail = false,
-                  )
-                } else {
-                  emptyList()
-                }
+                          if (info.removePrivateClassesInAbiJar) {
+                            flag("removePrivateClasses", "true")
+                          }
+                          if (info.removeDebugInfo) {
+                            flag("removeDebugInfo", "true")
+                          }
+                        }
+                        given(outputs.jar).empty {
+                          plugin(plugins.skipCodeGen)
+                        }
+                      },
+                  printOnFail = false,
+                )
+              } else {
+                emptyList()
               }
-            },
-          ).map {
-            (it.getOrNull() ?: emptyList()) to it.exceptionOrNull()
-          }.map {
-            when (it.second) {
-              // TODO(issue/296): remove when the CompilationStatusException is unified.
-              is CompilationStatusException ->
-                (it.second as CompilationStatusException).lines + it.first to it.second
-              else -> it
             }
-          }.fold(Pair<List<String>, Throwable?>(emptyList(), null)) { acc, result ->
-            acc.first + result.first to combine(acc.second, result.second)
-          }.apply {
-            first.apply(context::printCompilerOutput)
-            second?.let {
-              throw it
-            }
+          },
+        ).map {
+          (it.getOrNull() ?: emptyList()) to it.exceptionOrNull()
+        }.map {
+          when (it.second) {
+            // TODO(issue/296): remove when the CompilationStatusException is unified.
+            is CompilationStatusException ->
+              (it.second as CompilationStatusException).lines + it.first to it.second
+            else -> it
           }
+        }.fold(Pair<List<String>, Throwable?>(emptyList(), null)) { acc, result ->
+          acc.first + result.first to combine(acc.second, result.second)
+        }.apply {
+          first.apply(context::printCompilerOutput)
+          second?.let {
+            throw it
+          }
+        }
 
-          if (outputs.jar.isNotEmpty()) {
-            if (instrumentCoverage) {
-              context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
-            } else {
-              context.execute("create jar", ::createOutputJar)
-            }
+        if (outputs.jar.isNotEmpty()) {
+          if (instrumentCoverage) {
+            context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
+          } else {
+            context.execute("create jar", ::createOutputJar)
           }
-          if (outputs.abijar.isNotEmpty()) {
-            context.execute("create abi jar", ::createAbiJar)
-          }
-          if (outputs.generatedJavaSrcJar.isNotEmpty()) {
-            context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)
-          }
-          if (outputs.generatedJavaStubJar.isNotEmpty()) {
-            context.execute("creating KAPT generated Kotlin stubs jar", ::createGeneratedStubJar)
-          }
-          if (outputs.generatedClassJar.isNotEmpty()) {
-            context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
-          }
-          if (outputs.generatedKspSrcJar.isNotEmpty()) {
-            context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
-          }
-          if (outputs.generatedKspClassesJar.isNotEmpty()) {
-            context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
-          }
+        }
+        if (outputs.abijar.isNotEmpty()) {
+          context.execute("create abi jar", ::createAbiJar)
+        }
+        if (outputs.generatedJavaSrcJar.isNotEmpty()) {
+          context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)
+        }
+        if (outputs.generatedJavaStubJar.isNotEmpty()) {
+          context.execute("creating KAPT generated Kotlin stubs jar", ::createGeneratedStubJar)
+        }
+        if (outputs.generatedClassJar.isNotEmpty()) {
+          context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
+        }
+        if (outputs.generatedKspSrcJar.isNotEmpty()) {
+          context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
+        }
+        if (outputs.generatedKspClassesJar.isNotEmpty()) {
+          context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
         }
       }
     }
   }
+}
