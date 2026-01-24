@@ -78,7 +78,7 @@ class KotlinJvmTaskExecutor(
           // Generate classpath snapshot for incremental compilation (stored in IC directory, not Bazel output)
           if (context.info.incrementalCompilation) {
             context.execute("create classpath snapshot") {
-              createOutputClasspathSnapshot(compilerBuilder.buildSnapshotInvoker())
+              createOutputClasspathSnapshot(btapiCompiler)
             }
           }
         }

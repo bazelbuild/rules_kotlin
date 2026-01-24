@@ -22,7 +22,6 @@ import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.emptyJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.writeJdeps
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
 import io.bazel.kotlin.builder.utils.jars.JarCreator
@@ -32,6 +31,8 @@ import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask.Directories
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -244,8 +245,9 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
  * that depend on this target. It is separate from BTAPI's internal shrunk
  * dependencies snapshot (shrunk-classpath-snapshot.bin).
  */
+@OptIn(ExperimentalBuildToolsApi::class)
 internal fun JvmCompilationTask.createOutputClasspathSnapshot(
-  snapshotInvoker: KotlinToolchain.ClasspathSnapshotInvoker,
+  btapiCompiler: BtapiCompiler,
 ) {
   if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
     return
@@ -253,12 +255,12 @@ internal fun JvmCompilationTask.createOutputClasspathSnapshot(
   // Write snapshot to IC directory - use distinct name to avoid collision with BTAPI's internal snapshot
   val icDir = Paths.get(directories.incrementalBaseDir)
   Files.createDirectories(icDir)
-  val snapshotPath = icDir.resolve("output-classpath-snapshot.bin").toString()
+  val snapshotPath = icDir.resolve("output-classpath-snapshot.bin")
 
-  snapshotInvoker.generate(
-    outputs.jar,
+  btapiCompiler.generateClasspathSnapshot(
+    Paths.get(outputs.jar),
     snapshotPath,
-    "CLASS_MEMBER_LEVEL",
+    ClassSnapshotGranularity.CLASS_MEMBER_LEVEL,
   )
 }
 

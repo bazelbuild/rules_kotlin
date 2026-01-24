@@ -18,15 +18,11 @@ package io.bazel.kotlin.builder.toolchain
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.verified
-import io.bazel.kotlin.builder.utils.verifiedPath
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
 import java.io.File
-import java.lang.reflect.Method
 import java.net.URLClassLoader
-import java.nio.file.FileSystems
-import java.nio.file.Paths
 
 class KotlinToolchain private constructor(
   val kapt3Plugin: CompilerPlugin,
@@ -34,7 +30,6 @@ class KotlinToolchain private constructor(
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
   internal val buildToolsImplJar: File,
-  internal val compilerJar: File,
   internal val kotlinCompilerEmbeddableJar: File,
   internal val kotlinDaemonEmbeddableJar: File,
   internal val kotlinStdlibJar: File,
@@ -54,13 +49,6 @@ class KotlinToolchain private constructor(
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@com_github_jetbrains_kotlin...kapt",
-        ).toPath()
-    }
-
-    internal val COMPILER by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...compiler",
         ).toPath()
     }
 
@@ -141,7 +129,6 @@ class KotlinToolchain private constructor(
         KOTLIN_DAEMON_EMBEDDABLE.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
         BUILD_TOOLS_IMPL.verified().absoluteFile,
-        COMPILER.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
@@ -158,7 +145,6 @@ class KotlinToolchain private constructor(
       kotlinDaemonEmbeddable: File,
       buildToolsApi: File,
       buildToolsImpl: File,
-      compiler: File,
       jvmAbiGenFile: File,
       skipCodeGenFile: File,
       jdepsGenFile: File,
@@ -190,7 +176,6 @@ class KotlinToolchain private constructor(
             "org.jetbrains.kotlin.kapt3",
           ),
         buildToolsImplJar = buildToolsImpl,
-        compilerJar = compiler,
         kotlinCompilerEmbeddableJar = kotlinCompilerEmbeddable,
         kotlinDaemonEmbeddableJar = kotlinDaemonEmbeddable,
         kotlinStdlibJar = kotlinStdlib,
@@ -205,53 +190,9 @@ class KotlinToolchain private constructor(
     val id: String,
   )
 
-  @OptIn(ExperimentalBuildToolsApi::class)
-  class ClasspathSnapshotInvoker internal constructor(
-    buildToolsImplJar: File,
-    compilerJar: File,
-  ) {
-    private val generateMethod: Method
-
-    init {
-      val urls = listOf(compilerJar, buildToolsImplJar).map { it.toURI().toURL() }.toTypedArray()
-
-      val isolatedClassLoader =
-        URLClassLoader(
-          urls,
-          SharedApiClassesClassLoader(),
-        )
-
-      val clazz =
-        isolatedClassLoader.loadClass(
-          "io.bazel.kotlin.compiler.ClasspathSnapshotGenerator",
-        )
-      generateMethod =
-        clazz.getMethod(
-          "generate",
-          String::class.java,
-          String::class.java,
-          String::class.java,
-        )
-    }
-
-    fun generate(
-      inputJar: String,
-      outputSnapshot: String,
-      granularity: String,
-    ) {
-//      generateMethod.invoke(null, inputJar, outputSnapshot, granularity)
-    }
-  }
-
   class KotlincInvokerBuilder(
     private val toolchain: KotlinToolchain,
   ) {
-    fun buildSnapshotInvoker(): ClasspathSnapshotInvoker =
-      ClasspathSnapshotInvoker(
-        toolchain.buildToolsImplJar,
-        toolchain.compilerJar,
-      )
-
     @OptIn(ExperimentalBuildToolsApi::class)
     fun createBtapiToolchains(): KotlinToolchains {
       val classpath = mutableListOf<File>()

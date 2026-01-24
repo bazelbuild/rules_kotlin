@@ -31,16 +31,13 @@ def kt_rules_test(name, **kwargs):
 
     args["deps"] = args.setdefault("deps", []) + ["//src/test/kotlin/io/bazel/kotlin/builder:test_lib"]
     for dep in [
-        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin:jdeps-gen",
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
-        #         "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:kotlin-stdlib",
         "//kotlin/compiler:kotlin-stdlib-jdk7",
         "//kotlin/compiler:kotlin-stdlib-jdk8",
-        #         "//kotlin/compiler:kotlin-annotation-processing",
         "//kotlin/compiler:kotlin-reflect",
         "//kotlin/compiler:kotlinx-coroutines-core-jvm",
         "@kotlinx_serialization_core_jvm//file",

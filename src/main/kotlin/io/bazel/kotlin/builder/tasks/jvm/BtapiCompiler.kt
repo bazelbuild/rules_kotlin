@@ -30,13 +30,18 @@ import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgumen
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.FORCE_RECOMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.MODULE_BUILD_DIR
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.OUTPUT_DIRS
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.ROOT_PROJECT_DIR
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.PARSE_INLINED_LOCAL_CLASSES
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import java.io.BufferedInputStream
+import java.io.FileInputStream
+import java.security.MessageDigest
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.ObjectOutputStream
@@ -44,6 +49,8 @@ import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import kotlin.io.path.exists
 import java.util.Base64
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as BtapiKotlinVersion
 
@@ -59,6 +66,64 @@ class BtapiCompiler(
   private val toolchains: KotlinToolchains,
 ) {
   private val buildSession by lazy { toolchains.createBuildSession() }
+
+  /**
+   * Generates a classpath snapshot for the given input JAR.
+   *
+   * The snapshot is used by incremental compilation to detect changes in dependencies.
+   * This method uses hash-based caching to avoid regenerating snapshots when the
+   * input JAR hasn't changed.
+   *
+   * @param inputJar Path to the input JAR file
+   * @param outputSnapshot Path where the snapshot should be written
+   * @param granularity Snapshot granularity (CLASS_LEVEL or CLASS_MEMBER_LEVEL)
+   */
+  fun generateClasspathSnapshot(
+    inputJar: Path,
+    outputSnapshot: Path,
+    granularity: ClassSnapshotGranularity,
+  ) {
+    val hashPath = outputSnapshot.resolveSibling(outputSnapshot.fileName.toString() + ".hash")
+
+    // Check if snapshot is up-to-date (caching)
+    if (outputSnapshot.exists() && hashPath.exists()) {
+      val storedHash = Files.readAllLines(hashPath).firstOrNull()?.trim()
+      val currentHash = hashFile(inputJar)
+      if (storedHash == currentHash) {
+        return // Snapshot is up-to-date
+      }
+    }
+
+    // Generate snapshot
+    val snapshotOperation = toolchains.jvm.createClasspathSnapshottingOperation(inputJar)
+    snapshotOperation.set(JvmClasspathSnapshottingOperation.GRANULARITY, granularity)
+    snapshotOperation.set(PARSE_INLINED_LOCAL_CLASSES, true)
+
+    val snapshot = buildSession.executeOperation(snapshotOperation)
+
+    // Write to temp files first, then atomically move
+    val currentHash = hashFile(inputJar)
+    val tempSnapshot = outputSnapshot.resolveSibling(outputSnapshot.fileName.toString() + ".tmp")
+    val tempHash = hashPath.resolveSibling(hashPath.fileName.toString() + ".tmp")
+
+    snapshot.saveSnapshot(tempSnapshot)
+    tempHash.toFile().writeText(currentHash)
+
+    Files.move(tempSnapshot, outputSnapshot, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    Files.move(tempHash, hashPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+  }
+
+  private fun hashFile(path: Path): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    FileInputStream(path.toFile()).use { fis ->
+      val buffer = ByteArray(8192)
+      var bytesRead: Int
+      while (fis.read(buffer).also { bytesRead = it } != -1) {
+        digest.update(buffer, 0, bytesRead)
+      }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
+  }
 
   /**
    * Compiles Kotlin sources using the Build Tools API.

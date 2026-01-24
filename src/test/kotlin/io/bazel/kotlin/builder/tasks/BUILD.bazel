@@ -127,7 +127,6 @@ kt_rules_test(
         "//kotlin/compiler:kotlin-stdlib-jdk8",
         "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin:skip-code-gen",
-        "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
         "@kotlin_build_tools_api//file",
         "@kotlin_build_tools_impl//file",
         "@kotlin_compiler_embeddable//file",
