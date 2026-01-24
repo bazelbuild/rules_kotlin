@@ -117,6 +117,8 @@ maven.install(
         "org.jetbrains.kotlin:kotlin-build-tools-api:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-metadata-jvm:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-compiler-arguments-description:{}".format(kotlin_version),
+        "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.3",
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
         "org.pantsbuild:jarjar:1.7.2",
     ],
