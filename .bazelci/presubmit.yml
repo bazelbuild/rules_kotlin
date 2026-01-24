@@ -111,14 +111,14 @@ tasks:
     name: IC Tests
     <<: *ubuntu2404
     test_targets:
-      - //ic_tests:all
+      - //ic_tests:ic_tests_suite
   macos_ic_tests:
     name: IC Tests
     <<: *macos
     test_targets:
-      - //ic_tests:all
+      - //ic_tests:ic_tests_suite
   windows_ic_tests:
     name: IC Tests
     <<: *windows
     test_targets:
-      - //ic_tests:all
+      - //ic_tests:ic_tests_suite

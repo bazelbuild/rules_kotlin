@@ -31,6 +31,13 @@ ic_integration_test_suite(
 )
 
 test_suite(
-    name = "all",
+    name = "ic_tests_suite",
     tags = ["ic"],
+    tests = [
+        "trivial_change",
+        "inline_function_change",
+        "plugin_options_change",
+        "kotlinc_flags_change",
+        "jvm_target_change",
+    ],
 )
