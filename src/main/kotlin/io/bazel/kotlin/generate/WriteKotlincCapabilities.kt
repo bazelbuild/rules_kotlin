@@ -103,7 +103,7 @@ object WriteKotlincCapabilities {
       .filter { it.fileName.toString().startsWith(prefix) }
       .map { "Label(${it.fileName.bzlQuote()})" }
       .sorted()
-      .toArray { arrayOfNulls<String>(it) }
+      .toList()
       .toTypedArray()
 
   private fun parseOptions(args: Array<out String>): Map<String, List<String>> =

@@ -13,7 +13,7 @@ def configure_modules_and_repositories(modules, kotlin_repositories, kotlinc_ver
 
     kotlin_repositories_args = dict(is_bzlmod = True)
     if kotlinc:
-        kotlin_repositories_args["compiler_release"] = kotlinc
+        kotlin_repositories_args["compiler_version"] = kotlinc.version
     if ksp:
         kotlin_repositories_args["ksp_compiler_release"] = ksp
 

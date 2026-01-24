@@ -76,7 +76,6 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
-        kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -242,11 +241,6 @@ _kt_toolchain = rule(
                 "20",
                 "21",
             ],
-        ),
-        "kotlin_home": attr.label(
-            doc = "the filegroup defining the kotlin home",
-            default = Label("@" + _KT_COMPILER_REPO + "//:home"),
-            allow_files = True,
         ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",

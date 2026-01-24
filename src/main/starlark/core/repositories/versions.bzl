@@ -81,47 +81,14 @@ versions = struct(
         ],
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
-    KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.3.20-Beta1",
-        url_templates = [
-            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
-        ],
-        sha256 = "44dd417f868bd462ea3827931b5294d05f17d4708fd646de25ccebfa0c62f239",
-    ),
+    # Used for kotlin capabilities repository (compiler version detection)
+    KOTLIN_CURRENT_COMPILER_VERSION = "2.3.20-Beta1",
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "2.3.3",
         url_templates = [
             "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
         sha256 = "24cb0d869ab2ae9fcf630a747b6b7e662e4be26e8b83b9272f6f3c24813e0c5a",
-    ),
-    KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.3.20-Beta1",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
-        ],
-        sha256 = "7026a0ef96e4e9e8355c7af3e2a9ef32b93b0e143cd6b4a01fa9ab9b6135c4d3",
-    ),
-    KOTLIN_BUILD_TOOLS_API = version(
-        version = "2.3.20-Beta1",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/{version}/kotlin-build-tools-api-{version}.jar",
-        ],
-        sha256 = "e38d7bb8b9afe9c27f018e97dec60328ff3ec20b62b5e961f1c865b7628dfb4a",
-    ),
-    KOTLIN_COMPILER_EMBEDDABLE = version(
-        version = "2.3.20-Beta1",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/{version}/kotlin-compiler-embeddable-{version}.jar",
-        ],
-        sha256 = "dee0d35840adc614a08289105361c1562caa2c0f5fc29ca1f9bb928b1b2f7d31",
-    ),
-    KOTLIN_ANNOTATION_PROCESSING_EMBEDDABLE = version(
-        version = "2.3.20-Beta1",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/{version}/kotlin-annotation-processing-embeddable-{version}.jar",
-        ],
-        sha256 = "709775dcbcd5a27379aba6a08e66d1b85ebb82decbea82f6fd277b2d4e28fcd1",
     ),
     RULES_ANDROID = version(
         version = "0.7.0",
@@ -154,27 +121,6 @@ versions = struct(
             "https://github.com/bazelbuild/bazel-worker-api/releases/download/v{version}/bazel-worker-api-v{version}.tar.gz",
         ],
     ),
-    KOTLINX_SERIALIZATION_CORE_JVM = version(
-        version = "1.8.1",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/{version}/kotlinx-serialization-core-jvm-{version}.jar",
-        ],
-        sha256 = "3565b6d4d789bf70683c45566944287fc1d8dc75c23d98bd87d01059cc76f2b3",
-    ),
-    KOTLINX_SERIALIZATION_JSON = version(
-        version = "1.8.1",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/{version}/kotlinx-serialization-json-{version}.jar",
-        ],
-        sha256 = "58adf3358a0f99dd8d66a550fbe19064d395e0d5f7f1e46515cd3470a56fbbb0",
-    ),
-    KOTLINX_SERIALIZATION_JSON_JVM = version(
-        version = "1.8.1",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/{version}/kotlinx-serialization-json-jvm-{version}.jar",
-        ],
-        sha256 = "8769e5647557e3700919c32d508f5c5dad53c5d8234cd10846354fbcff14aa24",
-    ),
     PY_ABSL = version(
         version = "2.1.0",
         sha256 = "8a3d0830e4eb4f66c4fa907c06edf6ce1c719ced811a12e26d9d3162f8471758",
@@ -188,13 +134,6 @@ versions = struct(
         url_templates = ["https://github.com/bazelbuild/rules_cc/releases/download/{version}/rules_cc-{version}.tar.gz"],
         sha256 = "bbf1ae2f83305b7053b11e4467d317a7ba3517a12cef608543c1b1c5bf48a4df",
         strip_prefix_template = "rules_cc-{version}",
-    ),
-    KOTLINX_COROUTINES_CORE_JVM = version(
-        version = "1.10.2",
-        url_templates = [
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/{version}/kotlinx-coroutines-core-jvm-{version}.jar",
-        ],
-        sha256 = "5ca175b38df331fd64155b35cd8cae1251fa9ee369709b36d42e0a288ccce3fd",
     ),
     use_repository = _use_repository,
 )

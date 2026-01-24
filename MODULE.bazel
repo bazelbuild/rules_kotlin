@@ -62,16 +62,7 @@ use_repo(
     rules_kotlin_extensions,
     "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
-    "com_github_jetbrains_kotlin_git",
     "com_github_pinterest_ktlint",
-    "kotlin_annotation_processing_embeddable",
-    "kotlin_build_tools_api",
-    "kotlin_build_tools_impl",
-    "kotlin_compiler_embeddable",
-    "kotlinx_coroutines_core_jvm",
-    "kotlinx_serialization_core_jvm",
-    "kotlinx_serialization_json",
-    "kotlinx_serialization_json_jvm",
 )
 
 # Android SDK (dev)
@@ -117,12 +108,37 @@ maven.install(
         "junit:junit:4.13-beta-3",
         "org.apache.commons:commons-compress:1.26.2",
         "org.codehaus.plexus:plexus-utils:3.0.24",
+        # JetBrains annotations
+        "org.jetbrains:annotations:13.0",
+        # Kotlin stdlib and runtime dependencies
+        "org.jetbrains.kotlin:kotlin-stdlib:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-reflect:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-test:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-script-runtime:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-daemon-client:{}".format(kotlin_version),
+        # Kotlin compiler dependencies
+        "org.jetbrains.kotlin:kotlin-compiler:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-annotation-processing:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:jvm-abi-gen:{}".format(kotlin_version),
+        # Kotlin compiler plugins
+        "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-parcelize-compiler:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-parcelize-runtime:{}".format(kotlin_version),
+        # Kotlin embeddable variants
+        "org.jetbrains.kotlin:kotlin-compiler-embeddable:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:{}".format(kotlin_version),
+        # Kotlin build tools (already present)
         "org.jetbrains.kotlin:kotlin-build-tools-api:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-metadata-jvm:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-compiler-arguments-description:{}".format(kotlin_version),
-        "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.3",
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
+        # kotlinx libraries
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
+        "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1",
         "org.pantsbuild:jarjar:1.7.2",
     ],
     fail_if_repin_required = True,

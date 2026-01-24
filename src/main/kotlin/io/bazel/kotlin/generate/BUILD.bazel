@@ -1,8 +1,8 @@
 load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import")
 
-kt_jvm_import(
+alias(
     name = "kotlin-compiler-runtime",
-    jars = ["@com_github_jetbrains_kotlin//:kotlin-compiler"],
+    actual = "//kotlin/compiler:kotlin-compiler",
 )
 
 kt_jvm_binary(

@@ -24,7 +24,7 @@ load(
     _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
 )
-load(":compiler.bzl", "kotlin_compiler_repository")
+load(":compiler.bzl", "kotlin_capabilities_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
@@ -36,23 +36,21 @@ def kotlin_repositories(
         is_bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
-        compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
+        compiler_version = versions.KOTLIN_CURRENT_COMPILER_VERSION,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
         compiler_repository_name: for the kotlinc compiler repository.
-        compiler_release: version provider from versions.bzl.
+        compiler_version: Kotlin compiler version string (e.g. "2.3.20-Beta1").
         configured_repository_name: for the default versioned kt_* rules repository. If None, no versioned repository is
          created.
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
 
-    kotlin_compiler_repository(
+    kotlin_capabilities_repository(
         name = compiler_repository_name,
-        urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
-        sha256 = compiler_release.sha256,
-        compiler_version = compiler_release.version,
+        compiler_version = compiler_version,
     )
 
     ksp_compiler_plugin_repository(
@@ -67,56 +65,6 @@ def kotlin_repositories(
         name = "com_github_pinterest_ktlint",
         version = versions.PINTEREST_KTLINT,
         downloaded_file_path = "ktlint.jar",
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlinx_serialization_core_jvm",
-        version = versions.KOTLINX_SERIALIZATION_CORE_JVM,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlinx_serialization_json",
-        version = versions.KOTLINX_SERIALIZATION_JSON,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlinx_serialization_json_jvm",
-        version = versions.KOTLINX_SERIALIZATION_JSON_JVM,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlinx_coroutines_core_jvm",
-        version = versions.KOTLINX_COROUTINES_CORE_JVM,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlin_build_tools_impl",
-        version = versions.KOTLIN_BUILD_TOOLS_IMPL,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlin_build_tools_api",
-        version = versions.KOTLIN_BUILD_TOOLS_API,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlin_compiler_embeddable",
-        version = versions.KOTLIN_COMPILER_EMBEDDABLE,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlin_annotation_processing_embeddable",
-        version = versions.KOTLIN_ANNOTATION_PROCESSING_EMBEDDABLE,
-        # Needs to end with .jar, otherwise the compiler won't recognize it
-        downloaded_file_path = "kotlin-annotation-processing-embeddable.jar",
     )
 
     if is_bzlmod:
