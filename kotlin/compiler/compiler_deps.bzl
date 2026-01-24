@@ -11,25 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-package(default_visibility = ["//visibility:public"])
-
-# Kotlin home filegroup containing everything that is needed.
-[
-    filegroup(
-        name = name.replace(".", "_"),
-        srcs = glob(["" + name]),
-    )
-    for name in glob(["lib/**"])
+# List of Kotlin standard library targets for runtime dependencies.
+# Note: kotlin-stdlib-jdk7 and kotlin-stdlib-jdk8 are not needed as of Kotlin 1.8+,
+# since JDK 8 extensions are included in the main stdlib.
+KOTLIN_STDLIBS = [
+    "//kotlin/compiler:annotations",
+    "//kotlin/compiler:kotlin-reflect",
+    "//kotlin/compiler:kotlin-stdlib",
+    "//kotlin/compiler:kotlinx-coroutines-core-jvm",
 ]
-
-filegroup(
-    name = "home",
-    srcs = glob(["**"]),
-)
-
-bzl_library(
-    name = "capabilities",
-    srcs = ["capabilities.bzl"],
-)

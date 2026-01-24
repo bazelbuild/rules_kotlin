@@ -24,7 +24,7 @@ load(
     _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
 )
-load(":compiler.bzl", "kotlin_compiler_repository")
+load(":compiler.bzl", "kotlin_capabilities_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
@@ -48,10 +48,8 @@ def kotlin_repositories(
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
 
-    kotlin_compiler_repository(
+    kotlin_capabilities_repository(
         name = compiler_repository_name,
-        urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
-        sha256 = compiler_release.sha256,
         compiler_version = compiler_release.version,
     )
 
@@ -73,30 +71,136 @@ def kotlin_repositories(
         http_file,
         name = "kotlinx_serialization_core_jvm",
         version = versions.KOTLINX_SERIALIZATION_CORE_JVM,
+        downloaded_file_path = "kotlinx-serialization-core-jvm.jar",
     )
 
     versions.use_repository(
         http_file,
         name = "kotlinx_serialization_json",
         version = versions.KOTLINX_SERIALIZATION_JSON,
+        downloaded_file_path = "kotlinx-serialization-json.jar",
     )
 
     versions.use_repository(
         http_file,
         name = "kotlinx_serialization_json_jvm",
         version = versions.KOTLINX_SERIALIZATION_JSON_JVM,
+        downloaded_file_path = "kotlinx-serialization-json-jvm.jar",
     )
 
     versions.use_repository(
         http_file,
         name = "kotlinx_coroutines_core_jvm",
         version = versions.KOTLINX_COROUTINES_CORE_JVM,
+        downloaded_file_path = "kotlinx-coroutines-core-jvm.jar",
     )
 
     versions.use_repository(
         http_file,
         name = "kotlin_build_tools_impl",
         version = versions.KOTLIN_BUILD_TOOLS_IMPL,
+        downloaded_file_path = "kotlin-build-tools-impl.jar",
+    )
+
+    # Kotlin stdlib and runtime dependencies
+    versions.use_repository(
+        http_file,
+        name = "kotlin_stdlib",
+        version = versions.KOTLIN_STDLIB,
+        downloaded_file_path = "kotlin-stdlib.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_reflect",
+        version = versions.KOTLIN_REFLECT,
+        downloaded_file_path = "kotlin-reflect.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_test",
+        version = versions.KOTLIN_TEST,
+        downloaded_file_path = "kotlin-test.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "jetbrains_annotations",
+        version = versions.JETBRAINS_ANNOTATIONS,
+        downloaded_file_path = "annotations.jar",
+    )
+
+    # Kotlin compiler dependencies
+    versions.use_repository(
+        http_file,
+        name = "kotlin_compiler",
+        version = versions.KOTLIN_COMPILER,
+        downloaded_file_path = "kotlin-compiler.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_annotation_processing",
+        version = versions.KOTLIN_ANNOTATION_PROCESSING,
+        downloaded_file_path = "kotlin-annotation-processing.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_jvm_abi_gen",
+        version = versions.KOTLIN_JVM_ABI_GEN,
+        downloaded_file_path = "jvm-abi-gen.jar",
+    )
+
+    # Kotlin compiler plugins
+    versions.use_repository(
+        http_file,
+        name = "kotlin_allopen_compiler_plugin",
+        version = versions.KOTLIN_ALLOPEN_COMPILER_PLUGIN,
+        downloaded_file_path = "allopen-compiler-plugin.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_noarg_compiler_plugin",
+        version = versions.KOTLIN_NOARG_COMPILER_PLUGIN,
+        downloaded_file_path = "noarg-compiler-plugin.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_sam_with_receiver_compiler_plugin",
+        version = versions.KOTLIN_SAM_WITH_RECEIVER_COMPILER_PLUGIN,
+        downloaded_file_path = "sam-with-receiver-compiler-plugin.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_serialization_compiler_plugin",
+        version = versions.KOTLIN_SERIALIZATION_COMPILER_PLUGIN,
+        downloaded_file_path = "kotlin-serialization-compiler-plugin.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_script_runtime",
+        version = versions.KOTLIN_SCRIPT_RUNTIME,
+        downloaded_file_path = "kotlin-script-runtime.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_parcelize_compiler",
+        version = versions.KOTLIN_PARCELIZE_COMPILER,
+        downloaded_file_path = "parcelize-compiler.jar",
+    )
+
+    versions.use_repository(
+        http_file,
+        name = "kotlin_parcelize_runtime",
+        version = versions.KOTLIN_PARCELIZE_RUNTIME,
+        downloaded_file_path = "parcelize-runtime.jar",
     )
 
     if is_bzlmod:

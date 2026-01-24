@@ -21,7 +21,6 @@ kt_bootstrap_library(
     neverlink_deps = [
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-compiler",
-        "//kotlin/compiler:kotlin-preloader",
     ],
     visibility = ["//src:__subpackages__"],
     deps = [

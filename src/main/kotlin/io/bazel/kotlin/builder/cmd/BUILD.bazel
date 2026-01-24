@@ -1,4 +1,4 @@
-load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
+load("//kotlin/compiler:compiler_deps.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
 
 kt_bootstrap_library(
@@ -21,7 +21,6 @@ kt_bootstrap_binary(
         "//src/main/kotlin:jdeps-gen",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar",
-        "@com_github_jetbrains_kotlin//:home",
         "@kotlin_build_tools_impl//file",
         "@kotlinx_serialization_core_jvm//file",
         "@kotlinx_serialization_json//file",

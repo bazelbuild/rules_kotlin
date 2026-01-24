@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_github_jetbrains_kotlin//:artifacts.bzl", "KOTLIN_STDLIBS")
+load("//kotlin/compiler:compiler_deps.bzl", "KOTLIN_STDLIBS")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 
 java_import(
@@ -56,7 +56,6 @@ java_binary(
         "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:kotlin-reflect",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "@com_github_jetbrains_kotlin//:home",
         "@kotlin_build_tools_impl//file",
         "@kotlinx_serialization_core_jvm//file",
         "@kotlinx_serialization_json//file",
