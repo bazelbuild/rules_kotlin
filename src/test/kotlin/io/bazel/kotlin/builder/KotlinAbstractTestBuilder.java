@@ -25,7 +25,6 @@ import io.bazel.kotlin.model.Platform;
 import io.bazel.kotlin.model.RuleKind;
 
 import java.io.*;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +35,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -106,9 +104,7 @@ abstract class KotlinAbstractTestBuilder<T> {
                         KotlinToolchainInfo.newBuilder()
                                 .setCommon(
                                         KotlinToolchainInfo.Common.newBuilder()
-                                                .setApiVersion("2.0")
-                                                .setCoroutines("enabled")
-                                                .setLanguageVersion("2.0"))
+                                                .setCoroutines("enabled"))
                                 .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("11")));
         try {
             this.instanceRoot = Files.createTempDirectory(BAZEL_TEST_DIR, label);
@@ -178,11 +174,6 @@ abstract class KotlinAbstractTestBuilder<T> {
         assertFileExistence(Stream.of(paths).map(Paths::get), true);
     }
 
-    @SuppressWarnings("unused")
-    public final void assertFilesDoNotExist(DirectoryType dir, String... filePath) {
-        assertFileExistence(resolved(dir, filePath), false);
-    }
-
     /**
      * Run a compilation task expecting it to fail with a {@link CompilationStatusException}.
      *
@@ -205,39 +196,21 @@ abstract class KotlinAbstractTestBuilder<T> {
         return Stream.of(filePath).map(f -> directory.resolve(toPlatformPath(f)));
     }
 
-    public final String toPlatform(String path) {
-        return KotlinAbstractTestBuilder.toPlatformPath(path).toString();
-    }
-
-    @SuppressWarnings("unused")
-    private Stream<Path> directoryContents(DirectoryType type) {
-        try {
-            return Files.walk(directory(type)).map(p -> directory(type).relativize(p));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public final void logDirectoryContents(DirectoryType type) {
-        System.out.println(
-                directoryContents(type)
-                        .map(Path::toString)
-                        .collect(Collectors.joining("\n", "directory " + type.name + " contents:\n", "")));
-    }
-
     static KotlinToolchain toolchainForTest() {
         return KotlinToolchain.createToolchain(
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-compiler").singleCompileJar()),
+                // Order matters
+                new File(Deps.Dep.fromLabel("@kotlin_compiler_embeddable//file").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//src/main/kotlin/io/bazel/kotlin/compiler:compiler.jar").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar())
+                new File(Deps.Dep.fromLabel("@kotlin_annotation_processing_embeddable//file").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
         );
     }
 }

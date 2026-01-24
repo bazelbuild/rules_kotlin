@@ -17,23 +17,23 @@
 package io.bazel.kotlin.builder.toolchain
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
-import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.verified
-import io.bazel.kotlin.builder.utils.verifiedPath
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import java.io.File
 import java.net.URLClassLoader
-import java.io.PrintStream
-import java.lang.reflect.Method
-import java.nio.file.FileSystems
-import java.nio.file.Path
-import java.nio.file.Paths
 
 class KotlinToolchain private constructor(
-  private val baseJars: List<File>,
   val kapt3Plugin: CompilerPlugin,
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
+  internal val buildToolsImplJar: File,
+  internal val kotlinCompilerEmbeddableJar: File,
+  internal val kotlinDaemonEmbeddableJar: File,
+  internal val kotlinStdlibJar: File,
+  internal val kotlinReflectJar: File,
+  internal val kotlinCoroutinesJar: File,
+  internal val annotationsJar: File,
 ) {
   companion object {
     private val JVM_ABI_PLUGIN by lazy {
@@ -47,13 +47,6 @@ class KotlinToolchain private constructor(
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@com_github_jetbrains_kotlin...kapt",
-        ).toPath()
-    }
-
-    private val COMPILER by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...compiler",
         ).toPath()
     }
 
@@ -71,104 +64,95 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
-    private val KOTLINC by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kotlin-compiler",
-        ).toPath()
-    }
-
     private val KOTLIN_REFLECT by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@rules_kotlin..kotlin.compiler.kotlin-reflect",
+          "@rules_kotlin...kotlin.compiler.kotlin-reflect",
         ).toPath()
     }
 
-    private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
+    internal val KOTLIN_STDLIB by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-core-jvm",
+          "@rules_kotlin...kotlin.compiler.kotlin-stdlib",
         ).toPath()
     }
 
-    private val KOTLINX_SERIALIZATION_JSON by lazy {
+    internal val KOTLIN_COROUTINES by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-json",
+          "@rules_kotlin...kotlin.compiler.kotlin-coroutines",
         ).toPath()
     }
 
-    private val KOTLINX_SERIALIZATION_JSON_JVM by lazy {
+    internal val BUILD_TOOLS_API by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-json-jvm",
+          "@com_github_jetbrains_kotlin...build-tools-api",
         ).toPath()
     }
 
-    private val BUILD_TOOLS_API by lazy {
+    internal val BUILD_TOOLS_IMPL by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@com_github_jetbrains_kotlin...build-tools-impl",
         ).toPath()
     }
 
-    private val JAVA_HOME by lazy {
-      FileSystems
-        .getDefault()
-        .getPath(System.getProperty("java.home"))
-        .let { path ->
-          path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
-        }.verifiedPath()
+    private val ANNOTATIONS by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@rules_kotlin...kotlin.compiler.annotations",
+        ).toPath()
     }
 
-    internal val NO_ARGS = arrayOf<Any>()
+    internal val KOTLIN_COMPILER_EMBEDDABLE by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@com_github_jetbrains_kotlin...kotlin-compiler-embeddable",
+        ).toPath()
+    }
 
-    private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
+    internal val KOTLIN_DAEMON_EMBEDDABLE by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@kotlin_rules_maven...kotlin-daemon-client",
+        ).toPath()
+    }
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
       createToolchain(
-        KOTLINC.verified().absoluteFile,
-        COMPILER.verified().absoluteFile,
+        KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
+        KOTLIN_DAEMON_EMBEDDABLE.verified().absoluteFile,
         BUILD_TOOLS_API.verified().absoluteFile,
+        BUILD_TOOLS_IMPL.verified().absoluteFile,
         JVM_ABI_PLUGIN.verified().absoluteFile,
         SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         JDEPS_GEN_PLUGIN.verified().absoluteFile,
         KAPT_PLUGIN.verified().absoluteFile,
-        KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
-        KOTLINX_SERIALIZATION_JSON.toFile(),
-        KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
+        KOTLIN_STDLIB.verified().absoluteFile,
+        KOTLIN_REFLECT.verified().absoluteFile,
+        KOTLIN_COROUTINES.verified().absoluteFile,
+        ANNOTATIONS.verified().absoluteFile,
       )
 
     @JvmStatic
     fun createToolchain(
-      kotlinc: File,
-      buildTools: File,
-      compiler: File,
+      kotlinCompilerEmbeddable: File,
+      kotlinDaemonEmbeddable: File,
+      buildToolsApi: File,
+      buildToolsImpl: File,
       jvmAbiGenFile: File,
       skipCodeGenFile: File,
       jdepsGenFile: File,
       kaptFile: File,
-      kotlinxSerializationCoreJvm: File,
-      kotlinxSerializationJson: File,
-      kotlinxSerializationJsonJvm: File,
+      kotlinStdlib: File,
+      kotlinReflect: File,
+      kotlinCoroutines: File,
+      annotations: File,
     ): KotlinToolchain =
       KotlinToolchain(
-        listOf(
-          kotlinc,
-          compiler,
-          buildTools,
-          // plugins *must* be preloaded. Not doing so causes class conflicts
-          // (and a NoClassDef err) in the compiler extension interfaces.
-          // This may cause issues in accepting user defined compiler plugins.
-          jvmAbiGenFile,
-          skipCodeGenFile,
-          jdepsGenFile,
-          kotlinxSerializationCoreJvm,
-          kotlinxSerializationJson,
-          kotlinxSerializationJsonJvm,
-        ),
         jvmAbiGen =
           CompilerPlugin(
             jvmAbiGenFile.path,
@@ -189,87 +173,42 @@ class KotlinToolchain private constructor(
             kaptFile.path,
             "org.jetbrains.kotlin.kapt3",
           ),
+        buildToolsImplJar = buildToolsImpl,
+        kotlinCompilerEmbeddableJar = kotlinCompilerEmbeddable,
+        kotlinDaemonEmbeddableJar = kotlinDaemonEmbeddable,
+        kotlinStdlibJar = kotlinStdlib,
+        kotlinReflectJar = kotlinReflect,
+        kotlinCoroutinesJar = kotlinCoroutines,
+        annotationsJar = annotations,
       )
   }
-
-  private fun createClassLoader(
-    javaHome: Path,
-    baseJars: List<File>,
-    classLoader: ClassLoader = ClassLoader.getSystemClassLoader(),
-  ): ClassLoader {
-    val urls = mutableListOf<File>().apply {
-      addAll(baseJars)
-      if (!isJdk9OrNewer) {
-        add(javaHome.resolveVerified("lib", "tools.jar"))
-      }
-    }.map { it.toURI().toURL() }.toTypedArray()
-    return URLClassLoader(urls, classLoader)
-  }
-
-  val classLoader by lazy {
-    createClassLoader(
-      JAVA_HOME,
-      baseJars,
-    )
-  }
-
-  fun toolchainWithReflect(kotlinReflect: File? = null): KotlinToolchain =
-    KotlinToolchain(
-      baseJars + listOf(kotlinReflect ?: KOTLIN_REFLECT.toFile()),
-      kapt3Plugin,
-      jvmAbiGen,
-      skipCodeGen,
-      jdepsGen,
-    )
 
   data class CompilerPlugin(
     val jarPath: String,
     val id: String,
   )
 
-  open class KotlincInvoker internal constructor(
-    toolchain: KotlinToolchain,
-    clazz: String,
-  ) {
-    private val compiler: Any
-    private val execMethod: Method
-    private val getCodeMethod: Method
-
-    init {
-      val compilerClass = toolchain.classLoader.loadClass(clazz)
-      val exitCodeClass =
-        toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
-
-      compiler = compilerClass.getConstructor().newInstance()
-      execMethod =
-        compilerClass.getMethod("exec", PrintStream::class.java, Array<String>::class.java)
-      getCodeMethod = exitCodeClass.getMethod("getCode")
-    }
-
-    // Kotlin error codes:
-    // 1 is a standard compilation error
-    // 2 is an internal error
-    // 3 is the script execution error
-    fun compile(
-      args: Array<String>,
-      out: PrintStream,
-    ): Int {
-      val exitCodeInstance = execMethod.invoke(compiler, out, args)
-      return getCodeMethod.invoke(exitCodeInstance, *NO_ARGS) as Int
-    }
-  }
-
   class KotlincInvokerBuilder(
     private val toolchain: KotlinToolchain,
   ) {
-    fun build(useExperimentalBuildToolsAPI: Boolean): KotlincInvoker {
-      val clazz =
-        if (useExperimentalBuildToolsAPI) {
-          "io.bazel.kotlin.compiler.BuildToolsAPICompiler"
-        } else {
-          "io.bazel.kotlin.compiler.BazelK2JVMCompiler"
-        }
-      return KotlincInvoker(toolchain = toolchain, clazz = clazz)
+    @OptIn(ExperimentalBuildToolsApi::class)
+    fun createBtapiToolchains(): KotlinToolchains {
+      val classpath = mutableListOf<File>()
+      classpath.add(toolchain.buildToolsImplJar)
+      classpath.add(toolchain.kotlinDaemonEmbeddableJar)
+      classpath.add(toolchain.kotlinCompilerEmbeddableJar)
+      classpath.add(toolchain.kotlinStdlibJar)
+      classpath.add(toolchain.kotlinReflectJar)
+      classpath.add(toolchain.kotlinCoroutinesJar)
+      classpath.add(toolchain.annotationsJar)
+
+      val urls = classpath.map { it.toURI().toURL() }.toTypedArray()
+
+      // SharedApiClassesClassLoader ensures API classes (from build-tools-api)
+      // are shared between the caller and the loaded implementation
+      val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
+
+      return KotlinToolchains.loadImplementation(classLoader)
     }
   }
 }

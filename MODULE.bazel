@@ -9,7 +9,7 @@ module(
 # Variables
 # =============================================================================
 
-kotlin_version = "2.3.0"
+kotlin_version = "2.3.20-Beta1"
 
 # =============================================================================
 # Production Dependencies
@@ -63,22 +63,10 @@ use_repo(
     "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
     "com_github_pinterest_ktlint",
-    # Kotlin runtime and stdlib
-    "jetbrains_annotations",
-    "kotlin_allopen_compiler_plugin",
-    "kotlin_annotation_processing",
+    "kotlin_annotation_processing_embeddable",
+    "kotlin_build_tools_api",
     "kotlin_build_tools_impl",
-    "kotlin_compiler",
-    "kotlin_jvm_abi_gen",
-    "kotlin_noarg_compiler_plugin",
-    "kotlin_parcelize_compiler",
-    "kotlin_parcelize_runtime",
-    "kotlin_reflect",
-    "kotlin_sam_with_receiver_compiler_plugin",
-    "kotlin_script_runtime",
-    "kotlin_serialization_compiler_plugin",
-    "kotlin_stdlib",
-    "kotlin_test",
+    "kotlin_compiler_embeddable",
     "kotlinx_coroutines_core_jvm",
     "kotlinx_serialization_core_jvm",
     "kotlinx_serialization_json",

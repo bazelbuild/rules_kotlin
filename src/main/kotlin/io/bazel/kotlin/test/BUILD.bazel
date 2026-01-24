@@ -1,5 +1,5 @@
 load("@rules_java//java:java_binary.bzl", "java_binary")
-load("//kotlin:jvm.bzl", "kt_jvm_library")
+load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
 
 java_binary(
     name = "BazelIntegrationTestRunner",
@@ -20,6 +20,27 @@ kt_jvm_library(
     name = "BazelIntegrationTestRunnerKt",
     srcs = [
         "BazelIntegrationTestRunner.kt",
+    ],
+    deps = [
+        "//src/main/kotlin/io/bazel/kotlin/builder/utils",
+        "@kotlin_rules_maven//:org_apache_commons_commons_compress",
+    ],
+)
+
+kt_jvm_binary(
+    name = "ICIntegrationTestRunner",
+    srcs = [
+        "ICIntegrationTestRunner.kt",
+    ],
+    data = [
+        "//:rules_kotlin_release",
+    ],
+    jvm_flags = [
+        "-D@rules_kotlin...rules_kotlin_release=$(rlocationpath //:rules_kotlin_release)",
+    ],
+    main_class = "io.bazel.kotlin.test.ICIntegrationTestRunner",
+    visibility = [
+        "//visibility:public",
     ],
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/builder/utils",
