@@ -36,7 +36,7 @@ java_library(
         "KotlinJvmTestBuilder.java",
     ],
     data = [
-        "@kotlin_compiler_embeddable//file",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
         "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
     ],
     exports = _COMMON_DEPS,

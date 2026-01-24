@@ -70,14 +70,14 @@ class IncrementalCompilationTest {
 
     private val jvmTaskExecutor by lazy {
         val toolchain = KotlinToolchain.createToolchain(
-            File(Deps.Dep.fromLabel("@kotlin_compiler_embeddable//file").singleCompileJar()),
+            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
             File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
-            File(Deps.Dep.fromLabel("@kotlin_build_tools_api//file").singleCompileJar()),
-            File(Deps.Dep.fromLabel("@kotlin_build_tools_impl//file").singleCompileJar()),
+            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_api").singleCompileJar()),
+            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
             File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
             File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
             File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-            File(Deps.Dep.fromLabel("@kotlin_annotation_processing_embeddable//file").singleCompileJar()),
+            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar()),
             File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
             File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
             File(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),

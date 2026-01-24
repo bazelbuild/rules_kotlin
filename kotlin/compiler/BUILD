@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_java//java:java_library.bzl", "java_library")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("//kotlin:jvm.bzl", "kt_jvm_import")
 load(":kapt.bzl", "kapt_compiler_plugin")
 load(":ksp.bzl", "kt_configure_ksp")
 
@@ -23,9 +23,9 @@ package(default_visibility = ["//visibility:public"])
 kt_configure_ksp()
 
 # Kotlin standard library
-kt_jvm_import(
+alias(
     name = "kotlin-stdlib",
-    jar = "@kotlin_stdlib//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_stdlib",
 )
 
 # For backward compatibility - in Kotlin 1.8+ JDK extensions are in main stdlib
@@ -39,68 +39,68 @@ alias(
     actual = ":kotlin-stdlib",
 )
 
-kt_jvm_import(
+alias(
     name = "kotlin-reflect",
-    jar = "@kotlin_reflect//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_reflect",
 )
 
-kt_jvm_import(
+alias(
     name = "kotlin-test",
-    jar = "@kotlin_test//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_test",
 )
 
-kt_jvm_import(
+alias(
     name = "annotations",
-    jar = "@jetbrains_annotations//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_annotations",
 )
 
-kt_jvm_import(
+alias(
     name = "kotlinx-coroutines-core-jvm",
-    jar = "@kotlinx_coroutines_core_jvm//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
 )
 
-# Kotlin compiler
-kt_jvm_import(
+# Kotlin compiler - neverlink for compile-time only
+java_library(
     name = "kotlin-compiler",
-    jar = "@kotlin_compiler//file",
-    neverlink = 1,
+    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler"],
+    neverlink = True,
 )
 
-kt_jvm_import(
+java_library(
     name = "kotlin-annotation-processing",
-    jar = "@kotlin_annotation_processing//file",
-    neverlink = 1,
+    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing"],
+    neverlink = True,
 )
 
-kt_jvm_import(
+alias(
     name = "jvm-abi-gen",
-    jar = "@kotlin_jvm_abi_gen//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_jvm_abi_gen",
 )
 
-kt_jvm_import(
+alias(
     name = "kotlin-script-runtime",
-    jar = "@kotlin_script_runtime//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_script_runtime",
 )
 
 # Compiler plugins
-kt_jvm_import(
+alias(
     name = "allopen-compiler-plugin",
-    jar = "@kotlin_allopen_compiler_plugin//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_allopen_compiler_plugin",
 )
 
-kt_jvm_import(
+alias(
     name = "noarg-compiler-plugin",
-    jar = "@kotlin_noarg_compiler_plugin//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_noarg_compiler_plugin",
 )
 
-kt_jvm_import(
+alias(
     name = "sam-with-receiver-compiler-plugin",
-    jar = "@kotlin_sam_with_receiver_compiler_plugin//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_sam_with_receiver_compiler_plugin",
 )
 
-kt_jvm_import(
+alias(
     name = "kotlin-serialization-compiler-plugin",
-    jar = "@kotlin_serialization_compiler_plugin//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_serialization_compiler_plugin",
 )
 
 # Alias for backward compatibility
@@ -109,14 +109,14 @@ alias(
     actual = ":kotlin-serialization-compiler-plugin",
 )
 
-kt_jvm_import(
+alias(
     name = "parcelize-compiler-plugin",
-    jar = "@kotlin_parcelize_compiler//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_compiler",
 )
 
-kt_jvm_import(
+alias(
     name = "parcelize-runtime",
-    jar = "@kotlin_parcelize_runtime//file",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_runtime",
 )
 
 kapt_compiler_plugin(
