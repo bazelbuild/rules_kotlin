@@ -36,13 +36,13 @@ def kotlin_repositories(
         is_bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,
         ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
-        compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
+        compiler_version = versions.KOTLIN_CURRENT_COMPILER_VERSION,
         ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
         compiler_repository_name: for the kotlinc compiler repository.
-        compiler_release: version provider from versions.bzl.
+        compiler_version: Kotlin compiler version string (e.g. "2.3.20-Beta1").
         configured_repository_name: for the default versioned kt_* rules repository. If None, no versioned repository is
          created.
         ksp_compiler_release: (internal) version provider from versions.bzl.
@@ -50,7 +50,7 @@ def kotlin_repositories(
 
     kotlin_capabilities_repository(
         name = compiler_repository_name,
-        compiler_version = compiler_release.version,
+        compiler_version = compiler_version,
     )
 
     ksp_compiler_plugin_repository(

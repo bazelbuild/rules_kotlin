@@ -82,13 +82,7 @@ versions = struct(
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
     # Used for kotlin capabilities repository (compiler version detection)
-    KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.3.20-Beta1",
-        url_templates = [
-            "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
-        ],
-        sha256 = "44dd417f868bd462ea3827931b5294d05f17d4708fd646de25ccebfa0c62f239",
-    ),
+    KOTLIN_CURRENT_COMPILER_VERSION = "2.3.20-Beta1",
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "2.3.3",
         url_templates = [

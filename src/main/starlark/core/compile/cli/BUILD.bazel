@@ -27,11 +27,11 @@ java_binary(
 
 cli_toolchain(
     name = "cli_toolchain",
-    api_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
+    api_version = versions.KOTLIN_CURRENT_COMPILER_VERSION,
     jvm_target = "11",
     kotlin_stdlibs = _KOTLIN_STDLIBS,
     kotlinc = ":kotlinc",
-    language_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
+    language_version = versions.KOTLIN_CURRENT_COMPILER_VERSION,
     zip = "@bazel_tools//tools/zip:zipper",
 )
 
