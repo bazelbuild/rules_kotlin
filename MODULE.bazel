@@ -46,7 +46,7 @@ bazel_dep(name = "rules_pkg", version = "1.0.1", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True, repo_name = "io_bazel_stardoc")
 
 # Utilities
-bazel_dep(name = "rules_jvm_external", version = "6.9", dev_dependency = True)
+bazel_dep(name = "rules_jvm_external", version = "6.9")
 
 # =============================================================================
 # Extensions
@@ -81,7 +81,7 @@ android_sdk_repository_extension = use_extension(
 use_repo(android_sdk_repository_extension, "androidsdk")
 
 # Maven (dev)
-maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven", dev_dependency = True)
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "kotlin_rules_maven",
     artifacts = [

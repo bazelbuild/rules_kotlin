@@ -119,6 +119,11 @@ alias(
     actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_runtime",
 )
 
+alias(
+    name = "kotlin-daemon-client",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
+)
+
 kapt_compiler_plugin(
     name = "kapt",
     id = "org.jetbrains.kotlin.kapt3",

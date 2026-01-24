@@ -118,7 +118,7 @@ class KotlinToolchain private constructor(
     internal val KOTLIN_DAEMON_EMBEDDABLE by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
-          "@kotlin_rules_maven...kotlin-daemon-client",
+          "@rules_kotlin...kotlin-daemon-client",
         ).toPath()
     }
 
