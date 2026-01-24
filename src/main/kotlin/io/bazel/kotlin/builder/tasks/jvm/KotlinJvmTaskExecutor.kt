@@ -51,7 +51,6 @@ class KotlinJvmTaskExecutor(
 
     context.execute("compile classes") {
       preprocessedTask.apply {
-        // Compile Kotlin using BtapiCompiler (direct BTAPI, no string parsing)
         context.execute("kotlinc") {
           if (compileKotlin && inputs.kotlinSourcesList.isNotEmpty()) {
             val result = btapiCompiler.compile(this, plugins, context.out)
