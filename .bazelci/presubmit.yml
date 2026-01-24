@@ -107,3 +107,18 @@ tasks:
     test_flags:
       - "--test_tag_filters=ktlint"
       - "--test_output=errors"
+  ic_tests:
+    name: IC Tests
+    <<: *ubuntu2404
+    test_targets:
+      - //ic_tests:all
+  macos_ic_tests:
+    name: IC Tests
+    <<: *macos
+    test_targets:
+      - //ic_tests:all
+  windows_ic_tests:
+    name: IC Tests
+    <<: *windows
+    test_targets:
+      - //ic_tests:all
