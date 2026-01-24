@@ -656,7 +656,6 @@ def _run_kt_builder_action(
         ),
         tools = [
             toolchains.kt.kotlinbuilder.files_to_run,
-            toolchains.kt.kotlin_home.files_to_run,
         ],
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,

@@ -19,6 +19,8 @@ package io.bazel.kotlin.builder.toolchain
 import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.verified
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
 import java.io.File
 import java.net.URLClassLoader
 

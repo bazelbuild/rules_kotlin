@@ -16,11 +16,6 @@ def _kotlin_capabilities_impl(repository_ctx):
         attr._template,
         executable = False,
     )
-    repository_ctx.template(
-        "artifacts.bzl",
-        attr._artifacts_template,
-        executable = False,
-    )
     template = _get_template_by_version(
         attr.compiler_version,
         [repository_ctx.path(ct) for ct in attr._capability_templates],
@@ -118,10 +113,6 @@ kotlin_capabilities_repository = repository_rule(
     attrs = {
         "compiler_version": attr.string(
             doc = "compiler version",
-        ),
-        "_artifacts_template": attr.label(
-            doc = "kotlinc artifacts template",
-            default = "//src/main/starlark/core/repositories/kotlin:artifacts.bzl",
         ),
         "_capability_templates": attr.label_list(
             doc = "List of compiler capability templates.",
