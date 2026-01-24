@@ -88,7 +88,7 @@ def example_integration_test_suite(
                     ],
                     env = env,
                     bazel_version = version,
-                    tags = tags + [clean_bazel_version, name, name + "_" + mode],
+                    tags = tags + [clean_bazel_version, name, name + "_" + mode, mode],
                     test_runner = "//src/main/kotlin/io/bazel/kotlin/test:BazelIntegrationTestRunner",
                     workspace_files = metadata.workspace_files,
                     workspace_path = metadata.directory,
