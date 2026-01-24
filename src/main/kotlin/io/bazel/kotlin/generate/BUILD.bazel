@@ -1,4 +1,4 @@
-load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import")
+load("//kotlin:jvm.bzl", "kt_jvm_binary")
 
 alias(
     name = "kotlin-compiler-runtime",

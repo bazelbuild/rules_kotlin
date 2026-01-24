@@ -19,8 +19,8 @@ java_binary(
     runtime_deps = [
         ":kotlinc_jar",
         "//kotlin/compiler:annotations",
-        "//kotlin/compiler:kotlin-stdlib",
         "//kotlin/compiler:kotlin-reflect",
+        "//kotlin/compiler:kotlin-stdlib",
         "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
 )

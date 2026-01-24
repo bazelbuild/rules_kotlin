@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin/compiler:compiler_deps.bzl", "KOTLIN_STDLIBS")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("//kotlin/compiler:compiler_deps.bzl", "KOTLIN_STDLIBS")
 
 java_import(
     name = "worker",

@@ -62,14 +62,14 @@ alias(
 # Kotlin compiler - neverlink for compile-time only
 java_library(
     name = "kotlin-compiler",
-    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler"],
     neverlink = True,
+    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler"],
 )
 
 java_library(
     name = "kotlin-annotation-processing",
-    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing"],
     neverlink = True,
+    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing"],
 )
 
 alias(
