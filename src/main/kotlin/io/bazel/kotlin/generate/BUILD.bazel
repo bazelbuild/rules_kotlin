@@ -1,37 +1,28 @@
-load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import", "kt_jvm_library")
-load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
+load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import")
 
-# Work around neverlink.
 kt_jvm_import(
-    name = "kotlinc_jar",
-    jars = [
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
-    ],
-    deps = _KOTLIN_STDLIBS,
-)
-
-kt_jvm_library(
-    name = "kotlin_release_options_lib",
-    srcs = glob(["**/*.kt"]),
-    visibility = [
-        "//src/test:__subpackages__",
-    ],
-    deps = [
-        ":kotlinc_jar",
-        "//kotlin/compiler:kotlin-reflect",
-        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_arguments_description",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
-    ],
+    name = "kotlin-compiler-runtime",
+    jars = ["@com_github_jetbrains_kotlin//:kotlin-compiler"],
 )
 
 kt_jvm_binary(
     name = "kotlin_release_options",
+    srcs = glob(["**/*.kt"]),
     args = [
         "--out",
         "$${BUILD_WORKSPACE_DIRECTORY}/src/main/starlark/core/repositories/kotlin",
     ],
     main_class = "io.bazel.kotlin.generate.WriteKotlincCapabilities",
+    visibility = [
+        "//src/test:__subpackages__",
+    ],
     runtime_deps = [
-        ":kotlin_release_options_lib",
+        ":kotlin-compiler-runtime",
+    ],
+    deps = [
+        "//kotlin/compiler:kotlin-compiler",
+        "//kotlin/compiler:kotlin-reflect",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_arguments_description",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
     ],
 )
