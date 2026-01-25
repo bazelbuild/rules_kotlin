@@ -958,10 +958,10 @@
     },
     "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable": {
       "shasums": {
-        "jar": "d8693e09d606625a583d30589e790e9da542114ed353483ee16d694077f7d67e",
-        "sources": "d2945dd2057082b41142a4e0d355fa4aed61b79be394714fa4fc415a3cd45f70"
+        "jar": "6ee64a3861ffe80041e8ecc79df3446065bae040c768c18adfa88ccf0d7b4cb9",
+        "sources": "64dadbf7bb575d291190be2ce302caa1bb8e49de384852cf9184f94870f8f724"
       },
-      "version": "2.3.0"
+      "version": "2.3.20-Beta1"
     },
     "org.jetbrains.kotlin:kotlin-stdlib": {
       "shasums": {
