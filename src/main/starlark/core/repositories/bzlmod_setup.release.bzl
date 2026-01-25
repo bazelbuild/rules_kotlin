@@ -3,7 +3,6 @@ load(
     "//src/main/starlark/core/repositories:initialize.bzl",
     _kotlin_repositories = "kotlin_repositories",
     _kotlinc_version = "kotlinc_version",
-    _ksp_version = "ksp_version",
 )
 load(
     ":bzlmod_impl.bzl",
@@ -16,7 +15,6 @@ def _rules_kotlin_extensions_impl(mctx):
         mctx.modules,
         _kotlin_repositories,
         _kotlinc_version,
-        _ksp_version,
     )
     return modules.use_all_repos(mctx, reproducible = True)
 

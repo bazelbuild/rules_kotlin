@@ -294,32 +294,6 @@ kt_jvm_library(
 )
 ```
 
-To choose a different `ksp_version` distribution,
-do the following in your repository.
-
-### `MODULE.bazel`
-```python
-rules_kotlin_extensions = use_extension("@rules_kotlin//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
-rules_kotlin_extensions.ksp_version(
-    version = "1.8.22-1.0.11",
-    sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
-)
-use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
-```
-
-### `WORKSPACE` (or import from a `.bzl` file):
-
-```python
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "ksp_version")
-
-kotlin_repositories(
-    ksp_compiler_release = ksp_version(
-        release = "1.8.22-1.0.11",
-        sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
-    ),
-)
-```
-
 # Kotlin compiler plugins
 
 The `kt_compiler_plugin` rule allows running Kotlin compiler plugins, such as no-arg, sam-with-receiver and allopen.
