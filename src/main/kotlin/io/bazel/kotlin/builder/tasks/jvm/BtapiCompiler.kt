@@ -329,6 +329,9 @@ class BtapiCompiler(
    * Builds user-specified compiler plugins from protobuf options.
    */
   private fun buildUserPlugins(task: JvmCompilationTask): List<CompilerPlugin> {
+    // Get all plugin IDs that should be loaded
+    val allPluginIds = task.inputs.compilerPluginsList.toSet()
+
     // Group plugin options by plugin ID
     val pluginOptionsMap = mutableMapOf<String, MutableList<CompilerPluginOption>>()
 
@@ -352,11 +355,13 @@ class BtapiCompiler(
     // All user plugins share the same classpath
     val userPluginClasspath = task.inputs.compilerPluginClasspathList.map { Path.of(it) }
 
-    return pluginOptionsMap.map { (pluginId, options) ->
+    // Create plugins for ALL plugin IDs, not just those with options
+    // This ensures plugins like Parcelize (which have no options) are still loaded
+    return allPluginIds.map { pluginId ->
       CompilerPlugin(
         pluginId = pluginId,
         classpath = userPluginClasspath,
-        rawArguments = options,
+        rawArguments = pluginOptionsMap[pluginId] ?: emptyList(),
         orderingRequirements = emptySet(),
       )
     }
@@ -709,6 +714,11 @@ class BtapiCompiler(
     task: JvmCompilationTask,
     plugins: InternalCompilerPlugins,
   ): List<CompilerPlugin> {
+    // Get all stubs plugin IDs that should be loaded (excluding KAPT)
+    val allPluginIds = task.inputs.stubsPluginsList
+      .filterNot { it == plugins.kapt.id }
+      .toSet()
+
     // Group plugin options by plugin ID
     val pluginOptionsMap = mutableMapOf<String, MutableList<CompilerPluginOption>>()
 
@@ -731,16 +741,15 @@ class BtapiCompiler(
         }
       }
 
-    // Create CompilerPlugin for each plugin with options
-    // We need to find the classpath for each plugin from stubsPluginClasspathList
-    // For simplicity, we map all stubs classpath entries to plugins by matching plugin IDs
+    // All stubs plugins share the classpath
     val stubsClasspath = task.inputs.stubsPluginClasspathList.map { Path.of(it) }
 
-    return pluginOptionsMap.map { (pluginId, options) ->
+    // Create plugins for ALL plugin IDs, not just those with options
+    return allPluginIds.map { pluginId ->
       CompilerPlugin(
         pluginId = pluginId,
-        classpath = stubsClasspath, // All stubs plugins share the classpath
-        rawArguments = options,
+        classpath = stubsClasspath,
+        rawArguments = pluginOptionsMap[pluginId] ?: emptyList(),
         orderingRequirements = emptySet(),
       )
     }

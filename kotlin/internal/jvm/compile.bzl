@@ -227,7 +227,9 @@ def _new_plugin_from(all_cfgs, plugins_for_phase):
     classpath = []
     data = []
     options = []
+    ids = []
     for p in plugins_for_phase:
+        ids.append(p.id)
         classpath.append(p.classpath)
         options.extend(p.options)
         if p.id in all_cfgs:
@@ -240,6 +242,7 @@ def _new_plugin_from(all_cfgs, plugins_for_phase):
         classpath = depset(transitive = classpath),
         data = depset(transitive = data),
         options = options,
+        ids = ids,
     )
 
 # INTERNAL ACTIONS #####################################################################################################
@@ -600,6 +603,12 @@ def _run_kt_builder_action(
     )
 
     args.add_all(
+        "--stubs_plugin_ids",
+        plugins.stubs_phase.ids,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
         "--compiler_plugin_classpath",
         plugins.compile_phase.classpath,
         omit_if_empty = True,
@@ -609,6 +618,12 @@ def _run_kt_builder_action(
         "--compiler_plugin_options",
         plugins.compile_phase.options,
         map_each = _format_compile_plugin_options,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin_ids",
+        plugins.compile_phase.ids,
         omit_if_empty = True,
     )
 

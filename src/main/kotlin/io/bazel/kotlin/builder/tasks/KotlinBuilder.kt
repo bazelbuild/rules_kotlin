@@ -57,8 +57,10 @@ class KotlinBuilder(
       PROCESSORS("--processors"),
       STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
       STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
+      STUBS_PLUGIN_IDS("--stubs_plugin_ids"),
       COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
       COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
+      COMPILER_PLUGIN_IDS("--compiler_plugin_ids"),
       OUTPUT("--output"),
       RULE_KIND("--rule_kind"),
       MODULE_NAME("--kotlin_module_name"),
@@ -277,12 +279,18 @@ class KotlinBuilder(
         addAllStubsPluginClasspath(
           argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
         )
+        addAllStubsPlugins(
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_IDS) ?: emptyList(),
+        )
 
         addAllCompilerPluginOptions(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
         )
         addAllCompilerPluginClasspath(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
+        )
+        addAllCompilerPlugins(
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_IDS) ?: emptyList(),
         )
 
         // Kotlin compiler always requires absolute path for source input in incremental mode
