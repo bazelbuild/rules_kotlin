@@ -2,6 +2,7 @@
 
 [![Build Status](https://badge.buildkite.com/a8860e94a7378491ce8f50480e3605b49eb2558cfa851bbf9b.svg)](https://buildkite.com/bazel/kotlin-postsubmit)
 <a href="https://github.com/bazelbuild/rules_kotlin/tree/master"><img src="https://img.shields.io/badge/Main%20Branch-master-blue.svg"/></a>
+
 ###  Releases
 
 <a href="https://github.com/bazelbuild/rules_kotlin/releases/latest"><img src="https://img.shields.io/github/v/release/bazelbuild/rules_kotlin?display_name=tag&label=Latest%20Stable%20Release"/></a>
@@ -54,6 +55,10 @@ Generated API documentation is available at
 [https://bazelbuild.github.io/rules_kotlin/kotlin](https://bazelbuild.github.io/rules_kotlin/kotlin).
 
 # Quick Guide
+
+## Starter repo
+
+The fastest way to try this in an empty project is to click the green "Use this template" button on https://github.com/bazel-starters/kotlin.
 
 ## Installation
 Copy from the
