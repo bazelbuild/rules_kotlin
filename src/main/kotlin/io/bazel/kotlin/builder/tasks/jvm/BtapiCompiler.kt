@@ -724,9 +724,10 @@ class BtapiCompiler(
     plugins: InternalCompilerPlugins,
   ): List<CompilerPlugin> {
     // Get all stubs plugin IDs that should be loaded (excluding KAPT)
-    val allPluginIds = task.inputs.stubsPluginsList
-      .filterNot { it == plugins.kapt.id }
-      .toSet()
+    val allPluginIds =
+      task.inputs.stubsPluginsList
+        .filterNot { it == plugins.kapt.id }
+        .toSet()
 
     // Group plugin options by plugin ID
     val pluginOptionsMap = mutableMapOf<String, MutableList<CompilerPluginOption>>()
