@@ -60,7 +60,6 @@ use_repo(rules_java_toolchains, "remote_java_tools")
 rules_kotlin_extensions = use_extension("//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
 use_repo(
     rules_kotlin_extensions,
-    "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
     "com_github_pinterest_ktlint",
 )
@@ -135,6 +134,10 @@ maven.install(
         "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-metadata-jvm:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-compiler-arguments-description:{}".format(kotlin_version),
+        # KSP (Kotlin Symbol Processing)
+        "com.google.devtools.ksp:symbol-processing-api:2.3.4",
+        "com.google.devtools.ksp:symbol-processing-common-deps:2.3.4",
+        "com.google.devtools.ksp:symbol-processing-aa-embeddable:2.3.4",
         # kotlinx libraries
         "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
         "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",

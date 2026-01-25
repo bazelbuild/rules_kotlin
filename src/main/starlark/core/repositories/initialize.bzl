@@ -17,7 +17,6 @@
 load(
     ":initialize.release.bzl",
     _kotlinc_version = "kotlinc_version",
-    _ksp_version = "ksp_version",
     _release_kotlin_repositories = "kotlin_repositories",
 )
 load(":setup.bzl", "kt_configure")
@@ -27,18 +26,15 @@ load(":workspace_compat.bzl", "workspace_compat")
 # exports
 versions = _versions
 kotlinc_version = _kotlinc_version
-ksp_version = _ksp_version
 
 def kotlin_repositories(
         is_bzlmod = False,
-        compiler_version = versions.KOTLIN_CURRENT_COMPILER_VERSION,
-        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
+        compiler_version = versions.KOTLIN_CURRENT_COMPILER_VERSION):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
         compiler_version: Kotlin compiler version string (e.g. "2.3.20-Beta1").
-        ksp_compiler_release: (internal) version provider from versions.bzl.
     """
-    _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_version = compiler_version, ksp_compiler_release = ksp_compiler_release)
+    _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_version = compiler_version)
     workspace_compat()
     kt_configure()

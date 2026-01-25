@@ -83,13 +83,6 @@ versions = struct(
     ),
     # Used for kotlin capabilities repository (compiler version detection)
     KOTLIN_CURRENT_COMPILER_VERSION = "2.3.20-Beta1",
-    KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
-        version = "2.3.4",
-        url_templates = [
-            "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
-        ],
-        sha256 = "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5",
-    ),
     RULES_ANDROID = version(
         version = "0.7.0",
         url_templates = [
