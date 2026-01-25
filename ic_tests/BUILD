@@ -34,10 +34,10 @@ test_suite(
     name = "ic_tests_suite",
     tags = ["ic"],
     tests = [
-        "trivial_change",
         "inline_function_change",
-        "plugin_options_change",
-        "kotlinc_flags_change",
         "jvm_target_change",
+        "kotlinc_flags_change",
+        "plugin_options_change",
+        "trivial_change",
     ],
 )
