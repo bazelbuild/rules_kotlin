@@ -6,6 +6,9 @@ kt_jvm_test(
         "WriteKotlincCapabilitiesTest.kt",
     ],
     test_class = "io.bazel.generate.WriteKotlincCapabilitiesTest",
+    runtime_deps = [
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler",
+    ],
     deps = [
         "//src/main/kotlin/io/bazel/kotlin/generate:kotlin_release_options",
         "@kotlin_rules_maven//:com_google_truth_truth",
