@@ -29,8 +29,8 @@ import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget
-import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.FORCE_RECOMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.MODULE_BUILD_DIR
@@ -40,18 +40,18 @@ import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshotti
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.PARSE_INLINED_LOCAL_CLASSES
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import java.io.BufferedInputStream
-import java.io.FileInputStream
-import java.security.MessageDigest
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.ObjectOutputStream
 import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-import kotlin.io.path.exists
+import java.security.MessageDigest
 import java.util.Base64
+import kotlin.io.path.exists
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as BtapiKotlinVersion
 
 /**
@@ -109,8 +109,18 @@ class BtapiCompiler(
     snapshot.saveSnapshot(tempSnapshot)
     tempHash.toFile().writeText(currentHash)
 
-    Files.move(tempSnapshot, outputSnapshot, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
-    Files.move(tempHash, hashPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    Files.move(
+      tempSnapshot,
+      outputSnapshot,
+      StandardCopyOption.ATOMIC_MOVE,
+      StandardCopyOption.REPLACE_EXISTING,
+    )
+    Files.move(
+      tempHash,
+      hashPath,
+      StandardCopyOption.ATOMIC_MOVE,
+      StandardCopyOption.REPLACE_EXISTING,
+    )
   }
 
   private fun hashFile(path: Path): String {
@@ -256,7 +266,7 @@ class BtapiCompiler(
         "KOTLINBUILDER_REDUCED" -> {
           val transitiveDepsForCompile = mutableSetOf<String>()
           task.inputs.depsArtifactsList.forEach { jdepsPath ->
-            BufferedInputStream(Paths.get(jdepsPath).toFile().inputStream()).use {
+            BufferedInputStream(Files.newInputStream(Paths.get(jdepsPath))).use {
               val deps = Deps.Dependencies.parseFrom(it)
               deps.dependencyList.forEach { dep ->
                 if (dep.kind == Deps.Dependency.Kind.EXPLICIT) {

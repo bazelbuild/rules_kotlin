@@ -49,20 +49,24 @@ register_toolchains("//:custom_toolchain")
 """
 
 def _kotlin_toolchain_impl(ctx):
-    compile_time_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-            neverlink = True,
-        )
-        for jar in ctx.files.jvm_stdlibs
-    ]
+    # Create neverlink JavaInfo providers using actual compile_jars (header jars) from stdlib targets.
+    # Previously, this used ctx.files.jvm_stdlibs which returns DefaultInfo.files (processed jars),
+    # but we need the proper compile_jars (header jars) from the JavaInfo for correct compilation.
+    compile_time_providers = []
+    for target in ctx.attr.jvm_stdlibs:
+        if JavaInfo in target:
+            for java_output in target[JavaInfo].java_outputs:
+                compile_time_providers.append(JavaInfo(
+                    output_jar = java_output.class_jar,
+                    compile_jar = java_output.compile_jar if java_output.compile_jar else java_output.class_jar,
+                    neverlink = True,
+                ))
+
+    # For runtime, use actual JavaInfo providers (they contain proper runtime jars)
     runtime_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-        )
-        for jar in ctx.files.jvm_runtime
+        target[JavaInfo]
+        for target in ctx.attr.jvm_runtime
+        if JavaInfo in target
     ]
 
     toolchain = dict(

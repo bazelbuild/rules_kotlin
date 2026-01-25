@@ -246,9 +246,7 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
  * dependencies snapshot (shrunk-classpath-snapshot.bin).
  */
 @OptIn(ExperimentalBuildToolsApi::class)
-internal fun JvmCompilationTask.createOutputClasspathSnapshot(
-  btapiCompiler: BtapiCompiler,
-) {
+internal fun JvmCompilationTask.createOutputClasspathSnapshot(btapiCompiler: BtapiCompiler) {
   if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
     return
   }
@@ -408,13 +406,11 @@ fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
 
 private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
   updateBuilder { builder ->
+    val inputs = builder.inputsBuilder
     sources
       .copyManifestFilesToGeneratedClasses(directories)
       .filterOutNonCompilableSources()
-      .partitionJvmSources(
-        { builder.inputsBuilder.addKotlinSources(it) },
-        { builder.inputsBuilder.addJavaSources(it) },
-      )
+      .partitionJvmSources({ inputs.addKotlinSources(it) }, { inputs.addJavaSources(it) })
   }
 
 private fun JvmCompilationTask.updateBuilder(
