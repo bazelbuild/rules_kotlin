@@ -19,6 +19,7 @@ import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.CompilerArgumentsParseException
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
@@ -220,6 +221,20 @@ class BtapiCompiler(
     args: JvmCompilerArguments,
     task: JvmCompilationTask,
   ) {
+    // Apply passthrough flags FIRST, before other settings.
+    // This ensures that explicit typed settings below take precedence over passthrough flags,
+    // preventing passthrough flags from accidentally clobbering required settings.
+    if (task.info.passthroughFlagsList.isNotEmpty()) {
+      try {
+        args.applyArgumentStrings(task.info.passthroughFlagsList)
+      } catch (e: CompilerArgumentsParseException) {
+        throw IllegalArgumentException(
+          "Invalid passthrough flag in kotlin_passthrough_flags: ${e.message}",
+          e,
+        )
+      }
+    }
+
     // Module name
     args[JvmCompilerArguments.MODULE_NAME] = task.info.moduleName
     args[JvmCompilerArguments.NO_STDLIB] = true
@@ -238,7 +253,7 @@ class BtapiCompiler(
       args[CommonCompilerArguments.LANGUAGE_VERSION] = it
     }
 
-    // Classpath - convert to absolute paths and pass via applyArgumentStrings
+    // Classpath - convert to absolute paths
     val classpath = computeClasspath(task).map { File(it).absolutePath }
     if (classpath.isNotEmpty()) {
       args[JvmCompilerArguments.CLASSPATH] = classpath.joinToString(File.pathSeparator)
@@ -247,12 +262,6 @@ class BtapiCompiler(
     // Friend paths (for internal visibility)
     if (task.info.friendPathsList.isNotEmpty()) {
       args[JvmCompilerArguments.X_FRIEND_PATHS] = task.info.friendPathsList.toTypedArray()
-    }
-
-    // Passthrough flags (for args without typed setters)
-    if (task.info.passthroughFlagsList.isNotEmpty()) {
-      System.err.println("DEBUG: passthrough flags = ${task.info.passthroughFlagsList}")
-//      args.applyArgumentStrings(task.info.passthroughFlagsList)
     }
   }
 

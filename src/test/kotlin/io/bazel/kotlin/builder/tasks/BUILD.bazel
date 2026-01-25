@@ -153,6 +153,15 @@ kt_rules_test(
     ],
 )
 
+kt_rules_test(
+    name = "KotlinBuilderPassthroughFlagsTest",
+    srcs = ["jvm/KotlinBuilderPassthroughFlagsTest.kt"],
+    deps = [
+        "//kotlin/compiler:kotlin-test",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
+
 test_suite(
     name = "tasks_tests",
     tests = [
@@ -166,6 +175,7 @@ test_suite(
         ":KotlinBuilderJvmJdepsTest",
         ":KotlinBuilderJvmKaptTest",
         ":KotlinBuilderJvmStrictDepsTest",
+        ":KotlinBuilderPassthroughFlagsTest",
         ":KotlinJvmTaskExecutorTest",
         ":Ksp2TaskTest",
     ],
