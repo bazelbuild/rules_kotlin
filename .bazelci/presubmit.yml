@@ -37,11 +37,6 @@
   environment:
     ANDROID_NDK_HOME: /opt/android-ndk-r25b
 
-.ubuntu2204: &ubuntu2204
-  platform: ubuntu2204
-  environment:
-    ANDROID_NDK_HOME: /opt/android-ndk-r25b
-
 .macos: &macos
   platform: macos_arm64
   environment:
@@ -74,10 +69,8 @@ tasks:
     <<: [ *ubuntu2404, *unittests ]
   ubuntu2404_integration_tests:
     <<: [ *ubuntu2404, *integration_tests ]
-  ubuntu2204_unittests:
-    <<: [ *ubuntu2204, *unittests ]
-  ubuntu2204_integration_tests:
-    <<: [ *ubuntu2204, *integration_tests ]
+  macos_integration_tests:
+    <<: [ *macos, *integration_tests ]
   windows_integration_tests:
     <<: [ *windows, *integration_tests_no_android ]
   windows_unittests:
