@@ -22,6 +22,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.File;
+
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -72,7 +74,7 @@ public class KotlinBuilderIncrementalDirTest {
         String outputJar = task.getOutputs().getJar();
 
         // The incremental base dir should be a sibling directory to the output jar
-        String jarDir = outputJar.substring(0, outputJar.lastIndexOf('/'));
+        String jarDir = outputJar.substring(0, outputJar.lastIndexOf(File.separatorChar));
         assertThat(incrementalBaseDir).startsWith(jarDir);
 
         // Should contain the jar name (without extension) in the path

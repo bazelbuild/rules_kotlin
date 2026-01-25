@@ -174,7 +174,7 @@ class IncrementalCompilationTest {
                 val baseline = beforeTimestamps[name]
                 baseline == null || baseline != time
             }
-            .map { it.key.removeSuffix(".class").replace("/", ".") }
+            .map { it.key.removeSuffix(".class").replace(File.separator, ".") }
             .toSet()
 
         return CompilationResult(
