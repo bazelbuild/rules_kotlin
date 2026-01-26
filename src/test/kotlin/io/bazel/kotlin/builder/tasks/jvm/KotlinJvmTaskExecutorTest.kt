@@ -2,6 +2,7 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
 import org.junit.Test
+import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -45,12 +46,15 @@ class KotlinJvmTaskExecutorTest {
     assertTrue(compileTask.inputs.kotlinSourcesList.isEmpty())
 
     assertTrue(expandedCompileTask.hasInputs())
+    // Use platform-specific path separator for cross-platform compatibility
+    val javaSuffix = "generated_sources${File.separator}AnotherGenClass.java"
     assertNotNull(expandedCompileTask.inputs.javaSourcesList.find { path ->
-      path.endsWith("generated_sources/AnotherGenClass.java")
+      path.endsWith(javaSuffix)
     })
     assertEquals(expandedCompileTask.inputs.javaSourcesCount, 1)
+    val ktSuffix = "generated_sources${File.separator}AGenClass.kt"
     assertNotNull(expandedCompileTask.inputs.kotlinSourcesList.find { path ->
-      path.endsWith("generated_sources/AGenClass.kt")
+      path.endsWith(ktSuffix)
     })
     assertEquals(expandedCompileTask.inputs.kotlinSourcesCount, 1)
   }

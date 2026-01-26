@@ -104,6 +104,6 @@ java_binary(
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = "2.0",
-    language_version = "2.0",
+    api_version = "2.1",
+    language_version = "2.1",
 )

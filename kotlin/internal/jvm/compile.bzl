@@ -227,7 +227,9 @@ def _new_plugin_from(all_cfgs, plugins_for_phase):
     classpath = []
     data = []
     options = []
+    ids = []
     for p in plugins_for_phase:
+        ids.append(p.id)
         classpath.append(p.classpath)
         options.extend(p.options)
         if p.id in all_cfgs:
@@ -240,6 +242,7 @@ def _new_plugin_from(all_cfgs, plugins_for_phase):
         classpath = depset(transitive = classpath),
         data = depset(transitive = data),
         options = options,
+        ids = ids,
     )
 
 # INTERNAL ACTIONS #####################################################################################################
@@ -561,7 +564,8 @@ def _run_kt_builder_action(
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
-    args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
+    args.add("--incremental_compilation", toolchains.kt.experimental_incremental_compilation)
+    args.add("--ic_enable_logging", toolchains.kt.experimental_ic_enable_logging)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
@@ -599,6 +603,12 @@ def _run_kt_builder_action(
     )
 
     args.add_all(
+        "--stubs_plugin_ids",
+        plugins.stubs_phase.ids,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
         "--compiler_plugin_classpath",
         plugins.compile_phase.classpath,
         omit_if_empty = True,
@@ -608,6 +618,12 @@ def _run_kt_builder_action(
         "--compiler_plugin_options",
         plugins.compile_phase.options,
         map_each = _format_compile_plugin_options,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin_ids",
+        plugins.compile_phase.ids,
         omit_if_empty = True,
     )
 
@@ -629,6 +645,8 @@ def _run_kt_builder_action(
         args.add("--remove_debug_info_in_abi_jar", "true")
 
     args.add("--build_kotlin", build_kotlin)
+
+    # Note: IC data is managed by the worker internally, deriving paths from output JARs.
 
     progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
         mnemonic,
@@ -653,7 +671,6 @@ def _run_kt_builder_action(
         ),
         tools = [
             toolchains.kt.kotlinbuilder.files_to_run,
-            toolchains.kt.kotlin_home.files_to_run,
         ],
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
@@ -866,6 +883,10 @@ def _run_kt_java_builder_actions(
     kt_stubs_for_java = []
     has_kt_sources = srcs.kt or srcs.src_jars
 
+    # Note: IC data (including classpath snapshots) is managed by the worker internally.
+    # The worker derives IC directories from output JAR paths, so we don't pass
+    # snapshot paths from Starlark anymore.
+
     # Run KAPT
     if has_kt_sources and annotation_processors:
         kapt_outputs = _run_kapt_builder_actions(
@@ -926,6 +947,9 @@ def _run_kt_java_builder_actions(
         if toolchains.kt.jvm_emit_jdeps:
             kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
             outputs["kotlin_output_jdeps"] = kt_jdeps
+
+        # Note: IC data (including classpath snapshots) is stored in worker-local
+        # directories as side-effects, not as declared Bazel outputs.
 
         _run_kt_builder_action(
             ctx = ctx,

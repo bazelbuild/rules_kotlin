@@ -25,3 +25,6 @@ TEMPLATES = [
     Label("capabilities_2.3.bzl.com_github_jetbrains_kotlin.bazel"),
     Label("capabilities_legacy.bzl.com_github_jetbrains_kotlin.bazel"),
 ]
+GENERATED_OPTS_TEMPLATES = [
+    Label("generated_opts_2.3.bzl.com_github_jetbrains_kotlin.bazel"),
+]

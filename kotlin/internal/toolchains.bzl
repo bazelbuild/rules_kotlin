@@ -15,7 +15,6 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
@@ -50,20 +49,24 @@ register_toolchains("//:custom_toolchain")
 """
 
 def _kotlin_toolchain_impl(ctx):
-    compile_time_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-            neverlink = True,
-        )
-        for jar in ctx.files.jvm_stdlibs
-    ]
+    # Create neverlink JavaInfo providers using actual compile_jars (header jars) from stdlib targets.
+    # Previously, this used ctx.files.jvm_stdlibs which returns DefaultInfo.files (processed jars),
+    # but we need the proper compile_jars (header jars) from the JavaInfo for correct compilation.
+    compile_time_providers = []
+    for target in ctx.attr.jvm_stdlibs:
+        if JavaInfo in target:
+            for java_output in target[JavaInfo].java_outputs:
+                compile_time_providers.append(JavaInfo(
+                    output_jar = java_output.class_jar,
+                    compile_jar = java_output.compile_jar if java_output.compile_jar else java_output.class_jar,
+                    neverlink = True,
+                ))
+
+    # For runtime, use actual JavaInfo providers (they contain proper runtime jars)
     runtime_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-        )
-        for jar in ctx.files.jvm_runtime
+        target[JavaInfo]
+        for target in ctx.attr.jvm_runtime
+        if JavaInfo in target
     ]
 
     toolchain = dict(
@@ -76,7 +79,6 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
-        kotlin_home = ctx.attr.kotlin_home,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -90,7 +92,8 @@ def _kotlin_toolchain_impl(ctx):
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
-        experimental_build_tools_api = ctx.attr.experimental_build_tools_api,
+        experimental_incremental_compilation = ctx.attr.experimental_incremental_compilation[BuildSettingInfo].value,
+        experimental_ic_enable_logging = ctx.attr.experimental_ic_enable_logging[BuildSettingInfo].value,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -134,9 +137,13 @@ _kt_toolchain = rule(
             using `tags` attribute defined directly on the rules.""",
             allow_empty = True,
         ),
-        "experimental_build_tools_api": attr.bool(
-            doc = "Enables experimental support for Build Tools API integration",
-            default = False,
+        "experimental_ic_enable_logging": attr.label(
+            doc = "Enables verbose IC logging for debugging/testing",
+            default = Label("//kotlin/settings:experimental_ic_enable_logging"),
+        ),
+        "experimental_incremental_compilation": attr.label(
+            doc = "Enables experimental support for incremental compilation",
+            default = Label("//kotlin/settings:experimental_incremental_compilation"),
         ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",
@@ -237,11 +244,6 @@ _kt_toolchain = rule(
                 "20",
                 "21",
             ],
-        ),
-        "kotlin_home": attr.label(
-            doc = "the filegroup defining the kotlin home",
-            default = Label("@" + _KT_COMPILER_REPO + "//:home"),
-            allow_files = True,
         ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",
@@ -350,7 +352,8 @@ def define_kt_toolchain(
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
         experimental_multiplex_workers = None,
-        experimental_build_tools_api = None,
+        experimental_incremental_compilation = None,
+        experimental_ic_enable_logging = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
         jvm_stdlibs = None,
@@ -380,7 +383,8 @@ def define_kt_toolchain(
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
-        experimental_build_tools_api = experimental_build_tools_api,
+        experimental_incremental_compilation = experimental_incremental_compilation,
+        experimental_ic_enable_logging = experimental_ic_enable_logging,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],

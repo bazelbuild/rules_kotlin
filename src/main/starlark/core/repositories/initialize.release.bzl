@@ -21,11 +21,9 @@ load(
 )
 load(
     "//kotlin/internal:defs.bzl",
-    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
     _KT_COMPILER_REPO = "KT_COMPILER_REPO",
 )
-load(":compiler.bzl", "kotlin_compiler_repository")
-load(":ksp.bzl", "ksp_compiler_plugin_repository")
+load(":compiler.bzl", "kotlin_capabilities_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
 versions = _versions
@@ -35,68 +33,24 @@ RULES_KOTLIN = Label("//:all")
 def kotlin_repositories(
         is_bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,
-        ksp_repository_name = _KSP_COMPILER_PLUGIN_REPO,
-        compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
-        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
+        compiler_version = versions.KOTLIN_CURRENT_COMPILER_VERSION):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
         compiler_repository_name: for the kotlinc compiler repository.
-        compiler_release: version provider from versions.bzl.
-        configured_repository_name: for the default versioned kt_* rules repository. If None, no versioned repository is
-         created.
-        ksp_compiler_release: (internal) version provider from versions.bzl.
+        compiler_version: Kotlin compiler version string (e.g. "2.3.20-Beta1").
     """
 
-    kotlin_compiler_repository(
+    kotlin_capabilities_repository(
         name = compiler_repository_name,
-        urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
-        sha256 = compiler_release.sha256,
-        compiler_version = compiler_release.version,
-    )
-
-    ksp_compiler_plugin_repository(
-        name = ksp_repository_name,
-        urls = [url.format(version = ksp_compiler_release.version) for url in ksp_compiler_release.url_templates],
-        sha256 = ksp_compiler_release.sha256,
-        strip_version = ksp_compiler_release.version,
+        compiler_version = compiler_version,
     )
 
     versions.use_repository(
         http_file,
         name = "com_github_pinterest_ktlint",
         version = versions.PINTEREST_KTLINT,
-        executable = True,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlinx_serialization_core_jvm",
-        version = versions.KOTLINX_SERIALIZATION_CORE_JVM,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlinx_serialization_json",
-        version = versions.KOTLINX_SERIALIZATION_JSON,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlinx_serialization_json_jvm",
-        version = versions.KOTLINX_SERIALIZATION_JSON_JVM,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlinx_coroutines_core_jvm",
-        version = versions.KOTLINX_COROUTINES_CORE_JVM,
-    )
-
-    versions.use_repository(
-        http_file,
-        name = "kotlin_build_tools_impl",
-        version = versions.KOTLIN_BUILD_TOOLS_IMPL,
+        downloaded_file_path = "ktlint.jar",
     )
 
     if is_bzlmod:
@@ -145,6 +99,18 @@ def kotlin_repositories(
 
     versions.use_repository(
         http_archive,
+        name = "bazel_features",
+        version = versions.BAZEL_FEATURES,
+    )
+
+    versions.use_repository(
+        http_archive,
+        name = "bazel_lib",
+        version = versions.BAZEL_LIB,
+    )
+
+    versions.use_repository(
+        http_archive,
         name = "com_google_protobuf",
         version = versions.COM_GOOGLE_PROTOBUF,
     )
@@ -159,15 +125,6 @@ def kotlinc_version(release, sha256):
         version = release,
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
-        ],
-        sha256 = sha256,
-    )
-
-def ksp_version(release, sha256):
-    return version(
-        version = release,
-        url_templates = [
-            "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
         sha256 = sha256,
     )

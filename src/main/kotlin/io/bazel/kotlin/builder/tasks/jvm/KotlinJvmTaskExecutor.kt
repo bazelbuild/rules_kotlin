@@ -20,117 +20,64 @@ import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 
-/**
- * Due to an inconsistency in the handling of -Xfriends-path, jvm uses a comma (property list
- * separator)
- */
-const val X_FRIENDS_PATH_SEPARATOR = ","
-
+@OptIn(ExperimentalBuildToolsApi::class)
 class KotlinJvmTaskExecutor(
   private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
   private val plugins: InternalCompilerPlugins,
 ) {
-  private fun combine(
-    one: Throwable?,
-    two: Throwable?,
-  ): Throwable? {
-    return when {
-      one != null && two != null -> {
-        one.addSuppressed(two)
-        return one
-      }
-      one != null -> one
-      else -> two
-    }
-  }
+  private val btapiCompiler by lazy { BtapiCompiler(compilerBuilder.createBtapiToolchains()) }
+
+  /**
+   * Checks if the task has KAPT processors that need to be run.
+   */
+  private fun JvmCompilationTask.hasKaptProcessors(): Boolean =
+    inputs.processorsList.isNotEmpty() &&
+      inputs.kotlinSourcesList.isNotEmpty() &&
+      !outputs.generatedClassJar.isNullOrEmpty()
 
   fun execute(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
-    val compiler = compilerBuilder.build(context.info.buildToolsApi)
-
     val preprocessedTask =
       task
         .preProcessingSteps(context)
-        .runPlugins(context, plugins, compiler)
+        .runPlugins(context, plugins, btapiCompiler)
 
     context.execute("compile classes") {
       preprocessedTask.apply {
-        listOf(
-          runCatching {
-            context.execute("kotlinc") {
-              if (compileKotlin) {
-                compileKotlin(
-                  context,
-                  compiler,
-                  args =
-                    baseArgs()
-                      .given(outputs.jdeps)
-                      .notEmpty {
-                        plugin(plugins.jdeps) {
-                          flag("output", outputs.jdeps)
-                          flag("target_label", info.label)
-                          inputs.directDependenciesList.forEach {
-                            flag("direct_dependencies", it)
-                          }
-                          inputs.classpathList.forEach {
-                            flag("full_classpath", it)
-                          }
-                          flag("strict_kotlin_deps", info.strictKotlinDeps)
-                        }
-                      }.given(outputs.jar)
-                      .notEmpty {
-                        append(codeGenArgs())
-                      }.given(outputs.abijar)
-                      .notEmpty {
-                        plugin(plugins.jvmAbiGen) {
-                          flag("outputDir", directories.abiClasses)
-                          if (info.treatInternalAsPrivateInAbiJar) {
-                            flag("treatInternalAsPrivate", "true")
-                          }
-                          if (info.removePrivateClassesInAbiJar) {
-                            flag("removePrivateClasses", "true")
-                          }
-                          if (info.removeDebugInfo) {
-                            flag("removeDebugInfo", "true")
-                          }
-                        }
-                        given(outputs.jar).empty {
-                          plugin(plugins.skipCodeGen)
-                        }
-                      },
-                  printOnFail = false,
-                )
-              } else {
-                emptyList()
-              }
+        context.execute("kotlinc") {
+          if (compileKotlin && inputs.kotlinSourcesList.isNotEmpty()) {
+            val result = btapiCompiler.compile(this, plugins, context.out)
+            when (result) {
+              CompilationResult.COMPILATION_SUCCESS -> { /* success */ }
+              CompilationResult.COMPILATION_ERROR ->
+                throw CompilationStatusException("Compilation failed", 1)
+              CompilationResult.COMPILATION_OOM_ERROR ->
+                throw CompilationStatusException("Compilation failed with OOM", 3)
+              CompilationResult.COMPILER_INTERNAL_ERROR ->
+                throw CompilationStatusException("Compiler internal error", 2)
             }
-          },
-        ).map {
-          (it.getOrNull() ?: emptyList()) to it.exceptionOrNull()
-        }.map {
-          when (it.second) {
-            // TODO(issue/296): remove when the CompilationStatusException is unified.
-            is CompilationStatusException ->
-              (it.second as CompilationStatusException).lines + it.first to it.second
-            else -> it
-          }
-        }.fold(Pair<List<String>, Throwable?>(emptyList(), null)) { acc, result ->
-          acc.first + result.first to combine(acc.second, result.second)
-        }.apply {
-          first.apply(context::printCompilerOutput)
-          second?.let {
-            throw it
           }
         }
+
+        // Ensure jdeps exists (restore from IC cache if compilation was skipped)
+        context.execute("ensure jdeps") { ensureJdepsExists() }
 
         if (outputs.jar.isNotEmpty()) {
           if (instrumentCoverage) {
             context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
           } else {
             context.execute("create jar", ::createOutputJar)
+          }
+          // Generate classpath snapshot for incremental compilation (stored in IC directory, not Bazel output)
+          if (context.info.incrementalCompilation) {
+            context.execute("create classpath snapshot") {
+              createOutputClasspathSnapshot(btapiCompiler)
+            }
           }
         }
         if (outputs.abijar.isNotEmpty()) {

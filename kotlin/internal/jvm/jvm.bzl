@@ -92,6 +92,7 @@ kt_jvm_binary(
 ```
 """
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(
@@ -121,6 +122,9 @@ load(
     _kt_ksp_plugin_impl = "kt_ksp_plugin_impl",
 )
 load("//kotlin/internal/utils:utils.bzl", "utils")
+
+# Toolchain type for the Windows launcher maker
+_LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
 
 _implicit_deps = {
     "java_stub_template": attr.label(
@@ -181,11 +185,29 @@ _implicit_deps = {
     ),
 }
 
-_runnable_implicit_deps = {
-    "_java_runtime": attr.label(
-        default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
-    ),
-}
+_runnable_implicit_deps = utils.add_dicts(
+    {
+        "_java_runtime": attr.label(
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+        ),
+        "_launcher": attr.label(
+            default = "@bazel_tools//tools/launcher:launcher",
+            cfg = "target",
+            executable = True,
+        ),
+        "_windows_constraint": attr.label(
+            default = "@platforms//os:windows",
+        ),
+    },
+    # Only add _windows_launcher_maker when the toolchain is not available (legacy fallback)
+    {} if bazel_features.rules._has_launcher_maker_toolchain else {
+        "_windows_launcher_maker": attr.label(
+            default = "@bazel_tools//tools/launcher:launcher_maker",
+            cfg = "exec",
+            executable = True,
+        ),
+    },
+)
 
 _common_attr = utils.add_dicts(
     _implicit_deps,
@@ -344,7 +366,7 @@ _common_toolchains = [
 
 _runnable_common_toolchains = [
     _JAVA_RUNTIME_TOOLCHAIN_TYPE,
-]
+] + ([config_common.toolchain_type(_LAUNCHER_MAKER_TOOLCHAIN_TYPE, mandatory = False)] if bazel_features.rules._has_launcher_maker_toolchain else [])
 
 kt_jvm_library = rule(
     doc = """This rule compiles and links Kotlin and Java sources into a .jar file.""",
@@ -518,17 +540,6 @@ DEPRECATED - please use `jar` and `srcjar` attributes.""",
 _kt_compiler_deps_aspect = aspect(
     implementation = _kt_compiler_deps_aspect_impl,
     attr_aspects = ["deps", "runtime_deps", "exports"],
-    attrs = {
-        "_jarjar": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//third_party:jarjar_runner"),
-        ),
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
-        ),
-    },
 )
 
 kt_compiler_plugin = rule(
@@ -602,18 +613,8 @@ Supports the following template values:
             default = True,
         ),
         "target_embedded_compiler": attr.bool(
-            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
-            dependencies, and will fail when running against a non-embeddable compiler.""",
+            doc = """Deprecated: This attribute no longer affects behavior. Plugin JARs are used as-is without reshading.""",
             default = False,
-        ),
-        "_jarjar": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//third_party:jarjar_runner"),
-        ),
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
         ),
     },
     implementation = _kt_compiler_plugin_impl,
@@ -661,13 +662,8 @@ kt_jvm_library(
             mandatory = True,
         ),
         "target_embedded_compiler": attr.bool(
-            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
-            dependencies, and will fail when running against a non-embeddable compiler.""",
+            doc = """Deprecated: This attribute no longer affects behavior. Plugin JARs are used as-is without reshading.""",
             default = False,
-        ),
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
         ),
     },
     implementation = _kt_ksp_plugin_impl,

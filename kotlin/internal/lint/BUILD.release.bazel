@@ -13,9 +13,23 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_java//java:java_binary.bzl", "java_binary")
+load("@rules_java//java:java_import.bzl", "java_import")
 
 bzl_library(
     name = "lint",
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
+)
+
+java_import(
+    name = "ktlint_jar",
+    jars = ["@com_github_pinterest_ktlint//file:ktlint.jar"],
+)
+
+java_binary(
+    name = "ktlint",
+    main_class = "com.pinterest.ktlint.Main",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":ktlint_jar"],
 )

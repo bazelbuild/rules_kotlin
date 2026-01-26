@@ -111,28 +111,28 @@ public class JdepsParserTest {
 
     assertThat(depKinds(result, Kind.UNUSED))
         .containsExactly(
-  "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.61/kotlin-stdlib-jdk8-1.3.61.jar",
-          "external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar",
-          "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
-          "external/com_github_jetbrains_kotlin/lib/kotlin-reflect.jar",
-          "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar",
-          "external/com_github_jetbrains_kotlin/lib/kotlin-test.jar"
+          toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.61/kotlin-stdlib-jdk8-1.3.61.jar"),
+          toPlatformPath("external/com_github_jetbrains_kotlin/lib/annotations-13.0.jar"),
+          toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"),
+          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-reflect.jar"),
+          toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar"),
+          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-test.jar")
         );
 
     assertThat(depKinds(result, Kind.EXPLICIT))
         .containsExactly(
-          "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-test-host/1.3.1/ktor-server-test-host-1.3.1.jar",
-          "bazel-out/darwin-fastbuild/bin/root/example/main/example-lib.jar",
-          "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/processed_javax.inject-1.jar"
+          toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-test-host/1.3.1/ktor-server-test-host-1.3.1.jar"),
+          toPlatformPath("bazel-out/darwin-fastbuild/bin/root/example/main/example-lib.jar"),
+          toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/processed_javax.inject-1.jar")
         );
 
     assertThat(depKinds(result, Kind.IMPLICIT))
         .containsExactly(
-          "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-host-common/1.3.1/ktor-server-host-common-1.3.1.jar",
-          "bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.71/kotlin-stdlib-jdk7-1.3.71.jar",
-          "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar",
-          "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar",
-          "external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar"
+          toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/io/ktor/ktor-server-host-common/1.3.1/ktor-server-host-common-1.3.1.jar"),
+          toPlatformPath("bazel-out/darwin-fastbuild/bin/external/maven/v1/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.71/kotlin-stdlib-jdk7-1.3.71.jar"),
+          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib.jar"),
+          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk7.jar"),
+          toPlatformPath("external/com_github_jetbrains_kotlin/lib/kotlin-stdlib-jdk8.jar")
         );
   }
 }

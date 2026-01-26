@@ -16,14 +16,6 @@
 package io.bazel.kotlin.builder.utils
 
 import io.bazel.kotlin.model.CompilationTaskInfo
-import io.bazel.kotlin.model.JvmCompilationTask
-import java.io.File
-
-val JvmCompilationTask.Inputs.joinedClasspath: String
-  get() =
-    this.classpathList.joinToString(
-      File.pathSeparator,
-    )
 
 val CompilationTaskInfo.bazelRuleKind: String
   get() = "kt_${platform.name.lowercase()}_${ruleKind.name.lowercase()}"

@@ -36,8 +36,8 @@ java_library(
         "KotlinJvmTestBuilder.java",
     ],
     data = [
-        "//src/main/kotlin/io/bazel/kotlin/compiler",
-        "@com_github_jetbrains_kotlin//:home",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
     ],
     exports = _COMMON_DEPS,
     runtime_deps = [
