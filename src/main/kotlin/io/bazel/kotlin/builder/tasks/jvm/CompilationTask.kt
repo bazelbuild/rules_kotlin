@@ -75,7 +75,7 @@ internal fun JvmCompilationTask.preProcessingSteps(
   context: CompilationTaskContext,
 ): JvmCompilationTask = context.execute("expand sources") { expandWithSourceJarSources() }
 
-@org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+@ExperimentalBuildToolsApi
 internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
@@ -100,7 +100,7 @@ internal fun JvmCompilationTask.runPlugins(
  * This is the new implementation that uses BTAPI directly instead of
  * the string-based KotlincInvoker path.
  */
-@org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+@ExperimentalBuildToolsApi
 private fun JvmCompilationTask.runKaptPluginBtapi(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
