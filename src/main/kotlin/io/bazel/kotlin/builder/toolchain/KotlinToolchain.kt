@@ -124,7 +124,6 @@ class KotlinToolchain private constructor(
     }
 
     internal val NO_ARGS = arrayOf<Any>()
-
     private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
 
     @JvmStatic
