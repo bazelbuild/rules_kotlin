@@ -5,7 +5,7 @@ module(
     repo_name = "rules_kotlin",
 )
 
-proto_version = "4.33.1"
+proto_version = "4.33.4"
 
 proto_version_parts = proto_version.split(".")
 
@@ -19,7 +19,7 @@ bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_python", version = "0.23.1")
-bazel_dep(name = "rules_android", version = "0.7.0")
+bazel_dep(name = "rules_android", version = "0.7.1")
 
 remote_android_extensions = use_extension(
     "@rules_android//bzlmod_extensions:android_extensions.bzl",
@@ -130,6 +130,16 @@ maven.override(
     coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk8",
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
 )
+maven.override(
+    name = "override_target_in_deps_protobuf_java",
+    coordinates = "com.google.protobuf:protobuf-java",
+    target = "@com_google_protobuf//:protobuf_java",
+)
+maven.override(
+    name = "override_target_in_deps_protobuf_java_util",
+    coordinates = "com.google.protobuf:protobuf-java-util",
+    target = "@com_google_protobuf//:protobuf_java_util",
+)
 use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 
 bazel_dep(name = "rules_pkg", version = "1.0.1")
@@ -137,13 +147,17 @@ bazel_dep(name = "rules_pkg", version = "1.0.1")
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True, repo_name = "io_bazel_stardoc")
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.0", dev_dependency = True)
 bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
-bazel_dep(name = "rules_bazel_integration_test", version = "0.34.0", dev_dependency = True)
+bazel_dep(name = "rules_bazel_integration_test", version = "0.35.0", dev_dependency = True)
 
 bazel_binaries = use_extension("@rules_bazel_integration_test//:extensions.bzl", "bazel_binaries", dev_dependency = True)
+bazel_binaries.download(version = "7.x")
+bazel_binaries.download(version = "8.x")
 bazel_binaries.download(version_file = "//:.bazelversion")
 use_repo(
     bazel_binaries,
     "bazel_binaries",
     "bazel_binaries_bazelisk",
     "build_bazel_bazel_.bazelversion",
+    "build_bazel_bazel_7_x",
+    "build_bazel_bazel_8_x",
 )

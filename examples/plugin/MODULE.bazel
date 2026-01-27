@@ -1,0 +1,27 @@
+module(name = "plugin-example")
+
+bazel_dep(name = "rules_android", version = "0.7.0")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_kotlin", version = "2.2.0")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
+
+android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
+use_repo(android_sdk_repository_extension, "androidsdk")
+
+register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "maven_rules_kotlin_example",
+    aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+    artifacts = [
+        "junit:junit:4.13.2",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.0.1",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+    use_starlark_android_rules = True,
+)
+use_repo(maven, "maven_rules_kotlin_example")
