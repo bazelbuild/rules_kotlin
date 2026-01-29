@@ -106,6 +106,16 @@ _JOPTS = {
             True: ["-XDsuppressNotes"],
         },
     ),
+    "no_proc": struct(
+        args = dict(
+            default = False,
+            doc = "Disable annotation processing with -proc:none",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-proc:none"],
+        },
+    ),
 }
 
 def _javac_options_impl(ctx):
