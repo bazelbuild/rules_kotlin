@@ -2,7 +2,7 @@ load("//kotlin:jvm.bzl", "kt_jvm_binary")
 
 alias(
     name = "kotlin-compiler-runtime",
-    actual = "//kotlin/compiler:kotlin-compiler",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler",
 )
 
 kt_jvm_binary(
@@ -16,11 +16,8 @@ kt_jvm_binary(
     visibility = [
         "//src/test:__subpackages__",
     ],
-    runtime_deps = [
-        ":kotlin-compiler-runtime",
-    ],
     deps = [
-        "//kotlin/compiler:kotlin-compiler",
+        ":kotlin-compiler-runtime",
         "//kotlin/compiler:kotlin-reflect",
         "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_arguments_description",
         "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
