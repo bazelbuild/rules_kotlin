@@ -64,35 +64,11 @@ to force diagnostics to be reported.""",
         default = None,
         introduced = "v1_4_30",
     ),
-    "-Xallow-condition-implies-returns-contracts": struct(
-        flag = "-Xallow-condition-implies-returns-contracts",
-        doc = "Allow contracts that specify a limited conditional returns postcondition.",
-        default = False,
-        introduced = "v2_2_20",
-    ),
-    "-Xallow-contracts-on-more-functions": struct(
-        flag = "-Xallow-contracts-on-more-functions",
-        doc = "Allow contracts on some operators and accessors, and allow checks for erased types.",
-        default = False,
-        introduced = "v2_2_20",
-    ),
-    "-Xallow-holdsin-contract": struct(
-        flag = "-Xallow-holdsin-contract",
-        doc = "Allow contracts that specify a condition that holds true inside a lambda argument.",
-        default = False,
-        introduced = "v2_2_20",
-    ),
     "-Xallow-kotlin-package": struct(
         flag = "-Xallow-kotlin-package",
         doc = "Allow compiling code in the 'kotlin' package, and allow not requiring 'kotlin.stdlib' in 'module-info'.",
         default = False,
         introduced = "v1_1_0",
-    ),
-    "-Xallow-reified-type-in-catch": struct(
-        flag = "-Xallow-reified-type-in-catch",
-        doc = "Allow 'catch' parameters to have reified types.",
-        default = False,
-        introduced = "v2_2_20",
     ),
     "-Xallow-unstable-dependencies": struct(
         flag = "-Xallow-unstable-dependencies",
@@ -139,15 +115,6 @@ default: legacy""",
         default = False,
         introduced = "v1_3_40",
     ),
-    "-Xcompiler-plugin-order": struct(
-        flag = "-Xcompiler-plugin-order",
-        doc = """Specify an execution order constraint for compiler plugins.
-Order constraint can be specified using the 'pluginId' of compiler plugins.
-The first specified plugin will be executed before the second plugin.
-Multiple constraints can be specified by repeating this option. Cycles in constraints will cause an error.""",
-        default = [],
-        introduced = "v2_3_0",
-    ),
     "-Xconsistent-data-class-copy-visibility": struct(
         flag = "-Xconsistent-data-class-copy-visibility",
         doc = "The effect of this compiler flag is the same as applying @ConsistentCopyVisibility annotation to all data classes in the module. See https://youtrack.jetbrains.com/issue/KT-11914",
@@ -172,12 +139,6 @@ Multiple constraints can be specified by repeating this option. Cycles in constr
         default = False,
         introduced = "v2_2_0",
     ),
-    "-Xdata-flow-based-exhaustiveness": struct(
-        flag = "-Xdata-flow-based-exhaustiveness",
-        doc = "Enable `when` exhaustiveness improvements that rely on data-flow analysis.",
-        default = False,
-        introduced = "v2_2_20",
-    ),
     "-Xdebug": struct(
         flag = "-Xdebug",
         doc = """Enable debug mode for compilation.
@@ -185,14 +146,6 @@ Currently this includes spilling all variables in a suspending context regardles
 If API Level >= 2.2 -- no-op.""",
         default = False,
         introduced = "v1_8_0",
-    ),
-    "-Xdetailed-perf": struct(
-        flag = "-Xdetailed-perf",
-        doc = """Enable more detailed performance statistics (Experimental).
-For Native, the performance report includes execution time and lines processed per second for every individual lowering.
-For WASM and JS, the performance report includes execution time and lines per second for each lowering of the first stage of compilation.""",
-        default = False,
-        introduced = "v2_3_0",
     ),
     "-Xdirect-java-actualization": struct(
         flag = "-Xdirect-java-actualization",
@@ -251,12 +204,6 @@ Use the 'warning' level to issue warnings instead of errors.""",
         default = None,
         introduced = "v1_3_70",
     ),
-    "-Xexplicit-backing-fields": struct(
-        flag = "-Xexplicit-backing-fields",
-        doc = "Enable experimental language support for explicit backing fields.",
-        default = False,
-        introduced = "v2_3_0",
-    ),
     "-Xgenerate-strict-metadata-version": struct(
         flag = "-Xgenerate-strict-metadata-version",
         doc = "Generate metadata with strict version semantics (see the KDoc entry on 'Metadata.extraInt').",
@@ -286,6 +233,18 @@ Use the 'warning' level to issue warnings instead of errors.""",
         doc = "When using the IR backend, do not clear BindingContext between 'psi2ir' and lowerings.",
         default = False,
         introduced = "v1_4_30",
+    ),
+    "-Xir-inliner": struct(
+        flag = "-Xir-inliner",
+        doc = "Inline functions using the IR inliner instead of the bytecode inliner.",
+        default = False,
+        introduced = "v1_9_0",
+    ),
+    "-Xir-inliner": struct(
+        flag = "-Xir-inliner",
+        doc = "Inline functions using the IR inliner instead of the bytecode inliner.",
+        default = False,
+        introduced = "v1_9_0",
     ),
     "-Xjspecify-annotations": struct(
         flag = "-Xjspecify-annotations",
@@ -385,15 +344,6 @@ It has no effect when -language-version is 2.0 or higher.""",
         doc = "Compile multifile classes as a hierarchy of parts and a facade.",
         default = False,
         introduced = "v1_0_2",
-    ),
-    "-Xname-based-destructuring": struct(
-        flag = "-Xname-based-destructuring",
-        doc = """Enables the following destructuring features:
--Xname-based-destructuring=only-syntax:   Enables syntax for positional destructuring with square brackets and the full form of name-based destructuring with parentheses;
--Xname-based-destructuring=name-mismatch: Reports warnings when short form positional destructuring of data classes uses names that don't match the property names;
--Xname-based-destructuring=complete:      Enables short-form name-based destructuring with parentheses;""",
-        default = None,
-        introduced = "v2_3_0",
     ),
     "-Xnested-type-aliases": struct(
         flag = "-Xnested-type-aliases",
@@ -560,12 +510,6 @@ problems with parentheses in identifiers on certain platforms.""",
         default = False,
         introduced = "v1_3_30",
     ),
-    "-Xseparate-kmp-compilation": struct(
-        flag = "-Xseparate-kmp-compilation",
-        doc = "Enables the separated compilation scheme, in which common source sets are analyzed against their own dependencies",
-        default = False,
-        introduced = "v2_2_20",
-    ),
     "-Xserialize-ir": struct(
         flag = "-Xserialize-ir",
         doc = "Save the IR to metadata (Experimental).",
@@ -726,16 +670,6 @@ This can be used in the event of problems with the new implementation.""",
         doc = "Check for visibility violations in IR when validating it before running any lowerings. Only has effect if '-Xverify-ir' is not 'none'.",
         default = False,
         introduced = "v2_0_20",
-    ),
-    "-Xwhen-expressions": struct(
-        flag = "-Xwhen-expressions",
-        doc = """Select the code generation scheme for type-checking 'when' expressions:
--Xwhen-expressions=indy         Generate type-checking 'when' expressions using 'invokedynamic' with 'SwitchBootstraps.typeSwitch(..)' and 
-                                following 'tableswitch' or 'lookupswitch'. This requires '-jvm-target 21' or greater.
--Xwhen-expressions=inline       Generate type-checking 'when' expressions as a chain of type checks.
-The default value is 'inline'.""",
-        default = None,
-        introduced = "v2_2_20",
     ),
     "-Xwhen-guards": struct(
         flag = "-Xwhen-guards",
