@@ -60,14 +60,6 @@ GENERATED_KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_string_list_flag("-XXLanguage"),
     ),
-    "x_xdebug_level_compiler_checks":     struct(
-        flag = "-XXdebug-level-compiler-checks",
-        args = dict(
-            doc = "Enable debug level compiler checks. ATTENTION: these checks can slow compiler down or even crash it.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-XXdebug-level-compiler-checks"]},
-    ),
     "x_xdump_model":     struct(
         flag = "-XXdump-model",
         args = dict(
@@ -89,14 +81,6 @@ GENERATED_KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-XXexplicit-return-types"),
-    ),
-    "x_xlenient_mode":     struct(
-        flag = "-XXlenient-mode",
-        args = dict(
-            doc = "Lenient compiler mode. When actuals are missing, placeholder declarations are generated.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-XXlenient-mode"]},
     ),
     "x_abi_stability":     struct(
         flag = "-Xabi-stability",
@@ -129,30 +113,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xallow-any-scripts-in-source-roots"]},
     ),
-    "x_allow_condition_implies_returns_contracts":     struct(
-        flag = "-Xallow-condition-implies-returns-contracts",
-        args = dict(
-            doc = "Allow contracts that specify a limited conditional returns postcondition.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xallow-condition-implies-returns-contracts"]},
-    ),
-    "x_allow_contracts_on_more_functions":     struct(
-        flag = "-Xallow-contracts-on-more-functions",
-        args = dict(
-            doc = "Allow contracts on some operators and accessors, and allow checks for erased types.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xallow-contracts-on-more-functions"]},
-    ),
-    "x_allow_holdsin_contract":     struct(
-        flag = "-Xallow-holdsin-contract",
-        args = dict(
-            doc = "Allow contracts that specify a condition that holds true inside a lambda argument.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xallow-holdsin-contract"]},
-    ),
     "x_allow_kotlin_package":     struct(
         flag = "-Xallow-kotlin-package",
         args = dict(
@@ -161,14 +121,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xallow-kotlin-package"]},
     ),
-    "x_allow_reified_type_in_catch":     struct(
-        flag = "-Xallow-reified-type-in-catch",
-        args = dict(
-            doc = "Allow 'catch' parameters to have reified types.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xallow-reified-type-in-catch"]},
-    ),
     "x_allow_unstable_dependencies":     struct(
         flag = "-Xallow-unstable-dependencies",
         args = dict(
@@ -176,36 +128,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xallow-unstable-dependencies"]},
-    ),
-    "x_annotation_default_target":     struct(
-        flag = "-Xannotation-default-target",
-        args = dict(
-            doc = """Change the default annotation targets for constructor properties:
-    -Xannotation-default-target=first-only:      use the first of the following allowed targets: '@param:', '@property:', '@field:';
-    -Xannotation-default-target=first-only-warn: same as first-only, and raise warnings when both '@param:' and either '@property:' or '@field:' are allowed;
-    -Xannotation-default-target=param-property:  use '@param:' target if applicable, and also use the first of either '@property:' or '@field:';
-    default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1 and before.""",
-                default = "",
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xannotation-default-target"),
-    ),
-    "x_annotation_target_all":     struct(
-        flag = "-Xannotation-target-all",
-        args = dict(
-            doc = "Enable experimental language support for @all: annotation use-site target.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xannotation-target-all"]},
-    ),
-    "x_annotations_in_metadata":     struct(
-        flag = "-Xannotations-in-metadata",
-        args = dict(
-            doc = "Write annotations on declarations into the metadata (in addition to the JVM bytecode), and read annotations from the metadata if they are present.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xannotations-in-metadata"]},
     ),
     "x_assertions":     struct(
         flag = "-Xassertions",
@@ -241,27 +163,6 @@ GENERATED_KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_string_list_flag("-Xcommon-sources"),
     ),
-    "x_compile_builtins_as_part_of_stdlib":     struct(
-        flag = "-Xcompile-builtins-as-part-of-stdlib",
-        args = dict(
-            doc = "Enable behaviour needed to compile builtins as part of JVM stdlib",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xcompile-builtins-as-part-of-stdlib"]},
-    ),
-    "x_compiler_plugin_order":     struct(
-        flag = "-Xcompiler-plugin-order",
-        args = dict(
-            doc = """Specify an execution order constraint for compiler plugins.
-    Order constraint can be specified using the 'pluginId' of compiler plugins.
-    The first specified plugin will be executed before the second plugin.
-    Multiple constraints can be specified by repeating this option. Cycles in constraints will cause an error.""",
-                default = [],
-        ),
-        type = attr.string_list,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_list_flag("-Xcompiler-plugin-order"),
-    ),
     "x_consistent_data_class_copy_visibility":     struct(
         flag = "-Xconsistent-data-class-copy-visibility",
         args = dict(
@@ -270,14 +171,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xconsistent-data-class-copy-visibility"]},
     ),
-    "x_context_parameters":     struct(
-        flag = "-Xcontext-parameters",
-        args = dict(
-            doc = "Enable experimental context parameters.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xcontext-parameters"]},
-    ),
     "x_context_receivers":     struct(
         flag = "-Xcontext-receivers",
         args = dict(
@@ -285,22 +178,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xcontext-receivers"]},
-    ),
-    "x_context_sensitive_resolution":     struct(
-        flag = "-Xcontext-sensitive-resolution",
-        args = dict(
-            doc = "Enable experimental context-sensitive resolution.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xcontext-sensitive-resolution"]},
-    ),
-    "x_data_flow_based_exhaustiveness":     struct(
-        flag = "-Xdata-flow-based-exhaustiveness",
-        args = dict(
-            doc = "Enable `when` exhaustiveness improvements that rely on data-flow analysis.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xdata-flow-based-exhaustiveness"]},
     ),
     "x_debug":     struct(
         flag = "-Xdebug",
@@ -311,16 +188,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xdebug"]},
-    ),
-    "x_detailed_perf":     struct(
-        flag = "-Xdetailed-perf",
-        args = dict(
-            doc = """Enable more detailed performance statistics (Experimental).
-    For Native, the performance report includes execution time and lines processed per second for every individual lowering.
-    For WASM and JS, the performance report includes execution time and lines per second for each lowering of the first stage of compilation.""",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xdetailed-perf"]},
     ),
     "x_direct_java_actualization":     struct(
         flag = "-Xdirect-java-actualization",
@@ -380,15 +247,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xenhance-type-parameter-types-to-def-not-null"]},
     ),
-    "x_enhanced_coroutines_debugging":     struct(
-        flag = "-Xenhanced-coroutines-debugging",
-        args = dict(
-            doc = """Generate additional linenumber instruction for compiler-generated code
-    inside suspend functions and lambdas to distinguish them from user code by debugger.""",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xenhanced-coroutines-debugging"]},
-    ),
     "x_expect_actual_classes":     struct(
         flag = "-Xexpect-actual-classes",
         args = dict(
@@ -409,14 +267,6 @@ GENERATED_KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-Xexplicit-api"),
     ),
-    "x_explicit_backing_fields":     struct(
-        flag = "-Xexplicit-backing-fields",
-        args = dict(
-            doc = "Enable experimental language support for explicit backing fields.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xexplicit-backing-fields"]},
-    ),
     "x_generate_strict_metadata_version":     struct(
         flag = "-Xgenerate-strict-metadata-version",
         args = dict(
@@ -433,14 +283,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xignore-const-optimization-errors"]},
     ),
-    "x_indy_allow_annotated_lambdas":     struct(
-        flag = "-Xindy-allow-annotated-lambdas",
-        args = dict(
-            doc = "Allow using 'invokedynamic' for lambda expressions with annotations",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xindy-allow-annotated-lambdas"]},
-    ),
     "x_inline_classes":     struct(
         flag = "-Xinline-classes",
         args = dict(
@@ -456,6 +298,22 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xir-do-not-clear-binding-context"]},
+    ),
+    "x_ir_inliner":     struct(
+        flag = "-Xir-inliner",
+        args = dict(
+            doc = "Inline functions using the IR inliner instead of the bytecode inliner.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xir-inliner"]},
+    ),
+    "x_ir_inliner":     struct(
+        flag = "-Xir-inliner",
+        args = dict(
+            doc = "Inline functions using the IR inliner instead of the bytecode inliner.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xir-inliner"]},
     ),
     "x_jspecify_annotations":     struct(
         flag = "-Xjspecify-annotations",
@@ -506,14 +364,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xjvm-enable-preview"]},
-    ),
-    "x_jvm_expose_boxed":     struct(
-        flag = "-Xjvm-expose-boxed",
-        args = dict(
-            doc = "Expose inline classes and functions, accepting and returning them, to Java.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xjvm-expose-boxed"]},
     ),
     "x_lambdas":     struct(
         flag = "-Xlambdas",
@@ -589,27 +439,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xmultifile-parts-inherit"]},
-    ),
-    "x_name_based_destructuring":     struct(
-        flag = "-Xname-based-destructuring",
-        args = dict(
-            doc = """Enables the following destructuring features:
-    -Xname-based-destructuring=only-syntax:   Enables syntax for positional destructuring with square brackets and the full form of name-based destructuring with parentheses;
-    -Xname-based-destructuring=name-mismatch: Reports warnings when short form positional destructuring of data classes uses names that don't match the property names;
-    -Xname-based-destructuring=complete:      Enables short-form name-based destructuring with parentheses;""",
-                default = "",
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xname-based-destructuring"),
-    ),
-    "x_nested_type_aliases":     struct(
-        flag = "-Xnested-type-aliases",
-        args = dict(
-            doc = "Enable experimental language support for nested type aliases.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xnested-type-aliases"]},
     ),
     "x_new_inference":     struct(
         flag = "-Xnew-inference",
@@ -805,16 +634,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xreport-perf"]},
     ),
-    "x_return_value_checker":     struct(
-        flag = "-Xreturn-value-checker",
-        args = dict(
-            doc = "Set improved unused return value checker mode. Use 'check' to run checker only and use 'full' to also enable automatic annotation insertion.",
-                values = ["","check", "full", "disable"],
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xreturn-value-checker"),
-    ),
     "x_sam_conversions":     struct(
         flag = "-Xsam-conversions",
         args = dict(
@@ -837,14 +656,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xsanitize-parentheses"]},
-    ),
-    "x_separate_kmp_compilation":     struct(
-        flag = "-Xseparate-kmp-compilation",
-        args = dict(
-            doc = "Enables the separated compilation scheme, in which common source sets are analyzed against their own dependencies",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xseparate-kmp-compilation"]},
     ),
     "x_serialize_ir":     struct(
         flag = "-Xserialize-ir",
@@ -1016,6 +827,22 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xuse-inline-scopes-numbers"]},
     ),
+    "x_use_k2":     struct(
+        flag = "-Xuse-k2",
+        args = dict(
+            doc = "Compile using the experimental K2 compiler pipeline. No compatibility guarantees are provided yet.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xuse-k2"]},
+    ),
+    "x_use_k2":     struct(
+        flag = "-Xuse-k2",
+        args = dict(
+            doc = "Compile using the experimental K2 compiler pipeline. No compatibility guarantees are provided yet.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xuse-k2"]},
+    ),
     "x_use_old_class_files_reading":     struct(
         flag = "-Xuse-old-class-files-reading",
         args = dict(
@@ -1077,33 +904,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xverify-ir-visibility"]},
     ),
-    "x_warning_level":     struct(
-        flag = "-Xwarning-level",
-        args = dict(
-            doc = """Set the severity of the given warning.
-    - `error` level raises the severity of a warning to error level (similar to -Werror but more granular)
-    - `disabled` level suppresses reporting of a warning (similar to -nowarn but more granular)
-    - `warning` level overrides -nowarn and -Werror for this specific warning (the warning will be reported/won't be considered as an error)""",
-                default = [],
-        ),
-        type = attr.string_list,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_list_flag("-Xwarning-level"),
-    ),
-    "x_when_expressions":     struct(
-        flag = "-Xwhen-expressions",
-        args = dict(
-            doc = """Select the code generation scheme for type-checking 'when' expressions:
-    -Xwhen-expressions=indy         Generate type-checking 'when' expressions using 'invokedynamic' with 'SwitchBootstraps.typeSwitch(..)' and 
-                                    following 'tableswitch' or 'lookupswitch'. This requires '-jvm-target 21' or greater.
-    -Xwhen-expressions=inline       Generate type-checking 'when' expressions as a chain of type checks.
-    The default value is 'inline'.""",
-                values = ["","indy", "inline"],
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xwhen-expressions"),
-    ),
     "x_when_guards":     struct(
         flag = "-Xwhen-guards",
         args = dict(
@@ -1129,21 +929,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-java-parameters"]},
-    ),
-    "jvm_default":     struct(
-        flag = "-jvm-default",
-        args = dict(
-            doc = """Emit JVM default methods for interface declarations with bodies. The default is 'enable'.
-    -jvm-default=enable              Generate default methods for non-abstract interface declarations, as well as 'DefaultImpls' classes with
-                                     static methods for compatibility with code compiled in the 'disable' mode.
-                                     This is the default behavior since language version 2.2.
-    -jvm-default=no-compatibility    Generate default methods for non-abstract interface declarations. Do not generate 'DefaultImpls' classes.
-    -jvm-default=disable             Do not generate JVM default methods. This is the default behavior up to language version 2.1.""",
-                values = ["","enable", "no-compatibility", "disable"],
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-jvm-default"),
     ),
     "language_version":     struct(
         flag = "-language-version",

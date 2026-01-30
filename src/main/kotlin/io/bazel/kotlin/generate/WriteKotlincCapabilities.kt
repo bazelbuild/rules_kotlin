@@ -3,12 +3,13 @@ package io.bazel.kotlin.generate
 import io.bazel.kotlin.generate.WriteKotlincCapabilities.KotlincCapabilities.Companion.asCapabilities
 import org.jetbrains.kotlin.arguments.description.CompilerArgumentsLevelNames
 import org.jetbrains.kotlin.arguments.description.kotlinCompilerArguments
+import org.jetbrains.kotlin.arguments.description.removed.removedCommonCompilerArguments
+import org.jetbrains.kotlin.arguments.description.removed.removedJvmCompilerArguments
 import org.jetbrains.kotlin.arguments.dsl.base.KotlinCompilerArgument
 import org.jetbrains.kotlin.arguments.dsl.base.KotlinCompilerArgumentsLevel
 import org.jetbrains.kotlin.arguments.dsl.base.KotlinReleaseVersion
 import org.jetbrains.kotlin.arguments.dsl.types.BooleanType
 import org.jetbrains.kotlin.arguments.dsl.types.IntType
-import org.jetbrains.kotlin.arguments.dsl.types.KotlinVersion
 import org.jetbrains.kotlin.arguments.dsl.types.StringArrayType
 import org.jetbrains.kotlin.arguments.dsl.types.StringType
 import java.nio.charset.StandardCharsets
@@ -67,21 +68,45 @@ object WriteKotlincCapabilities {
       }
       ?: error("--out is required")
 
-    // Use kotlin-compiler-arguments-description artifact for compiler options metadata
-    val capabilities = getArgumentsFromDescription()
-      .filterNot(KotlincCapability::shouldSuppress)
-      .asCapabilities()
+    // Get optional target version filter (for testing single versions)
+    val targetVersionFilter = options["--target-version"]?.firstOrNull()
 
-    capabilitiesDirectory.resolve(capabilitiesName).writeText(
-      capabilities.asCapabilitiesBzl().toString(),
-      StandardCharsets.UTF_8,
-    )
+    // Get all arguments including removed ones for multi-version support
+    val allArguments = getAllArguments().toList()
 
-    // Generate opts file with full Starlark option structures
-    capabilitiesDirectory.resolve(generatedOptsName).writeText(
-      capabilities.asGeneratedOptsBzl(),
-      StandardCharsets.UTF_8,
-    )
+    // Determine which versions to generate
+    val versionsToGenerate = if (targetVersionFilter != null) {
+      val version = SUPPORTED_VERSIONS.find {
+        "${it.major}.${it.minor}" == targetVersionFilter
+      } ?: error("Unknown target version: $targetVersionFilter. Supported: ${SUPPORTED_VERSIONS.map { "${it.major}.${it.minor}" }}")
+      listOf(version)
+    } else {
+      SUPPORTED_VERSIONS
+    }
+
+    // Generate files for each supported version
+    for (targetVersion in versionsToGenerate) {
+      val capabilities = allArguments
+        .filter { shouldGenerate(it, targetVersion) }
+        .map { it.toCapability() }
+        .asCapabilities()
+
+      // Generate capabilities file
+      capabilitiesDirectory.resolve(capabilitiesName(targetVersion)).writeText(
+        capabilities.asCapabilitiesBzl().toString(),
+        StandardCharsets.UTF_8,
+      )
+
+      // Generate opts file (only for Kotlin 2.0+)
+      if (targetVersion >= KotlinReleaseVersion.v2_0_0) {
+        capabilitiesDirectory.resolve(generatedOptsName(targetVersion)).writeText(
+          capabilities.asGeneratedOptsBzl(),
+          StandardCharsets.UTF_8,
+        )
+      }
+
+      println("Generated files for Kotlin ${targetVersion.major}.${targetVersion.minor}")
+    }
 
     // Generate templates.bzl with both capabilities and generated_opts templates
     capabilitiesDirectory.resolve("templates.bzl").writeText(
@@ -162,6 +187,307 @@ object WriteKotlincCapabilities {
   )
 
   /**
+   * Flag policy for allowlist-based generation with multi-version support.
+   * Based on design doc: docs/design/kotlinc_options_multi_version.md
+   */
+  object FlagPolicy {
+    /**
+     * Flags that must NEVER be exposed regardless of any other consideration.
+     * These are managed by rules_kotlin, require path handling, or conflict with rules behavior.
+     */
+    val SUPPRESSED = setOf(
+      // === Managed by rules_kotlin ===
+      "-classpath",              // Set by compilation action
+      "-d",                      // Output directory set by rules
+      "-module-name",            // Set by rules from target name
+      "-Xfriend-paths",          // Use `associates` attribute instead
+      "-no-jdk",                 // JDK management is rules' job
+      "-no-stdlib",              // Part of include_stdlibs abstraction
+      "-no-reflect",             // Part of include_stdlibs abstraction
+
+      // === Path-based flags (need action input handling) ===
+      "-jdk-home",               // JDK managed by toolchain
+      "-kotlin-home",            // Kotlin managed by rules
+      "-Xplugin",                // Plugins via kt_compiler_plugin
+      "-Xcompiler-plugin",       // Plugins via kt_compiler_plugin
+      "-P",                      // Plugin options via kt_compiler_plugin
+      "-Xklib",                  // Would need action inputs
+      "-Xmodule-path",           // Java 9+ modules need explicit handling
+      "-Xprofile",               // Would produce untracked outputs
+
+      // === Java compilation (separate pipeline) ===
+      "-Xjavac-arguments",       // Use kt_javac_options
+      "-Xjava-source-roots",     // Java sources compiled separately
+      "-Xcompile-java",          // Java via java builder
+      "-Xuse-javac",             // Java via java builder
+      "-Xjava-package-prefix",   // Java compilation separate
+
+      // === Script compilation (not supported) ===
+      "-script",
+      "-script-templates",
+      "-expression",
+      "-Xdefault-script-extension",
+      "-Xdisable-standard-script",
+      "-Xscript-resolver-environment",
+
+      // === Conflicts with rules_kotlin behavior ===
+      "-Xno-reset-jar-timestamps",   // Rules explicitly zero timestamps
+      "-Xoutput-builtins-metadata",  // Outputs not added to rule outputs
+      "-Xallow-no-source-files",     // Rules validate sources exist
+
+      // === Kapt (explicitly supported via rules) ===
+      "-Xuse-k2-kapt",
+
+      // === Fragment flags (complex multiplatform, hard to use correctly) ===
+      "-Xfragments",
+      "-Xfragment-sources",
+      "-Xfragment-refines",
+      "-Xfragment-dependency",
+      "-Xfragment-friend-dependency",
+
+      // === Internal/debugging (not useful for users) ===
+      "-Xbuild-file",
+      "-Xdump-declarations-to",
+      "-Xdump-directory",
+      "-Xdump-fqname",
+      "-Xdump-perf",
+      "-Xintellij-plugin-root",
+      "-help",
+      "-X",
+      "-version",                // Just displays version
+      "-Xrepl",                  // REPL mode
+    )
+
+    /**
+     * Flags approved for automatic generation. Only flags in this set AND not in SUPPRESSED
+     * will be generated. Organized by category for easier review.
+     */
+    val ALLOWLIST: Set<String>
+      get() = BOOLEAN_FLAGS + ENUM_FLAGS + STRING_FLAGS + STRING_LIST_FLAGS
+
+    /** Boolean flags (simple enable/disable) */
+    private val BOOLEAN_FLAGS = setOf(
+      // Nullability & Type Safety
+      "-Xenhance-type-parameter-types-to-def-not-null",
+      "-Xtype-enhancement-improvements-strict-mode",
+      "-Xno-call-assertions",
+      "-Xno-param-assertions",
+      "-Xno-receiver-assertions",
+      "-Xno-unified-null-checks",
+
+      // Language Features
+      "-Xcontext-receivers",
+      "-Xcontext-parameters",
+      "-Xinline-classes",
+      "-Xvalue-classes",
+      "-Xmulti-platform",
+      "-Xexpect-actual-classes",
+      "-Xexplicit-backing-fields",
+      "-Xwhen-guards",
+      "-Xnon-local-break-continue",
+      "-Xnested-type-aliases",
+      "-Xmulti-dollar-interpolation",
+      "-Xannotation-target-all",
+      "-Xdata-flow-based-exhaustiveness",
+      "-Xallow-kotlin-package",
+      "-Xconsistent-data-class-copy-visibility",
+      "-Xcontext-sensitive-resolution",
+      "-Xdirect-java-actualization",
+
+      // Contracts
+      "-Xallow-condition-implies-returns-contracts",
+      "-Xallow-contracts-on-more-functions",
+      "-Xallow-holdsin-contract",
+
+      // Code Generation
+      "-java-parameters",
+      "-Xemit-jvm-type-annotations",
+      "-Xmultifile-parts-inherit",
+      "-Xno-new-java-annotation-targets",
+      "-Xsanitize-parentheses",
+      "-Xindy-allow-annotated-lambdas",
+      "-Xjvm-enable-preview",
+      "-Xjvm-expose-boxed",
+      "-Xannotations-in-metadata",
+
+      // Compilation Behavior
+      "-progressive",
+      "-verbose",
+      "-Werror",
+      "-Wextra",
+      "-nowarn",
+      "-Xno-inline",
+      "-Xno-optimize",
+      "-Xskip-metadata-version-check",
+      "-Xskip-prerelease-check",
+      "-Xallow-unstable-dependencies",
+      "-Xgenerate-strict-metadata-version",
+      "-Xreport-all-warnings",
+      "-Xdont-warn-on-error-suppression",
+      "-Xsuppress-version-warnings",
+      "-Xsuppress-deprecated-jvm-target-warning",
+      "-Xsuppress-missing-builtins-error",
+      "-Xsuppress-api-version-greater-than-language-version-error",
+      "-Xrender-internal-diagnostic-names",
+      "-Xignore-const-optimization-errors",
+      "-Xunrestricted-builder-inference",
+
+      // IR & Backend
+      "-Xuse-k2",
+      "-Xnew-inference",
+      "-Xir-inliner",
+      "-Xir-do-not-clear-binding-context",
+      "-Xuse-fast-jar-file-system",
+      "-Xuse-fir-ic",
+      "-Xuse-fir-lt",
+      "-Xuse-fir-experimental-checkers",
+      "-Xuse-inline-scopes-numbers",
+      "-Xuse-type-table",
+      "-Xuse-14-inline-classes-mangling-scheme",
+      "-Xlink-via-signatures",
+      "-Xvalidate-bytecode",
+      "-Xuse-old-class-files-reading",
+      "-Xmetadata-klib",
+      "-Xenhanced-coroutines-debugging",
+
+      // Debugging & Profiling
+      "-Xdebug",
+      "-Xcheck-phase-conditions",
+      "-Xlist-phases",
+      "-Xprofile-phases",
+      "-Xreport-perf",
+      "-Xdetailed-perf",
+      "-Xreport-output-files",
+      "-Xverify-ir-visibility",
+
+      // Multiplatform
+      "-Xno-check-actual",
+      "-Xseparate-kmp-compilation",
+
+      // Stdlib compilation (internal use)
+      "-Xstdlib-compilation",
+      "-Xcompile-builtins-as-part-of-stdlib",
+
+      // Scripting (partial support)
+      "-Xallow-any-scripts-in-source-roots",
+      "-Xdisable-default-scripting-plugin",
+
+      // Experimental/Advanced
+      "-Xenable-incremental-compilation",
+      "-XXlenient-mode",
+      "-XXdebug-level-compiler-checks",
+      "-Xallow-reified-type-in-catch",
+    )
+
+    /** Enum flags (with restricted values extracted from valueDescription) */
+    private val ENUM_FLAGS = setOf(
+      // Nullability handling
+      "-Xjspecify-annotations",
+
+      // Code generation schemes
+      "-Xlambdas",
+      "-Xsam-conversions",
+      "-Xstring-concat",
+      "-Xwhen-expressions",
+
+      // JVM default methods
+      "-jvm-default",
+      "-Xjvm-default",  // Deprecated but still present
+
+      // Assertions
+      "-Xassertions",
+
+      // API visibility
+      "-Xexplicit-api",
+      "-XXexplicit-return-types",
+
+      // IR
+      "-Xserialize-ir",
+      "-Xverify-ir",
+      "-Xabi-stability",
+
+      // Return value checker
+      "-Xreturn-value-checker",
+
+      // Destructuring
+      "-Xname-based-destructuring",
+
+      // Annotation targets
+      "-Xannotation-default-target",
+    )
+
+    /** String flags (free-form values) */
+    private val STRING_FLAGS = setOf(
+      "-api-version",
+      "-language-version",
+      "-Xmetadata-version",
+      "-Xsupport-compatqual-checker-framework-annotations",
+      "-XXdump-model",
+    )
+
+    /** String list flags (multiple free-form values) */
+    private val STRING_LIST_FLAGS = setOf(
+      "-opt-in",
+      "-Xjsr305",
+      "-Xnullability-annotations",
+      "-Xadd-modules",
+      "-Xcommon-sources",
+      "-Xsuppress-warning",
+      "-Xwarning-level",
+      "-Xcompiler-plugin-order",
+      "-XXLanguage",
+
+      // Phase manipulation (debugging)
+      "-Xdisable-phases",
+      "-Xphases-to-dump",
+      "-Xphases-to-dump-before",
+      "-Xphases-to-dump-after",
+      "-Xphases-to-validate",
+      "-Xphases-to-validate-before",
+      "-Xphases-to-validate-after",
+      "-Xverbose-phases",
+    )
+  }
+
+  /**
+   * Supported Kotlin versions for multi-version generation.
+   * We generate separate capabilities and generated_opts files for each version.
+   * Only Kotlin 2.0+ is supported.
+   */
+  val SUPPORTED_VERSIONS = listOf(
+    KotlinReleaseVersion.v2_0_0,
+    KotlinReleaseVersion.v2_1_0,
+    KotlinReleaseVersion.v2_2_0,
+    KotlinReleaseVersion.v2_3_0,
+  )
+
+  /**
+   * Check if a flag should be included in the generated files for a target version.
+   * A flag is included if:
+   * - It was introduced by or before the target version
+   * - It has not been removed, or was removed after the target version
+   */
+  private fun shouldIncludeInVersion(arg: KotlinCompilerArgument, targetVersion: KotlinReleaseVersion): Boolean {
+    val lifecycle = arg.releaseVersionsMetadata
+    // Must be introduced by this version
+    if (lifecycle.introducedVersion > targetVersion) return false
+    // Must not be removed by this version
+    lifecycle.removedVersion?.let { if (it <= targetVersion) return false }
+    return true
+  }
+
+  /**
+   * Check if a flag should be generated for a specific version.
+   * Combines version filtering with allowlist/suppressed filtering.
+   */
+  private fun shouldGenerate(arg: KotlinCompilerArgument, targetVersion: KotlinReleaseVersion): Boolean {
+    val flag = "-${arg.name}"
+    return shouldIncludeInVersion(arg, targetVersion)
+      && flag !in FlagPolicy.SUPPRESSED
+      && flag in FlagPolicy.ALLOWLIST
+  }
+
+  /**
    * Parse enumerated values from valueDescription.
    * The format is typically {value1|value2|value3} or {value1/value2/value3}.
    * Returns null if the valueDescription doesn't contain enumerated values.
@@ -182,22 +508,16 @@ object WriteKotlincCapabilities {
   }
 
   /**
-   * Derive the latest stable language version from KotlinVersion entries.
-   * A version is stable if it has a non-null stabilizedVersion in its lifecycle metadata.
+   * Generate capabilities file name for a specific Kotlin version.
    */
-  private val latestStableVersion: KotlinVersion by lazy {
-    KotlinVersion.entries
-      .filter { it.releaseVersionsMetadata.stabilizedVersion != null }
-      .maxBy { it.releaseVersionsMetadata.stabilizedVersion!! }
-  }
+  fun capabilitiesName(version: KotlinReleaseVersion): String =
+    "capabilities_${version.major}.${version.minor}.bzl.com_github_jetbrains_kotlin.bazel"
 
-  val capabilitiesName: String by lazy {
-    "capabilities_${latestStableVersion.versionName}.bzl.com_github_jetbrains_kotlin.bazel"
-  }
-
-  val generatedOptsName: String by lazy {
-    "generated_opts_${latestStableVersion.versionName}.bzl.com_github_jetbrains_kotlin.bazel"
-  }
+  /**
+   * Generate generated_opts file name for a specific Kotlin version.
+   */
+  fun generatedOptsName(version: KotlinReleaseVersion): String =
+    "generated_opts_${version.major}.${version.minor}.bzl.com_github_jetbrains_kotlin.bazel"
 
   private class BzlDoc {
     private val header = Comment(BAZEL_HEADER)
@@ -295,6 +615,29 @@ object WriteKotlincCapabilities {
   }
 
   /**
+   * Get all arguments including removed ones.
+   * This is used for multi-version generation where we need to include
+   * flags that existed in older versions but have been removed.
+   */
+  private fun getAllArguments(): Sequence<KotlinCompilerArgument> = sequence {
+    // Active arguments from the path to JVM arguments
+    val path = findPathToLevel(
+      kotlinCompilerArguments.topLevel,
+      CompilerArgumentsLevelNames.jvmCompilerArguments,
+      mutableListOf()
+    )
+    if (path != null) {
+      for (level in path) {
+        yieldAll(level.arguments)
+      }
+    }
+
+    // Removed arguments
+    yieldAll(removedJvmCompilerArguments.arguments)
+    yieldAll(removedCommonCompilerArguments.arguments)
+  }
+
+  /**
    * Find a path from the current level to the target level.
    * Returns a list of levels from root to target (inclusive), or null if not found.
    */
@@ -359,6 +702,7 @@ object WriteKotlincCapabilities {
 
     companion object {
       fun Sequence<KotlincCapability>.asCapabilities() = KotlincCapabilities(sorted().toList())
+      fun List<KotlincCapability>.asCapabilities() = KotlincCapabilities(sorted())
     }
 
     fun asCapabilitiesBzl() = BzlDoc {

@@ -129,30 +129,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xallow-any-scripts-in-source-roots"]},
     ),
-    "x_allow_condition_implies_returns_contracts":     struct(
-        flag = "-Xallow-condition-implies-returns-contracts",
-        args = dict(
-            doc = "Allow contracts that specify a limited conditional returns postcondition.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xallow-condition-implies-returns-contracts"]},
-    ),
-    "x_allow_contracts_on_more_functions":     struct(
-        flag = "-Xallow-contracts-on-more-functions",
-        args = dict(
-            doc = "Allow contracts on some operators and accessors, and allow checks for erased types.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xallow-contracts-on-more-functions"]},
-    ),
-    "x_allow_holdsin_contract":     struct(
-        flag = "-Xallow-holdsin-contract",
-        args = dict(
-            doc = "Allow contracts that specify a condition that holds true inside a lambda argument.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xallow-holdsin-contract"]},
-    ),
     "x_allow_kotlin_package":     struct(
         flag = "-Xallow-kotlin-package",
         args = dict(
@@ -160,14 +136,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xallow-kotlin-package"]},
-    ),
-    "x_allow_reified_type_in_catch":     struct(
-        flag = "-Xallow-reified-type-in-catch",
-        args = dict(
-            doc = "Allow 'catch' parameters to have reified types.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xallow-reified-type-in-catch"]},
     ),
     "x_allow_unstable_dependencies":     struct(
         flag = "-Xallow-unstable-dependencies",
@@ -249,19 +217,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xcompile-builtins-as-part-of-stdlib"]},
     ),
-    "x_compiler_plugin_order":     struct(
-        flag = "-Xcompiler-plugin-order",
-        args = dict(
-            doc = """Specify an execution order constraint for compiler plugins.
-    Order constraint can be specified using the 'pluginId' of compiler plugins.
-    The first specified plugin will be executed before the second plugin.
-    Multiple constraints can be specified by repeating this option. Cycles in constraints will cause an error.""",
-                default = [],
-        ),
-        type = attr.string_list,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_list_flag("-Xcompiler-plugin-order"),
-    ),
     "x_consistent_data_class_copy_visibility":     struct(
         flag = "-Xconsistent-data-class-copy-visibility",
         args = dict(
@@ -294,14 +249,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xcontext-sensitive-resolution"]},
     ),
-    "x_data_flow_based_exhaustiveness":     struct(
-        flag = "-Xdata-flow-based-exhaustiveness",
-        args = dict(
-            doc = "Enable `when` exhaustiveness improvements that rely on data-flow analysis.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xdata-flow-based-exhaustiveness"]},
-    ),
     "x_debug":     struct(
         flag = "-Xdebug",
         args = dict(
@@ -311,16 +258,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xdebug"]},
-    ),
-    "x_detailed_perf":     struct(
-        flag = "-Xdetailed-perf",
-        args = dict(
-            doc = """Enable more detailed performance statistics (Experimental).
-    For Native, the performance report includes execution time and lines processed per second for every individual lowering.
-    For WASM and JS, the performance report includes execution time and lines per second for each lowering of the first stage of compilation.""",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xdetailed-perf"]},
     ),
     "x_direct_java_actualization":     struct(
         flag = "-Xdirect-java-actualization",
@@ -409,14 +346,6 @@ GENERATED_KOPTS = {
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-Xexplicit-api"),
     ),
-    "x_explicit_backing_fields":     struct(
-        flag = "-Xexplicit-backing-fields",
-        args = dict(
-            doc = "Enable experimental language support for explicit backing fields.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xexplicit-backing-fields"]},
-    ),
     "x_generate_strict_metadata_version":     struct(
         flag = "-Xgenerate-strict-metadata-version",
         args = dict(
@@ -456,6 +385,22 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xir-do-not-clear-binding-context"]},
+    ),
+    "x_ir_inliner":     struct(
+        flag = "-Xir-inliner",
+        args = dict(
+            doc = "Inline functions using the IR inliner instead of the bytecode inliner.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xir-inliner"]},
+    ),
+    "x_ir_inliner":     struct(
+        flag = "-Xir-inliner",
+        args = dict(
+            doc = "Inline functions using the IR inliner instead of the bytecode inliner.",
+        ),
+        type = attr.bool,
+        value_to_flag = {True: ["-Xir-inliner"]},
     ),
     "x_jspecify_annotations":     struct(
         flag = "-Xjspecify-annotations",
@@ -589,19 +534,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xmultifile-parts-inherit"]},
-    ),
-    "x_name_based_destructuring":     struct(
-        flag = "-Xname-based-destructuring",
-        args = dict(
-            doc = """Enables the following destructuring features:
-    -Xname-based-destructuring=only-syntax:   Enables syntax for positional destructuring with square brackets and the full form of name-based destructuring with parentheses;
-    -Xname-based-destructuring=name-mismatch: Reports warnings when short form positional destructuring of data classes uses names that don't match the property names;
-    -Xname-based-destructuring=complete:      Enables short-form name-based destructuring with parentheses;""",
-                default = "",
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xname-based-destructuring"),
     ),
     "x_nested_type_aliases":     struct(
         flag = "-Xnested-type-aliases",
@@ -837,14 +769,6 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xsanitize-parentheses"]},
-    ),
-    "x_separate_kmp_compilation":     struct(
-        flag = "-Xseparate-kmp-compilation",
-        args = dict(
-            doc = "Enables the separated compilation scheme, in which common source sets are analyzed against their own dependencies",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xseparate-kmp-compilation"]},
     ),
     "x_serialize_ir":     struct(
         flag = "-Xserialize-ir",
@@ -1089,20 +1013,6 @@ GENERATED_KOPTS = {
         type = attr.string_list,
         value_to_flag = None,
         map_value_to_flag = _map_string_list_flag("-Xwarning-level"),
-    ),
-    "x_when_expressions":     struct(
-        flag = "-Xwhen-expressions",
-        args = dict(
-            doc = """Select the code generation scheme for type-checking 'when' expressions:
-    -Xwhen-expressions=indy         Generate type-checking 'when' expressions using 'invokedynamic' with 'SwitchBootstraps.typeSwitch(..)' and 
-                                    following 'tableswitch' or 'lookupswitch'. This requires '-jvm-target 21' or greater.
-    -Xwhen-expressions=inline       Generate type-checking 'when' expressions as a chain of type checks.
-    The default value is 'inline'.""",
-                values = ["","indy", "inline"],
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-Xwhen-expressions"),
     ),
     "x_when_guards":     struct(
         flag = "-Xwhen-guards",

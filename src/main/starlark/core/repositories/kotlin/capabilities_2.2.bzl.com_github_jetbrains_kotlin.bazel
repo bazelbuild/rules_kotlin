@@ -21,6 +21,13 @@ KOTLIN_OPTS = {
       introduced = "v1_2_0",
       stabilized = "v1_2_0"
     ),
+  "-Wextra" : struct(
+      flag = "-Wextra",
+      doc = "Enable extra checkers for K2.",
+      default = False,
+      introduced = "v2_1_0",
+      stabilized = "v2_1_0"
+    ),
   "-XXLanguage" : struct(
       flag = "-XXLanguage",
       doc = """Enables/disables specified language feature.
@@ -29,11 +36,31 @@ Warning: this flag is not intended for production use. If you want to configure 
       default = [],
       introduced = "v1_0_0"
     ),
+  "-XXdebug-level-compiler-checks" : struct(
+      flag = "-XXdebug-level-compiler-checks",
+      doc = "Enable debug level compiler checks. ATTENTION: these checks can slow compiler down or even crash it.",
+      default = False,
+      introduced = "v2_1_20"
+    ),
   "-XXdump-model" : struct(
       flag = "-XXdump-model",
       doc = "Dump compilation model to specified directory for use in modularized tests.",
       default = None,
       introduced = "v1_7_0"
+    ),
+  "-XXexplicit-return-types" : struct(
+      flag = "-XXexplicit-return-types",
+      doc = """Force the compiler to report errors on all public API declarations without an explicit return type.
+Use the 'warning' level to issue warnings instead of errors.
+This flag partially enables functionality of `-Xexplicit-api` flag, so please don't use them altogether""",
+      default = None,
+      introduced = "v2_0_20"
+    ),
+  "-XXlenient-mode" : struct(
+      flag = "-XXlenient-mode",
+      doc = "Lenient compiler mode. When actuals are missing, placeholder declarations are generated.",
+      default = False,
+      introduced = "v2_2_0"
     ),
   "-Xabi-stability" : struct(
       flag = "-Xabi-stability",
@@ -68,6 +95,28 @@ to force diagnostics to be reported.""",
       default = False,
       introduced = "v1_4_30"
     ),
+  "-Xannotation-default-target" : struct(
+      flag = "-Xannotation-default-target",
+      doc = """Change the default annotation targets for constructor properties:
+-Xannotation-default-target=first-only:      use the first of the following allowed targets: '@param:', '@property:', '@field:';
+-Xannotation-default-target=first-only-warn: same as first-only, and raise warnings when both '@param:' and either '@property:' or '@field:' are allowed;
+-Xannotation-default-target=param-property:  use '@param:' target if applicable, and also use the first of either '@property:' or '@field:';
+default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1 and before.""",
+      default = None,
+      introduced = "v2_1_20"
+    ),
+  "-Xannotation-target-all" : struct(
+      flag = "-Xannotation-target-all",
+      doc = "Enable experimental language support for @all: annotation use-site target.",
+      default = False,
+      introduced = "v2_1_20"
+    ),
+  "-Xannotations-in-metadata" : struct(
+      flag = "-Xannotations-in-metadata",
+      doc = "Write annotations on declarations into the metadata (in addition to the JVM bytecode), and read annotations from the metadata if they are present.",
+      default = False,
+      introduced = "v2_2_0"
+    ),
   "-Xassertions" : struct(
       flag = "-Xassertions",
       doc = """'kotlin.assert' call behavior:
@@ -92,11 +141,35 @@ They should be a subset of sources passed as free arguments.""",
       default = [],
       introduced = "v1_2_70"
     ),
+  "-Xcompile-builtins-as-part-of-stdlib" : struct(
+      flag = "-Xcompile-builtins-as-part-of-stdlib",
+      doc = "Enable behaviour needed to compile builtins as part of JVM stdlib",
+      default = False,
+      introduced = "v2_1_20"
+    ),
+  "-Xconsistent-data-class-copy-visibility" : struct(
+      flag = "-Xconsistent-data-class-copy-visibility",
+      doc = "The effect of this compiler flag is the same as applying @ConsistentCopyVisibility annotation to all data classes in the module. See https://youtrack.jetbrains.com/issue/KT-11914",
+      default = False,
+      introduced = "v2_0_20"
+    ),
+  "-Xcontext-parameters" : struct(
+      flag = "-Xcontext-parameters",
+      doc = "Enable experimental context parameters.",
+      default = False,
+      introduced = "v2_1_20"
+    ),
   "-Xcontext-receivers" : struct(
       flag = "-Xcontext-receivers",
       doc = "Enable experimental context receivers.",
       default = False,
       introduced = "v1_6_20"
+    ),
+  "-Xcontext-sensitive-resolution" : struct(
+      flag = "-Xcontext-sensitive-resolution",
+      doc = "Enable experimental context-sensitive resolution.",
+      default = False,
+      introduced = "v2_2_0"
     ),
   "-Xdebug" : struct(
       flag = "-Xdebug",
@@ -105,6 +178,12 @@ Currently this includes spilling all variables in a suspending context regardles
 If API Level >= 2.2 -- no-op.""",
       default = False,
       introduced = "v1_8_0"
+    ),
+  "-Xdirect-java-actualization" : struct(
+      flag = "-Xdirect-java-actualization",
+      doc = "Enable experimental direct Java actualization support.",
+      default = False,
+      introduced = "v2_1_0"
     ),
   "-Xdisable-default-scripting-plugin" : struct(
       flag = "-Xdisable-default-scripting-plugin",
@@ -142,6 +221,13 @@ If API Level >= 2.2 -- no-op.""",
       default = False,
       introduced = "v1_6_0"
     ),
+  "-Xenhanced-coroutines-debugging" : struct(
+      flag = "-Xenhanced-coroutines-debugging",
+      doc = """Generate additional linenumber instruction for compiler-generated code
+inside suspend functions and lambdas to distinguish them from user code by debugger.""",
+      default = False,
+      introduced = "v2_2_0"
+    ),
   "-Xexpect-actual-classes" : struct(
       flag = "-Xexpect-actual-classes",
       doc = """'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta.
@@ -167,6 +253,12 @@ Use the 'warning' level to issue warnings instead of errors.""",
       doc = "Ignore all compilation exceptions while optimizing some constant expressions.",
       default = False,
       introduced = "v1_9_0"
+    ),
+  "-Xindy-allow-annotated-lambdas" : struct(
+      flag = "-Xindy-allow-annotated-lambdas",
+      doc = "Allow using 'invokedynamic' for lambda expressions with annotations",
+      default = False,
+      introduced = "v2_2_0"
     ),
   "-Xinline-classes" : struct(
       flag = "-Xinline-classes",
@@ -228,6 +320,12 @@ This works like '--enable-preview' in Java. All class files are marked as compil
       default = False,
       introduced = "v1_4_30"
     ),
+  "-Xjvm-expose-boxed" : struct(
+      flag = "-Xjvm-expose-boxed",
+      doc = "Expose inline classes and functions, accepting and returning them, to Java.",
+      default = False,
+      introduced = "v2_2_0"
+    ),
   "-Xlambdas" : struct(
       flag = "-Xlambdas",
       doc = """Select the code generation scheme for lambdas.
@@ -265,6 +363,12 @@ It has no effect when -language-version is 2.0 or higher.""",
       default = None,
       introduced = "v1_2_70"
     ),
+  "-Xmulti-dollar-interpolation" : struct(
+      flag = "-Xmulti-dollar-interpolation",
+      doc = "Enable experimental multi-dollar interpolation.",
+      default = False,
+      introduced = "v2_0_20"
+    ),
   "-Xmulti-platform" : struct(
       flag = "-Xmulti-platform",
       doc = "Enable language support for multiplatform projects.",
@@ -276,6 +380,12 @@ It has no effect when -language-version is 2.0 or higher.""",
       doc = "Compile multifile classes as a hierarchy of parts and a facade.",
       default = False,
       introduced = "v1_0_2"
+    ),
+  "-Xnested-type-aliases" : struct(
+      flag = "-Xnested-type-aliases",
+      doc = "Enable experimental language support for nested type aliases.",
+      default = False,
+      introduced = "v2_1_20"
     ),
   "-Xnew-inference" : struct(
       flag = "-Xnew-inference",
@@ -330,6 +440,12 @@ It has no effect when -language-version is 2.0 or higher.""",
       doc = "Use pre-1.4 exception types instead of 'java.lang.NPE' in null checks. See KT-22275 for more details.",
       default = False,
       introduced = "v1_4_10"
+    ),
+  "-Xnon-local-break-continue" : struct(
+      flag = "-Xnon-local-break-continue",
+      doc = "Enable experimental non-local break and continue.",
+      default = False,
+      introduced = "v2_1_0"
     ),
   "-Xnullability-annotations" : struct(
       flag = "-Xnullability-annotations",
@@ -407,6 +523,12 @@ Modes:
       default = False,
       introduced = "v1_2_50"
     ),
+  "-Xreturn-value-checker" : struct(
+      flag = "-Xreturn-value-checker",
+      doc = "Set improved unused return value checker mode. Use 'check' to run checker only and use 'full' to also enable automatic annotation insertion.",
+      default = None,
+      introduced = "v2_2_0"
+    ),
   "-Xsam-conversions" : struct(
       flag = "-Xsam-conversions",
       doc = """Select the code generation scheme for SAM conversions.
@@ -441,6 +563,12 @@ problems with parentheses in identifiers on certain platforms.""",
       doc = "Allow loading pre-release classes.",
       default = False,
       introduced = "v1_4_0"
+    ),
+  "-Xstdlib-compilation" : struct(
+      flag = "-Xstdlib-compilation",
+      doc = "Enables special features which are relevant only for stdlib compilation.",
+      default = False,
+      introduced = "v2_0_20"
     ),
   "-Xstring-concat" : struct(
       flag = "-Xstring-concat",
@@ -485,6 +613,12 @@ This option has no effect and will be deleted in a future version.""",
       default = False,
       introduced = "v1_5_0"
     ),
+  "-Xsuppress-warning" : struct(
+      flag = "-Xsuppress-warning",
+      doc = """Suppress specified warning module-wide. This option is deprecated in favor of "-Xwarning-level" flag""",
+      default = [],
+      introduced = "v2_1_0"
+    ),
   "-Xtype-enhancement-improvements-strict-mode" : struct(
       flag = "-Xtype-enhancement-improvements-strict-mode",
       doc = """Enable strict mode for improvements to type enhancement for loaded Java types based on nullability annotations,
@@ -511,6 +645,12 @@ See KT-45671 for more details.""",
       default = False,
       introduced = "v1_6_0"
     ),
+  "-Xuse-fir-experimental-checkers" : struct(
+      flag = "-Xuse-fir-experimental-checkers",
+      doc = "Enable experimental frontend IR checkers that are not yet ready for production.",
+      default = False,
+      introduced = "v2_1_0"
+    ),
   "-Xuse-fir-ic" : struct(
       flag = "-Xuse-fir-ic",
       doc = """Compile using frontend IR internal incremental compilation.
@@ -529,18 +669,6 @@ Warning: This feature is not yet production-ready.""",
       doc = "Use inline scopes numbers for inline marker variables.",
       default = False,
       introduced = "v2_0_0"
-    ),
-  "-Xuse-k2" : struct(
-      flag = "-Xuse-k2",
-      doc = "Compile using the experimental K2 compiler pipeline. No compatibility guarantees are provided yet.",
-      default = False,
-      introduced = "v1_7_0"
-    ),
-  "-Xuse-k2" : struct(
-      flag = "-Xuse-k2",
-      doc = "Compile using the experimental K2 compiler pipeline. No compatibility guarantees are provided yet.",
-      default = False,
-      introduced = "v1_7_0"
     ),
   "-Xuse-old-class-files-reading" : struct(
       flag = "-Xuse-old-class-files-reading",
@@ -573,6 +701,33 @@ This can be used in the event of problems with the new implementation.""",
       default = [],
       introduced = "v1_3_20"
     ),
+  "-Xverify-ir" : struct(
+      flag = "-Xverify-ir",
+      doc = "IR verification mode (no verification by default).",
+      default = None,
+      introduced = "v2_0_20"
+    ),
+  "-Xverify-ir-visibility" : struct(
+      flag = "-Xverify-ir-visibility",
+      doc = "Check for visibility violations in IR when validating it before running any lowerings. Only has effect if '-Xverify-ir' is not 'none'.",
+      default = False,
+      introduced = "v2_0_20"
+    ),
+  "-Xwarning-level" : struct(
+      flag = "-Xwarning-level",
+      doc = """Set the severity of the given warning.
+- `error` level raises the severity of a warning to error level (similar to -Werror but more granular)
+- `disabled` level suppresses reporting of a warning (similar to -nowarn but more granular)
+- `warning` level overrides -nowarn and -Werror for this specific warning (the warning will be reported/won't be considered as an error)""",
+      default = [],
+      introduced = "v2_2_0"
+    ),
+  "-Xwhen-guards" : struct(
+      flag = "-Xwhen-guards",
+      doc = "Enable experimental language support for when guards.",
+      default = False,
+      introduced = "v2_0_20"
+    ),
   "-api-version" : struct(
       flag = "-api-version",
       doc = "Allow using declarations from only the specified version of bundled libraries.",
@@ -586,6 +741,18 @@ This can be used in the event of problems with the new implementation.""",
       default = False,
       introduced = "v1_1_0",
       stabilized = "v1_1_0"
+    ),
+  "-jvm-default" : struct(
+      flag = "-jvm-default",
+      doc = """Emit JVM default methods for interface declarations with bodies. The default is 'enable'.
+-jvm-default=enable              Generate default methods for non-abstract interface declarations, as well as 'DefaultImpls' classes with
+                                 static methods for compatibility with code compiled in the 'disable' mode.
+                                 This is the default behavior since language version 2.2.
+-jvm-default=no-compatibility    Generate default methods for non-abstract interface declarations. Do not generate 'DefaultImpls' classes.
+-jvm-default=disable             Do not generate JVM default methods. This is the default behavior up to language version 2.1.""",
+      default = None,
+      introduced = "v2_2_0",
+      stabilized = "v2_2_0"
     ),
   "-language-version" : struct(
       flag = "-language-version",
