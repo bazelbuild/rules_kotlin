@@ -40,6 +40,7 @@ bazel_dep(name = "rules_bazel_integration_test", version = "0.35.0", dev_depende
 
 # CI and release
 bazel_dep(name = "bazel_ci_rules", version = "1.0.0", dev_dependency = True)
+
 # Not dev_dependency because packager.bzl loads it at top-level of BUILD files
 bazel_dep(name = "rules_pkg", version = "1.0.1")
 

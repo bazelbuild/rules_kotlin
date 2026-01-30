@@ -145,11 +145,18 @@ _CONVENTIONAL_RESOURCE_PATHS = [
 ]
 
 def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
-    if not path.startswith(resource_strip_prefix):
-        fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
+    strip_prefix = resource_strip_prefix.rstrip("/")
+    if path.startswith(strip_prefix):
+        clean_path = path[len(strip_prefix):]
+        return clean_path
 
-    clean_path = path[len(resource_strip_prefix):]
-    return clean_path
+    prefix = strip_prefix if strip_prefix.startswith("/") else "/" + strip_prefix
+    idx = path.find(prefix)
+    if idx != -1:
+        clean_path = path[idx + len(prefix):]
+        return clean_path
+
+    fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
 
 def _adjust_resources_path_by_default_prefixes(path):
     for cp in _CONVENTIONAL_RESOURCE_PATHS:

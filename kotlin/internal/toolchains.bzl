@@ -438,6 +438,8 @@ def kt_configure_toolchains():
     kt_javac_options(
         name = "default_javac_options",
         visibility = ["//visibility:public"],
+        no_proc = True,
+        x_ep_disable_all_checks = True,
     )
 
     native.config_setting(

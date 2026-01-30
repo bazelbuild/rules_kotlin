@@ -291,7 +291,7 @@ _common_attr = utils.add_dicts(
             doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.""",
             default = [],
-            allow_files = [".srcjar", ".kt", ".java"],
+            allow_files = [".srcjar", ".kt", ".java", ".form"],
         ),
         "_use_auto_exec_groups": attr.bool(default = False),
     },
