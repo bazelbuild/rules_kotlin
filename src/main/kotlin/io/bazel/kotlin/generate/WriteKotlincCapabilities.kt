@@ -86,10 +86,22 @@ object WriteKotlincCapabilities {
 
     // Generate files for each supported version
     for (targetVersion in versionsToGenerate) {
-      val capabilities = allArguments
+      val rawCapabilities = allArguments
         .filter { shouldGenerate(it, targetVersion) }
         .map { it.toCapability() }
-        .asCapabilities()
+
+      // Build set of flags present in this version for pair detection
+      val flagsInVersion = rawCapabilities.map { it.flag }.toSet()
+
+      // Mark experimental flags as deprecated when their stable counterpart exists
+      val capabilities = rawCapabilities.map { capability ->
+        val stableCounterpart = FlagPolicy.deriveStableCounterpart(capability.flag)
+        if (stableCounterpart != null && stableCounterpart in flagsInVersion) {
+          capability.copy(deprecatedInFavorOf = stableCounterpart)
+        } else {
+          capability
+        }
+      }.asCapabilities()
 
       // Generate capabilities file
       capabilitiesDirectory.resolve(capabilitiesName(targetVersion)).writeText(
@@ -144,6 +156,29 @@ object WriteKotlincCapabilities {
    */
   object FlagPolicy {
     /**
+     * Derive the stable counterpart for an experimental flag, if applicable.
+     * For flags like "-Xfoo-bar", returns "-foo-bar".
+     * Returns null for non-experimental flags or flags that don't follow the -X pattern.
+     */
+    fun deriveStableCounterpart(experimentalFlag: String): String? {
+      // Must start with -X (experimental prefix)
+      if (!experimentalFlag.startsWith("-X")) return null
+      // Derive stable form: -Xfoo -> -foo
+      return "-" + experimentalFlag.removePrefix("-X")
+    }
+
+    /**
+     * Derive the experimental counterpart for a stable flag, if applicable.
+     * For flags like "-foo-bar", returns "-Xfoo-bar".
+     */
+    fun deriveExperimentalCounterpart(stableFlag: String): String? {
+      // Must start with - but not -X
+      if (!stableFlag.startsWith("-") || stableFlag.startsWith("-X")) return null
+      // Derive experimental form: -foo -> -Xfoo
+      return "-X" + stableFlag.removePrefix("-")
+    }
+
+    /**
      * Flags that must NEVER be exposed regardless of any other consideration.
      * These are managed by rules_kotlin, require path handling, or conflict with rules behavior.
      */
@@ -181,14 +216,17 @@ object WriteKotlincCapabilities {
       "-Xdefault-script-extension",
       "-Xdisable-standard-script",
       "-Xscript-resolver-environment",
+      "-Xallow-any-scripts-in-source-roots",
+      "-Xdisable-default-scripting-plugin",
 
       // === Conflicts with rules_kotlin behavior ===
       "-Xno-reset-jar-timestamps",   // Rules explicitly zero timestamps
       "-Xoutput-builtins-metadata",  // Outputs not added to rule outputs
       "-Xallow-no-source-files",     // Rules validate sources exist
 
-      // === Kapt (explicitly supported via rules) ===
+      // === Kapt and K2 (explicitly supported via rules) ===
       "-Xuse-k2-kapt",
+      "-Xuse-k2",                   // K2 enabled via toolchain, not user option
 
       // === Fragment flags (complex multiplatform, hard to use correctly) ===
       "-Xfragments",
@@ -208,6 +246,21 @@ object WriteKotlincCapabilities {
       "-X",
       "-version",                // Just displays version
       "-Xrepl",                  // REPL mode
+
+      // === Stdlib compilation (internal use only) ===
+      "-Xstdlib-compilation",
+      "-Xcompile-builtins-as-part-of-stdlib",
+
+      // === Source file manipulation (not viable without rule support) ===
+      "-Xcommon-sources",        // Adds source files to compilation
+
+      // === Java 9+ modules (need action input handling) ===
+      "-Xadd-modules",           // Module jars need to be action inputs
+
+      // === Manually handled in opts.kotlinc.bzl ===
+      "-Werror",                 // Part of `warn` abstraction
+      "-nowarn",                 // Part of `warn` abstraction
+      "-Xwarning-level",         // Dict type requires manual handling
     )
 
     /**
@@ -265,9 +318,7 @@ object WriteKotlincCapabilities {
       // Compilation Behavior
       "-progressive",
       "-verbose",
-      "-Werror",
       "-Wextra",
-      "-nowarn",
       "-Xno-inline",
       "-Xno-optimize",
       "-Xskip-metadata-version-check",
@@ -285,7 +336,6 @@ object WriteKotlincCapabilities {
       "-Xunrestricted-builder-inference",
 
       // IR & Backend
-      "-Xuse-k2",
       "-Xnew-inference",
       "-Xir-inliner",
       "-Xir-do-not-clear-binding-context",
@@ -315,14 +365,6 @@ object WriteKotlincCapabilities {
       // Multiplatform
       "-Xno-check-actual",
       "-Xseparate-kmp-compilation",
-
-      // Stdlib compilation (internal use)
-      "-Xstdlib-compilation",
-      "-Xcompile-builtins-as-part-of-stdlib",
-
-      // Scripting (partial support)
-      "-Xallow-any-scripts-in-source-roots",
-      "-Xdisable-default-scripting-plugin",
 
       // Experimental/Advanced
       "-Xenable-incremental-compilation",
@@ -382,10 +424,7 @@ object WriteKotlincCapabilities {
       "-opt-in",
       "-Xjsr305",
       "-Xnullability-annotations",
-      "-Xadd-modules",
-      "-Xcommon-sources",
       "-Xsuppress-warning",
-      "-Xwarning-level",
       "-Xcompiler-plugin-order",
       "-XXLanguage",
 
@@ -635,7 +674,7 @@ object WriteKotlincCapabilities {
           *capabilities.map { capability ->
             capability.flag to struct(
               "flag" to capability.flag.bzlQuote(),
-              "doc" to capability.doc.bzlQuote(),
+              "doc" to capability.effectiveDoc().bzlQuote(),
               "default" to capability.defaultStarlarkValue(),
               "introduced" to capability.introducedVersion?.bzlQuote(),
               "stabilized" to capability.stabilizedVersion?.bzlQuote(),
@@ -682,9 +721,22 @@ def _map_string_list_flag(flag):
     val enumeratedValues: List<String>? = null,
     val introducedVersion: String? = null,
     val stabilizedVersion: String? = null,
+    /** If this experimental flag has been superseded by a stable version, reference it here. */
+    val deprecatedInFavorOf: String? = null,
   ) : Comparable<KotlincCapability> {
 
     fun defaultStarlarkValue(): String? = type.convert(default)
+
+    /**
+     * Get the documentation string, including deprecation notice if applicable.
+     */
+    fun effectiveDoc(): String {
+      return if (deprecatedInFavorOf != null) {
+        "DEPRECATED: Use $deprecatedInFavorOf instead.\n\n$doc"
+      } else {
+        doc
+      }
+    }
 
     override fun compareTo(other: KotlincCapability): Int = flag.compareTo(other.flag)
 
@@ -740,7 +792,7 @@ def _map_string_list_flag(flag):
       mapValueToFlag: String? = null,
     ): String {
       val argsEntries = buildList {
-        add("doc = ${doc.bzlQuote()}")
+        add("doc = ${effectiveDoc().bzlQuote()}")
         argsExtra.forEach { (key, value) -> add("$key = $value") }
       }.joinToString(",\n            ")
 

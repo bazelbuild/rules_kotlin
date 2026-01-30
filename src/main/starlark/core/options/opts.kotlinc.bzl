@@ -15,7 +15,6 @@
 load("@com_github_jetbrains_kotlin//:capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 load("@com_github_jetbrains_kotlin//:generated_opts.bzl", "GENERATED_KOPTS")
 load("//src/main/starlark/core/options:convert.bzl", "convert")
-load("//src/main/starlark/core/options:derive.bzl", "derive")
 
 _ALLOWED_SUPPRESS_LEVELS = [
     "error",
@@ -33,9 +32,6 @@ def _map_warning_level(values):
             fail("Error: Suppress key '{}' has an invalid value of '{}'".format(k, v))
         args.append("-Xwarning-level={}:{}".format(k, v))
     return args
-
-def _map_optin_class_to_flag(values):
-    return ["-opt-in=%s" % v for v in values]
 
 def _map_backend_threads_to_flag(n):
     if n == 1:
@@ -117,56 +113,6 @@ _MANUAL_KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_jdk_release_to_flag,
-    ),
-    # Keep lambdas/sam_conversions with empty string default for backward compat
-    "x_lambdas": struct(
-        flag = "-Xlambdas",
-        args = dict(
-            default = "class",
-            doc = """Change codegen behavior of lambdas. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.""",
-            values = ["class", "indy"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "": None,
-            "class": ["-Xlambdas=class"],
-            "indy": ["-Xlambdas=indy"],
-        },
-    ),
-    # Custom opt-in handling
-    "x_optin": struct(
-        args = dict(
-            default = [],
-            doc = "Define APIs to opt-in to.",
-        ),
-        type = attr.string_list,
-        value_to_flag = None,
-        map_value_to_flag = _map_optin_class_to_flag,
-    ),
-    "x_sam_conversions": struct(
-        flag = "-Xsam-conversions",
-        args = dict(
-            default = "class",
-            doc = """Change codegen behavior of SAM/functional interfaces. Defaults to "class" (anonymous inner classes), which differs from Kotlin 2.x/Gradle default of "indy" (invokedynamic). Set to "indy" for Gradle-compatible bytecode.""",
-            values = ["class", "indy"],
-        ),
-        type = attr.string,
-        value_to_flag = {
-            "": None,
-            "class": ["-Xsam-conversions=class"],
-            "indy": ["-Xsam-conversions=indy"],
-        },
-    ),
-    # Custom suppress warning with derive mechanism
-    "x_suppress_warning": struct(
-        args = dict(
-            default = [],
-            doc = "Suppress specific warnings globally",
-        ),
-        type = attr.string_list,
-        value_to_flag = {
-            derive.info: derive.repeated_values_for("-Xsuppress-warning="),
-        },
     ),
     # Custom warning level with dict type
     "x_warning_level": struct(

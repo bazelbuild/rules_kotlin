@@ -17,7 +17,7 @@ class WriteKotlincCapabilitiesTest {
     val got = tmp.resolve(WriteKotlincCapabilities.capabilitiesName(testVersion))
     assertThat(Files.exists(got)).isTrue()
     // assert stable flag from kotlin-compiler-arguments-description
-    assertThat(Files.readString(got)).contains("-Werror")
+    assertThat(Files.readString(got)).contains("-progressive")
 
     // also check generated_opts file was created
     val generatedOpts = tmp.resolve(WriteKotlincCapabilities.generatedOptsName(testVersion))
@@ -103,5 +103,29 @@ class WriteKotlincCapabilitiesTest {
     assertThat(opts21).doesNotContain("-XXlenient-mode")
     assertThat(opts22).contains("-XXlenient-mode")
     assertThat(opts23).contains("-XXlenient-mode")
+  }
+
+  @Test
+  fun `experimental flags marked deprecated when stable counterpart exists`() {
+    val tmp = Files.createTempDirectory("WriteKotlincCapabilitiesTest")
+    WriteKotlincCapabilities.main("--out", tmp.toString())
+
+    // -jvm-default was introduced in 2.2, -Xjvm-default exists since 1.2
+    // In 2.1: only -Xjvm-default exists, no deprecation prefix from us
+    // In 2.2+: both exist, -Xjvm-default should have our DEPRECATED prefix
+
+    val opts21 = Files.readString(tmp.resolve(WriteKotlincCapabilities.capabilitiesName(KotlinReleaseVersion.v2_1_0)))
+    val opts22 = Files.readString(tmp.resolve(WriteKotlincCapabilities.capabilitiesName(KotlinReleaseVersion.v2_2_0)))
+
+    // In 2.1, -Xjvm-default should NOT have our DEPRECATED prefix (stable version doesn't exist yet)
+    assertThat(opts21).contains("-Xjvm-default")
+    assertThat(opts21).doesNotContain("DEPRECATED: Use -jvm-default instead")
+
+    // In 2.2, -Xjvm-default SHOULD have our DEPRECATED prefix (stable -jvm-default now exists)
+    assertThat(opts22).contains("-Xjvm-default")
+    assertThat(opts22).contains("DEPRECATED: Use -jvm-default instead")
+
+    // Also verify -jvm-default exists in 2.2
+    assertThat(opts22).contains("\"-jvm-default\"")
   }
 }
