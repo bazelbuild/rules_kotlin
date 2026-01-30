@@ -138,54 +138,6 @@ object WriteKotlincCapabilities {
       .filter { it.size == 2 }
       .groupBy({ it[0] }, { it[1] })
 
-  /** Options that are either confusing, useless, or unexpected to be set outside the worker. */
-  private val suppressedFlags = setOf(
-    "-P",
-    "-X",
-    "-Xbuild-file",
-    "-Xcompiler-plugin",
-    "-Xdump-declarations-to",
-    "-Xdump-directory",
-    "-Xdump-fqname",
-    "-Xdump-perf",
-    "-Xintellij-plugin-root",
-    "-Xplugin",
-    "-classpath",
-    "-d",
-    "-expression",
-    "-help",
-    "-include-runtime",
-    "-jdk-home",
-    "-kotlin-home",
-    "-module-name",
-    "-no-jdk",
-    "-no-stdlib",
-    "-script",
-    "-script-templates",
-    // Flags that should be controlled by rules_kotlin, not user configuration
-    "-Xfriend-paths",  // Internal module visibility - managed by rules_kotlin
-    "-Xjava-source-roots",  // Managed by rules_kotlin based on deps
-    "-Xjavac-arguments",  // Use kt_javac_options instead
-    // Flags handled in MANUAL_KOPTS with custom logic - suppress to avoid duplicates
-    "-jvm-target",  // Handled in MANUAL_KOPTS with specific allowed values
-    // Flags that don't make sense in rules_kotlin context
-    "-Xallow-no-source-files",  // Rules will fail before this flag is checked
-    "-Xcompile-java",  // Java compilation happens via the java builder
-    "-Xuse-javac",  // Java sources are compiled via a different pipeline
-    "-Xuse-k2-kapt",  // kapt is explicitly supported via rules
-    // Script-related flags - script compilation not supported by rules
-    "-Xdefault-script-extension",
-    "-Xdisable-standard-script",
-    "-Xscript-resolver-environment",
-    // Path-based flags that require explicit rule support
-    "-Xklib",  // Cross-platform libraries need to be in action inputs
-    "-Xmodule-path",  // Java 9+ modules need path handling
-    "-Xprofile",  // Requires path input and produces outputs that would be lost
-    // Flags that conflict with rules_kotlin behavior
-    "-Xno-reset-jar-timestamps",  // Rules explicitly zero out timestamps
-    "-Xoutput-builtins-metadata",  // Outputs would not be added to rule outputs
-  )
-
   /**
    * Flag policy for allowlist-based generation with multi-version support.
    * Based on design doc: docs/design/kotlinc_options_multi_version.md
@@ -595,26 +547,6 @@ object WriteKotlincCapabilities {
   }
 
   /**
-   * Extract compiler arguments from kotlin-compiler-arguments-description artifact.
-   * This collects arguments from the path from topLevel to JVM arguments,
-   * including common compiler arguments.
-   */
-  private fun getArgumentsFromDescription(): Sequence<KotlincCapability> = sequence {
-    // Find the path from topLevel to jvmCompilerArguments
-    val path = findPathToLevel(
-      kotlinCompilerArguments.topLevel,
-      CompilerArgumentsLevelNames.jvmCompilerArguments,
-      mutableListOf()
-    )
-    if (path != null) {
-      // Collect arguments from all levels in the path (common + JVM specific)
-      for (level in path) {
-        yieldAll(collectArgumentsFromLevel(level))
-      }
-    }
-  }
-
-  /**
    * Get all arguments including removed ones.
    * This is used for multi-version generation where we need to include
    * flags that existed in older versions but have been removed.
@@ -653,15 +585,6 @@ object WriteKotlincCapabilities {
     }
     currentPath.removeLast()
     return null
-  }
-
-  /**
-   * Collect all arguments from a single level.
-   */
-  private fun collectArgumentsFromLevel(level: KotlinCompilerArgumentsLevel): Sequence<KotlincCapability> = sequence {
-    for (arg in level.arguments) {
-      yield(arg.toCapability())
-    }
   }
 
   /**
@@ -761,12 +684,7 @@ def _map_string_list_flag(flag):
     val stabilizedVersion: String? = null,
   ) : Comparable<KotlincCapability> {
 
-    fun shouldSuppress() = flag in suppressedFlags
-
     fun defaultStarlarkValue(): String? = type.convert(default)
-
-    /** Returns true if this option is considered experimental (not yet stabilized). */
-    fun isExperimental(): Boolean = stabilizedVersion == null
 
     override fun compareTo(other: KotlincCapability): Int = flag.compareTo(other.flag)
 
