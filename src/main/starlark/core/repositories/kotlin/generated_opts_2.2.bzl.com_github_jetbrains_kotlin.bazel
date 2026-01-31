@@ -34,6 +34,28 @@ def _map_string_list_flag(flag):
 
     return mapper
 
+def _map_int_flag(flag):
+    """Create a mapper for int flags that passes value as flag=value."""
+
+    def mapper(value):
+        if not value:
+            return None
+        return [flag + "=" + str(value)]
+
+    return mapper
+
+def _map_warning_level(values):
+    """Map warning level dict to -Xwarning-level flags."""
+    if not values:
+        return None
+    _ALLOWED_LEVELS = ["error", "warning", "disabled"]
+    args = []
+    for k, v in values.items():
+        if v not in _ALLOWED_LEVELS:
+            fail("Error: Suppress key '{}' has an invalid value of '{}'. Allowed: {}".format(k, v, _ALLOWED_LEVELS))
+        args.append("-Xwarning-level={}:{}".format(k, v))
+    return args
+
 GENERATED_KOPTS = {
     "api_version": struct(
         flag = "-api-version",
@@ -44,6 +66,21 @@ GENERATED_KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-api-version"),
+    ),
+
+    # === Custom rules_kotlin options (not direct kotlinc flags) ===
+    "include_stdlibs": struct(
+        args = dict(
+            default = "all",
+            doc = "Don't automatically include the Kotlin standard libraries into the classpath (stdlib and reflect).",
+            values = ["all", "stdlib", "none"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "all": None,
+            "none": ["-no-stdlib"],
+            "stdlib": ["-no-reflect"],
+        },
     ),
     "java_parameters": struct(
         flag = "-java-parameters",
@@ -67,6 +104,16 @@ GENERATED_KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-jvm-default"),
+    ),
+    "jvm_target": struct(
+        flag = "-jvm-target",
+        args = dict(
+            doc = "The target version of the generated JVM bytecode (1.8 and 9–25), with 1.8 as the default.",
+            values = ["", "1.8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-jvm-target"),
     ),
     "language_version": struct(
         flag = "-language-version",
@@ -107,6 +154,19 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-verbose"]},
+    ),
+    "warn": struct(
+        args = dict(
+            default = "report",
+            doc = "Control warning behaviour.",
+            values = ["off", "report", "error"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "error": ["-Werror"],
+            "off": ["-nowarn"],
+            "report": None,
+        },
     ),
     "wextra": struct(
         flag = "-Wextra",
@@ -189,6 +249,18 @@ GENERATED_KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-Xassertions"),
+    ),
+    "x_backend_threads": struct(
+        flag = "-Xbackend-threads",
+        args = dict(
+            doc = """Run codegen phase in N parallel threads.
+    0 means use one thread per processor core.
+    The default value is 1.""",
+            default = 1,
+        ),
+        type = attr.int,
+        value_to_flag = None,
+        map_value_to_flag = _map_int_flag("-Xbackend-threads"),
     ),
     "x_check_phase_conditions": struct(
         flag = "-Xcheck-phase-conditions",
@@ -374,6 +446,18 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xir-inliner"]},
+    ),
+    "x_jdk_release": struct(
+        flag = "-Xjdk-release",
+        args = dict(
+            doc = """Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer.
+    The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–25.
+    This also sets the value of '-jvm-target' to be equal to the selected JDK version.""",
+            values = ["", "1.8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
+        ),
+        type = attr.string,
+        value_to_flag = None,
+        map_value_to_flag = _map_string_flag("-Xjdk-release"),
     ),
     "x_jspecify_annotations": struct(
         flag = "-Xjspecify-annotations",
@@ -967,6 +1051,15 @@ GENERATED_KOPTS = {
         ),
         type = attr.bool,
         value_to_flag = {True: ["-Xverify-ir-visibility"]},
+    ),
+    "x_warning_level": struct(
+        args = dict(
+            default = {},
+            doc = "Suppress specific warnings globally. Ex: 'OPTION': '(error|warning|disabled)'",
+        ),
+        type = attr.string_dict,
+        value_to_flag = None,
+        map_value_to_flag = _map_warning_level,
     ),
     "x_when_guards": struct(
         flag = "-Xwhen-guards",

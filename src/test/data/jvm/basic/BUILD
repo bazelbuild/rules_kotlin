@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+load("//kotlin:core.bzl", "kt_kotlinc_options")
 load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -111,6 +112,33 @@ kt_jvm_library(
     visibility = ["//src/test/kotlin:__subpackages__"],
 )
 
+# Test custom kotlinc options: opt_in, jvm_target, warn
+kt_kotlinc_options(
+    name = "custom_kotlinc_options",
+    jvm_target = "17",
+    opt_in = ["kotlin.ExperimentalStdlibApi"],
+    warn = "error",
+)
+
+# Test progressive mode separately (can't combine with warn=error due to version warning)
+kt_kotlinc_options(
+    name = "progressive_kotlinc_options",
+    language_version = "2.3",
+    progressive = True,
+)
+
+kt_jvm_library(
+    name = "test_custom_kotlinc_options",
+    srcs = ["helloworld/Main.kt"],
+    kotlinc_opts = ":custom_kotlinc_options",
+)
+
+kt_jvm_library(
+    name = "test_progressive_kotlinc_options",
+    srcs = ["helloworld/Main.kt"],
+    kotlinc_opts = ":progressive_kotlinc_options",
+)
+
 filegroup(
     name = "basic",
     srcs = [
@@ -118,6 +146,7 @@ filegroup(
         ":propagation_ct_consumer",
         ":propagation_rt_via_export_consumer",
         ":propagation_rt_via_runtime_deps_consumer",
+        ":test_custom_kotlinc_options",
         ":test_embed_resources.jar",
         ":test_embed_resources_strip_prefix.jar",
         ":test_merge_resourcesjar.jar",
@@ -126,6 +155,7 @@ filegroup(
         ":test_module_name_bin.jar",
         ":test_module_name_lib",
         ":test_module_name_lib-sources.jar",
+        ":test_progressive_kotlinc_options",
     ],
     visibility = ["//visibility:public"],
 )

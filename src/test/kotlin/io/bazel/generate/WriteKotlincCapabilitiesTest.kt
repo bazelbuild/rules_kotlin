@@ -1,6 +1,7 @@
 package io.bazel.generate
 
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import io.bazel.kotlin.generate.WriteKotlincCapabilities
 import org.jetbrains.kotlin.arguments.dsl.base.KotlinReleaseVersion
 import org.junit.Test
@@ -12,17 +13,16 @@ class WriteKotlincCapabilitiesTest {
 
   @Test
   fun smokeTest() {
-    var tmp = Files.createTempDirectory("WriteKotlincCapabilitiesTest")
+    val tmp = Files.createTempDirectory("WriteKotlincCapabilitiesTest")
     WriteKotlincCapabilities.main("--out", tmp.toString())
-    val got = tmp.resolve(WriteKotlincCapabilities.capabilitiesName(testVersion))
-    assertThat(Files.exists(got)).isTrue()
-    // assert stable flag from kotlin-compiler-arguments-description
-    assertThat(Files.readString(got)).contains("-progressive")
 
-    // also check generated_opts file was created
+    // check generated_opts file was created
     val generatedOpts = tmp.resolve(WriteKotlincCapabilities.generatedOptsName(testVersion))
     assertThat(Files.exists(generatedOpts)).isTrue()
-    assertThat(Files.readString(generatedOpts)).contains("GENERATED_KOPTS")
+    val content = Files.readString(generatedOpts)
+    assertThat(content).contains("GENERATED_KOPTS")
+    // assert stable flag from kotlin-compiler-arguments-description
+    assertThat(content).contains("-progressive")
   }
 
   @Test
@@ -76,14 +76,9 @@ class WriteKotlincCapabilitiesTest {
     WriteKotlincCapabilities.main("--out", tmp.toString())
 
     for (version in WriteKotlincCapabilities.SUPPORTED_VERSIONS) {
-      val capabilitiesFile = tmp.resolve(WriteKotlincCapabilities.capabilitiesName(version))
-      assertThat(Files.exists(capabilitiesFile))
-        .named("capabilities file for ${version.major}.${version.minor}")
-        .isTrue()
-
       val generatedOptsFile = tmp.resolve(WriteKotlincCapabilities.generatedOptsName(version))
-      assertThat(Files.exists(generatedOptsFile))
-        .named("generated_opts file for ${version.major}.${version.minor}")
+      assertWithMessage("generated_opts file for ${version.major}.${version.minor}")
+        .that(Files.exists(generatedOptsFile))
         .isTrue()
     }
   }
@@ -94,10 +89,10 @@ class WriteKotlincCapabilitiesTest {
     WriteKotlincCapabilities.main("--out", tmp.toString())
 
     // XXlenient-mode was introduced in v2.2.0 - should be in 2.2 and 2.3 but not in 2.0 and 2.1
-    val opts20 = Files.readString(tmp.resolve(WriteKotlincCapabilities.capabilitiesName(KotlinReleaseVersion.v2_0_0)))
-    val opts21 = Files.readString(tmp.resolve(WriteKotlincCapabilities.capabilitiesName(KotlinReleaseVersion.v2_1_0)))
-    val opts22 = Files.readString(tmp.resolve(WriteKotlincCapabilities.capabilitiesName(KotlinReleaseVersion.v2_2_0)))
-    val opts23 = Files.readString(tmp.resolve(WriteKotlincCapabilities.capabilitiesName(KotlinReleaseVersion.v2_3_0)))
+    val opts20 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_0_0)))
+    val opts21 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_1_0)))
+    val opts22 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_2_0)))
+    val opts23 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_3_0)))
 
     assertThat(opts20).doesNotContain("-XXlenient-mode")
     assertThat(opts21).doesNotContain("-XXlenient-mode")
@@ -114,8 +109,8 @@ class WriteKotlincCapabilitiesTest {
     // In 2.1: only -Xjvm-default exists, no deprecation prefix from us
     // In 2.2+: both exist, -Xjvm-default should have our DEPRECATED prefix
 
-    val opts21 = Files.readString(tmp.resolve(WriteKotlincCapabilities.capabilitiesName(KotlinReleaseVersion.v2_1_0)))
-    val opts22 = Files.readString(tmp.resolve(WriteKotlincCapabilities.capabilitiesName(KotlinReleaseVersion.v2_2_0)))
+    val opts21 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_1_0)))
+    val opts22 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_2_0)))
 
     // In 2.1, -Xjvm-default should NOT have our DEPRECATED prefix (stable version doesn't exist yet)
     assertThat(opts21).contains("-Xjvm-default")

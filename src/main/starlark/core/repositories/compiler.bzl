@@ -2,7 +2,7 @@
 Defines kotlin compiler repositories.
 """
 
-load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "GENERATED_OPTS_TEMPLATES", "TEMPLATES")
+load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "GENERATED_OPTS_TEMPLATES")
 
 def _kotlin_capabilities_impl(repository_ctx):
     """Creates the kotlinc capabilities repository."""
@@ -14,16 +14,6 @@ def _kotlin_capabilities_impl(repository_ctx):
     repository_ctx.template(
         "BUILD.bazel",
         attr._template,
-        executable = False,
-    )
-    template = _get_template_by_version(
-        attr.compiler_version,
-        [repository_ctx.path(ct) for ct in attr._capability_templates],
-        "capabilities",
-    )
-    repository_ctx.template(
-        "capabilities.bzl",
-        template,
         executable = False,
     )
     generated_opts_template = _get_template_by_version(
@@ -71,7 +61,7 @@ def _get_template_by_version(compiler_version, templates, prefix):
     Args:
         compiler_version: The kotlin compiler version string
         templates: List of template paths
-        prefix: Prefix for template files (e.g., "capabilities" or "generated_opts")
+        prefix: Prefix for template files (e.g., "generated_opts")
 
     Returns:
         The template path that best matches the compiler version, or None if no templates.
@@ -113,10 +103,6 @@ kotlin_capabilities_repository = repository_rule(
     attrs = {
         "compiler_version": attr.string(
             doc = "compiler version",
-        ),
-        "_capability_templates": attr.label_list(
-            doc = "List of compiler capability templates.",
-            default = TEMPLATES,
         ),
         "_generated_opts_templates": attr.label_list(
             doc = "List of generated options templates.",
