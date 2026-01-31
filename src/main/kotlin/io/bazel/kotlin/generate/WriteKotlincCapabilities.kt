@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.arguments.dsl.base.KotlinCompilerArgumentsLevel
 import org.jetbrains.kotlin.arguments.dsl.base.KotlinReleaseVersion
 import org.jetbrains.kotlin.arguments.dsl.types.BooleanType
 import org.jetbrains.kotlin.arguments.dsl.types.IntType
+import org.jetbrains.kotlin.arguments.dsl.types.JvmTarget
 import org.jetbrains.kotlin.arguments.dsl.types.StringArrayType
 import org.jetbrains.kotlin.arguments.dsl.types.StringType
 import java.nio.charset.StandardCharsets
@@ -103,16 +104,10 @@ object WriteKotlincCapabilities {
         }
       }.asCapabilities()
 
-      // Generate capabilities file
-      capabilitiesDirectory.resolve(capabilitiesName(targetVersion)).writeText(
-        capabilities.asCapabilitiesBzl().toString(),
-        StandardCharsets.UTF_8,
-      )
-
       // Generate opts file (only for Kotlin 2.0+)
       if (targetVersion >= KotlinReleaseVersion.v2_0_0) {
         capabilitiesDirectory.resolve(generatedOptsName(targetVersion)).writeText(
-          capabilities.asGeneratedOptsBzl(),
+          capabilities.asGeneratedOptsBzl(targetVersion),
           StandardCharsets.UTF_8,
         )
       }
@@ -120,13 +115,9 @@ object WriteKotlincCapabilities {
       println("Generated files for Kotlin ${targetVersion.major}.${targetVersion.minor}")
     }
 
-    // Generate templates.bzl with both capabilities and generated_opts templates
+    // Generate templates.bzl with generated_opts templates
     capabilitiesDirectory.resolve("templates.bzl").writeText(
       BzlDoc {
-        assignment(
-          "TEMPLATES",
-          list(*listTemplateFiles(capabilitiesDirectory, "capabilities_")),
-        )
         assignment(
           "GENERATED_OPTS_TEMPLATES",
           list(*listTemplateFiles(capabilitiesDirectory, "generated_opts_")),
@@ -268,7 +259,7 @@ object WriteKotlincCapabilities {
      * will be generated. Organized by category for easier review.
      */
     val ALLOWLIST: Set<String>
-      get() = BOOLEAN_FLAGS + ENUM_FLAGS + STRING_FLAGS + STRING_LIST_FLAGS
+      get() = BOOLEAN_FLAGS + ENUM_FLAGS + STRING_FLAGS + STRING_LIST_FLAGS + INT_FLAGS
 
     /** Boolean flags (simple enable/disable) */
     private val BOOLEAN_FLAGS = setOf(
@@ -414,6 +405,8 @@ object WriteKotlincCapabilities {
     private val STRING_FLAGS = setOf(
       "-api-version",
       "-language-version",
+      "-jvm-target",
+      "-Xjdk-release",
       "-Xmetadata-version",
       "-Xsupport-compatqual-checker-framework-annotations",
       "-XXdump-model",
@@ -438,11 +431,16 @@ object WriteKotlincCapabilities {
       "-Xphases-to-validate-after",
       "-Xverbose-phases",
     )
+
+    /** Int flags */
+    private val INT_FLAGS = setOf(
+      "-Xbackend-threads",
+    )
   }
 
   /**
    * Supported Kotlin versions for multi-version generation.
-   * We generate separate capabilities and generated_opts files for each version.
+   * We generate separate generated_opts files for each version.
    * Only Kotlin 2.0+ is supported.
    */
   val SUPPORTED_VERSIONS = listOf(
@@ -451,6 +449,22 @@ object WriteKotlincCapabilities {
     KotlinReleaseVersion.v2_2_0,
     KotlinReleaseVersion.v2_3_0,
   )
+
+  /**
+   * Get valid JVM target versions for a specific Kotlin release version.
+   * Uses lifecycle metadata from JvmTarget enum to determine which targets are available.
+   */
+  fun getValidJvmTargets(targetVersion: KotlinReleaseVersion): List<String> {
+    return JvmTarget.entries
+      .filter { jvmTarget ->
+        val lifecycle = jvmTarget.releaseVersionsMetadata
+        // Must be introduced by this version
+        lifecycle.introducedVersion <= targetVersion &&
+          // Must not be removed by this version
+          (lifecycle.removedVersion == null || lifecycle.removedVersion!! > targetVersion)
+      }
+      .map { it.targetName }
+  }
 
   /**
    * Check if a flag should be included in the generated files for a target version.
@@ -497,12 +511,6 @@ object WriteKotlincCapabilities {
 
     return if (values.size >= 2) values else null
   }
-
-  /**
-   * Generate capabilities file name for a specific Kotlin version.
-   */
-  fun capabilitiesName(version: KotlinReleaseVersion): String =
-    "capabilities_${version.major}.${version.minor}.bzl.com_github_jetbrains_kotlin.bazel"
 
   /**
    * Generate generated_opts file name for a specific Kotlin version.
@@ -642,7 +650,7 @@ object WriteKotlincCapabilities {
       is BooleanType -> StarlarkType.Bool
       is StringType -> StarlarkType.Str
       is StringArrayType -> StarlarkType.StrList
-      is IntType -> StarlarkType.Str // Int represented as string in Starlark
+      is IntType -> StarlarkType.Int
       else -> StarlarkType.Str
     }
 
@@ -667,27 +675,10 @@ object WriteKotlincCapabilities {
       fun List<KotlincCapability>.asCapabilities() = KotlincCapabilities(sorted())
     }
 
-    fun asCapabilitiesBzl() = BzlDoc {
-      assignment(
-        "KOTLIN_OPTS",
-        dict(
-          *capabilities.map { capability ->
-            capability.flag to struct(
-              "flag" to capability.flag.bzlQuote(),
-              "doc" to capability.effectiveDoc().bzlQuote(),
-              "default" to capability.defaultStarlarkValue(),
-              "introduced" to capability.introducedVersion?.bzlQuote(),
-              "stabilized" to capability.stabilizedVersion?.bzlQuote(),
-            )
-          }.toTypedArray(),
-        ),
-      )
-    }
-
     /**
      * Generate the full _KOPTS dict for opts.kotlinc.bzl.
      */
-    fun asGeneratedOptsBzl(): String {
+    fun asGeneratedOptsBzl(targetVersion: KotlinReleaseVersion): String {
       val tq = "\"\"\""  // triple quote for Python docstrings
       val helperFunctions = """
 def _map_string_flag(flag):
@@ -705,11 +696,79 @@ def _map_string_list_flag(flag):
             return None
         return [flag + "=" + v for v in values]
     return mapper
+
+def _map_int_flag(flag):
+    ${tq}Create a mapper for int flags that passes value as flag=value.$tq
+    def mapper(value):
+        if not value:
+            return None
+        return [flag + "=" + str(value)]
+    return mapper
+
+def _map_warning_level(values):
+    ${tq}Map warning level dict to -Xwarning-level flags.$tq
+    if not values:
+        return None
+    _ALLOWED_LEVELS = ["error", "warning", "disabled"]
+    args = []
+    for k, v in values.items():
+        if v not in _ALLOWED_LEVELS:
+            fail("Error: Suppress key '{}' has an invalid value of '{}'. Allowed: {}".format(k, v, _ALLOWED_LEVELS))
+        args.append("-Xwarning-level={}:{}".format(k, v))
+    return args
 """
+      // Get valid JVM targets for this Kotlin version
+      val validJvmTargets = getValidJvmTargets(targetVersion)
+
       val entries = capabilities.joinToString(",\n") { capability ->
-        "    ${capability.starlarkAttrName().bzlQuote()}: ${capability.asOptStructString("    ")}"
+        // Override enumerated values for jvm_target and x_jdk_release with version-specific values
+        val effectiveCapability = when (capability.flag) {
+          "-jvm-target", "-Xjdk-release" -> capability.copy(enumeratedValues = validJvmTargets)
+          else -> capability
+        }
+        "    ${effectiveCapability.starlarkAttrName().bzlQuote()}: ${effectiveCapability.asOptStructString("    ")}"
       }
-      return "$BAZEL_HEADER\n$helperFunctions\n\nGENERATED_KOPTS = {\n$entries\n}\n"
+
+      // Add custom rules_kotlin options that don't map directly to kotlinc flags
+      val customOptions = """
+    # === Custom rules_kotlin options (not direct kotlinc flags) ===
+    "include_stdlibs": struct(
+        args = dict(
+            default = "all",
+            doc = "Don't automatically include the Kotlin standard libraries into the classpath (stdlib and reflect).",
+            values = ["all", "stdlib", "none"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "all": None,
+            "none": ["-no-stdlib"],
+            "stdlib": ["-no-reflect"],
+        },
+    ),
+    "warn": struct(
+        args = dict(
+            default = "report",
+            doc = "Control warning behaviour.",
+            values = ["off", "report", "error"],
+        ),
+        type = attr.string,
+        value_to_flag = {
+            "error": ["-Werror"],
+            "off": ["-nowarn"],
+            "report": None,
+        },
+    ),
+    "x_warning_level": struct(
+        args = dict(
+            default = {},
+            doc = "Suppress specific warnings globally. Ex: 'OPTION': '(error|warning|disabled)'",
+        ),
+        type = attr.string_dict,
+        value_to_flag = None,
+        map_value_to_flag = _map_warning_level,
+    ),"""
+
+      return "$BAZEL_HEADER\n$helperFunctions\n\nGENERATED_KOPTS = {\n$entries,\n$customOptions\n}\n"
     }
   }
 
@@ -782,6 +841,11 @@ def _map_string_list_flag(flag):
           argsExtra = mapOf("default" to "[]"),
           mapValueToFlag = "_map_string_list_flag(${flag.bzlQuote()})",
         )
+        is StarlarkType.Int -> buildOptStruct(
+          attrType = "attr.int",
+          argsExtra = mapOf("default" to (default ?: "0")),
+          mapValueToFlag = "_map_int_flag(${flag.bzlQuote()})",
+        )
       }.prependIndent(indent)
     }
 
@@ -828,6 +892,10 @@ def _map_string_list_flag(flag):
     data object StrList : StarlarkType() {
       override fun convert(value: String?): String =
         value?.let { "default = [${it.bzlQuote()}]" } ?: "[]"
+    }
+
+    data object Int : StarlarkType() {
+      override fun convert(value: String?): String = value ?: "0"
     }
   }
 
