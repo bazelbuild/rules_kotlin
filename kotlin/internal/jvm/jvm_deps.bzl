@@ -53,7 +53,11 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
             for d in dep_infos
         ]
 
-    compile_depset_list = depset(transitive = transitive + [associates.jars]).to_list()
+    # Put associate jars FIRST (as direct) so they appear first on the classpath.
+    # This ensures that when the same class exists in both an associate jar and a regular dep,
+    # the associate's version is found first. This is critical for internal visibility to work
+    # correctly when there are split packages across modules.
+    compile_depset_list = depset(direct = associates.jars.to_list(), transitive = transitive).to_list()
     compile_depset_list_filtered = [jar for jar in compile_depset_list if not _sets.contains(associates.abi_jar_set, jar)]
 
     # Note: We intentionally do NOT prune deps for Java compilation.

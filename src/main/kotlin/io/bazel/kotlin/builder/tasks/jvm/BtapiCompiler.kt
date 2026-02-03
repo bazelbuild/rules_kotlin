@@ -206,6 +206,8 @@ class BtapiCompiler(
       // Allow caller to do additional configuration
       additionalConfiguration(operation, compilerArgs)
 
+      println("Executing ${compilerArgs.toArgumentStrings()}")
+
       // Execute the compilation
       return buildSession.executeOperation(operation, logger = logger)
     } finally {
@@ -261,13 +263,21 @@ class BtapiCompiler(
 
     // Friend paths (for internal visibility)
     if (task.info.friendPathsList.isNotEmpty()) {
-      args[JvmCompilerArguments.X_FRIEND_PATHS] = task.info.friendPathsList.toTypedArray()
+      args[JvmCompilerArguments.X_FRIEND_PATHS] = task.info.friendPathsList
+        .map { File(it).absolutePath }
+        .toTypedArray()
     }
   }
 
   /**
    * Computes the classpath for compilation.
    * Handles reduced classpath mode when enabled.
+   *
+   * IMPORTANT: Friend paths (associate jars) are placed FIRST on the classpath.
+   * This ensures that when the same class exists in both a friend jar and a regular dep
+   * (split package scenario), the friend's version is found first. This is critical for
+   * internal visibility to work correctly - the compiler must find the class from the
+   * friend module to allow access to internal members.
    */
   private fun computeClasspath(task: JvmCompilationTask): List<String> {
     val baseClasspath =
@@ -289,8 +299,13 @@ class BtapiCompiler(
         else -> task.inputs.classpathList
       }
 
+    // Put friend paths FIRST on the classpath, then the rest (excluding duplicates).
+    // This ensures associate jars shadow any conflicting classes from regular deps.
+    val friendPathsSet = task.info.friendPathsList.toSet()
+    val classpathWithoutFriends = baseClasspath.filter { it !in friendPathsSet }
+
     // Add generated classes directory to classpath
-    return baseClasspath + task.directories.generatedClasses
+    return task.info.friendPathsList + classpathWithoutFriends + task.directories.generatedClasses
   }
 
   /**
