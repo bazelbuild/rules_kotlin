@@ -206,8 +206,6 @@ class BtapiCompiler(
       // Allow caller to do additional configuration
       additionalConfiguration(operation, compilerArgs)
 
-      println("Executing ${compilerArgs.toArgumentStrings()}")
-
       // Execute the compilation
       return buildSession.executeOperation(operation, logger = logger)
     } finally {
