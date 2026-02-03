@@ -12,34 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//kotlin:jvm.bzl", "kt_jvm_import")
-load(
-    "//kotlin/internal:defs.bzl",
-    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
-)
-
-_KSP_COMPILER_PLUGIN_REPO_PREFIX = "@" + _KSP_COMPILER_PLUGIN_REPO + "//:"
-
 def kt_configure_ksp():
     """
-    Defines the toolchain_type and default toolchain for KSP plugins.
+    Defines aliases for KSP artifacts from Maven.
 
-    Must be called in kotlin/internal/BUILD.bazel
+    Must be called in kotlin/compiler/BUILD.bazel
     """
     if native.package_name() != "kotlin/compiler":
         fail("kt_configure_ksp must be called in kotlin/compiler not %s" % native.package_name())
 
-    kt_jvm_import(
+    # KSP artifacts are now fetched via rules_jvm_external in MODULE.bazel
+    # symbol-processing-aa-embeddable is the shaded version for use with kotlin-compiler-embeddable
+    native.alias(
         name = "symbol-processing-aa",
-        jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-aa.jar",
+        actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_aa_embeddable",
+        visibility = ["//visibility:public"],
     )
 
-    kt_jvm_import(
+    native.alias(
         name = "symbol-processing-common-deps",
-        jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-common-deps.jar",
+        actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
+        visibility = ["//visibility:public"],
     )
 
-    kt_jvm_import(
+    native.alias(
         name = "symbol-processing-api",
-        jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-api.jar",
+        actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_api",
+        visibility = ["//visibility:public"],
     )

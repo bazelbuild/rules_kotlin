@@ -4,7 +4,7 @@ load("//src/main/starlark/release:packager.bzl", "release_archive")
 release_archive(
     name = "pkg",
     srcs = glob([
-        "capabilities_*.bazel",
+        "generated_opts_*.bazel",
         "artifacts.bzl",
         "templates.bzl",
     ]),

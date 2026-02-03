@@ -35,9 +35,6 @@ JAVA_RUNTIME_TOOLCHAIN_TYPE = _JAVA_RUNTIME_TOOLCHAIN_TYPE
 # The name of the Kotlin compiler workspace.
 KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 
-# The name of the KSP compiler plugin workspace
-KSP_COMPILER_PLUGIN_REPO = "com_github_google_ksp"
-
 KtJvmInfo = _KtJvmInfo
 
 KtCompilerPluginInfo = _KtCompilerPluginInfo

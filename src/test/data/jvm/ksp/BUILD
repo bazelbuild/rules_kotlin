@@ -153,7 +153,7 @@ kt_jvm_library(
         "@kotlin_rules_maven//:com_google_dagger_dagger",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
     ],
 )
 
@@ -198,7 +198,7 @@ kt_jvm_library(
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
         "@kotlin_rules_maven//:dev_zacsweers_autoservice_auto_service_ksp",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
     ],
 )
 
@@ -243,7 +243,7 @@ kt_jvm_library(
         "@kotlin_rules_maven//:com_google_dagger_dagger_compiler",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
     ],
 )
 
@@ -355,7 +355,7 @@ kt_jvm_library(
         "@kotlin_rules_maven//:com_google_dagger_dagger",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
     ],
 )
 

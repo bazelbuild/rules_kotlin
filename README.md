@@ -244,41 +244,27 @@ kt_jvm_library(
 )
 ```
 
-### Lambda Bytecode Generation
+### Breaking Change: Lambda Bytecode Generation (rules_kotlin 2.x)
 
-Note: `kt_kotlinc_options` defaults `x_lambdas` and `x_sam_conversions` to `"class"`, which differs from Kotlin 2.x and Gradle's default of `"indy"` (invokedynamic). If you encounter issues with bytecode analysis tools expecting invokedynamic-based lambdas, configure these options:
+Starting with rules_kotlin 2.0, `x_lambdas` and `x_sam_conversions` now use Kotlin's default values (`"indy"` for Kotlin 2.x).
+
+**Prior versions** of rules_kotlin defaulted to `"class"` (anonymous inner classes). If you need to preserve the old behavior for compatibility:
 
 ```python
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
-    x_lambdas = "indy",
-    x_sam_conversions = "indy",
+    x_lambdas = "class",
+    x_sam_conversions = "class",
 )
 ```
+
+The `"indy"` (invokedynamic) mode generally produces smaller bytecode and better performance, but may affect bytecode analysis tools.
 
 Additionally, you can add options for both tracing and timing of the bazel build using the `kt_trace` and `kt_timings` flags, for example:
 * `bazel build --define=kt_trace=1`
 * `bazel build --define=kt_timings=1`
 
 `kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
-
-# Build Tools API
-
-The Build Tools API is a modern compilation interface provided by JetBrains for invoking the Kotlin compiler. It offers better integration and is required for incremental compilation support.
-
-**This feature is enabled by default.**
-
-To disable the Build Tools API and use the legacy compilation approach, add the following flag to your build:
-
-```bash
-bazel build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false //your:target
-```
-
-Or add it to your `.bazelrc` file:
-
-```
-build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false
-```
 
 # KSP (Kotlin Symbol Processing)
 
@@ -303,32 +289,6 @@ kt_jvm_library(
     name = "lib",
     srcs = glob(["*.kt"]),
     plugins = ["//:moshi-kotlin-codegen"],
-)
-```
-
-To choose a different `ksp_version` distribution,
-do the following in your repository.
-
-### `MODULE.bazel`
-```python
-rules_kotlin_extensions = use_extension("@rules_kotlin//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
-rules_kotlin_extensions.ksp_version(
-    version = "1.8.22-1.0.11",
-    sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
-)
-use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
-```
-
-### `WORKSPACE` (or import from a `.bzl` file):
-
-```python
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "ksp_version")
-
-kotlin_repositories(
-    ksp_compiler_release = ksp_version(
-        release = "1.8.22-1.0.11",
-        sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
-    ),
 )
 ```
 

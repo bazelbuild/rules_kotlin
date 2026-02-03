@@ -2,7 +2,7 @@
 set -e -x
 have=$1
 want=$2
-got=$($have | tr -d "\n")
+got=$($have | tr -d "\r\n")
 if [[ "${got}" != "${want}" ]]; then
   echo "Want: |$want|"
   echo "Got: |$got|"
