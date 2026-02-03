@@ -21,28 +21,6 @@ load("//kotlin/internal/jvm:associates.bzl", _associate_utils = "associate_utils
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
 
-def _create_pruned_java_infos(java_info):
-    """Creates JavaInfo objects that only expose direct compile jars, not transitive.
-
-    Returns a list of JavaInfo objects, one per compile jar.
-    """
-    if java_info == None:
-        return []
-    # Create a new JavaInfo for each compile jar
-    # This prevents java_common.compile from seeing transitive deps
-    compile_jars_list = java_info.compile_jars.to_list()
-    if not compile_jars_list:
-        return []
-    result = []
-    for jar in compile_jars_list:
-        result.append(JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-            deps = [],  # No transitive deps
-            neverlink = True,  # Don't contribute to runtime classpath
-        ))
-    return result
-
 def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], exports = [], runtime_deps = []):
     """Encapsulates jvm dependency metadata."""
     associates = _associate_utils.get_associates(
@@ -78,13 +56,13 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
     compile_depset_list = depset(transitive = transitive + [associates.jars]).to_list()
     compile_depset_list_filtered = [jar for jar in compile_depset_list if not _sets.contains(associates.abi_jar_set, jar)]
 
-    # Create pruned deps for Java compilation when prune_transitive_deps is enabled
-    # This is needed because java_common.compile() uses transitive_compile_time_jars from JavaInfo deps
+    # Note: We intentionally do NOT prune deps for Java compilation.
+    # While Kotlin can compile with a pruned classpath, javac needs to resolve all types
+    # referenced in class file signatures and annotations from dependencies.
+    # When javac reads an ABI jar containing a method like `foo(SomeType param)`,
+    # it needs SomeType on the classpath even if the source code doesn't use it directly.
+    # This differs from rules_jvm which uses jvm-inc-builder for Java compilation.
     pruned_deps_for_java = None
-    if prune_transitive_deps:
-        pruned_deps_for_java = []
-        for d in dep_infos:
-            pruned_deps_for_java.extend(_create_pruned_java_infos(d))
 
     return struct(
         module_name = associates.module_name,
