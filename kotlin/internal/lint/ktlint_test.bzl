@@ -1,5 +1,5 @@
-load("@rules_java//java:defs.bzl", "java_common")
 load("//kotlin/internal/utils:windows.bzl", "create_windows_native_launcher_script")
+load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE")
 load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
 
@@ -23,7 +23,6 @@ def _ktlint(ctx, srcs, editorconfig, enabled_android_rules, enabled_experimental
     Returns:
       A script running ktlint on the input files.
     """
-    java_runtime_info = ctx.attr._javabase[java_common.JavaRuntimeInfo]
     args = []
     if editorconfig:
         args.append("--editorconfig={file}".format(file = editorconfig.short_path))
@@ -37,7 +36,7 @@ def _ktlint(ctx, srcs, editorconfig, enabled_android_rules, enabled_experimental
         args.append(f.path)
 
     return "PATH=\"{path}/bin:$PATH\" ; {linter} {args}".format(
-        path = java_runtime_info.java_home,
+        path = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.java_home_runfiles_path,
         linter = ctx.executable._ktlint_tool.short_path,
         args = " ".join(args),
     )
@@ -55,7 +54,7 @@ def _ktlint_test_impl(ctx):
 
     executable = ctx.actions.declare_file(ctx.attr.name)
     ctx.actions.write(executable, content = script, is_executable = True)
-    transitive_files = ctx.attr._javabase[java_common.JavaRuntimeInfo].files
+    transitive_files = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.files
     windows_constraint = ctx.attr._windows_constraint[platform_common.ConstraintValueInfo]
 
     if ctx.target_platform_has_constraint(windows_constraint):
@@ -93,9 +92,6 @@ ktlint_test = rule(
             mandatory = True,
             allow_empty = False,
         ),
-        "_javabase": attr.label(
-            default = "@bazel_tools//tools/jdk:current_java_runtime",
-        ),
         "_ktlint_tool": attr.label(
             default = "@com_github_pinterest_ktlint//file",
             executable = True,
@@ -106,7 +102,7 @@ ktlint_test = rule(
     doc = "Lint Kotlin files, and fail if the linter raises errors.",
     test = True,
     toolchains = [
-        "@bazel_tools//tools/jdk:toolchain_type",
+        JAVA_RUNTIME_TOOLCHAIN_TYPE,
         "@bazel_tools//tools/sh:toolchain_type",
     ],
 )
