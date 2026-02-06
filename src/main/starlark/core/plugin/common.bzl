@@ -54,8 +54,11 @@ def _resolve_plugin_options(id, string_list_dict, expand_location):
         for v in vs:
             if "=" in k:
                 fail("kotlin compiler option keys cannot contain the = symbol")
-            value = k + "=" + expand_location(v) if v else k
-            options.append(KtCompilerPluginOption(id = id, value = value))
+            options.append(KtCompilerPluginOption(
+                id = id,
+                key = k,
+                value = expand_location(v),
+            ))
     return options
 
 plugin_common = struct(

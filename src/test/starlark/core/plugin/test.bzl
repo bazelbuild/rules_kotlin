@@ -12,7 +12,10 @@ def _provider_test_impl(env, target):
     got_target = env.expect.that_target(target)
     got_target.has_provider(KtPluginConfiguration)
     got_provider = got_target.provider(KtPluginConfiguration, plugin_configuration_subject_factory)
-    got_provider.options().transform(desc = "option.value", map_each = lambda o: o.value).contains_at_least(want_options)
+    got_provider.options().transform(
+        desc = "option key/value",
+        map_each = lambda o: "%s=%s" % (o.key, o.value) if o.value else o.key,
+    ).contains_at_least(want_options)
     got_provider.id().equals(env.ctx.attr.want_plugin[KtCompilerPluginInfo].id)
 
 def _action_test_impl(env, target):
@@ -173,8 +176,12 @@ def _test_compile_configuration(test):
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
             "want_flags": {
-                "--compiler_plugin_options": ["test.stub:annotation=plugin.StubForTesting", "test.stub:-Dop=koo"],
-                "--stubs_plugin_options": ["test.stub:annotation=plugin.StubForTesting", "test.stub:-Dop=koo"],
+                "--compiler_plugin_option_ids": ["test.stub", "test.stub"],
+                "--compiler_plugin_option_keys": ["k=annotation", "k=-Dop"],
+                "--compiler_plugin_option_values": ["v=plugin.StubForTesting", "v=koo"],
+                "--stubs_plugin_option_ids": ["test.stub", "test.stub"],
+                "--stubs_plugin_option_keys": ["k=annotation", "k=-Dop"],
+                "--stubs_plugin_option_values": ["v=plugin.StubForTesting", "v=koo"],
             },
             "want_inputs": [
                 plugin_jar,
@@ -276,15 +283,35 @@ def _test_compile_multiple_configurations(test):
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
             "want_flags": {
-                "--compiler_plugin_options": [
-                    "test.stub:annotation=plugin.StubForTesting",
-                    "test.stub:-Dop=koo",
-                    "test.stub:-Dop=zubzub",
+                "--compiler_plugin_option_ids": [
+                    "test.stub",
+                    "test.stub",
+                    "test.stub",
                 ],
-                "--stubs_plugin_options": [
-                    "test.stub:annotation=plugin.StubForTesting",
-                    "test.stub:-Dop=koo",
-                    "test.stub:-Dop=zubzub",
+                "--compiler_plugin_option_keys": [
+                    "k=annotation",
+                    "k=-Dop",
+                    "k=-Dop",
+                ],
+                "--compiler_plugin_option_values": [
+                    "v=plugin.StubForTesting",
+                    "v=koo",
+                    "v=zubzub",
+                ],
+                "--stubs_plugin_option_ids": [
+                    "test.stub",
+                    "test.stub",
+                    "test.stub",
+                ],
+                "--stubs_plugin_option_keys": [
+                    "k=annotation",
+                    "k=-Dop",
+                    "k=-Dop",
+                ],
+                "--stubs_plugin_option_values": [
+                    "v=plugin.StubForTesting",
+                    "v=koo",
+                    "v=zubzub",
                 ],
             },
             "want_inputs": [
@@ -358,8 +385,12 @@ def _test_compile_configuration_single_phase(test):
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
             "want_flags": {
-                "--compiler_plugin_options": ["plugin.compile:-Dop=compile_only"],
-                "--stubs_plugin_options": ["plugin.stub:-Dop=stub_only"],
+                "--compiler_plugin_option_ids": ["plugin.compile"],
+                "--compiler_plugin_option_keys": ["k=-Dop"],
+                "--compiler_plugin_option_values": ["v=compile_only"],
+                "--stubs_plugin_option_ids": ["plugin.stub"],
+                "--stubs_plugin_option_keys": ["k=-Dop"],
+                "--stubs_plugin_option_values": ["v=stub_only"],
             },
             "want_inputs": [
                 stub_jar,

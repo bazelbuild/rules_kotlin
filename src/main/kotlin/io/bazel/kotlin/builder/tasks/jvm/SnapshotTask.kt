@@ -91,7 +91,10 @@ class SnapshotTask : Work {
     outputSnapshot: Path,
   ) {
     val operation = toolchains.jvm.createClasspathSnapshottingOperation(inputJar)
-    operation.set(JvmClasspathSnapshottingOperation.GRANULARITY, ClassSnapshotGranularity.CLASS_MEMBER_LEVEL)
+    operation.set(
+      JvmClasspathSnapshottingOperation.GRANULARITY,
+      ClassSnapshotGranularity.CLASS_MEMBER_LEVEL,
+    )
     operation.set(PARSE_INLINED_LOCAL_CLASSES, true)
 
     val snapshot = buildSession.executeOperation(operation)
@@ -100,6 +103,11 @@ class SnapshotTask : Work {
     Files.createDirectories(outputSnapshot.parent)
     val tempFile = outputSnapshot.resolveSibling(outputSnapshot.fileName.toString() + ".tmp")
     snapshot.saveSnapshot(tempFile)
-    Files.move(tempFile, outputSnapshot, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    Files.move(
+      tempFile,
+      outputSnapshot,
+      StandardCopyOption.ATOMIC_MOVE,
+      StandardCopyOption.REPLACE_EXISTING,
+    )
   }
 }

@@ -55,7 +55,8 @@ def _resolve_kapt_cfg(
             options = [
                 KtCompilerPluginOption(
                     id = info.id,
-                    value = "apoption=%s:%s" % (k, v),
+                    key = k,
+                    value = v,
                 )
                 for (k, vs) in option_string_list_dict.items()
                 for v in vs

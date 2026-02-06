@@ -6,6 +6,7 @@ def plugin_option_subject_factory(value, meta):
         meta = meta.derive("option"),
         attrs = {
             "id": subjects.str,
+            "key": subjects.str,
             "value": subjects.str,
         },
     )

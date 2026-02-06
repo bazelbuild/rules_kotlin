@@ -194,9 +194,10 @@ class BtapiCompiler(
 
     // Friend paths (for internal visibility)
     if (task.info.friendPathsList.isNotEmpty()) {
-      args[JvmCompilerArguments.X_FRIEND_PATHS] = task.info.friendPathsList
-        .map { File(it).absolutePath }
-        .toTypedArray()
+      args[JvmCompilerArguments.X_FRIEND_PATHS] =
+        task.info.friendPathsList
+          .map { File(it).absolutePath }
+          .toTypedArray()
     }
   }
 
@@ -283,44 +284,18 @@ class BtapiCompiler(
   /**
    * Builds user-specified compiler plugins from protobuf options.
    */
-  private fun buildUserPlugins(task: JvmCompilationTask): List<CompilerPlugin> {
-    // Get all plugin IDs that should be loaded
-    val allPluginIds = task.inputs.compilerPluginsList.toSet()
-
-    // Group plugin options by plugin ID
-    val pluginOptionsMap = mutableMapOf<String, MutableList<CompilerPluginOption>>()
-
-    task.inputs.compilerPluginOptionsList.forEach { optionStr ->
-      // Format is "pluginId:key=value"
-      val colonIdx = optionStr.indexOf(':')
-      if (colonIdx > 0) {
-        val pluginId = optionStr.substring(0, colonIdx)
-        val keyValue = optionStr.substring(colonIdx + 1)
-        val eqIdx = keyValue.indexOf('=')
-        if (eqIdx > 0) {
-          val key = keyValue.substring(0, eqIdx)
-          val value = keyValue.substring(eqIdx + 1)
-          pluginOptionsMap
-            .getOrPut(pluginId) { mutableListOf() }
-            .add(CompilerPluginOption(key, value))
-        }
-      }
-    }
-
-    // All user plugins share the same classpath
-    val userPluginClasspath = task.inputs.compilerPluginClasspathList.map { Path.of(it) }
-
-    // Create plugins for ALL plugin IDs, not just those with options
-    // This ensures plugins like Parcelize (which have no options) are still loaded
-    return allPluginIds.map { pluginId ->
+  private fun buildUserPlugins(task: JvmCompilationTask): List<CompilerPlugin> =
+    task.inputs.compilerPluginsList.map { plugin ->
       CompilerPlugin(
-        pluginId = pluginId,
-        classpath = userPluginClasspath,
-        rawArguments = pluginOptionsMap[pluginId] ?: emptyList(),
+        pluginId = plugin.id,
+        classpath = plugin.classpathList.map { Path.of(it) },
+        rawArguments =
+          plugin.optionsList.map { option ->
+            CompilerPluginOption(option.key, option.value)
+          },
         orderingRequirements = emptySet(),
       )
     }
-  }
 
   /**
    * Builds jdeps plugin using the typed CompilerPlugin API.
@@ -453,10 +428,26 @@ class BtapiCompiler(
         .sorted()
         .hashCode()
     hash = hash * 31 +
-      task.inputs.compilerPluginOptionsList
+      task.inputs.compilerPluginsList
+        .map(::pluginFingerprint)
+        .sorted()
+        .hashCode()
+    hash = hash * 31 +
+      task.inputs.stubsPluginsList
+        .map(::pluginFingerprint)
         .sorted()
         .hashCode()
     return hash
+  }
+
+  private fun pluginFingerprint(plugin: JvmCompilationTask.Inputs.Plugin): String {
+    val options =
+      plugin.optionsList
+        .map { "${it.key}\u0000${it.value}" }
+        .sorted()
+        .joinToString("\u0001")
+    val classpath = plugin.classpathList.sorted().joinToString("\u0001")
+    return "${plugin.id}\u0002${classpath}\u0002$options"
   }
 
   private fun storeArgsHash(
@@ -643,15 +634,13 @@ class BtapiCompiler(
       options.add(CompilerPluginOption("processors", processor))
     }
 
-    // Read kapt apoptions from the plugin options
-    val optionPrefix = "$pluginId:apoption="
+    // Read kapt apoptions from structured plugin options.
     val apOptions =
-      (task.inputs.compilerPluginOptionsList + task.inputs.stubsPluginOptionsList)
-        .filter { o -> o.startsWith(optionPrefix) }
-        .associate { o ->
-          val kv = o.substring(optionPrefix.length).split(":", limit = 2)
-          kv[0] to kv[1]
-        }
+      (task.inputs.compilerPluginsList + task.inputs.stubsPluginsList)
+        .asSequence()
+        .filter { it.id == pluginId }
+        .flatMap { it.optionsList.asSequence() }
+        .associate { option -> option.key to option.value }
 
     if (apOptions.isNotEmpty()) {
       options.add(CompilerPluginOption("apoptions", encodeMapForKapt(apOptions)))
@@ -671,48 +660,20 @@ class BtapiCompiler(
   private fun buildStubsPlugins(
     task: JvmCompilationTask,
     plugins: InternalCompilerPlugins,
-  ): List<CompilerPlugin> {
-    // Get all stubs plugin IDs that should be loaded (excluding KAPT)
-    val allPluginIds =
-      task.inputs.stubsPluginsList
-        .filterNot { it == plugins.kapt.id }
-        .toSet()
-
-    // Group plugin options by plugin ID
-    val pluginOptionsMap = mutableMapOf<String, MutableList<CompilerPluginOption>>()
-
-    task.inputs.stubsPluginOptionsList
-      .filterNot { it.startsWith(plugins.kapt.id) }
-      .forEach { optionStr ->
-        // Format is "pluginId:key=value"
-        val colonIdx = optionStr.indexOf(':')
-        if (colonIdx > 0) {
-          val pluginId = optionStr.substring(0, colonIdx)
-          val keyValue = optionStr.substring(colonIdx + 1)
-          val eqIdx = keyValue.indexOf('=')
-          if (eqIdx > 0) {
-            val key = keyValue.substring(0, eqIdx)
-            val value = keyValue.substring(eqIdx + 1)
-            pluginOptionsMap
-              .getOrPut(pluginId) { mutableListOf() }
-              .add(CompilerPluginOption(key, value))
-          }
-        }
+  ): List<CompilerPlugin> =
+    task.inputs.stubsPluginsList
+      .filterNot { it.id == plugins.kapt.id }
+      .map { plugin ->
+        CompilerPlugin(
+          pluginId = plugin.id,
+          classpath = plugin.classpathList.map { Path.of(it) },
+          rawArguments =
+            plugin.optionsList.map { option ->
+              CompilerPluginOption(option.key, option.value)
+            },
+          orderingRequirements = emptySet(),
+        )
       }
-
-    // All stubs plugins share the classpath
-    val stubsClasspath = task.inputs.stubsPluginClasspathList.map { Path.of(it) }
-
-    // Create plugins for ALL plugin IDs, not just those with options
-    return allPluginIds.map { pluginId ->
-      CompilerPlugin(
-        pluginId = pluginId,
-        classpath = stubsClasspath,
-        rawArguments = pluginOptionsMap[pluginId] ?: emptyList(),
-        orderingRequirements = emptySet(),
-      )
-    }
-  }
 
   /**
    * Encodes a map to Base64 in the format expected by KAPT.

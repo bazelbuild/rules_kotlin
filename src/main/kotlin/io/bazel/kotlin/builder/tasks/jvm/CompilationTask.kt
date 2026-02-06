@@ -83,7 +83,7 @@ internal fun JvmCompilationTask.runPlugins(
   if (
     (
       inputs.processorsList.isEmpty() &&
-        inputs.stubsPluginClasspathList.isEmpty()
+        inputs.stubsPluginsList.isEmpty()
     ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
@@ -283,7 +283,6 @@ internal fun JvmCompilationTask.ensureJdepsExists() {
   // No cached jdeps, write an empty one
   writeJdeps(outputs.jdeps, emptyJdeps(info.label))
 }
-
 
 val ROOT: String by lazy {
   FileSystems

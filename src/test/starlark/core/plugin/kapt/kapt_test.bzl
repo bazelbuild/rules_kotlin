@@ -113,9 +113,9 @@ def _apoptions_to_kotlinc(rule_under_test, **kwargs):
                 "flags": Want(
                     attr = attr.string_list_dict(),
                     value = {
-                        "--stubs_plugin_options": [
-                            "org.jetbrains.kotlin.kapt3:apoption=%s:%s" % (option_key, option_value),
-                        ],
+                        "--stubs_plugin_option_ids": ["org.jetbrains.kotlin.kapt3"],
+                        "--stubs_plugin_option_keys": ["k=" + option_key],
+                        "--stubs_plugin_option_values": ["v=" + option_value],
                     },
                 ),
                 "mnemonic": Want(

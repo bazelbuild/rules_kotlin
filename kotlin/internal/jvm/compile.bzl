@@ -171,11 +171,14 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def _format_compile_plugin_options(o):
-    """Format compiler option into id:value for cmd line."""
-    return [
-        "%s:%s" % (o.id, o.value),
-    ]
+def _plugin_option_id(o):
+    return [o.id]
+
+def _plugin_option_key(o):
+    return ["k=%s" % o.key]
+
+def _plugin_option_value(o):
+    return ["v=%s" % o.value]
 
 def _new_plugins_from(targets):
     """Returns a struct containing the plugin metadata for the given targets.
@@ -631,9 +634,23 @@ def _run_kt_builder_action(
     )
 
     args.add_all(
-        "--stubs_plugin_options",
+        "--stubs_plugin_option_ids",
         plugins.stubs_phase.options,
-        map_each = _format_compile_plugin_options,
+        map_each = _plugin_option_id,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--stubs_plugin_option_keys",
+        plugins.stubs_phase.options,
+        map_each = _plugin_option_key,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--stubs_plugin_option_values",
+        plugins.stubs_phase.options,
+        map_each = _plugin_option_value,
         omit_if_empty = True,
     )
 
@@ -650,9 +667,23 @@ def _run_kt_builder_action(
     )
 
     args.add_all(
-        "--compiler_plugin_options",
+        "--compiler_plugin_option_ids",
         plugins.compile_phase.options,
-        map_each = _format_compile_plugin_options,
+        map_each = _plugin_option_id,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin_option_keys",
+        plugins.compile_phase.options,
+        map_each = _plugin_option_key,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin_option_values",
+        plugins.compile_phase.options,
+        map_each = _plugin_option_value,
         omit_if_empty = True,
     )
 

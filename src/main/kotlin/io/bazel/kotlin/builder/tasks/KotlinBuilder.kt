@@ -55,12 +55,16 @@ class KotlinBuilder(
       SOURCE_JARS("--source_jars"),
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
-      STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
       STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
       STUBS_PLUGIN_IDS("--stubs_plugin_ids"),
-      COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
+      STUBS_PLUGIN_OPTION_IDS("--stubs_plugin_option_ids"),
+      STUBS_PLUGIN_OPTION_KEYS("--stubs_plugin_option_keys"),
+      STUBS_PLUGIN_OPTION_VALUES("--stubs_plugin_option_values"),
       COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
       COMPILER_PLUGIN_IDS("--compiler_plugin_ids"),
+      COMPILER_PLUGIN_OPTION_IDS("--compiler_plugin_option_ids"),
+      COMPILER_PLUGIN_OPTION_KEYS("--compiler_plugin_option_keys"),
+      COMPILER_PLUGIN_OPTION_VALUES("--compiler_plugin_option_values"),
       OUTPUT("--output"),
       RULE_KIND("--rule_kind"),
       MODULE_NAME("--kotlin_module_name"),
@@ -272,29 +276,39 @@ class KotlinBuilder(
         addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
 
-        addAllStubsPluginOptions(
-          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
-        )
-        addAllStubsPluginClasspath(
-          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
-        )
         addAllStubsPlugins(
-          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_IDS) ?: emptyList(),
-        )
-
-        addAllCompilerPluginOptions(
-          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
-        )
-        addAllCompilerPluginClasspath(
-          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
+          buildCompilerPlugins(
+            pluginIds = argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_IDS) ?: emptyList(),
+            classpath = argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
+            optionPluginIds =
+              argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTION_IDS) ?: emptyList(),
+            optionKeys =
+              argMap.optional(
+                KotlinBuilderFlags.STUBS_PLUGIN_OPTION_KEYS,
+              ) ?: emptyList(),
+            optionValues =
+              argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTION_VALUES) ?: emptyList(),
+          ),
         )
         addAllCompilerPlugins(
-          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_IDS) ?: emptyList(),
+          buildCompilerPlugins(
+            pluginIds =
+              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_IDS) ?: emptyList(),
+            classpath =
+              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
+            optionPluginIds =
+              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTION_IDS) ?: emptyList(),
+            optionKeys =
+              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTION_KEYS) ?: emptyList(),
+            optionValues =
+              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTION_VALUES) ?: emptyList(),
+          ),
         )
 
         // Kotlin compiler always requires absolute path for source input in incremental mode
         val useAbsolutePath =
-          argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)
+          argMap
+            .optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)
             ?.equals("true", ignoreCase = true) == true
         argMap
           .optional(KotlinBuilderFlags.SOURCES)
@@ -329,6 +343,59 @@ class KotlinBuilder(
       }
       root.build()
     }
+
+  private fun buildCompilerPlugins(
+    pluginIds: List<String>,
+    classpath: List<String>,
+    optionPluginIds: List<String>,
+    optionKeys: List<String>,
+    optionValues: List<String>,
+  ): List<JvmCompilationTask.Inputs.Plugin> {
+    require(optionPluginIds.size == optionKeys.size && optionKeys.size == optionValues.size) {
+      "compiler plugin option ids/keys/values must have equal sizes: " +
+        "ids=${optionPluginIds.size}, keys=${optionKeys.size}, values=${optionValues.size}"
+    }
+
+    val optionGroups =
+      mutableMapOf<String, MutableList<JvmCompilationTask.Inputs.PluginOption>>()
+    optionPluginIds.indices.forEach { index ->
+      val pluginId = optionPluginIds[index]
+      optionGroups
+        .getOrPut(pluginId) { mutableListOf() }
+        .add(
+          JvmCompilationTask.Inputs.PluginOption
+            .newBuilder()
+            .setKey(decodePluginOption(optionKeys[index], "k="))
+            .setValue(decodePluginOption(optionValues[index], "v="))
+            .build(),
+        )
+    }
+
+    val pluginIdSet = pluginIds.toSet()
+    val unknownPluginIds = optionGroups.keys - pluginIdSet
+    require(unknownPluginIds.isEmpty()) {
+      "compiler plugin options contain unknown plugin ids: ${unknownPluginIds.sorted()}"
+    }
+
+    return pluginIds.map { pluginId ->
+      JvmCompilationTask.Inputs.Plugin
+        .newBuilder()
+        .setId(pluginId)
+        .addAllClasspath(classpath)
+        .addAllOptions(optionGroups[pluginId] ?: emptyList())
+        .build()
+    }
+  }
+
+  private fun decodePluginOption(
+    encoded: String,
+    prefix: String,
+  ): String {
+    require(encoded.startsWith(prefix)) {
+      "compiler plugin option entry must start with $prefix: $encoded"
+    }
+    return encoded.removePrefix(prefix)
+  }
 
   private fun getOutputDirPath(
     info: CompilationTaskInfo,
