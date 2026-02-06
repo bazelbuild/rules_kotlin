@@ -19,19 +19,15 @@ package io.bazel.kotlin.builder.tasks
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.util.JsonFormat
 import io.bazel.kotlin.model.JvmCompilationTask
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Paths
 
 object PluginsPayloadParser {
   @JvmStatic
-  fun parse(path: String): List<JvmCompilationTask.Inputs.Plugin> {
-    val json = Files.readString(Paths.get(path), StandardCharsets.UTF_8)
+  fun parse(json: String): List<JvmCompilationTask.Inputs.Plugin> {
     val inputs = JvmCompilationTask.Inputs.newBuilder()
     try {
       JsonFormat.parser().ignoringUnknownFields().merge(json, inputs)
     } catch (e: InvalidProtocolBufferException) {
-      throw IllegalArgumentException("invalid plugins payload JSON at $path: ${e.message}", e)
+      throw IllegalArgumentException("invalid plugins payload JSON: ${e.message}", e)
     }
     return inputs.pluginsList
   }

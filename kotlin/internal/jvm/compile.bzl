@@ -175,11 +175,6 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def _plugins_payload_action(ctx, plugins):
-    payload = ctx.actions.declare_file("%s_plugins_payload" % ctx.label.name)
-    ctx.actions.write(payload, _plugin_payload.plugins_payload_json(plugins.plugins))
-    return payload
-
 def _new_plugins_from(targets):
     """Returns a struct containing the plugin metadata for the given targets.
 
@@ -622,8 +617,7 @@ def _run_kt_builder_action(
         uniquify = True,
     )
 
-    plugins_payload = _plugins_payload_action(ctx, plugins)
-    args.add("--plugins_payload", plugins_payload)
+    args.add("--plugins_payload", _plugin_payload.plugins_payload_json(plugins.plugins))
 
     if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
         args.add("--remove_private_classes_in_abi_jar", "true")
@@ -657,7 +651,7 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots + [plugins_payload],
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots,
             transitive = [
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,

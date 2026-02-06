@@ -29,6 +29,21 @@ def _action_test_impl(env, target):
             map_each = lambda item: item[0],
         ).contains_at_least(env.ctx.attr.want_flag_keys)
 
+def _inline_payload_test_impl(env, target):
+    action = env.expect.that_target(target).action_named("KotlinCompile")
+    parsed_flags = flags_and_values_of(action)
+    parsed_flags.transform(
+        desc = "--plugins_payload is inline JSON",
+        map_each = lambda item: (
+            item[0] == "--plugins_payload" and
+            len(item[1]) == 1 and
+            item[1][0].startswith("{") and
+            "\"plugins\"" in item[1][0] and
+            env.ctx.attr.want_plugin_id in item[1][0] and
+            not item[1][0].endswith("_plugins_payload")
+        ),
+    ).contains(True)
+
 def _expect_failure(env, target):
     fail_messages_in(env.expect.that_target(target)).contains_at_least(env.ctx.attr.want_failures)
 
@@ -124,6 +139,56 @@ def _test_kt_plugin_cfg(test):
         },
     )
 
+def _test_kt_plugin_cfg_multi_value_options(test):
+    plugin = test.have(
+        kt_compiler_plugin,
+        name = "plugin",
+        id = "test.multi",
+        deps = [
+            test.have(
+                kt_jvm_library,
+                name = "plugin_dep",
+                srcs = [
+                    test.artifact(
+                        name = "plugin.kt",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    cfg = test.got(
+        kt_plugin_cfg,
+        name = "got",
+        plugin = plugin,
+        options = {
+            "annotation": [
+                "plugin.First",
+                "plugin.Second",
+            ],
+        },
+        deps = [],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _provider_test_impl,
+        target = cfg,
+        attr_values = {
+            "want_deps": [],
+            "want_options": [
+                "annotation=plugin.First",
+                "annotation=plugin.Second",
+            ],
+            "want_plugin": plugin,
+        },
+        attrs = {
+            "want_deps": attr.label_list(providers = [JavaInfo]),
+            "want_options": attr.string_list(),
+            "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
+        },
+    )
+
 def _test_compile_configuration(test):
     plugin_jar = test.artifact(
         name = "plugin.jar",
@@ -202,6 +267,50 @@ def _test_compile_configuration(test):
             "want_flag_keys": attr.string_list(),
             "want_flags": attr.string_list_dict(),
             "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
+        },
+    )
+
+def _test_compile_configuration_inline_payload_json(test):
+    plugin = test.have(
+        kt_compiler_plugin,
+        name = "plugin",
+        id = "test.inline.payload",
+        options = {
+            "annotation": ["plugin.StubForTesting"],
+        },
+        deps = [
+            test.have(
+                kt_jvm_import,
+                name = "plugin_jar",
+                jars = [
+                    test.artifact(
+                        name = "plugin.jar",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    got = test.got(
+        kt_jvm_library,
+        name = "got_library",
+        srcs = [
+            test.artifact(
+                name = "got_library.kt",
+            ),
+        ],
+        plugins = [plugin],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _inline_payload_test_impl,
+        target = got,
+        attr_values = {
+            "want_plugin_id": "test.inline.payload",
+        },
+        attrs = {
+            "want_plugin_id": attr.string(),
         },
     )
 
@@ -488,7 +597,9 @@ def test_suite(name):
     suite(
         name,
         test_kt_plugin_cfg = _test_kt_plugin_cfg,
+        test_kt_plugin_cfg_multi_value_options = _test_kt_plugin_cfg_multi_value_options,
         test_compile_configuration = _test_compile_configuration,
+        test_compile_configuration_inline_payload_json = _test_compile_configuration_inline_payload_json,
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
         test_library_plugin_without_phase = _test_library_plugin_without_phase,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
