@@ -21,7 +21,13 @@ def _provider_test_impl(env, target):
 def _action_test_impl(env, target):
     action = env.expect.that_target(target).action_named(env.ctx.attr.on_action_mnemonic)
     action.inputs().contains_at_least([f.short_path for f in env.ctx.files.want_inputs])
-    flags_and_values_of(action).contains_at_least(env.ctx.attr.want_flags.items())
+    parsed_flags = flags_and_values_of(action)
+    parsed_flags.contains_at_least(env.ctx.attr.want_flags.items())
+    if env.ctx.attr.want_flag_keys:
+        parsed_flags.transform(
+            desc = "flag keys",
+            map_each = lambda item: item[0],
+        ).contains_at_least(env.ctx.attr.want_flag_keys)
 
 def _expect_failure(env, target):
     fail_messages_in(env.expect.that_target(target)).contains_at_least(env.ctx.attr.want_failures)
@@ -175,13 +181,8 @@ def _test_compile_configuration(test):
         target = got,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
+            "want_flag_keys": ["--plugins_payload"],
             "want_flags": {
-                "--compiler_plugin_option_ids": ["test.stub", "test.stub"],
-                "--compiler_plugin_option_keys": ["k=annotation", "k=-Dop"],
-                "--compiler_plugin_option_values": ["v=plugin.StubForTesting", "v=koo"],
-                "--stubs_plugin_option_ids": ["test.stub", "test.stub"],
-                "--stubs_plugin_option_keys": ["k=annotation", "k=-Dop"],
-                "--stubs_plugin_option_values": ["v=plugin.StubForTesting", "v=koo"],
             },
             "want_inputs": [
                 plugin_jar,
@@ -190,6 +191,7 @@ def _test_compile_configuration(test):
         },
         attrs = {
             "on_action_mnemonic": attr.string(),
+            "want_flag_keys": attr.string_list(),
             "want_flags": attr.string_list_dict(),
             "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
         },
@@ -282,37 +284,8 @@ def _test_compile_multiple_configurations(test):
         target = got,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
+            "want_flag_keys": ["--plugins_payload"],
             "want_flags": {
-                "--compiler_plugin_option_ids": [
-                    "test.stub",
-                    "test.stub",
-                    "test.stub",
-                ],
-                "--compiler_plugin_option_keys": [
-                    "k=annotation",
-                    "k=-Dop",
-                    "k=-Dop",
-                ],
-                "--compiler_plugin_option_values": [
-                    "v=plugin.StubForTesting",
-                    "v=koo",
-                    "v=zubzub",
-                ],
-                "--stubs_plugin_option_ids": [
-                    "test.stub",
-                    "test.stub",
-                    "test.stub",
-                ],
-                "--stubs_plugin_option_keys": [
-                    "k=annotation",
-                    "k=-Dop",
-                    "k=-Dop",
-                ],
-                "--stubs_plugin_option_values": [
-                    "v=plugin.StubForTesting",
-                    "v=koo",
-                    "v=zubzub",
-                ],
             },
             "want_inputs": [
                 plugin_jar,
@@ -322,6 +295,7 @@ def _test_compile_multiple_configurations(test):
         },
         attrs = {
             "on_action_mnemonic": attr.string(),
+            "want_flag_keys": attr.string_list(),
             "want_flags": attr.string_list_dict(),
             "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
         },
@@ -384,13 +358,8 @@ def _test_compile_configuration_single_phase(test):
         target = got,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
+            "want_flag_keys": ["--plugins_payload"],
             "want_flags": {
-                "--compiler_plugin_option_ids": ["plugin.compile"],
-                "--compiler_plugin_option_keys": ["k=-Dop"],
-                "--compiler_plugin_option_values": ["v=compile_only"],
-                "--stubs_plugin_option_ids": ["plugin.stub"],
-                "--stubs_plugin_option_keys": ["k=-Dop"],
-                "--stubs_plugin_option_values": ["v=stub_only"],
             },
             "want_inputs": [
                 stub_jar,
@@ -399,6 +368,7 @@ def _test_compile_configuration_single_phase(test):
         },
         attrs = {
             "on_action_mnemonic": attr.string(),
+            "want_flag_keys": attr.string_list(),
             "want_flags": attr.string_list_dict(),
             "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
         },

@@ -285,17 +285,9 @@ class BtapiCompiler(
    * Builds user-specified compiler plugins from protobuf options.
    */
   private fun buildUserPlugins(task: JvmCompilationTask): List<CompilerPlugin> =
-    task.inputs.compilerPluginsList.map { plugin ->
-      CompilerPlugin(
-        pluginId = plugin.id,
-        classpath = plugin.classpathList.map { Path.of(it) },
-        rawArguments =
-          plugin.optionsList.map { option ->
-            CompilerPluginOption(option.key, option.value)
-          },
-        orderingRequirements = emptySet(),
-      )
-    }
+    task.inputs.pluginsList
+      .filter { hasPhase(it, JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_COMPILE) }
+      .map(::toBtapiPlugin)
 
   /**
    * Builds jdeps plugin using the typed CompilerPlugin API.
@@ -428,12 +420,7 @@ class BtapiCompiler(
         .sorted()
         .hashCode()
     hash = hash * 31 +
-      task.inputs.compilerPluginsList
-        .map(::pluginFingerprint)
-        .sorted()
-        .hashCode()
-    hash = hash * 31 +
-      task.inputs.stubsPluginsList
+      task.inputs.pluginsList
         .map(::pluginFingerprint)
         .sorted()
         .hashCode()
@@ -447,8 +434,25 @@ class BtapiCompiler(
         .sorted()
         .joinToString("\u0001")
     val classpath = plugin.classpathList.sorted().joinToString("\u0001")
-    return "${plugin.id}\u0002${classpath}\u0002$options"
+    val phases = plugin.phasesList.map { it.name }.sorted().joinToString("\u0001")
+    return "${plugin.id}\u0002${classpath}\u0002$options\u0002$phases"
   }
+
+  private fun hasPhase(
+    plugin: JvmCompilationTask.Inputs.Plugin,
+    phase: JvmCompilationTask.Inputs.PluginPhase,
+  ): Boolean = plugin.phasesList.contains(phase)
+
+  private fun toBtapiPlugin(plugin: JvmCompilationTask.Inputs.Plugin): CompilerPlugin =
+    CompilerPlugin(
+      pluginId = plugin.id,
+      classpath = plugin.classpathList.map { Path.of(it) },
+      rawArguments =
+        plugin.optionsList.map { option ->
+          CompilerPluginOption(option.key, option.value)
+        },
+      orderingRequirements = emptySet(),
+    )
 
   private fun storeArgsHash(
     icBaseDir: Path,
@@ -636,7 +640,7 @@ class BtapiCompiler(
 
     // Read kapt apoptions from structured plugin options.
     val apOptions =
-      (task.inputs.compilerPluginsList + task.inputs.stubsPluginsList)
+      task.inputs.pluginsList
         .asSequence()
         .filter { it.id == pluginId }
         .flatMap { it.optionsList.asSequence() }
@@ -661,19 +665,10 @@ class BtapiCompiler(
     task: JvmCompilationTask,
     plugins: InternalCompilerPlugins,
   ): List<CompilerPlugin> =
-    task.inputs.stubsPluginsList
+    task.inputs.pluginsList
+      .filter { hasPhase(it, JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS) }
       .filterNot { it.id == plugins.kapt.id }
-      .map { plugin ->
-        CompilerPlugin(
-          pluginId = plugin.id,
-          classpath = plugin.classpathList.map { Path.of(it) },
-          rawArguments =
-            plugin.optionsList.map { option ->
-              CompilerPluginOption(option.key, option.value)
-            },
-          orderingRequirements = emptySet(),
-        )
-      }
+      .map(::toBtapiPlugin)
 
   /**
    * Encodes a map to Base64 in the format expected by KAPT.

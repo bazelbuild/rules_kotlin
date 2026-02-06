@@ -55,16 +55,7 @@ class KotlinBuilder(
       SOURCE_JARS("--source_jars"),
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
-      STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
-      STUBS_PLUGIN_IDS("--stubs_plugin_ids"),
-      STUBS_PLUGIN_OPTION_IDS("--stubs_plugin_option_ids"),
-      STUBS_PLUGIN_OPTION_KEYS("--stubs_plugin_option_keys"),
-      STUBS_PLUGIN_OPTION_VALUES("--stubs_plugin_option_values"),
-      COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
-      COMPILER_PLUGIN_IDS("--compiler_plugin_ids"),
-      COMPILER_PLUGIN_OPTION_IDS("--compiler_plugin_option_ids"),
-      COMPILER_PLUGIN_OPTION_KEYS("--compiler_plugin_option_keys"),
-      COMPILER_PLUGIN_OPTION_VALUES("--compiler_plugin_option_values"),
+      PLUGINS_PAYLOAD("--plugins_payload"),
       OUTPUT("--output"),
       RULE_KIND("--rule_kind"),
       MODULE_NAME("--kotlin_module_name"),
@@ -275,35 +266,10 @@ class KotlinBuilder(
 
         addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
-
-        addAllStubsPlugins(
-          buildCompilerPlugins(
-            pluginIds = argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_IDS) ?: emptyList(),
-            classpath = argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
-            optionPluginIds =
-              argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTION_IDS) ?: emptyList(),
-            optionKeys =
-              argMap.optional(
-                KotlinBuilderFlags.STUBS_PLUGIN_OPTION_KEYS,
-              ) ?: emptyList(),
-            optionValues =
-              argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTION_VALUES) ?: emptyList(),
-          ),
-        )
-        addAllCompilerPlugins(
-          buildCompilerPlugins(
-            pluginIds =
-              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_IDS) ?: emptyList(),
-            classpath =
-              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
-            optionPluginIds =
-              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTION_IDS) ?: emptyList(),
-            optionKeys =
-              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTION_KEYS) ?: emptyList(),
-            optionValues =
-              argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTION_VALUES) ?: emptyList(),
-          ),
-        )
+        argMap
+          .optionalSingle(KotlinBuilderFlags.PLUGINS_PAYLOAD)
+          ?.let(::parsePluginsPayload)
+          ?.also(::addAllPlugins)
 
         // Kotlin compiler always requires absolute path for source input in incremental mode
         val useAbsolutePath =
@@ -344,57 +310,131 @@ class KotlinBuilder(
       root.build()
     }
 
-  private fun buildCompilerPlugins(
-    pluginIds: List<String>,
-    classpath: List<String>,
-    optionPluginIds: List<String>,
-    optionKeys: List<String>,
-    optionValues: List<String>,
-  ): List<JvmCompilationTask.Inputs.Plugin> {
-    require(optionPluginIds.size == optionKeys.size && optionKeys.size == optionValues.size) {
-      "compiler plugin option ids/keys/values must have equal sizes: " +
-        "ids=${optionPluginIds.size}, keys=${optionKeys.size}, values=${optionValues.size}"
-    }
+  private fun parsePluginsPayload(path: String): List<JvmCompilationTask.Inputs.Plugin> {
+    val plugins = mutableListOf<JvmCompilationTask.Inputs.Plugin>()
+    var currentPluginBuilder: JvmCompilationTask.Inputs.Plugin.Builder? = null
 
-    val optionGroups =
-      mutableMapOf<String, MutableList<JvmCompilationTask.Inputs.PluginOption>>()
-    optionPluginIds.indices.forEach { index ->
-      val pluginId = optionPluginIds[index]
-      optionGroups
-        .getOrPut(pluginId) { mutableListOf() }
-        .add(
-          JvmCompilationTask.Inputs.PluginOption
-            .newBuilder()
-            .setKey(decodePluginOption(optionKeys[index], "k="))
-            .setValue(decodePluginOption(optionValues[index], "v="))
-            .build(),
-        )
-    }
+    Files
+      .readAllLines(Paths.get(path), StandardCharsets.UTF_8)
+      .forEachIndexed { idx, line ->
+        if (line.isEmpty()) {
+          return@forEachIndexed
+        }
+        val lineNumber = idx + 1
+        val parts = line.split("\t")
+        when (parts[0]) {
+          "plugin" -> {
+            require(currentPluginBuilder == null) {
+              "plugins payload $path:$lineNumber starts a new plugin before closing the previous one"
+            }
+            require(parts.size == 3) {
+              "plugins payload $path:$lineNumber invalid plugin record"
+            }
 
-    val pluginIdSet = pluginIds.toSet()
-    val unknownPluginIds = optionGroups.keys - pluginIdSet
-    require(unknownPluginIds.isEmpty()) {
-      "compiler plugin options contain unknown plugin ids: ${unknownPluginIds.sorted()}"
-    }
+            currentPluginBuilder =
+              JvmCompilationTask.Inputs.Plugin
+                .newBuilder()
+                .setId(unescapePluginPayload(parts[1]))
+                .addAllPhases(parsePluginPhases(path, lineNumber, parts[2]))
+          }
 
-    return pluginIds.map { pluginId ->
-      JvmCompilationTask.Inputs.Plugin
-        .newBuilder()
-        .setId(pluginId)
-        .addAllClasspath(classpath)
-        .addAllOptions(optionGroups[pluginId] ?: emptyList())
-        .build()
+          "classpath" -> {
+            val pluginBuilder = requireNotNull(currentPluginBuilder) {
+              "plugins payload $path:$lineNumber has classpath without plugin header"
+            }
+            require(parts.size == 2) {
+              "plugins payload $path:$lineNumber invalid classpath record"
+            }
+            pluginBuilder.addClasspath(unescapePluginPayload(parts[1]))
+          }
+
+          "option" -> {
+            val pluginBuilder = requireNotNull(currentPluginBuilder) {
+              "plugins payload $path:$lineNumber has option without plugin header"
+            }
+            require(parts.size == 3) {
+              "plugins payload $path:$lineNumber invalid option record"
+            }
+            pluginBuilder.addOptions(
+              JvmCompilationTask.Inputs.PluginOption
+                .newBuilder()
+                .setKey(unescapePluginPayload(parts[1]))
+                .setValue(unescapePluginPayload(parts[2]))
+                .build(),
+            )
+          }
+
+          "end" -> {
+            require(parts.size == 1) {
+              "plugins payload $path:$lineNumber invalid end record"
+            }
+            val pluginBuilder = requireNotNull(currentPluginBuilder) {
+              "plugins payload $path:$lineNumber has end without plugin header"
+            }
+            plugins.add(pluginBuilder.build())
+            currentPluginBuilder = null
+          }
+
+          else -> error("plugins payload $path:$lineNumber has unknown record type '${parts[0]}'")
+        }
+      }
+
+    require(currentPluginBuilder == null) {
+      "plugins payload $path ended before closing the last plugin"
     }
+    return plugins
   }
 
-  private fun decodePluginOption(
-    encoded: String,
-    prefix: String,
-  ): String {
-    require(encoded.startsWith(prefix)) {
-      "compiler plugin option entry must start with $prefix: $encoded"
+  private fun parsePluginPhases(
+    path: String,
+    lineNumber: Int,
+    encodedPhases: String,
+  ): List<JvmCompilationTask.Inputs.PluginPhase> {
+    val phases =
+      unescapePluginPayload(encodedPhases)
+        .split(",")
+        .filter { it.isNotBlank() }
+        .map { phase ->
+          when (phase) {
+            "compile" -> JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_COMPILE
+            "stubs" -> JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS
+            else ->
+              error(
+                "plugins payload $path:$lineNumber contains unknown plugin phase '$phase'",
+              )
+          }
+        }
+    require(phases.isNotEmpty()) {
+      "plugins payload $path:$lineNumber contains plugin with no phases"
     }
-    return encoded.removePrefix(prefix)
+    return phases
+  }
+
+  private fun unescapePluginPayload(encoded: String): String {
+    val out = StringBuilder(encoded.length)
+    var idx = 0
+    while (idx < encoded.length) {
+      val ch = encoded[idx]
+      if (ch != '\\') {
+        out.append(ch)
+        idx += 1
+        continue
+      }
+      require(idx + 1 < encoded.length) {
+        "plugins payload contains dangling escape in '$encoded'"
+      }
+      when (encoded[idx + 1]) {
+        '\\' -> out.append('\\')
+        't' -> out.append('\t')
+        'n' -> out.append('\n')
+        else ->
+          error(
+            "plugins payload contains unsupported escape sequence '\\${encoded[idx + 1]}' in '$encoded'",
+          )
+      }
+      idx += 2
+    }
+    return out.toString()
   }
 
   private fun getOutputDirPath(

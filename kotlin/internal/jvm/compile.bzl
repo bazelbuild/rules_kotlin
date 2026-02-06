@@ -171,14 +171,30 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def _plugin_option_id(o):
-    return [o.id]
+def _escape_plugins_payload(value):
+    return value.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n")
 
-def _plugin_option_key(o):
-    return ["k=%s" % o.key]
+def _plugins_payload_lines(plugins):
+    lines = []
+    for plugin in plugins:
+        lines.append("plugin\t%s\t%s\n" % (
+            _escape_plugins_payload(plugin.id),
+            _escape_plugins_payload(",".join(plugin.phases)),
+        ))
+        for classpath_entry in plugin.classpath.to_list():
+            lines.append("classpath\t%s\n" % _escape_plugins_payload(classpath_entry.path))
+        for option in plugin.options:
+            lines.append("option\t%s\t%s\n" % (
+                _escape_plugins_payload(option.key),
+                _escape_plugins_payload(option.value),
+            ))
+        lines.append("end\n")
+    return lines
 
-def _plugin_option_value(o):
-    return ["v=%s" % o.value]
+def _plugins_payload_action(ctx, plugins):
+    payload = ctx.actions.declare_file("%s_plugins_payload" % ctx.label.name)
+    ctx.actions.write(payload, "".join(_plugins_payload_lines(plugins.plugins)))
+    return payload
 
 def _new_plugins_from(targets):
     """Returns a struct containing the plugin metadata for the given targets.
@@ -186,17 +202,7 @@ def _new_plugins_from(targets):
     Args:
         targets: A list of targets.
     Returns:
-        A struct containing the plugins for the given targets in the format:
-        {
-            stubs_phase = {
-                classpath = depset,
-                options= List[KtCompilerPluginOption],
-            ),
-            compile = {
-                classpath = depset,
-                options = List[KtCompilerPluginOption],
-            },
-        }
+        A struct containing merged plugins and aggregate classpath/data.
     """
 
     all_plugins = {}
@@ -228,31 +234,36 @@ def _new_plugins_from(targets):
     if cfgs_without_plugin:
         fail("has plugin configurations without corresponding plugins: %s" % cfgs_without_plugin)
 
-    return struct(
-        stubs_phase = _new_plugin_from(all_plugin_cfgs, [p for p in all_plugins.values() if p.stubs]),
-        compile_phase = _new_plugin_from(all_plugin_cfgs, [p for p in all_plugins.values() if p.compile]),
-    )
-
-def _new_plugin_from(all_cfgs, plugins_for_phase):
     classpath = []
     data = []
-    options = []
-    ids = []
-    for p in plugins_for_phase:
-        ids.append(p.id)
-        classpath.append(p.classpath)
-        options.extend(p.options)
-        if p.id in all_cfgs:
-            cfg = p.merge_cfgs(p, all_cfgs[p.id])
-            classpath.append(cfg.classpath)
+    plugins = []
+    for p in all_plugins.values():
+        plugin_classpath = [p.classpath]
+        plugin_options = list(p.options)
+        if p.id in all_plugin_cfgs:
+            cfg = p.merge_cfgs(p, all_plugin_cfgs[p.id])
+            plugin_classpath.append(cfg.classpath)
             data.append(cfg.data)
-            options.extend(cfg.options)
+            plugin_options.extend(cfg.options)
+
+        phases = []
+        if p.compile:
+            phases.append("compile")
+        if p.stubs:
+            phases.append("stubs")
+
+        plugins.append(struct(
+            id = p.id,
+            phases = phases,
+            classpath = depset(transitive = plugin_classpath),
+            options = plugin_options,
+        ))
+        classpath.extend(plugin_classpath)
 
     return struct(
         classpath = depset(transitive = classpath),
         data = depset(transitive = data),
-        options = options,
-        ids = ids,
+        plugins = plugins,
     )
 
 # INTERNAL ACTIONS #####################################################################################################
@@ -627,71 +638,8 @@ def _run_kt_builder_action(
         uniquify = True,
     )
 
-    args.add_all(
-        "--stubs_plugin_classpath",
-        plugins.stubs_phase.classpath,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--stubs_plugin_option_ids",
-        plugins.stubs_phase.options,
-        map_each = _plugin_option_id,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--stubs_plugin_option_keys",
-        plugins.stubs_phase.options,
-        map_each = _plugin_option_key,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--stubs_plugin_option_values",
-        plugins.stubs_phase.options,
-        map_each = _plugin_option_value,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--stubs_plugin_ids",
-        plugins.stubs_phase.ids,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--compiler_plugin_classpath",
-        plugins.compile_phase.classpath,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--compiler_plugin_option_ids",
-        plugins.compile_phase.options,
-        map_each = _plugin_option_id,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--compiler_plugin_option_keys",
-        plugins.compile_phase.options,
-        map_each = _plugin_option_key,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--compiler_plugin_option_values",
-        plugins.compile_phase.options,
-        map_each = _plugin_option_value,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--compiler_plugin_ids",
-        plugins.compile_phase.ids,
-        omit_if_empty = True,
-    )
+    plugins_payload = _plugins_payload_action(ctx, plugins)
+    args.add("--plugins_payload", plugins_payload)
 
     if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
         args.add("--remove_private_classes_in_abi_jar", "true")
@@ -725,14 +673,13 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots,
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots + [plugins_payload],
             transitive = [
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,
                 transitive_runtime_jars,
                 deps_artifacts,
-                plugins.stubs_phase.classpath,
-                plugins.compile_phase.classpath,
+                plugins.classpath,
             ],
         ),
         tools = [

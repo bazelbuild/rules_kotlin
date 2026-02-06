@@ -22,7 +22,7 @@ def _resolve_plugin_cfg(info, options, deps, expand_location):
     return [
         KtPluginConfiguration(
             id = info.id,
-            options = _resolve_plugin_options(info.id, options, expand_location),
+            options = _resolve_plugin_options(options, expand_location),
             classpath = classpath,
             data = data,
         ),
@@ -38,12 +38,11 @@ def _merge_plugin_cfgs(info, cfgs):
         data = depset(),
     )
 
-def _resolve_plugin_options(id, string_list_dict, expand_location):
+def _resolve_plugin_options(string_list_dict, expand_location):
     """
     Resolves plugin options from a string dict to a dict of strings.
 
     Args:
-        id: the plugin id
         string_list_dict: a dict of list[string].
         expand_location:
     Returns:
@@ -55,7 +54,6 @@ def _resolve_plugin_options(id, string_list_dict, expand_location):
             if "=" in k:
                 fail("kotlin compiler option keys cannot contain the = symbol")
             options.append(KtCompilerPluginOption(
-                id = id,
                 key = k,
                 value = expand_location(v),
             ))

@@ -54,7 +54,6 @@ def _resolve_kapt_cfg(
             id = info.id,
             options = [
                 KtCompilerPluginOption(
-                    id = info.id,
                     key = k,
                     value = v,
                 )

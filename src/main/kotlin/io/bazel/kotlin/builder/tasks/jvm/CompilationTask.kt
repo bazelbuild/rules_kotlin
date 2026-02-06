@@ -83,7 +83,9 @@ internal fun JvmCompilationTask.runPlugins(
   if (
     (
       inputs.processorsList.isEmpty() &&
-        inputs.stubsPluginsList.isEmpty()
+        inputs.pluginsList.none {
+          it.phasesList.contains(JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS)
+        }
     ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
