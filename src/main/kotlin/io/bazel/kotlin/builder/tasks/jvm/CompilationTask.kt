@@ -32,7 +32,6 @@ import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask.Directories
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -237,36 +236,6 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
 }
 
 /**
- * Creates a classpath snapshot for the output jar.
- * The snapshot is stored in the IC directory as a worker-local side-effect,
- * not as a Bazel-tracked output.
- *
- * This snapshot (output-classpath-snapshot.bin) is used by downstream targets
- * that depend on this target. It is separate from BTAPI's internal shrunk
- * dependencies snapshot (shrunk-classpath-snapshot.bin).
- */
-@OptIn(ExperimentalBuildToolsApi::class)
-internal fun JvmCompilationTask.createOutputClasspathSnapshot(
-  btapiCompiler: BtapiCompiler,
-  out: java.io.PrintStream,
-) {
-  if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
-    return
-  }
-  // Write snapshot to IC directory - use distinct name to avoid collision with BTAPI's internal snapshot
-  val icDir = Paths.get(directories.incrementalBaseDir)
-  Files.createDirectories(icDir)
-  val snapshotPath = icDir.resolve("output-classpath-snapshot.bin")
-
-  btapiCompiler.generateClasspathSnapshot(
-    Paths.get(outputs.jar),
-    snapshotPath,
-    ClassSnapshotGranularity.CLASS_MEMBER_LEVEL,
-    out = out,
-  )
-}
-
-/**
  * Caches the jdeps file to IC directory for future incremental builds.
  * This is called after successful compilation so the jdeps can be restored
  * when IC skips compilation in future builds.
@@ -315,37 +284,6 @@ internal fun JvmCompilationTask.ensureJdepsExists() {
   writeJdeps(outputs.jdeps, emptyJdeps(info.label))
 }
 
-/**
- * Computes classpath snapshot paths from classpath JAR paths.
- * For each JAR at path/foo.jar or path/foo.abi.jar, the snapshot is at path/foo-ic/output-classpath-snapshot.bin.
- * The IC directory is always derived from the main JAR name (without .abi suffix).
- * Only returns paths that actually exist (from previous builds).
- *
- * Note: This looks for output-classpath-snapshot.bin (the snapshot of the dep's output JAR),
- * not shrunk-classpath-snapshot.bin (which is BTAPI's internal file).
- */
-internal fun JvmCompilationTask.createClasspathSnapshotsPaths(): List<String> {
-  if (!info.incrementalCompilation) {
-    return emptyList()
-  }
-  return inputs.classpathList
-    .mapNotNull { jarPath ->
-      val path = Paths.get(jarPath)
-      // Handle both main jars (foo.jar) and ABI jars (foo.abi.jar)
-      // IC directory is always derived from the main jar name
-      val jarName =
-        path.fileName
-          .toString()
-          .removeSuffix(".jar")
-          .removeSuffix(".abi") // For ABI jars, remove .abi suffix too
-      val snapshotPath = path.resolveSibling("$jarName-ic/output-classpath-snapshot.bin")
-      if (snapshotPath.exists()) {
-        snapshotPath.toString()
-      } else {
-        null
-      }
-    }
-}
 
 val ROOT: String by lazy {
   FileSystems

@@ -25,12 +25,14 @@ def _setup(env, target):
             JavaInfo: associate_deps_java_info,
             _KtJvmInfo: _KtJvmInfo(
                 module_name = "associate_name",
+                classpath_snapshot = None,
             ),
         },
         {
             JavaInfo: associate_deps_java_info2,
             _KtJvmInfo: _KtJvmInfo(
                 module_name = "associate_name",
+                classpath_snapshot = None,
             ),
         },
     ]
@@ -207,6 +209,7 @@ def _transitive_from_associates_test_impl(env, target):
             ),
             _KtJvmInfo: _KtJvmInfo(
                 module_name = "associate_name",
+                classpath_snapshot = None,
             ),
         },
     ]
@@ -312,6 +315,7 @@ def _dep_infos_ordering_test_impl(env, target):
             JavaInfo: associate_java_info,
             _KtJvmInfo: _KtJvmInfo(
                 module_name = "associate_name",
+                classpath_snapshot = None,
             ),
         },
     ]

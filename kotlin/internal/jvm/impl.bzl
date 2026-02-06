@@ -310,6 +310,7 @@ def kt_jvm_import_impl(ctx):
         module_name = _utils.derive_module_name(ctx),
         module_jars = [],
         exported_compiler_plugins = depset(getattr(ctx.attr, "exported_compiler_plugins", [])),
+        classpath_snapshot = None,
         outputs = struct(
             jars = [artifact],
         ),

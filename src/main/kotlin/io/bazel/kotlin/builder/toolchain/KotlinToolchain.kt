@@ -122,6 +122,28 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
+    /**
+     * Creates just the BTAPI KotlinToolchains without resolving compiler plugins.
+     * Used by the snapshot worker which only needs BTAPI for classpath snapshotting.
+     */
+    @OptIn(ExperimentalBuildToolsApi::class)
+    @JvmStatic
+    fun createBtapiToolchains(): KotlinToolchains {
+      val classpath =
+        listOf(
+          BUILD_TOOLS_IMPL.verified().absoluteFile,
+          KOTLIN_DAEMON_EMBEDDABLE.verified().absoluteFile,
+          KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
+          KOTLIN_STDLIB.verified().absoluteFile,
+          KOTLIN_REFLECT.verified().absoluteFile,
+          KOTLIN_COROUTINES.verified().absoluteFile,
+          ANNOTATIONS.verified().absoluteFile,
+        )
+      val urls = classpath.map { it.toURI().toURL() }.toTypedArray()
+      val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
+      return KotlinToolchains.loadImplementation(classLoader)
+    }
+
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
       createToolchain(

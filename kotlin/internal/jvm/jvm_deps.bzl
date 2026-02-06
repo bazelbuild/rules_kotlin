@@ -17,6 +17,7 @@ load(
     "JavaInfo",
 )
 load("//kotlin/internal/jvm:associates.bzl", _associate_utils = "associate_utils")
+load("//src/main/starlark/core/compile:common.bzl", "KtJvmInfo")
 
 def _java_info(target):
     return target[JavaInfo] if JavaInfo in target else None
@@ -68,6 +69,13 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
     # This differs from rules_jvm which uses jvm-inc-builder for Java compilation.
     pruned_deps_for_java = None
 
+    # Collect classpath snapshots from direct deps that have KtJvmInfo
+    classpath_snapshots = [
+        getattr(d[KtJvmInfo], "classpath_snapshot", None)
+        for d in deps + associate_deps
+        if KtJvmInfo in d and getattr(d[KtJvmInfo], "classpath_snapshot", None) != None
+    ]
+
     return struct(
         module_name = associates.module_name,
         deps = dep_infos,
@@ -76,6 +84,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),
         runtime_deps = [_java_info(d) for d in runtime_deps],
+        classpath_snapshots = classpath_snapshots,
     )
 
 jvm_deps_utils = struct(

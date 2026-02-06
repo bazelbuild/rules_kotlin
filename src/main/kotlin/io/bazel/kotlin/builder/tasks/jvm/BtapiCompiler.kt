@@ -30,31 +30,23 @@ import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget
-import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
-import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.ASSURED_NO_CLASSPATH_SNAPSHOT_CHANGES
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.FORCE_RECOMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.MODULE_BUILD_DIR
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.OUTPUT_DIRS
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.ROOT_PROJECT_DIR
-import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
-import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.PARSE_INLINED_LOCAL_CLASSES
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.ObjectOutputStream
 import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import java.security.MessageDigest
 import java.util.Base64
-import kotlin.io.path.exists
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as BtapiKotlinVersion
 
 /**
@@ -75,76 +67,6 @@ class BtapiCompiler(
     if (lazyBuildSession.isInitialized()) {
       buildSession.close()
     }
-  }
-
-  /**
-   * Generates a classpath snapshot for the given input JAR.
-   *
-   * The snapshot is used by incremental compilation to detect changes in dependencies.
-   * This method uses hash-based caching to avoid regenerating snapshots when the
-   * input JAR hasn't changed.
-   *
-   * @param inputJar Path to the input JAR file
-   * @param outputSnapshot Path where the snapshot should be written
-   * @param granularity Snapshot granularity (CLASS_LEVEL or CLASS_MEMBER_LEVEL)
-   */
-  fun generateClasspathSnapshot(
-    inputJar: Path,
-    outputSnapshot: Path,
-    granularity: ClassSnapshotGranularity,
-    out: PrintStream? = null,
-  ) {
-    val hashPath = outputSnapshot.resolveSibling(outputSnapshot.fileName.toString() + ".hash")
-
-    // Check if snapshot is up-to-date (caching)
-    if (outputSnapshot.exists() && hashPath.exists()) {
-      val storedHash = Files.readAllLines(hashPath).firstOrNull()?.trim()
-      val currentHash = hashFile(inputJar)
-      if (storedHash == currentHash) {
-        return // Snapshot is up-to-date
-      }
-    }
-
-    // Generate snapshot
-    val snapshotOperation = toolchains.jvm.createClasspathSnapshottingOperation(inputJar)
-    snapshotOperation.set(JvmClasspathSnapshottingOperation.GRANULARITY, granularity)
-    snapshotOperation.set(PARSE_INLINED_LOCAL_CLASSES, true)
-
-    val logger = out?.let { createIcLogger(it) }
-    val snapshot = buildSession.executeOperation(snapshotOperation, logger = logger)
-
-    // Write to temp files first, then atomically move
-    val currentHash = hashFile(inputJar)
-    val tempSnapshot = outputSnapshot.resolveSibling(outputSnapshot.fileName.toString() + ".tmp")
-    val tempHash = hashPath.resolveSibling(hashPath.fileName.toString() + ".tmp")
-
-    snapshot.saveSnapshot(tempSnapshot)
-    tempHash.toFile().writeText(currentHash)
-
-    Files.move(
-      tempSnapshot,
-      outputSnapshot,
-      StandardCopyOption.ATOMIC_MOVE,
-      StandardCopyOption.REPLACE_EXISTING,
-    )
-    Files.move(
-      tempHash,
-      hashPath,
-      StandardCopyOption.ATOMIC_MOVE,
-      StandardCopyOption.REPLACE_EXISTING,
-    )
-  }
-
-  private fun hashFile(path: Path): String {
-    val digest = MessageDigest.getInstance("SHA-256")
-    FileInputStream(path.toFile()).use { fis ->
-      val buffer = ByteArray(8192)
-      var bytesRead: Int
-      while (fis.read(buffer).also { bytesRead = it } != -1) {
-        digest.update(buffer, 0, bytesRead)
-      }
-    }
-    return digest.digest().joinToString("") { "%02x".format(it) }
   }
 
   /**
@@ -461,6 +383,10 @@ class BtapiCompiler(
 
   /**
    * Configures incremental compilation for the operation.
+   *
+   * Dependency classpath snapshots are now explicit inputs (from the proto),
+   * passed from Starlark as declared Bazel outputs of upstream snapshot actions.
+   * BTAPI automatically forces full recompilation when the shrunk snapshot is missing.
    */
   private fun configureIncrementalCompilation(
     operation: JvmCompilationOperation,
@@ -474,23 +400,15 @@ class BtapiCompiler(
     // Compute force recompilation based on args hash
     val currentArgsHash = computeArgsHash(compilerArgs, task)
     val previousArgsHash = loadArgsHash(icBaseDir)
-    val snapshotMissing = !shrunkSnapshot.toFile().exists()
     val argsChanged = previousArgsHash != null && previousArgsHash != currentArgsHash
-    val forceRecompilation = snapshotMissing || argsChanged
+    val forceRecompilation = argsChanged
 
     // Store current hash for next build
     Files.createDirectories(icBaseDir)
     storeArgsHash(icBaseDir, currentArgsHash)
 
-    // Compute classpath snapshot paths
-    val classpathSnapshots = task.createClasspathSnapshotsPaths().map { Path.of(it) }
-
-    // Check if classpath snapshots changed since last build
-    val classpathSnapshotFingerprint = computeClasspathSnapshotFingerprint(classpathSnapshots)
-    val previousSnapshotFingerprint = loadClasspathSnapshotFingerprint(icBaseDir)
-    val classpathSnapshotsUnchanged =
-      previousSnapshotFingerprint != null && previousSnapshotFingerprint == classpathSnapshotFingerprint
-    storeClasspathSnapshotFingerprint(icBaseDir, classpathSnapshotFingerprint)
+    // Use explicit classpath snapshots from proto (passed by Starlark action)
+    val classpathSnapshots = task.inputs.classpathSnapshotsList.map { Path.of(it) }
 
     val icOptions =
       operation.createSnapshotBasedIcOptions().apply {
@@ -499,9 +417,6 @@ class BtapiCompiler(
           Path.of(task.directories.classes).parent ?: Path.of(task.directories.classes)
         this[FORCE_RECOMPILATION] = forceRecompilation
         this[OUTPUT_DIRS] = setOf(Path.of(task.directories.classes), icWorkingDir)
-        if (classpathSnapshotsUnchanged && !forceRecompilation) {
-          this[ASSURED_NO_CLASSPATH_SNAPSHOT_CHANGES] = true
-        }
       }
 
     operation[INCREMENTAL_COMPILATION] =
@@ -556,34 +471,6 @@ class BtapiCompiler(
     val hashFile = icBaseDir.resolve("args-hash.txt")
     return if (Files.exists(hashFile)) {
       Files.readString(hashFile).trim().toLongOrNull()
-    } else {
-      null
-    }
-  }
-
-  private fun computeClasspathSnapshotFingerprint(snapshots: List<Path>): String {
-    val digest = MessageDigest.getInstance("SHA-256")
-    snapshots.sorted().forEach { path ->
-      digest.update(path.toString().toByteArray())
-      if (Files.exists(path)) {
-        digest.update(hashFile(path).toByteArray())
-      }
-    }
-    return digest.digest().joinToString("") { "%02x".format(it) }
-  }
-
-  private fun storeClasspathSnapshotFingerprint(
-    icBaseDir: Path,
-    fingerprint: String,
-  ) {
-    val file = icBaseDir.resolve("classpath-snapshot-fingerprint.txt")
-    Files.writeString(file, fingerprint)
-  }
-
-  private fun loadClasspathSnapshotFingerprint(icBaseDir: Path): String? {
-    val file = icBaseDir.resolve("classpath-snapshot-fingerprint.txt")
-    return if (Files.exists(file)) {
-      Files.readString(file).trim()
     } else {
       null
     }

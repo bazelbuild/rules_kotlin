@@ -73,12 +73,6 @@ class KotlinJvmTaskExecutor(
           } else {
             context.execute("create jar", ::createOutputJar)
           }
-          // Generate classpath snapshot for incremental compilation (stored in IC directory, not Bazel output)
-          if (context.info.incrementalCompilation) {
-            context.execute("create classpath snapshot") {
-              createOutputClasspathSnapshot(btapiCompiler, context.out)
-            }
-          }
         }
         if (outputs.abijar.isNotEmpty()) {
           context.execute("create abi jar", ::createAbiJar)

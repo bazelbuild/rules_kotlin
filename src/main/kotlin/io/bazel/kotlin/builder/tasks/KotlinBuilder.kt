@@ -87,8 +87,7 @@ class KotlinBuilder(
       INSTRUMENT_COVERAGE("--instrument_coverage"),
       INCREMENTAL_COMPILATION("--incremental_compilation"),
       IC_ENABLE_LOGGING("--ic_enable_logging"),
-      // Note: IC data (classpath snapshots) is managed by the worker internally.
-      // The worker derives snapshot paths from classpath JAR paths.
+      CLASSPATH_SNAPSHOTS("--classpath_snapshots"),
     }
   }
 
@@ -319,8 +318,9 @@ class KotlinBuilder(
           ?.also {
             addAllSourceJars(it)
           }
-        // Note: IC data (classpath snapshots) is managed by the worker internally.
-        // The worker derives snapshot paths from classpath JAR paths.
+        addAllClasspathSnapshots(
+          argMap.optional(KotlinBuilderFlags.CLASSPATH_SNAPSHOTS) ?: emptyList(),
+        )
       }
 
       with(root.infoBuilder) {

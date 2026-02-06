@@ -178,9 +178,12 @@ message JvmCompilationTask {
       repeated string javac_flags = 15;
       // JDeps dependency artifacts
       repeated string deps_artifacts = 16;
-      // Reserved: removed unused classpath snapshot fields
+      // Reserved: removed old classpath snapshot fields (replaced by field 19)
       reserved 17, 18;
-      reserved "classpath_snapshots", "previous_shrunk_classpath_snapshot";
+      reserved "previous_shrunk_classpath_snapshot";
+      // Classpath snapshot files from dependencies (for incremental compilation).
+      // These are declared Bazel outputs from upstream targets' snapshot actions.
+      repeated string classpath_snapshots = 19;
   }
 
   CompilationTaskInfo info = 1;

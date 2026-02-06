@@ -31,6 +31,11 @@ java_import(
 )
 
 java_import(
+    name = "snapshot_worker",
+    jars = ["snapshot_worker.jar"],
+)
+
+java_import(
     name = "ksp2_invoker",
     jars = ["ksp2_invoker.jar"],
     visibility = ["//visibility:public"],
@@ -114,4 +119,31 @@ java_binary(
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     visibility = ["//visibility:public"],
     runtime_deps = [":ksp2_worker"],
+)
+
+java_binary(
+    name = "snapshot",
+    data = [
+        "//kotlin/compiler:kotlin-daemon-client",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_api",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
+        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
+    ] + KOTLIN_STDLIBS,
+    jvm_flags = [
+        "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath @kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm)",
+        "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath @kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm)",
+        "-D@com_github_jetbrains_kotlin...build-tools-api=$(rlocationpath @kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_api)",
+        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath @kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl)",
+        "-D@com_github_jetbrains_kotlin...kotlin-compiler-embeddable=$(rlocationpath @kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable)",
+        "-D@rules_kotlin...kotlin-daemon-client=$(rlocationpath //kotlin/compiler:kotlin-daemon-client)",
+        "-D@rules_kotlin...kotlin.compiler.kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
+        "-D@rules_kotlin...kotlin.compiler.kotlin-stdlib=$(rlocationpath //kotlin/compiler:kotlin-stdlib)",
+        "-D@rules_kotlin...kotlin.compiler.kotlin-coroutines=$(rlocationpath //kotlin/compiler:kotlinx-coroutines-core-jvm)",
+        "-D@rules_kotlin...kotlin.compiler.annotations=$(rlocationpath //kotlin/compiler:annotations)",
+    ],
+    main_class = "io.bazel.kotlin.builder.cmd.Snapshot",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":snapshot_worker"],
 )

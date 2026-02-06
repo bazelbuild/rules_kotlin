@@ -9,6 +9,7 @@ KtJvmInfo = provider(
         "additional_generated_source_jars": "Returns additional Jars containing generated source files from kapt, ksp, etc. [bazel-bsp-aspect]",
         "all_output_jars": "Returns all the output Jars produced by this rule. [bazel-bsp-aspect]",
         "annotation_processing": "Generated annotation processing jars. [intellij-aspect]",
+        "classpath_snapshot": "Classpath snapshot file for incremental compilation (None if IC disabled)",
         "exported_compiler_plugins": "compiler plugins to be invoked by targets depending on this.",
         "language_version": "version of kotlin used. [intellij-aspect]",
         "module_jars": "Jars comprising the module (logical compilation unit), a.k.a. associates",

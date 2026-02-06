@@ -538,6 +538,32 @@ def _run_ksp_builder_actions(
         ksp_generated_src_jar = ksp_generated_java_srcjar,
     )
 
+def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
+    """Generates a classpath snapshot for the given JAR using a dedicated worker."""
+    args = ctx.actions.args()
+    args.set_param_file_format("multiline")
+    args.use_param_file("--flagfile=%s", use_always = True)
+
+    args.add("--input_jar", input_jar)
+    args.add("--output_snapshot", output_snapshot)
+
+    ctx.actions.run(
+        mnemonic = "KotlinClasspathSnapshot",
+        inputs = [input_jar],
+        tools = [
+            toolchains.kt.snapshot_worker.files_to_run,
+        ],
+        outputs = [output_snapshot],
+        executable = toolchains.kt.snapshot_worker.files_to_run.executable,
+        execution_requirements = _utils.add_dicts(
+            toolchains.kt.execution_requirements,
+            {"worker-key-mnemonic": "KotlinClasspathSnapshot"},
+        ),
+        arguments = [args],
+        progress_message = "Generating classpath snapshot for %{label}",
+        toolchain = _TOOLCHAIN_TYPE,
+    )
+
 def _run_kt_builder_action(
         ctx,
         mnemonic,
@@ -551,6 +577,7 @@ def _run_kt_builder_action(
         transitive_runtime_jars,
         plugins,
         outputs,
+        classpath_snapshots = [],
         build_kotlin = True):
     """Creates a KotlinBuilder action invocation."""
     if not mnemonic:
@@ -573,6 +600,7 @@ def _run_kt_builder_action(
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
     args.add("--incremental_compilation", toolchains.kt.experimental_incremental_compilation)
     args.add("--ic_enable_logging", toolchains.kt.experimental_ic_enable_logging)
+    args.add_all("--classpath_snapshots", classpath_snapshots, omit_if_empty = True)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
@@ -666,7 +694,7 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars,
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots,
             transitive = [
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,
@@ -797,6 +825,17 @@ def _kt_jvm_produce_output_jar_actions(
         input_jars = output_jars,
     )
 
+    # Generate classpath snapshot for incremental compilation (separate Bazel action)
+    classpath_snapshot = None
+    if toolchains.kt.experimental_incremental_compilation:
+        classpath_snapshot = ctx.actions.declare_file(ctx.label.name + ".classpath-snapshot")
+        _run_snapshot_action(
+            ctx = ctx,
+            toolchains = toolchains,
+            input_jar = output_jar,
+            output_snapshot = classpath_snapshot,
+        )
+
     source_jar = java_common.pack_sources(
         ctx.actions,
         output_source_jar = outputs.srcjar,
@@ -848,6 +887,7 @@ def _kt_jvm_produce_output_jar_actions(
                 getattr(ctx.attr, "exported_compiler_plugins", []),
                 getattr(ctx.attr, "exports", []),
             ),
+            classpath_snapshot = classpath_snapshot,
             # intellij aspect needs this.
             outputs = struct(
                 jdeps = output_jdeps,
@@ -890,9 +930,8 @@ def _run_kt_java_builder_actions(
     kt_stubs_for_java = []
     has_kt_sources = srcs.kt or srcs.src_jars
 
-    # Note: IC data (including classpath snapshots) is managed by the worker internally.
-    # The worker derives IC directories from output JAR paths, so we don't pass
-    # snapshot paths from Starlark anymore.
+    # Classpath snapshots for IC are passed as explicit inputs to the compilation action.
+    # They are collected from deps via KtJvmInfo.classpath_snapshot.
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
@@ -955,9 +994,6 @@ def _run_kt_java_builder_actions(
             kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
             outputs["kotlin_output_jdeps"] = kt_jdeps
 
-        # Note: IC data (including classpath snapshots) is stored in worker-local
-        # directories as side-effects, not as declared Bazel outputs.
-
         _run_kt_builder_action(
             ctx = ctx,
             rule_kind = rule_kind,
@@ -970,6 +1006,7 @@ def _run_kt_java_builder_actions(
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = outputs,
+            classpath_snapshots = compile_deps.classpath_snapshots,
             build_kotlin = True,
             mnemonic = "KotlinCompile",
         )
@@ -1154,6 +1191,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
                 getattr(attr, "exported_compiler_plugins", []),
                 getattr(attr, "exports", []),
             ),
+            classpath_snapshot = None,
         ),
         instrumented_files = coverage_common.instrumented_files_info(
             ctx,

@@ -79,6 +79,7 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
+        snapshot_worker = ctx.attr.snapshot_worker,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -287,6 +288,13 @@ _kt_toolchain = rule(
                 "2.2",
                 "2.3",
             ],
+        ),
+        "snapshot_worker": attr.label(
+            doc = "the classpath snapshot worker executable",
+            default = Label("//src/main/kotlin:snapshot"),
+            executable = True,
+            allow_files = True,
+            cfg = "exec",
         ),
         "_empty_jar": attr.label(
             doc = """Empty jar for exporting JavaInfos.""",
