@@ -36,7 +36,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
     )
 
     prune_transitive_deps = (toolchains.kt.experimental_prune_transitive_deps and
-        not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags)
+                             not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags)
 
     # Reduced classpath, exclude transitive deps from compilation
     if prune_transitive_deps:

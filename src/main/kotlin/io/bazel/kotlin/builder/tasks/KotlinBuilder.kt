@@ -173,10 +173,10 @@ class KotlinBuilder(
         removeDebugInfo = it == "true"
       }
       argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)?.let {
-        incrementalCompilation = it == "true"
+        incrementalCompilation = it.equals("true", ignoreCase = true)
       }
       argMap.optionalSingle(KotlinBuilderFlags.IC_ENABLE_LOGGING)?.let {
-        icEnableLogging = it == "true"
+        icEnableLogging = it.equals("true", ignoreCase = true)
       }
       this
     }
@@ -295,7 +295,8 @@ class KotlinBuilder(
 
         // Kotlin compiler always requires absolute path for source input in incremental mode
         val useAbsolutePath =
-          argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION) == "true"
+          argMap.optionalSingle(KotlinBuilderFlags.INCREMENTAL_COMPILATION)
+            ?.equals("true", ignoreCase = true) == true
         argMap
           .optional(KotlinBuilderFlags.SOURCES)
           ?.map {

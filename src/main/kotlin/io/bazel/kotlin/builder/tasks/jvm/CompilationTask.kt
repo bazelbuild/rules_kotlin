@@ -246,7 +246,10 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
  * dependencies snapshot (shrunk-classpath-snapshot.bin).
  */
 @OptIn(ExperimentalBuildToolsApi::class)
-internal fun JvmCompilationTask.createOutputClasspathSnapshot(btapiCompiler: BtapiCompiler) {
+internal fun JvmCompilationTask.createOutputClasspathSnapshot(
+  btapiCompiler: BtapiCompiler,
+  out: java.io.PrintStream,
+) {
   if (!info.incrementalCompilation || directories.incrementalBaseDir.isEmpty()) {
     return
   }
@@ -259,6 +262,7 @@ internal fun JvmCompilationTask.createOutputClasspathSnapshot(btapiCompiler: Bta
     Paths.get(outputs.jar),
     snapshotPath,
     ClassSnapshotGranularity.CLASS_MEMBER_LEVEL,
+    out = out,
   )
 }
 

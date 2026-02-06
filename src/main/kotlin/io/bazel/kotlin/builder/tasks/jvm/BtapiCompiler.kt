@@ -33,12 +33,14 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.ASSURED_NO_CLASSPATH_SNAPSHOT_CHANGES
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.FORCE_RECOMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.MODULE_BUILD_DIR
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.OUTPUT_DIRS
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.ROOT_PROJECT_DIR
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.PARSE_INLINED_LOCAL_CLASSES
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -65,8 +67,15 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as Btap
 @OptIn(ExperimentalBuildToolsApi::class)
 class BtapiCompiler(
   private val toolchains: KotlinToolchains,
-) {
-  private val buildSession by lazy { toolchains.createBuildSession() }
+) : AutoCloseable {
+  private val lazyBuildSession = lazy { toolchains.createBuildSession() }
+  private val buildSession by lazyBuildSession
+
+  override fun close() {
+    if (lazyBuildSession.isInitialized()) {
+      buildSession.close()
+    }
+  }
 
   /**
    * Generates a classpath snapshot for the given input JAR.
@@ -83,6 +92,7 @@ class BtapiCompiler(
     inputJar: Path,
     outputSnapshot: Path,
     granularity: ClassSnapshotGranularity,
+    out: PrintStream? = null,
   ) {
     val hashPath = outputSnapshot.resolveSibling(outputSnapshot.fileName.toString() + ".hash")
 
@@ -100,7 +110,8 @@ class BtapiCompiler(
     snapshotOperation.set(JvmClasspathSnapshottingOperation.GRANULARITY, granularity)
     snapshotOperation.set(PARSE_INLINED_LOCAL_CLASSES, true)
 
-    val snapshot = buildSession.executeOperation(snapshotOperation)
+    val logger = out?.let { createIcLogger(it) }
+    val snapshot = buildSession.executeOperation(snapshotOperation, logger = logger)
 
     // Write to temp files first, then atomically move
     val currentHash = hashFile(inputJar)
@@ -175,7 +186,7 @@ class BtapiCompiler(
     logger: KotlinLogger?,
     out: PrintStream,
     additionalConfiguration: (
-      org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation,
+      JvmCompilationOperation,
       JvmCompilerArguments,
     ) -> Unit = { _, _ -> },
   ): CompilationResult {
@@ -452,7 +463,7 @@ class BtapiCompiler(
    * Configures incremental compilation for the operation.
    */
   private fun configureIncrementalCompilation(
-    operation: org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation,
+    operation: JvmCompilationOperation,
     task: JvmCompilationTask,
     compilerArgs: JvmCompilerArguments,
   ) {
@@ -474,6 +485,13 @@ class BtapiCompiler(
     // Compute classpath snapshot paths
     val classpathSnapshots = task.createClasspathSnapshotsPaths().map { Path.of(it) }
 
+    // Check if classpath snapshots changed since last build
+    val classpathSnapshotFingerprint = computeClasspathSnapshotFingerprint(classpathSnapshots)
+    val previousSnapshotFingerprint = loadClasspathSnapshotFingerprint(icBaseDir)
+    val classpathSnapshotsUnchanged =
+      previousSnapshotFingerprint != null && previousSnapshotFingerprint == classpathSnapshotFingerprint
+    storeClasspathSnapshotFingerprint(icBaseDir, classpathSnapshotFingerprint)
+
     val icOptions =
       operation.createSnapshotBasedIcOptions().apply {
         this[ROOT_PROJECT_DIR] = Path.of(ROOT)
@@ -481,6 +499,9 @@ class BtapiCompiler(
           Path.of(task.directories.classes).parent ?: Path.of(task.directories.classes)
         this[FORCE_RECOMPILATION] = forceRecompilation
         this[OUTPUT_DIRS] = setOf(Path.of(task.directories.classes), icWorkingDir)
+        if (classpathSnapshotsUnchanged && !forceRecompilation) {
+          this[ASSURED_NO_CLASSPATH_SNAPSHOT_CHANGES] = true
+        }
       }
 
     operation[INCREMENTAL_COMPILATION] =
@@ -535,6 +556,34 @@ class BtapiCompiler(
     val hashFile = icBaseDir.resolve("args-hash.txt")
     return if (Files.exists(hashFile)) {
       Files.readString(hashFile).trim().toLongOrNull()
+    } else {
+      null
+    }
+  }
+
+  private fun computeClasspathSnapshotFingerprint(snapshots: List<Path>): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    snapshots.sorted().forEach { path ->
+      digest.update(path.toString().toByteArray())
+      if (Files.exists(path)) {
+        digest.update(hashFile(path).toByteArray())
+      }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
+  }
+
+  private fun storeClasspathSnapshotFingerprint(
+    icBaseDir: Path,
+    fingerprint: String,
+  ) {
+    val file = icBaseDir.resolve("classpath-snapshot-fingerprint.txt")
+    Files.writeString(file, fingerprint)
+  }
+
+  private fun loadClasspathSnapshotFingerprint(icBaseDir: Path): String? {
+    val file = icBaseDir.resolve("classpath-snapshot-fingerprint.txt")
+    return if (Files.exists(file)) {
+      Files.readString(file).trim()
     } else {
       null
     }
@@ -694,7 +743,7 @@ class BtapiCompiler(
 
     // Other options
     options.add(CompilerPluginOption("correctErrorTypes", "false"))
-    options.add(CompilerPluginOption("verbose", "true")) // verbose.toString()))
+    options.add(CompilerPluginOption("verbose", verbose.toString()))
     options.add(CompilerPluginOption("aptMode", aptMode))
 
     // Annotation processor classpath - one option per entry
