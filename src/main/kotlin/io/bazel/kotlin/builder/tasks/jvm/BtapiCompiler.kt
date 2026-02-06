@@ -433,8 +433,15 @@ class BtapiCompiler(
         .map { "${it.key}\u0000${it.value}" }
         .sorted()
         .joinToString("\u0001")
-    val classpath = plugin.classpathList.sorted().joinToString("\u0001")
-    val phases = plugin.phasesList.map { it.name }.sorted().joinToString("\u0001")
+    val classpath =
+      plugin.classpathList
+        .sorted()
+        .joinToString("\u0001")
+    val phases =
+      plugin.phasesList
+        .map { it.name }
+        .sorted()
+        .joinToString("\u0001")
     return "${plugin.id}\u0002${classpath}\u0002$options\u0002$phases"
   }
 

@@ -4,7 +4,7 @@ load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
 kt_compiler_plugin(
     name = "allopen_plugin",
     id = "org.jetbrains.kotlin.allopen",
-    options = {"annotation": "plugin.allopen.OpenForTesting"},
+    options = {"annotation": ["plugin.allopen.OpenForTesting"]},
     deps = ["@rules_kotlin//kotlin/compiler:allopen-compiler-plugin"],
 )
 

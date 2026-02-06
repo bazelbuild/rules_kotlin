@@ -49,6 +49,10 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
+load(
+    "//src/main/starlark/core/plugin:payload.bzl",
+    _plugin_payload = "plugin_payload",
+)
 
 # UTILITY ##############################################################################################################
 def find_java_toolchain(ctx, target):
@@ -171,29 +175,9 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def _escape_plugins_payload(value):
-    return value.replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n")
-
-def _plugins_payload_lines(plugins):
-    lines = []
-    for plugin in plugins:
-        lines.append("plugin\t%s\t%s\n" % (
-            _escape_plugins_payload(plugin.id),
-            _escape_plugins_payload(",".join(plugin.phases)),
-        ))
-        for classpath_entry in plugin.classpath.to_list():
-            lines.append("classpath\t%s\n" % _escape_plugins_payload(classpath_entry.path))
-        for option in plugin.options:
-            lines.append("option\t%s\t%s\n" % (
-                _escape_plugins_payload(option.key),
-                _escape_plugins_payload(option.value),
-            ))
-        lines.append("end\n")
-    return lines
-
 def _plugins_payload_action(ctx, plugins):
     payload = ctx.actions.declare_file("%s_plugins_payload" % ctx.label.name)
-    ctx.actions.write(payload, "".join(_plugins_payload_lines(plugins.plugins)))
+    ctx.actions.write(payload, _plugin_payload.plugins_payload_json(plugins.plugins))
     return payload
 
 def _new_plugins_from(targets):
@@ -219,7 +203,7 @@ def _new_plugins_from(targets):
         all_plugins[plugin.id] = plugin
 
     if plugins_without_phase:
-        fail("has plugin without a phase defined: %s" % cfgs_without_plugin)
+        fail("has plugin without a phase defined: %s" % plugins_without_phase)
 
     all_plugin_cfgs = {}
     cfgs_without_plugin = []

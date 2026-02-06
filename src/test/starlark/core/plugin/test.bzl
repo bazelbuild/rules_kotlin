@@ -32,6 +32,14 @@ def _action_test_impl(env, target):
 def _expect_failure(env, target):
     fail_messages_in(env.expect.that_target(target)).contains_at_least(env.ctx.attr.want_failures)
 
+def _expect_failure_contains(env, target):
+    failures = fail_messages_in(env.expect.that_target(target))
+    for want in env.ctx.attr.want_failure_substrings:
+        failures.transform(
+            desc = "contains '%s'" % want,
+            map_each = lambda f: want in f,
+        ).contains(True)
+
 def plugin_for(test, name, deps = [], id = None, **kwargs):
     plugin_jar = test.artifact(
         name = name + ".jar",
@@ -62,7 +70,7 @@ def _test_kt_plugin_cfg(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -126,7 +134,7 @@ def _test_compile_configuration(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -207,7 +215,7 @@ def _test_compile_multiple_configurations(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -389,7 +397,7 @@ def _test_library_multiple_plugins_with_same_id(test):
                 name = "one",
                 id = "test.stub",
                 options = {
-                    "annotation": "plugin.StubForTesting",
+                    "annotation": ["plugin.StubForTesting"],
                 },
                 deps = [
                     test.have(
@@ -408,7 +416,7 @@ def _test_library_multiple_plugins_with_same_id(test):
                 name = "two",
                 id = "test.stub",
                 options = {
-                    "annotation": "plugin.StubForTesting",
+                    "annotation": ["plugin.StubForTesting"],
                 },
                 deps = [
                     test.have(
@@ -440,12 +448,49 @@ def _test_library_multiple_plugins_with_same_id(test):
         },
     )
 
+def _test_library_plugin_without_phase(test):
+    (plugin, _) = plugin_for(
+        test,
+        name = "no_phase_plugin",
+        id = "test.no_phase",
+        compile_phase = False,
+        stubs_phase = False,
+    )
+
+    got = test.got(
+        kt_jvm_library,
+        name = "got_library",
+        srcs = [
+            test.artifact(
+                name = "got_library.kt",
+            ),
+        ],
+        plugins = [plugin],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _expect_failure_contains,
+        expect_failure = True,
+        target = got,
+        attr_values = {
+            "want_failure_substrings": [
+                "has plugin without a phase defined:",
+                "test.no_phase",
+            ],
+        },
+        attrs = {
+            "want_failure_substrings": attr.string_list(),
+        },
+    )
+
 def test_suite(name):
     suite(
         name,
         test_kt_plugin_cfg = _test_kt_plugin_cfg,
         test_compile_configuration = _test_compile_configuration,
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
+        test_library_plugin_without_phase = _test_library_plugin_without_phase,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
         test_compile_multiple_configurations = _test_compile_multiple_configurations,
     )
