@@ -36,7 +36,6 @@ import java.util.jar.Manifest
  * A class for creating Jar files. Allows normalization of Jar entries by setting their timestamp to
  * the DOS epoch. All Jar entries are sorted alphabetically.
  */
-@Suppress("unused")
 class JarCreator(
   path: Path,
   normalize: Boolean = true,

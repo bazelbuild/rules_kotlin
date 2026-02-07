@@ -44,11 +44,6 @@ class CompilationTaskContext(
     isTracing = debugging.contains("trace")
   }
 
-  @Suppress("unused")
-  fun print(msg: String) {
-    out.println(msg)
-  }
-
   /**
    * Print a list of debugging lines.
    *

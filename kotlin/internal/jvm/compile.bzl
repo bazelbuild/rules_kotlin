@@ -109,6 +109,14 @@ def _partitioned_srcs(srcs):
         src_jars = src_jars,
     )
 
+def _derive_module_name(ctx):
+    module_name = getattr(ctx.attr, "module_name", "")
+    if module_name == "":
+        package = ctx.label.package.lstrip("/").replace("/", "_")
+        name = ctx.label.name.replace("/", "_")
+        module_name = package + "-" + name if package else name
+    return module_name
+
 def _compiler_toolchains(ctx):
     """Creates a struct of the relevant compilation toolchains"""
     return struct(
@@ -1199,7 +1207,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
     return struct(
         java = java,
         kt = _KtJvmInfo(
-            module_name = _utils.derive_module_name(ctx),
+            module_name = _derive_module_name(ctx),
             module_jars = [],
             language_version = toolchains.kt.api_version,
             exported_compiler_plugins = _collect_plugins_for_export(

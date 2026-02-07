@@ -20,10 +20,13 @@ load(
     "//kotlin/internal:defs.bzl",
     _KtJvmInfo = "KtJvmInfo",
 )
-load(
-    "//kotlin/internal/utils:utils.bzl",
-    _utils = "utils",
-)
+def _derive_module_name(ctx):
+    module_name = getattr(ctx.attr, "module_name", "")
+    if module_name == "":
+        package = ctx.label.package.lstrip("/").replace("/", "_")
+        name = ctx.label.name.replace("/", "_")
+        module_name = package + "-" + name if package else name
+    return module_name
 
 def _collect_associates(ctx, toolchains, associate):
     """Collects the associate jars from the provided dependency and returns
@@ -61,7 +64,7 @@ def _get_associates(ctx, toolchains, associates):
     """Creates a struct of associates meta data"""
     if not associates:
         return struct(
-            module_name = _utils.derive_module_name(ctx),
+            module_name = _derive_module_name(ctx),
             jars = depset(),
             abi_jar_set = _sets.make(),
             dep_infos = [],

@@ -26,10 +26,6 @@ load(
     "//kotlin/internal/jvm:compile.bzl",
     _compile = "compile",
 )
-load(
-    "//kotlin/internal/utils:utils.bzl",
-    _utils = "utils",
-)
 load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
 
 # Toolchain type for the Windows launcher maker
@@ -84,6 +80,14 @@ def _get_executable(ctx):
     if _is_windows(ctx):
         executable_name = executable_name + ".exe"
     return ctx.actions.declare_file(executable_name)
+
+def _derive_module_name(ctx):
+    module_name = getattr(ctx.attr, "module_name", "")
+    if module_name == "":
+        package = ctx.label.package.lstrip("/").replace("/", "_")
+        name = ctx.label.name.replace("/", "_")
+        module_name = package + "-" + name if package else name
+    return module_name
 
 def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, main_class, jvm_flags_for_launcher, runfiles_enabled, coverage_main_class = None):
     """Create a Windows exe launcher using the launcher_maker tool."""
@@ -261,11 +265,6 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
     )
     return struct(coverage_metadata = [], executable = None)
 
-# buildifier: disable=unused-variable
-def _is_source_jar_stub(jar):
-    """Workaround for intellij plugin expecting a source jar"""
-    return jar.path.endswith("third_party/empty.jar")
-
 def _unify_jars(ctx):
     if bool(ctx.attr.jar):
         return struct(class_jar = ctx.file.jar, source_jar = ctx.file.srcjar, ijar = None)
@@ -307,7 +306,7 @@ def kt_jvm_import_impl(ctx):
 
     artifact = _unify_jars(ctx)
     kt_info = _KtJvmInfo(
-        module_name = _utils.derive_module_name(ctx),
+        module_name = _derive_module_name(ctx),
         module_jars = [],
         exported_compiler_plugins = depset(getattr(ctx.attr, "exported_compiler_plugins", [])),
         classpath_snapshot = None,
