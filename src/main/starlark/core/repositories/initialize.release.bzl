@@ -19,11 +19,6 @@ load(
     "http_archive",
     "http_file",
 )
-load(
-    "//kotlin/internal:defs.bzl",
-    _KSP_COMPILER_PLUGIN_REPO = "KSP_COMPILER_PLUGIN_REPO",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
-)
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":ksp.bzl", "ksp_compiler_plugin_repository")
 load(":versions.bzl", "version", _versions = "versions")
@@ -31,6 +26,10 @@ load(":versions.bzl", "version", _versions = "versions")
 versions = _versions
 
 RULES_KOTLIN = Label("//:all")
+
+# Keep these names in sync with //kotlin/internal:defs.bzl.
+_KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
+_KSP_COMPILER_PLUGIN_REPO = "com_github_google_ksp"
 
 def kotlin_repositories(
         is_bzlmod = False,
@@ -66,7 +65,7 @@ def kotlin_repositories(
         http_file,
         name = "com_github_pinterest_ktlint",
         version = versions.PINTEREST_KTLINT,
-        executable = True,
+        downloaded_file_path = "ktlint.jar",
     )
 
     versions.use_repository(
@@ -141,6 +140,18 @@ def kotlin_repositories(
         http_archive,
         name = "bazel_skylib",
         version = versions.BAZEL_SKYLIB,
+    )
+
+    versions.use_repository(
+        http_archive,
+        name = "bazel_features",
+        version = versions.BAZEL_FEATURES,
+    )
+
+    versions.use_repository(
+        http_archive,
+        name = "bazel_lib",
+        version = versions.BAZEL_LIB,
     )
 
     versions.use_repository(
