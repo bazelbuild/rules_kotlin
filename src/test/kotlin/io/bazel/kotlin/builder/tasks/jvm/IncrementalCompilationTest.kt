@@ -17,9 +17,9 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.Deps
+import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
@@ -36,6 +36,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.assertFailsWith
 
 /**
  * Integration tests for incremental compilation.
@@ -69,28 +70,22 @@ class IncrementalCompilationTest {
     private val counter = AtomicInteger(0)
 
     private val jvmTaskExecutor by lazy {
-        val toolchain = KotlinToolchain.createToolchain(
-            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
-            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
-            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_api").singleCompileJar()),
-            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
-            File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
-            File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
-            File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-            File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar()),
-            File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
-            File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
-            File(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
-            File(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
+        val runtime = BtapiRuntimeSpec(
+            Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
+            Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
+            Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
+            Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
+            Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
+            Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
+            Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar()),
         )
-        val plugins = InternalCompilerPlugins(
-            toolchain.jvmAbiGen,
-            toolchain.skipCodeGen,
-            toolchain.kapt3Plugin,
-            toolchain.jdepsGen
+        val plugins = InternalCompilerPlugins.fromPaths(
+            jvmAbiGenJar = Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),
+            skipCodeGenJar = Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar(),
+            kaptJar = Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar(),
+            jdepsJar = Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar(),
         )
-        val compilerBuilder = KotlinToolchain.KotlincInvokerBuilder(toolchain)
-        KotlinJvmTaskExecutor(compilerBuilder, plugins)
+        KotlinJvmTaskExecutor(runtime, plugins)
     }
 
     @Before
@@ -142,7 +137,13 @@ class IncrementalCompilationTest {
             }
     }
 
-    private fun compile(isFirstBuild: Boolean = false): CompilationResult {
+    @Suppress("UNUSED_PARAMETER")
+    private fun compile(
+        isFirstBuild: Boolean = false,
+        jvmTarget: String = "11",
+        apiVersion: String = "2.0",
+        languageVersion: String = "2.0",
+    ): CompilationResult {
         val beforeTimestamps = getClassTimestamps()
 
         // Ensure some time passes for timestamp granularity
@@ -150,7 +151,11 @@ class IncrementalCompilationTest {
             Thread.sleep(1100)
         }
 
-        val task = buildTask(isFirstBuild)
+        val task = buildTask(
+            jvmTarget = jvmTarget,
+            apiVersion = apiVersion,
+            languageVersion = languageVersion,
+        )
 
         val outputCapture = ByteArrayOutputStream()
         val context = CompilationTaskContext(
@@ -184,7 +189,11 @@ class IncrementalCompilationTest {
         )
     }
 
-    private fun buildTask(forceRecompilation: Boolean): JvmCompilationTask {
+    private fun buildTask(
+        jvmTarget: String = "11",
+        apiVersion: String = "2.0",
+        languageVersion: String = "2.0",
+    ): JvmCompilationTask {
         val kotlinSources = sources.keys.filter { it.endsWith(".kt") }
             .map { srcDir.resolve(it).toAbsolutePath().toString() }
         val javaSources = sources.keys.filter { it.endsWith(".java") }
@@ -202,11 +211,11 @@ class IncrementalCompilationTest {
                 addDebug("timings")
                 toolchainInfoBuilder.apply {
                     commonBuilder.apply {
-                        apiVersion = "2.0"
-                        languageVersion = "2.0"
+                        this.apiVersion = apiVersion
+                        this.languageVersion = languageVersion
                         coroutines = "enabled"
                     }
-                    jvmBuilder.jvmTarget = "11"
+                    jvmBuilder.jvmTarget = jvmTarget
                 }
             }
 
@@ -248,6 +257,9 @@ class IncrementalCompilationTest {
         val recompiledClasses: Set<String>,
         val output: String
     )
+
+    private fun readArgsHash(): String =
+        Files.readString(icCachesDir.resolve("args-hash.txt")).trim()
 
     // ==================== Test Cases ====================
 
@@ -416,5 +428,84 @@ class IncrementalCompilationTest {
         val result2 = compile()
         assertThat(result2.exitCode).isEqualTo(0)
         assertThat(result2.recompiledClasses).contains("test.A")
+    }
+
+    @Test
+    fun `unsupported jvm target fails fast`() {
+        writeSource("A.kt", """
+            package test
+            class A
+        """.trimIndent())
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            compile(jvmTarget = "99")
+        }
+
+        assertThat(exception).hasMessageThat().contains("Unsupported kotlin_jvm_target '99'")
+    }
+
+    @Test
+    fun `unsupported kotlin language version fails fast`() {
+        writeSource("A.kt", """
+            package test
+            class A
+        """.trimIndent())
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            compile(languageVersion = "9.9")
+        }
+
+        assertThat(exception).hasMessageThat().contains("Unsupported kotlin_language_version '9.9'")
+    }
+
+    @Test
+    fun `compiler diagnostics are emitted to task output`() {
+        writeSource("Broken.kt", """
+            package test
+            class Broken {
+                fun value() =
+            }
+        """.trimIndent())
+
+        val result = compile()
+
+        assertThat(result.exitCode).isEqualTo(1)
+        assertThat(result.output).contains("Broken.kt")
+    }
+
+    @Test
+    fun `args hash is updated only after successful compilation`() {
+        writeSource("A.kt", """
+            package test
+            class A {
+                fun value() = 1
+            }
+        """.trimIndent())
+
+        val firstBuild = compile(isFirstBuild = true, jvmTarget = "11")
+        assertThat(firstBuild.exitCode).isEqualTo(0)
+        val initialHash = readArgsHash()
+
+        writeSource("A.kt", """
+            package test
+            class A {
+                fun value() =
+            }
+        """.trimIndent())
+
+        val failedBuild = compile(jvmTarget = "17")
+        assertThat(failedBuild.exitCode).isEqualTo(1)
+        assertThat(readArgsHash()).isEqualTo(initialHash)
+
+        writeSource("A.kt", """
+            package test
+            class A {
+                fun value() = 2
+            }
+        """.trimIndent())
+
+        val recoveredBuild = compile(jvmTarget = "17")
+        assertThat(recoveredBuild.exitCode).isEqualTo(0)
+        assertThat(readArgsHash()).isNotEqualTo(initialHash)
     }
 }

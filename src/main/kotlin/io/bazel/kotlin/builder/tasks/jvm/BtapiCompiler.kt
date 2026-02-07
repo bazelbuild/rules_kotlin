@@ -16,7 +16,6 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.CompilerArgumentsParseException
@@ -52,9 +51,7 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as Btap
 /**
  * Compiler that uses the Kotlin Build Tools API directly from protobuf task data.
  *
- * Unlike BuildToolsAPICompiler which parses CLI string arguments, this class
- * constructs BTAPI arguments directly from the JvmCompilationTask protobuf,
- * eliminating the string parsing layer.
+ * Constructs typed BTAPI arguments directly from the JvmCompilationTask protobuf.
  */
 @OptIn(ExperimentalBuildToolsApi::class)
 class BtapiCompiler(
@@ -82,20 +79,27 @@ class BtapiCompiler(
     out: PrintStream,
   ): CompilationResult {
     val compilerPlugins = buildCompilerPlugins(task, plugins)
-    val logger = if (task.info.icEnableLogging) createIcLogger(out) else null
+    val logger = createCompilerLogger(out, verbose = task.info.icEnableLogging)
+    var hashUpdate: IncrementalArgsHashUpdate? = null
 
-    return executeCompilation(
-      task = task,
-      outputDir = Path.of(task.directories.classes),
-      compilerPlugins = compilerPlugins,
-      logger = logger,
-      out = out,
-    ) { operation, compilerArgs ->
-      // Configure incremental compilation if enabled
-      if (task.info.incrementalCompilation && task.directories.incrementalBaseDir.isNotEmpty()) {
-        configureIncrementalCompilation(operation, task, compilerArgs)
+    val result =
+      executeCompilation(
+        task = task,
+        outputDir = Path.of(task.directories.classes),
+        compilerPlugins = compilerPlugins,
+        logger = logger,
+      ) { operation, _ ->
+        // Configure incremental compilation if enabled
+        if (task.info.incrementalCompilation && task.directories.incrementalBaseDir.isNotEmpty()) {
+          hashUpdate = configureIncrementalCompilation(operation, task)
+        }
       }
+
+    if (result == CompilationResult.COMPILATION_SUCCESS) {
+      hashUpdate?.also { storeArgsHash(it.icBaseDir, it.currentHash) }
     }
+
+    return result
   }
 
   /**
@@ -105,8 +109,7 @@ class BtapiCompiler(
     task: JvmCompilationTask,
     outputDir: Path,
     compilerPlugins: List<CompilerPlugin>,
-    logger: KotlinLogger?,
-    out: PrintStream,
+    logger: KotlinLogger,
     additionalConfiguration: (
       JvmCompilationOperation,
       JvmCompilerArguments,
@@ -114,36 +117,28 @@ class BtapiCompiler(
   ): CompilationResult {
     System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
 
-    // Redirect stderr to capture compiler error messages
-    val originalErr = System.err
-    System.setErr(out)
+    // Collect sources from protobuf
+    val sources =
+      (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
+        .map { Path.of(it) }
 
-    try {
-      // Collect sources from protobuf
-      val sources =
-        (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
-          .map { Path.of(it) }
+    // Create BTAPI compilation operation
+    val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
+    val compilerArgs = operation.compilerArguments
 
-      // Create BTAPI compilation operation
-      val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
-      val compilerArgs = operation.compilerArguments
+    // Configure compiler arguments directly from protobuf
+    configureCompilerArguments(compilerArgs, task)
 
-      // Configure compiler arguments directly from protobuf
-      configureCompilerArguments(compilerArgs, task)
-
-      // Configure compiler plugins
-      if (compilerPlugins.isNotEmpty()) {
-        compilerArgs[CommonCompilerArguments.COMPILER_PLUGINS] = compilerPlugins
-      }
-
-      // Allow caller to do additional configuration
-      additionalConfiguration(operation, compilerArgs)
-
-      // Execute the compilation
-      return buildSession.executeOperation(operation, logger = logger)
-    } finally {
-      System.setErr(originalErr)
+    // Configure compiler plugins
+    if (compilerPlugins.isNotEmpty()) {
+      compilerArgs[CommonCompilerArguments.COMPILER_PLUGINS] = compilerPlugins
     }
+
+    // Allow caller to do additional configuration
+    additionalConfiguration(operation, compilerArgs)
+
+    // Execute the compilation
+    return buildSession.executeOperation(operation, logger = logger)
   }
 
   /**
@@ -174,17 +169,20 @@ class BtapiCompiler(
     args[JvmCompilerArguments.NO_REFLECT] = true
 
     // JVM target
-    parseJvmTarget(task.info.toolchainInfo.jvm.jvmTarget)?.let {
-      args[JvmCompilerArguments.JVM_TARGET] = it
-    }
+    args[JvmCompilerArguments.JVM_TARGET] =
+      requireJvmTarget(task.info.toolchainInfo.jvm.jvmTarget)
 
     // Language/API versions
-    parseKotlinVersion(task.info.toolchainInfo.common.apiVersion)?.let {
-      args[CommonCompilerArguments.API_VERSION] = it
-    }
-    parseKotlinVersion(task.info.toolchainInfo.common.languageVersion)?.let {
-      args[CommonCompilerArguments.LANGUAGE_VERSION] = it
-    }
+    args[CommonCompilerArguments.API_VERSION] =
+      requireKotlinVersion(
+        version = task.info.toolchainInfo.common.apiVersion,
+        fieldName = "kotlin_api_version",
+      )
+    args[CommonCompilerArguments.LANGUAGE_VERSION] =
+      requireKotlinVersion(
+        version = task.info.toolchainInfo.common.languageVersion,
+        fieldName = "kotlin_language_version",
+      )
 
     // Classpath - convert to absolute paths
     val classpath = computeClasspath(task).map { File(it).absolutePath }
@@ -273,7 +271,7 @@ class BtapiCompiler(
   /**
    * Builds the skip-code-gen plugin (has no options, just classpath).
    */
-  private fun buildSkipCodeGenPlugin(skipCodeGen: KotlinToolchain.CompilerPlugin): CompilerPlugin =
+  private fun buildSkipCodeGenPlugin(skipCodeGen: InternalCompilerPlugin): CompilerPlugin =
     CompilerPlugin(
       pluginId = skipCodeGen.id,
       classpath = listOf(Path.of(skipCodeGen.jarPath)),
@@ -294,7 +292,7 @@ class BtapiCompiler(
    */
   private fun buildJdepsPlugin(
     task: JvmCompilationTask,
-    jdeps: KotlinToolchain.CompilerPlugin,
+    jdeps: InternalCompilerPlugin,
   ): CompilerPlugin {
     val options = mutableListOf<CompilerPluginOption>()
 
@@ -324,7 +322,7 @@ class BtapiCompiler(
    */
   private fun buildAbiGenPlugin(
     task: JvmCompilationTask,
-    abiGen: KotlinToolchain.CompilerPlugin,
+    abiGen: InternalCompilerPlugin,
   ): CompilerPlugin {
     val options = mutableListOf<CompilerPluginOption>()
 
@@ -358,21 +356,19 @@ class BtapiCompiler(
   private fun configureIncrementalCompilation(
     operation: JvmCompilationOperation,
     task: JvmCompilationTask,
-    compilerArgs: JvmCompilerArguments,
-  ) {
+  ): IncrementalArgsHashUpdate {
     val icBaseDir = Path.of(task.directories.incrementalBaseDir)
     val icWorkingDir = icBaseDir.resolve("ic-caches")
     val shrunkSnapshot = icBaseDir.resolve("shrunk-classpath-snapshot.bin")
 
     // Compute force recompilation based on args hash
-    val currentArgsHash = computeArgsHash(compilerArgs, task)
+    val currentArgsHash = computeArgsHash(task)
     val previousArgsHash = loadArgsHash(icBaseDir)
     val argsChanged = previousArgsHash != null && previousArgsHash != currentArgsHash
     val forceRecompilation = argsChanged
 
-    // Store current hash for next build
+    // Ensure IC directories exist before executing BTAPI operation.
     Files.createDirectories(icBaseDir)
-    storeArgsHash(icBaseDir, currentArgsHash)
 
     // Use explicit classpath snapshots from proto (passed by Starlark action)
     val classpathSnapshots = task.inputs.classpathSnapshotsList.map { Path.of(it) }
@@ -394,13 +390,14 @@ class BtapiCompiler(
         shrunkClasspathSnapshot = shrunkSnapshot,
         options = icOptions,
       )
+
+    return IncrementalArgsHashUpdate(icBaseDir = icBaseDir, currentHash = currentArgsHash)
   }
 
   /**
    * Computes a hash of compiler configuration for detecting changes.
    */
   private fun computeArgsHash(
-    args: JvmCompilerArguments,
     task: JvmCompilationTask,
   ): Long {
     // Hash relevant settings that would require recompilation if changed
@@ -478,63 +475,59 @@ class BtapiCompiler(
     }
   }
 
+  private data class IncrementalArgsHashUpdate(
+    val icBaseDir: Path,
+    val currentHash: Long,
+  )
+
   /**
-   * Parse JVM target string to BTAPI enum.
+   * Parse JVM target string to BTAPI enum and fail fast for unsupported values.
    */
-  private fun parseJvmTarget(target: String): JvmTarget? =
+  private fun requireJvmTarget(target: String): JvmTarget {
+    val normalizedTarget = normalizeJvmTarget(target.trim())
+    return JvmTarget.entries.firstOrNull { it.stringValue == normalizedTarget }
+      ?: throw IllegalArgumentException(
+        "Unsupported kotlin_jvm_target '$target'. Supported values: " +
+          JvmTarget.entries.joinToString(", ") { it.stringValue },
+      )
+  }
+
+  private fun normalizeJvmTarget(target: String): String =
     when (target) {
-      "1.6", "6" -> JvmTarget.JVM1_6
-      "1.8", "8" -> JvmTarget.JVM1_8
-      "9" -> JvmTarget.JVM_9
-      "10" -> JvmTarget.JVM_10
-      "11" -> JvmTarget.JVM_11
-      "12" -> JvmTarget.JVM_12
-      "13" -> JvmTarget.JVM_13
-      "14" -> JvmTarget.JVM_14
-      "15" -> JvmTarget.JVM_15
-      "16" -> JvmTarget.JVM_16
-      "17" -> JvmTarget.JVM_17
-      "18" -> JvmTarget.JVM_18
-      "19" -> JvmTarget.JVM_19
-      "20" -> JvmTarget.JVM_20
-      "21" -> JvmTarget.JVM_21
-      "22" -> JvmTarget.JVM_22
-      "23" -> JvmTarget.JVM_23
-      "24" -> JvmTarget.JVM_24
-      "25" -> JvmTarget.JVM_25
-      else -> null
+      "6" -> "1.6"
+      "8" -> "1.8"
+      else -> target
     }
 
   /**
-   * Parse Kotlin version string to BTAPI enum.
+   * Parse Kotlin version string to BTAPI enum and fail fast for unsupported values.
    */
-  private fun parseKotlinVersion(version: String): BtapiKotlinVersion? =
-    when (version) {
-      "1.4" -> BtapiKotlinVersion.V1_4
-      "1.5" -> BtapiKotlinVersion.V1_5
-      "1.6" -> BtapiKotlinVersion.V1_6
-      "1.7" -> BtapiKotlinVersion.V1_7
-      "1.8" -> BtapiKotlinVersion.V1_8
-      "1.9" -> BtapiKotlinVersion.V1_9
-      "2.0" -> BtapiKotlinVersion.V2_0
-      "2.1" -> BtapiKotlinVersion.V2_1
-      "2.2" -> BtapiKotlinVersion.V2_2
-      "2.3" -> BtapiKotlinVersion.V2_3
-      else -> null
-    }
+  private fun requireKotlinVersion(
+    version: String,
+    fieldName: String,
+  ): BtapiKotlinVersion =
+    BtapiKotlinVersion.entries.firstOrNull { it.stringValue == version.trim() }
+      ?: throw IllegalArgumentException(
+        "Unsupported $fieldName '$version'. Supported values: " +
+          BtapiKotlinVersion.entries.joinToString(", ") { it.stringValue },
+      )
 
   /**
-   * Creates a simple logger for IC debugging output.
+   * Creates a logger for compiler diagnostics.
+   * Errors and warnings are always emitted; info/debug logs are emitted in verbose mode.
    */
-  private fun createIcLogger(out: PrintStream): KotlinLogger =
+  private fun createCompilerLogger(
+    out: PrintStream,
+    verbose: Boolean,
+  ): KotlinLogger =
     object : KotlinLogger {
-      override val isDebugEnabled: Boolean = true
+      override val isDebugEnabled: Boolean = verbose
 
       override fun error(
         msg: String,
         throwable: Throwable?,
       ) {
-        out.println("[IC ERROR] $msg")
+        out.println(msg)
         throwable?.printStackTrace(out)
       }
 
@@ -542,19 +535,26 @@ class BtapiCompiler(
         msg: String,
         throwable: Throwable?,
       ) {
-        out.println("[IC WARN] $msg")
+        out.println(msg)
+        throwable?.printStackTrace(out)
       }
 
       override fun info(msg: String) {
-        out.println("[IC INFO] $msg")
+        if (verbose) {
+          out.println(msg)
+        }
       }
 
       override fun debug(msg: String) {
-        out.println("[IC DEBUG] $msg")
+        if (verbose) {
+          out.println(msg)
+        }
       }
 
       override fun lifecycle(msg: String) {
-        out.println("[IC] $msg")
+        if (verbose) {
+          out.println(msg)
+        }
       }
     }
 
@@ -585,14 +585,13 @@ class BtapiCompiler(
     val stubsPlugins = buildStubsPlugins(task, plugins)
     val compilerPlugins = listOf(kaptPlugin) + stubsPlugins
 
-    val logger = if (verbose) createIcLogger(out) else null
+    val logger = createCompilerLogger(out, verbose = verbose)
 
     return executeCompilation(
       task = task,
       outputDir = Path.of(task.directories.generatedClasses),
       compilerPlugins = compilerPlugins,
       logger = logger,
-      out = out,
     )
   }
 

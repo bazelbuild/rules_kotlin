@@ -16,165 +16,21 @@
  */
 package io.bazel.kotlin.builder.toolchain
 
-import io.bazel.kotlin.builder.utils.BazelRunFiles
-import io.bazel.kotlin.builder.utils.verified
-import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
-import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
 import java.io.File
-import java.net.URLClassLoader
 
 class KotlinToolchain private constructor(
   val kapt3Plugin: CompilerPlugin,
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
-  internal val buildToolsImplJar: File,
-  internal val kotlinCompilerEmbeddableJar: File,
-  internal val kotlinDaemonEmbeddableJar: File,
-  internal val kotlinStdlibJar: File,
-  internal val kotlinReflectJar: File,
-  internal val kotlinCoroutinesJar: File,
-  internal val annotationsJar: File,
 ) {
   companion object {
-    private val JVM_ABI_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...jvm-abi-gen",
-        ).toPath()
-    }
-
-    private val KAPT_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kapt",
-        ).toPath()
-    }
-
-    private val SKIP_CODE_GEN_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...skip-code-gen",
-        ).toPath()
-    }
-
-    private val JDEPS_GEN_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...jdeps-gen",
-        ).toPath()
-    }
-
-    private val KOTLIN_REFLECT by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...kotlin.compiler.kotlin-reflect",
-        ).toPath()
-    }
-
-    internal val KOTLIN_STDLIB by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...kotlin.compiler.kotlin-stdlib",
-        ).toPath()
-    }
-
-    internal val KOTLIN_COROUTINES by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...kotlin.compiler.kotlin-coroutines",
-        ).toPath()
-    }
-
-    internal val BUILD_TOOLS_API by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...build-tools-api",
-        ).toPath()
-    }
-
-    internal val BUILD_TOOLS_IMPL by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...build-tools-impl",
-        ).toPath()
-    }
-
-    private val ANNOTATIONS by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...kotlin.compiler.annotations",
-        ).toPath()
-    }
-
-    internal val KOTLIN_COMPILER_EMBEDDABLE by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kotlin-compiler-embeddable",
-        ).toPath()
-    }
-
-    internal val KOTLIN_DAEMON_EMBEDDABLE by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...kotlin-daemon-client",
-        ).toPath()
-    }
-
-    /**
-     * Creates just the BTAPI KotlinToolchains without resolving compiler plugins.
-     * Used by the snapshot worker which only needs BTAPI for classpath snapshotting.
-     */
-    @OptIn(ExperimentalBuildToolsApi::class)
-    @JvmStatic
-    fun createBtapiToolchains(): KotlinToolchains {
-      val classpath =
-        listOf(
-          BUILD_TOOLS_IMPL.verified().absoluteFile,
-          KOTLIN_DAEMON_EMBEDDABLE.verified().absoluteFile,
-          KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
-          KOTLIN_STDLIB.verified().absoluteFile,
-          KOTLIN_REFLECT.verified().absoluteFile,
-          KOTLIN_COROUTINES.verified().absoluteFile,
-          ANNOTATIONS.verified().absoluteFile,
-        )
-      val urls = classpath.map { it.toURI().toURL() }.toTypedArray()
-      val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
-      return KotlinToolchains.loadImplementation(classLoader)
-    }
-
-    @JvmStatic
-    fun createToolchain(): KotlinToolchain =
-      createToolchain(
-        KOTLIN_COMPILER_EMBEDDABLE.verified().absoluteFile,
-        KOTLIN_DAEMON_EMBEDDABLE.verified().absoluteFile,
-        BUILD_TOOLS_API.verified().absoluteFile,
-        BUILD_TOOLS_IMPL.verified().absoluteFile,
-        JVM_ABI_PLUGIN.verified().absoluteFile,
-        SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
-        JDEPS_GEN_PLUGIN.verified().absoluteFile,
-        KAPT_PLUGIN.verified().absoluteFile,
-        KOTLIN_STDLIB.verified().absoluteFile,
-        KOTLIN_REFLECT.verified().absoluteFile,
-        KOTLIN_COROUTINES.verified().absoluteFile,
-        ANNOTATIONS.verified().absoluteFile,
-      )
-
     @JvmStatic
     fun createToolchain(
-      kotlinCompilerEmbeddable: File,
-      kotlinDaemonEmbeddable: File,
-      buildToolsApi: File,
-      buildToolsImpl: File,
       jvmAbiGenFile: File,
       skipCodeGenFile: File,
       jdepsGenFile: File,
       kaptFile: File,
-      kotlinStdlib: File,
-      kotlinReflect: File,
-      kotlinCoroutines: File,
-      annotations: File,
     ): KotlinToolchain =
       KotlinToolchain(
         jvmAbiGen =
@@ -197,13 +53,6 @@ class KotlinToolchain private constructor(
             kaptFile.path,
             "org.jetbrains.kotlin.kapt3",
           ),
-        buildToolsImplJar = buildToolsImpl,
-        kotlinCompilerEmbeddableJar = kotlinCompilerEmbeddable,
-        kotlinDaemonEmbeddableJar = kotlinDaemonEmbeddable,
-        kotlinStdlibJar = kotlinStdlib,
-        kotlinReflectJar = kotlinReflect,
-        kotlinCoroutinesJar = kotlinCoroutines,
-        annotationsJar = annotations,
       )
   }
 
@@ -211,28 +60,4 @@ class KotlinToolchain private constructor(
     val jarPath: String,
     val id: String,
   )
-
-  class KotlincInvokerBuilder(
-    private val toolchain: KotlinToolchain,
-  ) {
-    @OptIn(ExperimentalBuildToolsApi::class)
-    fun createBtapiToolchains(): KotlinToolchains {
-      val classpath = mutableListOf<File>()
-      classpath.add(toolchain.buildToolsImplJar)
-      classpath.add(toolchain.kotlinDaemonEmbeddableJar)
-      classpath.add(toolchain.kotlinCompilerEmbeddableJar)
-      classpath.add(toolchain.kotlinStdlibJar)
-      classpath.add(toolchain.kotlinReflectJar)
-      classpath.add(toolchain.kotlinCoroutinesJar)
-      classpath.add(toolchain.annotationsJar)
-
-      val urls = classpath.map { it.toURI().toURL() }.toTypedArray()
-
-      // SharedApiClassesClassLoader ensures API classes (from build-tools-api)
-      // are shared between the caller and the loaded implementation
-      val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
-
-      return KotlinToolchains.loadImplementation(classLoader)
-    }
-  }
 }

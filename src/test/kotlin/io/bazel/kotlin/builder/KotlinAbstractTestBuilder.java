@@ -18,6 +18,7 @@ package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
+import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec;
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
@@ -104,6 +105,8 @@ abstract class KotlinAbstractTestBuilder<T> {
                         KotlinToolchainInfo.newBuilder()
                                 .setCommon(
                                         KotlinToolchainInfo.Common.newBuilder()
+                                                .setApiVersion("2.0")
+                                                .setLanguageVersion("2.0")
                                                 .setCoroutines("enabled"))
                                 .setJvm(KotlinToolchainInfo.Jvm.newBuilder().setJvmTarget("11")));
         try {
@@ -198,19 +201,22 @@ abstract class KotlinAbstractTestBuilder<T> {
 
     static KotlinToolchain toolchainForTest() {
         return KotlinToolchain.createToolchain(
-                // Order matters
-                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_api").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
+                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar())
+        );
+    }
+
+    static BtapiRuntimeSpec btapiRuntimeForTest() {
+        return new BtapiRuntimeSpec(
+                Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
         );
     }
 }

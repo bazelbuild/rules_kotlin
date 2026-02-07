@@ -16,32 +16,51 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
+import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec
+import io.bazel.kotlin.builder.toolchain.BtapiToolchainsCache
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import java.util.concurrent.ConcurrentHashMap
 
 @OptIn(ExperimentalBuildToolsApi::class)
-class KotlinJvmTaskExecutor(
-  private val compilerBuilder: KotlinToolchain.KotlincInvokerBuilder,
-  private val plugins: InternalCompilerPlugins,
+class KotlinJvmTaskExecutor @JvmOverloads constructor(
+  private val defaultRuntimeSpec: BtapiRuntimeSpec? = null,
+  private val defaultPlugins: InternalCompilerPlugins? = null,
+  private val btapiToolchainsCache: BtapiToolchainsCache = BtapiToolchainsCache(),
 ) {
-  private val btapiCompiler by lazy { BtapiCompiler(compilerBuilder.createBtapiToolchains()) }
-
-  /**
-   * Checks if the task has KAPT processors that need to be run.
-   */
-  private fun JvmCompilationTask.hasKaptProcessors(): Boolean =
-    inputs.processorsList.isNotEmpty() &&
-      inputs.kotlinSourcesList.isNotEmpty() &&
-      !outputs.generatedClassJar.isNullOrEmpty()
+  private val compilers = ConcurrentHashMap<BtapiRuntimeSpec, BtapiCompiler>()
 
   fun execute(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
   ) {
+    val runtimeSpec =
+      defaultRuntimeSpec ?: error(
+        "Btapi runtime spec must be provided either in KotlinJvmTaskExecutor constructor " +
+          "or per execute(...) call.",
+      )
+    val plugins =
+      defaultPlugins ?: error(
+        "Internal compiler plugins must be provided either in KotlinJvmTaskExecutor constructor " +
+          "or per execute(...) call.",
+      )
+    execute(context, task, runtimeSpec, plugins)
+  }
+
+  fun execute(
+    context: CompilationTaskContext,
+    task: JvmCompilationTask,
+    runtimeSpec: BtapiRuntimeSpec,
+    plugins: InternalCompilerPlugins,
+  ) {
+    val btapiCompiler =
+      compilers.computeIfAbsent(runtimeSpec) {
+        BtapiCompiler(btapiToolchainsCache.get(it))
+      }
+
     val preprocessedTask =
       task
         .preProcessingSteps(context)

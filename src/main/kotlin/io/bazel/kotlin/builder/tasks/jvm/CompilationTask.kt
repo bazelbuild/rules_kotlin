@@ -98,8 +98,7 @@ internal fun JvmCompilationTask.runPlugins(
 /**
  * Runs KAPT using BtapiCompiler (Build Tools API).
  *
- * This is the new implementation that uses BTAPI directly instead of
- * the string-based KotlincInvoker path.
+ * Uses BTAPI directly with typed compiler/plugin arguments.
  */
 @ExperimentalBuildToolsApi
 private fun JvmCompilationTask.runKaptPluginBtapi(

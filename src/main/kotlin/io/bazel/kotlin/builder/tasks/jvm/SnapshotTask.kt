@@ -17,13 +17,16 @@
 
 package io.bazel.kotlin.builder.tasks.jvm
 
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
+import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec
+import io.bazel.kotlin.builder.toolchain.BtapiToolchainsCache
+import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.worker.Status
 import io.bazel.worker.Work
 import io.bazel.worker.WorkerContext
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
@@ -33,6 +36,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 
 /**
@@ -52,13 +56,18 @@ class SnapshotTask : Work {
     ) : Flag {
       INPUT_JAR("--input_jar"),
       OUTPUT_SNAPSHOT("--output_snapshot"),
+      BTAPI_BUILD_TOOLS_IMPL("--btapi_build_tools_impl"),
+      BTAPI_KOTLIN_COMPILER_EMBEDDABLE("--btapi_kotlin_compiler_embeddable"),
+      BTAPI_KOTLIN_DAEMON_CLIENT("--btapi_kotlin_daemon_client"),
+      BTAPI_KOTLIN_STDLIB("--btapi_kotlin_stdlib"),
+      BTAPI_KOTLIN_REFLECT("--btapi_kotlin_reflect"),
+      BTAPI_KOTLIN_COROUTINES("--btapi_kotlin_coroutines"),
+      BTAPI_ANNOTATIONS("--btapi_annotations"),
     }
   }
 
-  // Lazily initialized and reused across worker invocations
-  private val toolchains by lazy { KotlinToolchain.createBtapiToolchains() }
-  private val lazyBuildSession = lazy { toolchains.createBuildSession() }
-  private val buildSession by lazyBuildSession
+  private val toolchainsCache = BtapiToolchainsCache()
+  private val buildSessions = ConcurrentHashMap<BtapiRuntimeSpec, KotlinToolchains.BuildSession>()
 
   override fun invoke(
     ctx: WorkerContext.TaskContext,
@@ -77,8 +86,9 @@ class SnapshotTask : Work {
     return try {
       val inputJar = Path.of(argMap.mandatorySingle(SnapshotFlags.INPUT_JAR))
       val outputSnapshot = Path.of(argMap.mandatorySingle(SnapshotFlags.OUTPUT_SNAPSHOT))
+      val runtimeSpec = buildBtapiRuntimeSpec(argMap)
 
-      generateSnapshot(inputJar, outputSnapshot)
+      generateSnapshot(inputJar, outputSnapshot, runtimeSpec)
       Status.SUCCESS
     } catch (e: Exception) {
       ctx.error(e) { "Classpath snapshot generation failed" }
@@ -89,7 +99,14 @@ class SnapshotTask : Work {
   private fun generateSnapshot(
     inputJar: Path,
     outputSnapshot: Path,
+    runtimeSpec: BtapiRuntimeSpec,
   ) {
+    val toolchains = toolchainsCache.get(runtimeSpec)
+    val buildSession =
+      buildSessions.computeIfAbsent(runtimeSpec) {
+        toolchains.createBuildSession()
+      }
+
     val operation = toolchains.jvm.createClasspathSnapshottingOperation(inputJar)
     operation.set(
       JvmClasspathSnapshottingOperation.GRANULARITY,
@@ -110,4 +127,17 @@ class SnapshotTask : Work {
       StandardCopyOption.REPLACE_EXISTING,
     )
   }
+
+  private fun buildBtapiRuntimeSpec(argMap: ArgMap): BtapiRuntimeSpec =
+    BtapiRuntimeSpec(
+      buildToolsImplJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_BUILD_TOOLS_IMPL)),
+      kotlinCompilerEmbeddableJar =
+        Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_COMPILER_EMBEDDABLE)),
+      kotlinDaemonEmbeddableJar =
+        Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_DAEMON_CLIENT)),
+      kotlinStdlibJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_STDLIB)),
+      kotlinReflectJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_REFLECT)),
+      kotlinCoroutinesJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_COROUTINES)),
+      annotationsJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_ANNOTATIONS)),
+    )
 }

@@ -114,9 +114,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     toolchain.getKapt3Plugin(),
                     toolchain.getJdepsGen()
             );
-            KotlinToolchain.KotlincInvokerBuilder compilerBuilder =
-                    new KotlinToolchain.KotlincInvokerBuilder(toolchain);
-            jvmTaskExecutor = new KotlinJvmTaskExecutor(compilerBuilder, plugins);
+            jvmTaskExecutor = new KotlinJvmTaskExecutor(btapiRuntimeForTest(), plugins);
         }
         return jvmTaskExecutor;
     }

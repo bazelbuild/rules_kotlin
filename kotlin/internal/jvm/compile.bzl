@@ -533,16 +533,33 @@ def _run_ksp_builder_actions(
 
 def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
     """Generates a classpath snapshot for the given JAR using a dedicated worker."""
+    runtime_inputs = [
+        toolchains.kt.btapi_build_tools_impl,
+        toolchains.kt.btapi_kotlin_compiler_embeddable,
+        toolchains.kt.btapi_kotlin_daemon_client,
+        toolchains.kt.btapi_kotlin_stdlib,
+        toolchains.kt.btapi_kotlin_reflect,
+        toolchains.kt.btapi_kotlin_coroutines,
+        toolchains.kt.btapi_annotations,
+    ]
+
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
     args.use_param_file("--flagfile=%s", use_always = True)
 
     args.add("--input_jar", input_jar)
     args.add("--output_snapshot", output_snapshot)
+    args.add("--btapi_build_tools_impl", toolchains.kt.btapi_build_tools_impl)
+    args.add("--btapi_kotlin_compiler_embeddable", toolchains.kt.btapi_kotlin_compiler_embeddable)
+    args.add("--btapi_kotlin_daemon_client", toolchains.kt.btapi_kotlin_daemon_client)
+    args.add("--btapi_kotlin_stdlib", toolchains.kt.btapi_kotlin_stdlib)
+    args.add("--btapi_kotlin_reflect", toolchains.kt.btapi_kotlin_reflect)
+    args.add("--btapi_kotlin_coroutines", toolchains.kt.btapi_kotlin_coroutines)
+    args.add("--btapi_annotations", toolchains.kt.btapi_annotations)
 
     ctx.actions.run(
         mnemonic = "KotlinClasspathSnapshot",
-        inputs = [input_jar],
+        inputs = [input_jar] + runtime_inputs,
         tools = [
             toolchains.kt.snapshot_worker.files_to_run,
         ],
@@ -578,6 +595,21 @@ def _run_kt_builder_action(
 
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    runtime_inputs = [
+        toolchains.kt.btapi_build_tools_impl,
+        toolchains.kt.btapi_kotlin_compiler_embeddable,
+        toolchains.kt.btapi_kotlin_daemon_client,
+        toolchains.kt.btapi_kotlin_stdlib,
+        toolchains.kt.btapi_kotlin_reflect,
+        toolchains.kt.btapi_kotlin_coroutines,
+        toolchains.kt.btapi_annotations,
+    ]
+    internal_plugin_inputs = [
+        toolchains.kt.internal_jvm_abi_gen,
+        toolchains.kt.internal_skip_code_gen,
+        toolchains.kt.internal_kapt,
+        toolchains.kt.internal_jdeps_gen,
+    ]
 
     args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
 
@@ -593,6 +625,17 @@ def _run_kt_builder_action(
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
     args.add("--incremental_compilation", toolchains.kt.experimental_incremental_compilation)
     args.add("--ic_enable_logging", toolchains.kt.experimental_ic_enable_logging)
+    args.add("--btapi_build_tools_impl", toolchains.kt.btapi_build_tools_impl)
+    args.add("--btapi_kotlin_compiler_embeddable", toolchains.kt.btapi_kotlin_compiler_embeddable)
+    args.add("--btapi_kotlin_daemon_client", toolchains.kt.btapi_kotlin_daemon_client)
+    args.add("--btapi_kotlin_stdlib", toolchains.kt.btapi_kotlin_stdlib)
+    args.add("--btapi_kotlin_reflect", toolchains.kt.btapi_kotlin_reflect)
+    args.add("--btapi_kotlin_coroutines", toolchains.kt.btapi_kotlin_coroutines)
+    args.add("--btapi_annotations", toolchains.kt.btapi_annotations)
+    args.add("--internal_jvm_abi_gen", toolchains.kt.internal_jvm_abi_gen)
+    args.add("--internal_skip_code_gen", toolchains.kt.internal_skip_code_gen)
+    args.add("--internal_kapt", toolchains.kt.internal_kapt)
+    args.add("--internal_jdeps", toolchains.kt.internal_jdeps_gen)
     args.add_all("--classpath_snapshots", classpath_snapshots, omit_if_empty = True)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
@@ -651,7 +694,7 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots,
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots + runtime_inputs + internal_plugin_inputs,
             transitive = [
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,
