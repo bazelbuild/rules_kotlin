@@ -48,7 +48,7 @@ class BtapiToolchainsCache {
         "must match kotlin-compiler-embeddable version '$compilerVersion'."
     }
 
-    val daemonVersion = readNormalizedVersion(runtime.kotlinDaemonEmbeddableJar, "kotlin-daemon-client")
+    val daemonVersion = readNormalizedVersion(runtime.kotlinDaemonClientJar, "kotlin-daemon-client")
     require(daemonVersion == compilerVersion) {
       "BTAPI runtime mismatch: kotlin-daemon-client version '$daemonVersion' " +
         "must match kotlin-compiler-embeddable version '$compilerVersion'."

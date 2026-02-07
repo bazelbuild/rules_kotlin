@@ -129,15 +129,14 @@ class SnapshotTask : Work {
   }
 
   private fun buildBtapiRuntimeSpec(argMap: ArgMap): BtapiRuntimeSpec =
-    BtapiRuntimeSpec(
-      buildToolsImplJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_BUILD_TOOLS_IMPL)),
+    BtapiRuntimeSpec.fromJarPaths(
+      buildToolsImplJar = argMap.mandatorySingle(SnapshotFlags.BTAPI_BUILD_TOOLS_IMPL),
       kotlinCompilerEmbeddableJar =
-        Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_COMPILER_EMBEDDABLE)),
-      kotlinDaemonEmbeddableJar =
-        Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_DAEMON_CLIENT)),
-      kotlinStdlibJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_STDLIB)),
-      kotlinReflectJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_REFLECT)),
-      kotlinCoroutinesJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_COROUTINES)),
-      annotationsJar = Path.of(argMap.mandatorySingle(SnapshotFlags.BTAPI_ANNOTATIONS)),
+        argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_COMPILER_EMBEDDABLE),
+      kotlinDaemonClientJar = argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_DAEMON_CLIENT),
+      kotlinStdlibJar = argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_STDLIB),
+      kotlinReflectJar = argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_REFLECT),
+      kotlinCoroutinesJar = argMap.mandatorySingle(SnapshotFlags.BTAPI_KOTLIN_COROUTINES),
+      annotationsJar = argMap.mandatorySingle(SnapshotFlags.BTAPI_ANNOTATIONS),
     )
 }
