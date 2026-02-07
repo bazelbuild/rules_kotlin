@@ -54,6 +54,17 @@ load(
     _plugin_payload = "plugin_payload",
 )
 
+# Keep BTAPI runtime artifact wiring in a single place for all worker actions.
+_BTAPI_RUNTIME_ARG_SPECS = (
+    ("--btapi_build_tools_impl", "btapi_build_tools_impl"),
+    ("--btapi_kotlin_compiler_embeddable", "btapi_kotlin_compiler_embeddable"),
+    ("--btapi_kotlin_daemon_client", "btapi_kotlin_daemon_client"),
+    ("--btapi_kotlin_stdlib", "btapi_kotlin_stdlib"),
+    ("--btapi_kotlin_reflect", "btapi_kotlin_reflect"),
+    ("--btapi_kotlin_coroutines", "btapi_kotlin_coroutines"),
+    ("--btapi_annotations", "btapi_annotations"),
+)
+
 # UTILITY ##############################################################################################################
 def find_java_toolchain(ctx, target):
     if _JAVA_TOOLCHAIN_TYPE in ctx.toolchains:
@@ -120,6 +131,13 @@ def _fail_if_invalid_associate_deps(associate_deps, deps):
 
 def _java_infos_to_compile_jars(java_infos):
     return depset(transitive = [j.compile_jars for j in java_infos])
+
+def _btapi_runtime_inputs(toolchains):
+    return [getattr(toolchains.kt, attr_name) for _, attr_name in _BTAPI_RUNTIME_ARG_SPECS]
+
+def _add_btapi_runtime_args(args, toolchains):
+    for flag, attr_name in _BTAPI_RUNTIME_ARG_SPECS:
+        args.add(flag, getattr(toolchains.kt, attr_name))
 
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
@@ -549,15 +567,7 @@ def _run_ksp_builder_actions(
 
 def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
     """Generates a classpath snapshot for the given JAR using a dedicated worker."""
-    runtime_inputs = [
-        toolchains.kt.btapi_build_tools_impl,
-        toolchains.kt.btapi_kotlin_compiler_embeddable,
-        toolchains.kt.btapi_kotlin_daemon_client,
-        toolchains.kt.btapi_kotlin_stdlib,
-        toolchains.kt.btapi_kotlin_reflect,
-        toolchains.kt.btapi_kotlin_coroutines,
-        toolchains.kt.btapi_annotations,
-    ]
+    runtime_inputs = _btapi_runtime_inputs(toolchains)
 
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
@@ -565,13 +575,7 @@ def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
 
     args.add("--input_jar", input_jar)
     args.add("--output_snapshot", output_snapshot)
-    args.add("--btapi_build_tools_impl", toolchains.kt.btapi_build_tools_impl)
-    args.add("--btapi_kotlin_compiler_embeddable", toolchains.kt.btapi_kotlin_compiler_embeddable)
-    args.add("--btapi_kotlin_daemon_client", toolchains.kt.btapi_kotlin_daemon_client)
-    args.add("--btapi_kotlin_stdlib", toolchains.kt.btapi_kotlin_stdlib)
-    args.add("--btapi_kotlin_reflect", toolchains.kt.btapi_kotlin_reflect)
-    args.add("--btapi_kotlin_coroutines", toolchains.kt.btapi_kotlin_coroutines)
-    args.add("--btapi_annotations", toolchains.kt.btapi_annotations)
+    _add_btapi_runtime_args(args, toolchains)
 
     ctx.actions.run(
         mnemonic = "KotlinClasspathSnapshot",
@@ -611,15 +615,7 @@ def _run_kt_builder_action(
 
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
-    runtime_inputs = [
-        toolchains.kt.btapi_build_tools_impl,
-        toolchains.kt.btapi_kotlin_compiler_embeddable,
-        toolchains.kt.btapi_kotlin_daemon_client,
-        toolchains.kt.btapi_kotlin_stdlib,
-        toolchains.kt.btapi_kotlin_reflect,
-        toolchains.kt.btapi_kotlin_coroutines,
-        toolchains.kt.btapi_annotations,
-    ]
+    runtime_inputs = _btapi_runtime_inputs(toolchains)
     internal_plugin_inputs = [
         toolchains.kt.internal_jvm_abi_gen,
         toolchains.kt.internal_skip_code_gen,
@@ -641,13 +637,7 @@ def _run_kt_builder_action(
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
     args.add("--incremental_compilation", toolchains.kt.experimental_incremental_compilation)
     args.add("--ic_enable_logging", toolchains.kt.experimental_ic_enable_logging)
-    args.add("--btapi_build_tools_impl", toolchains.kt.btapi_build_tools_impl)
-    args.add("--btapi_kotlin_compiler_embeddable", toolchains.kt.btapi_kotlin_compiler_embeddable)
-    args.add("--btapi_kotlin_daemon_client", toolchains.kt.btapi_kotlin_daemon_client)
-    args.add("--btapi_kotlin_stdlib", toolchains.kt.btapi_kotlin_stdlib)
-    args.add("--btapi_kotlin_reflect", toolchains.kt.btapi_kotlin_reflect)
-    args.add("--btapi_kotlin_coroutines", toolchains.kt.btapi_kotlin_coroutines)
-    args.add("--btapi_annotations", toolchains.kt.btapi_annotations)
+    _add_btapi_runtime_args(args, toolchains)
     args.add("--internal_jvm_abi_gen", toolchains.kt.internal_jvm_abi_gen)
     args.add("--internal_skip_code_gen", toolchains.kt.internal_skip_code_gen)
     args.add("--internal_kapt", toolchains.kt.internal_kapt)
