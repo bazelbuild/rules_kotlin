@@ -69,12 +69,20 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
     # This differs from rules_jvm which uses jvm-inc-builder for Java compilation.
     pruned_deps_for_java = None
 
-    # Collect classpath snapshots from direct deps that have KtJvmInfo
-    classpath_snapshots = [
-        getattr(d[KtJvmInfo], "classpath_snapshot", None)
-        for d in deps + associate_deps
-        if KtJvmInfo in d and getattr(d[KtJvmInfo], "classpath_snapshot", None) != None
-    ]
+    # Collect classpath snapshots from the full dependency graph that contributes to compilation.
+    # This must include transitive Kotlin dependencies because compile_jars can include transitive jars.
+    classpath_snapshots = depset(
+        direct = [
+            getattr(d[KtJvmInfo], "classpath_snapshot", None)
+            for d in deps + associate_deps
+            if KtJvmInfo in d and getattr(d[KtJvmInfo], "classpath_snapshot", None) != None
+        ],
+        transitive = [
+            getattr(d[KtJvmInfo], "transitive_classpath_snapshots", None)
+            for d in deps + associate_deps
+            if KtJvmInfo in d and getattr(d[KtJvmInfo], "transitive_classpath_snapshots", None) != None
+        ],
+    ).to_list()
 
     return struct(
         module_name = associates.module_name,

@@ -44,11 +44,13 @@ java_import(
 java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "jdeps-gen",
     jars = ["jdeps-gen.jar"],
+    visibility = ["//visibility:public"],
 )
 
 java_binary(

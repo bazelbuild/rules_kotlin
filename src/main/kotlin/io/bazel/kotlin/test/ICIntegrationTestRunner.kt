@@ -231,10 +231,18 @@ object ICIntegrationTestRunner {
       onSuccess = { "${it.stdOut.toString(UTF_8)}\n${it.stdErr.toString(UTF_8)}" },
       onFailure = { throw it },
     )
-    // Extract IC-related log lines and important build markers
+    // Extract IC-related log lines and important build markers.
+    // Keep detailed IC lines because test expectations rely on them.
     return output.lines()
       .filter { line ->
         line.contains("[IC ") || // All IC log lines (DEBUG, INFO, WARN, ERROR)
+          line.contains("Non-incremental compilation will be performed:") ||
+          line.contains("compile iteration:") ||
+          line.contains("compiler exit code:") ||
+          line.contains("Incremental compilation completed") ||
+          line.contains("is marked dirty:") ||
+          line.contains("MembersChanged(") ||
+          line.contains("SignatureChanged(") ||
           line.contains("KotlinCompile") || // Build action markers
           line.contains("Updating:") || // Modification markers
           line.contains("Deleting:") || // Modification markers

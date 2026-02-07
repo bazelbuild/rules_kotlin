@@ -396,6 +396,81 @@ def _dep_infos_ordering_test(name):
         },
     )
 
+def _classpath_snapshots_transitive_test_impl(env, target):
+    direct_dep_java_info = JavaInfo(
+        compile_jar = _file(env.ctx.attr.direct_dep_abi_jar),
+        output_jar = _file(env.ctx.attr.direct_dep_abi_jar),
+    )
+
+    direct_snapshot = _file(env.ctx.attr.direct_snapshot)
+    transitive_snapshot = _file(env.ctx.attr.transitive_snapshot)
+
+    direct_deps = [
+        {
+            JavaInfo: direct_dep_java_info,
+            _KtJvmInfo: _KtJvmInfo(
+                module_name = "direct_dep",
+                classpath_snapshot = direct_snapshot,
+                transitive_classpath_snapshots = depset([transitive_snapshot]),
+            ),
+        },
+    ]
+
+    fake_ctx = struct(
+        label = target.label,
+        attr = struct(
+            module_name = "",
+            tags = [],
+        ),
+    )
+
+    toolchains = struct(
+        kt = struct(
+            experimental_remove_private_classes_in_abi_jars = False,
+            experimental_prune_transitive_deps = False,
+            experimental_strict_associate_dependencies = False,
+            jvm_stdlibs = JavaInfo(
+                compile_jar = _file(env.ctx.attr.jvm_jar),
+                output_jar = _file(env.ctx.attr.jvm_jar),
+            ),
+        ),
+    )
+
+    result = _jvm_deps_utils.jvm_deps(
+        ctx = fake_ctx,
+        toolchains = toolchains,
+        associate_deps = [],
+        deps = direct_deps,
+    )
+
+    classpath_snapshot_paths = [f.short_path for f in result.classpath_snapshots]
+    env.expect.that_bool(direct_snapshot.short_path in classpath_snapshot_paths).equals(True)
+    env.expect.that_bool(transitive_snapshot.short_path in classpath_snapshot_paths).equals(True)
+
+def _classpath_snapshots_transitive_test(name):
+    util.helper_target(
+        native.filegroup,
+        name = name + "_subject",
+        srcs = [],
+    )
+    analysis_test(
+        name = name,
+        impl = _classpath_snapshots_transitive_test_impl,
+        target = name + "_subject",
+        attr_values = {
+            "direct_dep_abi_jar": util.empty_file(name + "direct_dep_abi.jar"),
+            "direct_snapshot": util.empty_file(name + "direct.snapshot"),
+            "transitive_snapshot": util.empty_file(name + "transitive.snapshot"),
+            "jvm_jar": util.empty_file(name + "jvm.jar"),
+        },
+        attrs = {
+            "direct_dep_abi_jar": attr.label(allow_files = True),
+            "direct_snapshot": attr.label(allow_files = True),
+            "transitive_snapshot": attr.label(allow_files = True),
+            "jvm_jar": attr.label(allow_files = True),
+        },
+    )
+
 def jvm_deps_test_suite(name):
     test_suite(
         name,
@@ -405,5 +480,6 @@ def jvm_deps_test_suite(name):
             _transitive_from_exports_test,
             _transitive_from_associates_test,
             _dep_infos_ordering_test,
+            _classpath_snapshots_transitive_test,
         ],
     )

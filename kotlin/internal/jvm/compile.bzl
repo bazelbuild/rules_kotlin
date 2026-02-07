@@ -140,6 +140,22 @@ def _collect_plugins_for_export(local, exports):
         ],
     )
 
+def _collect_transitive_classpath_snapshots(targets):
+    direct_snapshots = [
+        getattr(t[_KtJvmInfo], "classpath_snapshot", None)
+        for t in targets
+        if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "classpath_snapshot", None) != None
+    ]
+    transitive_snapshots = [
+        getattr(t[_KtJvmInfo], "transitive_classpath_snapshots", None)
+        for t in targets
+        if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "transitive_classpath_snapshots", None) != None
+    ]
+    return depset(
+        direct = direct_snapshots,
+        transitive = transitive_snapshots,
+    )
+
 _CONVENTIONAL_RESOURCE_PATHS = [
     "src/main/java",
     "src/main/resources",
@@ -873,6 +889,9 @@ def _kt_jvm_produce_output_jar_actions(
         dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
         extensions = ["kt", "java"],
     )
+    transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(
+        getattr(ctx.attr, "deps", []) + getattr(ctx.attr, "associates", []),
+    )
 
     return struct(
         java = java_info,
@@ -887,6 +906,10 @@ def _kt_jvm_produce_output_jar_actions(
                 getattr(ctx.attr, "exports", []),
             ),
             classpath_snapshot = classpath_snapshot,
+            transitive_classpath_snapshots = depset(
+                direct = [classpath_snapshot] if classpath_snapshot != None else [],
+                transitive = [transitive_classpath_snapshots],
+            ),
             # intellij aspect needs this.
             outputs = struct(
                 jdeps = output_jdeps,
@@ -930,7 +953,7 @@ def _run_kt_java_builder_actions(
     has_kt_sources = srcs.kt or srcs.src_jars
 
     # Classpath snapshots for IC are passed as explicit inputs to the compilation action.
-    # They are collected from deps via KtJvmInfo.classpath_snapshot.
+    # They are collected from the full dependency graph via KtJvmInfo.transitive_classpath_snapshots.
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
@@ -1179,6 +1202,9 @@ def _export_only_providers(ctx, actions, attr, outputs):
         neverlink = getattr(attr, "neverlink", False),
         jdeps = output_jdeps,
     )
+    transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(
+        attr.deps + getattr(attr, "associates", []),
+    )
 
     return struct(
         java = java,
@@ -1191,6 +1217,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
                 getattr(attr, "exports", []),
             ),
             classpath_snapshot = None,
+            transitive_classpath_snapshots = transitive_classpath_snapshots,
         ),
         instrumented_files = coverage_common.instrumented_files_info(
             ctx,

@@ -16,6 +16,7 @@ KtJvmInfo = provider(
         "module_name": "the module name",
         "outputs": "output jars produced by this rule. [intelij-aspect]",
         "srcs": "the source files. [intelij-aspect]",
+        "transitive_classpath_snapshots": "Transitive classpath snapshots for IC invalidation.",
         "transitive_compile_time_jars": "Returns the transitive set of Jars required to build the target. [intellij-aspect]",
         "transitive_source_jars": "Returns the Jars containing source files of the current target and all of its transitive dependencies. [intellij-aspect]",
     },

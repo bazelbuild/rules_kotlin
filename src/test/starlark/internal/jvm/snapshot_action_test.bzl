@@ -68,11 +68,67 @@ def _snapshot_flag_wiring_test(name):
         },
     )
 
+def _snapshot_flag_wiring_transitive_test_impl(env, target):
+    def _has_snapshot_suffix(values, suffix):
+        for value in values:
+            if value.endswith(suffix):
+                return True
+        return False
+
+    compile_action = env.expect.that_target(target).action_named("KotlinCompile")
+    parsed_flags = flags_and_values_of(compile_action)
+    parsed_flags.transform(
+        desc = "transitive classpath snapshot flag wiring",
+        map_each = lambda item: (
+            item[0] == "--classpath_snapshots" and
+            _has_snapshot_suffix(item[1], env.ctx.attr.want_direct_snapshot_suffix) and
+            _has_snapshot_suffix(item[1], env.ctx.attr.want_transitive_snapshot_suffix)
+        ),
+    ).contains(True)
+
+def _snapshot_flag_wiring_transitive_test(name):
+    transitive_dep_name = name + "_transitive_dep"
+    direct_dep_name = name + "_direct_dep"
+    subject_name = name + "_subject"
+
+    kt_jvm_library(
+        name = transitive_dep_name,
+        srcs = [util.empty_file(transitive_dep_name + ".kt")],
+        tags = ["manual"],
+    )
+    kt_jvm_library(
+        name = direct_dep_name,
+        srcs = [util.empty_file(direct_dep_name + ".kt")],
+        deps = [transitive_dep_name],
+        tags = ["manual"],
+    )
+    kt_jvm_library(
+        name = subject_name,
+        srcs = [util.empty_file(subject_name + ".kt")],
+        deps = [direct_dep_name],
+        tags = ["manual"],
+    )
+
+    analysis_test(
+        name = name,
+        impl = _snapshot_flag_wiring_transitive_test_impl,
+        target = subject_name,
+        attr_values = {
+            "want_direct_snapshot_suffix": direct_dep_name + ".classpath-snapshot",
+            "want_transitive_snapshot_suffix": transitive_dep_name + ".classpath-snapshot",
+        },
+        attrs = {
+            "want_direct_snapshot_suffix": attr.string(),
+            "want_transitive_snapshot_suffix": attr.string(),
+        },
+    )
+
 def snapshot_action_test_suite(name):
     test_suite(
         name = name,
         tests = [
             _snapshot_action_test,
             _snapshot_flag_wiring_test,
+            _snapshot_flag_wiring_transitive_test,
         ],
     )
