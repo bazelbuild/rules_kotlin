@@ -1,14 +1,18 @@
 load("//src/test/starlark/internal/jvm:resource_strip_prefix_test.bzl", "strip_resource_prefix_test_suite")
+load("//src/test/starlark/internal/lint:ktlint_fix_runfiles_test.bzl", "ktlint_fix_runfiles_test_suite")
 load(":convert_test.bzl", "convert_test_suite")
 
 convert_test_suite(name = "convert_tests")
 
 strip_resource_prefix_test_suite(name = "resource_strip_prefix_tests")
 
+ktlint_fix_runfiles_test_suite(name = "ktlint_fix_runfiles_tests")
+
 test_suite(
     name = "starlark_tests",
     tests = [
         ":convert_tests",
+        ":ktlint_fix_runfiles_tests",
         ":resource_strip_prefix_tests",
         "//src/test/starlark/ksp:ksp_tests",
     ],
