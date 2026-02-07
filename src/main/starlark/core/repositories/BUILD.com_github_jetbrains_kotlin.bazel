@@ -31,5 +31,5 @@ filegroup(
 
 bzl_library(
     name = "capabilities",
-    srcs = ["capabilities.bzl"],
+    srcs = ["generated_opts.bzl"],
 )
