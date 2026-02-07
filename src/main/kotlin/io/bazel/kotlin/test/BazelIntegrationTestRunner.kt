@@ -173,6 +173,8 @@ object BazelIntegrationTestRunner {
   fun Path.hasModule() = resolve("MODULE").exists() || resolve("MODULE.bazel").exists()
   private fun Path.hasWorkspace() =
     resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
+  private fun nullBazelRcPath() =
+    if (System.getProperty("os.name").lowercase().contains("windows")) "NUL" else "/dev/null"
 
   sealed class Version : Comparable<Version> {
     companion object {
@@ -196,7 +198,7 @@ object BazelIntegrationTestRunner {
             .map { Flag("--bazelrc=$it") }
             .toList()
             .takeIf { it.isNotEmpty() }
-            ?: listOf(Flag("--bazelrc=/dev/null")),
+            ?: listOf(Flag("--bazelrc=${nullBazelRcPath()}")),
         ),
       )
     }
@@ -222,7 +224,8 @@ object BazelIntegrationTestRunner {
           sequence {
             val parts = mutableListOf(major, minor, patch)
             (parts.size downTo 0).forEach { index ->
-              yield("." + parts.subList(0, index).joinToString("-"))
+              val versionSuffix = parts.subList(0, index).joinToString("-")
+              yield(if (versionSuffix.isEmpty()) "" else ".$versionSuffix")
             }
           }
             .map { suffix -> workspace.resolve(".bazelrc${suffix}") }
@@ -230,7 +233,7 @@ object BazelIntegrationTestRunner {
             .map { p -> Flag("--bazelrc=$p") }
             .toList()
             .takeIf { it.isNotEmpty() }
-            ?: listOf(Flag("--bazelrc=/dev/null")),
+            ?: listOf(Flag("--bazelrc=${nullBazelRcPath()}")),
         ),
       )
     }
@@ -328,4 +331,3 @@ object BazelIntegrationTestRunner {
     }
   }
 }
-
