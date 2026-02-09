@@ -2,7 +2,12 @@ module(name = "trival-example")
 
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_kotlin", version = "2.2.0")
-bazel_dep(name = "rules_jvm_external", version = "6.6")
+local_path_override(
+    module_name = "rules_kotlin",
+    path = "../..",
+)
+
+bazel_dep(name = "rules_jvm_external", version = "6.10")
 bazel_dep(name = "rules_shell", version = "0.4.0")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
@@ -20,6 +25,7 @@ maven.install(
         "org.junit.jupiter:junit-jupiter-params:5.4.2",
         "org.apache.logging.log4j:log4j-core:2.16.0",
     ],
+    lock_file = "//:maven_install.json",
     repositories = [
         "https://maven-central.storage.googleapis.com/repos/central/data/",
         "https://repo1.maven.org/maven2",
