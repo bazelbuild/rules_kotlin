@@ -43,8 +43,8 @@ versions = struct(
         ],
     ),
     RULES_JVM_EXTERNAL = version(
-        version = "6.6",
-        sha256 = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",
+        version = "6.10",
+        sha256 = "e5f83b8f2678d2b26441e5eafefb1b061826608417b8d24e5e8e15e585eab1ba",
         strip_prefix_template = "rules_jvm_external-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
