@@ -1,0 +1,3 @@
+load(":ktlint_fix_runfiles_test.bzl", "ktlint_fix_runfiles_test_suite")
+
+ktlint_fix_runfiles_test_suite(name = "ktlint_fix_runfiles_tests")

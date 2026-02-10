@@ -141,6 +141,43 @@ object BazelIntegrationTestRunner {
             ).onFailThrow()
           }
         }
+
+        // Run test script if it exists
+        val testScript = workspace.resolve("test.sh")
+        if (testScript.exists()) {
+          val bashPathFile = BazelRunFiles.resolveVerifiedFromProperty(fs, "io.bazel.kotlin.test.bash_path")
+          val bash = Files.readString(bashPathFile).trim()
+          println("Running test script [${testScript.fileName}]...")
+          ProcessBuilder()
+            .command(bash, testScript.toString())
+            .directory(workspace.toFile())
+            .also { pb ->
+              pb.environment()["BIT_STARTUP_FLAGS"] = systemFlags.joinToString(" ")
+              pb.environment()["BIT_COMMAND_FLAGS"] = commandFlags.joinToString(" ")
+            }
+            .start()
+            .let { process ->
+              val executor = Executors.newCachedThreadPool()
+              try {
+                val stdOut = executor.submit(process.inputStream.streamTo(System.out))
+                val stdErr = executor.submit(process.errorStream.streamTo(System.out))
+                if (!process.waitFor(600, TimeUnit.SECONDS) || process.exitValue() != 0) {
+                  throw AssertionError(
+                    """
+                    Test script failed with exit code ${process.exitValue()}:
+                    stdout:
+                    ${stdOut.get().toString(UTF_8)}
+                    stderr:
+                    ${stdErr.get().toString(UTF_8)}
+                    """.trimIndent(),
+                  )
+                }
+              } finally {
+                executor.shutdown()
+                executor.awaitTermination(1, TimeUnit.SECONDS)
+              }
+            }
+        }
       }
     }
   }
@@ -162,6 +199,8 @@ object BazelIntegrationTestRunner {
         set.filter { it.condition.test(v) }.map { flag -> flag.value }.toTypedArray()
       }
   }
+  private fun nullBazelRcPath() =
+    if (System.getProperty("os.name").lowercase().contains("windows")) "NUL" else "/dev/null"
 
   sealed class Version : Comparable<Version> {
     companion object {
@@ -188,7 +227,7 @@ object BazelIntegrationTestRunner {
             .map { Flag("--bazelrc=$it") }
             .toList()
             .takeIf { it.isNotEmpty() }
-            ?: listOf(Flag("--bazelrc=/dev/null")),
+            ?: listOf(Flag("--bazelrc=${nullBazelRcPath()}")),
         ),
       )
     }
@@ -214,7 +253,8 @@ object BazelIntegrationTestRunner {
           sequence {
             val parts = mutableListOf(major, minor, patch)
             (parts.size downTo 0).forEach { index ->
-              yield("." + parts.subList(0, index).joinToString("-"))
+              val versionSuffix = parts.subList(0, index).joinToString("-")
+              yield(if (versionSuffix.isEmpty()) "" else ".$versionSuffix")
             }
           }
             .map { suffix -> workspace.resolve(".bazelrc${suffix}") }
@@ -222,7 +262,7 @@ object BazelIntegrationTestRunner {
             .map { p -> Flag("--bazelrc=$p") }
             .toList()
             .takeIf { it.isNotEmpty() }
-            ?: listOf(Flag("--bazelrc=/dev/null")),
+            ?: listOf(Flag("--bazelrc=${nullBazelRcPath()}")),
         ),
       )
     }
@@ -320,4 +360,3 @@ object BazelIntegrationTestRunner {
     }
   }
 }
-

@@ -1,5 +1,7 @@
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_java//java:defs.bzl", "JavaInfo")
-load(":common.bzl", "KtJvmInfo", "TYPE")
+load("//src/main/starlark/core/compile/cli:compile.bzl", "write_windows_jvm_launcher")
+load(":common.bzl", "KtJvmInfo", "LAUNCHER_MAKER_TOOLCHAIN_TYPE", "TYPE", "get_executable", "is_windows")
 
 _COMMON_ATTRS = {
     "class_jar": attr.output(doc = "jar containing .kt and .java class files"),
@@ -139,19 +141,36 @@ def _kt_jvm_binary_impl(ctx):
     providers = _kt_jvm_library_impl(ctx)
     java_info_deps = [d[JavaInfo] for d in ctx.attr.deps if JavaInfo in d]
     runtime_jars = depset([ctx.outputs.class_jar], transitive = [j.transitive_runtime_jars for j in java_info_deps])
-    executable = ctx.outputs.executable
 
-    # Always use ":" as the path separator for the launcher script since it's a bash script.
-    # Using the host path separator (";") on Windows would cause bash to interpret it as a command separator.
-    launch_runfiles = kt_tools.launch(
-        main_class = ctx.attr.main_class,
-        executable_output = executable,
-        actions = ctx.actions,
-        path_separator = ":",
-        workspace_prefix = ctx.workspace_name + "/",
-        jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in ctx.attr.jvm_flags]),
-        runtime_jars = runtime_jars,
-    )
+    jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in ctx.attr.jvm_flags])
+
+    # Windows: use native exe launcher with explicitly declared executable
+    if is_windows(ctx):
+        executable = get_executable(ctx)
+        toolchain_info = kt_tools._toolchain_info
+        launch_runfiles = write_windows_jvm_launcher(
+            ctx = ctx,
+            toolchain_info = toolchain_info,
+            runtime_jars = runtime_jars,
+            main_class = ctx.attr.main_class,
+            jvm_flags = jvm_flags,
+            executable = executable,
+        )
+    else:
+        # Unix: use bash script launcher
+        executable = ctx.outputs.executable
+
+        # Always use ":" as the path separator for the launcher script since it's a bash script.
+        # Using the host path separator (";") on Windows would cause bash to interpret it as a command separator.
+        launch_runfiles = kt_tools.launch(
+            main_class = ctx.attr.main_class,
+            executable_output = executable,
+            actions = ctx.actions,
+            path_separator = ":",
+            workspace_prefix = ctx.workspace_name + "/",
+            jvm_flags = jvm_flags,
+            runtime_jars = runtime_jars,
+        )
 
     kt_tools.deploy(
         actions = ctx.actions,
@@ -175,19 +194,31 @@ def _kt_jvm_binary_impl(ctx):
         ),
     ]
 
+_BINARY_ATTRS = {
+    "deploy_jar": attr.output(doc = "jar containing all dependencies."),
+    "jvm_flags": attr.string_list(default = []),
+    "main_class": attr.string(mandatory = True, doc = ""),
+    "_launcher": attr.label(
+        cfg = "exec",
+        executable = True,
+        default = "@bazel_tools//tools/launcher:launcher",
+    ),
+    # Windows launcher support
+    "_windows_constraint": attr.label(default = "@platforms//os:windows"),
+    "_windows_launcher_maker": attr.label(
+        cfg = "exec",
+        executable = True,
+        default = "@bazel_tools//tools/launcher:launcher_maker",
+    ),
+}
+
 _kt_jvm_binary = rule(
     implementation = _kt_jvm_binary_impl,
     attrs = {
         k: v
-        for (k, v) in _COMMON_ATTRS.items() + {
-            "deploy_jar": attr.output(doc = "jar containing all dependencies."),
-            "jvm_flags": attr.string_list(default = []),
-            "main_class": attr.string(mandatory = True, doc = ""),
-        }.items()
+        for (k, v) in _COMMON_ATTRS.items() + _BINARY_ATTRS.items()
     },
-    toolchains = [
-        TYPE,
-    ],
+    toolchains = [TYPE] + ([LAUNCHER_MAKER_TOOLCHAIN_TYPE] if bazel_features.rules._has_launcher_maker_toolchain else []),
     executable = True,
 )
 
