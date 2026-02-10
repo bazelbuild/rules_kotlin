@@ -143,7 +143,7 @@ use_repo(maven, "kotlin_rules_maven", "unpinned_kotlin_rules_maven")
 
 bazel_dep(name = "rules_pkg", version = "1.0.1")
 
-bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True, repo_name = "io_bazel_stardoc")
+bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True, repo_name = "io_bazel_stardoc")
 bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
 bazel_dep(name = "rules_bazel_integration_test", version = "0.37.1", dev_dependency = True)
 
