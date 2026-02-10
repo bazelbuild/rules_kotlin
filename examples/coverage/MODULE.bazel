@@ -1,0 +1,28 @@
+module(
+    name = "coverage_example",
+    version = "1.0.0",
+)
+
+bazel_dep(name = "rules_java", version = "9.3.0")
+bazel_dep(name = "rules_kotlin", version = "")
+
+# Point to the local rules_kotlin
+local_path_override(
+    module_name = "rules_kotlin",
+    path = "../..",
+)
+
+bazel_dep(name = "rules_jvm_external", version = "6.9")
+
+# JUnit 4 dependencies
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "junit4",
+    artifacts = [
+        "junit:junit:4.13.2",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(maven, "junit4")
