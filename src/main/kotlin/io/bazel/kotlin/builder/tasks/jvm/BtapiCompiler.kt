@@ -397,9 +397,7 @@ class BtapiCompiler(
   /**
    * Computes a hash of compiler configuration for detecting changes.
    */
-  private fun computeArgsHash(
-    task: JvmCompilationTask,
-  ): Long {
+  private fun computeArgsHash(task: JvmCompilationTask): Long {
     // Hash relevant settings that would require recompilation if changed
     var hash = 0L
     hash = hash * 31 + task.info.moduleName.hashCode()

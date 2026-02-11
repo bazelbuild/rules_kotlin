@@ -26,92 +26,94 @@ import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import java.util.concurrent.ConcurrentHashMap
 
 @OptIn(ExperimentalBuildToolsApi::class)
-class KotlinJvmTaskExecutor @JvmOverloads constructor(
-  private val defaultRuntimeSpec: BtapiRuntimeSpec? = null,
-  private val defaultPlugins: InternalCompilerPlugins? = null,
-  private val btapiToolchainsCache: BtapiToolchainsCache = BtapiToolchainsCache(),
-) {
-  private val compilers = ConcurrentHashMap<BtapiRuntimeSpec, BtapiCompiler>()
-
-  fun execute(
-    context: CompilationTaskContext,
-    task: JvmCompilationTask,
+class KotlinJvmTaskExecutor
+  @JvmOverloads
+  constructor(
+    private val defaultRuntimeSpec: BtapiRuntimeSpec? = null,
+    private val defaultPlugins: InternalCompilerPlugins? = null,
+    private val btapiToolchainsCache: BtapiToolchainsCache = BtapiToolchainsCache(),
   ) {
-    val runtimeSpec =
-      defaultRuntimeSpec ?: error(
-        "Btapi runtime spec must be provided either in KotlinJvmTaskExecutor constructor " +
-          "or per execute(...) call.",
-      )
-    val plugins =
-      defaultPlugins ?: error(
-        "Internal compiler plugins must be provided either in KotlinJvmTaskExecutor constructor " +
-          "or per execute(...) call.",
-      )
-    execute(context, task, runtimeSpec, plugins)
-  }
+    private val compilers = ConcurrentHashMap<BtapiRuntimeSpec, BtapiCompiler>()
 
-  fun execute(
-    context: CompilationTaskContext,
-    task: JvmCompilationTask,
-    runtimeSpec: BtapiRuntimeSpec,
-    plugins: InternalCompilerPlugins,
-  ) {
-    val btapiCompiler =
-      compilers.computeIfAbsent(runtimeSpec) {
-        BtapiCompiler(btapiToolchainsCache.get(it))
-      }
+    fun execute(
+      context: CompilationTaskContext,
+      task: JvmCompilationTask,
+    ) {
+      val runtimeSpec =
+        defaultRuntimeSpec ?: error(
+          "Btapi runtime spec must be provided either in KotlinJvmTaskExecutor constructor " +
+            "or per execute(...) call.",
+        )
+      val plugins =
+        defaultPlugins ?: error(
+          "Internal compiler plugins must be provided either in " +
+            "KotlinJvmTaskExecutor constructor or per execute(...) call.",
+        )
+      execute(context, task, runtimeSpec, plugins)
+    }
 
-    val preprocessedTask =
-      task
-        .preProcessingSteps(context)
-        .runPlugins(context, plugins, btapiCompiler)
+    fun execute(
+      context: CompilationTaskContext,
+      task: JvmCompilationTask,
+      runtimeSpec: BtapiRuntimeSpec,
+      plugins: InternalCompilerPlugins,
+    ) {
+      val btapiCompiler =
+        compilers.computeIfAbsent(runtimeSpec) {
+          BtapiCompiler(btapiToolchainsCache.get(it))
+        }
 
-    context.execute("compile classes") {
-      preprocessedTask.apply {
-        context.execute("kotlinc") {
-          if (compileKotlin && inputs.kotlinSourcesList.isNotEmpty()) {
-            val result = btapiCompiler.compile(this, plugins, context.out)
-            when (result) {
-              CompilationResult.COMPILATION_SUCCESS -> { /* success */ }
-              CompilationResult.COMPILATION_ERROR ->
-                throw CompilationStatusException("Compilation failed", 1)
-              CompilationResult.COMPILATION_OOM_ERROR ->
-                throw CompilationStatusException("Compilation failed with OOM", 3)
-              CompilationResult.COMPILER_INTERNAL_ERROR ->
-                throw CompilationStatusException("Compiler internal error", 2)
+      val preprocessedTask =
+        task
+          .preProcessingSteps(context)
+          .runPlugins(context, plugins, btapiCompiler)
+
+      context.execute("compile classes") {
+        preprocessedTask.apply {
+          context.execute("kotlinc") {
+            if (compileKotlin && inputs.kotlinSourcesList.isNotEmpty()) {
+              val result = btapiCompiler.compile(this, plugins, context.out)
+              when (result) {
+                CompilationResult.COMPILATION_SUCCESS -> { /* success */ }
+                CompilationResult.COMPILATION_ERROR ->
+                  throw CompilationStatusException("Compilation failed", 1)
+                CompilationResult.COMPILATION_OOM_ERROR ->
+                  throw CompilationStatusException("Compilation failed with OOM", 3)
+                CompilationResult.COMPILER_INTERNAL_ERROR ->
+                  throw CompilationStatusException("Compiler internal error", 2)
+              }
             }
           }
-        }
 
-        // Ensure jdeps exists (restore from IC cache if compilation was skipped)
-        context.execute("ensure jdeps") { ensureJdepsExists() }
+          // Ensure jdeps exists (restore from IC cache if compilation was skipped)
+          context.execute("ensure jdeps") { ensureJdepsExists() }
 
-        if (outputs.jar.isNotEmpty()) {
-          if (instrumentCoverage) {
-            context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
-          } else {
-            context.execute("create jar", ::createOutputJar)
+          if (outputs.jar.isNotEmpty()) {
+            if (instrumentCoverage) {
+              context.execute("create instrumented jar", ::createCoverageInstrumentedJar)
+            } else {
+              context.execute("create jar", ::createOutputJar)
+            }
           }
-        }
-        if (outputs.abijar.isNotEmpty()) {
-          context.execute("create abi jar", ::createAbiJar)
-        }
-        if (outputs.generatedJavaSrcJar.isNotEmpty()) {
-          context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)
-        }
-        if (outputs.generatedJavaStubJar.isNotEmpty()) {
-          context.execute("creating KAPT generated Kotlin stubs jar", ::createGeneratedStubJar)
-        }
-        if (outputs.generatedClassJar.isNotEmpty()) {
-          context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
-        }
-        if (outputs.generatedKspSrcJar.isNotEmpty()) {
-          context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
-        }
-        if (outputs.generatedKspClassesJar.isNotEmpty()) {
-          context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
+          if (outputs.abijar.isNotEmpty()) {
+            context.execute("create abi jar", ::createAbiJar)
+          }
+          if (outputs.generatedJavaSrcJar.isNotEmpty()) {
+            context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)
+          }
+          if (outputs.generatedJavaStubJar.isNotEmpty()) {
+            context.execute("creating KAPT generated Kotlin stubs jar", ::createGeneratedStubJar)
+          }
+          if (outputs.generatedClassJar.isNotEmpty()) {
+            context.execute("creating KAPT generated stub class jar", ::createGeneratedClassJar)
+          }
+          if (outputs.generatedKspSrcJar.isNotEmpty()) {
+            context.execute("creating KSP generated src jar", ::createGeneratedKspKotlinSrcJar)
+          }
+          if (outputs.generatedKspClassesJar.isNotEmpty()) {
+            context.execute("creating KSP generated classes jar", ::createdGeneratedKspClassesJar)
+          }
         }
       }
     }
   }
-}

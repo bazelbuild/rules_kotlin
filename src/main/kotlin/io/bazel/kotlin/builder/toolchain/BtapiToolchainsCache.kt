@@ -41,8 +41,10 @@ class BtapiToolchainsCache {
   private fun loadToolchains(runtime: BtapiRuntimeSpec): KotlinToolchains {
     validateFilesExist(runtime)
 
-    val compilerVersion = readNormalizedVersion(runtime.kotlinCompilerEmbeddableJar, "kotlin-compiler-embeddable")
-    val buildToolsVersion = readNormalizedVersion(runtime.buildToolsImplJar, "kotlin-build-tools-impl")
+    val compilerVersion =
+      readNormalizedVersion(runtime.kotlinCompilerEmbeddableJar, "kotlin-compiler-embeddable")
+    val buildToolsVersion =
+      readNormalizedVersion(runtime.buildToolsImplJar, "kotlin-build-tools-impl")
     require(buildToolsVersion == compilerVersion) {
       "BTAPI runtime mismatch: kotlin-build-tools-impl version '$buildToolsVersion' " +
         "must match kotlin-compiler-embeddable version '$compilerVersion'."
