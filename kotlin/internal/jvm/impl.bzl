@@ -498,6 +498,10 @@ def kt_compiler_deps_aspect_impl(target, ctx):
     ]
 
 def _reshade_embedded_kotlinc_jars(target, ctx, jars, deps):
+    # No jars to reshade — just propagate transitive deps (e.g. sourceless libraries).
+    if not jars:
+        return java_common.merge(deps) if deps else java_common.merge([])
+
     reshaded = [
         jarjar_action(
             actions = ctx.actions,
