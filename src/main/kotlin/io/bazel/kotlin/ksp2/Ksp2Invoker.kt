@@ -19,6 +19,7 @@ import com.google.devtools.ksp.impl.KotlinSymbolProcessing
 import com.google.devtools.ksp.processing.KSPJvmConfig
 import com.google.devtools.ksp.processing.KspGradleLogger
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2EntryPoint
 import java.io.File
 import java.util.ServiceLoader
 
@@ -31,14 +32,14 @@ import java.util.ServiceLoader
  */
 class Ksp2Invoker(
   private val classLoader: ClassLoader,
-) {
+) : Ksp2EntryPoint {
   /**
    * Execute KSP2 with the given configuration.
    *
    * @param logLevel Logger level (0=ERROR, 1=WARN, 2=INFO, 3=LOGGING)
    * @return Exit code (0 for success)
    */
-  fun execute(
+  override fun execute(
     moduleName: String,
     sourceRoots: List<File>,
     javaSourceRoots: List<File>,
@@ -54,7 +55,7 @@ class Ksp2Invoker(
     languageVersion: String?,
     apiVersion: String?,
     jdkHome: File?,
-    logLevel: Int = 1,
+    logLevel: Int,
   ): Int {
     // Load processors via ServiceLoader from the provided classloader
     val processors =
