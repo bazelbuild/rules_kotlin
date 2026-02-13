@@ -82,7 +82,7 @@ versions = struct(
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
     # Used for kotlin capabilities repository (compiler version detection)
-    KOTLIN_CURRENT_COMPILER_VERSION = "2.3.20-Beta1",
+    KOTLIN_CURRENT_COMPILER_VERSION = "2.3.20-Beta2",
     RULES_ANDROID = version(
         version = "0.7.0",
         url_templates = [
