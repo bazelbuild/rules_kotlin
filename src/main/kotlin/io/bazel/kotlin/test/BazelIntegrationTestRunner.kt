@@ -54,36 +54,29 @@ object BazelIntegrationTestRunner {
 
     val version = bazel.run(workspace, "--version").parseVersion()
 
+    val workspaceEnabled = System.getenv("WORKSPACE_ENABLED") != null
+
     val workspaceFlags = FlagSets(
-      sequence {
-        if (workspace.hasModule()) {
-          yield(
-            listOf(
-              Flag("--enable_bzlmod=true"),
-              Flag("--override_module=rules_kotlin=$unpack"),
-              Flag("--enable_workspace=false") { v -> v >= Version.of(7, 0, 0) },
-            ),
+      listOf(
+        if (workspaceEnabled) {
+          listOf(
+            Flag("--override_repository=rules_kotlin=$unpack"),
+            Flag("--enable_bzlmod=false"),
+            Flag("--enable_workspace=true") { it.isBzlmodEnabledByDefault },
           )
-        }
-        if (workspace.hasWorkspace()) {
-          yield(
-            listOf(
-              Flag("--override_repository=rules_kotlin=$unpack"),
-              Flag("--enable_bzlmod=false"),
-              Flag("--enable_workspace=true") { v -> v >= Version.of(7, 0, 0) },
-            ),
+        } else {
+          listOf(
+            Flag("--enable_bzlmod=true"),
+            Flag("--override_module=rules_kotlin=$unpack"),
+            Flag("--enable_workspace=false") { it.isBzlmodEnabledByDefault },
           )
-        }
-      }.toList(),
+        },
+      ),
     )
 
     val deprecationFlags = FlagSets(
       listOf(
         listOf(
-          // TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: enable when rules_android
-          // no longer uses local_config_platform
-          Flag("--incompatible_disable_native_repo_rules=true") { false },
-          Flag("--incompatible_autoload_externally=") { v -> v > Version.Known(8, 0, 0) },
           Flag("--incompatible_disallow_empty_glob=false"),
         ),
       ),
@@ -191,10 +184,6 @@ object BazelIntegrationTestRunner {
         set.filter { it.condition.test(v) }.map { flag -> flag.value }.toTypedArray()
       }
   }
-
-  fun Path.hasModule() = resolve("MODULE").exists() || resolve("MODULE.bazel").exists()
-  private fun Path.hasWorkspace() =
-    resolve("WORKSPACE").exists() || resolve("WORKSPACE.bazel").exists()
   private fun nullBazelRcPath() =
     if (System.getProperty("os.name").lowercase().contains("windows")) "NUL" else "/dev/null"
 
@@ -202,6 +191,9 @@ object BazelIntegrationTestRunner {
     companion object {
       fun of(major:Int, minor:Int=0, patch:Int = 0) = Known(major, minor, patch)
     }
+
+    val isBzlmodEnabledByDefault: Boolean
+      get() = this >= of(7, 0, 0)
 
 
     override fun compareTo(other: Version): Int = 1
@@ -306,7 +298,7 @@ object BazelIntegrationTestRunner {
         try {
           val stdOut = executor.submit(process.inputStream.streamTo(System.out))
           val stdErr = executor.submit(process.errorStream.streamTo(System.out))
-          if (process.waitFor(600, TimeUnit.SECONDS) && process.exitValue() == 0) {
+          if (process.waitFor(1500, TimeUnit.SECONDS) && process.exitValue() == 0) {
             return Result.success(
               ProcessResult(
                 exit = 0,

@@ -55,9 +55,9 @@
 # bazelci pipeline
 matrix:
   integration_shard_flags:
-    - [ "--test_tag_filters=shard_0" ]
-    - [ "--test_tag_filters=shard_1" ]
-    - [ "--test_tag_filters=shard_2" ]
+    - [ "--test_tag_filters=shard_0", "--local_test_jobs=3" ]
+    - [ "--test_tag_filters=shard_1", "--local_test_jobs=3" ]
+    - [ "--test_tag_filters=shard_2", "--local_test_jobs=3" ]
   test_flags:
     - [ "--enable_bzlmod=true" ]
 validate_config: 1

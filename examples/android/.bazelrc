@@ -4,6 +4,10 @@ common --lockfile_mode=off
 test --test_output=all
 build --config=android_worker
 
+# Required for abseil-cpp which requires C++17
+build --cxxopt=-std=c++17
+build --host_cxxopt=-std=c++17
+
 # Worker configuration
 build:android_worker \
   --worker_max_instances=auto \
