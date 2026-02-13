@@ -23,6 +23,7 @@ import kotlin.io.path.inputStream
 object BazelIntegrationTestRunner {
   @JvmStatic
   fun main(args: Array<String>) {
+    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     val fs = FileSystems.getDefault()
     val bazel = fs.getPath(System.getenv("BIT_BAZEL_BINARY"))
     val workspace = fs.getPath(System.getenv("BIT_WORKSPACE_DIR"))
@@ -155,14 +156,18 @@ object BazelIntegrationTestRunner {
                 "--test_output=all",
                 "//...",
               ).onFailThrow()
-              bazel.run(
-                workspace,
-                *systemFlags,
-                "coverage",
-                *commandFlags,
-                "--combined_report=lcov",
-                *coverageTargets,
-              ).onFailThrow()
+              if (isWindows) {
+                println("Skipping coverage on Windows integration runs.")
+              } else {
+                bazel.run(
+                  workspace,
+                  *systemFlags,
+                  "coverage",
+                  *commandFlags,
+                  "--combined_report=lcov",
+                  *coverageTargets,
+                ).onFailThrow()
+              }
             }
           }
       }
