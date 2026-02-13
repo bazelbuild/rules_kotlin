@@ -460,14 +460,14 @@ def _classpath_snapshots_transitive_test(name):
         attr_values = {
             "direct_dep_abi_jar": util.empty_file(name + "direct_dep_abi.jar"),
             "direct_snapshot": util.empty_file(name + "direct.snapshot"),
-            "transitive_snapshot": util.empty_file(name + "transitive.snapshot"),
             "jvm_jar": util.empty_file(name + "jvm.jar"),
+            "transitive_snapshot": util.empty_file(name + "transitive.snapshot"),
         },
         attrs = {
             "direct_dep_abi_jar": attr.label(allow_files = True),
             "direct_snapshot": attr.label(allow_files = True),
-            "transitive_snapshot": attr.label(allow_files = True),
             "jvm_jar": attr.label(allow_files = True),
+            "transitive_snapshot": attr.label(allow_files = True),
         },
     )
 

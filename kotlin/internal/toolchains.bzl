@@ -255,6 +255,30 @@ _kt_toolchain = rule(
             `kt_abi_plugin_incompatible`""",
             default = False,
         ),
+        "internal_jdeps_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: jdeps-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:jdeps-gen"),
+        ),
+        "internal_jvm_abi_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: jvm-abi-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:jvm-abi-gen"),
+        ),
+        "internal_kapt": attr.label(
+            doc = "Internal Kotlin builder plugin: kotlin-annotation-processing-embeddable.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable"),
+        ),
+        "internal_skip_code_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: skip-code-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:skip-code-gen"),
+        ),
         "jacocorunner": attr.label(
             default = Label("@remote_java_tools//:jacoco_coverage_runner"),
         ),
@@ -298,30 +322,6 @@ _kt_toolchain = rule(
                 "20",
                 "21",
             ],
-        ),
-        "internal_jdeps_gen": attr.label(
-            doc = "Internal Kotlin builder plugin: jdeps-gen.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//src/main/kotlin:jdeps-gen"),
-        ),
-        "internal_jvm_abi_gen": attr.label(
-            doc = "Internal Kotlin builder plugin: jvm-abi-gen.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//kotlin/compiler:jvm-abi-gen"),
-        ),
-        "internal_kapt": attr.label(
-            doc = "Internal Kotlin builder plugin: kotlin-annotation-processing-embeddable.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable"),
-        ),
-        "internal_skip_code_gen": attr.label(
-            doc = "Internal Kotlin builder plugin: skip-code-gen.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//src/main/kotlin:skip-code-gen"),
         ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",

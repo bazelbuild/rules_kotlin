@@ -300,8 +300,7 @@ Lint Kotlin files, and fail if the linter raises errors.
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
 
-kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_compiler_plugin-deps">deps</a>, <a href="#kt_compiler_plugin-data">data</a>, <a href="#kt_compiler_plugin-compile_phase">compile_phase</a>, <a href="#kt_compiler_plugin-id">id</a>, <a href="#kt_compiler_plugin-options">options</a>, <a href="#kt_compiler_plugin-stubs_phase">stubs_phase</a>,
-                   <a href="#kt_compiler_plugin-target_embedded_compiler">target_embedded_compiler</a>)
+kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_compiler_plugin-deps">deps</a>, <a href="#kt_compiler_plugin-data">data</a>, <a href="#kt_compiler_plugin-compile_phase">compile_phase</a>, <a href="#kt_compiler_plugin-id">id</a>, <a href="#kt_compiler_plugin-options">options</a>, <a href="#kt_compiler_plugin-stubs_phase">stubs_phase</a>)
 </pre>
 
 Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
@@ -348,7 +347,6 @@ kt_jvm_library(
 | <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | required |  |
 | <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Each option key can have multiple values. Supports the following template values:<br><br>- `{generatedClasses}`: directory for generated class output - `{temp}`: temporary directory, discarded between invocations - `{generatedSources}`:  directory for generated source output - `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
 | <a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin in kapt stub generation.   | Boolean | optional |  `True`  |
-| <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Deprecated: This attribute no longer affects behavior. Plugin JARs are used as-is without reshading.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_javac_options"></a>
@@ -570,7 +568,7 @@ Define kotlin compiler options.
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
 
-kt_ksp_plugin(<a href="#kt_ksp_plugin-name">name</a>, <a href="#kt_ksp_plugin-deps">deps</a>, <a href="#kt_ksp_plugin-generates_java">generates_java</a>, <a href="#kt_ksp_plugin-processor_class">processor_class</a>, <a href="#kt_ksp_plugin-target_embedded_compiler">target_embedded_compiler</a>)
+kt_ksp_plugin(<a href="#kt_ksp_plugin-name">name</a>, <a href="#kt_ksp_plugin-deps">deps</a>, <a href="#kt_ksp_plugin-generates_java">generates_java</a>, <a href="#kt_ksp_plugin-processor_class">processor_class</a>)
 </pre>
 
 Define a KSP plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
@@ -605,7 +603,6 @@ kt_jvm_library(
 | <a id="kt_ksp_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_ksp_plugin-generates_java"></a>generates_java |  Runs Java compilation action for plugin generating Java output.   | Boolean | optional |  `False`  |
 | <a id="kt_ksp_plugin-processor_class"></a>processor_class |  The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.   | String | required |  |
-| <a id="kt_ksp_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Deprecated: This attribute no longer affects behavior. Plugin JARs are used as-is without reshading.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_plugin_cfg"></a>

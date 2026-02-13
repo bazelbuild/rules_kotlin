@@ -20,6 +20,7 @@ load(
     "//kotlin/internal:defs.bzl",
     _KtJvmInfo = "KtJvmInfo",
 )
+
 def _derive_module_name(ctx):
     module_name = getattr(ctx.attr, "module_name", "")
     if module_name == "":

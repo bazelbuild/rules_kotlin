@@ -613,10 +613,6 @@ Supports the following template values:
             doc = "Runs the compiler plugin in kapt stub generation.",
             default = True,
         ),
-        "target_embedded_compiler": attr.bool(
-            doc = """Deprecated: This attribute no longer affects behavior. Plugin JARs are used as-is without reshading.""",
-            default = False,
-        ),
     },
     implementation = _kt_compiler_plugin_impl,
     provides = [_KtCompilerPluginInfo],
@@ -661,10 +657,6 @@ kt_jvm_library(
         "processor_class": attr.string(
             doc = " The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.",
             mandatory = True,
-        ),
-        "target_embedded_compiler": attr.bool(
-            doc = """Deprecated: This attribute no longer affects behavior. Plugin JARs are used as-is without reshading.""",
-            default = False,
         ),
     },
     implementation = _kt_ksp_plugin_impl,

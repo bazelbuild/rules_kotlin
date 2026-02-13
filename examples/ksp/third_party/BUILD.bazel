@@ -24,7 +24,6 @@ kt_ksp_plugin(
     name = "dagger",
     generates_java = True,
     processor_class = "dagger.internal.codegen.KspComponentProcessor",
-    target_embedded_compiler = True,
     visibility = ["//visibility:public"],
     deps = ["@maven_rules_kotlin_example//:com_google_dagger_dagger_compiler"],
 )

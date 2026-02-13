@@ -48,7 +48,6 @@ kt_compiler_plugin(
         "src-gen-dir": ["{generatedSources}"],
     },
     stubs_phase = True,
-    target_embedded_compiler = True,
     visibility = [
         "//visibility:public",
     ],
@@ -66,7 +65,6 @@ kt_compiler_plugin(
         "src-gen-dir": ["{generatedSources}"],
     },
     stubs_phase = True,
-    target_embedded_compiler = True,
     visibility = [
         "//visibility:public",
     ],

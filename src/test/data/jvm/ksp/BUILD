@@ -22,7 +22,6 @@ kt_ksp_plugin(
     name = "dagger",
     generates_java = True,
     processor_class = "dagger.internal.codegen.KspComponentProcessor",
-    target_embedded_compiler = True,
     deps = ["@kotlin_rules_maven//:com_google_dagger_dagger_compiler"],
 )
 
@@ -30,7 +29,6 @@ kt_ksp_plugin(
     name = "dagger_no_java",
     generates_java = False,
     processor_class = "dagger.internal.codegen.KspComponentProcessor",
-    target_embedded_compiler = True,
     deps = ["@kotlin_rules_maven//:com_google_dagger_dagger_compiler"],
 )
 

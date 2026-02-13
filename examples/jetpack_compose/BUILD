@@ -24,7 +24,6 @@ kt_compiler_plugin(
         "sourceInformation": ["true"],  # Required for AS Layout Inspector, disable for release builds
         "stabilityConfigurationPath": ["$(locations :stability_config)"],
     },
-    target_embedded_compiler = True,
     visibility = ["//visibility:public"],
     deps = [
         "@maven_rules_kotlin_example//:org_jetbrains_kotlin_kotlin_compose_compiler_plugin_embeddable",
