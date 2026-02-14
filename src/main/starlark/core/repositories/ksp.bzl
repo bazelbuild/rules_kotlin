@@ -33,6 +33,14 @@ def _ksp_compiler_plugin_repository_impl(repository_ctx):
         executable = False,
     )
 
+    # Bazel <8.3.0 lacks repository_ctx.repo_metadata
+    if not hasattr(repository_ctx, "repo_metadata"):
+        return None
+
+    return repository_ctx.repo_metadata(
+        reproducible = attr.sha256 != "",
+    )
+
 ksp_compiler_plugin_repository = repository_rule(
     implementation = _ksp_compiler_plugin_repository_impl,
     attrs = {

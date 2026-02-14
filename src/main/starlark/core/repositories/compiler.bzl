@@ -19,6 +19,14 @@ def _kotlin_compiler_impl(repository_ctx):
         executable = False,
     )
 
+    # Bazel <8.3.0 lacks repository_ctx.repo_metadata
+    if not hasattr(repository_ctx, "repo_metadata"):
+        return None
+
+    return repository_ctx.repo_metadata(
+        reproducible = attr.sha256 != "",
+    )
+
 def _kotlin_capabilities_impl(repository_ctx):
     """Creates the kotlinc repository."""
     attr = repository_ctx.attr

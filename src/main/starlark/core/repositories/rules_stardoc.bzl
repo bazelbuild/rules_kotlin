@@ -32,6 +32,14 @@ def _rules_stardoc_repository_impl(repository_ctx):
             ),
         )
 
+    # Bazel <8.3.0 lacks repository_ctx.repo_metadata
+    if not hasattr(repository_ctx, "repo_metadata"):
+        return None
+
+    return repository_ctx.repo_metadata(
+        reproducible = attrs.sha256 != "",
+    )
+
 rules_stardoc_repository = repository_rule(
     implementation = _rules_stardoc_repository_impl,
     attrs = {
