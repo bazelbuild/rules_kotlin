@@ -58,7 +58,7 @@ def kt_configure():
             "javax.annotation:javax.annotation-api:1.3.2",
             "javax.inject:javax.inject:1",
             "org.apache.commons:commons-compress:1.26.2",
-            "org.pantsbuild:jarjar:1.7.2",
+            "com.eed3si9n.jarjarabrams:jarjar-abrams-assembly_2.13:1.14.1",
             "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
             "com.squareup.moshi:moshi:1.15.1",
             "com.squareup.moshi:moshi-kotlin:1.15.1",

@@ -144,7 +144,7 @@ maven.install(
         "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
         "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
         "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1",
-        "org.pantsbuild:jarjar:1.7.2",
+        "com.eed3si9n.jarjarabrams:jarjar-abrams-assembly_2.13:1.14.1",
     ],
     fail_if_repin_required = True,
     fetch_sources = True,
