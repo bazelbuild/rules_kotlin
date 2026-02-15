@@ -141,7 +141,7 @@ _implicit_deps = {
     ),
     "_ksp2_kotlinx_coroutines": attr.label(
         doc = "kotlinx-coroutines-core-jvm JAR required by KSP2",
-        default = Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
+        default = Label("//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm"),
         cfg = "exec",
     ),
     "_ksp2_symbol_processing_aa": attr.label(
