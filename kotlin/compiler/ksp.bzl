@@ -43,3 +43,9 @@ def kt_configure_ksp():
         name = "symbol-processing-api",
         jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "symbol-processing-api.jar",
     )
+
+    # KSP 2.3.5+ analysis API implementation expects the IntelliJ coroutines variant.
+    kt_jvm_import(
+        name = "ksp-intellij-kotlinx-coroutines-core-jvm",
+        jar = _KSP_COMPILER_PLUGIN_REPO_PREFIX + "kotlinx-coroutines-core-jvm-intellij.jar",
+    )
