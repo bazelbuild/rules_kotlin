@@ -1,8 +1,11 @@
 load("@bazel_skylib//lib:structs.bzl", _structs = "structs")
+load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
 load("@rules_testing//lib:util.bzl", "util")
+load("//kotlin:core.bzl", "kt_compiler_plugin")
+load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo")
 load("//kotlin/internal/jvm:jvm_deps.bzl", _jvm_deps_utils = "jvm_deps_utils")
 
@@ -392,6 +395,46 @@ def _dep_infos_ordering_test(name):
         },
     )
 
+def _sourceless_dep_propagation_test_impl(env, target):
+    """Verify that a sourceless wrapper propagates transitive deps
+
+    Regression test for a bug where _reshade_embedded_kotlinc_jars would produce an empty merge
+    when jars was empty (sourceless target), silently dropping all transitive deps.
+    """
+    files = target[DefaultInfo].files.to_list()
+    env.expect.that_bool(len(files) > 0).equals(True)
+
+def _sourceless_dep_propagation_test(name):
+    """A sourceless library wrapping a real dep must propagate it."""
+
+    actual_dep_jar = util.empty_file(name + "_actual_dep.jar")
+
+    util.helper_target(
+        kt_jvm_import,
+        name = name + "_actual_dep",
+        jars = [actual_dep_jar],
+    )
+
+    util.helper_target(
+        java_library,
+        name = name + "_sourceless_wrapper",
+        exports = [":" + name + "_actual_dep"],
+    )
+
+    util.helper_target(
+        kt_compiler_plugin,
+        name = name + "_subject",
+        id = "test.sourceless_propagation",
+        target_embedded_compiler = True,
+        deps = [":" + name + "_sourceless_wrapper"],
+    )
+
+    analysis_test(
+        name = name,
+        impl = _sourceless_dep_propagation_test_impl,
+        target = name + "_subject",
+    )
+
 def jvm_deps_test_suite(name):
     test_suite(
         name,
@@ -401,5 +444,6 @@ def jvm_deps_test_suite(name):
             _transitive_from_exports_test,
             _transitive_from_associates_test,
             _dep_infos_ordering_test,
+            _sourceless_dep_propagation_test,
         ],
     )
