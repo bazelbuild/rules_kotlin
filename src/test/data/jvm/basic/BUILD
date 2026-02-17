@@ -120,10 +120,9 @@ kt_kotlinc_options(
     warn = "error",
 )
 
-# Test progressive mode separately (can't combine with warn=error due to version warning)
+# Test progressive mode separately.
 kt_kotlinc_options(
     name = "progressive_kotlinc_options",
-    language_version = "2.3",
     progressive = True,
 )
 

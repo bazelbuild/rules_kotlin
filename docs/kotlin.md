@@ -65,7 +65,7 @@ It is appropriate for building workspace utilities. `java_binary` should be pref
 | <a id="kt_jvm_binary-java_stub_template"></a>java_stub_template |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@rules_kotlin//third_party:java_stub_template.txt"`  |
 | <a id="kt_jvm_binary-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_binary-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet support make variable substitution.   | List of strings | optional |  `[]`  |
-| <a id="kt_jvm_binary-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="kt_jvm_binary-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain. Toolchain-managed settings (for example `api_version` and `language_version`) are not overridden here.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_binary-main_class"></a>main_class |  Name of class with main() method to use as entry point.   | String | required |  |
 | <a id="kt_jvm_binary-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g., `//some/package/path:label_name` is translated to `some_package_path-label_name`.   | String | optional |  `""`  |
 | <a id="kt_jvm_binary-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -161,7 +161,7 @@ This rule compiles and links Kotlin and Java sources into a .jar file.
 | <a id="kt_jvm_library-exports"></a>exports |  Exported libraries.<br><br>Deps listed here will be made available to other rules, as if the parents explicitly depended on these deps. This is not true for regular (non-exported) deps.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_jvm_library-java_stub_template"></a>java_stub_template |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@rules_kotlin//third_party:java_stub_template.txt"`  |
 | <a id="kt_jvm_library-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="kt_jvm_library-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="kt_jvm_library-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain. Toolchain-managed settings (for example `api_version` and `language_version`) are not overridden here.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_library-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g., `//some/package/path:label_name` is translated to `some_package_path-label_name`.   | String | optional |  `""`  |
 | <a id="kt_jvm_library-neverlink"></a>neverlink |  If true only use this library for compilation and not at runtime.   | Boolean | optional |  `False`  |
 | <a id="kt_jvm_library-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -204,7 +204,7 @@ Setup a simple kotlin_test.
 | <a id="kt_jvm_test-java_stub_template"></a>java_stub_template |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@rules_kotlin//third_party:java_stub_template.txt"`  |
 | <a id="kt_jvm_test-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_test-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet support make variable substitution.   | List of strings | optional |  `[]`  |
-| <a id="kt_jvm_test-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="kt_jvm_test-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain. Toolchain-managed settings (for example `api_version` and `language_version`) are not overridden here.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_test-main_class"></a>main_class |  -   | String | optional |  `"com.google.testing.junit.runner.BazelTestRunner"`  |
 | <a id="kt_jvm_test-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g., `//some/package/path:label_name` is translated to `some_package_path-label_name`.   | String | optional |  `""`  |
 | <a id="kt_jvm_test-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -385,8 +385,8 @@ Define java compiler options for `kt_jvm_*` rules with java sources.
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options")
 
-kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kotlinc_options-api_version">api_version</a>, <a href="#kt_kotlinc_options-include_stdlibs">include_stdlibs</a>, <a href="#kt_kotlinc_options-java_parameters">java_parameters</a>, <a href="#kt_kotlinc_options-jvm_default">jvm_default</a>, <a href="#kt_kotlinc_options-jvm_target">jvm_target</a>,
-                   <a href="#kt_kotlinc_options-language_version">language_version</a>, <a href="#kt_kotlinc_options-opt_in">opt_in</a>, <a href="#kt_kotlinc_options-progressive">progressive</a>, <a href="#kt_kotlinc_options-verbose">verbose</a>, <a href="#kt_kotlinc_options-warn">warn</a>, <a href="#kt_kotlinc_options-wextra">wextra</a>, <a href="#kt_kotlinc_options-x_abi_stability">x_abi_stability</a>,
+kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kotlinc_options-include_stdlibs">include_stdlibs</a>, <a href="#kt_kotlinc_options-java_parameters">java_parameters</a>, <a href="#kt_kotlinc_options-jvm_default">jvm_default</a>, <a href="#kt_kotlinc_options-jvm_target">jvm_target</a>, <a href="#kt_kotlinc_options-opt_in">opt_in</a>,
+                   <a href="#kt_kotlinc_options-progressive">progressive</a>, <a href="#kt_kotlinc_options-verbose">verbose</a>, <a href="#kt_kotlinc_options-warn">warn</a>, <a href="#kt_kotlinc_options-wextra">wextra</a>, <a href="#kt_kotlinc_options-x_abi_stability">x_abi_stability</a>,
                    <a href="#kt_kotlinc_options-x_allow_condition_implies_returns_contracts">x_allow_condition_implies_returns_contracts</a>, <a href="#kt_kotlinc_options-x_allow_contracts_on_more_functions">x_allow_contracts_on_more_functions</a>,
                    <a href="#kt_kotlinc_options-x_allow_holdsin_contract">x_allow_holdsin_contract</a>, <a href="#kt_kotlinc_options-x_allow_kotlin_package">x_allow_kotlin_package</a>, <a href="#kt_kotlinc_options-x_allow_reified_type_in_catch">x_allow_reified_type_in_catch</a>,
                    <a href="#kt_kotlinc_options-x_allow_unstable_dependencies">x_allow_unstable_dependencies</a>, <a href="#kt_kotlinc_options-x_annotation_default_target">x_annotation_default_target</a>,
@@ -431,18 +431,18 @@ kt_kotlinc_options(<a href="#kt_kotlinc_options-name">name</a>, <a href="#kt_kot
 
 Define kotlin compiler options.
 
+For string attributes, the default empty string (`""`) means "unset", so the corresponding compiler flag is not emitted.
+
 **ATTRIBUTES**
 
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="kt_kotlinc_options-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="kt_kotlinc_options-api_version"></a>api_version |  Allow using declarations from only the specified version of bundled libraries.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-include_stdlibs"></a>include_stdlibs |  Don't automatically include the Kotlin standard libraries into the classpath (stdlib and reflect).   | String | optional |  `"all"`  |
 | <a id="kt_kotlinc_options-java_parameters"></a>java_parameters |  Generate metadata for Java 1.8 reflection on method parameters.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-jvm_default"></a>jvm_default |  Emit JVM default methods for interface declarations with bodies. The default is 'enable'. -jvm-default=enable              Generate default methods for non-abstract interface declarations, as well as 'DefaultImpls' classes with                                  static methods for compatibility with code compiled in the 'disable' mode.                                  This is the default behavior since language version 2.2. -jvm-default=no-compatibility    Generate default methods for non-abstract interface declarations. Do not generate 'DefaultImpls' classes. -jvm-default=disable             Do not generate JVM default methods. This is the default behavior up to language version 2.1.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-jvm_target"></a>jvm_target |  The target version of the generated JVM bytecode (1.8 and 9–25), with 1.8 as the default.   | String | optional |  `""`  |
-| <a id="kt_kotlinc_options-language_version"></a>language_version |  Provide source compatibility with the specified version of Kotlin.   | String | optional |  `""`  |
 | <a id="kt_kotlinc_options-opt_in"></a>opt_in |  Enable API usages that require opt-in with an opt-in requirement marker with the given fully qualified name.   | List of strings | optional |  `[]`  |
 | <a id="kt_kotlinc_options-progressive"></a>progressive |  Enable progressive compiler mode. In this mode, deprecations and bug fixes for unstable code take effect immediately instead of going through a graceful migration cycle. Code written in progressive mode is backward compatible; however, code written without progressive mode enabled may cause compilation errors in progressive mode.   | Boolean | optional |  `False`  |
 | <a id="kt_kotlinc_options-verbose"></a>verbose |  Enable verbose logging output.   | Boolean | optional |  `False`  |

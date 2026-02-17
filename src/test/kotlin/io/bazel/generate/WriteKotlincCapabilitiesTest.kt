@@ -123,4 +123,36 @@ class WriteKotlincCapabilitiesTest {
     // Also verify -jvm-default exists in 2.2
     assertThat(opts22).contains("\"-jvm-default\"")
   }
+
+  @Test
+  fun `enum metadata is generated for key string flags`() {
+    val tmp = Files.createTempDirectory("WriteKotlincCapabilitiesTest")
+    WriteKotlincCapabilities.main("--out", tmp.toString())
+
+    val opts23 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_3_0)))
+
+    assertThat(opts23).contains("values = [\"\",\"first-only\", \"first-only-warn\", \"param-property\"]")
+    assertThat(opts23).contains("values = [\"\",\"ignore\", \"strict\", \"warn\"]")
+  }
+
+  @Test
+  fun `toolchain managed options are not exposed`() {
+    val tmp = Files.createTempDirectory("WriteKotlincCapabilitiesTest")
+    WriteKotlincCapabilities.main("--out", tmp.toString())
+
+    val opts23 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_3_0)))
+
+    assertThat(opts23).doesNotContain("\"api_version\": struct(")
+    assertThat(opts23).doesNotContain("\"language_version\": struct(")
+  }
+
+  @Test
+  fun `active and removed arguments are deduplicated`() {
+    val tmp = Files.createTempDirectory("WriteKotlincCapabilitiesTest")
+    WriteKotlincCapabilities.main("--out", tmp.toString())
+
+    val opts21 = Files.readString(tmp.resolve(WriteKotlincCapabilities.generatedOptsName(KotlinReleaseVersion.v2_1_0)))
+    val count = Regex("\"x_ir_inliner\":\\s+struct\\(").findAll(opts21).count()
+    assertThat(count).isEqualTo(1)
+  }
 }
