@@ -1,6 +1,5 @@
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//src/main/starlark/core/compile:common.bzl",
     "TYPE",
