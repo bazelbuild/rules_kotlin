@@ -35,16 +35,24 @@ versions = struct(
         ],
     ),
     BAZEL_FEATURES = version(
-        version = "1.30.0",
-        sha256 = "a660027f5a87f13224ab54b8dc6e191693c554f2692fcca46e8e29ee7dabc43b",
+        version = "1.39.0",
+        sha256 = "5ab1a90d09fd74555e0df22809ad589627ddff263cff82535815aa80ca3e3562",
         strip_prefix_template = "bazel_features-{version}",
         url_templates = [
             "https://github.com/bazel-contrib/bazel_features/releases/download/v{version}/bazel_features-v{version}.tar.gz",
         ],
     ),
+    BAZEL_LIB = version(
+        version = "3.1.0",
+        sha256 = "fd0fe4df9b6b7837d5fd765c04ffcea462530a08b3d98627fb6be62a693f4e12",
+        strip_prefix_template = "bazel-lib-{version}",
+        url_templates = [
+            "https://github.com/bazel-contrib/bazel-lib/releases/download/v{version}/bazel-lib-v{version}.tar.gz",
+        ],
+    ),
     RULES_JVM_EXTERNAL = version(
-        version = "6.6",
-        sha256 = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7",
+        version = "6.10",
+        sha256 = "e5f83b8f2678d2b26441e5eafefb1b061826608417b8d24e5e8e15e585eab1ba",
         strip_prefix_template = "rules_jvm_external-{version}",
         url_templates = [
             "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",

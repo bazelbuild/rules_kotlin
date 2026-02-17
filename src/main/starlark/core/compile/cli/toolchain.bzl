@@ -44,6 +44,8 @@ def _cli_toolchain(ctx):
             compile = _partial(compile_kotlin_for_jvm, toolchain_info = toolchain_info),
             launch = _partial(write_jvm_launcher, toolchain_info = toolchain_info),
             deploy = _partial(build_deploy_jar, toolchain_info = toolchain_info),
+            # Expose toolchain_info for Windows launcher support
+            _toolchain_info = toolchain_info,
         ),
     ]
 

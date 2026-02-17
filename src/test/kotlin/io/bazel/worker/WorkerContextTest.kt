@@ -29,7 +29,7 @@ class WorkerContextTest {
     val result = WorkerContext.run(
       named = "logging",
       verbose = DEBUG,
-      report = { log -> outerLog = log.out.split("\n") }
+      report = { log -> outerLog = log.out.split("\n").map { it.trim() } }
     ) {
       info { "outer context" }
       return@run doTask("work") { ctx ->
@@ -38,7 +38,9 @@ class WorkerContextTest {
       }
     }
     assertThat(result.status).isEqualTo(SUCCESS)
-    assertThat(result.log.toString()).contains("logging work\nINFO: inner context")
+    // Check for key parts separately - Windows JUL may include timestamps in output
+    assertThat(result.log.toString()).contains("logging work")
+    assertThat(result.log.toString()).contains("INFO: inner context")
     assertThat(outerLog).containsAtLeast(
       "INFO: outer context",
       "INFO: inner context"
