@@ -17,7 +17,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/bazel
+            ~/.cache/bazel-disk-cache
           key: bazel-cache-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', 'WORKSPACE', 'WORKSPACE.bzlmod') }}
           restore-keys: bazel-cache-
       - name: Install JDK 11
