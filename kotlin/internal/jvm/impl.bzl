@@ -42,6 +42,14 @@ load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
 def _artifact_short_path(artifact):
     return artifact.short_path
 
+def _derive_module_name(ctx):
+    module_name = getattr(ctx.attr, "module_name", "")
+    if module_name == "":
+        package = ctx.label.package.lstrip("/").replace("/", "_")
+        name = ctx.label.name.replace("/", "_")
+        module_name = package + "-" + name if package else name
+    return module_name
+
 def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), executable = None, *additional_providers):
     files = [ctx.outputs.jar]
     if providers.java.outputs.jdeps:
