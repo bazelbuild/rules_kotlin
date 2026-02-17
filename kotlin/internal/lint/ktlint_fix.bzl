@@ -25,6 +25,19 @@ def _ktlint_fix_impl(ctx):
 #!/usr/bin/env bash
 set -euo pipefail
 {rlocation_function}
+# java_binary launchers fail to discover runfiles in some bazel run setups.
+# Populate JAVA_RUNFILES from either directory- or manifest-based runfiles env.
+if [[ -z "${{JAVA_RUNFILES:-}}" ]]; then
+  if [[ -n "${{RUNFILES_DIR:-}}" ]]; then
+    export JAVA_RUNFILES="${{RUNFILES_DIR}}"
+  elif [[ -n "${{RUNFILES_MANIFEST_FILE:-}}" ]]; then
+    if [[ "${{RUNFILES_MANIFEST_FILE}}" == */MANIFEST ]]; then
+      export JAVA_RUNFILES="${{RUNFILES_MANIFEST_FILE%/MANIFEST}}"
+    elif [[ "${{RUNFILES_MANIFEST_FILE}}" == *.runfiles_manifest ]]; then
+      export JAVA_RUNFILES="${{RUNFILES_MANIFEST_FILE%.runfiles_manifest}}.runfiles"
+    fi
+  fi
+fi
 "$(rlocation {ktlint})" {args} {srcs}
 """.format(
         rlocation_function = BASH_RLOCATION_FUNCTION,

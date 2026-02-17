@@ -23,6 +23,7 @@ import kotlin.io.path.inputStream
 object BazelIntegrationTestRunner {
   @JvmStatic
   fun main(args: Array<String>) {
+    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     val fs = FileSystems.getDefault()
     val bazel = fs.getPath(System.getenv("BIT_BAZEL_BINARY"))
     val workspace = fs.getPath(System.getenv("BIT_WORKSPACE_DIR"))
@@ -119,17 +120,38 @@ object BazelIntegrationTestRunner {
           *commandFlags,
           "kind(\".*_test\", \"//...\")",
         ).ok { process ->
-          if (process.stdOut.isNotEmpty()) {
-            bazel.run(
-              workspace,
-              *systemFlags,
-              "test",
-              *commandFlags,
-              "--test_output=all",
-              "//...",
-            ).onFailThrow()
-          }
+          process.stdOut.toString(UTF_8)
+            .lineSequence()
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .toList()
+            .sorted()
         }
+          .also { testTargets ->
+            if (testTargets.isNotEmpty()) {
+              val coverageTargets = testTargets.toTypedArray()
+              bazel.run(
+                workspace,
+                *systemFlags,
+                "test",
+                *commandFlags,
+                "--test_output=all",
+                "//...",
+              ).onFailThrow()
+              if (isWindows) {
+                println("Skipping coverage on Windows integration runs.")
+              } else {
+                bazel.run(
+                  workspace,
+                  *systemFlags,
+                  "coverage",
+                  *commandFlags,
+                  "--combined_report=lcov",
+                  *coverageTargets,
+                ).onFailThrow()
+              }
+            }
+          }
       }
     }
   }
@@ -151,6 +173,8 @@ object BazelIntegrationTestRunner {
         set.filter { it.condition.test(v) }.map { flag -> flag.value }.toTypedArray()
       }
   }
+  private fun nullBazelRcPath() =
+    if (System.getProperty("os.name").lowercase().contains("windows")) "NUL" else "/dev/null"
 
   sealed class Version : Comparable<Version> {
     companion object {
@@ -177,7 +201,7 @@ object BazelIntegrationTestRunner {
             .map { Flag("--bazelrc=$it") }
             .toList()
             .takeIf { it.isNotEmpty() }
-            ?: emptyList(),
+            ?: listOf(Flag("--bazelrc=${nullBazelRcPath()}")),
         ),
       )
     }
@@ -212,7 +236,7 @@ object BazelIntegrationTestRunner {
             .map { p -> Flag("--bazelrc=$p") }
             .toList()
             .takeIf { it.isNotEmpty() }
-            ?: emptyList(),
+            ?: listOf(Flag("--bazelrc=${nullBazelRcPath()}")),
         ),
       )
     }
@@ -310,4 +334,3 @@ object BazelIntegrationTestRunner {
     }
   }
 }
-

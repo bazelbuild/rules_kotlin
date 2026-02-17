@@ -4,7 +4,7 @@ bazel_dep(name = "rules_android", version = "0.7.0")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_kotlin", version = "2.2.0")
-bazel_dep(name = "rules_jvm_external", version = "6.6")
+bazel_dep(name = "rules_jvm_external", version = "6.10")
 
 android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
 use_repo(android_sdk_repository_extension, "androidsdk")
@@ -19,6 +19,7 @@ maven.install(
         "junit:junit:4.13.2",
         "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.3",
     ],
+    lock_file = "//:maven_install.json",
     repositories = [
         "https://repo1.maven.org/maven2",
     ],

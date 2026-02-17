@@ -45,19 +45,14 @@ abstract class BaseJdepsGenExtension(
     // Create canonical -> original mapping
     // Process entries and prefer runfiles paths over execroot paths
     classpathEntries.forEach { classpathPath ->
-      try {
-        val canonicalPath = File(classpathPath).canonicalPath
-        val existing = mapping[canonicalPath]
-        // Only update if no existing entry, or if current path is a runfiles path
-        // and existing is not
-        if (existing == null ||
-          (classpathPath.contains("/runfiles/") && !existing.contains("/runfiles/"))
-        ) {
-          mapping[canonicalPath] = classpathPath
-        }
-      } catch (e: Exception) {
-        // If we can't resolve, just use the original path for both
-        mapping[classpathPath] = classpathPath
+      val canonicalPath = canonicalizePath(classpathPath)
+      val existing = mapping[canonicalPath]
+      // Only update if no existing entry, or if current path is a runfiles path
+      // and existing is not
+      if (existing == null ||
+        (classpathPath.contains("/runfiles/") && !existing.contains("/runfiles/"))
+      ) {
+        mapping[canonicalPath] = classpathPath
       }
     }
     return mapping
@@ -76,19 +71,31 @@ abstract class BaseJdepsGenExtension(
       val parts = it.split("!/")
       val jarPath = parts[0]
       if (jarPath.endsWith(".jar")) {
-        // Canonicalize the path for proper lookup (handles K2's forward-slash paths on Windows)
-        val canonicalJarPath =
-          try {
-            File(jarPath).canonicalPath
-          } catch (e: Exception) {
-            jarPath
-          }
+        // Canonicalize for lookup so K2's forward-slash paths match classpath entries on Windows.
+        val canonicalJarPath = canonicalizePath(jarPath)
         // Map back to original classpath path
         val classpathJarPath = canonicalToClasspath[canonicalJarPath] ?: jarPath
         jarsToClasses.computeIfAbsent(classpathJarPath) { ArrayList() }.add(parts[1])
       }
     }
     return jarsToClasses
+  }
+
+  private fun canonicalizePath(path: String): String {
+    val normalizedPath = if (File.separatorChar == '\\') path.replace('/', '\\') else path
+    return try {
+      File(normalizedPath).canonicalPath
+    } catch (e: Exception) {
+      try {
+        Paths
+          .get(normalizedPath)
+          .toAbsolutePath()
+          .normalize()
+          .toString()
+      } catch (_: Exception) {
+        normalizedPath
+      }
+    }
   }
 
   private fun doWriteJdeps(

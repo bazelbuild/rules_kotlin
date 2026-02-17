@@ -30,6 +30,10 @@ versions = _versions
 
 RULES_KOTLIN = Label("//:all")
 
+# Keep these names in sync with //kotlin/internal:defs.bzl.
+_KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
+_KSP_COMPILER_PLUGIN_REPO = "com_github_google_ksp"
+
 def kotlin_repositories(
         is_bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,

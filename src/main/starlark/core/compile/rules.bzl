@@ -1,7 +1,7 @@
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 load("//src/main/starlark/core/compile/cli:compile.bzl", "write_windows_jvm_launcher")
-load(":common.bzl", "KtJvmInfo", "TYPE")
+load(":common.bzl", "KtJvmInfo", "LAUNCHER_MAKER_TOOLCHAIN_TYPE", "TYPE", "get_executable", "is_windows")
 
 # Toolchain type for the Windows launcher maker
 _LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
@@ -162,8 +162,8 @@ def _kt_jvm_binary_impl(ctx):
     jvm_flags = " ".join([ctx.expand_location(f, ctx.attr.data) for f in ctx.attr.jvm_flags])
 
     # Windows: use native exe launcher with explicitly declared executable
-    if _is_windows(ctx):
-        executable = _get_executable(ctx)
+    if is_windows(ctx):
+        executable = get_executable(ctx)
         toolchain_info = kt_tools._toolchain_info
         launch_runfiles = write_windows_jvm_launcher(
             ctx = ctx,
@@ -235,7 +235,7 @@ _kt_jvm_binary = rule(
         k: v
         for (k, v) in _COMMON_ATTRS.items() + _BINARY_ATTRS.items()
     },
-    toolchains = [TYPE] + ([_LAUNCHER_MAKER_TOOLCHAIN_TYPE] if bazel_features.rules._has_launcher_maker_toolchain else []),
+    toolchains = [TYPE] + ([LAUNCHER_MAKER_TOOLCHAIN_TYPE] if bazel_features.rules._has_launcher_maker_toolchain else []),
     executable = True,
 )
 
