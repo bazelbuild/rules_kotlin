@@ -1,6 +1,15 @@
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//src/main/starlark/core/compile:common.bzl", "TYPE")
+load("@bazel_skylib//lib:paths.bzl", "paths")
+load(
+    "//src/main/starlark/core/compile:common.bzl",
+    "TYPE",
+    "find_launcher_maker",
+    "get_launcher_maker_toolchain_for_action",
+)
+
+def _artifact_short_path(artifact):
+    return artifact.short_path
 
 # Toolchain type for the Windows launcher maker
 _LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
@@ -110,15 +119,6 @@ def write_jvm_launcher(toolchain_info, actions, path_separator, workspace_prefix
         ],
     )
 
-def _short_path(file):
-    return file.short_path
-
-def _find_launcher_maker(ctx):
-    """Find the launcher maker binary, preferring the toolchain approach."""
-    if bazel_features.rules._has_launcher_maker_toolchain:
-        return ctx.toolchains[_LAUNCHER_MAKER_TOOLCHAIN_TYPE].binary
-    return ctx.executable._windows_launcher_maker
-
 def write_windows_jvm_launcher(
         ctx,
         toolchain_info,
@@ -154,18 +154,24 @@ def write_windows_jvm_launcher(
     launch_info.add("1", format = "symlink_runfiles_enabled=%s")
     launch_info.add(java_bin_path, format = "java_bin_path=%s")
     launch_info.add(main_class, format = "java_start_class=%s")
-    launch_info.add_joined(classpath, map_each = _short_path, join_with = ";", format_joined = "classpath=%s", omit_if_empty = False)
+    launch_info.add_joined(
+        classpath,
+        map_each = _artifact_short_path,
+        join_with = ";",
+        format_joined = "classpath=%s",
+        omit_if_empty = False,
+    )
     launch_info.add_joined(jvm_flags_list, join_with = "\t", format_joined = "jvm_flags=%s", omit_if_empty = False)
     launch_info.add(java_runtime.java_home_runfiles_path, format = "jar_bin_path=%s/bin/jar.exe")
 
     launcher_artifact = ctx.executable._launcher
     ctx.actions.run(
-        executable = _find_launcher_maker(ctx),
+        executable = find_launcher_maker(ctx),
         inputs = [launcher_artifact],
         outputs = [executable],
         arguments = [launcher_artifact.path, launch_info, executable.path],
         use_default_shell_env = True,
-        toolchain = _LAUNCHER_MAKER_TOOLCHAIN_TYPE if bazel_features.rules._has_launcher_maker_toolchain else None,
+        toolchain = get_launcher_maker_toolchain_for_action(),
         mnemonic = "JavaLauncherMaker",
     )
 

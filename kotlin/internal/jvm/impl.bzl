@@ -30,11 +30,18 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
+load(
+    "//src/main/starlark/core/compile:common.bzl",
+    "find_launcher_maker",
+    "get_executable",
+    "get_launcher_maker_toolchain_for_action",
+    "is_windows",
+)
 load("//src/main/starlark/core/plugin:common.bzl", "plugin_common")
 load("//third_party:jarjar.bzl", "jarjar_action")
 
-# Toolchain type for the Windows launcher maker
-_LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
+def _artifact_short_path(artifact):
+    return artifact.short_path
 
 def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(order = "default"), executable = None, *additional_providers):
     files = [ctx.outputs.jar]
@@ -59,32 +66,11 @@ def _make_providers(ctx, providers, runfiles_targets, transitive_files = depset(
         ),
     ] + list(additional_providers)
 
-def _short_path(file):
-    return file.short_path
-
-def _is_windows(ctx):
-    """Check if the target platform is Windows."""
-    windows_constraint = ctx.attr._windows_constraint[platform_common.ConstraintValueInfo]
-    return ctx.target_platform_has_constraint(windows_constraint)
-
 def _is_absolute_target_platform_path(ctx, path):
     """Check if path is absolute, accounting for Windows drive letters."""
-    if _is_windows(ctx):
+    if is_windows(ctx):
         return len(path) > 2 and path[1] == ":"
     return path.startswith("/")
-
-def _find_launcher_maker(ctx):
-    """Find the launcher maker binary, preferring the toolchain approach."""
-    if bazel_features.rules._has_launcher_maker_toolchain:
-        return ctx.toolchains[_LAUNCHER_MAKER_TOOLCHAIN_TYPE].binary
-    return ctx.executable._windows_launcher_maker
-
-def _get_executable(ctx):
-    """Declare executable file, adding .exe extension on Windows."""
-    executable_name = ctx.label.name
-    if _is_windows(ctx):
-        executable_name = executable_name + ".exe"
-    return ctx.actions.declare_file(executable_name)
 
 def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, main_class, jvm_flags_for_launcher, runfiles_enabled, coverage_main_class = None):
     """Create a Windows exe launcher using the launcher_maker tool."""
@@ -103,7 +89,13 @@ def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, ma
     launch_info.add(main_class, format = "java_start_class=%s")
     if coverage_main_class:
         launch_info.add(coverage_main_class, format = "jacoco_main_class=%s")
-    launch_info.add_joined(classpath, map_each = _short_path, join_with = ";", format_joined = "classpath=%s", omit_if_empty = False)
+    launch_info.add_joined(
+        classpath,
+        map_each = _artifact_short_path,
+        join_with = ";",
+        format_joined = "classpath=%s",
+        omit_if_empty = False,
+    )
     launch_info.add_joined(tokenized_jvm_flags, join_with = "\t", format_joined = "jvm_flags=%s", omit_if_empty = False)
 
     # Use java_home_runfiles_path directly (same as rules_java)
@@ -111,12 +103,12 @@ def _create_windows_exe_launcher(ctx, executable, java_executable, classpath, ma
 
     launcher_artifact = ctx.executable._launcher
     ctx.actions.run(
-        executable = _find_launcher_maker(ctx),
+        executable = find_launcher_maker(ctx),
         inputs = [launcher_artifact],
         outputs = [executable],
         arguments = [launcher_artifact.path, launch_info, executable.path],
         use_default_shell_env = True,
-        toolchain = _LAUNCHER_MAKER_TOOLCHAIN_TYPE if bazel_features.rules._has_launcher_maker_toolchain else None,
+        toolchain = get_launcher_maker_toolchain_for_action(),
         mnemonic = "JavaLauncherMaker",
     )
 
@@ -148,9 +140,9 @@ def _write_launcher_action(ctx, rjars, main_class, jvm_flags, is_test = False):
         jvm_flags_list.append("-Djava.security.manager=allow")
 
     # Windows: use native exe launcher with explicitly declared executable
-    if _is_windows(ctx):
+    if is_windows(ctx):
         # Explicitly declare the executable with .exe extension (required for Windows)
-        executable = _get_executable(ctx)
+        executable = get_executable(ctx)
 
         # On Windows, symlink runfiles are typically disabled (manifest-based runfiles are used instead).
         # ctx.configuration.runfiles_enabled() is internal to rules_java and not available here.

@@ -1,5 +1,6 @@
 load("@bazel_lib//lib:paths.bzl", "BASH_RLOCATION_FUNCTION", "to_rlocation_path")
 load("@bazel_lib//lib:windows_utils.bzl", "create_windows_native_launcher_script")
+load("//src/main/starlark/core/compile:common.bzl", "JAVA_RUNTIME_TOOLCHAIN_TYPE")
 load(":editorconfig.bzl", "get_editorconfig", "is_android_rules_enabled", "is_experimental_rules_enabled")
 load(":ktlint_config.bzl", "KtlintConfigInfo")
 
@@ -26,9 +27,11 @@ def _ktlint_test_impl(ctx):
 #!/usr/bin/env bash
 set -euo pipefail
 {rlocation_function}
+PATH="{java_home}/bin:$PATH" \
 "$(rlocation {ktlint})" {args}
 """.format(
         rlocation_function = BASH_RLOCATION_FUNCTION,
+        java_home = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.java_home_runfiles_path,
         ktlint = to_rlocation_path(ctx, ctx.executable._ktlint_tool),
         args = " ".join(args),
     )
@@ -38,6 +41,7 @@ set -euo pipefail
         script_content,
         is_executable = True,
     )
+    java_runtime_files = ctx.toolchains[JAVA_RUNTIME_TOOLCHAIN_TYPE].java_runtime.files
 
     # Check if target platform is Windows
     windows_constraint = ctx.attr._windows_constraint[platform_common.ConstraintValueInfo]
@@ -54,7 +58,10 @@ set -euo pipefail
 
     return [
         DefaultInfo(
-            runfiles = ctx.runfiles(files = files).merge_all([
+            runfiles = ctx.runfiles(
+                files = files,
+                transitive_files = java_runtime_files,
+            ).merge_all([
                 ctx.attr._ktlint_tool[DefaultInfo].default_runfiles,
                 ctx.attr._runfiles_library[DefaultInfo].default_runfiles,
             ]),
@@ -89,5 +96,8 @@ ktlint_test = rule(
     },
     doc = "Lint Kotlin files, and fail if the linter raises errors.",
     test = True,
-    toolchains = ["@bazel_tools//tools/sh:toolchain_type"],
+    toolchains = [
+        JAVA_RUNTIME_TOOLCHAIN_TYPE,
+        "@bazel_tools//tools/sh:toolchain_type",
+    ],
 )
