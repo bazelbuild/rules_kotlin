@@ -9,8 +9,8 @@
 <pre>
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
-kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-add_exports">add_exports</a>, <a href="#kt_javac_options-release">release</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>, <a href="#kt_javac_options-x_explicit_api_mode">x_explicit_api_mode</a>,
-                 <a href="#kt_javac_options-x_lint">x_lint</a>, <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
+kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-add_exports">add_exports</a>, <a href="#kt_javac_options-no_proc">no_proc</a>, <a href="#kt_javac_options-release">release</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>,
+                 <a href="#kt_javac_options-x_explicit_api_mode">x_explicit_api_mode</a>, <a href="#kt_javac_options-x_lint">x_lint</a>, <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
 </pre>
 
 Define java compiler options for `kt_jvm_*` rules with java sources.
@@ -22,6 +22,7 @@ Define java compiler options for `kt_jvm_*` rules with java sources.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="kt_javac_options-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="kt_javac_options-add_exports"></a>add_exports |  Export internal jdk apis   | List of strings | optional |  `[]`  |
+| <a id="kt_javac_options-no_proc"></a>no_proc |  Disable annotation processing with -proc:none   | Boolean | optional |  `False`  |
 | <a id="kt_javac_options-release"></a>release |  Compile for the specified Java SE release   | String | optional |  `"default"`  |
 | <a id="kt_javac_options-warn"></a>warn |  Control warning behaviour.   | String | optional |  `"report"`  |
 | <a id="kt_javac_options-x_ep_disable_all_checks"></a>x_ep_disable_all_checks |  See javac -XepDisableAllChecks documentation   | Boolean | optional |  `False`  |
@@ -299,8 +300,7 @@ Lint Kotlin files, and fail if the linter raises errors.
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
 
-kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_compiler_plugin-deps">deps</a>, <a href="#kt_compiler_plugin-data">data</a>, <a href="#kt_compiler_plugin-compile_phase">compile_phase</a>, <a href="#kt_compiler_plugin-id">id</a>, <a href="#kt_compiler_plugin-options">options</a>, <a href="#kt_compiler_plugin-stubs_phase">stubs_phase</a>,
-                   <a href="#kt_compiler_plugin-target_embedded_compiler">target_embedded_compiler</a>)
+kt_compiler_plugin(<a href="#kt_compiler_plugin-name">name</a>, <a href="#kt_compiler_plugin-deps">deps</a>, <a href="#kt_compiler_plugin-data">data</a>, <a href="#kt_compiler_plugin-compile_phase">compile_phase</a>, <a href="#kt_compiler_plugin-id">id</a>, <a href="#kt_compiler_plugin-options">options</a>, <a href="#kt_compiler_plugin-stubs_phase">stubs_phase</a>)
 </pre>
 
 Define a plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
@@ -313,7 +313,7 @@ kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "plugin.OpenForTesting",
+        "annotation": ["plugin.OpenForTesting"],
     },
     deps = [
         "//kotlin/compiler:allopen-compiler-plugin",
@@ -345,9 +345,8 @@ kt_jvm_library(
 | <a id="kt_compiler_plugin-data"></a>data |  The list of data files to be used by compiler's plugin   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_compiler_plugin-compile_phase"></a>compile_phase |  Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`   | Boolean | optional |  `True`  |
 | <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | required |  |
-| <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Supports the following template values:<br><br>- `{generatedClasses}`: directory for generated class output - `{temp}`: temporary directory, discarded between invocations - `{generatedSources}`:  directory for generated source output - `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Each option key can have multiple values. Supports the following template values:<br><br>- `{generatedClasses}`: directory for generated class output - `{temp}`: temporary directory, discarded between invocations - `{generatedSources}`:  directory for generated source output - `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
 | <a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin in kapt stub generation.   | Boolean | optional |  `True`  |
-| <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc dependencies, and will fail when running against a non-embeddable compiler.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_javac_options"></a>
@@ -357,8 +356,8 @@ kt_jvm_library(
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_javac_options")
 
-kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-add_exports">add_exports</a>, <a href="#kt_javac_options-release">release</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>, <a href="#kt_javac_options-x_explicit_api_mode">x_explicit_api_mode</a>,
-                 <a href="#kt_javac_options-x_lint">x_lint</a>, <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
+kt_javac_options(<a href="#kt_javac_options-name">name</a>, <a href="#kt_javac_options-add_exports">add_exports</a>, <a href="#kt_javac_options-no_proc">no_proc</a>, <a href="#kt_javac_options-release">release</a>, <a href="#kt_javac_options-warn">warn</a>, <a href="#kt_javac_options-x_ep_disable_all_checks">x_ep_disable_all_checks</a>,
+                 <a href="#kt_javac_options-x_explicit_api_mode">x_explicit_api_mode</a>, <a href="#kt_javac_options-x_lint">x_lint</a>, <a href="#kt_javac_options-xd_suppress_notes">xd_suppress_notes</a>)
 </pre>
 
 Define java compiler options for `kt_jvm_*` rules with java sources.
@@ -370,6 +369,7 @@ Define java compiler options for `kt_jvm_*` rules with java sources.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="kt_javac_options-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="kt_javac_options-add_exports"></a>add_exports |  Export internal jdk apis   | List of strings | optional |  `[]`  |
+| <a id="kt_javac_options-no_proc"></a>no_proc |  Disable annotation processing with -proc:none   | Boolean | optional |  `False`  |
 | <a id="kt_javac_options-release"></a>release |  Compile for the specified Java SE release   | String | optional |  `"default"`  |
 | <a id="kt_javac_options-warn"></a>warn |  Control warning behaviour.   | String | optional |  `"report"`  |
 | <a id="kt_javac_options-x_ep_disable_all_checks"></a>x_ep_disable_all_checks |  See javac -XepDisableAllChecks documentation   | Boolean | optional |  `False`  |
@@ -568,7 +568,7 @@ For string attributes, the default empty string (`""`) means "unset", so the cor
 <pre>
 load("@rules_kotlin//kotlin:core.bzl", "kt_ksp_plugin")
 
-kt_ksp_plugin(<a href="#kt_ksp_plugin-name">name</a>, <a href="#kt_ksp_plugin-deps">deps</a>, <a href="#kt_ksp_plugin-generates_java">generates_java</a>, <a href="#kt_ksp_plugin-processor_class">processor_class</a>, <a href="#kt_ksp_plugin-target_embedded_compiler">target_embedded_compiler</a>)
+kt_ksp_plugin(<a href="#kt_ksp_plugin-name">name</a>, <a href="#kt_ksp_plugin-deps">deps</a>, <a href="#kt_ksp_plugin-generates_java">generates_java</a>, <a href="#kt_ksp_plugin-processor_class">processor_class</a>)
 </pre>
 
 Define a KSP plugin for the Kotlin compiler to run. The plugin can then be referenced in the `plugins` attribute
@@ -603,7 +603,6 @@ kt_jvm_library(
 | <a id="kt_ksp_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_ksp_plugin-generates_java"></a>generates_java |  Runs Java compilation action for plugin generating Java output.   | Boolean | optional |  `False`  |
 | <a id="kt_ksp_plugin-processor_class"></a>processor_class |  The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.   | String | required |  |
-| <a id="kt_ksp_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc dependencies, and will fail when running against a non-embeddable compiler.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_plugin_cfg"></a>
@@ -644,9 +643,13 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_remove_private_classes_in_abi_jars">experimental_remove_private_classes_in_abi_jars</a>,
                     <a href="#define_kt_toolchain-experimental_remove_debug_info_in_abi_jars">experimental_remove_debug_info_in_abi_jars</a>, <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>,
                     <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>, <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>,
-                    <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-experimental_build_tools_api">experimental_build_tools_api</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>,
-                    <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>, <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>,
-                    <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
+                    <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-experimental_incremental_compilation">experimental_incremental_compilation</a>,
+                    <a href="#define_kt_toolchain-experimental_ic_enable_logging">experimental_ic_enable_logging</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>,
+                    <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-btapi_build_tools_impl">btapi_build_tools_impl</a>,
+                    <a href="#define_kt_toolchain-btapi_kotlin_compiler_embeddable">btapi_kotlin_compiler_embeddable</a>, <a href="#define_kt_toolchain-btapi_kotlin_daemon_client">btapi_kotlin_daemon_client</a>, <a href="#define_kt_toolchain-btapi_kotlin_stdlib">btapi_kotlin_stdlib</a>,
+                    <a href="#define_kt_toolchain-btapi_kotlin_reflect">btapi_kotlin_reflect</a>, <a href="#define_kt_toolchain-btapi_kotlin_coroutines">btapi_kotlin_coroutines</a>, <a href="#define_kt_toolchain-btapi_annotations">btapi_annotations</a>,
+                    <a href="#define_kt_toolchain-internal_jvm_abi_gen">internal_jvm_abi_gen</a>, <a href="#define_kt_toolchain-internal_skip_code_gen">internal_skip_code_gen</a>, <a href="#define_kt_toolchain-internal_jdeps_gen">internal_jdeps_gen</a>, <a href="#define_kt_toolchain-internal_kapt">internal_kapt</a>,
+                    <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -668,12 +671,24 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-experimental_report_unused_deps"></a>experimental_report_unused_deps |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-experimental_reduce_classpath_mode"></a>experimental_reduce_classpath_mode |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-experimental_multiplex_workers"></a>experimental_multiplex_workers |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-experimental_build_tools_api"></a>experimental_build_tools_api |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-experimental_incremental_compilation"></a>experimental_incremental_compilation |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-experimental_ic_enable_logging"></a>experimental_ic_enable_logging |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-javac_options"></a>javac_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_javac_options")` |
 | <a id="define_kt_toolchain-kotlinc_options"></a>kotlinc_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_kotlinc_options")` |
 | <a id="define_kt_toolchain-jvm_stdlibs"></a>jvm_stdlibs |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-jvm_runtime"></a>jvm_runtime |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-jacocorunner"></a>jacocorunner |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_build_tools_impl"></a>btapi_build_tools_impl |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_compiler_embeddable"></a>btapi_kotlin_compiler_embeddable |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_daemon_client"></a>btapi_kotlin_daemon_client |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_stdlib"></a>btapi_kotlin_stdlib |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_reflect"></a>btapi_kotlin_reflect |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_coroutines"></a>btapi_kotlin_coroutines |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_annotations"></a>btapi_annotations |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_jvm_abi_gen"></a>internal_jvm_abi_gen |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_skip_code_gen"></a>internal_skip_code_gen |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_jdeps_gen"></a>internal_jdeps_gen |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_kapt"></a>internal_kapt |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-exec_compatible_with"></a>exec_compatible_with |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-target_compatible_with"></a>target_compatible_with |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-target_settings"></a>target_settings |  <p align="center"> - </p>   |  `None` |
@@ -704,8 +719,7 @@ This macro registers the kotlin toolchain.
 <pre>
 load("@rules_kotlin//kotlin:repositories.doc.bzl", "kotlin_repositories")
 
-kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-ksp_repository_name">ksp_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>,
-                    <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>)
+kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-compiler_version">compiler_version</a>)
 </pre>
 
 Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -717,9 +731,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | :------------- | :------------- | :------------- |
 | <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  `False` |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
-| <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
-| <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "ea16ab1cab29d419bf41b60ecc0e305d449fa661d9c05fbcc5b2a6672505456a", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.3.0")` |
-| <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "24cb0d869ab2ae9fcf630a747b6b7e662e4be26e8b83b9272f6f3c24813e0c5a", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.3")` |
+| <a id="kotlin_repositories-compiler_version"></a>compiler_version |  Kotlin compiler version string (e.g. "2.3.20-Beta2").   |  `"2.3.20-Beta2"` |
 
 
 <a id="versions.use_repository"></a>

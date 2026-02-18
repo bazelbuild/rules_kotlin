@@ -26,10 +26,6 @@ load(
     _compile = "compile",
 )
 load(
-    "//kotlin/internal/utils:utils.bzl",
-    _utils = "utils",
-)
-load(
     "//src/main/starlark/core/compile:common.bzl",
     "find_launcher_maker",
     "get_executable",
