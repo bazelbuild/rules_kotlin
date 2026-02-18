@@ -45,10 +45,9 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "com.squareup.anvil.compiler",
     options = {
-        "src-gen-dir": "{generatedSources}",
+        "src-gen-dir": ["{generatedSources}"],
     },
     stubs_phase = True,
-    target_embedded_compiler = True,
     visibility = [
         "//visibility:public",
     ],
@@ -62,11 +61,10 @@ kt_compiler_plugin(
     compile_phase = True,
     id = "com.squareup.anvil.compiler",
     options = {
-        "generate-dagger-factories": "true",
-        "src-gen-dir": "{generatedSources}",
+        "generate-dagger-factories": ["true"],
+        "src-gen-dir": ["{generatedSources}"],
     },
     stubs_phase = True,
-    target_embedded_compiler = True,
     visibility = [
         "//visibility:public",
     ],

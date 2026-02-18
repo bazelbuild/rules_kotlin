@@ -37,11 +37,6 @@
   environment:
     ANDROID_NDK_HOME: /opt/android-ndk-r25b
 
-.ubuntu2204: &ubuntu2204
-  platform: ubuntu2204
-  environment:
-    ANDROID_NDK_HOME: /opt/android-ndk-r25b
-
 .macos: &macos
   platform: macos_arm64
   environment:
@@ -55,9 +50,9 @@
 # bazelci pipeline
 matrix:
   integration_shard_flags:
-    - [ "--test_tag_filters=shard_0", "--local_test_jobs=3" ]
-    - [ "--test_tag_filters=shard_1", "--local_test_jobs=3" ]
-    - [ "--test_tag_filters=shard_2", "--local_test_jobs=3" ]
+    - [ "--test_tag_filters=shard_0,-workspace", "--local_test_jobs=3" ]
+    - [ "--test_tag_filters=shard_1,-workspace", "--local_test_jobs=3" ]
+    - [ "--test_tag_filters=shard_2,-workspace", "--local_test_jobs=3" ]
   test_flags:
     - [ "--enable_bzlmod=true" ]
 validate_config: 1
@@ -74,10 +69,8 @@ tasks:
     <<: [ *ubuntu2404, *unittests ]
   ubuntu2404_integration_tests:
     <<: [ *ubuntu2404, *integration_tests ]
-  ubuntu2204_unittests:
-    <<: [ *ubuntu2204, *unittests ]
-  ubuntu2204_integration_tests:
-    <<: [ *ubuntu2204, *integration_tests ]
+  macos_integration_tests:
+    <<: [ *macos, *integration_tests ]
   windows_integration_tests:
     <<: [ *windows, *integration_tests_no_android ]
   windows_unittests:
@@ -107,3 +100,18 @@ tasks:
     test_flags:
       - "--test_tag_filters=ktlint"
       - "--test_output=errors"
+  ic_tests:
+    name: IC Tests
+    <<: *ubuntu2404
+    test_targets:
+      - //ic_tests:ic_tests_suite
+  macos_ic_tests:
+    name: IC Tests
+    <<: *macos
+    test_targets:
+      - //ic_tests:ic_tests_suite
+  windows_ic_tests:
+    name: IC Tests
+    <<: *windows
+    test_targets:
+      - //ic_tests:ic_tests_suite

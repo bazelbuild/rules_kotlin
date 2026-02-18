@@ -12,16 +12,48 @@ def _provider_test_impl(env, target):
     got_target = env.expect.that_target(target)
     got_target.has_provider(KtPluginConfiguration)
     got_provider = got_target.provider(KtPluginConfiguration, plugin_configuration_subject_factory)
-    got_provider.options().transform(desc = "option.value", map_each = lambda o: o.value).contains_at_least(want_options)
+    got_provider.options().transform(
+        desc = "option key/value",
+        map_each = lambda o: "%s=%s" % (o.key, o.value) if o.value else o.key,
+    ).contains_at_least(want_options)
     got_provider.id().equals(env.ctx.attr.want_plugin[KtCompilerPluginInfo].id)
 
 def _action_test_impl(env, target):
     action = env.expect.that_target(target).action_named(env.ctx.attr.on_action_mnemonic)
     action.inputs().contains_at_least([f.short_path for f in env.ctx.files.want_inputs])
-    flags_and_values_of(action).contains_at_least(env.ctx.attr.want_flags.items())
+    parsed_flags = flags_and_values_of(action)
+    parsed_flags.contains_at_least(env.ctx.attr.want_flags.items())
+    if env.ctx.attr.want_flag_keys:
+        parsed_flags.transform(
+            desc = "flag keys",
+            map_each = lambda item: item[0],
+        ).contains_at_least(env.ctx.attr.want_flag_keys)
+
+def _inline_payload_test_impl(env, target):
+    action = env.expect.that_target(target).action_named("KotlinCompile")
+    parsed_flags = flags_and_values_of(action)
+    parsed_flags.transform(
+        desc = "--plugins_payload is inline JSON",
+        map_each = lambda item: (
+            item[0] == "--plugins_payload" and
+            len(item[1]) == 1 and
+            item[1][0].startswith("{") and
+            "\"plugins\"" in item[1][0] and
+            env.ctx.attr.want_plugin_id in item[1][0] and
+            not item[1][0].endswith("_plugins_payload")
+        ),
+    ).contains(True)
 
 def _expect_failure(env, target):
     fail_messages_in(env.expect.that_target(target)).contains_at_least(env.ctx.attr.want_failures)
+
+def _expect_failure_contains(env, target):
+    failures = fail_messages_in(env.expect.that_target(target))
+    for want in env.ctx.attr.want_failure_substrings:
+        failures.transform(
+            desc = "contains '%s'" % want,
+            map_each = lambda f: want in f,
+        ).contains(True)
 
 def plugin_for(test, name, deps = [], id = None, **kwargs):
     plugin_jar = test.artifact(
@@ -53,7 +85,7 @@ def _test_kt_plugin_cfg(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -107,6 +139,56 @@ def _test_kt_plugin_cfg(test):
         },
     )
 
+def _test_kt_plugin_cfg_multi_value_options(test):
+    plugin = test.have(
+        kt_compiler_plugin,
+        name = "plugin",
+        id = "test.multi",
+        deps = [
+            test.have(
+                kt_jvm_library,
+                name = "plugin_dep",
+                srcs = [
+                    test.artifact(
+                        name = "plugin.kt",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    cfg = test.got(
+        kt_plugin_cfg,
+        name = "got",
+        plugin = plugin,
+        options = {
+            "annotation": [
+                "plugin.First",
+                "plugin.Second",
+            ],
+        },
+        deps = [],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _provider_test_impl,
+        target = cfg,
+        attr_values = {
+            "want_deps": [],
+            "want_options": [
+                "annotation=plugin.First",
+                "annotation=plugin.Second",
+            ],
+            "want_plugin": plugin,
+        },
+        attrs = {
+            "want_deps": attr.label_list(providers = [JavaInfo]),
+            "want_options": attr.string_list(),
+            "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
+        },
+    )
+
 def _test_compile_configuration(test):
     plugin_jar = test.artifact(
         name = "plugin.jar",
@@ -117,7 +199,7 @@ def _test_compile_configuration(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -172,9 +254,8 @@ def _test_compile_configuration(test):
         target = got,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
+            "want_flag_keys": ["--plugins_payload"],
             "want_flags": {
-                "--compiler_plugin_options": ["test.stub:annotation=plugin.StubForTesting", "test.stub:-Dop=koo"],
-                "--stubs_plugin_options": ["test.stub:annotation=plugin.StubForTesting", "test.stub:-Dop=koo"],
             },
             "want_inputs": [
                 plugin_jar,
@@ -183,8 +264,53 @@ def _test_compile_configuration(test):
         },
         attrs = {
             "on_action_mnemonic": attr.string(),
+            "want_flag_keys": attr.string_list(),
             "want_flags": attr.string_list_dict(),
             "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
+        },
+    )
+
+def _test_compile_configuration_inline_payload_json(test):
+    plugin = test.have(
+        kt_compiler_plugin,
+        name = "plugin",
+        id = "test.inline.payload",
+        options = {
+            "annotation": ["plugin.StubForTesting"],
+        },
+        deps = [
+            test.have(
+                kt_jvm_import,
+                name = "plugin_jar",
+                jars = [
+                    test.artifact(
+                        name = "plugin.jar",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    got = test.got(
+        kt_jvm_library,
+        name = "got_library",
+        srcs = [
+            test.artifact(
+                name = "got_library.kt",
+            ),
+        ],
+        plugins = [plugin],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _inline_payload_test_impl,
+        target = got,
+        attr_values = {
+            "want_plugin_id": "test.inline.payload",
+        },
+        attrs = {
+            "want_plugin_id": attr.string(),
         },
     )
 
@@ -198,7 +324,7 @@ def _test_compile_multiple_configurations(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": "plugin.StubForTesting",
+            "annotation": ["plugin.StubForTesting"],
         },
         deps = [
             test.have(
@@ -275,17 +401,8 @@ def _test_compile_multiple_configurations(test):
         target = got,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
+            "want_flag_keys": ["--plugins_payload"],
             "want_flags": {
-                "--compiler_plugin_options": [
-                    "test.stub:annotation=plugin.StubForTesting",
-                    "test.stub:-Dop=koo",
-                    "test.stub:-Dop=zubzub",
-                ],
-                "--stubs_plugin_options": [
-                    "test.stub:annotation=plugin.StubForTesting",
-                    "test.stub:-Dop=koo",
-                    "test.stub:-Dop=zubzub",
-                ],
             },
             "want_inputs": [
                 plugin_jar,
@@ -295,6 +412,7 @@ def _test_compile_multiple_configurations(test):
         },
         attrs = {
             "on_action_mnemonic": attr.string(),
+            "want_flag_keys": attr.string_list(),
             "want_flags": attr.string_list_dict(),
             "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
         },
@@ -357,9 +475,8 @@ def _test_compile_configuration_single_phase(test):
         target = got,
         attr_values = {
             "on_action_mnemonic": "KotlinCompile",
+            "want_flag_keys": ["--plugins_payload"],
             "want_flags": {
-                "--compiler_plugin_options": ["plugin.compile:-Dop=compile_only"],
-                "--stubs_plugin_options": ["plugin.stub:-Dop=stub_only"],
             },
             "want_inputs": [
                 stub_jar,
@@ -368,6 +485,7 @@ def _test_compile_configuration_single_phase(test):
         },
         attrs = {
             "on_action_mnemonic": attr.string(),
+            "want_flag_keys": attr.string_list(),
             "want_flags": attr.string_list_dict(),
             "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
         },
@@ -388,7 +506,7 @@ def _test_library_multiple_plugins_with_same_id(test):
                 name = "one",
                 id = "test.stub",
                 options = {
-                    "annotation": "plugin.StubForTesting",
+                    "annotation": ["plugin.StubForTesting"],
                 },
                 deps = [
                     test.have(
@@ -407,7 +525,7 @@ def _test_library_multiple_plugins_with_same_id(test):
                 name = "two",
                 id = "test.stub",
                 options = {
-                    "annotation": "plugin.StubForTesting",
+                    "annotation": ["plugin.StubForTesting"],
                 },
                 deps = [
                     test.have(
@@ -439,12 +557,51 @@ def _test_library_multiple_plugins_with_same_id(test):
         },
     )
 
+def _test_library_plugin_without_phase(test):
+    (plugin, _) = plugin_for(
+        test,
+        name = "no_phase_plugin",
+        id = "test.no_phase",
+        compile_phase = False,
+        stubs_phase = False,
+    )
+
+    got = test.got(
+        kt_jvm_library,
+        name = "got_library",
+        srcs = [
+            test.artifact(
+                name = "got_library.kt",
+            ),
+        ],
+        plugins = [plugin],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _expect_failure_contains,
+        expect_failure = True,
+        target = got,
+        attr_values = {
+            "want_failure_substrings": [
+                "has plugin without a phase defined:",
+                "test.no_phase",
+            ],
+        },
+        attrs = {
+            "want_failure_substrings": attr.string_list(),
+        },
+    )
+
 def test_suite(name):
     suite(
         name,
         test_kt_plugin_cfg = _test_kt_plugin_cfg,
+        test_kt_plugin_cfg_multi_value_options = _test_kt_plugin_cfg_multi_value_options,
         test_compile_configuration = _test_compile_configuration,
+        test_compile_configuration_inline_payload_json = _test_compile_configuration_inline_payload_json,
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
+        test_library_plugin_without_phase = _test_library_plugin_without_phase,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
         test_compile_multiple_configurations = _test_compile_multiple_configurations,
     )

@@ -2,26 +2,15 @@
 Defines kotlin compiler repositories.
 """
 
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "get_auth")
-load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "TEMPLATES")
-
-def _kotlin_compiler_impl(repository_ctx):
-    attr = repository_ctx.attr
-    repository_ctx.download_and_extract(
-        attr.urls,
-        sha256 = attr.sha256,
-        stripPrefix = "kotlinc",
-        auth = get_auth(repository_ctx, attr.urls),
-    )
-    repository_ctx.template(
-        "BUILD.bazel",
-        attr._template,
-        executable = False,
-    )
+load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "GENERATED_OPTS_TEMPLATES")
 
 def _kotlin_capabilities_impl(repository_ctx):
-    """Creates the kotlinc repository."""
+    """Creates the kotlinc capabilities repository."""
     attr = repository_ctx.attr
+    compiler_version = _version(attr.compiler_version)
+    if not compiler_version or compiler_version[0] < 2:
+        fail("rules_kotlin 2.x supports Kotlin compiler >= 2.0, got '{}'".format(attr.compiler_version))
+
     repository_ctx.file(
         "WORKSPACE",
         content = """workspace(name = "%s")""" % attr.name,
@@ -30,24 +19,20 @@ def _kotlin_capabilities_impl(repository_ctx):
         "BUILD.bazel",
         attr._template,
         executable = False,
-        substitutions = {
-            "$git_repo$": attr.git_repository_name,
-        },
     )
-    repository_ctx.template(
-        "artifacts.bzl",
-        attr._artifacts_template,
-        executable = False,
-    )
-    template = _get_capability_template(
+    generated_opts_template = _get_template_by_version(
         attr.compiler_version,
-        [repository_ctx.path(ct) for ct in attr._capability_templates],
+        [repository_ctx.path(ct) for ct in attr._generated_opts_templates],
+        "generated_opts",
     )
-    repository_ctx.template(
-        "capabilities.bzl",
-        template,
-        executable = False,
-    )
+    if generated_opts_template:
+        repository_ctx.template(
+            "generated_opts.bzl",
+            generated_opts_template,
+            executable = False,
+        )
+    else:
+        fail("No generated kotlinc options template found for Kotlin compiler version '{}'".format(attr.compiler_version))
 
 def _coerce_int(string_value):
     digits = "".join([
@@ -63,25 +48,41 @@ def _version(version_string):
         for segment in version_string.split(".", 3)
     ])
 
-def _parse_version(basename):
-    if "capabilities" not in basename:
+def _parse_version(basename, prefix):
+    if prefix not in basename:
         return None
-    version_string = basename[len("capabilities_"):basename.find(".bzl")]
+    version_string = basename[len(prefix + "_"):basename.find(".bzl")]
     return _version(version_string)
 
-def _get_capability_template(compiler_version, templates):
+def _get_template_by_version(compiler_version, templates, prefix):
+    """Get the appropriate template file for a given compiler version.
+
+    Args:
+        compiler_version: The kotlin compiler version string
+        templates: List of template paths
+        prefix: Prefix for template files (e.g., "generated_opts")
+
+    Returns:
+        The template path that best matches the compiler version, or None if no templates.
+    """
+    if not templates:
+        return None
+
     version_index = {}
     target = _version(compiler_version)
     if len(target) > 2:
         target = target[0:2]
     for template in templates:
-        version = _parse_version(template.basename)
+        version = _parse_version(template.basename, prefix)
         if not version:
             continue
 
         if target == version:
             return template
         version_index[version] = template
+
+    if not version_index:
+        return None
 
     last_version = sorted(version_index.keys(), reverse = True)[0]
 
@@ -90,7 +91,11 @@ def _get_capability_template(compiler_version, templates):
         return version_index[last_version]
 
     # Legacy
-    return version_index[(0, 0, 0)]
+    legacy_key = (0, 0, 0)
+    if legacy_key in version_index:
+        return version_index[legacy_key]
+
+    return None
 
 kotlin_capabilities_repository = repository_rule(
     implementation = _kotlin_capabilities_impl,
@@ -98,16 +103,9 @@ kotlin_capabilities_repository = repository_rule(
         "compiler_version": attr.string(
             doc = "compiler version",
         ),
-        "git_repository_name": attr.string(
-            doc = "Name of the repository containing kotlin compiler libraries",
-        ),
-        "_artifacts_template": attr.label(
-            doc = "kotlinc artifacts template",
-            default = "//src/main/starlark/core/repositories/kotlin:artifacts.bzl",
-        ),
-        "_capability_templates": attr.label_list(
-            doc = "List of compiler capability templates.",
-            default = TEMPLATES,
+        "_generated_opts_templates": attr.label_list(
+            doc = "List of generated options templates.",
+            default = GENERATED_OPTS_TEMPLATES,
         ),
         "_template": attr.label(
             doc = "repository build file template",
@@ -115,36 +113,3 @@ kotlin_capabilities_repository = repository_rule(
         ),
     },
 )
-
-kotlin_compiler_git_repository = repository_rule(
-    implementation = _kotlin_compiler_impl,
-    attrs = {
-        "sha256": attr.string(
-            doc = "sha256 of the compiler archive",
-        ),
-        "urls": attr.string_list(
-            doc = "A list of urls for the kotlin compiler",
-            mandatory = True,
-        ),
-        "_template": attr.label(
-            doc = "repository build file template",
-            default = ":BUILD.com_github_jetbrains_kotlin.bazel",
-        ),
-    },
-)
-
-def kotlin_compiler_repository(name, urls, sha256, compiler_version):
-    """
-    Creates two repositories, necessary for lazily loading the kotlin compiler binaries for git.
-    """
-    git_repo = name + "_git"
-    kotlin_compiler_git_repository(
-        name = git_repo,
-        urls = urls,
-        sha256 = sha256,
-    )
-    kotlin_capabilities_repository(
-        name = name,
-        git_repository_name = git_repo,
-        compiler_version = compiler_version,
-    )

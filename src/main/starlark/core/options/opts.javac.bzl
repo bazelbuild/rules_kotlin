@@ -35,6 +35,16 @@ _JOPTS = {
             derive.info: derive.format_key_value_for("-A", "{name}{key}={value}"),
         },
     ),
+    "no_proc": struct(
+        args = dict(
+            default = False,
+            doc = "Disable annotation processing with -proc:none",
+        ),
+        type = attr.bool,
+        value_to_flag = {
+            True: ["-proc:none"],
+        },
+    ),
     "release": struct(
         args = dict(
             default = "default",

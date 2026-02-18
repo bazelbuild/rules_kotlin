@@ -28,6 +28,7 @@ import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 
+import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.function.BiConsumer;
@@ -95,6 +96,15 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         return executeTask(jvmTaskExecutor()::execute, setup);
     }
 
+    /**
+     * Sets up a task without actually executing it. Useful for testing task configuration
+     * without running compilation.
+     */
+    @SafeVarargs
+    public final void setupTask(Consumer<TaskBuilder>... setup) {
+        Stream.of(setup).forEach(it -> it.accept(taskBuilderInstance));
+    }
+
     private static KotlinJvmTaskExecutor jvmTaskExecutor() {
         if (jvmTaskExecutor == null) {
             KotlinToolchain toolchain = toolchainForTest();
@@ -104,9 +114,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     toolchain.getKapt3Plugin(),
                     toolchain.getJdepsGen()
             );
-            KotlinToolchain.KotlincInvokerBuilder compilerBuilder =
-                    new KotlinToolchain.KotlincInvokerBuilder(toolchain);
-            jvmTaskExecutor = new KotlinJvmTaskExecutor(compilerBuilder, plugins);
+            jvmTaskExecutor = new KotlinJvmTaskExecutor(btapiRuntimeForTest(), plugins);
         }
         return jvmTaskExecutor;
     }
@@ -221,6 +229,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder outputJar(String relativePath) {
+            taskBuilder.getOutputsBuilder()
+                    .setJar(instanceRoot().resolve(relativePath).toAbsolutePath().toString());
+            return this;
+        }
+
         public TaskBuilder outputJdeps() {
             taskBuilder.getOutputsBuilder()
                     .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
@@ -261,11 +275,29 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
-        public TaskBuilder useK2() {
-            taskBuilder.getInfoBuilder()
-                    .getToolchainInfoBuilder()
-                    .getCommonBuilder()
-                    .setLanguageVersion("2.0");
+        public TaskBuilder incrementalCompilation() {
+            taskBuilder.getInfoBuilder().setIncrementalCompilation(true);
+            // Set incremental base dir relative to currently configured output jar path.
+            String outputJar = taskBuilder.getOutputs().getJar();
+            if (outputJar.isEmpty()) {
+                outputJar = instanceRoot().resolve("jar_file.jar").toAbsolutePath().toString();
+                taskBuilder.getOutputsBuilder().setJar(outputJar);
+            }
+
+            Path outputJarPath = Path.of(outputJar).toAbsolutePath();
+            String outputJarFileName = outputJarPath.getFileName().toString();
+            String jarName = outputJarFileName.endsWith(".jar")
+                    ? outputJarFileName.substring(0, outputJarFileName.length() - ".jar".length())
+                    : outputJarFileName;
+            Path incrementalBaseDir = outputJarPath.getParent().resolve("_kotlin_incremental").resolve(jarName);
+            taskBuilder.getDirectoriesBuilder().setIncrementalBaseDir(incrementalBaseDir.toString());
+            return this;
+        }
+
+        public TaskBuilder passthroughFlags(String... flags) {
+            for (String flag : flags) {
+                taskBuilder.getInfoBuilder().addPassthroughFlags(flag);
+            }
             return this;
         }
     }

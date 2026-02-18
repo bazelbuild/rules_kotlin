@@ -3,6 +3,21 @@ load("@rules_java//java:defs.bzl", "JavaInfo")
 load("//src/main/starlark/core/compile/cli:compile.bzl", "write_windows_jvm_launcher")
 load(":common.bzl", "KtJvmInfo", "LAUNCHER_MAKER_TOOLCHAIN_TYPE", "TYPE", "get_executable", "is_windows")
 
+# Toolchain type for the Windows launcher maker
+_LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
+
+def _is_windows(ctx):
+    """Check if the target platform is Windows."""
+    windows_constraint = ctx.attr._windows_constraint[platform_common.ConstraintValueInfo]
+    return ctx.target_platform_has_constraint(windows_constraint)
+
+def _get_executable(ctx):
+    """Declare executable file, adding .exe extension on Windows."""
+    executable_name = ctx.label.name
+    if _is_windows(ctx):
+        executable_name = executable_name + ".exe"
+    return ctx.actions.declare_file(executable_name)
+
 _COMMON_ATTRS = {
     "class_jar": attr.output(doc = "jar containing .kt and .java class files"),
     "data": attr.label_list(
@@ -103,6 +118,8 @@ def _kt_jvm_library_impl(ctx):
             additional_generated_source_jars = [],
             all_output_jars = [class_jar, source_jar],
             exported_compiler_plugins = depset(),
+            classpath_snapshot = None,
+            transitive_classpath_snapshots = depset(),
         ),
         java_info,
         DefaultInfo(

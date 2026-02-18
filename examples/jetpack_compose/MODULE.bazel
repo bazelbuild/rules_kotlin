@@ -2,7 +2,7 @@ module(name = "jetpack_compose")
 
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "rules_java", version = "8.14.0")
-bazel_dep(name = "rules_kotlin", version = "1.9.5")
+bazel_dep(name = "rules_kotlin", version = "2.2.0")
 local_path_override(
     module_name = "rules_kotlin",
     path = "../..",
@@ -30,7 +30,7 @@ maven.install(
     name = "maven_rules_kotlin_example",
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = [
-        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.3.0",
+        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.3.20-Beta2",
         "androidx.core:core-ktx:1.15.0",
         "androidx.appcompat:appcompat:1.7.0",
         "androidx.activity:activity-compose:1.7.0",

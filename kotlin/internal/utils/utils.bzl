@@ -4,7 +4,6 @@ load(
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 
-# TODO unexport this once init builder args can take care of associates.
 def _derive_module_name(ctx):
     """Gets the `module_name` attribute if it's set in the ctx, otherwise derive a unique module name using the elements
     found in the label."""
@@ -20,13 +19,16 @@ def _derive_module_name(ctx):
             module_name = name
     return module_name
 
-def _init_builder_args(ctx, rule_kind, module_name, kotlinc_options = None):
+def _init_builder_args(ctx, rule_kind, module_name = None, kotlinc_options = None):
     """Initialize an arg object for a task that will be executed by the Kotlin Builder."""
     toolchain = ctx.toolchains[_TOOLCHAIN_TYPE]
 
     args = ctx.actions.args()
     args.set_param_file_format("multiline")
     args.use_param_file("--flagfile=%s", use_always = True)
+
+    if module_name == None:
+        module_name = _derive_module_name(ctx)
 
     args.add("--target_label", ctx.label)
     args.add("--rule_kind", rule_kind)
@@ -50,5 +52,4 @@ def _init_builder_args(ctx, rule_kind, module_name, kotlinc_options = None):
 utils = struct(
     add_dicts = dicts.add,
     init_args = _init_builder_args,
-    derive_module_name = _derive_module_name,
 )

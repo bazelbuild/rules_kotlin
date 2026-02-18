@@ -17,7 +17,7 @@ maven.install(
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = [
         "junit:junit:4.13.2",
-        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.0.1",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.3",
     ],
     lock_file = "//:maven_install.json",
     repositories = [

@@ -101,9 +101,9 @@ load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
+    api_version = KOTLIN_LANGUAGE_LEVEL,  # "2.0", "2.1", "2.2", or "2.3"
     jvm_target = JAVA_LANGUAGE_LEVEL, # "1.8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", or "25"
-    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
+    language_version = KOTLIN_LANGUAGE_LEVEL,  # "2.0", "2.1", "2.2", or "2.3"
 )
 ```
 
@@ -115,7 +115,7 @@ register_toolchains("//:kotlin_toolchain")
 
 ## Custom `kotlinc` distribution (and version)
 
-To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), do the following
+To choose a different `kotlinc` distribution (Kotlin 2.0+), do the following
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ### `MODULE.bazel`
@@ -214,7 +214,8 @@ define_kt_toolchain(
 
 You can optionally override compiler flags at the target level by providing an alternative set of `kt_kotlinc_options` or `kt_javac_options` in your target definitions.
 
-Compiler flags that are passed to the rule definitions will be taken over the toolchain definition.
+For most compiler flags, rule-level options override toolchain defaults.
+`api_version` and `language_version` are toolchain-owned and are not exposed on `kt_kotlinc_options`.
 
 Example:
 ```python
@@ -224,7 +225,7 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
     x_no_param_assertions = True,
-    x_optin = [
+    opt_in = [
         "kotlin.Experimental",
         "kotlin.ExperimentalStdlibApi",
     ],
@@ -244,41 +245,38 @@ kt_jvm_library(
 )
 ```
 
-### Lambda Bytecode Generation
+For string-valued `kt_kotlinc_options` attributes, an empty string (`""`) means "unset", so the corresponding compiler flag is not passed.
 
-Note: `kt_kotlinc_options` defaults `x_lambdas` and `x_sam_conversions` to `"class"`, which differs from Kotlin 2.x and Gradle's default of `"indy"` (invokedynamic). If you encounter issues with bytecode analysis tools expecting invokedynamic-based lambdas, configure these options:
+### Breaking Changes (rules_kotlin 2.x)
+
+- Kotlin compiler versions below 2.0 are no longer supported.
+- `kt_kotlinc_options` no longer exposes `api_version` and `language_version`; configure these in `define_kt_toolchain(...)`.
+- `x_use_k2` is no longer exposed on `kt_kotlinc_options` (K2 is toolchain-managed).
+- Option names aligned with current Kotlin flag names:
+  - `x_optin` -> `opt_in`
+  - `x_jsr_305` -> `x_jsr305`
+
+### Breaking Change: Lambda Bytecode Generation (rules_kotlin 2.x)
+
+Starting with rules_kotlin 2.0, `x_lambdas` and `x_sam_conversions` now use Kotlin's default values (`"indy"` for Kotlin 2.x).
+
+**Prior versions** of rules_kotlin defaulted to `"class"` (anonymous inner classes). If you need to preserve the old behavior for compatibility:
 
 ```python
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
-    x_lambdas = "indy",
-    x_sam_conversions = "indy",
+    x_lambdas = "class",
+    x_sam_conversions = "class",
 )
 ```
+
+The `"indy"` (invokedynamic) mode generally produces smaller bytecode and better performance, but may affect bytecode analysis tools.
 
 Additionally, you can add options for both tracing and timing of the bazel build using the `kt_trace` and `kt_timings` flags, for example:
 * `bazel build --define=kt_trace=1`
 * `bazel build --define=kt_timings=1`
 
 `kt_trace=1` will allow you to inspect the full kotlinc commandline invocation, while `kt_timings=1` will report the high level time taken for each step.
-
-# Build Tools API
-
-The Build Tools API is a modern compilation interface provided by JetBrains for invoking the Kotlin compiler. It offers better integration and is required for incremental compilation support.
-
-**This feature is enabled by default.**
-
-To disable the Build Tools API and use the legacy compilation approach, add the following flag to your build:
-
-```bash
-bazel build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false //your:target
-```
-
-Or add it to your `.bazelrc` file:
-
-```
-build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false
-```
 
 # KSP (Kotlin Symbol Processing)
 
@@ -303,32 +301,6 @@ kt_jvm_library(
     name = "lib",
     srcs = glob(["*.kt"]),
     plugins = ["//:moshi-kotlin-codegen"],
-)
-```
-
-To choose a different `ksp_version` distribution,
-do the following in your repository.
-
-### `MODULE.bazel`
-```python
-rules_kotlin_extensions = use_extension("@rules_kotlin//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
-rules_kotlin_extensions.ksp_version(
-    version = "1.8.22-1.0.11",
-    sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
-)
-use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
-```
-
-### `WORKSPACE` (or import from a `.bzl` file):
-
-```python
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "ksp_version")
-
-kotlin_repositories(
-    ksp_compiler_release = ksp_version(
-        release = "1.8.22-1.0.11",
-        sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
-    ),
 )
 ```
 

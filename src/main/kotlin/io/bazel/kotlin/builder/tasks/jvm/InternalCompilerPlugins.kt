@@ -19,9 +19,47 @@ package io.bazel.kotlin.builder.tasks.jvm
 
 import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 
-class InternalCompilerPlugins constructor(
-  val jvmAbiGen: KotlinToolchain.CompilerPlugin,
-  val skipCodeGen: KotlinToolchain.CompilerPlugin,
-  val kapt: KotlinToolchain.CompilerPlugin,
-  val jdeps: KotlinToolchain.CompilerPlugin,
+data class InternalCompilerPlugin(
+  val jarPath: String,
+  val id: String,
 )
+
+class InternalCompilerPlugins constructor(
+  val jvmAbiGen: InternalCompilerPlugin,
+  val skipCodeGen: InternalCompilerPlugin,
+  val kapt: InternalCompilerPlugin,
+  val jdeps: InternalCompilerPlugin,
+) {
+  constructor(
+    jvmAbiGen: KotlinToolchain.CompilerPlugin,
+    skipCodeGen: KotlinToolchain.CompilerPlugin,
+    kapt: KotlinToolchain.CompilerPlugin,
+    jdeps: KotlinToolchain.CompilerPlugin,
+  ) : this(
+    InternalCompilerPlugin(jvmAbiGen.jarPath, jvmAbiGen.id),
+    InternalCompilerPlugin(skipCodeGen.jarPath, skipCodeGen.id),
+    InternalCompilerPlugin(kapt.jarPath, kapt.id),
+    InternalCompilerPlugin(jdeps.jarPath, jdeps.id),
+  )
+
+  companion object {
+    const val JVM_ABI_GEN_ID = "org.jetbrains.kotlin.jvm.abi"
+    const val SKIP_CODE_GEN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"
+    const val KAPT_ID = "org.jetbrains.kotlin.kapt3"
+    const val JDEPS_ID = "io.bazel.kotlin.plugin.jdeps.JDepsGen"
+
+    @JvmStatic
+    fun fromPaths(
+      jvmAbiGenJar: String,
+      skipCodeGenJar: String,
+      kaptJar: String,
+      jdepsJar: String,
+    ): InternalCompilerPlugins =
+      InternalCompilerPlugins(
+        jvmAbiGen = InternalCompilerPlugin(jvmAbiGenJar, JVM_ABI_GEN_ID),
+        skipCodeGen = InternalCompilerPlugin(skipCodeGenJar, SKIP_CODE_GEN_ID),
+        kapt = InternalCompilerPlugin(kaptJar, KAPT_ID),
+        jdeps = InternalCompilerPlugin(jdepsJar, JDEPS_ID),
+      )
+  }
+}

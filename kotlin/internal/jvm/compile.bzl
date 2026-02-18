@@ -49,6 +49,21 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
+load(
+    "//src/main/starlark/core/plugin:payload.bzl",
+    _plugin_payload = "plugin_payload",
+)
+
+# Keep BTAPI runtime artifact wiring in a single place for all worker actions.
+_BTAPI_RUNTIME_ARG_SPECS = (
+    ("--btapi_build_tools_impl", "btapi_build_tools_impl"),
+    ("--btapi_kotlin_compiler_embeddable", "btapi_kotlin_compiler_embeddable"),
+    ("--btapi_kotlin_daemon_client", "btapi_kotlin_daemon_client"),
+    ("--btapi_kotlin_stdlib", "btapi_kotlin_stdlib"),
+    ("--btapi_kotlin_reflect", "btapi_kotlin_reflect"),
+    ("--btapi_kotlin_coroutines", "btapi_kotlin_coroutines"),
+    ("--btapi_annotations", "btapi_annotations"),
+)
 
 # UTILITY ##############################################################################################################
 def find_java_toolchain(ctx, target):
@@ -94,6 +109,14 @@ def _partitioned_srcs(srcs):
         src_jars = src_jars,
     )
 
+def _derive_module_name(ctx):
+    module_name = getattr(ctx.attr, "module_name", "")
+    if module_name == "":
+        package = ctx.label.package.lstrip("/").replace("/", "_")
+        name = ctx.label.name.replace("/", "_")
+        module_name = package + "-" + name if package else name
+    return module_name
+
 def _compiler_toolchains(ctx):
     """Creates a struct of the relevant compilation toolchains"""
     return struct(
@@ -117,6 +140,13 @@ def _fail_if_invalid_associate_deps(associate_deps, deps):
 def _java_infos_to_compile_jars(java_infos):
     return depset(transitive = [j.compile_jars for j in java_infos])
 
+def _btapi_runtime_inputs(toolchains):
+    return [getattr(toolchains.kt, attr_name) for _, attr_name in _BTAPI_RUNTIME_ARG_SPECS]
+
+def _add_btapi_runtime_args(args, toolchains):
+    for flag, attr_name in _BTAPI_RUNTIME_ARG_SPECS:
+        args.add(flag, getattr(toolchains.kt, attr_name))
+
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
     plugins = []
@@ -136,6 +166,22 @@ def _collect_plugins_for_export(local, exports):
         ],
     )
 
+def _collect_transitive_classpath_snapshots(targets):
+    direct_snapshots = [
+        getattr(t[_KtJvmInfo], "classpath_snapshot", None)
+        for t in targets
+        if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "classpath_snapshot", None) != None
+    ]
+    transitive_snapshots = [
+        getattr(t[_KtJvmInfo], "transitive_classpath_snapshots", None)
+        for t in targets
+        if _KtJvmInfo in t and getattr(t[_KtJvmInfo], "transitive_classpath_snapshots", None) != None
+    ]
+    return depset(
+        direct = direct_snapshots,
+        transitive = transitive_snapshots,
+    )
+
 _CONVENTIONAL_RESOURCE_PATHS = [
     "src/main/java",
     "src/main/resources",
@@ -145,11 +191,18 @@ _CONVENTIONAL_RESOURCE_PATHS = [
 ]
 
 def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
-    if not path.startswith(resource_strip_prefix):
-        fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
+    strip_prefix = resource_strip_prefix.rstrip("/")
+    if path.startswith(strip_prefix):
+        clean_path = path[len(strip_prefix):]
+        return clean_path.lstrip("/")
 
-    clean_path = path[len(resource_strip_prefix):]
-    return clean_path
+    prefix = strip_prefix if strip_prefix.startswith("/") else "/" + strip_prefix
+    idx = path.find(prefix)
+    if idx != -1:
+        clean_path = path[idx + len(prefix):]
+        return clean_path.lstrip("/")
+
+    fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
 
 def _adjust_resources_path_by_default_prefixes(path):
     for cp in _CONVENTIONAL_RESOURCE_PATHS:
@@ -164,11 +217,8 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def _format_compile_plugin_options(o):
-    """Format compiler option into id:value for cmd line."""
-    return [
-        "%s:%s" % (o.id, o.value),
-    ]
+def adjust_resources_path_by_strip_prefix_for_testing(path, resource_strip_prefix):
+    return _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix)
 
 def _new_plugins_from(targets):
     """Returns a struct containing the plugin metadata for the given targets.
@@ -176,17 +226,7 @@ def _new_plugins_from(targets):
     Args:
         targets: A list of targets.
     Returns:
-        A struct containing the plugins for the given targets in the format:
-        {
-            stubs_phase = {
-                classpath = depset,
-                options= List[KtCompilerPluginOption],
-            ),
-            compile = {
-                classpath = depset,
-                options = List[KtCompilerPluginOption],
-            },
-        }
+        A struct containing merged plugins and aggregate classpath/data.
     """
 
     all_plugins = {}
@@ -203,7 +243,7 @@ def _new_plugins_from(targets):
         all_plugins[plugin.id] = plugin
 
     if plugins_without_phase:
-        fail("has plugin without a phase defined: %s" % cfgs_without_plugin)
+        fail("has plugin without a phase defined: %s" % plugins_without_phase)
 
     all_plugin_cfgs = {}
     cfgs_without_plugin = []
@@ -218,28 +258,36 @@ def _new_plugins_from(targets):
     if cfgs_without_plugin:
         fail("has plugin configurations without corresponding plugins: %s" % cfgs_without_plugin)
 
-    return struct(
-        stubs_phase = _new_plugin_from(all_plugin_cfgs, [p for p in all_plugins.values() if p.stubs]),
-        compile_phase = _new_plugin_from(all_plugin_cfgs, [p for p in all_plugins.values() if p.compile]),
-    )
-
-def _new_plugin_from(all_cfgs, plugins_for_phase):
     classpath = []
     data = []
-    options = []
-    for p in plugins_for_phase:
-        classpath.append(p.classpath)
-        options.extend(p.options)
-        if p.id in all_cfgs:
-            cfg = p.merge_cfgs(p, all_cfgs[p.id])
-            classpath.append(cfg.classpath)
+    plugins = []
+    for p in all_plugins.values():
+        plugin_classpath = [p.classpath]
+        plugin_options = list(p.options)
+        if p.id in all_plugin_cfgs:
+            cfg = p.merge_cfgs(p, all_plugin_cfgs[p.id])
+            plugin_classpath.append(cfg.classpath)
             data.append(cfg.data)
-            options.extend(cfg.options)
+            plugin_options.extend(cfg.options)
+
+        phases = []
+        if p.compile:
+            phases.append("compile")
+        if p.stubs:
+            phases.append("stubs")
+
+        plugins.append(struct(
+            id = p.id,
+            phases = phases,
+            classpath = depset(transitive = plugin_classpath),
+            options = plugin_options,
+        ))
+        classpath.extend(plugin_classpath)
 
     return struct(
         classpath = depset(transitive = classpath),
         data = depset(transitive = data),
-        options = options,
+        plugins = plugins,
     )
 
 # INTERNAL ACTIONS #####################################################################################################
@@ -528,6 +576,52 @@ def _run_ksp_builder_actions(
         ksp_generated_src_jar = ksp_generated_java_srcjar,
     )
 
+def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
+    """Generates a classpath snapshot for the given JAR using a dedicated worker."""
+    runtime_inputs = _btapi_runtime_inputs(toolchains)
+
+    args = ctx.actions.args()
+    args.set_param_file_format("multiline")
+    args.use_param_file("--flagfile=%s", use_always = True)
+
+    args.add("--input_jar", input_jar)
+    args.add("--output_snapshot", output_snapshot)
+    _add_btapi_runtime_args(args, toolchains)
+
+    ctx.actions.run(
+        mnemonic = "KotlinClasspathSnapshot",
+        inputs = [input_jar] + runtime_inputs,
+        tools = [
+            toolchains.kt.snapshot_worker.files_to_run,
+        ],
+        outputs = [output_snapshot],
+        executable = toolchains.kt.snapshot_worker.files_to_run.executable,
+        execution_requirements = _utils.add_dicts(
+            toolchains.kt.execution_requirements,
+            {"worker-key-mnemonic": "KotlinClasspathSnapshot"},
+        ),
+        arguments = [args],
+        progress_message = "Generating classpath snapshot for %{label}",
+        toolchain = _TOOLCHAIN_TYPE,
+    )
+
+def _run_non_kotlin_dep_snapshot_actions(ctx, toolchains, non_kotlin_classpath_snapshot_jars):
+    if not toolchains.kt.experimental_incremental_compilation:
+        return []
+
+    snapshots = []
+    for i, input_jar in enumerate(non_kotlin_classpath_snapshot_jars):
+        output_snapshot = ctx.actions.declare_file("%s.non-kotlin-dep-%d.classpath-snapshot" % (ctx.label.name, i))
+        _run_snapshot_action(
+            ctx = ctx,
+            toolchains = toolchains,
+            input_jar = input_jar,
+            output_snapshot = output_snapshot,
+        )
+        snapshots.append(output_snapshot)
+
+    return snapshots
+
 def _run_kt_builder_action(
         ctx,
         mnemonic,
@@ -541,6 +635,7 @@ def _run_kt_builder_action(
         transitive_runtime_jars,
         plugins,
         outputs,
+        classpath_snapshots = [],
         build_kotlin = True):
     """Creates a KotlinBuilder action invocation."""
     if not mnemonic:
@@ -548,6 +643,13 @@ def _run_kt_builder_action(
 
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
+    runtime_inputs = _btapi_runtime_inputs(toolchains)
+    internal_plugin_inputs = [
+        toolchains.kt.internal_jvm_abi_gen,
+        toolchains.kt.internal_skip_code_gen,
+        toolchains.kt.internal_kapt,
+        toolchains.kt.internal_jdeps_gen,
+    ]
 
     args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
 
@@ -561,7 +663,14 @@ def _run_kt_builder_action(
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
-    args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
+    args.add("--incremental_compilation", toolchains.kt.experimental_incremental_compilation)
+    args.add("--ic_enable_logging", toolchains.kt.experimental_ic_enable_logging)
+    _add_btapi_runtime_args(args, toolchains)
+    args.add("--internal_jvm_abi_gen", toolchains.kt.internal_jvm_abi_gen)
+    args.add("--internal_skip_code_gen", toolchains.kt.internal_skip_code_gen)
+    args.add("--internal_kapt", toolchains.kt.internal_kapt)
+    args.add("--internal_jdeps", toolchains.kt.internal_jdeps_gen)
+    args.add_all("--classpath_snapshots", classpath_snapshots, omit_if_empty = True)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)
@@ -585,31 +694,7 @@ def _run_kt_builder_action(
         uniquify = True,
     )
 
-    args.add_all(
-        "--stubs_plugin_classpath",
-        plugins.stubs_phase.classpath,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--stubs_plugin_options",
-        plugins.stubs_phase.options,
-        map_each = _format_compile_plugin_options,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--compiler_plugin_classpath",
-        plugins.compile_phase.classpath,
-        omit_if_empty = True,
-    )
-
-    args.add_all(
-        "--compiler_plugin_options",
-        plugins.compile_phase.options,
-        map_each = _format_compile_plugin_options,
-        omit_if_empty = True,
-    )
+    args.add("--plugins_payload", _plugin_payload.plugins_payload_json(plugins.plugins))
 
     if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
         args.add("--remove_private_classes_in_abi_jar", "true")
@@ -630,6 +715,8 @@ def _run_kt_builder_action(
 
     args.add("--build_kotlin", build_kotlin)
 
+    # Note: IC data is managed by the worker internally, deriving paths from output JARs.
+
     progress_message = "%s %%{label} { kt: %d, java: %d, srcjars: %d } for %s" % (
         mnemonic,
         len(srcs.kt),
@@ -641,19 +728,17 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars,
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + classpath_snapshots + runtime_inputs + internal_plugin_inputs,
             transitive = [
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,
                 transitive_runtime_jars,
                 deps_artifacts,
-                plugins.stubs_phase.classpath,
-                plugins.compile_phase.classpath,
+                plugins.classpath,
             ],
         ),
         tools = [
             toolchains.kt.kotlinbuilder.files_to_run,
-            toolchains.kt.kotlin_home.files_to_run,
         ],
         outputs = [f for f in outputs.values()],
         executable = toolchains.kt.kotlinbuilder.files_to_run.executable,
@@ -773,6 +858,17 @@ def _kt_jvm_produce_output_jar_actions(
         input_jars = output_jars,
     )
 
+    # Generate classpath snapshot for incremental compilation (separate Bazel action)
+    classpath_snapshot = None
+    if toolchains.kt.experimental_incremental_compilation:
+        classpath_snapshot = ctx.actions.declare_file(ctx.label.name + ".classpath-snapshot")
+        _run_snapshot_action(
+            ctx = ctx,
+            toolchains = toolchains,
+            input_jar = output_jar,
+            output_snapshot = classpath_snapshot,
+        )
+
     source_jar = java_common.pack_sources(
         ctx.actions,
         output_source_jar = outputs.srcjar,
@@ -811,6 +907,9 @@ def _kt_jvm_produce_output_jar_actions(
         dependency_attributes = ["associates", "deps", "exports", "runtime_deps", "data"],
         extensions = ["kt", "java"],
     )
+    transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(
+        getattr(ctx.attr, "deps", []) + getattr(ctx.attr, "associates", []) + getattr(ctx.attr, "exports", []),
+    )
 
     return struct(
         java = java_info,
@@ -823,6 +922,11 @@ def _kt_jvm_produce_output_jar_actions(
             exported_compiler_plugins = _collect_plugins_for_export(
                 getattr(ctx.attr, "exported_compiler_plugins", []),
                 getattr(ctx.attr, "exports", []),
+            ),
+            classpath_snapshot = classpath_snapshot,
+            transitive_classpath_snapshots = depset(
+                direct = [classpath_snapshot] if classpath_snapshot != None else [],
+                transitive = [transitive_classpath_snapshots],
             ),
             # intellij aspect needs this.
             outputs = struct(
@@ -865,6 +969,14 @@ def _run_kt_java_builder_actions(
     output_jars = []
     kt_stubs_for_java = []
     has_kt_sources = srcs.kt or srcs.src_jars
+
+    # Classpath snapshots for IC are passed as explicit inputs to the compilation action.
+    # Kotlin deps publish snapshots via KtJvmInfo; direct Java-only deps are snapshotted locally.
+    non_kotlin_classpath_snapshots = _run_non_kotlin_dep_snapshot_actions(
+        ctx = ctx,
+        toolchains = toolchains,
+        non_kotlin_classpath_snapshot_jars = compile_deps.non_kotlin_classpath_snapshot_jars,
+    )
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
@@ -939,6 +1051,7 @@ def _run_kt_java_builder_actions(
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = outputs,
+            classpath_snapshots = compile_deps.classpath_snapshots + non_kotlin_classpath_snapshots,
             build_kotlin = True,
             mnemonic = "KotlinCompile",
         )
@@ -976,12 +1089,19 @@ def _run_kt_java_builder_actions(
         # annotation processors in `deps` also.
         if len(srcs.kt) > 0:
             javac_opts.append("-proc:none")
+
+        # Use pruned deps for Java compilation when experimental_prune_transitive_deps is enabled
+        # This ensures java_common.compile() doesn't see transitive deps
+        java_compile_deps = compile_deps.deps
+        if compile_deps.pruned_deps_for_java != None:
+            java_compile_deps = compile_deps.pruned_deps_for_java
+
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
             source_jars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars,
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
-            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
+            deps = java_compile_deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
             java_toolchain = toolchains.java,
             plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
             javac_opts = javac_opts,
@@ -1105,17 +1225,22 @@ def _export_only_providers(ctx, actions, attr, outputs):
         neverlink = getattr(attr, "neverlink", False),
         jdeps = output_jdeps,
     )
+    transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(
+        attr.deps + getattr(attr, "associates", []) + getattr(attr, "exports", []),
+    )
 
     return struct(
         java = java,
         kt = _KtJvmInfo(
-            module_name = _utils.derive_module_name(ctx),
+            module_name = _derive_module_name(ctx),
             module_jars = [],
             language_version = toolchains.kt.api_version,
             exported_compiler_plugins = _collect_plugins_for_export(
                 getattr(attr, "exported_compiler_plugins", []),
                 getattr(attr, "exports", []),
             ),
+            classpath_snapshot = None,
+            transitive_classpath_snapshots = transitive_classpath_snapshots,
         ),
         instrumented_files = coverage_common.instrumented_files_info(
             ctx,

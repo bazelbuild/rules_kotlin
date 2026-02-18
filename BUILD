@@ -62,7 +62,8 @@ release_archive(
     name = "rules_kotlin_release",
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
-        "MODULE.release.bazel": "MODULE.bazel",
+        "MODULE.bazel": "MODULE.bazel",
+        "kotlin_rules_maven_install.json": "kotlin_rules_maven_install.json",
     },
     deps = [
         "//kotlin:pkg",
