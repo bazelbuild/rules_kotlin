@@ -429,7 +429,6 @@ def _sourceless_dep_propagation_test(name):
         kt_compiler_plugin,
         name = name + "_subject",
         id = "test.sourceless_propagation",
-        target_embedded_compiler = True,
         deps = [":" + name + "_sourceless_wrapper"],
     )
 
