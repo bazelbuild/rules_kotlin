@@ -7,6 +7,10 @@ load("//src/main/starlark/core/repositories/kotlin:templates.bzl", "GENERATED_OP
 def _kotlin_capabilities_impl(repository_ctx):
     """Creates the kotlinc capabilities repository."""
     attr = repository_ctx.attr
+    compiler_version = _version(attr.compiler_version)
+    if not compiler_version or compiler_version[0] < 2:
+        fail("rules_kotlin 2.x supports Kotlin compiler >= 2.0, got '{}'".format(attr.compiler_version))
+
     repository_ctx.file(
         "WORKSPACE",
         content = """workspace(name = "%s")""" % attr.name,
@@ -28,12 +32,7 @@ def _kotlin_capabilities_impl(repository_ctx):
             executable = False,
         )
     else:
-        # For older Kotlin versions without generated opts, create an empty stub
-        repository_ctx.file(
-            "generated_opts.bzl",
-            content = "# Generated options not available for this Kotlin version\nGENERATED_KOPTS = {}\n",
-            executable = False,
-        )
+        fail("No generated kotlinc options template found for Kotlin compiler version '{}'".format(attr.compiler_version))
 
 def _coerce_int(string_value):
     digits = "".join([

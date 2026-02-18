@@ -178,6 +178,8 @@ object WriteKotlincCapabilities {
       "-classpath",              // Set by compilation action
       "-d",                      // Output directory set by rules
       "-module-name",            // Set by rules from target name
+      "-api-version",            // Set by toolchain/configuration
+      "-language-version",       // Set by toolchain/configuration
       "-Xfriend-paths",          // Use `associates` attribute instead
       "-no-jdk",                 // JDK management is rules' job
       "-no-stdlib",              // Part of include_stdlibs abstraction
@@ -403,8 +405,6 @@ object WriteKotlincCapabilities {
 
     /** String flags (free-form values) */
     private val STRING_FLAGS = setOf(
-      "-api-version",
-      "-language-version",
       "-jvm-target",
       "-Xjdk-release",
       "-Xmetadata-version",
@@ -493,24 +493,59 @@ object WriteKotlincCapabilities {
   }
 
   /**
-   * Parse enumerated values from valueDescription.
-   * The format is typically {value1|value2|value3} or {value1/value2/value3}.
-   * Returns null if the valueDescription doesn't contain enumerated values.
+   * Parse enumerated values from valueDescription/description metadata.
+   *
+   * Supports:
+   * - inline sets like `{foo|bar|baz}`
+   * - prose snippets like `-Xfoo=bar`
    */
-  private fun parseEnumeratedValues(valueDescription: String?): List<String>? {
-    if (valueDescription.isNullOrBlank()) return null
+  private fun parseEnumeratedValues(
+    flag: String,
+    valueDescription: String?,
+    description: String,
+  ): List<String>? {
+    val values = linkedSetOf<String>()
+    val sources = listOfNotNull(valueDescription, description)
 
-    // Match pattern like {value1|value2|value3} or {value1/value2/value3}
-    val match = Regex("^\\{([^}]+)}$").find(valueDescription.trim()) ?: return null
-    val content = match.groupValues[1]
+    val bracePattern = Regex("\\{([^{}]+)}")
+    val assignmentPattern = Regex("${Regex.escape(flag)}=([A-Za-z0-9][A-Za-z0-9-]*)")
 
-    // Split by | or / and filter out placeholders like <path>, <N>, etc.
-    val values = content.split(Regex("[|/]"))
-      .map { it.trim() }
-      .filter { it.isNotBlank() && !it.startsWith("<") && !it.endsWith(">") }
+    for (source in sources) {
+      bracePattern.findAll(source).forEach { match ->
+        match.groupValues[1]
+          .split(Regex("[|/]"))
+          .map(String::trim)
+          .filter(::isEnumValueToken)
+          .forEach(values::add)
+      }
 
-    return if (values.size >= 2) values else null
+      assignmentPattern.findAll(source).forEach { match ->
+        val candidate = match.groupValues[1].trim()
+        if (isEnumValueToken(candidate)) {
+          values.add(candidate)
+        }
+      }
+    }
+
+    // Fallback for value descriptions that are plain disjunctions like "ignore|strict|warn".
+    if (values.size < 2 && !valueDescription.isNullOrBlank()) {
+      val directValues = valueDescription.trim()
+        .removePrefix("{")
+        .removeSuffix("}")
+        .split(Regex("[|/]"))
+        .map { it.trim().trim('"', '\'') }
+        .filter(::isEnumValueToken)
+      values.addAll(directValues)
+    }
+
+    return values.takeIf { it.size >= 2 }?.toList()
   }
+
+  private fun isEnumValueToken(value: String): Boolean =
+    value.isNotBlank() &&
+      !value.startsWith("<") &&
+      !value.endsWith(">") &&
+      Regex("^[A-Za-z0-9][A-Za-z0-9-]*$").matches(value)
 
   /**
    * Generate generated_opts file name for a specific Kotlin version.
@@ -594,26 +629,38 @@ object WriteKotlincCapabilities {
   }
 
   /**
-   * Get all arguments including removed ones.
-   * This is used for multi-version generation where we need to include
-   * flags that existed in older versions but have been removed.
+   * Get all arguments used by generation with deterministic deduplication.
+   *
+   * Priority:
+   * 1) Active arguments in the path to JVM arguments (deeper levels override parents)
+   * 2) Removed arguments only when missing from active metadata
    */
-  private fun getAllArguments(): Sequence<KotlinCompilerArgument> = sequence {
-    // Active arguments from the path to JVM arguments
+  private fun getAllArguments(): Sequence<KotlinCompilerArgument> {
+    val byName = linkedMapOf<String, KotlinCompilerArgument>()
+
     val path = findPathToLevel(
       kotlinCompilerArguments.topLevel,
       CompilerArgumentsLevelNames.jvmCompilerArguments,
-      mutableListOf()
+      mutableListOf(),
     )
     if (path != null) {
       for (level in path) {
-        yieldAll(level.arguments)
+        for (argument in level.arguments) {
+          byName[argument.name] = argument
+        }
       }
     }
 
-    // Removed arguments
-    yieldAll(removedJvmCompilerArguments.arguments)
-    yieldAll(removedCommonCompilerArguments.arguments)
+    fun addRemovedIfMissing(arguments: Iterable<KotlinCompilerArgument>) {
+      for (argument in arguments) {
+        byName.putIfAbsent(argument.name, argument)
+      }
+    }
+
+    addRemovedIfMissing(removedJvmCompilerArguments.arguments)
+    addRemovedIfMissing(removedCommonCompilerArguments.arguments)
+
+    return byName.values.asSequence()
   }
 
   /**
@@ -654,11 +701,16 @@ object WriteKotlincCapabilities {
       else -> StarlarkType.Str
     }
 
-    // Extract enumerated values from valueDescription if available
-    val enumValues = parseEnumeratedValues(valueDescription.current)
+    val flag = "-$name"
+
+    val enumValues = parseEnumeratedValues(
+      flag = flag,
+      valueDescription = valueDescription.current,
+      description = description.current,
+    )
 
     return KotlincCapability(
-      flag = "-$name",
+      flag = flag,
       doc = description.current,
       default = defaultValue,
       type = starlarkType,

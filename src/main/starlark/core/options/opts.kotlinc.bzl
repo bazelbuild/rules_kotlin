@@ -31,7 +31,10 @@ def _kotlinc_options_impl(ctx):
 
 kt_kotlinc_options = rule(
     implementation = _kotlinc_options_impl,
-    doc = "Define kotlin compiler options.",
+    doc = """Define kotlin compiler options.
+
+For string attributes, the default empty string (`""`) means "unset", so the corresponding compiler flag is not emitted.
+""",
     provides = [KotlincOptions],
     attrs = {n: o.type(**o.args) for n, o in _KOPTS.items()},
 )

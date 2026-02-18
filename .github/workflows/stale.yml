@@ -1,0 +1,54 @@
+# See https://github.com/marketplace/actions/close-stale-issues
+
+name: Mark stale issues and pull requests
+
+on:
+  schedule:
+    # run at 21:30 UTC daily
+    - cron: "30 21 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/stale@v10
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          permissions:
+            actions: write
+            issues: write
+            pull-requests: write
+
+          # The number of days old an issue can be before marking it stale.
+          days-before-stale: 180
+          # Number of days of inactivity before a stale issue is closed
+          days-before-close: 30
+
+          # Label to use when marking an issue as stale
+          stale-issue-label: 'Can Close?'
+          stale-pr-label: 'Can Close?'
+
+          stale-issue-message: >
+            Thanks for your contributions to rules_kotlin!
+
+            This issue has been automatically marked as stale because it has not had
+            any activity for 180 days.
+            It will be closed if no further activity occurs in 30 days.
+            
+
+          stale-pr-message: >
+            Thanks for your contributions to rules_kotlin!
+
+            This Pull Request has been automatically marked as stale because it has not had
+            any activity for 180 days.
+            It will be closed if no further activity occurs in 30 days.
+
+          close-issue-message: >
+            This issue was automatically closed because it went 30 days without a reply
+            since it was labeled "Can Close?"
+
+          close-pr-message: >
+            This PR was automatically closed because it went 30 days without a reply
+            since it was labeled "Can Close?"

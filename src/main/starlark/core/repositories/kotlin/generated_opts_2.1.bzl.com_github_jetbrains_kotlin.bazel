@@ -57,16 +57,6 @@ def _map_warning_level(values):
     return args
 
 GENERATED_KOPTS = {
-    "api_version": struct(
-        flag = "-api-version",
-        args = dict(
-            doc = "Allow using declarations from only the specified version of bundled libraries.",
-            default = "",
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-api-version"),
-    ),
 
     # === Custom rules_kotlin options (not direct kotlinc flags) ===
     "include_stdlibs": struct(
@@ -99,16 +89,6 @@ GENERATED_KOPTS = {
         type = attr.string,
         value_to_flag = None,
         map_value_to_flag = _map_string_flag("-jvm-target"),
-    ),
-    "language_version": struct(
-        flag = "-language-version",
-        args = dict(
-            doc = "Provide source compatibility with the specified version of Kotlin.",
-            default = "",
-        ),
-        type = attr.string,
-        value_to_flag = None,
-        map_value_to_flag = _map_string_flag("-language-version"),
     ),
     "opt_in": struct(
         flag = "-opt-in",
@@ -361,14 +341,6 @@ GENERATED_KOPTS = {
         type = attr.bool,
         value_to_flag = {True: ["-Xir-inliner"]},
     ),
-    "x_ir_inliner": struct(
-        flag = "-Xir-inliner",
-        args = dict(
-            doc = "Inline functions using the IR inliner instead of the bytecode inliner.",
-        ),
-        type = attr.bool,
-        value_to_flag = {True: ["-Xir-inliner"]},
-    ),
     "x_jdk_release": struct(
         flag = "-Xjdk-release",
         args = dict(
@@ -386,7 +358,7 @@ GENERATED_KOPTS = {
         args = dict(
             doc = """Specify the behavior of 'jspecify' annotations.
     The default value is 'strict'.""",
-            default = "",
+            values = ["", "ignore", "strict", "warn"],
         ),
         type = attr.string,
         value_to_flag = None,
@@ -768,7 +740,7 @@ GENERATED_KOPTS = {
         args = dict(
             doc = """Specify the behavior for Checker Framework 'compatqual' annotations ('NullableDecl'/'NonNullDecl').
     The default value is 'enable'.""",
-            default = "",
+            values = ["", "enable", "disable"],
         ),
         type = attr.string,
         value_to_flag = None,
