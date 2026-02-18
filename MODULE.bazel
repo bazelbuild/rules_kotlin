@@ -103,6 +103,10 @@ maven.install(
         "com.squareup.moshi:moshi-kotlin:1.15.2",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
         "org.codehaus.plexus:plexus-utils:3.0.24",
+        # kotlin-compiler-arguments-description provides JSON schema of all compiler options
+        # Used by generator to produce generated_opts.bzl with compiler flag definitions
+        "org.jetbrains.kotlin:kotlin-compiler-arguments-description:2.3.0",
+        "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.3",
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
     ],
     fail_if_repin_required = True,

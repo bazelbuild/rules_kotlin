@@ -24,8 +24,10 @@
     "junit:junit": 373369075,
     "org.apache.commons:commons-compress": -1310119682,
     "org.codehaus.plexus:plexus-utils": 1634344571,
+    "org.jetbrains.kotlin:kotlin-compiler-arguments-description": 1485872879,
     "org.jetbrains.kotlin:kotlin-metadata-jvm": -1921212285,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core": 1254427323,
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": 1436572425,
     "org.pantsbuild:jarjar": -58806822,
     "repositories": 582576641
   },
@@ -141,6 +143,8 @@
     "org.eclipse.sisu:org.eclipse.sisu.plexus:jar:sources": 237629817,
     "org.hamcrest:hamcrest-core": 649657847,
     "org.hamcrest:hamcrest-core:jar:sources": -1646511374,
+    "org.jetbrains.kotlin:kotlin-compiler-arguments-description": 303707993,
+    "org.jetbrains.kotlin:kotlin-compiler-arguments-description:jar:sources": -196253756,
     "org.jetbrains.kotlin:kotlin-metadata-jvm": -580565865,
     "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources": -1362013737,
     "org.jetbrains.kotlin:kotlin-reflect": -1424668741,
@@ -155,6 +159,10 @@
     "org.jetbrains.kotlin:kotlin-stdlib:jar:sources": 1484332307,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core": -637506750,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources": -1493138165,
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": -1822474481,
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar:sources": -711365466,
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": -1544390000,
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:jar:sources": -257231925,
     "org.jetbrains:annotations": 554168982,
     "org.jetbrains:annotations:jar:sources": 1226441379,
     "org.jspecify:jspecify": 117231129,
@@ -566,6 +574,13 @@
       },
       "version": "1.3"
     },
+    "org.jetbrains.kotlin:kotlin-compiler-arguments-description": {
+      "shasums": {
+        "jar": "f1bbc25e458cc0ac3ecb2dabf0ab901a53c0889118715fc02fab325cb4767d6d",
+        "sources": "b0be844090f96391ee5e38faed1abf9ba810c7e585db3077b3ec47d14bf0d638"
+      },
+      "version": "2.3.0"
+    },
     "org.jetbrains.kotlin:kotlin-metadata-jvm": {
       "shasums": {
         "jar": "0c64203991d0232d989cd5e366d6028d27b1b087240818178bd50c268eeab56f",
@@ -614,6 +629,20 @@
         "sources": "37131e26d85c4d8c7e16b05e524ce00998aee543e6d77b6f0351a475f9f6815e"
       },
       "version": "1.4.2"
+    },
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": {
+      "shasums": {
+        "jar": "f0adde45864144475385cf4aa7e0b7feb27f61fcf9472665ed98cc971b06b1eb",
+        "sources": "d084ce9bf130919d4b899db09896531440d1e330919187c7932d7fe0fa5257b8"
+      },
+      "version": "1.7.3"
+    },
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": {
+      "shasums": {
+        "jar": "b1e9138499ed8d20375edda3f2b1c95f3103a258eff6af9edc5ea07100f2b29c",
+        "sources": "fddb3c7e3c92692769285476308dd7a39009aed1e8ae80112169d72d75a275ab"
+      },
+      "version": "1.7.3"
     },
     "org.jetbrains:annotations": {
       "shasums": {
@@ -815,6 +844,10 @@
       "org.codehaus.plexus:plexus-utils",
       "org.eclipse.sisu:org.eclipse.sisu.inject"
     ],
+    "org.jetbrains.kotlin:kotlin-compiler-arguments-description": [
+      "org.jetbrains.kotlin:kotlin-stdlib",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm"
+    ],
     "org.jetbrains.kotlin:kotlin-metadata-jvm": [
       "org.jetbrains.kotlin:kotlin-stdlib"
     ],
@@ -834,6 +867,13 @@
     "org.jetbrains.kotlinx:kotlinx-coroutines-core": [
       "org.jetbrains.kotlin:kotlin-stdlib",
       "org.jetbrains.kotlin:kotlin-stdlib-common"
+    ],
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": [
+      "org.jetbrains.kotlin:kotlin-stdlib"
+    ],
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": [
+      "org.jetbrains.kotlin:kotlin-stdlib",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm"
     ],
     "org.ow2.asm:asm-analysis": [
       "org.ow2.asm:asm-tree"
@@ -1447,6 +1487,16 @@
       "org.hamcrest.core",
       "org.hamcrest.internal"
     ],
+    "org.jetbrains.kotlin:kotlin-compiler-arguments-description": [
+      "org.jetbrains.kotlin.arguments.description",
+      "org.jetbrains.kotlin.arguments.description.removed",
+      "org.jetbrains.kotlin.arguments.dsl",
+      "org.jetbrains.kotlin.arguments.dsl.base",
+      "org.jetbrains.kotlin.arguments.dsl.types",
+      "org.jetbrains.kotlin.arguments.serialization.json",
+      "org.jetbrains.kotlin.arguments.serialization.json.base",
+      "org.jetbrains.kotlin.cli.common.arguments"
+    ],
     "org.jetbrains.kotlin:kotlin-metadata-jvm": [
       "kotlin.metadata",
       "kotlin.metadata.internal",
@@ -1590,6 +1640,18 @@
       "kotlinx.coroutines.sync",
       "kotlinx.coroutines.test"
     ],
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": [
+      "kotlinx.serialization",
+      "kotlinx.serialization.builtins",
+      "kotlinx.serialization.descriptors",
+      "kotlinx.serialization.encoding",
+      "kotlinx.serialization.internal",
+      "kotlinx.serialization.modules"
+    ],
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": [
+      "kotlinx.serialization.json",
+      "kotlinx.serialization.json.internal"
+    ],
     "org.jetbrains:annotations": [
       "org.intellij.lang.annotations",
       "org.jetbrains.annotations"
@@ -1729,6 +1791,8 @@
       "org.eclipse.sisu:org.eclipse.sisu.plexus:jar:sources",
       "org.hamcrest:hamcrest-core",
       "org.hamcrest:hamcrest-core:jar:sources",
+      "org.jetbrains.kotlin:kotlin-compiler-arguments-description",
+      "org.jetbrains.kotlin:kotlin-compiler-arguments-description:jar:sources",
       "org.jetbrains.kotlin:kotlin-metadata-jvm",
       "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources",
       "org.jetbrains.kotlin:kotlin-reflect",
@@ -1743,6 +1807,10 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar:sources",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources",
       "org.jspecify:jspecify",
@@ -1870,6 +1938,8 @@
       "org.eclipse.sisu:org.eclipse.sisu.plexus:jar:sources",
       "org.hamcrest:hamcrest-core",
       "org.hamcrest:hamcrest-core:jar:sources",
+      "org.jetbrains.kotlin:kotlin-compiler-arguments-description",
+      "org.jetbrains.kotlin:kotlin-compiler-arguments-description:jar:sources",
       "org.jetbrains.kotlin:kotlin-metadata-jvm",
       "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources",
       "org.jetbrains.kotlin:kotlin-reflect",
@@ -1884,6 +1954,10 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar:sources",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources",
       "org.jspecify:jspecify",
@@ -2011,6 +2085,8 @@
       "org.eclipse.sisu:org.eclipse.sisu.plexus:jar:sources",
       "org.hamcrest:hamcrest-core",
       "org.hamcrest:hamcrest-core:jar:sources",
+      "org.jetbrains.kotlin:kotlin-compiler-arguments-description",
+      "org.jetbrains.kotlin:kotlin-compiler-arguments-description:jar:sources",
       "org.jetbrains.kotlin:kotlin-metadata-jvm",
       "org.jetbrains.kotlin:kotlin-metadata-jvm:jar:sources",
       "org.jetbrains.kotlin:kotlin-reflect",
@@ -2025,6 +2101,10 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:sources",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar:sources",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources",
       "org.jspecify:jspecify",

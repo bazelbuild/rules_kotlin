@@ -101,9 +101,9 @@ load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
+    api_version = KOTLIN_LANGUAGE_LEVEL,  # "2.0", "2.1", "2.2", or "2.3"
     jvm_target = JAVA_LANGUAGE_LEVEL, # "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "18", "19", "20", "21", or "22"
-    language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
+    language_version = KOTLIN_LANGUAGE_LEVEL,  # "2.0", "2.1", "2.2", or "2.3"
 )
 ```
 
@@ -115,7 +115,7 @@ register_toolchains("//:kotlin_toolchain")
 
 ## Custom `kotlinc` distribution (and version)
 
-To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), do the following
+To choose a different `kotlinc` distribution (Kotlin 2.0+), do the following
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ### `MODULE.bazel`
@@ -214,7 +214,8 @@ define_kt_toolchain(
 
 You can optionally override compiler flags at the target level by providing an alternative set of `kt_kotlinc_options` or `kt_javac_options` in your target definitions.
 
-Compiler flags that are passed to the rule definitions will be taken over the toolchain definition.
+For most compiler flags, rule-level options override toolchain defaults.
+`api_version` and `language_version` are toolchain-owned and are not exposed on `kt_kotlinc_options`.
 
 Example:
 ```python
@@ -224,7 +225,7 @@ load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 kt_kotlinc_options(
     name = "kt_kotlinc_options_for_package_name",
     x_no_param_assertions = True,
-    x_optin = [
+    opt_in = [
         "kotlin.Experimental",
         "kotlin.ExperimentalStdlibApi",
     ],
@@ -244,17 +245,32 @@ kt_jvm_library(
 )
 ```
 
-### Lambda Bytecode Generation
+For string-valued `kt_kotlinc_options` attributes, an empty string (`""`) means "unset", so the corresponding compiler flag is not passed.
 
-Note: `kt_kotlinc_options` defaults `x_lambdas` and `x_sam_conversions` to `"class"`, which differs from Kotlin 2.x and Gradle's default of `"indy"` (invokedynamic). If you encounter issues with bytecode analysis tools expecting invokedynamic-based lambdas, configure these options:
+### Breaking Changes (rules_kotlin 2.x)
+
+- Kotlin compiler versions below 2.0 are no longer supported.
+- `kt_kotlinc_options` no longer exposes `api_version` and `language_version`; configure these in `define_kt_toolchain(...)`.
+- `x_use_k2` is no longer exposed on `kt_kotlinc_options` (K2 is toolchain-managed).
+- Option names aligned with current Kotlin flag names:
+  - `x_optin` -> `opt_in`
+  - `x_jsr_305` -> `x_jsr305`
+
+### Breaking Change: Lambda Bytecode Generation (rules_kotlin 2.x)
+
+Starting with rules_kotlin 2.0, `x_lambdas` and `x_sam_conversions` now use Kotlin's default values (`"indy"` for Kotlin 2.x).
+
+**Prior versions** of rules_kotlin defaulted to `"class"` (anonymous inner classes). If you need to preserve the old behavior for compatibility:
 
 ```python
 kt_kotlinc_options(
     name = "kt_kotlinc_options",
-    x_lambdas = "indy",
-    x_sam_conversions = "indy",
+    x_lambdas = "class",
+    x_sam_conversions = "class",
 )
 ```
+
+The `"indy"` (invokedynamic) mode generally produces smaller bytecode and better performance, but may affect bytecode analysis tools.
 
 Additionally, you can add options for both tracing and timing of the bazel build using the `kt_trace` and `kt_timings` flags, for example:
 * `bazel build --define=kt_trace=1`
