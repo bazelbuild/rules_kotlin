@@ -239,6 +239,7 @@ _kt_toolchain = rule(
                 "22",
                 "23",
                 "24",
+                "25",
             ],
         ),
         "kotlin_home": attr.label(
