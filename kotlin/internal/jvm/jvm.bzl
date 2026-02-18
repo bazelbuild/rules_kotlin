@@ -242,7 +242,8 @@ _common_attr = utils.add_dicts(
         ),
         "kotlinc_opts": attr.label(
             doc = """Kotlinc options to be used when compiling this target. These opts if provided
-            will be used instead of the ones provided to the toolchain.""",
+            will be used instead of the ones provided to the toolchain.
+            Toolchain-managed settings (for example `api_version` and `language_version`) are not overridden here.""",
             default = None,
             providers = [_KotlincOptions],
             mandatory = False,

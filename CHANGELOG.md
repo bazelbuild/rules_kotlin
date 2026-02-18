@@ -2,6 +2,7 @@
 
 |  Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News  | 
 | :----------- | -------- |
+| Feb 17, 2026 | Breaking changes in rules_kotlin 2.x: dropped Kotlin compiler `<2.0` support; `kt_kotlinc_options` no longer exposes `api_version`/`language_version` (toolchain-owned) or `x_use_k2` (K2 is toolchain-managed); renamed options `x_optin` -> `opt_in` and `x_jsr_305` -> `x_jsr305`; lambda/SAM defaults now follow Kotlin defaults (`indy` for Kotlin 2.x). |
 | May 26, 2022  | Released version [v1.6.0-RC-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.6.0-RC-2). |
 | April 27, 2022  | Released version [1.6.0-RC1](https://github.com/bazelbuild/rules_kotlin/releases/tag/1.6.0-RC-1). |
 | Feb 2, 2022  | Released version [1.5.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0). |
