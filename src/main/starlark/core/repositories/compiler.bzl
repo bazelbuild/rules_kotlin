@@ -62,7 +62,7 @@ def _kotlin_capabilities_impl(repository_ctx):
         return None
 
     return repository_ctx.repo_metadata(
-        reproducible = True
+        reproducible = True,
     )
 
 def _coerce_int(string_value):
