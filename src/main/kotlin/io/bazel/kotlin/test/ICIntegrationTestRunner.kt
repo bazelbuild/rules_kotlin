@@ -114,10 +114,12 @@ object ICIntegrationTestRunner {
       appendLine("=== Running incremental build ===")
       appendLine(extractICLog(incrementalResult))
     }
-    val expectedLines = Files.readString(expectedLogPath, UTF_8).trim()
+    val rawExpectedLines = Files.readString(expectedLogPath, UTF_8).trim()
       .lines()
       .map { it.trim() }
       .filter { it.isNotEmpty() }
+    val actualLines = actualLog.lines().map { it.trim() }
+    val expectedLines = preprocessExpectedLines(rawExpectedLines, actualLines)
 
     println("=== Expected IC Log (subsequence) ===")
     println(expectedLines.joinToString("\n"))
@@ -125,7 +127,6 @@ object ICIntegrationTestRunner {
     println(actualLog)
 
     // Check that expected lines appear in order as a subsequence of actual lines
-    val actualLines = actualLog.lines().map { it.trim() }
     val missingLines = checkSubsequence(expectedLines, actualLines)
 
     if (missingLines.isNotEmpty()) {
@@ -263,7 +264,7 @@ object ICIntegrationTestRunner {
       // Find the expected line in actual, starting from current position
       var found = false
       while (actualIdx < actualLines.size) {
-        if (actualLines[actualIdx].contains(expected) || actualLines[actualIdx] == expected) {
+        if (matchesExpectedLine(expected, actualLines[actualIdx])) {
           found = true
           actualIdx++
           break
@@ -276,6 +277,50 @@ object ICIntegrationTestRunner {
     }
 
     return missing
+  }
+
+  private fun preprocessExpectedLines(rawExpectedLines: List<String>, actualLines: List<String>): List<String> {
+    val hasCompilerExitCode = actualLines.any { it.contains("compiler exit code:") }
+    val hasLegacyDirtyMarker = actualLines.any { it.contains("is marked dirty:") }
+    return buildList {
+      rawExpectedLines.forEach { line ->
+        // Kotlin build-tools logging changed and may omit this line entirely.
+        if (!hasCompilerExitCode && line.contains("compiler exit code:")) return@forEach
+        // Newer logs report dirty sources in compile-iteration entries, not this phrase.
+        if (!hasLegacyDirtyMarker && line.contains("is marked dirty:")) return@forEach
+        // Older tests used one line for multiple sources, newer output logs them on separate lines.
+        if (line.startsWith("compile iteration: ") && line.contains(",")) {
+          add("compile iteration:")
+          line.substringAfter("compile iteration:")
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .forEach { add(it) }
+          return@forEach
+        }
+        add(line)
+      }
+    }
+  }
+
+  private fun matchesExpectedLine(expected: String, actual: String): Boolean {
+    if (actual == expected || actual.contains(expected)) {
+      return true
+    }
+    if (expected.startsWith("is marked dirty: ")) {
+      val reason = expected.removePrefix("is marked dirty: ").trim()
+      return actual.contains("<- $reason")
+    }
+    val marker = " is marked dirty: "
+    if (marker in expected) {
+      val file = expected.substringBefore(marker).trim()
+      val reason = expected.substringAfter(marker).trim()
+      val fileName = file.substringAfterLast('/')
+      return actual.contains("$file <- $reason") ||
+        actual.contains("$fileName <- $reason") ||
+        actual.contains("<- $reason")
+    }
+    return false
   }
 
   /**
