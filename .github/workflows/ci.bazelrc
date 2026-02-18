@@ -12,7 +12,7 @@ build --announce_rc
 # We do not enable the repository cache to cache downloaded external artifacts
 # as these are generally faster to download again than to fetch them from the
 # GitHub actions cache.
-build --disk_cache=~/.cache/bazel
+build --disk_cache=~/.cache/bazel-disk-cache
 # Don't rely on test logs being easily accessible from the test runner,
 # though it makes the log noisier.
 test --test_output=errors

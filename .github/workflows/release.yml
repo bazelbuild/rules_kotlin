@@ -17,7 +17,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/bazel
+            ~/.cache/bazel-disk-cache
           key: bazel-cache-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', 'WORKSPACE', 'WORKSPACE.bzlmod') }}
           restore-keys: bazel-cache-
       - name: Install JDK 11
@@ -26,9 +26,6 @@ jobs:
           distribution: "zulu"
           java-version: "11"
       - name: Prepare release notes and artifacts
-        env:
-          # Bazelisk will download bazel to here.
-          XDG_CACHE_HOME: ~/.cache/bazel-repo
         run: .github/workflows/release_prep.sh ${{ env.GITHUB_REF_NAME }}
       - name: Release
         uses: softprops/action-gh-release@v1
