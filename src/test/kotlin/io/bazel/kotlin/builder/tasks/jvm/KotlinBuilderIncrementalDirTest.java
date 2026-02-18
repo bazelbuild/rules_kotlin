@@ -22,7 +22,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -74,7 +75,7 @@ public class KotlinBuilderIncrementalDirTest {
         String outputJar = task.getOutputs().getJar();
 
         // The incremental base dir should be a sibling directory to the output jar
-        String jarDir = outputJar.substring(0, outputJar.lastIndexOf(File.separatorChar));
+        String jarDir = Paths.get(outputJar).getParent().toString();
         assertThat(incrementalBaseDir).startsWith(jarDir);
 
         // Should contain the jar name (without extension) in the path
@@ -97,6 +98,26 @@ public class KotlinBuilderIncrementalDirTest {
 
         // Verify incremental base dir is empty when not enabled
         assertThat(task.getDirectories().getIncrementalBaseDir()).isEmpty();
+    }
+
+    @Test
+    public void testIncrementalBaseDirUsesConfiguredOutputJarPath() {
+        ctx.resetForNext();
+        ctx.setupTask(
+                c -> {
+                    c.compileKotlin();
+                    c.addSource("AClass.kt", "package something;\nclass AClass{}");
+                    c.outputJar("custom/output/custom-output.jar");
+                    c.outputJdeps();
+                    c.incrementalCompilation();
+                });
+        JvmCompilationTask task = ctx.buildTask();
+
+        String incrementalBaseDir = task.getDirectories().getIncrementalBaseDir();
+
+        Path incrementalBasePath = Paths.get(incrementalBaseDir);
+        assertThat(incrementalBasePath.getParent().getFileName().toString()).isEqualTo("_kotlin_incremental");
+        assertThat(incrementalBasePath.getFileName().toString()).isEqualTo("custom-output");
     }
 
 }

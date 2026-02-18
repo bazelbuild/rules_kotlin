@@ -229,6 +229,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder outputJar(String relativePath) {
+            taskBuilder.getOutputsBuilder()
+                    .setJar(instanceRoot().resolve(relativePath).toAbsolutePath().toString());
+            return this;
+        }
+
         public TaskBuilder outputJdeps() {
             taskBuilder.getOutputsBuilder()
                     .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
@@ -271,10 +277,19 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
         public TaskBuilder incrementalCompilation() {
             taskBuilder.getInfoBuilder().setIncrementalCompilation(true);
-            // Set incremental base dir relative to output jar path
-            Path outputJarPath = instanceRoot().resolve("jar_file.jar").toAbsolutePath();
-            String jarName = "jar_file";
-            Path incrementalBaseDir = outputJarPath.getParent().resolve("_kotlin_incremental/" + jarName);
+            // Set incremental base dir relative to currently configured output jar path.
+            String outputJar = taskBuilder.getOutputs().getJar();
+            if (outputJar.isEmpty()) {
+                outputJar = instanceRoot().resolve("jar_file.jar").toAbsolutePath().toString();
+                taskBuilder.getOutputsBuilder().setJar(outputJar);
+            }
+
+            Path outputJarPath = Path.of(outputJar).toAbsolutePath();
+            String outputJarFileName = outputJarPath.getFileName().toString();
+            String jarName = outputJarFileName.endsWith(".jar")
+                    ? outputJarFileName.substring(0, outputJarFileName.length() - ".jar".length())
+                    : outputJarFileName;
+            Path incrementalBaseDir = outputJarPath.getParent().resolve("_kotlin_incremental").resolve(jarName);
             taskBuilder.getDirectoriesBuilder().setIncrementalBaseDir(incrementalBaseDir.toString());
             return this;
         }

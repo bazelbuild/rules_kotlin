@@ -508,4 +508,20 @@ class IncrementalCompilationTest {
         assertThat(recoveredBuild.exitCode).isEqualTo(0)
         assertThat(readArgsHash()).isNotEqualTo(initialHash)
     }
+
+    @Test
+    fun `missing incremental base dir is created during compilation`() {
+        writeSource("A.kt", """
+            package test
+            class A
+        """.trimIndent())
+
+        icCachesDir.toFile().deleteRecursively()
+        assertThat(Files.exists(icCachesDir)).isFalse()
+
+        val result = compile(isFirstBuild = true)
+
+        assertThat(result.exitCode).isEqualTo(0)
+        assertThat(Files.exists(icCachesDir)).isTrue()
+    }
 }

@@ -194,13 +194,13 @@ def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
     strip_prefix = resource_strip_prefix.rstrip("/")
     if path.startswith(strip_prefix):
         clean_path = path[len(strip_prefix):]
-        return clean_path
+        return clean_path.lstrip("/")
 
     prefix = strip_prefix if strip_prefix.startswith("/") else "/" + strip_prefix
     idx = path.find(prefix)
     if idx != -1:
         clean_path = path[idx + len(prefix):]
-        return clean_path
+        return clean_path.lstrip("/")
 
     fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
 
@@ -216,6 +216,9 @@ def _adjust_resources_path(path, resource_strip_prefix):
         return _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix)
     else:
         return _adjust_resources_path_by_default_prefixes(path)
+
+def adjust_resources_path_by_strip_prefix_for_testing(path, resource_strip_prefix):
+    return _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix)
 
 def _new_plugins_from(targets):
     """Returns a struct containing the plugin metadata for the given targets.
