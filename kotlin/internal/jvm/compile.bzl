@@ -605,6 +605,23 @@ def _run_snapshot_action(ctx, toolchains, input_jar, output_snapshot):
         toolchain = _TOOLCHAIN_TYPE,
     )
 
+def _run_non_kotlin_dep_snapshot_actions(ctx, toolchains, non_kotlin_classpath_snapshot_jars):
+    if not toolchains.kt.experimental_incremental_compilation:
+        return []
+
+    snapshots = []
+    for i, input_jar in enumerate(non_kotlin_classpath_snapshot_jars):
+        output_snapshot = ctx.actions.declare_file("%s.non-kotlin-dep-%d.classpath-snapshot" % (ctx.label.name, i))
+        _run_snapshot_action(
+            ctx = ctx,
+            toolchains = toolchains,
+            input_jar = input_jar,
+            output_snapshot = output_snapshot,
+        )
+        snapshots.append(output_snapshot)
+
+    return snapshots
+
 def _run_kt_builder_action(
         ctx,
         mnemonic,
@@ -891,7 +908,7 @@ def _kt_jvm_produce_output_jar_actions(
         extensions = ["kt", "java"],
     )
     transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(
-        getattr(ctx.attr, "deps", []) + getattr(ctx.attr, "associates", []),
+        getattr(ctx.attr, "deps", []) + getattr(ctx.attr, "associates", []) + getattr(ctx.attr, "exports", []),
     )
 
     return struct(
@@ -954,7 +971,12 @@ def _run_kt_java_builder_actions(
     has_kt_sources = srcs.kt or srcs.src_jars
 
     # Classpath snapshots for IC are passed as explicit inputs to the compilation action.
-    # They are collected from the full dependency graph via KtJvmInfo.transitive_classpath_snapshots.
+    # Kotlin deps publish snapshots via KtJvmInfo; direct Java-only deps are snapshotted locally.
+    non_kotlin_classpath_snapshots = _run_non_kotlin_dep_snapshot_actions(
+        ctx = ctx,
+        toolchains = toolchains,
+        non_kotlin_classpath_snapshot_jars = compile_deps.non_kotlin_classpath_snapshot_jars,
+    )
 
     # Run KAPT
     if has_kt_sources and annotation_processors:
@@ -1029,7 +1051,7 @@ def _run_kt_java_builder_actions(
             transitive_runtime_jars = transitive_runtime_jars,
             plugins = plugins,
             outputs = outputs,
-            classpath_snapshots = compile_deps.classpath_snapshots,
+            classpath_snapshots = compile_deps.classpath_snapshots + non_kotlin_classpath_snapshots,
             build_kotlin = True,
             mnemonic = "KotlinCompile",
         )
@@ -1204,7 +1226,7 @@ def _export_only_providers(ctx, actions, attr, outputs):
         jdeps = output_jdeps,
     )
     transitive_classpath_snapshots = _collect_transitive_classpath_snapshots(
-        attr.deps + getattr(attr, "associates", []),
+        attr.deps + getattr(attr, "associates", []) + getattr(attr, "exports", []),
     )
 
     return struct(
