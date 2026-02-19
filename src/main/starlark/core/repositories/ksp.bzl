@@ -4,6 +4,12 @@ _JARS_INSIDE_REPO = [
     "symbol-processing-api",
 ]
 
+_KOTLINX_COROUTINES_INTELLIJ = struct(
+    version = "1.8.0-intellij-14",
+    sha256 = "ef043856ef8f38703916960fac169c359d98d5febd571d67fccdfe75ba378de3",
+    url_template = "https://repo1.maven.org/maven2/org/jetbrains/intellij/deps/kotlinx/kotlinx-coroutines-core-jvm/{version}/kotlinx-coroutines-core-jvm-{version}.jar",
+)
+
 def _ksp_compiler_plugin_repository_impl(repository_ctx):
     """Creates the KSP repository."""
     attr = repository_ctx.attr
@@ -18,6 +24,13 @@ def _ksp_compiler_plugin_repository_impl(repository_ctx):
             ): "{jar}.jar".format(jar = jar)
             for jar in _JARS_INSIDE_REPO
         },
+    )
+
+    # KSP 2.3.5+ has a runtime dependency on the IntelliJ coroutines variant.
+    repository_ctx.download(
+        url = _KOTLINX_COROUTINES_INTELLIJ.url_template.format(version = _KOTLINX_COROUTINES_INTELLIJ.version),
+        sha256 = _KOTLINX_COROUTINES_INTELLIJ.sha256,
+        output = "kotlinx-coroutines-core-jvm-intellij.jar",
     )
 
     # Remove unused .pom and checksum files files.
