@@ -36,6 +36,12 @@ ic_integration_test_suite(
     workspace_path = "ic_tests/testdata/transitive_snapshot_change",
 )
 
+ic_integration_test_suite(
+    name = "exported_java_dep_snapshot_change",
+    tags = ["manual"],
+    workspace_path = "ic_tests/testdata/exported_java_dep_snapshot_change",
+)
+
 test_suite(
     name = "ic_tests_suite",
     tags = ["ic"],
@@ -44,6 +50,7 @@ test_suite(
         "jvm_target_change",
         "kotlinc_flags_change",
         "plugin_options_change",
+        "exported_java_dep_snapshot_change",
         "transitive_snapshot_change",
         "trivial_change",
     ],
