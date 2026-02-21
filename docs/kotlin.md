@@ -731,7 +731,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | :------------- | :------------- | :------------- |
 | <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  `False` |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
-| <a id="kotlin_repositories-compiler_version"></a>compiler_version |  Kotlin compiler version string (e.g. "2.3.20-Beta2").   |  `"2.3.20-Beta2"` |
+| <a id="kotlin_repositories-compiler_version"></a>compiler_version |  Kotlin compiler version string (e.g. "2.3.20-RC").   |  `"2.3.20-RC"` |
 
 
 <a id="versions.use_repository"></a>
@@ -755,5 +755,4 @@ versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a hre
 | <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
-
 

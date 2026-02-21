@@ -33,7 +33,7 @@ def kotlin_repositories(
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
-        compiler_version: Kotlin compiler version string (e.g. "2.3.20-Beta2").
+        compiler_version: Kotlin compiler version string (e.g. "2.3.20-RC").
     """
     _release_kotlin_repositories(is_bzlmod = is_bzlmod, compiler_version = compiler_version)
     workspace_compat()
