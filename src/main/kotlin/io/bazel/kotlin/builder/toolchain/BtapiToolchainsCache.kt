@@ -21,9 +21,7 @@ import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
 import java.net.URLClassLoader
 import java.nio.file.Files
-import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
-import java.util.jar.JarFile
 
 /**
  * Caches BTAPI toolchains keyed by runtime specification.
@@ -41,31 +39,9 @@ class BtapiToolchainsCache {
   private fun loadToolchains(runtime: BtapiRuntimeSpec): KotlinToolchains {
     validateFilesExist(runtime)
 
-    val compilerVersion =
-      readNormalizedVersion(runtime.kotlinCompilerEmbeddableJar, "kotlin-compiler-embeddable")
-    val buildToolsVersion =
-      readNormalizedVersion(runtime.buildToolsImplJar, "kotlin-build-tools-impl")
-    require(buildToolsVersion == compilerVersion) {
-      "BTAPI runtime mismatch: kotlin-build-tools-impl version '$buildToolsVersion' " +
-        "must match kotlin-compiler-embeddable version '$compilerVersion'."
-    }
-
-    val daemonVersion = readNormalizedVersion(runtime.kotlinDaemonClientJar, "kotlin-daemon-client")
-    require(daemonVersion == compilerVersion) {
-      "BTAPI runtime mismatch: kotlin-daemon-client version '$daemonVersion' " +
-        "must match kotlin-compiler-embeddable version '$compilerVersion'."
-    }
-
     val urls = runtime.classpath.map { it.toUri().toURL() }.toTypedArray()
     val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
-    val toolchains = KotlinToolchains.loadImplementation(classLoader)
-    val btapiCompilerVersion = normalizeVersion(toolchains.getCompilerVersion())
-    require(btapiCompilerVersion == compilerVersion) {
-      "BTAPI implementation/compiler mismatch: KotlinToolchains compiler version " +
-        "'$btapiCompilerVersion' must match kotlin-compiler-embeddable version '$compilerVersion'."
-    }
-
-    return toolchains
+    return KotlinToolchains.loadImplementation(classLoader)
   }
 
   private fun validateFilesExist(runtime: BtapiRuntimeSpec) {
@@ -74,27 +50,5 @@ class BtapiToolchainsCache {
         "BTAPI runtime artifact does not exist or is not a file: $file"
       }
     }
-  }
-
-  private fun readNormalizedVersion(
-    jar: Path,
-    artifactName: String,
-  ): String {
-    val rawVersion =
-      JarFile(jar.toFile()).use { jarFile ->
-        jarFile.manifest?.mainAttributes?.getValue(IMPLEMENTATION_VERSION)
-      }
-    require(!rawVersion.isNullOrBlank()) {
-      "Missing '$IMPLEMENTATION_VERSION' in $artifactName manifest: $jar"
-    }
-    return normalizeVersion(rawVersion)
-  }
-
-  private fun normalizeVersion(version: String): String =
-    version.substringBefore(RELEASE_SUFFIX).trim()
-
-  companion object {
-    private const val IMPLEMENTATION_VERSION = "Implementation-Version"
-    private const val RELEASE_SUFFIX = "-release-"
   }
 }
