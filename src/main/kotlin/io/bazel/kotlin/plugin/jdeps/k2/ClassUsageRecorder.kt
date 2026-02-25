@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.forEachType
 import org.jetbrains.kotlin.name.ClassId
-import java.io.File
 import java.nio.file.Paths
 import java.util.SortedSet
 
@@ -23,7 +22,7 @@ class ClassUsageRecorder(
   internal val implicitClassesCanonicalPaths: MutableSet<String> = mutableSetOf(),
   private val seen: MutableSet<ClassId> = mutableSetOf(),
   private val results: MutableMap<String, SortedSet<String>> = sortedMapOf(),
-  private val rootPath: String = Paths.get("").toAbsolutePath().toString() + File.separator,
+  private val rootPath: String = Paths.get("").toAbsolutePath().toString() + "/",
 ) {
   private val javaHome: String by lazy { System.getenv()["JAVA_HOME"] ?: "<not set>" }
 

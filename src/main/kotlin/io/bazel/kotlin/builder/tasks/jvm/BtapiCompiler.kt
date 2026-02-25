@@ -389,7 +389,7 @@ class BtapiCompiler(
         msg: String,
         throwable: Throwable?,
       ) {
-        out.println("[IC ERROR] $msg")
+        out.println(msg)
         throwable?.printStackTrace(out)
       }
 
@@ -397,25 +397,25 @@ class BtapiCompiler(
         msg: String,
         throwable: Throwable?,
       ) {
-        out.println("[IC WARN] $msg")
+        out.println(msg)
         throwable?.printStackTrace(out)
       }
 
       override fun info(msg: String) {
         if (verbose) {
-          out.println("[IC INFO] $msg")
+          out.println(msg)
         }
       }
 
       override fun debug(msg: String) {
         if (verbose) {
-          out.println("[IC DEBUG] $msg")
+          out.println(msg)
         }
       }
 
       override fun lifecycle(msg: String) {
         if (verbose) {
-          out.println("[IC] $msg")
+          out.println(msg)
         }
       }
     }

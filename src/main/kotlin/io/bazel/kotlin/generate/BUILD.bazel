@@ -1,14 +1,13 @@
-load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_import", "kt_jvm_library")
-load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
+load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
 
 kt_jvm_library(
     name = "kotlin_release_options_lib",
     srcs = glob(["**/*.kt"]),
-    deps = [
-        "//kotlin/compiler:kotlin-compiler",
-    ],
     visibility = [
         "//src/test:__subpackages__",
+    ],
+    deps = [
+        "//kotlin/compiler:kotlin-compiler",
     ],
 )
 

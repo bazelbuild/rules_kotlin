@@ -9,9 +9,6 @@ load(
 def _artifact_short_path(artifact):
     return artifact.short_path
 
-# Toolchain type for the Windows launcher maker
-_LAUNCHER_MAKER_TOOLCHAIN_TYPE = "@bazel_tools//tools/launcher:launcher_maker_toolchain_type"
-
 def compile_kotlin_for_jvm(
         actions,
         srcs,

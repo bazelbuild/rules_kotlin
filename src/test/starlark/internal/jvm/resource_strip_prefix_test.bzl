@@ -7,20 +7,15 @@ def _strip_resource_prefix_test_impl(ctx):
 
     actions = analysistest.target_actions(env)
 
-    # Select the resource zipper argument file write action.
-    # There may be multiple FileWrite actions (e.g. plugins payload).
-    resource_zipper_arg_actions = [
+    # Find the only FileWrite action (it's the one responsible for writing the arguments to the resource zipper)
+    file_write_actions = [
         action
         for action in actions
-        if action.mnemonic == "FileWrite" and len([
-            output
-            for output in action.outputs.to_list()
-            if output.path.endswith("_resources_zipper_args")
-        ]) > 0
+        if action.mnemonic == "FileWrite"
     ]
-    asserts.equals(env, expected = 1, actual = len(resource_zipper_arg_actions))
+    asserts.equals(env, expected = 1, actual = len(file_write_actions))
 
-    arguments = resource_zipper_arg_actions[0].content
+    arguments = file_write_actions[0].content
 
     pkg = ctx.attr.pkg
 

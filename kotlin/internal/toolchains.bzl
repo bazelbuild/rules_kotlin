@@ -117,6 +117,13 @@ _kt_toolchain = rule(
     doc = """The kotlin toolchain. This should not be created directly `define_kt_toolchain` should be used. The
     rules themselves define the toolchain using that macro.""",
     attrs = {
+        "annotations": attr.label(
+            doc = "Kotlin runtime: annotations artifact.",
+            allow_single_file = True,
+            providers = [JavaInfo],
+            cfg = "exec",
+            default = Label("//kotlin/compiler:annotations"),
+        ),
         "api_version": attr.string(
             doc = "this is the -api_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html).",
             default = "2.1",
@@ -136,49 +143,11 @@ _kt_toolchain = rule(
                 "2.3",
             ],
         ),
-        "annotations": attr.label(
-            doc = "Kotlin runtime: annotations artifact.",
-            allow_single_file = True,
-            providers = [JavaInfo],
-            cfg = "exec",
-            default = Label("//kotlin/compiler:annotations"),
-        ),
         "build_tools_impl": attr.label(
             doc = "Kotlin runtime: kotlin-build-tools-impl artifact.",
             allow_single_file = True,
             cfg = "exec",
             default = Label("//kotlin/compiler:kotlin-build-tools-impl"),
-        ),
-        "kotlin_compiler_embeddable": attr.label(
-            doc = "Kotlin runtime: kotlin-compiler-embeddable artifact.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-compiler-embeddable"),
-        ),
-        "kotlin_coroutines": attr.label(
-            doc = "Kotlin runtime: coroutines artifact.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
-        ),
-        "kotlin_daemon_client": attr.label(
-            doc = "Kotlin runtime: kotlin-daemon-client artifact.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-daemon-client"),
-        ),
-        "kotlin_reflect": attr.label(
-            doc = "Kotlin runtime: kotlin-reflect artifact.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-reflect"),
-        ),
-        "kotlin_stdlib": attr.label(
-            doc = "Kotlin runtime: kotlin-stdlib artifact.",
-            allow_single_file = True,
-            providers = [JavaInfo],
-            cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-stdlib"),
         ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
@@ -304,6 +273,37 @@ _kt_toolchain = rule(
                 "24",
                 "25",
             ],
+        ),
+        "kotlin_compiler_embeddable": attr.label(
+            doc = "Kotlin runtime: kotlin-compiler-embeddable artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-compiler-embeddable"),
+        ),
+        "kotlin_coroutines": attr.label(
+            doc = "Kotlin runtime: coroutines artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
+        ),
+        "kotlin_daemon_client": attr.label(
+            doc = "Kotlin runtime: kotlin-daemon-client artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-daemon-client"),
+        ),
+        "kotlin_reflect": attr.label(
+            doc = "Kotlin runtime: kotlin-reflect artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-reflect"),
+        ),
+        "kotlin_stdlib": attr.label(
+            doc = "Kotlin runtime: kotlin-stdlib artifact.",
+            allow_single_file = True,
+            providers = [JavaInfo],
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-stdlib"),
         ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",
