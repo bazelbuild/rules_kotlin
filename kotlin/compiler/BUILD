@@ -24,17 +24,6 @@ alias(
     actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_stdlib",
 )
 
-# Legacy labels kept for compatibility. Kotlin 1.8+ folds JDK extensions into stdlib.
-alias(
-    name = "kotlin-stdlib-jdk7",
-    actual = ":kotlin-stdlib",
-)
-
-alias(
-    name = "kotlin-stdlib-jdk8",
-    actual = ":kotlin-stdlib",
-)
-
 alias(
     name = "kotlin-reflect",
     actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_reflect",
@@ -53,13 +42,6 @@ alias(
 alias(
     name = "kotlinx-coroutines-core-jvm",
     actual = "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
-)
-
-# Kotlin compiler - neverlink for compile-time only
-java_library(
-    name = "kotlin-compiler",
-    neverlink = True,
-    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler"],
 )
 
 java_library(
@@ -117,6 +99,41 @@ alias(
 alias(
     name = "kotlin-daemon-client",
     actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
+)
+
+alias(
+    name = "kotlin-build-tools-impl",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
+)
+
+alias(
+    name = "kotlin-compiler",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler",
+)
+
+alias(
+    name = "kotlin-compiler-embeddable",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
+)
+
+alias(
+    name = "kotlin-annotation-processing-embeddable",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
+)
+
+alias(
+    name = "symbol-processing-aa",
+    actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_aa_embeddable",
+)
+
+alias(
+    name = "symbol-processing-api",
+    actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_api",
+)
+
+alias(
+    name = "symbol-processing-common-deps",
+    actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
 )
 
 kapt_compiler_plugin(

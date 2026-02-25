@@ -8,7 +8,7 @@ load(":toolchain.bzl", "cli_toolchain")
 java_library(
     name = "kotlinc_jar",
     exports = [
-        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler",
+        "//kotlin/compiler:kotlin-compiler",
     ],
 )
 
@@ -27,11 +27,11 @@ java_binary(
 
 cli_toolchain(
     name = "cli_toolchain",
-    api_version = versions.KOTLIN_CURRENT_COMPILER_VERSION,
+    api_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
     jvm_target = "11",
     kotlin_stdlibs = _KOTLIN_STDLIBS,
     kotlinc = ":kotlinc",
-    language_version = versions.KOTLIN_CURRENT_COMPILER_VERSION,
+    language_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
     zip = "@bazel_tools//tools/zip:zipper",
 )
 

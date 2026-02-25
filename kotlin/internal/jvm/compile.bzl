@@ -54,15 +54,15 @@ load(
     _plugin_payload = "plugin_payload",
 )
 
-# Keep BTAPI runtime artifact wiring in a single place for all worker actions.
-_BTAPI_RUNTIME_ARG_SPECS = (
-    ("--btapi_build_tools_impl", "btapi_build_tools_impl"),
-    ("--btapi_kotlin_compiler_embeddable", "btapi_kotlin_compiler_embeddable"),
-    ("--btapi_kotlin_daemon_client", "btapi_kotlin_daemon_client"),
-    ("--btapi_kotlin_stdlib", "btapi_kotlin_stdlib"),
-    ("--btapi_kotlin_reflect", "btapi_kotlin_reflect"),
-    ("--btapi_kotlin_coroutines", "btapi_kotlin_coroutines"),
-    ("--btapi_annotations", "btapi_annotations"),
+# Keep runtime artifact wiring in a single place for all worker actions.
+_RUNTIME_ARG_SPECS = (
+    ("--build_tools_impl", "build_tools_impl"),
+    ("--kotlin_compiler_embeddable", "kotlin_compiler_embeddable"),
+    ("--kotlin_daemon_client", "kotlin_daemon_client"),
+    ("--kotlin_stdlib", "kotlin_stdlib"),
+    ("--kotlin_reflect", "kotlin_reflect"),
+    ("--kotlin_coroutines", "kotlin_coroutines"),
+    ("--annotations", "annotations"),
 )
 
 # UTILITY ##############################################################################################################
@@ -132,11 +132,11 @@ def _fail_if_invalid_associate_deps(associate_deps, deps):
 def _java_infos_to_compile_jars(java_infos):
     return depset(transitive = [j.compile_jars for j in java_infos])
 
-def _btapi_runtime_inputs(toolchains):
-    return [getattr(toolchains.kt, attr_name) for _, attr_name in _BTAPI_RUNTIME_ARG_SPECS]
+def _runtime_inputs(toolchains):
+    return [getattr(toolchains.kt, attr_name) for _, attr_name in _RUNTIME_ARG_SPECS]
 
-def _add_btapi_runtime_args(args, toolchains):
-    for flag, attr_name in _BTAPI_RUNTIME_ARG_SPECS:
+def _add_runtime_args(args, toolchains):
+    for flag, attr_name in _RUNTIME_ARG_SPECS:
         args.add(flag, getattr(toolchains.kt, attr_name))
 
 def _exported_plugins(deps):
@@ -504,7 +504,7 @@ def _run_ksp_builder_actions(
         toolchains.kt.ksp2_symbol_processing_api[JavaInfo].runtime_output_jars +
         toolchains.kt.ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars +
         toolchains.kt.ksp2_symbol_processing_common_deps[JavaInfo].runtime_output_jars +
-        toolchains.kt.ksp2_kotlinx_coroutines[JavaInfo].runtime_output_jars,
+        [toolchains.kt.kotlin_coroutines],
     )
 
     # Get the KSP2 invoker JAR (contains Ksp2Invoker class loaded via reflection)
@@ -572,7 +572,7 @@ def _run_kt_builder_action(
 
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
-    runtime_inputs = _btapi_runtime_inputs(toolchains)
+    runtime_inputs = _runtime_inputs(toolchains)
     internal_plugin_inputs = [
         toolchains.kt.internal_jvm_abi_gen,
         toolchains.kt.internal_skip_code_gen,
@@ -592,7 +592,7 @@ def _run_kt_builder_action(
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
-    _add_btapi_runtime_args(args, toolchains)
+    _add_runtime_args(args, toolchains)
     args.add("--internal_jvm_abi_gen", toolchains.kt.internal_jvm_abi_gen)
     args.add("--internal_skip_code_gen", toolchains.kt.internal_skip_code_gen)
     args.add("--internal_kapt", toolchains.kt.internal_kapt)

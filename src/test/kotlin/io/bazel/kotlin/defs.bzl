@@ -36,8 +36,6 @@ def kt_rules_test(name, **kwargs):
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:jvm-abi-gen",
         "//kotlin/compiler:kotlin-stdlib",
-        "//kotlin/compiler:kotlin-stdlib-jdk7",
-        "//kotlin/compiler:kotlin-stdlib-jdk8",
         "//kotlin/compiler:kotlin-reflect",
         "//kotlin/compiler:kotlinx-coroutines-core-jvm",
         "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",

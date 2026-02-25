@@ -13,110 +13,45 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_java//java:java_library.bzl", "java_library")
+load("//kotlin:jvm.bzl", "kt_jvm_import")
+load(":compiler.bzl", "kt_configure_compiler")
 load(":kapt.bzl", "kapt_compiler_plugin")
 
 package(default_visibility = ["//visibility:public"])
 
-# Kotlin standard library
-alias(
-    name = "kotlin-stdlib",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_stdlib",
-)
+# Configures compiler and stdlib/plugin labels from the downloaded Kotlin distribution.
+kt_configure_compiler()
 
-# Legacy labels kept for compatibility. Kotlin 1.8+ folds JDK extensions into stdlib.
+# BTAPI runtime artifacts required by default toolchains.
 alias(
-    name = "kotlin-stdlib-jdk7",
-    actual = ":kotlin-stdlib",
+    name = "kotlin-build-tools-impl",
+    actual = "@kotlin_build_tools_impl//file",
 )
 
 alias(
-    name = "kotlin-stdlib-jdk8",
-    actual = ":kotlin-stdlib",
+    name = "kotlin-compiler-embeddable",
+    actual = ":kotlin-compiler",
 )
 
 alias(
-    name = "kotlin-reflect",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_reflect",
+    name = "kotlin-annotation-processing-embeddable",
+    actual = ":kotlin-annotation-processing",
 )
 
-alias(
-    name = "kotlin-test",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_test",
+# KSP2 processor classpath artifacts from downloaded KSP distribution.
+kt_jvm_import(
+    name = "symbol-processing-aa",
+    jar = "@com_github_google_ksp//:symbol-processing-aa.jar",
 )
 
-alias(
-    name = "annotations",
-    actual = "@kotlin_rules_maven//:org_jetbrains_annotations",
+kt_jvm_import(
+    name = "symbol-processing-api",
+    jar = "@com_github_google_ksp//:symbol-processing-api.jar",
 )
 
-alias(
-    name = "kotlinx-coroutines-core-jvm",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
-)
-
-# Kotlin compiler - neverlink for compile-time only
-java_library(
-    name = "kotlin-compiler",
-    neverlink = True,
-    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler"],
-)
-
-java_library(
-    name = "kotlin-annotation-processing",
-    neverlink = True,
-    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing"],
-)
-
-alias(
-    name = "jvm-abi-gen",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_jvm_abi_gen",
-)
-
-alias(
-    name = "kotlin-script-runtime",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_script_runtime",
-)
-
-# Compiler plugins
-alias(
-    name = "allopen-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_allopen_compiler_plugin",
-)
-
-alias(
-    name = "noarg-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_noarg_compiler_plugin",
-)
-
-alias(
-    name = "sam-with-receiver-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_sam_with_receiver_compiler_plugin",
-)
-
-alias(
-    name = "kotlinx-serialization-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_serialization_compiler_plugin",
-)
-
-alias(
-    name = "kotlin-serialization-compiler-plugin",
-    actual = ":kotlinx-serialization-compiler-plugin",
-)
-
-alias(
-    name = "parcelize-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_compiler",
-)
-
-alias(
-    name = "parcelize-runtime",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_runtime",
-)
-
-alias(
-    name = "kotlin-daemon-client",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
+kt_jvm_import(
+    name = "symbol-processing-common-deps",
+    jar = "@com_github_google_ksp//:symbol-processing-common-deps.jar",
 )
 
 kapt_compiler_plugin(

@@ -82,11 +82,11 @@ versions = struct(
         sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
     ),
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.3.10",
+        version = "2.3.20-RC",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
-        sha256 = "c8d546f9ff433b529fb0ad43feceb39831040cae2ca8d17e7df46364368c9a9e",
+        sha256 = "9131133ba083ad3c16f848095455ce57002bec145d3e72b1a768439073e9d3b0",
     ),
     KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
         version = "2.3.6",
@@ -96,11 +96,11 @@ versions = struct(
         sha256 = "685d895c746df2e2159174a9fac9dcc029c3e127612c677bbc5502dd71e98ffe",
     ),
     KOTLIN_BUILD_TOOLS_IMPL = version(
-        version = "2.3.10",
+        version = "2.3.20-RC",
         url_templates = [
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
         ],
-        sha256 = "32f02a6af72b8e0c82f26343b68e0d1da1c844827478feb2fa9dc40df5f9bb5a",
+        sha256 = "23a5e27399dd1ce11467a6391a14faacf477e121e474c692ea7a1c2c2b98bd0d",
     ),
     RULES_ANDROID = version(
         version = "0.7.0",

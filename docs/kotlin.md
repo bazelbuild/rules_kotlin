@@ -527,12 +527,11 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_remove_private_classes_in_abi_jars">experimental_remove_private_classes_in_abi_jars</a>,
                     <a href="#define_kt_toolchain-experimental_remove_debug_info_in_abi_jars">experimental_remove_debug_info_in_abi_jars</a>, <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>,
                     <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>, <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>,
-                    <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>,
-                    <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-btapi_build_tools_impl">btapi_build_tools_impl</a>,
-                    <a href="#define_kt_toolchain-btapi_kotlin_compiler_embeddable">btapi_kotlin_compiler_embeddable</a>, <a href="#define_kt_toolchain-btapi_kotlin_daemon_client">btapi_kotlin_daemon_client</a>, <a href="#define_kt_toolchain-btapi_kotlin_stdlib">btapi_kotlin_stdlib</a>,
-                    <a href="#define_kt_toolchain-btapi_kotlin_reflect">btapi_kotlin_reflect</a>, <a href="#define_kt_toolchain-btapi_kotlin_coroutines">btapi_kotlin_coroutines</a>, <a href="#define_kt_toolchain-btapi_annotations">btapi_annotations</a>,
+                    <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>,
+                    <a href="#define_kt_toolchain-build_tools_impl">build_tools_impl</a>, <a href="#define_kt_toolchain-kotlin_compiler_embeddable">kotlin_compiler_embeddable</a>, <a href="#define_kt_toolchain-kotlin_daemon_client">kotlin_daemon_client</a>,
+                    <a href="#define_kt_toolchain-kotlin_stdlib">kotlin_stdlib</a>, <a href="#define_kt_toolchain-kotlin_reflect">kotlin_reflect</a>, <a href="#define_kt_toolchain-kotlin_coroutines">kotlin_coroutines</a>, <a href="#define_kt_toolchain-annotations">annotations</a>,
                     <a href="#define_kt_toolchain-internal_jvm_abi_gen">internal_jvm_abi_gen</a>, <a href="#define_kt_toolchain-internal_skip_code_gen">internal_skip_code_gen</a>, <a href="#define_kt_toolchain-internal_jdeps_gen">internal_jdeps_gen</a>, <a href="#define_kt_toolchain-internal_kapt">internal_kapt</a>,
-                    <a href="#define_kt_toolchain-ksp2">ksp2</a>, <a href="#define_kt_toolchain-ksp2_invoker">ksp2_invoker</a>, <a href="#define_kt_toolchain-ksp2_kotlinx_coroutines">ksp2_kotlinx_coroutines</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_aa">ksp2_symbol_processing_aa</a>,
+                    <a href="#define_kt_toolchain-ksp2">ksp2</a>, <a href="#define_kt_toolchain-ksp2_invoker">ksp2_invoker</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_aa">ksp2_symbol_processing_aa</a>,
                     <a href="#define_kt_toolchain-ksp2_symbol_processing_api">ksp2_symbol_processing_api</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_common_deps">ksp2_symbol_processing_common_deps</a>,
                     <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
@@ -558,23 +557,20 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-experimental_multiplex_workers"></a>experimental_multiplex_workers |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-javac_options"></a>javac_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_javac_options")` |
 | <a id="define_kt_toolchain-kotlinc_options"></a>kotlinc_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_kotlinc_options")` |
-| <a id="define_kt_toolchain-jvm_stdlibs"></a>jvm_stdlibs |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-jvm_runtime"></a>jvm_runtime |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-jacocorunner"></a>jacocorunner |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-btapi_build_tools_impl"></a>btapi_build_tools_impl |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-btapi_kotlin_compiler_embeddable"></a>btapi_kotlin_compiler_embeddable |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-btapi_kotlin_daemon_client"></a>btapi_kotlin_daemon_client |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-btapi_kotlin_stdlib"></a>btapi_kotlin_stdlib |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-btapi_kotlin_reflect"></a>btapi_kotlin_reflect |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-btapi_kotlin_coroutines"></a>btapi_kotlin_coroutines |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-btapi_annotations"></a>btapi_annotations |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-build_tools_impl"></a>build_tools_impl |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-kotlin_compiler_embeddable"></a>kotlin_compiler_embeddable |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-kotlin_daemon_client"></a>kotlin_daemon_client |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-kotlin_stdlib"></a>kotlin_stdlib |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-kotlin_reflect"></a>kotlin_reflect |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-kotlin_coroutines"></a>kotlin_coroutines |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-annotations"></a>annotations |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-internal_jvm_abi_gen"></a>internal_jvm_abi_gen |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-internal_skip_code_gen"></a>internal_skip_code_gen |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-internal_jdeps_gen"></a>internal_jdeps_gen |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-internal_kapt"></a>internal_kapt |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2"></a>ksp2 |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_invoker"></a>ksp2_invoker |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-ksp2_kotlinx_coroutines"></a>ksp2_kotlinx_coroutines |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_symbol_processing_aa"></a>ksp2_symbol_processing_aa |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_symbol_processing_api"></a>ksp2_symbol_processing_api |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_symbol_processing_common_deps"></a>ksp2_symbol_processing_common_deps |  <p align="center"> - </p>   |  `None` |
@@ -622,7 +618,7 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  `False` |
 | <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
 | <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
-| <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "c8d546f9ff433b529fb0ad43feceb39831040cae2ca8d17e7df46364368c9a9e", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.3.10")` |
+| <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "9131133ba083ad3c16f848095455ce57002bec145d3e72b1a768439073e9d3b0", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.3.20-RC")` |
 | <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "685d895c746df2e2159174a9fac9dcc029c3e127612c677bbc5502dd71e98ffe", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.6")` |
 
 
@@ -647,5 +643,3 @@ versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a hre
 | <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
-
-

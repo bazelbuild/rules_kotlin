@@ -33,8 +33,9 @@ def kt_configure():
     bazel_features_deps()
     bazel_lib_dependencies()
 
-    # keep in sync with MODULE.bazel and `proto_version` variable there.
-    proto_version = "4.33.1"
+    # Keep in sync with MODULE.bazel.
+    proto_version = "4.33.4"
+    kotlin_version = "2.3.20-RC"
 
     maven_install(
         name = "kotlin_rules_maven",
@@ -50,19 +51,46 @@ def kt_configure():
             "com.google.truth:truth:0.45",
             "com.google.auto.service:auto-service:1.1.1",
             "com.google.auto.service:auto-service-annotations:1.1.1",
-            "com.google.auto.value:auto-value:1.10.1",
-            "com.google.auto.value:auto-value-annotations:1.10.1",
-            "com.google.dagger:dagger:2.53.1",
-            "com.google.dagger:dagger-compiler:2.53.1",
-            "com.google.dagger:dagger-producers:2.53.1",
+            "com.google.auto.value:auto-value:1.11.0",
+            "com.google.auto.value:auto-value-annotations:1.11.0",
+            "com.google.dagger:dagger:2.57.2",
+            "com.google.dagger:dagger-compiler:2.57.2",
+            "com.google.dagger:dagger-producers:2.57.2",
+            "org.jetbrains.kotlin:kotlin-metadata-jvm:{}".format(kotlin_version),
             "javax.annotation:javax.annotation-api:1.3.2",
             "javax.inject:javax.inject:1",
             "org.apache.commons:commons-compress:1.26.2",
             "com.eed3si9n.jarjarabrams:jarjar-abrams-assembly_2.13:1.14.1",
             "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
-            "com.squareup.moshi:moshi:1.15.1",
-            "com.squareup.moshi:moshi-kotlin:1.15.1",
-            "com.squareup.moshi:moshi-kotlin-codegen:1.15.1",
+            "com.squareup.moshi:moshi:1.15.2",
+            "com.squareup.moshi:moshi-kotlin:1.15.2",
+            "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
+            "org.codehaus.plexus:plexus-utils:3.0.24",
+            "org.jetbrains:annotations:13.0",
+            "org.jetbrains.kotlin:kotlin-stdlib:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-reflect:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-test:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-script-runtime:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-daemon-client:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-compiler:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-compiler-embeddable:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-annotation-processing:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:jvm-abi-gen:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-parcelize-compiler:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-parcelize-runtime:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-build-tools-api:{}".format(kotlin_version),
+            "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
+            "com.google.devtools.ksp:symbol-processing-api:2.3.4",
+            "com.google.devtools.ksp:symbol-processing-common-deps:2.3.4",
+            "com.google.devtools.ksp:symbol-processing-aa-embeddable:2.3.4",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
+            "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",

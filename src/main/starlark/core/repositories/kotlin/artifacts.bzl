@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO: to be removed in the next pass
+
 KOTLINC_ARTIFACTS = struct(
     jvm = struct(
         plugin = {
@@ -28,10 +30,6 @@ KOTLINC_ARTIFACTS = struct(
         runtime = {
             "jvm-abi-gen": "lib/jvm-abi-gen.jar",
             "kotlin-stdlib": "lib/kotlin-stdlib.jar",
-            "kotlin-stdlib-jdk7": "lib/kotlin-stdlib-jdk7.jar",
-            "kotlin-stdlib-jdk7-sources": "lib/kotlin-stdlib-jdk7-sources.jar",
-            "kotlin-stdlib-jdk8": "lib/kotlin-stdlib-jdk8.jar",
-            "kotlin-stdlib-jdk8-sources": "lib/kotlin-stdlib-jdk8-sources.jar",
             "kotlin-stdlib-sources": "lib/kotlin-stdlib-sources.jar",
             "kotlin-test-junit": "lib/kotlin-test-junit.jar",
             "kotlin-test-junit-sources": "lib/kotlin-test-junit-sources.jar",
@@ -87,7 +85,5 @@ KOTLINC_ARTIFACT_LIST = {
 KOTLIN_STDLIBS = [
     "//kotlin/compiler:annotations",
     "//kotlin/compiler:kotlin-stdlib",
-    "//kotlin/compiler:kotlin-stdlib-jdk7",
-    "//kotlin/compiler:kotlin-stdlib-jdk8",
     "//kotlin/compiler:kotlinx-coroutines-core-jvm",
 ]
