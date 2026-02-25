@@ -17,8 +17,6 @@
 
 package io.bazel.kotlin.builder.tasks.jvm
 
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
-
 data class InternalCompilerPlugin(
   val jarPath: String,
   val id: String,
@@ -30,18 +28,6 @@ class InternalCompilerPlugins constructor(
   val kapt: InternalCompilerPlugin,
   val jdeps: InternalCompilerPlugin,
 ) {
-  constructor(
-    jvmAbiGen: KotlinToolchain.CompilerPlugin,
-    skipCodeGen: KotlinToolchain.CompilerPlugin,
-    kapt: KotlinToolchain.CompilerPlugin,
-    jdeps: KotlinToolchain.CompilerPlugin,
-  ) : this(
-    InternalCompilerPlugin(jvmAbiGen.jarPath, jvmAbiGen.id),
-    InternalCompilerPlugin(skipCodeGen.jarPath, skipCodeGen.id),
-    InternalCompilerPlugin(kapt.jarPath, kapt.id),
-    InternalCompilerPlugin(jdeps.jarPath, jdeps.id),
-  )
-
   companion object {
     const val JVM_ABI_GEN_ID = "org.jetbrains.kotlin.jvm.abi"
     const val SKIP_CODE_GEN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"

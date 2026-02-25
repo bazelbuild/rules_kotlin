@@ -16,8 +16,6 @@
  */
 
 package io.bazel.kotlin.builder.tasks.jvm
-
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.nio.file.FileSystem
@@ -58,10 +56,10 @@ class CompilationArgs(
     ): SetFlag
   }
 
-  fun plugin(p: KotlinToolchain.CompilerPlugin): CompilationArgs = plugin(p) {}
+  fun plugin(p: InternalCompilerPlugin): CompilationArgs = plugin(p) {}
 
   fun plugin(
-    p: KotlinToolchain.CompilerPlugin,
+    p: InternalCompilerPlugin,
     flagArgs: SetFlag.() -> Unit,
   ): CompilationArgs {
     value("-Xplugin=${p.jarPath}")

@@ -17,8 +17,6 @@
 
 package io.bazel.kotlin.builder.tasks.jvm
 
-import java.io.File
-
 /**
  * Entry point invoked by the KSP2 worker through a dedicated classloader.
  *
@@ -26,22 +24,5 @@ import java.io.File
  * so the worker can call into the implementation without reflective method lookup.
  */
 interface Ksp2EntryPoint {
-  fun execute(
-    moduleName: String,
-    sourceRoots: List<File>,
-    javaSourceRoots: List<File>,
-    libraries: List<File>,
-    kotlinOutputDir: File,
-    javaOutputDir: File,
-    classOutputDir: File,
-    resourceOutputDir: File,
-    cachesDir: File,
-    projectBaseDir: File,
-    outputBaseDir: File,
-    jvmTarget: String?,
-    languageVersion: String?,
-    apiVersion: String?,
-    jdkHome: File?,
-    logLevel: Int,
-  ): Int
+  fun execute(request: Ksp2Request): Int
 }

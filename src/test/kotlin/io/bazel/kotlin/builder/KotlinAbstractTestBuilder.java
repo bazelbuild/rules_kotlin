@@ -16,10 +16,10 @@
  */
 package io.bazel.kotlin.builder;
 
+import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
 import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec;
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
@@ -199,12 +199,12 @@ abstract class KotlinAbstractTestBuilder<T> {
         return Stream.of(filePath).map(f -> directory.resolve(toPlatformPath(f)));
     }
 
-    static KotlinToolchain toolchainForTest() {
-        return KotlinToolchain.createToolchain(
-                new File(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar())
+    static InternalCompilerPlugins internalPluginsForTest() {
+        return InternalCompilerPlugins.fromPaths(
+                Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),
+                Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar(),
+                Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar(),
+                Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()
         );
     }
 

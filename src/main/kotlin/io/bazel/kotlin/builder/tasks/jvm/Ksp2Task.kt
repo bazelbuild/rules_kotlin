@@ -180,22 +180,24 @@ class Ksp2Task : Work {
               .getConstructor(ClassLoader::class.java)
               .newInstance(kspClassLoader) as Ksp2EntryPoint
           invoker.execute(
-            moduleName = moduleName,
-            sourceRoots = sourceRoots.map { File(it) },
-            javaSourceRoots = javaSourceRoots.map { File(it) },
-            libraries = argMap.optional(Ksp2Flags.LIBRARIES)?.map { File(it) } ?: emptyList<File>(),
-            kotlinOutputDir = kotlinOutputDir.toFile(),
-            javaOutputDir = javaOutputDir.toFile(),
-            classOutputDir = classOutputDir.toFile(),
-            resourceOutputDir = resourceOutputDir.toFile(),
-            cachesDir = cachesDir.toFile(),
-            projectBaseDir = kspWorkDir.toFile(),
-            outputBaseDir = kspWorkDir.toFile(),
-            jvmTarget = argMap.optionalSingle(Ksp2Flags.JVM_TARGET),
-            languageVersion = argMap.optionalSingle(Ksp2Flags.LANGUAGE_VERSION),
-            apiVersion = argMap.optionalSingle(Ksp2Flags.API_VERSION),
-            jdkHome = argMap.optionalSingle(Ksp2Flags.JDK_HOME)?.let { File(it) },
-            logLevel = 1,
+            Ksp2Request(
+              moduleName = moduleName,
+              sourceRoots = sourceRoots.map { File(it) },
+              javaSourceRoots = javaSourceRoots.map { File(it) },
+              libraries = argMap.optional(Ksp2Flags.LIBRARIES)?.map { File(it) } ?: emptyList(),
+              kotlinOutputDir = kotlinOutputDir.toFile(),
+              javaOutputDir = javaOutputDir.toFile(),
+              classOutputDir = classOutputDir.toFile(),
+              resourceOutputDir = resourceOutputDir.toFile(),
+              cachesDir = cachesDir.toFile(),
+              projectBaseDir = kspWorkDir.toFile(),
+              outputBaseDir = kspWorkDir.toFile(),
+              jvmTarget = argMap.optionalSingle(Ksp2Flags.JVM_TARGET),
+              languageVersion = argMap.optionalSingle(Ksp2Flags.LANGUAGE_VERSION),
+              apiVersion = argMap.optionalSingle(Ksp2Flags.API_VERSION),
+              jdkHome = argMap.optionalSingle(Ksp2Flags.JDK_HOME)?.let { File(it) },
+              logLevel = 1,
+            ),
           )
         }
 

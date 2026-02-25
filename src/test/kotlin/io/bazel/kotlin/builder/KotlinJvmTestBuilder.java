@@ -23,7 +23,6 @@ import io.bazel.kotlin.builder.Deps.Dep;
 import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
@@ -106,13 +105,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     private static KotlinJvmTaskExecutor jvmTaskExecutor() {
         if (jvmTaskExecutor == null) {
-            KotlinToolchain toolchain = toolchainForTest();
-            InternalCompilerPlugins plugins = new InternalCompilerPlugins(
-                    toolchain.getJvmAbiGen(),
-                    toolchain.getSkipCodeGen(),
-                    toolchain.getKapt3Plugin(),
-                    toolchain.getJdepsGen()
-            );
+            InternalCompilerPlugins plugins = internalPluginsForTest();
             jvmTaskExecutor = new KotlinJvmTaskExecutor(btapiRuntimeForTest(), plugins);
         }
         return jvmTaskExecutor;

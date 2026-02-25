@@ -20,7 +20,7 @@ import com.google.devtools.ksp.processing.KSPJvmConfig
 import com.google.devtools.ksp.processing.KspGradleLogger
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2EntryPoint
-import java.io.File
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2Request
 import java.util.ServiceLoader
 
 /**
@@ -36,27 +36,9 @@ class Ksp2Invoker(
   /**
    * Execute KSP2 with the given configuration.
    *
-   * @param logLevel Logger level (0=ERROR, 1=WARN, 2=INFO, 3=LOGGING)
    * @return Exit code (0 for success)
    */
-  override fun execute(
-    moduleName: String,
-    sourceRoots: List<File>,
-    javaSourceRoots: List<File>,
-    libraries: List<File>,
-    kotlinOutputDir: File,
-    javaOutputDir: File,
-    classOutputDir: File,
-    resourceOutputDir: File,
-    cachesDir: File,
-    projectBaseDir: File,
-    outputBaseDir: File,
-    jvmTarget: String?,
-    languageVersion: String?,
-    apiVersion: String?,
-    jdkHome: File?,
-    logLevel: Int,
-  ): Int {
+  override fun execute(request: Ksp2Request): Int {
     // Load processors via ServiceLoader from the provided classloader
     val processors =
       ServiceLoader.load(SymbolProcessorProvider::class.java, classLoader).toList()
@@ -66,26 +48,26 @@ class Ksp2Invoker(
       KSPJvmConfig
         .Builder()
         .apply {
-          this.moduleName = moduleName
-          this.sourceRoots = sourceRoots
-          this.javaSourceRoots = javaSourceRoots
-          this.libraries = libraries
-          this.kotlinOutputDir = kotlinOutputDir
-          this.javaOutputDir = javaOutputDir
-          this.classOutputDir = classOutputDir
-          this.resourceOutputDir = resourceOutputDir
-          this.cachesDir = cachesDir
-          this.projectBaseDir = projectBaseDir
-          this.outputBaseDir = outputBaseDir
-          jvmTarget?.let { this.jvmTarget = it }
-          languageVersion?.let { this.languageVersion = it }
-          apiVersion?.let { this.apiVersion = it }
-          jdkHome?.let { this.jdkHome = it }
+          this.moduleName = request.moduleName
+          this.sourceRoots = request.sourceRoots
+          this.javaSourceRoots = request.javaSourceRoots
+          this.libraries = request.libraries
+          this.kotlinOutputDir = request.kotlinOutputDir
+          this.javaOutputDir = request.javaOutputDir
+          this.classOutputDir = request.classOutputDir
+          this.resourceOutputDir = request.resourceOutputDir
+          this.cachesDir = request.cachesDir
+          this.projectBaseDir = request.projectBaseDir
+          this.outputBaseDir = request.outputBaseDir
+          request.jvmTarget?.let { this.jvmTarget = it }
+          request.languageVersion?.let { this.languageVersion = it }
+          request.apiVersion?.let { this.apiVersion = it }
+          request.jdkHome?.let { this.jdkHome = it }
           this.mapAnnotationArgumentsInJava = true
         }.build()
 
     // Create logger and execute
-    val logger = KspGradleLogger(logLevel)
+    val logger = KspGradleLogger(request.logLevel)
     val ksp = KotlinSymbolProcessing(kspConfig, processors, logger)
 
     return ksp.execute().code
