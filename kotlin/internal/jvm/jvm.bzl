@@ -581,12 +581,6 @@ kt_jvm_library(
             doc = """\
 Dictionary of options to be passed to the plugin.
 Each option key can have multiple values.
-Supports the following template values:
-
-- `{generatedClasses}`: directory for generated class output
-- `{temp}`: temporary directory, discarded between invocations
-- `{generatedSources}`:  directory for generated source output
-- `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.
 """,
             default = {},
         ),

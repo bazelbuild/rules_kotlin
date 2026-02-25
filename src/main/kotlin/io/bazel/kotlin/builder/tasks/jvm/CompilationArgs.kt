@@ -49,33 +49,6 @@ class CompilationArgs(
     }
   }
 
-  interface SetFlag {
-    fun flag(
-      name: String,
-      value: String,
-    ): SetFlag
-  }
-
-  fun plugin(p: InternalCompilerPlugin): CompilationArgs = plugin(p) {}
-
-  fun plugin(
-    p: InternalCompilerPlugin,
-    flagArgs: SetFlag.() -> Unit,
-  ): CompilationArgs {
-    value("-Xplugin=${p.jarPath}")
-    object : SetFlag {
-      override fun flag(
-        name: String,
-        value: String,
-      ): SetFlag {
-        args.add("-P")
-        args.add("plugin:${p.id}:$name=$value")
-        return this
-      }
-    }.flagArgs()
-    return this
-  }
-
   fun given(
     test: Boolean,
     conditionalArgs: CompilationArgs.() -> Unit,

@@ -32,7 +32,6 @@ import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask.Directories
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Files.isDirectory
 import java.nio.file.Files.walk
@@ -42,32 +41,6 @@ import java.util.stream.Stream
 import kotlin.io.path.exists
 
 private const val SOURCE_JARS_DIR = "_srcjars"
-
-internal fun JvmCompilationTask.plugins(
-  options: List<String>,
-  classpath: List<String>,
-): CompilationArgs =
-  CompilationArgs().apply {
-    classpath.forEach {
-      xFlag("plugin", it)
-    }
-
-    val optionTokens =
-      mapOf(
-        "{generatedClasses}" to directories.generatedClasses,
-        "{stubs}" to directories.stubs,
-        "{temp}" to directories.temp,
-        "{generatedSources}" to directories.generatedSources,
-        "{classpath}" to classpath.joinToString(File.pathSeparator),
-      )
-    options.forEach { opt ->
-      val formatted =
-        optionTokens.entries.fold(opt) { formatting, (token, value) ->
-          formatting.replace(token, value)
-        }
-      flag("-P", "plugin:$formatted")
-    }
-  }
 
 internal fun JvmCompilationTask.preProcessingSteps(
   context: CompilationTaskContext,
