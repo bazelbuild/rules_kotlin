@@ -1,5 +1,3 @@
-load("//src/main/starlark/release:packager.bzl", "release_archive")
-
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,17 +11,118 @@ load("//src/main/starlark/release:packager.bzl", "release_archive")
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load(":compiler.bzl", "kt_configure_compiler")
+
+load("@rules_java//java:java_library.bzl", "java_library")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 load(":kapt.bzl", "kapt_compiler_plugin")
-load(":ksp.bzl", "kt_configure_ksp")
 
 package(default_visibility = ["//visibility:public"])
 
-# Configures the compiler
-kt_configure_compiler()
+# Kotlin standard library
+alias(
+    name = "kotlin-stdlib",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_stdlib",
+)
 
-# Configures the KSP plugins
-kt_configure_ksp()
+# Legacy labels kept for compatibility. Kotlin 1.8+ folds JDK extensions into stdlib.
+alias(
+    name = "kotlin-stdlib-jdk7",
+    actual = ":kotlin-stdlib",
+)
+
+alias(
+    name = "kotlin-stdlib-jdk8",
+    actual = ":kotlin-stdlib",
+)
+
+alias(
+    name = "kotlin-reflect",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_reflect",
+)
+
+alias(
+    name = "kotlin-test",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_test",
+)
+
+alias(
+    name = "annotations",
+    actual = "@kotlin_rules_maven//:org_jetbrains_annotations",
+)
+
+alias(
+    name = "kotlinx-coroutines-core-jvm",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
+)
+
+# Kotlin compiler - neverlink for compile-time only
+java_library(
+    name = "kotlin-compiler",
+    neverlink = True,
+    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler"],
+)
+
+java_library(
+    name = "kotlin-annotation-processing",
+    neverlink = True,
+    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing"],
+)
+
+alias(
+    name = "jvm-abi-gen",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_jvm_abi_gen",
+)
+
+alias(
+    name = "kotlin-script-runtime",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_script_runtime",
+)
+
+# Compiler plugins
+alias(
+    name = "allopen-compiler-plugin",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_allopen_compiler_plugin",
+)
+
+alias(
+    name = "noarg-compiler-plugin",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_noarg_compiler_plugin",
+)
+
+alias(
+    name = "sam-with-receiver-compiler-plugin",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_sam_with_receiver_compiler_plugin",
+)
+
+alias(
+    name = "kotlinx-serialization-compiler-plugin",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_serialization_compiler_plugin",
+)
+
+alias(
+    name = "kotlin-serialization-compiler-plugin",
+    actual = ":kotlinx-serialization-compiler-plugin",
+)
+
+alias(
+    name = "parcelize-compiler-plugin",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_compiler",
+)
+
+alias(
+    name = "parcelize-runtime",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_runtime",
+)
+
+alias(
+    name = "kotlin-daemon-client",
+    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
+)
+
+kapt_compiler_plugin(
+    name = "kapt",
+    id = "org.jetbrains.kotlin.kapt3",
+)
 
 release_archive(
     name = "pkg",
@@ -31,9 +130,4 @@ release_archive(
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
-)
-
-kapt_compiler_plugin(
-    name = "kapt",
-    id = "org.jetbrains.kotlin.kapt3",
 )

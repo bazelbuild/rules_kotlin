@@ -15,7 +15,6 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
@@ -50,20 +49,24 @@ register_toolchains("//:custom_toolchain")
 """
 
 def _kotlin_toolchain_impl(ctx):
-    compile_time_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-            neverlink = True,
-        )
-        for jar in ctx.files.jvm_stdlibs
-    ]
+    # Create neverlink JavaInfo providers using actual compile_jars (header jars) from stdlib targets.
+    # Previously, this used ctx.files.jvm_stdlibs which returns DefaultInfo.files (processed jars),
+    # but we need the proper compile_jars (header jars) from the JavaInfo for correct compilation.
+    compile_time_providers = []
+    for target in ctx.attr.jvm_stdlibs:
+        if JavaInfo in target:
+            for java_output in target[JavaInfo].java_outputs:
+                compile_time_providers.append(JavaInfo(
+                    output_jar = java_output.class_jar,
+                    compile_jar = java_output.compile_jar if java_output.compile_jar else java_output.class_jar,
+                    neverlink = True,
+                ))
+
+    # For runtime, use actual JavaInfo providers (they contain proper runtime jars)
     runtime_providers = [
-        JavaInfo(
-            output_jar = jar,
-            compile_jar = jar,
-        )
-        for jar in ctx.files.jvm_runtime
+        target[JavaInfo]
+        for target in ctx.attr.jvm_runtime
+        if JavaInfo in target
     ]
 
     toolchain = dict(
@@ -76,7 +79,21 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
-        kotlin_home = ctx.attr.kotlin_home,
+        ksp2_kotlinx_coroutines = ctx.attr.ksp2_kotlinx_coroutines,
+        ksp2_symbol_processing_aa = ctx.attr.ksp2_symbol_processing_aa,
+        ksp2_symbol_processing_api = ctx.attr.ksp2_symbol_processing_api,
+        ksp2_symbol_processing_common_deps = ctx.attr.ksp2_symbol_processing_common_deps,
+        btapi_build_tools_impl = ctx.file.btapi_build_tools_impl,
+        btapi_kotlin_compiler_embeddable = ctx.file.btapi_kotlin_compiler_embeddable,
+        btapi_kotlin_daemon_client = ctx.file.btapi_kotlin_daemon_client,
+        btapi_kotlin_stdlib = ctx.file.btapi_kotlin_stdlib,
+        btapi_kotlin_reflect = ctx.file.btapi_kotlin_reflect,
+        btapi_kotlin_coroutines = ctx.file.btapi_kotlin_coroutines,
+        btapi_annotations = ctx.file.btapi_annotations,
+        internal_jvm_abi_gen = ctx.file.internal_jvm_abi_gen,
+        internal_skip_code_gen = ctx.file.internal_skip_code_gen,
+        internal_jdeps_gen = ctx.file.internal_jdeps_gen,
+        internal_kapt = ctx.file.internal_kapt,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -126,6 +143,48 @@ _kt_toolchain = rule(
                 "2.2",
                 "2.3",
             ],
+        ),
+        "btapi_annotations": attr.label(
+            doc = "BTAPI runtime: annotations artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:annotations"),
+        ),
+        "btapi_build_tools_impl": attr.label(
+            doc = "BTAPI runtime: kotlin-build-tools-impl artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl"),
+        ),
+        "btapi_kotlin_compiler_embeddable": attr.label(
+            doc = "BTAPI runtime: kotlin-compiler-embeddable artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable"),
+        ),
+        "btapi_kotlin_coroutines": attr.label(
+            doc = "BTAPI runtime: coroutines artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
+        ),
+        "btapi_kotlin_daemon_client": attr.label(
+            doc = "BTAPI runtime: kotlin-daemon-client artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client"),
+        ),
+        "btapi_kotlin_reflect": attr.label(
+            doc = "BTAPI runtime: kotlin-reflect artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-reflect"),
+        ),
+        "btapi_kotlin_stdlib": attr.label(
+            doc = "BTAPI runtime: kotlin-stdlib artifact.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-stdlib"),
         ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
@@ -194,6 +253,30 @@ _kt_toolchain = rule(
             `kt_abi_plugin_incompatible`""",
             default = False,
         ),
+        "internal_jdeps_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: jdeps-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:jdeps-gen"),
+        ),
+        "internal_jvm_abi_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: jvm-abi-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:jvm-abi-gen"),
+        ),
+        "internal_kapt": attr.label(
+            doc = "Internal Kotlin builder plugin: kotlin-annotation-processing-embeddable.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable"),
+        ),
+        "internal_skip_code_gen": attr.label(
+            doc = "Internal Kotlin builder plugin: skip-code-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:skip-code-gen"),
+        ),
         "jacocorunner": attr.label(
             default = Label("@remote_java_tools//:jacoco_coverage_runner"),
         ),
@@ -242,11 +325,6 @@ _kt_toolchain = rule(
                 "25",
             ],
         ),
-        "kotlin_home": attr.label(
-            doc = "the filegroup defining the kotlin home",
-            default = Label("@" + _KT_COMPILER_REPO + "//:home"),
-            allow_files = True,
-        ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",
             default = Label("//src/main/kotlin:build"),
@@ -269,6 +347,30 @@ _kt_toolchain = rule(
             doc = "the KSP2 invoker library JAR (loaded at runtime in KSP2 classloader)",
             default = Label("//src/main/kotlin:ksp2_invoker"),
             allow_files = True,
+            cfg = "exec",
+        ),
+        "ksp2_kotlinx_coroutines": attr.label(
+            doc = "kotlinx-coroutines-core-jvm JAR required by KSP2",
+            default = Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
+            providers = [JavaInfo],
+            cfg = "exec",
+        ),
+        "ksp2_symbol_processing_aa": attr.label(
+            doc = "KSP2 symbol-processing-aa JAR for processor classpath",
+            default = Label("@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_aa_embeddable"),
+            providers = [JavaInfo],
+            cfg = "exec",
+        ),
+        "ksp2_symbol_processing_api": attr.label(
+            doc = "KSP2 symbol-processing-api JAR for processor classpath",
+            default = Label("@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_api"),
+            providers = [JavaInfo],
+            cfg = "exec",
+        ),
+        "ksp2_symbol_processing_common_deps": attr.label(
+            doc = "KSP2 symbol-processing-common-deps JAR for processor classpath",
+            default = Label("@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_common_deps"),
+            providers = [JavaInfo],
             cfg = "exec",
         ),
         "language_version": attr.string(
@@ -360,6 +462,23 @@ def define_kt_toolchain(
         jvm_stdlibs = None,
         jvm_runtime = None,
         jacocorunner = None,
+        btapi_build_tools_impl = None,
+        btapi_kotlin_compiler_embeddable = None,
+        btapi_kotlin_daemon_client = None,
+        btapi_kotlin_stdlib = None,
+        btapi_kotlin_reflect = None,
+        btapi_kotlin_coroutines = None,
+        btapi_annotations = None,
+        internal_jvm_abi_gen = None,
+        internal_skip_code_gen = None,
+        internal_jdeps_gen = None,
+        internal_kapt = None,
+        ksp2 = None,
+        ksp2_invoker = None,
+        ksp2_kotlinx_coroutines = None,
+        ksp2_symbol_processing_aa = None,
+        ksp2_symbol_processing_api = None,
+        ksp2_symbol_processing_common_deps = None,
         exec_compatible_with = None,
         target_compatible_with = None,
         target_settings = None):
@@ -389,6 +508,23 @@ def define_kt_toolchain(
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],
         jacocorunner = jacocorunner,
+        btapi_build_tools_impl = btapi_build_tools_impl if btapi_build_tools_impl != None else Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl"),
+        btapi_kotlin_compiler_embeddable = btapi_kotlin_compiler_embeddable if btapi_kotlin_compiler_embeddable != None else Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable"),
+        btapi_kotlin_daemon_client = btapi_kotlin_daemon_client if btapi_kotlin_daemon_client != None else Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client"),
+        btapi_kotlin_stdlib = btapi_kotlin_stdlib if btapi_kotlin_stdlib != None else Label("//kotlin/compiler:kotlin-stdlib"),
+        btapi_kotlin_reflect = btapi_kotlin_reflect if btapi_kotlin_reflect != None else Label("//kotlin/compiler:kotlin-reflect"),
+        btapi_kotlin_coroutines = btapi_kotlin_coroutines if btapi_kotlin_coroutines != None else Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
+        btapi_annotations = btapi_annotations if btapi_annotations != None else Label("//kotlin/compiler:annotations"),
+        internal_jvm_abi_gen = internal_jvm_abi_gen if internal_jvm_abi_gen != None else Label("//kotlin/compiler:jvm-abi-gen"),
+        internal_skip_code_gen = internal_skip_code_gen if internal_skip_code_gen != None else Label("//src/main/kotlin:skip-code-gen"),
+        internal_jdeps_gen = internal_jdeps_gen if internal_jdeps_gen != None else Label("//src/main/kotlin:jdeps-gen"),
+        internal_kapt = internal_kapt if internal_kapt != None else Label("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable"),
+        ksp2 = ksp2 if ksp2 != None else Label("//src/main/kotlin:ksp2"),
+        ksp2_invoker = ksp2_invoker if ksp2_invoker != None else Label("//src/main/kotlin:ksp2_invoker"),
+        ksp2_kotlinx_coroutines = ksp2_kotlinx_coroutines if ksp2_kotlinx_coroutines != None else Label("//kotlin/compiler:kotlinx-coroutines-core-jvm"),
+        ksp2_symbol_processing_aa = ksp2_symbol_processing_aa if ksp2_symbol_processing_aa != None else Label("@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_aa_embeddable"),
+        ksp2_symbol_processing_api = ksp2_symbol_processing_api if ksp2_symbol_processing_api != None else Label("@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_api"),
+        ksp2_symbol_processing_common_deps = ksp2_symbol_processing_common_deps if ksp2_symbol_processing_common_deps != None else Label("@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_common_deps"),
         jvm_stdlibs = jvm_stdlibs if jvm_stdlibs != None else [
             Label("//kotlin/compiler:annotations"),
             Label("//kotlin/compiler:kotlin-stdlib"),

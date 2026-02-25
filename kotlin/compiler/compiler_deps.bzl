@@ -1,4 +1,4 @@
-# Copyright 2020 The Bazel Authors. All rights reserved.
+# Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
-bzl_library(
-    name = "jvm",
-    srcs = glob(
-        ["*.bzl"],
-        exclude = ["android.bzl"],
-    ),
-    visibility = ["//visibility:public"],
-    deps = [
-        "//third_party:bzl",
-        "@bazel_skylib//lib:sets",
-        "@bazel_skylib//rules:common_settings",
-    ],
-)
+# List of Kotlin standard library targets for runtime dependencies.
+# Note: kotlin-stdlib-jdk7 and kotlin-stdlib-jdk8 are not needed as of Kotlin 1.8+,
+# since JDK 8 extensions are included in the main stdlib.
+KOTLIN_STDLIBS = [
+    "//kotlin/compiler:annotations",
+    "//kotlin/compiler:kotlin-reflect",
+    "//kotlin/compiler:kotlin-stdlib",
+    "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+]

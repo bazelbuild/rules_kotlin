@@ -136,6 +136,30 @@ message JvmCompilationTask {
   }
 
   message Inputs {
+      enum PluginPhase {
+        PLUGIN_PHASE_UNSPECIFIED = 0;
+        PLUGIN_PHASE_COMPILE = 1;
+        PLUGIN_PHASE_STUBS = 2;
+      }
+
+      message PluginOption {
+        // Compiler plugin option key
+        string key = 1;
+        // Compiler plugin option value
+        string value = 2;
+      }
+
+      message Plugin {
+        // Kotlin compiler plugin id
+        string id = 1;
+        // Kotlin compiler plugin classpath
+        repeated string classpath = 2;
+        // Kotlin compiler plugin options
+        repeated PluginOption options = 3;
+        // Compilation phases where this plugin should be applied
+        repeated PluginPhase phases = 4;
+      }
+
       // The full classpath
       repeated string classpath = 1;
       // Direct dependencies of the target.
@@ -152,18 +176,11 @@ message JvmCompilationTask {
       repeated string processors = 7;
       // Annotation processor classpath.
       repeated string processorpaths = 8;
-      // Kotlin stubs phase compiler plugin options
-      repeated string stubs_plugin_options = 9;
-      // Kotlin stubs phase compiler plugin options
-      repeated string stubs_plugins = 10;
-      // Kotlin stubs phase compiler plugin options
-      repeated string stubs_plugin_classpath = 11;
-      // Kotlin compiler phase compiler plugin options
-      repeated string compiler_plugin_options = 12;
-      // Kotlin compiler phase compiler plugin options
-      repeated string compiler_plugins = 13;
-      // Kotlin compiler phase compiler plugin options
-      repeated string compiler_plugin_classpath = 14;
+      // Reserved: replaced by structured plugins.
+      reserved 9, 11, 12, 13, 14;
+      reserved "stubs_plugin_options", "stubs_plugins", "stubs_plugin_classpath", "compiler_plugin_options", "compiler_plugins", "compiler_plugin_classpath";
+      // Kotlin compiler plugins with explicit phase information.
+      repeated Plugin plugins = 10;
       // Java opts to be passed to java compiler
       repeated string javac_flags = 15;
       // JDeps dependency artifacts

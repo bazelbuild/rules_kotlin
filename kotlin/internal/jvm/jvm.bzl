@@ -139,26 +139,6 @@ _implicit_deps = {
     "_java_toolchain": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
     ),
-    "_ksp2_kotlinx_coroutines": attr.label(
-        doc = "kotlinx-coroutines-core-jvm JAR required by KSP2",
-        default = Label("//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm"),
-        cfg = "exec",
-    ),
-    "_ksp2_symbol_processing_aa": attr.label(
-        doc = "KSP2 symbol-processing-aa JAR for processor classpath",
-        default = Label("//kotlin/compiler:symbol-processing-aa"),
-        cfg = "exec",
-    ),
-    "_ksp2_symbol_processing_api": attr.label(
-        doc = "KSP2 symbol-processing-api JAR for processor classpath",
-        default = Label("//kotlin/compiler:symbol-processing-api"),
-        cfg = "exec",
-    ),
-    "_ksp2_symbol_processing_common_deps": attr.label(
-        doc = "KSP2 symbol-processing-common-deps JAR for processor classpath",
-        default = Label("//kotlin/compiler:symbol-processing-common-deps"),
-        cfg = "exec",
-    ),
     "_kt_toolchain": attr.label(
         doc = """The Kotlin toolchain. it's only purpose is to enable the Intellij
         to discover Kotlin language version""",
@@ -242,7 +222,8 @@ _common_attr = utils.add_dicts(
         ),
         "kotlinc_opts": attr.label(
             doc = """Kotlinc options to be used when compiling this target. These opts if provided
-            will be used instead of the ones provided to the toolchain.""",
+            will be used instead of the ones provided to the toolchain.
+            Toolchain-managed settings (for example `api_version` and `language_version`) are not overridden here.""",
             default = None,
             providers = [_KotlincOptions],
             mandatory = False,
@@ -291,7 +272,7 @@ _common_attr = utils.add_dicts(
             doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.""",
             default = [],
-            allow_files = [".srcjar", ".kt", ".java"],
+            allow_files = [".srcjar", ".kt", ".java", ".form"],
         ),
         "_use_auto_exec_groups": attr.bool(default = False),
     },
@@ -540,17 +521,6 @@ DEPRECATED - please use `jar` and `srcjar` attributes.""",
 _kt_compiler_deps_aspect = aspect(
     implementation = _kt_compiler_deps_aspect_impl,
     attr_aspects = ["deps", "runtime_deps", "exports"],
-    attrs = {
-        "_jarjar": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//third_party:jarjar_runner"),
-        ),
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
-        ),
-    },
 )
 
 kt_compiler_plugin = rule(
@@ -565,7 +535,7 @@ kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "plugin.OpenForTesting",
+        "annotation": ["plugin.OpenForTesting"],
     },
     deps = [
         "//kotlin/compiler:allopen-compiler-plugin",
@@ -607,9 +577,10 @@ kt_jvm_library(
             doc = "The ID of the plugin",
             mandatory = True,
         ),
-        "options": attr.string_dict(
+        "options": attr.string_list_dict(
             doc = """\
 Dictionary of options to be passed to the plugin.
+Each option key can have multiple values.
 Supports the following template values:
 
 - `{generatedClasses}`: directory for generated class output
@@ -624,18 +595,8 @@ Supports the following template values:
             default = True,
         ),
         "target_embedded_compiler": attr.bool(
-            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
-            dependencies, and will fail when running against a non-embeddable compiler.""",
+            doc = "Deprecated compatibility attribute; no-op in BTAPI-based plugin wiring.",
             default = False,
-        ),
-        "_jarjar": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//third_party:jarjar_runner"),
-        ),
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
         ),
     },
     implementation = _kt_compiler_plugin_impl,
@@ -683,13 +644,8 @@ kt_jvm_library(
             mandatory = True,
         ),
         "target_embedded_compiler": attr.bool(
-            doc = """Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc
-            dependencies, and will fail when running against a non-embeddable compiler.""",
+            doc = "Deprecated compatibility attribute; no-op in BTAPI-based plugin wiring.",
             default = False,
-        ),
-        "_kotlin_compiler_reshade_rules": attr.label(
-            default = Label("//kotlin/internal/jvm:kotlin-compiler-reshade.jarjar"),
-            allow_single_file = True,
         ),
     },
     implementation = _kt_ksp_plugin_impl,

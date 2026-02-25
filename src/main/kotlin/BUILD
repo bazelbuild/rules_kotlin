@@ -58,7 +58,4 @@ release_archive(
         "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
-    deps = [
-        "//src/main/kotlin/io/bazel/kotlin/compiler:pkg",
-    ],
 )

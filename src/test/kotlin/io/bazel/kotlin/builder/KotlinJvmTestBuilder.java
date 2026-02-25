@@ -95,6 +95,15 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
         return executeTask(jvmTaskExecutor()::execute, setup);
     }
 
+    /**
+     * Sets up a task without actually executing it. Useful for testing task configuration
+     * without running compilation.
+     */
+    @SafeVarargs
+    public final void setupTask(Consumer<TaskBuilder>... setup) {
+        Stream.of(setup).forEach(it -> it.accept(taskBuilderInstance));
+    }
+
     private static KotlinJvmTaskExecutor jvmTaskExecutor() {
         if (jvmTaskExecutor == null) {
             KotlinToolchain toolchain = toolchainForTest();
@@ -104,9 +113,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     toolchain.getKapt3Plugin(),
                     toolchain.getJdepsGen()
             );
-            KotlinToolchain.KotlincInvokerBuilder compilerBuilder =
-                    new KotlinToolchain.KotlincInvokerBuilder(toolchain);
-            jvmTaskExecutor = new KotlinJvmTaskExecutor(compilerBuilder, plugins);
+            jvmTaskExecutor = new KotlinJvmTaskExecutor(btapiRuntimeForTest(), plugins);
         }
         return jvmTaskExecutor;
     }
@@ -221,6 +228,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder outputJar(String relativePath) {
+            taskBuilder.getOutputsBuilder()
+                    .setJar(instanceRoot().resolve(relativePath).toAbsolutePath().toString());
+            return this;
+        }
+
         public TaskBuilder outputJdeps() {
             taskBuilder.getOutputsBuilder()
                     .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
@@ -261,11 +274,10 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
-        public TaskBuilder useK2() {
-            taskBuilder.getInfoBuilder()
-                    .getToolchainInfoBuilder()
-                    .getCommonBuilder()
-                    .setLanguageVersion("2.0");
+        public TaskBuilder passthroughFlags(String... flags) {
+            for (String flag : flags) {
+                taskBuilder.getInfoBuilder().addPassthroughFlags(flag);
+            }
             return this;
         }
     }
