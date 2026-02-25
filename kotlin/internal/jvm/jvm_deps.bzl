@@ -35,24 +35,30 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         [toolchains.kt.jvm_stdlibs]
     )
 
+    direct_dep_jars = [associates.jars] + [
+        d.compile_jars
+        for d in dep_infos
+    ]
+
     # Reduced classpath, exclude transitive deps from compilation
     if (toolchains.kt.experimental_prune_transitive_deps and
         not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
-        transitive = [
-            d.compile_jars
-            for d in dep_infos
-        ]
+        transitive = direct_dep_jars
     else:
-        transitive = [
-            d.compile_jars
-            for d in dep_infos
-        ] + [
+        transitive = direct_dep_jars + [
             d.transitive_compile_time_jars
             for d in dep_infos
         ]
 
-    compile_depset_list = depset(transitive = transitive + [associates.jars]).to_list()
-    compile_depset_list_filtered = [jar for jar in compile_depset_list if not _sets.contains(associates.abi_jar_set, jar)]
+    compile_depset_list_filtered = _associate_utils.filter_abi_associate_jar(transitive, associates)
+
+    if (toolchains.kt.experimental_prune_transitive_deps and
+        not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
+        # then compile_depset_list_filtered already contains just the compile jars
+        direct_depset_list_filtered = compile_depset_list_filtered
+    else:
+        # otherwise we need to create a list of compile jars with the associates abi jar replaced
+        direct_depset_list_filtered = _associate_utils.filter_abi_associate_jar(direct_dep_jars, associates)
 
     return struct(
         module_name = associates.module_name,
@@ -61,6 +67,7 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),
         runtime_deps = [_java_info(d) for d in runtime_deps],
+        direct_dep_jars = direct_depset_list_filtered,
     )
 
 jvm_deps_utils = struct(
