@@ -1,5 +1,5 @@
 load("@rules_java//java:java_binary.bzl", "java_binary")
-load("//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
+load("//kotlin:jvm.bzl", "kt_jvm_library")
 
 java_binary(
     name = "BazelIntegrationTestRunner",

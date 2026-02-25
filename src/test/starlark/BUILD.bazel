@@ -1,13 +1,15 @@
-load("//src/test/starlark/internal/jvm:resource_strip_prefix_test.bzl", "strip_resource_prefix_test_suite")
-load("//src/test/starlark/internal/jvm:resource_path_adjust_test.bzl", "resource_path_adjust_test_suite")
 load("//src/test/starlark/internal/jvm:plugin_payload_test.bzl", "plugin_payload_test_suite")
+load("//src/test/starlark/internal/jvm:resource_path_adjust_test.bzl", "resource_path_adjust_test_suite")
+load("//src/test/starlark/internal/jvm:resource_strip_prefix_test.bzl", "strip_resource_prefix_test_suite")
 load("//src/test/starlark/internal/lint:ktlint_fix_runfiles_test.bzl", "ktlint_fix_runfiles_test_suite")
 load(":convert_test.bzl", "convert_test_suite")
 
 convert_test_suite(name = "convert_tests")
 
 strip_resource_prefix_test_suite(name = "resource_strip_prefix_tests")
+
 resource_path_adjust_test_suite(name = "resource_path_adjust_tests")
+
 plugin_payload_test_suite(name = "plugin_payload_tests")
 
 ktlint_fix_runfiles_test_suite(name = "ktlint_fix_runfiles_tests")

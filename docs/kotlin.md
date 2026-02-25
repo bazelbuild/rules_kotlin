@@ -65,7 +65,7 @@ It is appropriate for building workspace utilities. `java_binary` should be pref
 | <a id="kt_jvm_binary-java_stub_template"></a>java_stub_template |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@rules_kotlin//third_party:java_stub_template.txt"`  |
 | <a id="kt_jvm_binary-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_binary-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet support make variable substitution.   | List of strings | optional |  `[]`  |
-| <a id="kt_jvm_binary-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="kt_jvm_binary-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain. Toolchain-managed settings (for example `api_version` and `language_version`) are not overridden here.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_binary-main_class"></a>main_class |  Name of class with main() method to use as entry point.   | String | required |  |
 | <a id="kt_jvm_binary-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g., `//some/package/path:label_name` is translated to `some_package_path-label_name`.   | String | optional |  `""`  |
 | <a id="kt_jvm_binary-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -161,7 +161,7 @@ This rule compiles and links Kotlin and Java sources into a .jar file.
 | <a id="kt_jvm_library-exports"></a>exports |  Exported libraries.<br><br>Deps listed here will be made available to other rules, as if the parents explicitly depended on these deps. This is not true for regular (non-exported) deps.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_jvm_library-java_stub_template"></a>java_stub_template |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@rules_kotlin//third_party:java_stub_template.txt"`  |
 | <a id="kt_jvm_library-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="kt_jvm_library-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="kt_jvm_library-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain. Toolchain-managed settings (for example `api_version` and `language_version`) are not overridden here.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_library-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g., `//some/package/path:label_name` is translated to `some_package_path-label_name`.   | String | optional |  `""`  |
 | <a id="kt_jvm_library-neverlink"></a>neverlink |  If true only use this library for compilation and not at runtime.   | Boolean | optional |  `False`  |
 | <a id="kt_jvm_library-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -204,7 +204,7 @@ Setup a simple kotlin_test.
 | <a id="kt_jvm_test-java_stub_template"></a>java_stub_template |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@rules_kotlin//third_party:java_stub_template.txt"`  |
 | <a id="kt_jvm_test-javac_opts"></a>javac_opts |  Javac options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_test-jvm_flags"></a>jvm_flags |  A list of flags to embed in the wrapper script generated for running this binary. Note: does not yet support make variable substitution.   | List of strings | optional |  `[]`  |
-| <a id="kt_jvm_test-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="kt_jvm_test-kotlinc_opts"></a>kotlinc_opts |  Kotlinc options to be used when compiling this target. These opts if provided will be used instead of the ones provided to the toolchain. Toolchain-managed settings (for example `api_version` and `language_version`) are not overridden here.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="kt_jvm_test-main_class"></a>main_class |  -   | String | optional |  `"com.google.testing.junit.runner.BazelTestRunner"`  |
 | <a id="kt_jvm_test-module_name"></a>module_name |  The name of the module, if not provided the module name is derived from the label. --e.g., `//some/package/path:label_name` is translated to `some_package_path-label_name`.   | String | optional |  `""`  |
 | <a id="kt_jvm_test-plugins"></a>plugins |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -313,7 +313,7 @@ kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "plugin.OpenForTesting",
+        "annotation": ["plugin.OpenForTesting"],
     },
     deps = [
         "//kotlin/compiler:allopen-compiler-plugin",
@@ -345,9 +345,9 @@ kt_jvm_library(
 | <a id="kt_compiler_plugin-data"></a>data |  The list of data files to be used by compiler's plugin   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_compiler_plugin-compile_phase"></a>compile_phase |  Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`   | Boolean | optional |  `True`  |
 | <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | required |  |
-| <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Supports the following template values:<br><br>- `{generatedClasses}`: directory for generated class output - `{temp}`: temporary directory, discarded between invocations - `{generatedSources}`:  directory for generated source output - `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Each option key can have multiple values.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
 | <a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin in kapt stub generation.   | Boolean | optional |  `True`  |
-| <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc dependencies, and will fail when running against a non-embeddable compiler.   | Boolean | optional |  `False`  |
+| <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Deprecated compatibility attribute; no-op in BTAPI-based plugin wiring.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_javac_options"></a>
@@ -486,7 +486,7 @@ kt_jvm_library(
 | <a id="kt_ksp_plugin-deps"></a>deps |  The list of libraries to be added to the compiler's plugin classpath   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_ksp_plugin-generates_java"></a>generates_java |  Runs Java compilation action for plugin generating Java output.   | Boolean | optional |  `False`  |
 | <a id="kt_ksp_plugin-processor_class"></a>processor_class |  The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.   | String | required |  |
-| <a id="kt_ksp_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Plugin was compiled against the embeddable kotlin compiler. These plugins expect shaded kotlinc dependencies, and will fail when running against a non-embeddable compiler.   | Boolean | optional |  `False`  |
+| <a id="kt_ksp_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Deprecated compatibility attribute; no-op in BTAPI-based plugin wiring.   | Boolean | optional |  `False`  |
 
 
 <a id="kt_plugin_cfg"></a>
@@ -527,9 +527,14 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_remove_private_classes_in_abi_jars">experimental_remove_private_classes_in_abi_jars</a>,
                     <a href="#define_kt_toolchain-experimental_remove_debug_info_in_abi_jars">experimental_remove_debug_info_in_abi_jars</a>, <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>,
                     <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>, <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>,
-                    <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-experimental_build_tools_api">experimental_build_tools_api</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>,
-                    <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>, <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>,
-                    <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
+                    <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>,
+                    <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-btapi_build_tools_impl">btapi_build_tools_impl</a>,
+                    <a href="#define_kt_toolchain-btapi_kotlin_compiler_embeddable">btapi_kotlin_compiler_embeddable</a>, <a href="#define_kt_toolchain-btapi_kotlin_daemon_client">btapi_kotlin_daemon_client</a>, <a href="#define_kt_toolchain-btapi_kotlin_stdlib">btapi_kotlin_stdlib</a>,
+                    <a href="#define_kt_toolchain-btapi_kotlin_reflect">btapi_kotlin_reflect</a>, <a href="#define_kt_toolchain-btapi_kotlin_coroutines">btapi_kotlin_coroutines</a>, <a href="#define_kt_toolchain-btapi_annotations">btapi_annotations</a>,
+                    <a href="#define_kt_toolchain-internal_jvm_abi_gen">internal_jvm_abi_gen</a>, <a href="#define_kt_toolchain-internal_skip_code_gen">internal_skip_code_gen</a>, <a href="#define_kt_toolchain-internal_jdeps_gen">internal_jdeps_gen</a>, <a href="#define_kt_toolchain-internal_kapt">internal_kapt</a>,
+                    <a href="#define_kt_toolchain-ksp2">ksp2</a>, <a href="#define_kt_toolchain-ksp2_invoker">ksp2_invoker</a>, <a href="#define_kt_toolchain-ksp2_kotlinx_coroutines">ksp2_kotlinx_coroutines</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_aa">ksp2_symbol_processing_aa</a>,
+                    <a href="#define_kt_toolchain-ksp2_symbol_processing_api">ksp2_symbol_processing_api</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_common_deps">ksp2_symbol_processing_common_deps</a>,
+                    <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -551,12 +556,28 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-experimental_report_unused_deps"></a>experimental_report_unused_deps |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-experimental_reduce_classpath_mode"></a>experimental_reduce_classpath_mode |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-experimental_multiplex_workers"></a>experimental_multiplex_workers |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-experimental_build_tools_api"></a>experimental_build_tools_api |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-javac_options"></a>javac_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_javac_options")` |
 | <a id="define_kt_toolchain-kotlinc_options"></a>kotlinc_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_kotlinc_options")` |
 | <a id="define_kt_toolchain-jvm_stdlibs"></a>jvm_stdlibs |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-jvm_runtime"></a>jvm_runtime |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-jacocorunner"></a>jacocorunner |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_build_tools_impl"></a>btapi_build_tools_impl |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_compiler_embeddable"></a>btapi_kotlin_compiler_embeddable |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_daemon_client"></a>btapi_kotlin_daemon_client |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_stdlib"></a>btapi_kotlin_stdlib |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_reflect"></a>btapi_kotlin_reflect |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_kotlin_coroutines"></a>btapi_kotlin_coroutines |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-btapi_annotations"></a>btapi_annotations |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_jvm_abi_gen"></a>internal_jvm_abi_gen |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_skip_code_gen"></a>internal_skip_code_gen |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_jdeps_gen"></a>internal_jdeps_gen |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-internal_kapt"></a>internal_kapt |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-ksp2"></a>ksp2 |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-ksp2_invoker"></a>ksp2_invoker |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-ksp2_kotlinx_coroutines"></a>ksp2_kotlinx_coroutines |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-ksp2_symbol_processing_aa"></a>ksp2_symbol_processing_aa |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-ksp2_symbol_processing_api"></a>ksp2_symbol_processing_api |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-ksp2_symbol_processing_common_deps"></a>ksp2_symbol_processing_common_deps |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-exec_compatible_with"></a>exec_compatible_with |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-target_compatible_with"></a>target_compatible_with |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-target_settings"></a>target_settings |  <p align="center"> - </p>   |  `None` |
