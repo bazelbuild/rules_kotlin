@@ -19,19 +19,11 @@ package io.bazel.kotlin.builder.toolchain
 import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.TextFormat
 import io.bazel.kotlin.model.CompilationTaskInfo
-import java.io.File
 import java.io.PrintStream
-import java.nio.file.FileSystems
 
 class CompilationTaskContext(
   val info: CompilationTaskInfo,
   val out: PrintStream,
-  private val executionRoot: String =
-    FileSystems
-      .getDefault()
-      .getPath("")
-      .toAbsolutePath()
-      .toString() + File.separator,
 ) {
   private val start = System.currentTimeMillis()
   private var timings: MutableList<String>?
@@ -83,22 +75,6 @@ class CompilationTaskContext(
     msg: MessageOrBuilder,
   ) {
     printLines(header, TextFormat.printer().printToString(msg).split("\n"), filterEmpty = true)
-  }
-
-  /**
-   * This method normalizes and reports the output from the Kotlin compiler.
-   */
-  fun printCompilerOutput(lines: List<String>) {
-    lines.map(::trimExecutionRootPrefix).forEach(out::println)
-  }
-
-  private fun trimExecutionRootPrefix(toPrint: String): String {
-    // trim off the workspace component
-    return if (toPrint.startsWith(executionRoot)) {
-      toPrint.replaceFirst(executionRoot, "")
-    } else {
-      toPrint
-    }
   }
 
   /**

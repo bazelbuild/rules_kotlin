@@ -159,8 +159,7 @@ abstract class KotlinAbstractTestBuilder<T> {
             CompilationTaskInfo info, T task, BiFunction<CompilationTaskContext, T, R> operation) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (PrintStream outputStream = new PrintStream(out)) {
-            return operation.apply(new CompilationTaskContext(info, outputStream,
-                    instanceRoot().toAbsolutePath() + File.separator), task);
+            return operation.apply(new CompilationTaskContext(info, outputStream), task);
         } finally {
             outLines = unmodifiableList(
                     new BufferedReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())))
