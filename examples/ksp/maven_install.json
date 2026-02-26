@@ -4,9 +4,10 @@
     "com.google.auto.service:auto-service-annotations": 631615408,
     "com.google.auto.value:auto-value": -661233359,
     "com.google.auto.value:auto-value-annotations": 1386235898,
-    "com.google.dagger:dagger": 1304516772,
-    "com.google.dagger:dagger-compiler": 1028126946,
-    "com.google.dagger:dagger-producers": -860209456,
+    "com.google.dagger:dagger": 2005581350,
+    "com.google.dagger:dagger-compiler": 1729191524,
+    "com.google.dagger:dagger-producers": -159144878,
+    "com.google.devtools.ksp:symbol-processing-api": -1189957684,
     "com.squareup.moshi:moshi": 623265116,
     "com.squareup.moshi:moshi-kotlin": -1806344484,
     "com.squareup.moshi:moshi-kotlin-codegen": 2002404690,
@@ -19,39 +20,38 @@
     "com.google.auto.value:auto-value": -1504415167,
     "com.google.auto.value:auto-value-annotations": 641752776,
     "com.google.code.findbugs:jsr305": 870839855,
-    "com.google.dagger:dagger": 875179613,
-    "com.google.dagger:dagger-compiler": 1767805218,
-    "com.google.dagger:dagger-producers": -1664820965,
-    "com.google.dagger:dagger-spi": 1608863489,
-    "com.google.devtools.ksp:symbol-processing-api": 596274367,
-    "com.google.errorprone:error_prone_annotations": -140447182,
-    "com.google.errorprone:javac-shaded": 1621944613,
-    "com.google.googlejavaformat:google-java-format": 395640802,
+    "com.google.dagger:dagger": 496638525,
+    "com.google.dagger:dagger-compiler": 1189286173,
+    "com.google.dagger:dagger-producers": 1543195827,
+    "com.google.dagger:dagger-spi": -1872882445,
+    "com.google.devtools.ksp:symbol-processing-api": -534377618,
+    "com.google.errorprone:error_prone_annotations": 712292353,
+    "com.google.googlejavaformat:google-java-format": 1214325891,
     "com.google.guava:failureaccess": -718864417,
-    "com.google.guava:guava": -1228437618,
+    "com.google.guava:guava": 10035594,
     "com.google.guava:listenablefuture": 1079558157,
     "com.google.j2objc:j2objc-annotations": -404209759,
-    "com.squareup.moshi:moshi": 575896037,
-    "com.squareup.moshi:moshi-kotlin": -1697535178,
-    "com.squareup.moshi:moshi-kotlin-codegen": 886628729,
-    "com.squareup.okio:okio-jvm": 1652953145,
+    "com.squareup.moshi:moshi": -1938457286,
+    "com.squareup.moshi:moshi-kotlin": 2027718215,
+    "com.squareup.moshi:moshi-kotlin-codegen": 1584133735,
+    "com.squareup.okio:okio-jvm": 249578871,
     "com.squareup:javapoet": -2135371934,
-    "com.squareup:kotlinpoet": 1753814800,
-    "com.squareup:kotlinpoet-jvm": -1597587657,
-    "com.squareup:kotlinpoet-ksp": -766502475,
-    "dev.zacsweers.autoservice:auto-service-ksp": 897604064,
+    "com.squareup:kotlinpoet": -1347284545,
+    "com.squareup:kotlinpoet-jvm": -922668273,
+    "com.squareup:kotlinpoet-ksp": -1750827435,
+    "dev.zacsweers.autoservice:auto-service-ksp": 1633022131,
     "jakarta.inject:jakarta.inject-api": 188991469,
     "javax.inject:javax.inject": 698155243,
     "net.ltgt.gradle.incap:incap": 641640589,
     "org.checkerframework:checker-compat-qual": -1467964223,
     "org.checkerframework:checker-qual": -778702181,
-    "org.jetbrains.kotlin:kotlin-metadata-jvm": -1553427069,
-    "org.jetbrains.kotlin:kotlin-reflect": -21294467,
-    "org.jetbrains.kotlin:kotlin-stdlib": -596863732,
+    "org.jetbrains.kotlin:kotlin-metadata-jvm": 2002223141,
+    "org.jetbrains.kotlin:kotlin-reflect": -1424668741,
+    "org.jetbrains.kotlin:kotlin-stdlib": 1159154495,
     "org.jetbrains.kotlin:kotlin-stdlib-common": -1695006459,
-    "org.jetbrains.kotlin:kotlin-stdlib-jdk7": -883831815,
-    "org.jetbrains.kotlin:kotlin-stdlib-jdk8": 988683174,
-    "org.jetbrains.kotlinx:kotlinx-coroutines-core": -2101682300,
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk7": 2007761207,
+    "org.jetbrains.kotlin:kotlin-stdlib-jdk8": 540654472,
+    "org.jetbrains.kotlinx:kotlinx-coroutines-core": -637506750,
     "org.jetbrains:annotations": 554168982,
     "org.jspecify:jspecify": 117231129,
     "org.ow2.asm:asm": 2054068535
@@ -83,51 +83,45 @@
     },
     "com.google.dagger:dagger": {
       "shasums": {
-        "jar": "f0becd6b5e98d56e6ec43f52de3288e1c560847cb81ec170ae44a1c02c0600f0"
+        "jar": "f449e1b07cc65dce15e3df8316d0d3a27ee601601abf957074fe810f545feab5"
       },
-      "version": "2.57.2"
+      "version": "2.59.2"
     },
     "com.google.dagger:dagger-compiler": {
       "shasums": {
-        "jar": "80712a62e4c1ba6a81e193bd29778b059950b6c2d81378b9cdf39b524226f9bc"
+        "jar": "e8f0ede4a033dcca5e8faaa9ac7028eafb0e4cc134351b46da6e500dc177733d"
       },
-      "version": "2.57.2"
+      "version": "2.59.2"
     },
     "com.google.dagger:dagger-producers": {
       "shasums": {
-        "jar": "85fb9577780f7cfa6b5dc847372efda62670d603ea8c35accc02ad46d0021230"
+        "jar": "274ada9315813b3ae51fb45b54d558575d13e00c21476b1d5304f26744e7e8f7"
       },
-      "version": "2.57.2"
+      "version": "2.59.2"
     },
     "com.google.dagger:dagger-spi": {
       "shasums": {
-        "jar": "ce2779a7c287ee33b1bbd198f5e0de8cc26ba268f607061eafdb068b720494ac"
+        "jar": "d2ee686d20a202fbdf895463aef9dd727560c7539d1884ef0870bbb3081d829d"
       },
-      "version": "2.57.2"
+      "version": "2.59.2"
     },
     "com.google.devtools.ksp:symbol-processing-api": {
       "shasums": {
-        "jar": "588d17c4ea982b11028c2c82cb1d7300d269023a8068009f9ae9fb2c9c20c6d9"
+        "jar": "55df837d54b1bfdd7cdbe53bd84deeae374677ec4a729a9af154d3fee3c00230"
       },
-      "version": "2.1.21-2.0.2"
+      "version": "2.3.6"
     },
     "com.google.errorprone:error_prone_annotations": {
       "shasums": {
-        "jar": "de25f2d9a2156529bd765f51d8efdfc0dfa7301e04efb9cc75b7f10cf5d0e0fb"
+        "jar": "6ba61510e22944e8aec3fe970972d088d8da132a24f2bc817a43c7b70665cc2b"
       },
-      "version": "2.26.1"
-    },
-    "com.google.errorprone:javac-shaded": {
-      "shasums": {
-        "jar": "65bfccf60986c47fbc17c9ebab0be626afc41741e0a6ec7109e0768817a36f30"
-      },
-      "version": "9-dev-r4023-3"
+      "version": "2.45.0"
     },
     "com.google.googlejavaformat:google-java-format": {
       "shasums": {
-        "jar": "aa19ad7850fb85178aa22f2fddb163b84d6ce4d0035872f30d4408195ca1144e"
+        "jar": "1265aa761ec2908535324b114995a1c6debaedc8a9e2e8553127babcdb58567f"
       },
-      "version": "1.5"
+      "version": "1.33.0"
     },
     "com.google.guava:failureaccess": {
       "shasums": {
@@ -239,9 +233,9 @@
     },
     "org.jetbrains.kotlin:kotlin-metadata-jvm": {
       "shasums": {
-        "jar": "5da27249dd65a3218af2826a30804380a5c02c09f063ce7a0258736388783fc4"
+        "jar": "8524eac90f7e8e0f1366883f2c6c820c93bfa61df3d76857c8d3e803cf67315d"
       },
-      "version": "2.1.21"
+      "version": "2.2.20"
     },
     "org.jetbrains.kotlin:kotlin-reflect": {
       "shasums": {
@@ -251,9 +245,9 @@
     },
     "org.jetbrains.kotlin:kotlin-stdlib": {
       "shasums": {
-        "jar": "263bdc679e1f62012db7b091796279b6d71cf36f4797a98ff1ace05835f201c8"
+        "jar": "887587c91713250ad52fe14ad9166d042c33835049890e9437f355ffc5a195b1"
       },
-      "version": "2.1.21"
+      "version": "2.3.0"
     },
     "org.jetbrains.kotlin:kotlin-stdlib-common": {
       "shasums": {
@@ -340,7 +334,6 @@
       "org.jetbrains.kotlin:kotlin-stdlib"
     ],
     "com.google.googlejavaformat:google-java-format": [
-      "com.google.errorprone:javac-shaded",
       "com.google.guava:guava"
     ],
     "com.google.guava:guava": [
@@ -483,18 +476,18 @@
       "dagger.internal.codegen.validation",
       "dagger.internal.codegen.writing",
       "dagger.internal.codegen.xprocessing",
-      "dagger.spi.internal.shaded.androidx.room.compiler.codegen",
-      "dagger.spi.internal.shaded.androidx.room.compiler.codegen.compat",
-      "dagger.spi.internal.shaded.androidx.room.compiler.codegen.impl",
-      "dagger.spi.internal.shaded.androidx.room.compiler.codegen.java",
-      "dagger.spi.internal.shaded.androidx.room.compiler.codegen.kotlin",
-      "dagger.spi.internal.shaded.androidx.room.compiler.processing",
-      "dagger.spi.internal.shaded.androidx.room.compiler.processing.compat",
-      "dagger.spi.internal.shaded.androidx.room.compiler.processing.javac",
-      "dagger.spi.internal.shaded.androidx.room.compiler.processing.javac.kotlin",
-      "dagger.spi.internal.shaded.androidx.room.compiler.processing.ksp",
-      "dagger.spi.internal.shaded.androidx.room.compiler.processing.ksp.synthetic",
-      "dagger.spi.internal.shaded.androidx.room.compiler.processing.util"
+      "dagger.spi.internal.shaded.androidx.room3.compiler.codegen",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.codegen.compat",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.codegen.impl",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.codegen.java",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.codegen.kotlin",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.processing",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.processing.compat",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.processing.javac",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.processing.javac.kotlin",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.processing.ksp",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.processing.ksp.synthetic",
+      "dagger.spi.internal.shaded.androidx.room3.compiler.processing.util"
     ],
     "com.google.dagger:dagger-producers": [
       "dagger.producers",
@@ -519,43 +512,6 @@
     "com.google.errorprone:error_prone_annotations": [
       "com.google.errorprone.annotations",
       "com.google.errorprone.annotations.concurrent"
-    ],
-    "com.google.errorprone:javac-shaded": [
-      "org.openjdk.javax.annotation.processing",
-      "org.openjdk.javax.lang.model",
-      "org.openjdk.javax.lang.model.element",
-      "org.openjdk.javax.lang.model.type",
-      "org.openjdk.javax.lang.model.util",
-      "org.openjdk.javax.tools",
-      "org.openjdk.source.doctree",
-      "org.openjdk.source.tree",
-      "org.openjdk.source.util",
-      "org.openjdk.tools.doclint",
-      "org.openjdk.tools.doclint.resources",
-      "org.openjdk.tools.javac",
-      "org.openjdk.tools.javac.api",
-      "org.openjdk.tools.javac.code",
-      "org.openjdk.tools.javac.comp",
-      "org.openjdk.tools.javac.file",
-      "org.openjdk.tools.javac.jvm",
-      "org.openjdk.tools.javac.main",
-      "org.openjdk.tools.javac.model",
-      "org.openjdk.tools.javac.parser",
-      "org.openjdk.tools.javac.platform",
-      "org.openjdk.tools.javac.processing",
-      "org.openjdk.tools.javac.resources",
-      "org.openjdk.tools.javac.tree",
-      "org.openjdk.tools.javac.util",
-      "org.openjdk.tools.javah",
-      "org.openjdk.tools.javah.resources",
-      "org.openjdk.tools.sjavac",
-      "org.openjdk.tools.sjavac.client",
-      "org.openjdk.tools.sjavac.comp",
-      "org.openjdk.tools.sjavac.comp.dependencies",
-      "org.openjdk.tools.sjavac.options",
-      "org.openjdk.tools.sjavac.pubapi",
-      "org.openjdk.tools.sjavac.server",
-      "org.openjdk.tools.sjavac.server.log"
     ],
     "com.google.googlejavaformat:google-java-format": [
       "com.google.googlejavaformat",
@@ -854,7 +810,6 @@
       "com.google.dagger:dagger-spi",
       "com.google.devtools.ksp:symbol-processing-api",
       "com.google.errorprone:error_prone_annotations",
-      "com.google.errorprone:javac-shaded",
       "com.google.googlejavaformat:google-java-format",
       "com.google.guava:failureaccess",
       "com.google.guava:guava",
@@ -896,7 +851,6 @@
       "com.google.dagger:dagger-spi",
       "com.google.devtools.ksp:symbol-processing-api",
       "com.google.errorprone:error_prone_annotations",
-      "com.google.errorprone:javac-shaded",
       "com.google.googlejavaformat:google-java-format",
       "com.google.guava:failureaccess",
       "com.google.guava:guava",
@@ -956,6 +910,14 @@
       ],
       "javax.annotation.processing.Processor": [
         "dagger.internal.codegen.ComponentProcessor"
+      ]
+    },
+    "com.google.googlejavaformat:google-java-format": {
+      "java.util.spi.ToolProvider": [
+        "com.google.googlejavaformat.java.GoogleJavaFormatToolProvider"
+      ],
+      "javax.tools.Tool": [
+        "com.google.googlejavaformat.java.GoogleJavaFormatTool"
       ]
     },
     "com.squareup.moshi:moshi-kotlin-codegen": {
