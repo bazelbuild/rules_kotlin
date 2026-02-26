@@ -528,12 +528,12 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_remove_debug_info_in_abi_jars">experimental_remove_debug_info_in_abi_jars</a>, <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>,
                     <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>, <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>,
                     <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>,
-                    <a href="#define_kt_toolchain-build_tools_impl">build_tools_impl</a>, <a href="#define_kt_toolchain-kotlin_compiler_embeddable">kotlin_compiler_embeddable</a>, <a href="#define_kt_toolchain-kotlin_daemon_client">kotlin_daemon_client</a>,
-                    <a href="#define_kt_toolchain-kotlin_stdlib">kotlin_stdlib</a>, <a href="#define_kt_toolchain-kotlin_reflect">kotlin_reflect</a>, <a href="#define_kt_toolchain-kotlin_coroutines">kotlin_coroutines</a>, <a href="#define_kt_toolchain-annotations">annotations</a>,
-                    <a href="#define_kt_toolchain-internal_jvm_abi_gen">internal_jvm_abi_gen</a>, <a href="#define_kt_toolchain-internal_skip_code_gen">internal_skip_code_gen</a>, <a href="#define_kt_toolchain-internal_jdeps_gen">internal_jdeps_gen</a>, <a href="#define_kt_toolchain-internal_kapt">internal_kapt</a>,
-                    <a href="#define_kt_toolchain-ksp2">ksp2</a>, <a href="#define_kt_toolchain-ksp2_invoker">ksp2_invoker</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_aa">ksp2_symbol_processing_aa</a>,
-                    <a href="#define_kt_toolchain-ksp2_symbol_processing_api">ksp2_symbol_processing_api</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_common_deps">ksp2_symbol_processing_common_deps</a>,
-                    <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
+                    <a href="#define_kt_toolchain-build_tools_impl">build_tools_impl</a>, <a href="#define_kt_toolchain-kotlin_compiler_embeddable">kotlin_compiler_embeddable</a>, <a href="#define_kt_toolchain-kotlin_daemon_client">kotlin_daemon_client</a>, <a href="#define_kt_toolchain-kotlin_stdlib">kotlin_stdlib</a>,
+                    <a href="#define_kt_toolchain-kotlin_reflect">kotlin_reflect</a>, <a href="#define_kt_toolchain-kotlin_coroutines">kotlin_coroutines</a>, <a href="#define_kt_toolchain-annotations">annotations</a>, <a href="#define_kt_toolchain-internal_jvm_abi_gen">internal_jvm_abi_gen</a>,
+                    <a href="#define_kt_toolchain-internal_skip_code_gen">internal_skip_code_gen</a>, <a href="#define_kt_toolchain-internal_jdeps_gen">internal_jdeps_gen</a>, <a href="#define_kt_toolchain-internal_kapt">internal_kapt</a>, <a href="#define_kt_toolchain-ksp2">ksp2</a>, <a href="#define_kt_toolchain-ksp2_invoker">ksp2_invoker</a>,
+                    <a href="#define_kt_toolchain-ksp2_kotlinx_coroutines">ksp2_kotlinx_coroutines</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_aa">ksp2_symbol_processing_aa</a>, <a href="#define_kt_toolchain-ksp2_symbol_processing_api">ksp2_symbol_processing_api</a>,
+                    <a href="#define_kt_toolchain-ksp2_symbol_processing_common_deps">ksp2_symbol_processing_common_deps</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>,
+                    <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -571,6 +571,7 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-internal_kapt"></a>internal_kapt |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2"></a>ksp2 |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_invoker"></a>ksp2_invoker |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-ksp2_kotlinx_coroutines"></a>ksp2_kotlinx_coroutines |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_symbol_processing_aa"></a>ksp2_symbol_processing_aa |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_symbol_processing_api"></a>ksp2_symbol_processing_api |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_symbol_processing_common_deps"></a>ksp2_symbol_processing_common_deps |  <p align="center"> - </p>   |  `None` |
@@ -643,3 +644,5 @@ versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a hre
 | <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+
+

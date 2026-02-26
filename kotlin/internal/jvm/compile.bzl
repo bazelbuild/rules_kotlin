@@ -504,7 +504,7 @@ def _run_ksp_builder_actions(
         toolchains.kt.ksp2_symbol_processing_api[JavaInfo].runtime_output_jars +
         toolchains.kt.ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars +
         toolchains.kt.ksp2_symbol_processing_common_deps[JavaInfo].runtime_output_jars +
-        [toolchains.kt.kotlin_coroutines],
+        [toolchains.kt.ksp2_kotlinx_coroutines],
     )
 
     # Get the KSP2 invoker JAR (contains Ksp2Invoker class loaded via reflection)

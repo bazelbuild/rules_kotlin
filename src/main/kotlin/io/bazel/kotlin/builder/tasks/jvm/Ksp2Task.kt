@@ -42,13 +42,14 @@ import java.util.zip.ZipFile
  * Executes KSP2 symbol processing entirely within the worker:
  * 1. Stages source files to a temporary directory (for worker isolation)
  * 2. Unpacks srcjars to a temporary directory
- * 3. Runs KSP2 through a typed entrypoint in an isolated classloader
+ * 3. Runs KSP2 via a reflective invoker in an isolated classloader
  * 4. Packages generated sources/classes into output JARs
  *
  * This is a separate command from the main Build command for cleaner separation.
  */
 class Ksp2Task : Work {
   companion object {
+    private const val KSP2_INVOKER_CLASS = "io.bazel.kotlin.ksp2.Ksp2Invoker"
     private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
 
     enum class Ksp2Flags(
@@ -167,39 +168,32 @@ class Ksp2Task : Work {
         sourceRoots.add(stagedSourcesDir.toString())
       }
 
-      // Create classloader with KSP2 jars and processor jars.
+      // Run KSP2 in an isolated classloader that contains only the processor classpath.
       val processorClasspath = argMap.optional(Ksp2Flags.PROCESSOR_CLASSPATH) ?: emptyList()
-      val processorUrls = processorClasspath.map { File(it).toURI().toURL() }.toTypedArray()
-
-      // Load KSP2 entrypoint via classloader and invoke through typed interface.
+      val request =
+        mapOf(
+          "moduleName" to moduleName,
+          "sourceRoots" to sourceRoots.toList().sorted(),
+          "javaSourceRoots" to javaSourceRoots.toList().sorted(),
+          "libraries" to (argMap.optional(Ksp2Flags.LIBRARIES) ?: emptyList()),
+          "kotlinOutputDir" to kotlinOutputDir.toString(),
+          "javaOutputDir" to javaOutputDir.toString(),
+          "classOutputDir" to classOutputDir.toString(),
+          "resourceOutputDir" to resourceOutputDir.toString(),
+          "cachesDir" to cachesDir.toString(),
+          "projectBaseDir" to kspWorkDir.toString(),
+          "outputBaseDir" to kspWorkDir.toString(),
+          "jvmTarget" to argMap.optionalSingle(Ksp2Flags.JVM_TARGET),
+          "languageVersion" to argMap.optionalSingle(Ksp2Flags.LANGUAGE_VERSION),
+          "apiVersion" to argMap.optionalSingle(Ksp2Flags.API_VERSION),
+          "jdkHome" to argMap.optionalSingle(Ksp2Flags.JDK_HOME),
+          "logLevel" to 1,
+        )
       val code =
-        URLClassLoader(processorUrls, ClassLoader.getSystemClassLoader()).use { kspClassLoader ->
-          val invokerClass = kspClassLoader.loadClass("io.bazel.kotlin.ksp2.Ksp2Invoker")
-          val invoker =
-            invokerClass
-              .getConstructor(ClassLoader::class.java)
-              .newInstance(kspClassLoader) as Ksp2EntryPoint
-          invoker.execute(
-            Ksp2Request(
-              moduleName = moduleName,
-              sourceRoots = sourceRoots.map { File(it) },
-              javaSourceRoots = javaSourceRoots.map { File(it) },
-              libraries = argMap.optional(Ksp2Flags.LIBRARIES)?.map { File(it) } ?: emptyList(),
-              kotlinOutputDir = kotlinOutputDir.toFile(),
-              javaOutputDir = javaOutputDir.toFile(),
-              classOutputDir = classOutputDir.toFile(),
-              resourceOutputDir = resourceOutputDir.toFile(),
-              cachesDir = cachesDir.toFile(),
-              projectBaseDir = kspWorkDir.toFile(),
-              outputBaseDir = kspWorkDir.toFile(),
-              jvmTarget = argMap.optionalSingle(Ksp2Flags.JVM_TARGET),
-              languageVersion = argMap.optionalSingle(Ksp2Flags.LANGUAGE_VERSION),
-              apiVersion = argMap.optionalSingle(Ksp2Flags.API_VERSION),
-              jdkHome = argMap.optionalSingle(Ksp2Flags.JDK_HOME)?.let { File(it) },
-              logLevel = 1,
-            ),
-          )
-        }
+        runKsp2Isolated(
+          processorClasspath = processorClasspath,
+          request = request,
+        )
 
       if (code != 0) {
         taskContext.error { "KSP2 failed with exit code: $code" }
@@ -289,6 +283,30 @@ class Ksp2Task : Work {
             }
           }
         }
+      }
+    }
+  }
+
+  private fun runKsp2Isolated(
+    processorClasspath: List<String>,
+    request: Map<String, Any?>,
+  ): Int {
+    val processorUrls = processorClasspath.map { File(it).toURI().toURL() }.toTypedArray()
+    URLClassLoader(processorUrls, ClassLoader.getPlatformClassLoader()).use { kspClassLoader ->
+      val currentThread = Thread.currentThread()
+      val previousClassLoader = currentThread.contextClassLoader
+      try {
+        currentThread.contextClassLoader = kspClassLoader
+        val invokerClass = kspClassLoader.loadClass(KSP2_INVOKER_CLASS)
+        val executeMethod =
+          invokerClass.getMethod(
+            "execute",
+            ClassLoader::class.java,
+            Map::class.java,
+          )
+        return (executeMethod.invoke(null, kspClassLoader, request) as Number).toInt()
+      } finally {
+        currentThread.contextClassLoader = previousClassLoader
       }
     }
   }
