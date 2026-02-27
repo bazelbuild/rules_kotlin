@@ -23,6 +23,7 @@ release_archive(
         "bzlmod_impl.bzl",
         "compiler.bzl",
         "ksp.bzl",
+        "setup.bzl",
         "versions.bzl",
     ],
     src_map = {

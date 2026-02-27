@@ -19,7 +19,6 @@ load(
     "http_archive",
     "http_file",
 )
-load("@rules_jvm_external//:defs.bzl", "maven_install")
 load(":compiler.bzl", "kotlin_compiler_repository")
 load(":versions.bzl", "version", _versions = "versions")
 
@@ -60,21 +59,10 @@ def kotlin_repositories(
     if is_bzlmod:
         return
 
-    maven_install(
-        name = "rules_kotlin_maven",
-        fetch_sources = True,
-        artifacts = [
-            "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(compiler_release.version),
-            "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:{}".format(compiler_release.version),
-            "com.google.devtools.ksp:symbol-processing-aa:{}".format(ksp_compiler_release.version),
-        ],
-        fail_if_repin_required = True,
-        lock_file = "@rules_kotlin//:rules_kotlin_maven_install.json",
-        repositories = [
-            "https://maven-central.storage.googleapis.com/repos/central/data/",
-            "https://maven.google.com",
-            "https://repo1.maven.org/maven2",
-        ],
+    versions.use_repository(
+        http_archive,
+        name = "rules_jvm_external",
+        version = versions.RULES_JVM_EXTERNAL,
     )
 
     versions.use_repository(

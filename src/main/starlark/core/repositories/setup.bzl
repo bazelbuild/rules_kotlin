@@ -12,26 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_features//:deps.bzl", "bazel_features_deps")
-load("@bazel_lib//lib:repositories.bzl", "bazel_lib_dependencies")
-load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+# load("@bazel_features//:deps.bzl", "bazel_features_deps")
+# load("@bazel_lib//lib:repositories.bzl", "bazel_lib_dependencies")
+# load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+# load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
-load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
-load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+load("@rules_jvm_external//:repositories.bzl", "rules_jvm_external_deps")
+load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
+# load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+# load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
+# load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 
 def kt_configure():
     """Setup dependencies."""
-    rules_proto_dependencies()
-    rules_proto_toolchains()
-    rules_proto_setup()
+    #     rules_proto_dependencies()
+    #     rules_proto_toolchains()
+    #     rules_proto_setup()
+    #
+    #     protobuf_deps()
+    #
+    #     bazel_skylib_workspace()
+    #     bazel_features_deps()
+    #     bazel_lib_dependencies()
 
-    protobuf_deps()
-
-    bazel_skylib_workspace()
-    bazel_features_deps()
-    bazel_lib_dependencies()
+    rules_jvm_external_deps()
+    rules_jvm_external_setup()
 
     # Keep in sync with MODULE.bazel.
     kotlin_version = "2.3.20-RC"
@@ -50,4 +55,5 @@ def kt_configure():
             "https://maven.google.com",
             "https://repo1.maven.org/maven2",
         ],
+        maven_install_json = "@rules_kotlin//:rules_kotlin_maven_install.json",
     )
