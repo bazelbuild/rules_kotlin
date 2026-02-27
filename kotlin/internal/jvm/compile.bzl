@@ -56,13 +56,7 @@ load(
 
 # Keep runtime artifact wiring in a single place for all worker actions.
 _RUNTIME_ARG_SPECS = (
-    ("--build_tools_impl", "build_tools_impl"),
-    ("--kotlin_compiler_embeddable", "kotlin_compiler_embeddable"),
-    ("--kotlin_daemon_client", "kotlin_daemon_client"),
-    ("--kotlin_stdlib", "kotlin_stdlib"),
-    ("--kotlin_reflect", "kotlin_reflect"),
-    ("--kotlin_coroutines", "kotlin_coroutines"),
-    ("--annotations", "annotations"),
+    ("--btapi_runtime_classpath", "btapi_runtime_classpath"),
 )
 
 # UTILITY ##############################################################################################################
@@ -137,7 +131,7 @@ def _runtime_inputs(toolchains):
 
 def _add_runtime_args(args, toolchains):
     for flag, attr_name in _RUNTIME_ARG_SPECS:
-        args.add(flag, getattr(toolchains.kt, attr_name))
+        args.add_all(flag, getattr(toolchains.kt, attr_name))
 
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
@@ -501,10 +495,8 @@ def _run_ksp_builder_actions(
 
     # Collect KSP2 API JARs (needed by the worker to load KSP2 classes via reflection)
     ksp2_api_jars = depset(
-        toolchains.kt.ksp2_symbol_processing_api[JavaInfo].runtime_output_jars +
-        toolchains.kt.ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars +
-        toolchains.kt.ksp2_symbol_processing_common_deps[JavaInfo].runtime_output_jars +
-        [toolchains.kt.ksp2_kotlinx_coroutines],
+        direct = toolchains.kt.ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars,
+        transitive = [toolchains.kt.ksp2_symbol_processing_aa[JavaInfo].transitive_runtime_jars],
     )
 
     # Get the KSP2 invoker JAR (contains Ksp2Invoker class loaded via reflection)
@@ -652,8 +644,9 @@ def _run_kt_builder_action(
     ctx.actions.run(
         mnemonic = mnemonic,
         inputs = depset(
-            srcs.all_srcs + srcs.src_jars + generated_src_jars + runtime_inputs + internal_plugin_inputs,
+            srcs.all_srcs + srcs.src_jars + generated_src_jars + internal_plugin_inputs,
             transitive = [
+                depset(transitive = runtime_inputs),
                 compile_deps.associate_jars,
                 compile_deps.compile_jars,
                 transitive_runtime_jars,

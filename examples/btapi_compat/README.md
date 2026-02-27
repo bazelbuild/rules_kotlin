@@ -2,13 +2,15 @@
 
 This example shows how to configure a custom Kotlin toolchain that uses an older Kotlin compiler/BTAPI runtime (`2.3.10`) while building with `rules_kotlin`.
 
-The key idea is to override toolchain runtime artifacts with coordinates resolved by `rules_jvm_external`:
+The key idea is to override BTAPI runtime wiring with coordinates resolved by `rules_jvm_external`:
 
 - `org.jetbrains.kotlin:kotlin-build-tools-impl:2.3.10`
-- `org.jetbrains.kotlin:kotlin-compiler-embeddable:2.3.10`
-- `org.jetbrains.kotlin:kotlin-daemon-client:2.3.10`
+
+`rules_kotlin` derives the full BTAPI runtime classpath from the `kotlin-build-tools-impl` JavaInfo transitives.
+
+The custom toolchain also overrides:
+
 - `org.jetbrains.kotlin:kotlin-stdlib:2.3.10`
-- `org.jetbrains.kotlin:kotlin-reflect:2.3.10`
 
 The custom toolchain is declared in `BUILD.bazel` with `define_kt_toolchain` and registered in `MODULE.bazel` via:
 

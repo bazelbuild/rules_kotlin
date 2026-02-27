@@ -38,10 +38,16 @@ class KotlinBuilderProtoArgsTest {
   private val kotlinCoroutines = dep("//kotlin/compiler:kotlinx-coroutines-core-jvm")
   private val annotations = dep("//kotlin/compiler:annotations")
 
-  private val buildToolsImpl = dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl")
-  private val kotlinCompilerEmbeddable =
-    dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable")
-  private val kotlinDaemonClient = dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client")
+  private val btapiRuntimeClasspath =
+    listOf(
+      dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl"),
+      dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable"),
+      dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client"),
+      kotlinStdlib,
+      kotlinReflect,
+      kotlinCoroutines,
+      annotations,
+    )
 
   private val jvmAbiGen = dep("//kotlin/compiler:jvm-abi-gen")
   private val skipCodeGen = dep("//src/main/kotlin:skip-code-gen")
@@ -134,13 +140,10 @@ class KotlinBuilderProtoArgsTest {
     args.addFlag(KotlinBuilderFlags.JVM_TARGET, "11")
     args.addFlag(KotlinBuilderFlags.PLUGINS_PAYLOAD, pluginsPayload)
 
-    args.addFlag(KotlinBuilderFlags.BUILD_TOOLS_IMPL, buildToolsImpl)
-    args.addFlag(KotlinBuilderFlags.KOTLIN_COMPILER_EMBEDDABLE, kotlinCompilerEmbeddable)
-    args.addFlag(KotlinBuilderFlags.KOTLIN_DAEMON_CLIENT, kotlinDaemonClient)
-    args.addFlag(KotlinBuilderFlags.KOTLIN_STDLIB, kotlinStdlib)
-    args.addFlag(KotlinBuilderFlags.KOTLIN_REFLECT, kotlinReflect)
-    args.addFlag(KotlinBuilderFlags.KOTLIN_COROUTINES, kotlinCoroutines)
-    args.addFlag(KotlinBuilderFlags.ANNOTATIONS, annotations)
+    args.addFlag(
+      KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH,
+      *btapiRuntimeClasspath.toTypedArray(),
+    )
 
     args.addFlag(KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN, jvmAbiGen)
     args.addFlag(KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN, skipCodeGen)

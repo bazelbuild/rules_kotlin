@@ -9,10 +9,7 @@ maven.install(
     artifacts = [
         "junit:junit:4.13.2",
         "org.jetbrains.kotlin:kotlin-build-tools-impl:2.3.10",
-        "org.jetbrains.kotlin:kotlin-compiler-embeddable:2.3.10",
-        "org.jetbrains.kotlin:kotlin-daemon-client:2.3.10",
         "org.jetbrains.kotlin:kotlin-stdlib:2.3.10",
-        "org.jetbrains.kotlin:kotlin-reflect:2.3.10",
     ],
     repositories = [
         "https://maven-central.storage.googleapis.com/repos/central/data/",

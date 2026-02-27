@@ -23,9 +23,9 @@ package(default_visibility = ["//visibility:public"])
 kt_configure_compiler()
 
 # BTAPI runtime artifacts required by default toolchains.
-alias(
+kt_jvm_import(
     name = "kotlin-build-tools-impl",
-    actual = "@kotlin_build_tools_impl//file",
+    jar = "@kotlin_build_tools_impl//file",
 )
 
 alias(

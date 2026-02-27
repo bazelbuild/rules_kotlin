@@ -81,13 +81,7 @@ class KotlinBuilder(
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
-      BUILD_TOOLS_IMPL("--build_tools_impl"),
-      KOTLIN_COMPILER_EMBEDDABLE("--kotlin_compiler_embeddable"),
-      KOTLIN_DAEMON_CLIENT("--kotlin_daemon_client"),
-      KOTLIN_STDLIB("--kotlin_stdlib"),
-      KOTLIN_REFLECT("--kotlin_reflect"),
-      KOTLIN_COROUTINES("--kotlin_coroutines"),
-      ANNOTATIONS("--annotations"),
+      BTAPI_RUNTIME_CLASSPATH("--btapi_runtime_classpath"),
       INTERNAL_JVM_ABI_GEN("--internal_jvm_abi_gen"),
       INTERNAL_SKIP_CODE_GEN("--internal_skip_code_gen"),
       INTERNAL_KAPT("--internal_kapt"),
@@ -193,15 +187,8 @@ class KotlinBuilder(
   }
 
   private fun buildBtapiRuntimeSpec(argMap: ArgMap): BtapiRuntimeSpec =
-    BtapiRuntimeSpec.fromJarPaths(
-      buildToolsImplJar = argMap.mandatorySingle(KotlinBuilderFlags.BUILD_TOOLS_IMPL),
-      kotlinCompilerEmbeddableJar =
-        argMap.mandatorySingle(KotlinBuilderFlags.KOTLIN_COMPILER_EMBEDDABLE),
-      kotlinDaemonClientJar = argMap.mandatorySingle(KotlinBuilderFlags.KOTLIN_DAEMON_CLIENT),
-      kotlinStdlibJar = argMap.mandatorySingle(KotlinBuilderFlags.KOTLIN_STDLIB),
-      kotlinReflectJar = argMap.mandatorySingle(KotlinBuilderFlags.KOTLIN_REFLECT),
-      kotlinCoroutinesJar = argMap.mandatorySingle(KotlinBuilderFlags.KOTLIN_COROUTINES),
-      annotationsJar = argMap.mandatorySingle(KotlinBuilderFlags.ANNOTATIONS),
+    BtapiRuntimeSpec.fromClasspathEntries(
+      classpath = argMap.mandatory(KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH),
     )
 
   private fun buildInternalCompilerPlugins(argMap: ArgMap) =
