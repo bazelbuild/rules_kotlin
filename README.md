@@ -125,7 +125,7 @@ rules_kotlin_extensions.kotlinc_version(
     version = "2.1.20",
     sha256 = "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a"
 )
-use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
+use_repo(rules_kotlin_extensions, "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint")
 ```
 
 ### `WORKSPACE`
@@ -264,21 +264,11 @@ Additionally, you can add options for both tracing and timing of the bazel build
 
 # Build Tools API
 
-The Build Tools API is a modern compilation interface provided by JetBrains for invoking the Kotlin compiler. It offers better integration and is required for incremental compilation support.
+The Build Tools API is the compilation interface used by rules_kotlin.
 
-**This feature is enabled by default.**
+The legacy (non-BTAPI) compilation path has been removed.
 
-To disable the Build Tools API and use the legacy compilation approach, add the following flag to your build:
-
-```bash
-bazel build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false //your:target
-```
-
-Or add it to your `.bazelrc` file:
-
-```
-build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false
-```
+Do not set `--@rules_kotlin//kotlin/settings:experimental_build_tools_api`; it is no longer supported.
 
 # KSP (Kotlin Symbol Processing)
 
@@ -316,7 +306,7 @@ rules_kotlin_extensions.ksp_version(
     version = "1.8.22-1.0.11",
     sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
 )
-use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
+use_repo(rules_kotlin_extensions, "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint")
 ```
 
 ### `WORKSPACE` (or import from a `.bzl` file):

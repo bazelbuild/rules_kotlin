@@ -129,6 +129,10 @@ load("@rules_kotlin//src/main/starlark/core/repositories:setup.bzl", "kt_configu
 
 kt_configure()
 
+load("@rules_kotlin_maven//:defs.bzl", "pinned_maven_install")
+
+pinned_maven_install()
+
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
@@ -150,12 +154,17 @@ maven_install(
         "com.google.auto.value:auto-value-annotations:1.6.5",
         "org.robolectric:robolectric:4.10.3",
     ],
+    maven_install_json = "//:maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
     use_starlark_android_rules = True,
 )
+
+load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")
+
+pinned_maven_install_example()
 
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 

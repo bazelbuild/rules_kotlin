@@ -41,12 +41,11 @@ def kotlin_repositories(
         compiler_release: version provider from versions.bzl.
         ksp_compiler_release: (internal) version provider from versions.bzl.
     """
-
     kotlin_compiler_repository(
         name = compiler_repository_name,
         urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
         sha256 = compiler_release.sha256,
-        compiler_version = compiler_release.version,
+        compiler_version = compiler_release.version if ksp_compiler_release else compiler_release.version,
     )
 
     versions.use_repository(
