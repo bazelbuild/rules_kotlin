@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//kotlin:jvm.bzl", "kt_jvm_import")
 load(":compiler.bzl", "kt_configure_compiler")
 load(":kapt.bzl", "kapt_compiler_plugin")
 
@@ -23,9 +22,9 @@ package(default_visibility = ["//visibility:public"])
 kt_configure_compiler()
 
 # BTAPI runtime artifacts required by default toolchains.
-kt_jvm_import(
+alias(
     name = "kotlin-build-tools-impl",
-    jar = "@kotlin_build_tools_impl//file",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
 )
 
 alias(
@@ -35,23 +34,13 @@ alias(
 
 alias(
     name = "kotlin-annotation-processing-embeddable",
-    actual = ":kotlin-annotation-processing",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
 )
 
-# KSP2 processor classpath artifacts from downloaded KSP distribution.
-kt_jvm_import(
+# KSP2 processor classpath artifact.
+alias(
     name = "symbol-processing-aa",
-    jar = "@com_github_google_ksp//:symbol-processing-aa.jar",
-)
-
-kt_jvm_import(
-    name = "symbol-processing-api",
-    jar = "@com_github_google_ksp//:symbol-processing-api.jar",
-)
-
-kt_jvm_import(
-    name = "symbol-processing-common-deps",
-    jar = "@com_github_google_ksp//:symbol-processing-common-deps.jar",
+    actual = "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_aa",
 )
 
 kapt_compiler_plugin(

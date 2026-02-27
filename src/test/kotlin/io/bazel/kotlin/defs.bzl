@@ -38,13 +38,13 @@ def kt_rules_test(name, **kwargs):
         "//kotlin/compiler:kotlin-stdlib",
         "//kotlin/compiler:kotlin-reflect",
         "//kotlin/compiler:kotlinx-coroutines-core-jvm",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
-        "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
-        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_api",
-        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
-        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
-        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
-        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
+        "@rules_kotlin_dev_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+        "@rules_kotlin_dev_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_api",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
     ] + args["data"]:
         if dep not in args["data"]:
             args["data"].append(dep)

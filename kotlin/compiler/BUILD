@@ -21,64 +21,64 @@ package(default_visibility = ["//visibility:public"])
 # Kotlin standard library
 alias(
     name = "kotlin-stdlib",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_stdlib",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_stdlib",
 )
 
 alias(
     name = "kotlin-reflect",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_reflect",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_reflect",
 )
 
 alias(
     name = "kotlin-test",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_test",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_test",
 )
 
 alias(
     name = "annotations",
-    actual = "@kotlin_rules_maven//:org_jetbrains_annotations",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_annotations",
 )
 
 alias(
     name = "kotlinx-coroutines-core-jvm",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
 )
 
 java_library(
     name = "kotlin-annotation-processing",
     neverlink = True,
-    exports = ["@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing"],
+    exports = ["@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_annotation_processing"],
 )
 
 alias(
     name = "jvm-abi-gen",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_jvm_abi_gen",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_jvm_abi_gen",
 )
 
 alias(
     name = "kotlin-script-runtime",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_script_runtime",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_script_runtime",
 )
 
 # Compiler plugins
 alias(
     name = "allopen-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_allopen_compiler_plugin",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_allopen_compiler_plugin",
 )
 
 alias(
     name = "noarg-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_noarg_compiler_plugin",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_noarg_compiler_plugin",
 )
 
 alias(
     name = "sam-with-receiver-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_sam_with_receiver_compiler_plugin",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_sam_with_receiver_compiler_plugin",
 )
 
 alias(
     name = "kotlinx-serialization-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_serialization_compiler_plugin",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_serialization_compiler_plugin",
 )
 
 alias(
@@ -88,52 +88,42 @@ alias(
 
 alias(
     name = "parcelize-compiler-plugin",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_compiler",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_parcelize_compiler",
 )
 
 alias(
     name = "parcelize-runtime",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_parcelize_runtime",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_parcelize_runtime",
 )
 
 alias(
     name = "kotlin-daemon-client",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client",
 )
 
 alias(
     name = "kotlin-build-tools-impl",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
 )
 
 alias(
     name = "kotlin-compiler",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_compiler",
 )
 
 alias(
     name = "kotlin-compiler-embeddable",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
 )
 
 alias(
     name = "kotlin-annotation-processing-embeddable",
-    actual = "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
 )
 
 alias(
     name = "symbol-processing-aa",
-    actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_aa_embeddable",
-)
-
-alias(
-    name = "symbol-processing-api",
-    actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_api",
-)
-
-alias(
-    name = "symbol-processing-common-deps",
-    actual = "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
+    actual = "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_aa",
 )
 
 kapt_compiler_plugin(

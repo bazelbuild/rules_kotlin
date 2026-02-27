@@ -9,7 +9,7 @@ load(":toolchain.bzl", "cli_toolchain")
 java_library(
     name = "kotlinc_jar",
     exports = [
-        "@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler",
+        "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_compiler",
     ],
 )
 

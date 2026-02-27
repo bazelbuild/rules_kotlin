@@ -26,7 +26,7 @@ kt_jvm_library(
     visibility = ["//src/test:__subpackages__"],
     deps = [
         "//src/test/data/jvm/ksp/bytecodegenerator/annotation",
-        "@kotlin_rules_maven//:com_google_devtools_ksp_symbol_processing_api",
-        "@kotlin_rules_maven//:org_ow2_asm_asm",
+        "@rules_kotlin_dev_maven//:com_google_devtools_ksp_symbol_processing_api",
+        "@rules_kotlin_dev_maven//:org_ow2_asm_asm",
     ],
 )

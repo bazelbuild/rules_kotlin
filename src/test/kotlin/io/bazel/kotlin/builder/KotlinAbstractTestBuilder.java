@@ -202,7 +202,7 @@ abstract class KotlinAbstractTestBuilder<T> {
         return InternalCompilerPlugins.fromPaths(
                 Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),
                 Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar(),
-                Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar(),
+                Deps.Dep.fromLabel("@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar(),
                 Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()
         );
     }
@@ -210,9 +210,9 @@ abstract class KotlinAbstractTestBuilder<T> {
     static BtapiRuntimeSpec btapiRuntimeForTest() {
         return new BtapiRuntimeSpec(
                 List.of(
-                        Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
-                        Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
-                        Path.of(Deps.Dep.fromLabel("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
+                        Path.of(Deps.Dep.fromLabel("@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
                         Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
                         Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
                         Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),

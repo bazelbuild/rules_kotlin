@@ -40,9 +40,9 @@ class KotlinBuilderProtoArgsTest {
 
   private val btapiRuntimeClasspath =
     listOf(
-      dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl"),
-      dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable"),
-      dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_daemon_client"),
+      dep("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl"),
+      dep("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable"),
+      dep("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client"),
       kotlinStdlib,
       kotlinReflect,
       kotlinCoroutines,
@@ -51,7 +51,7 @@ class KotlinBuilderProtoArgsTest {
 
   private val jvmAbiGen = dep("//kotlin/compiler:jvm-abi-gen")
   private val skipCodeGen = dep("//src/main/kotlin:skip-code-gen")
-  private val kaptEmbeddable = dep("@kotlin_rules_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable")
+  private val kaptEmbeddable = dep("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable")
   private val jdepsGen = dep("//src/main/kotlin:jdeps-gen")
 
   @Test

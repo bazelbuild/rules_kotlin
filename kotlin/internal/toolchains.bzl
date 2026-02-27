@@ -63,9 +63,18 @@ def _kotlin_toolchain_impl(ctx):
     # Runtime classpath should include stdlib runtime jars.
     runtime_providers = [ctx.attr.kotlin_stdlib[JavaInfo]] if JavaInfo in ctx.attr.kotlin_stdlib else []
 
+    build_tools_info = ctx.attr.build_tools_impl[JavaInfo]
+    build_tools_full_compile_classpath = getattr(
+        build_tools_info,
+        "_transitive_full_compile_time_jars",
+        depset(),
+    )
     build_tools_runtime_classpath = depset(
-        direct = ctx.attr.build_tools_impl[JavaInfo].runtime_output_jars,
-        transitive = [ctx.attr.build_tools_impl[JavaInfo].transitive_runtime_jars],
+        direct = build_tools_info.runtime_output_jars,
+        transitive = [
+            build_tools_info.transitive_runtime_jars,
+            build_tools_full_compile_classpath,
+        ],
     )
 
     toolchain = dict(
