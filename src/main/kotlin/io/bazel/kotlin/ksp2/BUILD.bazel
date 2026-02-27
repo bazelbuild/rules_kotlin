@@ -21,5 +21,7 @@ kt_bootstrap_library(
     visibility = ["//visibility:public"],
     deps = [
         "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_aa",
+        "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_api",
+        "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
     ],
 )
