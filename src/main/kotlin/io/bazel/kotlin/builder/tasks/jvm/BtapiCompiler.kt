@@ -109,9 +109,18 @@ class BtapiCompiler(
     // Configure compiler arguments directly from protobuf
     configureCompilerArguments(compilerArgs, task)
 
-    // Configure compiler plugins
+    // Configure compiler plugins via raw argument strings for compatibility
+    // with pre-2.3.20 toolchains that do not expose typed compiler plugin setters.
     if (compilerPlugins.isNotEmpty()) {
-      compilerArgs[CommonCompilerArguments.COMPILER_PLUGINS] = compilerPlugins
+      try {
+        val pluginArgumentStrings = BtapiPluginArguments.toArgumentStrings(compilerPlugins)
+        compilerArgs.applyArgumentStrings(compilerArgs.toArgumentStrings() + pluginArgumentStrings)
+      } catch (e: CompilerArgumentsParseException) {
+        throw IllegalArgumentException(
+          "Invalid compiler plugin arguments: ${e.message}",
+          e,
+        )
+      }
     }
 
     // Allow caller to do additional configuration

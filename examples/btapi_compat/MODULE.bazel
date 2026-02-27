@@ -1,0 +1,24 @@
+module(name = "btapi-compat-example")
+
+bazel_dep(name = "rules_kotlin", version = "2.2.0")
+bazel_dep(name = "rules_jvm_external", version = "6.10")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "maven_rules_kotlin_btapi_compat",
+    artifacts = [
+        "junit:junit:4.13.2",
+        "org.jetbrains.kotlin:kotlin-build-tools-impl:2.3.10",
+        "org.jetbrains.kotlin:kotlin-compiler-embeddable:2.3.10",
+        "org.jetbrains.kotlin:kotlin-daemon-client:2.3.10",
+        "org.jetbrains.kotlin:kotlin-stdlib:2.3.10",
+        "org.jetbrains.kotlin:kotlin-reflect:2.3.10",
+    ],
+    repositories = [
+        "https://maven-central.storage.googleapis.com/repos/central/data/",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(maven, "maven_rules_kotlin_btapi_compat")
+
+register_toolchains("//:kotlin_2310_toolchain")

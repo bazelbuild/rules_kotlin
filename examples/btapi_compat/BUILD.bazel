@@ -1,0 +1,22 @@
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+define_kt_toolchain(
+    name = "kotlin_2310_toolchain",
+    api_version = "2.0",
+    build_tools_impl = "@maven_rules_kotlin_btapi_compat//:org_jetbrains_kotlin_kotlin_build_tools_impl",
+    kotlin_compiler_embeddable = "@maven_rules_kotlin_btapi_compat//:org_jetbrains_kotlin_kotlin_compiler_embeddable",
+    kotlin_daemon_client = "@maven_rules_kotlin_btapi_compat//:org_jetbrains_kotlin_kotlin_daemon_client",
+    kotlin_reflect = "@maven_rules_kotlin_btapi_compat//:org_jetbrains_kotlin_kotlin_reflect",
+    kotlin_stdlib = "@maven_rules_kotlin_btapi_compat//:org_jetbrains_kotlin_kotlin_stdlib",
+    language_version = "2.0",
+)
+
+kt_jvm_test(
+    name = "compat_test",
+    srcs = ["src/main/kotlin/example/Compat.kt"],
+    test_class = "example.CompatTest",
+    deps = [
+        "@maven_rules_kotlin_btapi_compat//:junit_junit",
+    ],
+)
