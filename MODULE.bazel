@@ -88,6 +88,7 @@ maven.install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    resolver = "maven",
 )
 maven.install(
     name = "rules_kotlin_dev_maven",
@@ -139,6 +140,7 @@ maven.install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    resolver = "maven",
 )
 maven.override(
     name = "override_target_in_deps_kotlin_stdlib",

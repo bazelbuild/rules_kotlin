@@ -128,6 +128,7 @@ maven_install(
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
+    resolver = "maven",
 )
 
 load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")

@@ -39,4 +39,5 @@ def kt_configure():
             "https://repo1.maven.org/maven2",
         ],
         maven_install_json = "@rules_kotlin//:rules_kotlin_maven_install.json",
+        resolver = "maven",
     )
