@@ -13,7 +13,6 @@ ktlint.fix:
 	bazel run //src/main/kotlin/io/bazel/kotlin/builder/toolchain:toolchain_ktlint_fix
 	bazel run //src/main/kotlin/io/bazel/kotlin/builder/utils:utils_ktlint_fix
 	bazel run //src/main/kotlin/io/bazel/kotlin/builder/utils/jars:jars_ktlint_fix
-	bazel run //src/main/kotlin/io/bazel/kotlin/compiler:compiler_ktlint_fix
 	bazel run //src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen-lib_ktlint_fix
 	bazel run //src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen-lib_ktlint_fix
 	bazel run //src/main/kotlin/io/bazel/worker:worker_ktlint_fix

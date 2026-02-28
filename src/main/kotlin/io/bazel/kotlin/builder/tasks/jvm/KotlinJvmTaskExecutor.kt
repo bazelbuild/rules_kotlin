@@ -32,8 +32,13 @@ class KotlinJvmTaskExecutor
     private val defaultRuntimeSpec: BtapiRuntimeSpec? = null,
     private val defaultPlugins: InternalCompilerPlugins? = null,
     private val btapiToolchainsCache: BtapiToolchainsCache = BtapiToolchainsCache(),
-  ) {
+  ) : AutoCloseable {
     private val compilers = ConcurrentHashMap<BtapiRuntimeSpec, BtapiCompiler>()
+
+    override fun close() {
+      compilers.values.forEach { it.close() }
+      compilers.clear()
+    }
 
     fun execute(
       context: CompilationTaskContext,

@@ -187,9 +187,6 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
-def adjust_resources_path_by_strip_prefix_for_testing(path, resource_strip_prefix):
-    return _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix)
-
 def _new_plugins_from(targets):
     """Returns a struct containing the plugin metadata for the given targets.
 

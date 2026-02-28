@@ -45,7 +45,7 @@ def kotlin_repositories(
         name = compiler_repository_name,
         urls = [url.format(version = compiler_release.version) for url in compiler_release.url_templates],
         sha256 = compiler_release.sha256,
-        compiler_version = compiler_release.version if ksp_compiler_release else compiler_release.version,
+        compiler_version = compiler_release.version,
     )
 
     versions.use_repository(
@@ -62,12 +62,6 @@ def kotlin_repositories(
         http_archive,
         name = "rules_jvm_external",
         version = versions.RULES_JVM_EXTERNAL,
-    )
-
-    versions.use_repository(
-        http_archive,
-        name = "py_absl",
-        version = versions.PY_ABSL,
     )
 
     versions.use_repository(

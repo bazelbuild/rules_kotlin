@@ -50,6 +50,15 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as Btap
 class BtapiCompiler(
   private val toolchains: KotlinToolchains,
 ) : AutoCloseable {
+  companion object {
+    private const val ZIP_CRC_PROPERTY = "zip.handler.uses.crc.instead.of.timestamp"
+    private const val ZIP_CRC_VALUE = "true"
+
+    init {
+      System.setProperty(ZIP_CRC_PROPERTY, ZIP_CRC_VALUE)
+    }
+  }
+
   private val lazyBuildSession = lazy { toolchains.createBuildSession() }
   private val buildSession by lazyBuildSession
 
@@ -95,8 +104,6 @@ class BtapiCompiler(
       JvmCompilerArguments,
     ) -> Unit = { _, _ -> },
   ): CompilationResult {
-    System.setProperty("zip.handler.uses.crc.instead.of.timestamp", "true")
-
     // Collect sources from protobuf
     val sources =
       (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
@@ -365,7 +372,6 @@ class BtapiCompiler(
 
   private fun normalizeJvmTarget(target: String): String =
     when (target) {
-      "6" -> "1.6"
       "8" -> "1.8"
       else -> target
     }
@@ -553,15 +559,14 @@ class BtapiCompiler(
    */
   private fun encodeMapForKapt(options: Map<String, String>): String {
     val os = ByteArrayOutputStream()
-    val oos = ObjectOutputStream(os)
-
-    oos.writeInt(options.size)
-    for ((key, value) in options.entries) {
-      oos.writeUTF(key)
-      oos.writeUTF(value)
+    ObjectOutputStream(os).use { oos ->
+      oos.writeInt(options.size)
+      for ((key, value) in options.entries) {
+        oos.writeUTF(key)
+        oos.writeUTF(value)
+      }
+      oos.flush()
     }
-
-    oos.flush()
     return Base64.getEncoder().encodeToString(os.toByteArray())
   }
 }

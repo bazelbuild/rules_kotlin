@@ -239,14 +239,6 @@ internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask
     )
   }
 
-private val Directories.stubs
-  get() =
-    Files
-      .createDirectories(
-        Paths
-          .get(temp)
-          .resolve("stubs"),
-      ).toString()
 private val Directories.incrementalData
   get() =
     Files

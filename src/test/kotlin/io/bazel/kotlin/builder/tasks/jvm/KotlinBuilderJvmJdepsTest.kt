@@ -21,8 +21,6 @@ import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.Deps.Dep
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.io.BufferedInputStream
 import java.nio.file.Files
 import java.nio.file.Paths

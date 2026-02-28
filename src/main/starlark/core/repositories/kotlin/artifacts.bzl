@@ -80,10 +80,3 @@ KOTLINC_ARTIFACT_LIST = {
     for type in ["compile", "plugin", "runtime"]
     for (label, file) in getattr(getattr(KOTLINC_ARTIFACTS, lang), type).items()
 }
-
-# List of Kotlin standard library targets for runtime dependencies
-KOTLIN_STDLIBS = [
-    "//kotlin/compiler:annotations",
-    "//kotlin/compiler:kotlin-stdlib",
-    "//kotlin/compiler:kotlinx-coroutines-core-jvm",
-]

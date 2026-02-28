@@ -34,6 +34,18 @@ alias(
     actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_test",
 )
 
+# Since Kotlin 1.8, jdk7/jdk8 extensions are folded into the main stdlib.
+# These aliases satisfy maven.override entries in MODULE.bazel.
+alias(
+    name = "kotlin-stdlib-jdk7",
+    actual = ":kotlin-stdlib",
+)
+
+alias(
+    name = "kotlin-stdlib-jdk8",
+    actual = ":kotlin-stdlib",
+)
+
 alias(
     name = "annotations",
     actual = "@rules_kotlin_dev_maven//:org_jetbrains_annotations",

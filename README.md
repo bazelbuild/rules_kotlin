@@ -102,7 +102,7 @@ load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 define_kt_toolchain(
     name = "kotlin_toolchain",
     api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
-    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", or "25"
+    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", or "25"
     language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
 )
 ```
@@ -115,7 +115,7 @@ register_toolchains("//:kotlin_toolchain")
 
 ## Custom `kotlinc` distribution (and version)
 
-To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), do the following
+To choose a different `kotlinc` distribution, do the following
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ### `MODULE.bazel`
@@ -335,7 +335,7 @@ kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "plugin.allopen.OpenForTesting",
+        "annotation": ["plugin.allopen.OpenForTesting"],
     },
     deps = [
         "//kotlin/compiler:allopen-compiler-plugin",
