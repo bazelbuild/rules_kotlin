@@ -152,4 +152,138 @@ class BtapiPluginArgumentsTest {
 
     assertThat(exception).hasMessageThat().contains("has empty classpath")
   }
+
+  @Test
+  fun `AFTER ordering produces correct constraint string`() {
+    val firstJar = Path.of("plugin-alpha.jar").toAbsolutePath()
+    val secondJar = Path.of("plugin-beta.jar").toAbsolutePath()
+
+    val args =
+      BtapiPluginArguments.toArgumentStrings(
+        listOf(
+          CompilerPlugin(
+            pluginId = "plugin.alpha",
+            classpath = listOf(firstJar),
+            rawArguments = emptyList(),
+            orderingRequirements =
+              setOf(
+                CompilerPluginPartialOrder(
+                  CompilerPluginPartialOrderRelation.AFTER,
+                  "plugin.beta",
+                ),
+              ),
+          ),
+          CompilerPlugin(
+            pluginId = "plugin.beta",
+            classpath = listOf(secondJar),
+            rawArguments = emptyList(),
+            orderingRequirements = emptySet(),
+          ),
+        ),
+      )
+
+    // AFTER means "plugin.beta > plugin.alpha" (beta runs before alpha)
+    assertThat(args).containsExactly(
+      "-Xplugin=${firstJar.absolutePathString()},${secondJar.absolutePathString()}",
+      "-Xcompiler-plugin-order=plugin.beta>plugin.alpha",
+    ).inOrder()
+  }
+
+  @Test
+  fun `multiple ordering constraints are deduplicated`() {
+    val firstJar = Path.of("plugin-a.jar").toAbsolutePath()
+    val secondJar = Path.of("plugin-b.jar").toAbsolutePath()
+
+    // Both plugins declare that plugin.a should come before plugin.b.
+    // plugin.a says BEFORE plugin.b, and plugin.b says AFTER plugin.a.
+    // Both produce the same constraint string "plugin.a>plugin.b" and should be deduplicated.
+    val args =
+      BtapiPluginArguments.toArgumentStrings(
+        listOf(
+          CompilerPlugin(
+            pluginId = "plugin.a",
+            classpath = listOf(firstJar),
+            rawArguments = emptyList(),
+            orderingRequirements =
+              setOf(
+                CompilerPluginPartialOrder(
+                  CompilerPluginPartialOrderRelation.BEFORE,
+                  "plugin.b",
+                ),
+              ),
+          ),
+          CompilerPlugin(
+            pluginId = "plugin.b",
+            classpath = listOf(secondJar),
+            rawArguments = emptyList(),
+            orderingRequirements =
+              setOf(
+                CompilerPluginPartialOrder(
+                  CompilerPluginPartialOrderRelation.AFTER,
+                  "plugin.a",
+                ),
+              ),
+          ),
+        ),
+      )
+
+    // Both constraints resolve to "plugin.a>plugin.b", so dedup produces just one
+    assertThat(args).containsExactly(
+      "-Xplugin=${firstJar.absolutePathString()},${secondJar.absolutePathString()}",
+      "-Xcompiler-plugin-order=plugin.a>plugin.b",
+    ).inOrder()
+  }
+
+  @Test
+  fun `plugins with no options produce no -P argument`() {
+    val firstJar = Path.of("plugin-x.jar").toAbsolutePath()
+    val secondJar = Path.of("plugin-y.jar").toAbsolutePath()
+
+    val args =
+      BtapiPluginArguments.toArgumentStrings(
+        listOf(
+          CompilerPlugin(
+            pluginId = "plugin.x",
+            classpath = listOf(firstJar),
+            rawArguments = emptyList(),
+            orderingRequirements = emptySet(),
+          ),
+          CompilerPlugin(
+            pluginId = "plugin.y",
+            classpath = listOf(secondJar),
+            rawArguments = emptyList(),
+            orderingRequirements = emptySet(),
+          ),
+        ),
+      )
+
+    // Should only have -Xplugin, no -P
+    assertThat(args).containsExactly(
+      "-Xplugin=${firstJar.absolutePathString()},${secondJar.absolutePathString()}",
+    )
+    assertThat(args).doesNotContain("-P")
+  }
+
+  @Test
+  fun `plugin with multiple classpath jars lists all`() {
+    val jar1 = Path.of("lib-a.jar").toAbsolutePath()
+    val jar2 = Path.of("lib-b.jar").toAbsolutePath()
+    val jar3 = Path.of("lib-c.jar").toAbsolutePath()
+
+    val args =
+      BtapiPluginArguments.toArgumentStrings(
+        listOf(
+          CompilerPlugin(
+            pluginId = "multi.jar.plugin",
+            classpath = listOf(jar1, jar2, jar3),
+            rawArguments = listOf(CompilerPluginOption("key", "val")),
+            orderingRequirements = emptySet(),
+          ),
+        ),
+      )
+
+    assertThat(args[0]).isEqualTo(
+      "-Xplugin=${jar1.absolutePathString()},${jar2.absolutePathString()},${jar3.absolutePathString()}",
+    )
+  }
 }

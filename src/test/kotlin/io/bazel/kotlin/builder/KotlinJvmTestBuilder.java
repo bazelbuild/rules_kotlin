@@ -269,5 +269,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             }
             return this;
         }
+
+        public TaskBuilder addFriendPaths(String... paths) {
+            for (String path : paths) {
+                taskBuilder.getInfoBuilder().addFriendPaths(path);
+            }
+            return this;
+        }
     }
 }
