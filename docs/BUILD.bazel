@@ -8,6 +8,8 @@ load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
         input = "//kotlin:%s.bzl" % doc,
         deps = [
             "//kotlin/internal",
+            "@bazel_skylib//rules:run_binary",
+            "@rules_jvm_external//:implementation",
         ],
     )
     for doc in [

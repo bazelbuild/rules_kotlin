@@ -1,23 +1,29 @@
 load("@rules_java//java:java_binary.bzl", "java_binary")
-load("@rules_java//java:java_import.bzl", "java_import")
-load("//kotlin/compiler:compiler.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
+load("@rules_java//java:java_library.bzl", "java_library")
+load("//kotlin/compiler:compiler_deps.bzl", _KOTLIN_STDLIBS = "KOTLIN_STDLIBS")
 load("//src/main/starlark/core/compile:common.bzl", "TYPE")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
+load("//src/main/starlark/release:packager.bzl", "release_archive")
 load(":toolchain.bzl", "cli_toolchain")
 
-java_import(
+java_library(
     name = "kotlinc_jar",
-    jars = [
-        "@com_github_jetbrains_kotlin//:kotlin-compiler",
+    exports = [
+        "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_compiler",
     ],
-    deps = [],
 )
 
 java_binary(
     name = "kotlinc",
     data = _KOTLIN_STDLIBS,
     main_class = "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
-    runtime_deps = [":kotlinc_jar"],
+    runtime_deps = [
+        ":kotlinc_jar",
+        "//kotlin/compiler:annotations",
+        "//kotlin/compiler:kotlin-reflect",
+        "//kotlin/compiler:kotlin-stdlib",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+    ],
 )
 
 cli_toolchain(
@@ -34,4 +40,15 @@ toolchain(
     name = "cli",
     toolchain = ":cli_toolchain",
     toolchain_type = TYPE,
+)
+
+release_archive(
+    name = "pkg",
+    srcs = [
+        "compile.bzl",
+        "toolchain.bzl",
+    ],
+    src_map = {
+        "BUILD.release.bazel": "BUILD.bazel",
+    },
 )

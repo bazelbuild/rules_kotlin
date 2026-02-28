@@ -92,7 +92,7 @@ public class KotlinBuilderJvmBasicTest {
                                     c.outputJdeps();
                                 }),
                 lines -> assertThat(
-                        lines.stream().anyMatch(line -> line.startsWith(ctx.toPlatform("sources/AClass")))
+                        lines.stream().anyMatch(line -> line.contains("AClass.kt"))
                 ).isTrue());
     }
 

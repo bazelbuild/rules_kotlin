@@ -19,20 +19,6 @@ package io.bazel.kotlin.builder.utils
 import java.util.function.Predicate
 import java.util.regex.Pattern
 
-fun <T, C : MutableCollection<T>> C.addAll(vararg entries: T): C = this.also { addAll(entries) }
-
-/**
- * Utility function to add multiple entries to a list with a leader.
- */
-fun <T, C : MutableCollection<T>> C.addAll(
-  leader: T,
-  entries: List<T>,
-): C =
-  this.also {
-    add(leader)
-    addAll(entries)
-  }
-
 private fun extensionMatcher(vararg ext: String): Predicate<String> =
   Pattern
     .compile("^(.+?)${ext.joinToString("|\\.", prefix = "(\\.", postfix = ")$")}")

@@ -18,11 +18,10 @@
 // Provides extensions for the JvmCompilationTask protocol buffer.
 package io.bazel.kotlin.builder.tasks.jvm
 
-import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.emptyJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.writeJdeps
+import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
 import io.bazel.kotlin.builder.utils.jars.JarCreator
@@ -31,231 +30,79 @@ import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.JvmCompilationTask.Directories
-import java.io.BufferedInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.ObjectOutputStream
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import java.nio.file.Files
 import java.nio.file.Files.isDirectory
 import java.nio.file.Files.walk
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-import java.util.Base64
-import java.util.stream.Collectors.toList
 import java.util.stream.Stream
 import kotlin.io.path.exists
 
 private const val SOURCE_JARS_DIR = "_srcjars"
-private const val API_VERSION_ARG = "-api-version"
-private const val LANGUAGE_VERSION_ARG = "-language-version"
-
-fun JvmCompilationTask.codeGenArgs(): CompilationArgs =
-  CompilationArgs()
-    .absolutePaths(info.friendPathsList) {
-      "-Xfriend-paths=${it.joinToString(X_FRIENDS_PATH_SEPARATOR)}"
-    }.flag("-d", directories.classes)
-    .values(info.passthroughFlagsList)
-
-fun JvmCompilationTask.baseArgs(overrides: Map<String, String> = emptyMap()): CompilationArgs {
-  val classpath =
-    when (info.reducedClasspathMode) {
-      "KOTLINBUILDER_REDUCED" -> {
-        val transitiveDepsForCompile = mutableSetOf<String>()
-        inputs.depsArtifactsList.forEach { jdepsPath ->
-          BufferedInputStream(Paths.get(jdepsPath).toFile().inputStream()).use {
-            val deps = Deps.Dependencies.parseFrom(it)
-            deps.dependencyList.forEach { dep ->
-              if (dep.kind == Deps.Dependency.Kind.EXPLICIT) {
-                transitiveDepsForCompile.add(dep.path)
-              }
-            }
-          }
-        }
-        inputs.directDependenciesList + transitiveDepsForCompile
-      }
-      else -> inputs.classpathList
-    } as List<String>
-
-  return CompilationArgs()
-    .flag("-cp")
-    .paths(
-      classpath + directories.generatedClasses,
-    ) {
-      it
-        .map(Path::toString)
-        .joinToString(File.pathSeparator)
-    }.flag(API_VERSION_ARG, overrides[API_VERSION_ARG] ?: info.toolchainInfo.common.apiVersion)
-    .flag(
-      LANGUAGE_VERSION_ARG,
-      overrides[LANGUAGE_VERSION_ARG] ?: info.toolchainInfo.common.languageVersion,
-    ).flag("-jvm-target", info.toolchainInfo.jvm.jvmTarget)
-    .flag("-module-name", info.moduleName)
-}
-
-internal fun JvmCompilationTask.plugins(
-  options: List<String>,
-  classpath: List<String>,
-): CompilationArgs =
-  CompilationArgs().apply {
-    classpath.forEach {
-      xFlag("plugin", it)
-    }
-
-    val optionTokens =
-      mapOf(
-        "{generatedClasses}" to directories.generatedClasses,
-        "{stubs}" to directories.stubs,
-        "{temp}" to directories.temp,
-        "{generatedSources}" to directories.generatedSources,
-        "{classpath}" to classpath.joinToString(File.pathSeparator),
-      )
-    options.forEach { opt ->
-      val formatted =
-        optionTokens.entries.fold(opt) { formatting, (token, value) ->
-          formatting.replace(token, value)
-        }
-      flag("-P", "plugin:$formatted")
-    }
-  }
 
 internal fun JvmCompilationTask.preProcessingSteps(
   context: CompilationTaskContext,
 ): JvmCompilationTask = context.execute("expand sources") { expandWithSourceJarSources() }
 
-internal fun encodeMap(options: Map<String, String>): String {
-  val os = ByteArrayOutputStream()
-  val oos = ObjectOutputStream(os)
-
-  oos.writeInt(options.size)
-  for ((key, value) in options.entries) {
-    oos.writeUTF(key)
-    oos.writeUTF(value)
-  }
-
-  oos.flush()
-  return Base64
-    .getEncoder()
-    .encodeToString(os.toByteArray())
-}
-
-internal fun JvmCompilationTask.kaptArgs(
-  context: CompilationTaskContext,
-  plugins: InternalCompilerPlugins,
-  aptMode: String,
-): CompilationArgs {
-  val javacArgs =
-    mapOf<String, String>(
-      "-target" to info.toolchainInfo.jvm.jvmTarget,
-      "-source" to info.toolchainInfo.jvm.jvmTarget,
-    )
-  return CompilationArgs().apply {
-    xFlag("plugin", plugins.kapt.jarPath)
-
-    val values =
-      arrayOf(
-        "sources" to listOf(directories.generatedJavaSources),
-        "classes" to listOf(directories.generatedClasses),
-        "stubs" to listOf(directories.stubs),
-        "incrementalData" to listOf(directories.incrementalData),
-        "javacArguments" to listOf(javacArgs.let(::encodeMap)),
-        "correctErrorTypes" to listOf("false"),
-        "verbose" to listOf(context.whenTracing { "true" } ?: "false"),
-        "apclasspath" to inputs.processorpathsList,
-        "aptMode" to listOf(aptMode),
-      )
-    val version =
-      info.toolchainInfo.common.apiVersion
-        .toFloat()
-
-    when {
-      version < 1.5 ->
-        base64Encode(
-          "-P",
-          *values + ("processors" to inputs.processorsList).asKeyToCommaList(),
-        ) { enc -> "plugin:${plugins.kapt.id}:configuration=$enc" }
-      else ->
-        repeatFlag(
-          "-P",
-          *values + ("processors" to inputs.processorsList),
-        ) { option, value ->
-          "plugin:${plugins.kapt.id}:$option=$value"
-        }
-    }
-    // Read kapt options from the plugin options
-    val optionPrefix = plugins.kapt.id + ":apoption="
-    val options =
-      (inputs.compilerPluginOptionsList + inputs.stubsPluginOptionsList)
-        .filter { o -> o.startsWith(optionPrefix) }
-        .map { o -> o.substring(optionPrefix.length).split(":", limit = 2) }
-        .map { kv -> kv[0] to listOf(kv[1]) }
-        .toTypedArray()
-
-    if (options.isNotEmpty()) {
-      base64Encode("-P", *options) { enc ->
-        "plugin:${plugins.kapt.id}:apoptions=$enc"
-      }
-    }
-  }
-}
-
+@ExperimentalBuildToolsApi
 internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
-  compiler: KotlinToolchain.KotlincInvoker,
+  btapiCompiler: BtapiCompiler,
 ): JvmCompilationTask {
   if (
     (
       inputs.processorsList.isEmpty() &&
-        inputs.stubsPluginClasspathList.isEmpty()
+        inputs.pluginsList.none {
+          it.phasesList.contains(JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS)
+        }
     ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this
   } else {
-    // KSP is now handled externally in Starlark, only KAPT runs through the builder
-    if (!outputs.generatedClassJar.isNullOrEmpty()) {
-      return runKaptPlugin(context, plugins, compiler)
-    } else {
-      return this
-    }
+    return runKaptPluginBtapi(context, plugins, btapiCompiler)
   }
 }
 
-private fun JvmCompilationTask.runKaptPlugin(
+/**
+ * Runs KAPT using BtapiCompiler (Build Tools API).
+ *
+ * Uses BTAPI directly with typed compiler/plugin arguments.
+ */
+@ExperimentalBuildToolsApi
+private fun JvmCompilationTask.runKaptPluginBtapi(
   context: CompilationTaskContext,
   plugins: InternalCompilerPlugins,
-  compiler: KotlinToolchain.KotlincInvoker,
-): JvmCompilationTask {
-  return context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
-    baseArgs()
-      .plus(
-        plugins(
-          options = inputs.stubsPluginOptionsList.filterNot { o -> o.startsWith(plugins.kapt.id) },
-          classpath = inputs.stubsPluginClasspathList,
-        ),
-      ).plus(
-        kaptArgs(context, plugins, "stubsAndApt"),
-      ).flag("-d", directories.generatedClasses)
-      .values(inputs.kotlinSourcesList)
-      .values(inputs.javaSourcesList)
-      .list()
-      .let { args ->
-        context.executeCompilerTask(
-          args,
-          compiler::compile,
-          printOnSuccess = context.whenTracing { true } == true,
-        )
-      }.let { outputLines ->
-        // if tracing is enabled the output should be formatted in a special way, if we aren't
-        // tracing then any compiler output would make it's way to the console as is.
+  btapiCompiler: BtapiCompiler,
+): JvmCompilationTask =
+  context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
+    val result =
+      btapiCompiler.compileKapt(
+        task = this,
+        plugins = plugins,
+        aptMode = "stubsAndApt",
+        verbose = context.whenTracing { true } == true,
+        out = context.out,
+      )
+
+    when (result) {
+      CompilationResult.COMPILATION_SUCCESS -> {
         context.whenTracing {
-          printLines("kapt output", outputLines)
+          printLines("kapt btapi", listOf("KAPT completed successfully"))
         }
-        return@let expandWithGeneratedSources()
+        expandWithGeneratedSources()
       }
+      CompilationResult.COMPILATION_ERROR ->
+        throw CompilationStatusException("KAPT failed", 1)
+      CompilationResult.COMPILATION_OOM_ERROR ->
+        throw CompilationStatusException("KAPT failed with OOM", 3)
+      CompilationResult.COMPILER_INTERNAL_ERROR ->
+        throw CompilationStatusException("KAPT compiler internal error", 2)
+    }
   }
-}
 
 /**
  * Produce the primary output jar.
@@ -361,55 +208,14 @@ internal fun JvmCompilationTask.createdGeneratedKspClassesJar() {
   }
 }
 
-/**
- * Compiles Kotlin sources to classes. Does not compile Java sources.
- */
-fun JvmCompilationTask.compileKotlin(
-  context: CompilationTaskContext,
-  compiler: KotlinToolchain.KotlincInvoker,
-  args: CompilationArgs = baseArgs(),
-  printOnFail: Boolean = true,
-): List<String> {
-  if (inputs.kotlinSourcesList.isEmpty()) {
+/** Ensures the jdeps output exists (write an empty one when the compiler did not emit it). */
+internal fun JvmCompilationTask.ensureJdepsExists() {
+  if (outputs.jdeps.isEmpty()) {
+    return
+  }
+  val jdepsPath = Paths.get(outputs.jdeps)
+  if (!jdepsPath.exists()) {
     writeJdeps(outputs.jdeps, emptyJdeps(info.label))
-    return emptyList()
-  } else {
-    return (
-      args +
-        plugins(
-          options = inputs.compilerPluginOptionsList,
-          classpath = inputs.compilerPluginClasspathList,
-        )
-    ).values(inputs.javaSourcesList)
-      .values(inputs.kotlinSourcesList)
-      .flag("-d", directories.classes)
-      .list()
-      .let {
-        context.whenTracing {
-          context.printLines("compileKotlin arguments:\n", it)
-        }
-        return@let context
-          .executeCompilerTask(it, compiler::compile, printOnFail = printOnFail)
-          .also {
-            context.whenTracing {
-              printLines(
-                "kotlinc Files Created:",
-                Stream
-                  .of(
-                    directories.classes,
-                    directories.generatedClasses,
-                    directories.generatedSources,
-                    directories.generatedJavaSources,
-                    directories.temp,
-                  ).map { Paths.get(it) }
-                  .flatMap { walk(it) }
-                  .filter { !isDirectory(it) }
-                  .map { it.toString() }
-                  .collect(toList()),
-              )
-            }
-          }
-      }
   }
 }
 
@@ -433,14 +239,6 @@ internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask
     )
   }
 
-private val Directories.stubs
-  get() =
-    Files
-      .createDirectories(
-        Paths
-          .get(temp)
-          .resolve("stubs"),
-      ).toString()
 private val Directories.incrementalData
   get() =
     Files
@@ -468,13 +266,11 @@ fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
 
 private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
   updateBuilder { builder ->
+    val inputs = builder.inputsBuilder
     sources
       .copyManifestFilesToGeneratedClasses(directories)
       .filterOutNonCompilableSources()
-      .partitionJvmSources(
-        { builder.inputsBuilder.addKotlinSources(it) },
-        { builder.inputsBuilder.addJavaSources(it) },
-      )
+      .partitionJvmSources({ inputs.addKotlinSources(it) }, { inputs.addJavaSources(it) })
   }
 
 private fun JvmCompilationTask.updateBuilder(
@@ -518,10 +314,3 @@ private fun Iterator<String>.filterOutNonCompilableSources(): Iterator<String> {
   }
   return result.iterator()
 }
-
-/**
- * Helper function to convert a list of values into a single comma-separated string.
- * Used for KAPT plugin options in Kotlin versions < 1.5.
- */
-private fun Pair<String, List<String>>.asKeyToCommaList() =
-  first to listOf(second.joinToString(","))

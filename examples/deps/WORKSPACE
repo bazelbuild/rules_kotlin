@@ -116,6 +116,14 @@ kotlin_repositories()
 
 register_toolchains("//bzl:experimental_toolchain")
 
+load("@rules_kotlin//src/main/starlark/core/repositories:setup.bzl", "kt_configure")
+
+kt_configure()
+
+load("@rules_kotlin_maven//:defs.bzl", "pinned_maven_install")
+
+pinned_maven_install()
+
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
@@ -124,8 +132,14 @@ maven_install(
         "com.google.auto.value:auto-value:1.6.5",
         "com.google.auto.value:auto-value-annotations:1.6.5",
     ],
+    maven_install_json = "//:maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    resolver = "maven",
 )
+
+load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")
+
+pinned_maven_install_example()

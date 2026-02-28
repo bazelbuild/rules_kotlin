@@ -21,26 +21,12 @@ import com.google.devtools.build.lib.view.proto.Deps
 import io.bazel.kotlin.builder.Deps.Dep
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.io.BufferedInputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.function.Consumer
 
-@RunWith(Parameterized::class)
-class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "enableK2Compiler={0}")
-    fun data(): Collection<Array<Any>> {
-      return listOf(
-        arrayOf(true),
-        arrayOf(false),
-      )
-    }
-  }
+class KotlinBuilderJvmJdepsTest {
 
   val ctx = KotlinJvmTestBuilder()
 
@@ -2008,12 +1994,9 @@ class KotlinBuilderJvmJdepsTest(private val enableK2Compiler: Boolean) {
 
   private fun runCompileTask(block: (c: KotlinJvmTestBuilder.TaskBuilder) -> Unit): Dep {
     return ctx.runCompileTask(
-      Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
-        if (enableK2Compiler) {
-          c.useK2()
-        }
+      { c: KotlinJvmTestBuilder.TaskBuilder ->
         block(c.outputJar().compileKotlin())
-      },
+      }
     )
   }
 

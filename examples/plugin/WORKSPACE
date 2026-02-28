@@ -116,6 +116,14 @@ load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
 kt_register_toolchains()
 
+load("@rules_kotlin//src/main/starlark/core/repositories:setup.bzl", "kt_configure")
+
+kt_configure()
+
+load("@rules_kotlin_maven//:defs.bzl", "pinned_maven_install")
+
+pinned_maven_install()
+
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 maven_install(
@@ -123,10 +131,16 @@ maven_install(
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = [
         "junit:junit:4.13.2",
-        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.0.1",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
     ],
+    maven_install_json = "//:maven_install.json",
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
+    resolver = "maven",
     use_starlark_android_rules = True,
 )
+
+load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")
+
+pinned_maven_install_example()

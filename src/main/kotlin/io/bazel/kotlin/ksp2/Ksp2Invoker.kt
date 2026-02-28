@@ -23,70 +23,60 @@ import java.io.File
 import java.util.ServiceLoader
 
 /**
- * Wrapper for KSP2 invocation using direct API calls.
+ * Isolated wrapper for KSP2 invocation.
  *
- * This class is compiled against KSP2 classes (via neverlink_deps) and loaded
- * at runtime in a classloader that has the KSP2 jars. This follows the same
- * pattern as BuildToolsAPICompiler.
+ * Loaded by a dedicated classloader and invoked reflectively from the worker.
+ * The request uses only JDK types to avoid sharing custom classes between loaders.
  */
-class Ksp2Invoker(
-  private val classLoader: ClassLoader,
-) {
-  /**
-   * Execute KSP2 with the given configuration.
-   *
-   * @param logLevel Logger level (0=ERROR, 1=WARN, 2=INFO, 3=LOGGING)
-   * @return Exit code (0 for success)
-   */
+object Ksp2Invoker {
+  @JvmStatic
   fun execute(
-    moduleName: String,
-    sourceRoots: List<File>,
-    javaSourceRoots: List<File>,
-    libraries: List<File>,
-    kotlinOutputDir: File,
-    javaOutputDir: File,
-    classOutputDir: File,
-    resourceOutputDir: File,
-    cachesDir: File,
-    projectBaseDir: File,
-    outputBaseDir: File,
-    jvmTarget: String?,
-    languageVersion: String?,
-    apiVersion: String?,
-    jdkHome: File?,
-    logLevel: Int = 1,
+    classLoader: ClassLoader,
+    request: Map<String, Any?>,
   ): Int {
-    // Load processors via ServiceLoader from the provided classloader
-    val processors =
-      ServiceLoader.load(SymbolProcessorProvider::class.java, classLoader).toList()
-
-    // Build KSP2 configuration
-    val kspConfig =
-      KSPJvmConfig
-        .Builder()
-        .apply {
-          this.moduleName = moduleName
-          this.sourceRoots = sourceRoots
-          this.javaSourceRoots = javaSourceRoots
-          this.libraries = libraries
-          this.kotlinOutputDir = kotlinOutputDir
-          this.javaOutputDir = javaOutputDir
-          this.classOutputDir = classOutputDir
-          this.resourceOutputDir = resourceOutputDir
-          this.cachesDir = cachesDir
-          this.projectBaseDir = projectBaseDir
-          this.outputBaseDir = outputBaseDir
-          jvmTarget?.let { this.jvmTarget = it }
-          languageVersion?.let { this.languageVersion = it }
-          apiVersion?.let { this.apiVersion = it }
-          jdkHome?.let { this.jdkHome = it }
-          this.mapAnnotationArgumentsInJava = true
-        }.build()
-
-    // Create logger and execute
-    val logger = KspGradleLogger(logLevel)
+    val processors = loadProcessors(classLoader)
+    val kspConfig = buildJvmConfig(request)
+    val logger = KspGradleLogger(request.requireInt("logLevel"))
     val ksp = KotlinSymbolProcessing(kspConfig, processors, logger)
-
     return ksp.execute().code
   }
+
+  private fun Map<String, Any?>.optionalString(key: String): String? = this[key] as? String
+
+  private fun Map<String, Any?>.requireString(key: String): String =
+    optionalString(key) ?: error("Missing KSP2 request value: $key")
+
+  private fun Map<String, Any?>.requireStringList(key: String): List<String> =
+    (this[key] as? List<*>)?.map {
+      it as? String ?: error("KSP2 request value '$key' must be List<String>")
+    } ?: error("Missing KSP2 request value: $key")
+
+  private fun Map<String, Any?>.requireInt(key: String): Int =
+    (this[key] as? Number)?.toInt() ?: error("Missing KSP2 request value: $key")
+
+  private fun loadProcessors(classLoader: ClassLoader): List<SymbolProcessorProvider> =
+    ServiceLoader.load(SymbolProcessorProvider::class.java, classLoader).toList()
+
+  private fun buildJvmConfig(request: Map<String, Any?>): KSPJvmConfig =
+    KSPJvmConfig
+      .Builder()
+      .apply {
+        moduleName = request.requireString("moduleName")
+        sourceRoots = request.requireStringList("sourceRoots").map(::File)
+        javaSourceRoots = request.requireStringList("javaSourceRoots").map(::File)
+        libraries = request.requireStringList("libraries").map(::File)
+        kotlinOutputDir = File(request.requireString("kotlinOutputDir"))
+        javaOutputDir = File(request.requireString("javaOutputDir"))
+        classOutputDir = File(request.requireString("classOutputDir"))
+        resourceOutputDir = File(request.requireString("resourceOutputDir"))
+        cachesDir = File(request.requireString("cachesDir"))
+        projectBaseDir = File(request.requireString("projectBaseDir"))
+        outputBaseDir = File(request.requireString("outputBaseDir"))
+        mapAnnotationArgumentsInJava = true
+
+        request.optionalString("jvmTarget")?.let { jvmTarget = it }
+        request.optionalString("languageVersion")?.let { languageVersion = it }
+        request.optionalString("apiVersion")?.let { apiVersion = it }
+        request.optionalString("jdkHome")?.let { jdkHome = File(it) }
+      }.build()
 }

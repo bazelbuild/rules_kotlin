@@ -102,7 +102,7 @@ load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
 define_kt_toolchain(
     name = "kotlin_toolchain",
     api_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
-    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", or "25"
+    jvm_target = JAVA_LANGUAGE_LEVEL, # "1.8", "9", "10", "11", "12", "13", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", or "25"
     language_version = KOTLIN_LANGUAGE_LEVEL,  # "1.9", "2.0", "2.1", "2.2", or "2.3"
 )
 ```
@@ -115,7 +115,7 @@ register_toolchains("//:kotlin_toolchain")
 
 ## Custom `kotlinc` distribution (and version)
 
-To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), do the following
+To choose a different `kotlinc` distribution, do the following
 in your `WORKSPACE` file (or import from a `.bzl` file:
 
 ### `MODULE.bazel`
@@ -125,7 +125,7 @@ rules_kotlin_extensions.kotlinc_version(
     version = "2.1.20",
     sha256 = "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a"
 )
-use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
+use_repo(rules_kotlin_extensions, "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint")
 ```
 
 ### `WORKSPACE`
@@ -264,21 +264,11 @@ Additionally, you can add options for both tracing and timing of the bazel build
 
 # Build Tools API
 
-The Build Tools API is a modern compilation interface provided by JetBrains for invoking the Kotlin compiler. It offers better integration and is required for incremental compilation support.
+The Build Tools API is the compilation interface used by rules_kotlin.
 
-**This feature is enabled by default.**
+The legacy (non-BTAPI) compilation path has been removed.
 
-To disable the Build Tools API and use the legacy compilation approach, add the following flag to your build:
-
-```bash
-bazel build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false //your:target
-```
-
-Or add it to your `.bazelrc` file:
-
-```
-build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false
-```
+Do not set `--@rules_kotlin//kotlin/settings:experimental_build_tools_api`; it is no longer supported.
 
 # KSP (Kotlin Symbol Processing)
 
@@ -316,7 +306,7 @@ rules_kotlin_extensions.ksp_version(
     version = "1.8.22-1.0.11",
     sha256 = "2ce5a08fddd20ef07ac051615905453fe08c3ba3ce5afa5dc43a9b77aa64507d",
 )
-use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
+use_repo(rules_kotlin_extensions, "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint")
 ```
 
 ### `WORKSPACE` (or import from a `.bzl` file):
@@ -345,7 +335,7 @@ kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": "plugin.allopen.OpenForTesting",
+        "annotation": ["plugin.allopen.OpenForTesting"],
     },
     deps = [
         "//kotlin/compiler:allopen-compiler-plugin",

@@ -17,12 +17,13 @@ maven.install(
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = [
         "junit:junit:4.13.2",
-        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.0.1",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
     ],
     lock_file = "//:maven_install.json",
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
+    resolver = "maven",
     use_starlark_android_rules = True,
 )
 use_repo(maven, "maven_rules_kotlin_example")

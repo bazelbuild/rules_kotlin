@@ -15,22 +15,40 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":compiler.bzl", "kt_configure_compiler")
 load(":kapt.bzl", "kapt_compiler_plugin")
-load(":ksp.bzl", "kt_configure_ksp")
 
 package(default_visibility = ["//visibility:public"])
 
-# Configures the compiler
+# Configures compiler and stdlib/plugin labels from the downloaded Kotlin distribution.
 kt_configure_compiler()
 
-# Configures the KSP plugins
-kt_configure_ksp()
+# BTAPI runtime artifacts required by default toolchains.
+alias(
+    name = "kotlin-build-tools-impl",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
+)
 
-bzl_library(
-    name = "compiler",
-    srcs = glob(["*.bzl"]),
+alias(
+    name = "kotlin-compiler-embeddable",
+    actual = ":kotlin-compiler",
+)
+
+alias(
+    name = "kotlin-annotation-processing-embeddable",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
+)
+
+# KSP2 processor classpath artifact.
+alias(
+    name = "symbol-processing-aa",
+    actual = "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_aa",
 )
 
 kapt_compiler_plugin(
     name = "kapt",
     id = "org.jetbrains.kotlin.kapt3",
+)
+
+bzl_library(
+    name = "compiler",
+    srcs = glob(["*.bzl"]),
 )

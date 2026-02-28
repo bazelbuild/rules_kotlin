@@ -398,7 +398,7 @@ def _dep_infos_ordering_test(name):
 def _sourceless_dep_propagation_test_impl(env, target):
     """Verify that a sourceless wrapper propagates transitive deps
 
-    Regression test for a bug where _reshade_embedded_kotlinc_jars would produce an empty merge
+    Regression test for a bug where jar merging would produce an empty output
     when jars was empty (sourceless target), silently dropping all transitive deps.
     """
     files = target[DefaultInfo].files.to_list()

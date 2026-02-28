@@ -14,8 +14,6 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-exports_files(["kotlin-compiler-reshade.jarjar"])
-
 bzl_library(
     name = "jvm",
     srcs = glob(

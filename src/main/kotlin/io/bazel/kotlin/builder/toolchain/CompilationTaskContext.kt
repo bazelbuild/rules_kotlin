@@ -19,21 +19,11 @@ package io.bazel.kotlin.builder.toolchain
 import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.TextFormat
 import io.bazel.kotlin.model.CompilationTaskInfo
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.PrintStream
-import java.nio.file.FileSystems
 
 class CompilationTaskContext(
   val info: CompilationTaskInfo,
-  private val out: PrintStream,
-  private val executionRoot: String =
-    FileSystems
-      .getDefault()
-      .getPath("")
-      .toAbsolutePath()
-      .toString() + File.separator,
+  val out: PrintStream,
 ) {
   private val start = System.currentTimeMillis()
   private var timings: MutableList<String>?
@@ -44,15 +34,6 @@ class CompilationTaskContext(
     val debugging = info.debugList.toSet()
     timings = if (debugging.contains("timings")) mutableListOf() else null
     isTracing = debugging.contains("trace")
-  }
-
-  fun reportUnhandledException(throwable: Throwable) {
-    throwable.printStackTrace(out)
-  }
-
-  @Suppress("unused")
-  fun print(msg: String) {
-    out.println(msg)
   }
 
   /**
@@ -94,56 +75,6 @@ class CompilationTaskContext(
     msg: MessageOrBuilder,
   ) {
     printLines(header, TextFormat.printer().printToString(msg).split("\n"), filterEmpty = true)
-  }
-
-  /**
-   * This method normalizes and reports the output from the Kotlin compiler.
-   */
-  fun printCompilerOutput(lines: List<String>) {
-    lines.map(::trimExecutionRootPrefix).forEach(out::println)
-  }
-
-  private fun trimExecutionRootPrefix(toPrint: String): String {
-    // trim off the workspace component
-    return if (toPrint.startsWith(executionRoot)) {
-      toPrint.replaceFirst(executionRoot, "")
-    } else {
-      toPrint
-    }
-  }
-
-  /**
-   * Execute a compilation task.
-   *
-   * @throws CompilationStatusException if the compiler returns a status of anything but zero.
-   * @param args the compiler command line switches
-   * @param printOnFail if this is true the output will be printed if the task fails else the caller is responsible
-   *  for logging it by catching the [CompilationStatusException] exception.
-   * @param compile the compilation method.
-   */
-  fun executeCompilerTask(
-    args: List<String>,
-    compile: (Array<String>, PrintStream) -> Int,
-    printOnFail: Boolean = true,
-    printOnSuccess: Boolean = true,
-  ): List<String> {
-    val outputStream = ByteArrayOutputStream()
-    val ps = PrintStream(outputStream)
-    val result = compile(args.toTypedArray(), ps)
-    val output =
-      ByteArrayInputStream(outputStream.toByteArray())
-        .bufferedReader()
-        .readLines()
-    if (result != 0) {
-      if (printOnFail) {
-        printCompilerOutput(output)
-        throw CompilationStatusException("compile phase failed", result)
-      }
-      throw CompilationStatusException("compile phase failed", result, output)
-    } else if (printOnSuccess) {
-      printCompilerOutput(output)
-    }
-    return output
   }
 
   /**
