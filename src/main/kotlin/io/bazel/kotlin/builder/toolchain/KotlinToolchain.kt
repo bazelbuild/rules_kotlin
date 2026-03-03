@@ -16,15 +16,14 @@
  */
 package io.bazel.kotlin.builder.toolchain
 
-import io.bazel.kotlin.builder.utils.BazelRunFiles
 import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.builder.utils.verifiedPath
-import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
-import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.PrintStream
 import java.lang.reflect.Method
+import java.net.URLClassLoader
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -37,81 +36,59 @@ class KotlinToolchain private constructor(
   val jdepsGen: CompilerPlugin,
 ) {
   companion object {
+    private fun resolveFromProperty(propertyKey: String): Path {
+      val propertyValue =
+        System.getProperty(propertyKey)
+          ?: throw FileNotFoundException("missing toolchain property: $propertyKey")
+      return Paths.get(propertyValue).toAbsolutePath().verifiedPath()
+    }
+
     private val JVM_ABI_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...jvm-abi-gen",
-        ).toPath()
+      resolveFromProperty("..kotlin.compiler.jvm-abi-gen")
     }
 
     private val KAPT_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kapt",
-        ).toPath()
+      resolveFromProperty("..kotlin.compiler.kotlin-annotation-processing")
     }
 
     private val COMPILER by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...compiler",
-        ).toPath()
+      resolveFromProperty("..src.main.kotlin.compiler")
     }
 
     private val SKIP_CODE_GEN_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...skip-code-gen",
-        ).toPath()
+      resolveFromProperty("..src.main.kotlin.skip-code-gen")
     }
 
     private val JDEPS_GEN_PLUGIN by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin...jdeps-gen",
-        ).toPath()
+      resolveFromProperty("..src.main.kotlin.jdeps-gen")
     }
 
     private val KOTLINC by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...kotlin-compiler",
-        ).toPath()
+      resolveFromProperty("..kotlin.compiler.kotlin-compiler")
     }
 
     private val KOTLIN_REFLECT by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin..kotlin.compiler.kotlin-reflect",
-        ).toPath()
+      resolveFromProperty("..kotlin.compiler.kotlin-reflect")
+    }
+
+    private val KOTLIN_STDLIB by lazy {
+      resolveFromProperty("..kotlin.compiler.kotlin-stdlib")
     }
 
     private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-core-jvm",
-        ).toPath()
+      resolveFromProperty("..kotlin.compiler.kotlinx-serialization-core-jvm")
     }
 
     private val KOTLINX_SERIALIZATION_JSON by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-json",
-        ).toPath()
+      resolveFromProperty("..kotlin.compiler.kotlinx-serialization-json-jvm")
     }
 
     private val KOTLINX_SERIALIZATION_JSON_JVM by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlinx...serialization-json-jvm",
-        ).toPath()
+      resolveFromProperty("..kotlin.compiler.kotlinx-serialization-json-jvm")
     }
 
     private val BUILD_TOOLS_API by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@com_github_jetbrains_kotlin...build-tools-impl",
-        ).toPath()
+      resolveFromProperty("..kotlin.compiler.kotlin-build-tools-impl")
     }
 
     private val JAVA_HOME by lazy {
@@ -130,16 +107,21 @@ class KotlinToolchain private constructor(
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
       createToolchain(
-        KOTLINC.verified().absoluteFile,
-        COMPILER.verified().absoluteFile,
-        BUILD_TOOLS_API.verified().absoluteFile,
-        JVM_ABI_PLUGIN.verified().absoluteFile,
-        SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
-        JDEPS_GEN_PLUGIN.verified().absoluteFile,
-        KAPT_PLUGIN.verified().absoluteFile,
-        KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
-        KOTLINX_SERIALIZATION_JSON.toFile(),
-        KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
+        kotlinc = KOTLINC.verified().absoluteFile,
+        buildTools = BUILD_TOOLS_API.verified().absoluteFile,
+        compiler = COMPILER.verified().absoluteFile,
+        jvmAbiGenFile = JVM_ABI_PLUGIN.verified().absoluteFile,
+        skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
+        jdepsGenFile = JDEPS_GEN_PLUGIN.verified().absoluteFile,
+        kaptFile = KAPT_PLUGIN.verified().absoluteFile,
+        extraClasspath =
+          listOf(
+            KOTLIN_STDLIB.toFile(),
+            KOTLIN_REFLECT.toFile(),
+            KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
+            KOTLINX_SERIALIZATION_JSON.toFile(),
+            KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
+          ),
       )
 
     @JvmStatic
@@ -155,21 +137,46 @@ class KotlinToolchain private constructor(
       kotlinxSerializationJson: File,
       kotlinxSerializationJsonJvm: File,
     ): KotlinToolchain =
+      createToolchain(
+        kotlinc = kotlinc,
+        buildTools = buildTools,
+        compiler = compiler,
+        jvmAbiGenFile = jvmAbiGenFile,
+        skipCodeGenFile = skipCodeGenFile,
+        jdepsGenFile = jdepsGenFile,
+        kaptFile = kaptFile,
+        extraClasspath =
+          listOf(
+            kotlinxSerializationCoreJvm,
+            kotlinxSerializationJson,
+            kotlinxSerializationJsonJvm,
+          ),
+      )
+
+    @JvmStatic
+    fun createToolchain(
+      kotlinc: File,
+      buildTools: File,
+      compiler: File,
+      jvmAbiGenFile: File,
+      skipCodeGenFile: File,
+      jdepsGenFile: File,
+      kaptFile: File,
+      extraClasspath: List<File>,
+    ): KotlinToolchain =
       KotlinToolchain(
-        listOf(
-          kotlinc,
-          compiler,
-          buildTools,
+        mutableListOf<File>().apply {
+          add(kotlinc)
+          add(compiler)
+          add(buildTools)
           // plugins *must* be preloaded. Not doing so causes class conflicts
           // (and a NoClassDef err) in the compiler extension interfaces.
           // This may cause issues in accepting user defined compiler plugins.
-          jvmAbiGenFile,
-          skipCodeGenFile,
-          jdepsGenFile,
-          kotlinxSerializationCoreJvm,
-          kotlinxSerializationJson,
-          kotlinxSerializationJsonJvm,
-        ),
+          add(jvmAbiGenFile)
+          add(skipCodeGenFile)
+          add(jdepsGenFile)
+          addAll(extraClasspath)
+        },
         jvmAbiGen =
           CompilerPlugin(
             jvmAbiGenFile.path,
@@ -196,23 +203,17 @@ class KotlinToolchain private constructor(
   private fun createClassLoader(
     javaHome: Path,
     baseJars: List<File>,
-    classLoader: ClassLoader = ClassLoader.getSystemClassLoader(),
-  ): ClassLoader =
-    runCatching {
-      ClassPreloadingUtils.preloadClasses(
-        mutableListOf<File>().also {
-          it += baseJars
-          if (!isJdk9OrNewer) {
-            it += javaHome.resolveVerified("lib", "tools.jar")
-          }
-        },
-        Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
-        classLoader,
-        null,
-      )
-    }.onFailure {
-      throw RuntimeException("$javaHome, $baseJars", it)
-    }.getOrThrow()
+    classLoader: ClassLoader = ClassLoader.getPlatformClassLoader(),
+  ): ClassLoader {
+    val jars =
+      mutableListOf<File>().also {
+        it += baseJars
+        if (!isJdk9OrNewer) {
+          it += javaHome.resolveVerified("lib", "tools.jar")
+        }
+      }
+    return URLClassLoader(jars.map { it.toURI().toURL() }.toTypedArray(), classLoader)
+  }
 
   val classLoader by lazy {
     createClassLoader(

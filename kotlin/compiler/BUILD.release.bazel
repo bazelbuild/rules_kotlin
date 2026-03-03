@@ -27,6 +27,17 @@ alias(
     actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
 )
 
+# Keep legacy stdlib labels for compatibility with existing toolchain defaults.
+alias(
+    name = "kotlin-stdlib-jdk7",
+    actual = ":kotlin-stdlib",
+)
+
+alias(
+    name = "kotlin-stdlib-jdk8",
+    actual = ":kotlin-stdlib",
+)
+
 alias(
     name = "kotlin-compiler-embeddable",
     actual = ":kotlin-compiler",
@@ -37,10 +48,36 @@ alias(
     actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable",
 )
 
+alias(
+    name = "kotlinx-serialization-core-jvm",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+)
+
+alias(
+    name = "kotlinx-serialization-json-jvm",
+    actual = "@rules_kotlin_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
+)
+
 # KSP2 processor classpath artifact.
 alias(
     name = "symbol-processing-aa",
     actual = "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_aa",
+)
+
+# Keep legacy/auxiliary KSP2 labels available in the release package.
+alias(
+    name = "symbol-processing-api",
+    actual = "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_api",
+)
+
+alias(
+    name = "symbol-processing-common-deps",
+    actual = "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
+)
+
+alias(
+    name = "ksp-intellij-kotlinx-coroutines-core-jvm",
+    actual = "@rules_kotlin_maven//:org_jetbrains_intellij_deps_kotlinx_kotlinx_coroutines_core_jvm",
 )
 
 kapt_compiler_plugin(

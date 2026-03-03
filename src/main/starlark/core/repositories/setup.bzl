@@ -31,6 +31,8 @@ def kt_configure():
         artifacts = [
             "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
             "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:{}".format(kotlin_version),
+            "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1",
             "com.google.devtools.ksp:symbol-processing-aa:{}".format(ksp_version),
         ],
         repositories = [

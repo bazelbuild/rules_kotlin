@@ -170,7 +170,7 @@ class Ksp2Task : Work {
       // Create classloader with KSP2 jars and processor jars
       val processorClasspath = argMap.optional(Ksp2Flags.PROCESSOR_CLASSPATH) ?: emptyList()
       val processorUrls = processorClasspath.map { File(it).toURI().toURL() }.toTypedArray()
-      val kspClassLoader = URLClassLoader(processorUrls, ClassLoader.getSystemClassLoader())
+      val kspClassLoader = URLClassLoader(processorUrls, ClassLoader.getPlatformClassLoader())
 
       // Load Ksp2Invoker via reflection (it's compiled against KSP2 classes)
       val invokerClass = kspClassLoader.loadClass("io.bazel.kotlin.ksp2.Ksp2Invoker")

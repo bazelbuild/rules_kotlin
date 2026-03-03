@@ -114,6 +114,14 @@ register_toolchains(
 
 kotlin_repositories()
 
+load("@rules_kotlin//src/main/starlark/core/repositories:setup.bzl", "kt_configure")
+
+kt_configure()
+
+load("@rules_kotlin_maven//:defs.bzl", "pinned_maven_install")
+
+pinned_maven_install()
+
 register_toolchains("//bzl:experimental_toolchain")
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")

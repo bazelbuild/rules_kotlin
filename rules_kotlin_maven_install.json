@@ -4,30 +4,32 @@
     "com.google.devtools.ksp:symbol-processing-aa": 1974172210,
     "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": 522061525,
     "org.jetbrains.kotlin:kotlin-build-tools-impl": 1094178469,
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": -522427585,
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": -1040437304,
     "repositories": 582576641
   },
   "__RESOLVED_ARTIFACTS_HASH": {
-    "com.google.devtools.ksp:symbol-processing-aa": -1927577978,
+    "com.google.devtools.ksp:symbol-processing-aa": -156110168,
     "com.google.devtools.ksp:symbol-processing-aa:jar:sources": -842299336,
-    "com.google.devtools.ksp:symbol-processing-api": -186144727,
+    "com.google.devtools.ksp:symbol-processing-api": -379364284,
     "com.google.devtools.ksp:symbol-processing-api:jar:sources": -474784713,
-    "com.google.devtools.ksp:symbol-processing-common-deps": -1842582657,
+    "com.google.devtools.ksp:symbol-processing-common-deps": 713882906,
     "com.google.devtools.ksp:symbol-processing-common-deps:jar:sources": 676378417,
-    "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm": 352152359,
+    "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm": 680342662,
     "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm:jar:sources": -587895121,
     "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": -1386547676,
     "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:jar:sources": -2066025404,
     "org.jetbrains.kotlin:kotlin-build-tools-api": -1434427502,
     "org.jetbrains.kotlin:kotlin-build-tools-api:jar:sources": -2138131735,
-    "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": 757365728,
+    "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": -1352683077,
     "org.jetbrains.kotlin:kotlin-build-tools-cri-impl:jar:sources": 1065394542,
-    "org.jetbrains.kotlin:kotlin-build-tools-impl": 660312387,
+    "org.jetbrains.kotlin:kotlin-build-tools-impl": -919154106,
     "org.jetbrains.kotlin:kotlin-build-tools-impl:jar:sources": 638844956,
-    "org.jetbrains.kotlin:kotlin-compiler-embeddable": -1176208267,
+    "org.jetbrains.kotlin:kotlin-compiler-embeddable": 141816442,
     "org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:sources": -521107034,
-    "org.jetbrains.kotlin:kotlin-compiler-runner": -1895652099,
+    "org.jetbrains.kotlin:kotlin-compiler-runner": -1680847881,
     "org.jetbrains.kotlin:kotlin-compiler-runner:jar:sources": 1321331456,
-    "org.jetbrains.kotlin:kotlin-daemon-client": -514012514,
+    "org.jetbrains.kotlin:kotlin-daemon-client": -1237805063,
     "org.jetbrains.kotlin:kotlin-daemon-client:jar:sources": -1617492950,
     "org.jetbrains.kotlin:kotlin-daemon-embeddable": 1604825680,
     "org.jetbrains.kotlin:kotlin-daemon-embeddable:jar:sources": 63570057,
@@ -35,12 +37,16 @@
     "org.jetbrains.kotlin:kotlin-reflect:jar:sources": 881192499,
     "org.jetbrains.kotlin:kotlin-script-runtime": -690772682,
     "org.jetbrains.kotlin:kotlin-script-runtime:jar:sources": 995573744,
-    "org.jetbrains.kotlin:kotlin-stdlib": -1825502278,
+    "org.jetbrains.kotlin:kotlin-stdlib": 211830078,
     "org.jetbrains.kotlin:kotlin-stdlib:jar:sources": -1426465095,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": 1142574308,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:sources": -1045961326,
-    "org.jetbrains:annotations": -1663747638,
-    "org.jetbrains:annotations:jar:sources": -1664347631
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": -2085948428,
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar:sources": -1103833809,
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": 963594053,
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:jar:sources": -1635775494,
+    "org.jetbrains:annotations": 554168982,
+    "org.jetbrains:annotations:jar:sources": 1226441379
   },
   "artifacts": {
     "com.google.devtools.ksp:symbol-processing-aa": {
@@ -155,13 +161,34 @@
       },
       "version": "1.8.0"
     },
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": {
+      "shasums": {
+        "jar": "3565b6d4d789bf70683c45566944287fc1d8dc75c23d98bd87d01059cc76f2b3",
+        "sources": "d4a7221a0c2ccb47bc736340344b256506cf8a5a49882883f8f56385ae69a1bc"
+      },
+      "version": "1.8.1"
+    },
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": {
+      "shasums": {
+        "jar": "8769e5647557e3700919c32d508f5c5dad53c5d8234cd10846354fbcff14aa24",
+        "sources": "5c76c02a6bc319d307a73b2bb4e77d1a0d3c1a25b78e559f662e2eb8ed29cdad"
+      },
+      "version": "1.8.1"
+    },
     "org.jetbrains:annotations": {
       "shasums": {
-        "jar": "7b0f19724082cbfcbc66e5abea2b9bc92cf08a1ea11e191933ed43801eb3cd05",
-        "sources": "ff2309b42f7584520497bb48bc609aca04c9886cf48708f14be83f00423ec144"
+        "jar": "ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478",
+        "sources": "42a5e144b8e81d50d6913d1007b695e62e614705268d8cf9f13dbdc478c2c68e"
       },
-      "version": "23.0.0"
+      "version": "13.0"
     }
+  },
+  "conflict_resolution": {
+    "org.jetbrains.kotlin:kotlin-stdlib:1.9.21": "org.jetbrains.kotlin:kotlin-stdlib:2.3.20-RC",
+    "org.jetbrains.kotlin:kotlin-stdlib:2.1.20": "org.jetbrains.kotlin:kotlin-stdlib:2.3.20-RC",
+    "org.jetbrains.kotlin:kotlin-stdlib:2.1.21": "org.jetbrains.kotlin:kotlin-stdlib:2.3.20-RC",
+    "org.jetbrains.kotlin:kotlin-stdlib:2.3.0": "org.jetbrains.kotlin:kotlin-stdlib:2.3.20-RC",
+    "org.jetbrains:annotations:23.0.0": "org.jetbrains:annotations:13.0"
   },
   "dependencies": {
     "com.google.devtools.ksp:symbol-processing-aa": [
@@ -208,6 +235,13 @@
     ],
     "org.jetbrains.kotlin:kotlin-stdlib": [
       "org.jetbrains:annotations"
+    ],
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": [
+      "org.jetbrains.kotlin:kotlin-stdlib"
+    ],
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": [
+      "org.jetbrains.kotlin:kotlin-stdlib",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm"
     ]
   },
   "packages": {
@@ -2587,6 +2621,18 @@
       "kotlinx.coroutines.sync",
       "kotlinx.coroutines.time"
     ],
+    "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": [
+      "kotlinx.serialization",
+      "kotlinx.serialization.builtins",
+      "kotlinx.serialization.descriptors",
+      "kotlinx.serialization.encoding",
+      "kotlinx.serialization.internal",
+      "kotlinx.serialization.modules"
+    ],
+    "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm": [
+      "kotlinx.serialization.json",
+      "kotlinx.serialization.json.internal"
+    ],
     "org.jetbrains:annotations": [
       "org.intellij.lang.annotations",
       "org.jetbrains.annotations"
@@ -2594,77 +2640,10 @@
   },
   "repositories": {
     "https://maven-central.storage.googleapis.com/repos/central/data/": [
-      "com.google.devtools.ksp:symbol-processing-aa",
-      "com.google.devtools.ksp:symbol-processing-aa:jar:sources",
-      "com.google.devtools.ksp:symbol-processing-api",
-      "com.google.devtools.ksp:symbol-processing-api:jar:sources",
-      "com.google.devtools.ksp:symbol-processing-common-deps",
-      "com.google.devtools.ksp:symbol-processing-common-deps:jar:sources",
-      "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm",
-      "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm:jar:sources",
-      "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable",
-      "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:jar:sources",
-      "org.jetbrains.kotlin:kotlin-build-tools-api",
-      "org.jetbrains.kotlin:kotlin-build-tools-api:jar:sources",
-      "org.jetbrains.kotlin:kotlin-build-tools-cri-impl",
-      "org.jetbrains.kotlin:kotlin-build-tools-cri-impl:jar:sources",
-      "org.jetbrains.kotlin:kotlin-build-tools-impl",
-      "org.jetbrains.kotlin:kotlin-build-tools-impl:jar:sources",
-      "org.jetbrains.kotlin:kotlin-compiler-embeddable",
-      "org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:sources",
-      "org.jetbrains.kotlin:kotlin-compiler-runner",
-      "org.jetbrains.kotlin:kotlin-compiler-runner:jar:sources",
-      "org.jetbrains.kotlin:kotlin-daemon-client",
-      "org.jetbrains.kotlin:kotlin-daemon-client:jar:sources",
-      "org.jetbrains.kotlin:kotlin-daemon-embeddable",
-      "org.jetbrains.kotlin:kotlin-daemon-embeddable:jar:sources",
-      "org.jetbrains.kotlin:kotlin-reflect",
-      "org.jetbrains.kotlin:kotlin-reflect:jar:sources",
-      "org.jetbrains.kotlin:kotlin-script-runtime",
-      "org.jetbrains.kotlin:kotlin-script-runtime:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib",
-      "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources"
     ],
-    "https://maven.google.com/": [
-      "com.google.devtools.ksp:symbol-processing-aa",
-      "com.google.devtools.ksp:symbol-processing-aa:jar:sources",
-      "com.google.devtools.ksp:symbol-processing-api",
-      "com.google.devtools.ksp:symbol-processing-api:jar:sources",
-      "com.google.devtools.ksp:symbol-processing-common-deps",
-      "com.google.devtools.ksp:symbol-processing-common-deps:jar:sources",
-      "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm",
-      "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm:jar:sources",
-      "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable",
-      "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:jar:sources",
-      "org.jetbrains.kotlin:kotlin-build-tools-api",
-      "org.jetbrains.kotlin:kotlin-build-tools-api:jar:sources",
-      "org.jetbrains.kotlin:kotlin-build-tools-cri-impl",
-      "org.jetbrains.kotlin:kotlin-build-tools-cri-impl:jar:sources",
-      "org.jetbrains.kotlin:kotlin-build-tools-impl",
-      "org.jetbrains.kotlin:kotlin-build-tools-impl:jar:sources",
-      "org.jetbrains.kotlin:kotlin-compiler-embeddable",
-      "org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:sources",
-      "org.jetbrains.kotlin:kotlin-compiler-runner",
-      "org.jetbrains.kotlin:kotlin-compiler-runner:jar:sources",
-      "org.jetbrains.kotlin:kotlin-daemon-client",
-      "org.jetbrains.kotlin:kotlin-daemon-client:jar:sources",
-      "org.jetbrains.kotlin:kotlin-daemon-embeddable",
-      "org.jetbrains.kotlin:kotlin-daemon-embeddable:jar:sources",
-      "org.jetbrains.kotlin:kotlin-reflect",
-      "org.jetbrains.kotlin:kotlin-reflect:jar:sources",
-      "org.jetbrains.kotlin:kotlin-script-runtime",
-      "org.jetbrains.kotlin:kotlin-script-runtime:jar:sources",
-      "org.jetbrains.kotlin:kotlin-stdlib",
-      "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
-      "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:sources",
-      "org.jetbrains:annotations",
-      "org.jetbrains:annotations:jar:sources"
-    ],
+    "https://maven.google.com/": [],
     "https://repo1.maven.org/maven2/": [
       "com.google.devtools.ksp:symbol-processing-aa",
       "com.google.devtools.ksp:symbol-processing-aa:jar:sources",
@@ -2698,6 +2677,10 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:sources",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
+      "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar:sources",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
+      "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:jar:sources",
       "org.jetbrains:annotations",
       "org.jetbrains:annotations:jar:sources"
     ]
@@ -2736,22 +2719,6 @@
         "org.jetbrains.kotlin.codegen.signature.KotlinToJvmSignatureMapperImpl"
       ]
     },
-    "com.google.devtools.ksp:symbol-processing-aa:jar:sources": {
-      "org.jetbrains.kotlin.builtins.BuiltInsLoader": [
-        "org.jetbrains.kotlin.serialization.deserialization.builtins.BuiltInsLoaderImpl"
-      ],
-      "org.jetbrains.kotlin.preloading.instrumentation.Instrumenter": [
-        "org.jetbrains.kotlin.preloading.ProfilingInstrumenterExample"
-      ],
-      "org.jetbrains.kotlin.resolve.ExternalOverridabilityCondition": [
-        "org.jetbrains.kotlin.load.java.ErasedOverridabilityCondition",
-        "org.jetbrains.kotlin.load.java.FieldOverridabilityCondition",
-        "org.jetbrains.kotlin.load.java.JavaIncompatibilityRulesOverridabilityCondition"
-      ],
-      "org.jetbrains.kotlin.resolve.jvm.KotlinToJvmSignatureMapper": [
-        "org.jetbrains.kotlin.codegen.signature.KotlinToJvmSignatureMapperImpl"
-      ]
-    },
     "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": {
       "org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor": [
         "org.jetbrains.kotlin.kapt.KaptCommandLineProcessor"
@@ -2763,26 +2730,7 @@
         "org.jetbrains.kotlin.kapt.KaptComponentRegistrar"
       ]
     },
-    "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:jar:sources": {
-      "org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor": [
-        "org.jetbrains.kotlin.kapt.KaptCommandLineProcessor"
-      ],
-      "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar": [
-        "org.jetbrains.kotlin.kapt.KaptCompilerPluginRegistrar"
-      ],
-      "org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar": [
-        "org.jetbrains.kotlin.kapt.KaptComponentRegistrar"
-      ]
-    },
     "org.jetbrains.kotlin:kotlin-build-tools-impl": {
-      "org.jetbrains.kotlin.buildtools.api.CompilationService": [
-        "org.jetbrains.kotlin.buildtools.internal.CompilationServiceProxy"
-      ],
-      "org.jetbrains.kotlin.buildtools.api.KotlinToolchains": [
-        "org.jetbrains.kotlin.buildtools.internal.KotlinToolchainsImpl"
-      ]
-    },
-    "org.jetbrains.kotlin:kotlin-build-tools-impl:jar:sources": {
       "org.jetbrains.kotlin.buildtools.api.CompilationService": [
         "org.jetbrains.kotlin.buildtools.internal.CompilationServiceProxy"
       ],
@@ -2810,32 +2758,16 @@
       "org/jline/terminal/": [],
       "org/jline/terminal/provider/": [],
       "org/jline/terminal/provider/exec": [
-        "class=org.jline.terminal.impl.exec.ExecTerminalProvider"
+        "class\u003dorg.jline.terminal.impl.exec.ExecTerminalProvider"
       ],
       "org/jline/terminal/provider/jansi": [
-        "class=org.jline.terminal.impl.jansi.JansiTerminalProvider"
+        "class\u003dorg.jline.terminal.impl.jansi.JansiTerminalProvider"
       ],
       "org/jline/terminal/provider/jna": [
-        "class=org.jline.terminal.impl.jna.JnaTerminalProvider"
+        "class\u003dorg.jline.terminal.impl.jna.JnaTerminalProvider"
       ],
       "org/jline/terminal/provider/jni": [
-        "class=org.jline.terminal.impl.jni.JniTerminalProvider"
-      ]
-    },
-    "org.jetbrains.kotlin:kotlin-compiler-embeddable:jar:sources": {
-      "org.jetbrains.kotlin.builtins.BuiltInsLoader": [
-        "org.jetbrains.kotlin.serialization.deserialization.builtins.BuiltInsLoaderImpl"
-      ],
-      "org.jetbrains.kotlin.resolve.ExternalOverridabilityCondition": [
-        "org.jetbrains.kotlin.load.java.ErasedOverridabilityCondition",
-        "org.jetbrains.kotlin.load.java.FieldOverridabilityCondition",
-        "org.jetbrains.kotlin.load.java.JavaIncompatibilityRulesOverridabilityCondition"
-      ],
-      "org.jetbrains.kotlin.resolve.jvm.KotlinToJvmSignatureMapper": [
-        "org.jetbrains.kotlin.codegen.signature.KotlinToJvmSignatureMapperImpl"
-      ],
-      "org.jetbrains.kotlin.util.ModuleVisibilityHelper": [
-        "org.jetbrains.kotlin.cli.common.ModuleVisibilityHelperImpl"
+        "class\u003dorg.jline.terminal.impl.jni.JniTerminalProvider"
       ]
     },
     "org.jetbrains.kotlin:kotlin-reflect": {
@@ -2849,5 +2781,6 @@
       ]
     }
   },
+  "skipped": [],
   "version": "3"
 }

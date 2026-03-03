@@ -19,5 +19,11 @@ KOTLIN_STDLIBS = [
     "//kotlin/compiler:annotations",
     "//kotlin/compiler:kotlin-reflect",
     "//kotlin/compiler:kotlin-stdlib",
+    "//kotlin/compiler:kotlin-compiler",
+    "//kotlin/compiler:kotlin-build-tools-impl",
+    "//kotlin/compiler:kotlin-annotation-processing",
+    "//kotlin/compiler:jvm-abi-gen",
     "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+    "//kotlin/compiler:kotlinx-serialization-core-jvm",
+    "//kotlin/compiler:kotlinx-serialization-json-jvm",
 ]

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_java//java:java_library.bzl", "java_library")
+load("@rules_java//java:java_import.bzl", "java_import")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load(":kapt.bzl", "kapt_compiler_plugin")
 
@@ -56,10 +56,25 @@ alias(
     actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core_jvm",
 )
 
-java_library(
-    name = "kotlin-annotation-processing",
+alias(
+    name = "kotlinx-serialization-core-jvm",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlinx_kotlinx_serialization_core_jvm",
+)
+
+alias(
+    name = "kotlinx-serialization-json-jvm",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
+)
+
+java_import(
+    name = "kotlin-preloader",
+    jars = ["@com_github_jetbrains_kotlin//:kotlin-preloader"],
     neverlink = True,
-    exports = ["@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_annotation_processing"],
+)
+
+alias(
+    name = "kotlin-annotation-processing",
+    actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlin_kotlin_annotation_processing",
 )
 
 alias(

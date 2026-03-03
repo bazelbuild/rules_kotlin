@@ -36,6 +36,12 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "compiler",
+    actual = "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
+    visibility = ["//visibility:public"],
+)
+
 java_import(
     name = "skip-code-gen",
     jars = ["skip-code-gen.jar"],

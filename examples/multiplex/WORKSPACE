@@ -72,3 +72,11 @@ rules_java_toolchains()
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
 kt_register_toolchains()
+
+load("@rules_kotlin//src/main/starlark/core/repositories:setup.bzl", "kt_configure")
+
+kt_configure()
+
+load("@rules_kotlin_maven//:defs.bzl", "pinned_maven_install")
+
+pinned_maven_install()
