@@ -18,10 +18,10 @@ load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_library")
 kt_bootstrap_library(
     name = "ksp2",
     srcs = glob(["*.kt"]),
-    neverlink_deps = [
-        "//kotlin/compiler:symbol-processing-aa",
-        "//kotlin/compiler:symbol-processing-api",
-        "//kotlin/compiler:symbol-processing-common-deps",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_aa",
+        "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_api",
+        "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
+    ],
 )

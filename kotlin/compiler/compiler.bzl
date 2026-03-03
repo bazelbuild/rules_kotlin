@@ -20,8 +20,6 @@ KOTLIN_STDLIBS = [
     "//kotlin/compiler:annotations",
     "//kotlin/compiler:kotlin-reflect",
     "//kotlin/compiler:kotlin-stdlib",
-    "//kotlin/compiler:kotlin-stdlib-jdk7",
-    "//kotlin/compiler:kotlin-stdlib-jdk8",
     "//kotlin/compiler:kotlinx-coroutines-core-jvm",
 ]
 

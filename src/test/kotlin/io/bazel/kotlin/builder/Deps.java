@@ -67,8 +67,7 @@ public final class Deps {
          * @throws IllegalArgumentException if the label does not exist.
          */
         public static Dep fromLabel(String label) {
-            // jvm properties do not allow slashes or :.
-            String key = label.replaceAll("/", ".").replaceAll(":", ".");
+            String key = labelToPropertyKey(label);
             Properties properties = System.getProperties();
             Preconditions.checkArgument(properties.containsKey(key),
                     String.format("Unable to find %s in properties:\n%s", key,
@@ -82,6 +81,11 @@ public final class Deps {
                             ImmutableList.of(
                                     BazelRunFiles.resolveVerifiedFromProperty(key).getPath()))
                     .build();
+        }
+
+        private static String labelToPropertyKey(String label) {
+            // jvm properties do not allow slashes or :.
+            return label.replaceAll("/", ".").replaceAll(":", ".");
         }
 
         public abstract String label();

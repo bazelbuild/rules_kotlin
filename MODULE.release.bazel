@@ -4,6 +4,8 @@ module(
     compatibility_level = 1,
     repo_name = "rules_kotlin",
 )
+kotlin_version = "2.3.20-RC"
+ksp_version = "2.3.6"
 
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
@@ -11,6 +13,7 @@ bazel_dep(name = "rules_java", version = "8.9.0")
 bazel_dep(name = "rules_android", version = "0.7.1")
 bazel_dep(name = "bazel_features", version = "1.39.0")
 bazel_dep(name = "bazel_lib", version = "3.1.0")
+bazel_dep(name = "rules_jvm_external", version = "6.10")
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
@@ -21,13 +24,29 @@ rules_kotlin_extensions = use_extension(
 )
 use_repo(
     rules_kotlin_extensions,
-    "com_github_google_ksp",
     "com_github_jetbrains_kotlin",
+    "com_github_jetbrains_kotlin_git",
     "com_github_pinterest_ktlint",
-    "kotlinx_serialization_core_jvm",
-    "kotlinx_serialization_json",
-    "kotlinx_serialization_json_jvm",
-    "kotlin_build_tools_impl",
 )
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "rules_kotlin_maven",
+    artifacts = [
+        "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:{}".format(kotlin_version),
+        "com.google.devtools.ksp:symbol-processing-aa:{}".format(ksp_version),
+    ],
+    fail_if_repin_required = True,
+    fetch_sources = True,
+    lock_file = "//:rules_kotlin_maven_install.json",
+    repositories = [
+        "https://maven-central.storage.googleapis.com/repos/central/data/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+    resolver = "maven",
+)
+use_repo(maven, "rules_kotlin_maven")
 
 register_toolchains("//kotlin/internal:default_toolchain")

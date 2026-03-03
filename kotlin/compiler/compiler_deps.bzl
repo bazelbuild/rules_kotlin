@@ -11,18 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-package(default_visibility = ["//visibility:public"])
 
-# Collect list of all KSP files that might be needed
-_KSP_FILES = glob(["**"])
-
-# KSP filegroup containing all KSP files to export
-filegroup(
-    name = "ksp",
-    srcs = _KSP_FILES,
-)
-
-# If the `--incompatible_no_implicit_file_export` option is enabled, then the
-# individual "srcs" from the "ksp" filegroup will not be visible, so also
-# export them with `export_files` to ensure that they are made public.
-exports_files(_KSP_FILES)
+# List of Kotlin standard library targets for runtime dependencies.
+# Note: kotlin-stdlib-jdk7 and kotlin-stdlib-jdk8 are not needed as of Kotlin 1.8+,
+# since JDK 8 extensions are included in the main stdlib.
+KOTLIN_STDLIBS = [
+    "//kotlin/compiler:annotations",
+    "//kotlin/compiler:kotlin-reflect",
+    "//kotlin/compiler:kotlin-stdlib",
+    "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+]
