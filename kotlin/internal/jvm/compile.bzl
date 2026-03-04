@@ -486,9 +486,16 @@ def _run_ksp_builder_actions(
     # Get the KSP2 invoker JAR (contains Ksp2Invoker class loaded via reflection)
     ksp2_invoker_jars = toolchains.kt.ksp2_invoker[JavaInfo].runtime_output_jars
 
-    # Add processor JARs - includes KSP2 API JARs, invoker JAR, and user processor JARs
+    # Add processor JARs - includes invoker/API jars, toolchain Kotlin runtime,
+    # and user processor/runtime jars.
+    #
+    # KSP2 analysis API requires Kotlin runtime classes such as
+    # kotlin.coroutines.jvm.internal.SpillingKt, which may be absent from
+    # target runtime deps (older stdlib versions). Always include toolchain
+    # runtime stdlibs on the processor classpath.
     args.add_all("--processor_classpath", ksp2_invoker_jars)
     args.add_all("--processor_classpath", ksp2_api_jars)
+    args.add_all("--processor_classpath", toolchains.kt.jvm_stdlibs.compile_jars)
     if transitive_runtime_jars:
         args.add_all("--processor_classpath", transitive_runtime_jars)
 
