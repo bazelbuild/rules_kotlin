@@ -124,7 +124,12 @@ maven_install(
     artifacts = [
         "junit:junit:4.13",
     ],
+    maven_install_json = "//:maven_install.json",
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
 )
+
+load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")
+
+pinned_maven_install_example()

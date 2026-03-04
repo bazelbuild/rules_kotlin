@@ -184,5 +184,10 @@ maven_install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    maven_install_json = "//:maven_install.json",
     use_starlark_android_rules = True,
 )
+
+load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")
+
+pinned_maven_install_example()

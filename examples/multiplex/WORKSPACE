@@ -69,6 +69,15 @@ load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
 
 rules_java_toolchains()
 
+##### rules_jvm_external setup #####
+load("@rules_jvm_external//:repositories.bzl", "rules_jvm_external_deps")
+
+rules_jvm_external_deps()
+
+load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
+
+rules_jvm_external_setup()
+
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
 kt_register_toolchains()
@@ -80,3 +89,21 @@ kt_configure()
 load("@rules_kotlin_maven//:defs.bzl", "pinned_maven_install")
 
 pinned_maven_install()
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    name = "maven_rules_kotlin_example",
+    artifacts = [
+        "junit:junit:4.13.2",
+        "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.0.1",
+    ],
+    maven_install_json = "//:maven_install.json",
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)
+
+load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")
+
+pinned_maven_install_example()

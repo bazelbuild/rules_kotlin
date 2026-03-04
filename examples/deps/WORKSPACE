@@ -132,8 +132,13 @@ maven_install(
         "com.google.auto.value:auto-value:1.6.5",
         "com.google.auto.value:auto-value-annotations:1.6.5",
     ],
+    maven_install_json = "//:maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
 )
+
+load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")
+
+pinned_maven_install_example()
