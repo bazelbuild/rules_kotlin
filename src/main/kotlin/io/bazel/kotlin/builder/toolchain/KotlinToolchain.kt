@@ -44,51 +44,51 @@ class KotlinToolchain private constructor(
     }
 
     private val JVM_ABI_PLUGIN by lazy {
-      resolveFromProperty("..kotlin.compiler.jvm-abi-gen")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.jvm-abi-gen")
     }
 
     private val KAPT_PLUGIN by lazy {
-      resolveFromProperty("..kotlin.compiler.kotlin-annotation-processing")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlin-annotation-processing")
     }
 
     private val COMPILER by lazy {
-      resolveFromProperty("..src.main.kotlin.compiler")
+      resolveFromProperty("@rules_kotlin..src.main.kotlin.compiler")
     }
 
     private val SKIP_CODE_GEN_PLUGIN by lazy {
-      resolveFromProperty("..src.main.kotlin.skip-code-gen")
+      resolveFromProperty("@rules_kotlin..src.main.kotlin.skip-code-gen")
     }
 
     private val JDEPS_GEN_PLUGIN by lazy {
-      resolveFromProperty("..src.main.kotlin.jdeps-gen")
+      resolveFromProperty("@rules_kotlin..src.main.kotlin.jdeps-gen")
     }
 
     private val KOTLINC by lazy {
-      resolveFromProperty("..kotlin.compiler.kotlin-compiler")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlin-compiler")
     }
 
     private val KOTLIN_REFLECT by lazy {
-      resolveFromProperty("..kotlin.compiler.kotlin-reflect")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlin-reflect")
     }
 
     private val KOTLIN_STDLIB by lazy {
-      resolveFromProperty("..kotlin.compiler.kotlin-stdlib")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlin-stdlib")
     }
 
     private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
-      resolveFromProperty("..kotlin.compiler.kotlinx-serialization-core-jvm")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlinx-serialization-core-jvm")
     }
 
     private val KOTLINX_SERIALIZATION_JSON by lazy {
-      resolveFromProperty("..kotlin.compiler.kotlinx-serialization-json-jvm")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlinx-serialization-json-jvm")
     }
 
     private val KOTLINX_SERIALIZATION_JSON_JVM by lazy {
-      resolveFromProperty("..kotlin.compiler.kotlinx-serialization-json-jvm")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlinx-serialization-json-jvm")
     }
 
     private val BUILD_TOOLS_API by lazy {
-      resolveFromProperty("..kotlin.compiler.kotlin-build-tools-impl")
+      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlin-build-tools-impl")
     }
 
     private val JAVA_HOME by lazy {
@@ -114,14 +114,11 @@ class KotlinToolchain private constructor(
         skipCodeGenFile = SKIP_CODE_GEN_PLUGIN.verified().absoluteFile,
         jdepsGenFile = JDEPS_GEN_PLUGIN.verified().absoluteFile,
         kaptFile = KAPT_PLUGIN.verified().absoluteFile,
-        extraClasspath =
-          listOf(
-            KOTLIN_STDLIB.toFile(),
-            KOTLIN_REFLECT.toFile(),
-            KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
-            KOTLINX_SERIALIZATION_JSON.toFile(),
-            KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
-          ),
+        kotlinStdlib = KOTLIN_STDLIB.toFile(),
+        kotlinReflect = KOTLIN_REFLECT.toFile(),
+        kotlinxSerializationCoreJvm = KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
+        kotlinxSerializationJson = KOTLINX_SERIALIZATION_JSON.toFile(),
+        kotlinxSerializationJsonJvm = KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
       )
 
     @JvmStatic
@@ -133,36 +130,11 @@ class KotlinToolchain private constructor(
       skipCodeGenFile: File,
       jdepsGenFile: File,
       kaptFile: File,
+      kotlinStdlib: File,
+      kotlinReflect: File,
       kotlinxSerializationCoreJvm: File,
       kotlinxSerializationJson: File,
       kotlinxSerializationJsonJvm: File,
-    ): KotlinToolchain =
-      createToolchain(
-        kotlinc = kotlinc,
-        buildTools = buildTools,
-        compiler = compiler,
-        jvmAbiGenFile = jvmAbiGenFile,
-        skipCodeGenFile = skipCodeGenFile,
-        jdepsGenFile = jdepsGenFile,
-        kaptFile = kaptFile,
-        extraClasspath =
-          listOf(
-            kotlinxSerializationCoreJvm,
-            kotlinxSerializationJson,
-            kotlinxSerializationJsonJvm,
-          ),
-      )
-
-    @JvmStatic
-    fun createToolchain(
-      kotlinc: File,
-      buildTools: File,
-      compiler: File,
-      jvmAbiGenFile: File,
-      skipCodeGenFile: File,
-      jdepsGenFile: File,
-      kaptFile: File,
-      extraClasspath: List<File>,
     ): KotlinToolchain =
       KotlinToolchain(
         mutableListOf<File>().apply {
@@ -175,7 +147,11 @@ class KotlinToolchain private constructor(
           add(jvmAbiGenFile)
           add(skipCodeGenFile)
           add(jdepsGenFile)
-          addAll(extraClasspath)
+          add(kotlinStdlib)
+          add(kotlinReflect)
+          add(kotlinxSerializationCoreJvm)
+          add(kotlinxSerializationJson)
+          add(kotlinxSerializationJsonJvm)
         },
         jvmAbiGen =
           CompilerPlugin(
@@ -221,15 +197,6 @@ class KotlinToolchain private constructor(
       baseJars,
     )
   }
-
-  fun toolchainWithReflect(kotlinReflect: File? = null): KotlinToolchain =
-    KotlinToolchain(
-      baseJars + listOf(kotlinReflect ?: KOTLIN_REFLECT.toFile()),
-      kapt3Plugin,
-      jvmAbiGen,
-      skipCodeGen,
-      jdepsGen,
-    )
 
   data class CompilerPlugin(
     val jarPath: String,

@@ -22,7 +22,7 @@ def kt_configure():
     rules_jvm_external_setup()
 
     # Keep in sync with MODULE.bazel.
-    kotlin_version = "2.3.20-RC"
+    kotlin_version = "2.3.20-RC2"
     ksp_version = "2.3.6"
 
     maven_install(

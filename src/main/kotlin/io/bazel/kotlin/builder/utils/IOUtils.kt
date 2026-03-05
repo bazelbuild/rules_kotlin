@@ -76,13 +76,6 @@ private fun BufferedReader.drainTo(pw: PrintStream) {
   close()
 }
 
-fun Path.resolveTwinVerified(extension: String): Path =
-  parent
-    .resolve(
-      "${toFile().nameWithoutExtension}${if (extension.startsWith(".")) "" else "."}$extension",
-    ).verified()
-    .toPath()
-
 fun Path.resolveNewDirectories(vararg parts: String) =
   Files.createDirectories(
     parts.fold(this, Path::resolve),
@@ -90,9 +83,6 @@ fun Path.resolveNewDirectories(vararg parts: String) =
 
 fun Path.resolveVerified(vararg parts: String): File =
   resolve(Paths.get(parts[0], *Arrays.copyOfRange(parts, 1, parts.size))).verified()
-
-fun Path.resolveVerifiedToAbsoluteString(vararg parts: String): String =
-  resolveVerified(*parts).absolutePath.toString()
 
 fun Path.verified(): File =
   this
