@@ -23,7 +23,6 @@ def kt_configure():
 
     # Keep in sync with MODULE.bazel.
     kotlin_version = "2.3.20-RC2"
-    ksp_version = "2.3.6"
 
     maven_install(
         name = "rules_kotlin_maven",
@@ -33,7 +32,7 @@ def kt_configure():
             "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:{}".format(kotlin_version),
             "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
             "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1",
-            "com.google.devtools.ksp:symbol-processing-aa:{}".format(ksp_version),
+            "com.google.devtools.ksp:symbol-processing-aa:2.3.6",
         ],
         repositories = [
             "https://maven-central.storage.googleapis.com/repos/central/data/",

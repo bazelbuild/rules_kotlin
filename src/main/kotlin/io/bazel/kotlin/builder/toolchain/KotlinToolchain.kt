@@ -16,7 +16,6 @@
  */
 package io.bazel.kotlin.builder.toolchain
 
-import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.builder.utils.verifiedPath
 import java.io.File
@@ -24,7 +23,6 @@ import java.io.FileNotFoundException
 import java.io.PrintStream
 import java.lang.reflect.Method
 import java.net.URLClassLoader
-import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -79,10 +77,6 @@ class KotlinToolchain private constructor(
       resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlinx-serialization-core-jvm")
     }
 
-    private val KOTLINX_SERIALIZATION_JSON by lazy {
-      resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlinx-serialization-json-jvm")
-    }
-
     private val KOTLINX_SERIALIZATION_JSON_JVM by lazy {
       resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlinx-serialization-json-jvm")
     }
@@ -91,18 +85,7 @@ class KotlinToolchain private constructor(
       resolveFromProperty("@rules_kotlin..kotlin.compiler.kotlin-build-tools-impl")
     }
 
-    private val JAVA_HOME by lazy {
-      FileSystems
-        .getDefault()
-        .getPath(System.getProperty("java.home"))
-        .let { path ->
-          path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
-        }.verifiedPath()
-    }
-
     internal val NO_ARGS = arrayOf<Any>()
-
-    private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
@@ -117,7 +100,6 @@ class KotlinToolchain private constructor(
         kotlinStdlib = KOTLIN_STDLIB.toFile(),
         kotlinReflect = KOTLIN_REFLECT.toFile(),
         kotlinxSerializationCoreJvm = KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
-        kotlinxSerializationJson = KOTLINX_SERIALIZATION_JSON.toFile(),
         kotlinxSerializationJsonJvm = KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
       )
 
@@ -133,7 +115,6 @@ class KotlinToolchain private constructor(
       kotlinStdlib: File,
       kotlinReflect: File,
       kotlinxSerializationCoreJvm: File,
-      kotlinxSerializationJson: File,
       kotlinxSerializationJsonJvm: File,
     ): KotlinToolchain =
       KotlinToolchain(
@@ -150,7 +131,6 @@ class KotlinToolchain private constructor(
           add(kotlinStdlib)
           add(kotlinReflect)
           add(kotlinxSerializationCoreJvm)
-          add(kotlinxSerializationJson)
           add(kotlinxSerializationJsonJvm)
         },
         jvmAbiGen =
@@ -177,26 +157,11 @@ class KotlinToolchain private constructor(
   }
 
   private fun createClassLoader(
-    javaHome: Path,
     baseJars: List<File>,
     classLoader: ClassLoader = ClassLoader.getPlatformClassLoader(),
-  ): ClassLoader {
-    val jars =
-      mutableListOf<File>().also {
-        it += baseJars
-        if (!isJdk9OrNewer) {
-          it += javaHome.resolveVerified("lib", "tools.jar")
-        }
-      }
-    return URLClassLoader(jars.map { it.toURI().toURL() }.toTypedArray(), classLoader)
-  }
+  ): ClassLoader = URLClassLoader(baseJars.map { it.toURI().toURL() }.toTypedArray(), classLoader)
 
-  val classLoader by lazy {
-    createClassLoader(
-      JAVA_HOME,
-      baseJars,
-    )
-  }
+  val classLoader by lazy { createClassLoader(baseJars) }
 
   data class CompilerPlugin(
     val jarPath: String,

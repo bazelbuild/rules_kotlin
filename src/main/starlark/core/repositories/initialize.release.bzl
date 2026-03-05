@@ -32,14 +32,12 @@ _KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 def kotlin_repositories(
         is_bzlmod = False,
         compiler_repository_name = _KT_COMPILER_REPO,
-        compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE,
-        ksp_compiler_release = versions.KSP_CURRENT_COMPILER_PLUGIN_RELEASE):
+        compiler_release = versions.KOTLIN_CURRENT_COMPILER_RELEASE):
     """Call this in the WORKSPACE file to setup the Kotlin rules.
 
     Args:
         compiler_repository_name: for the kotlinc compiler repository.
         compiler_release: version provider from versions.bzl.
-        ksp_compiler_release: (internal) version provider from versions.bzl.
     """
     kotlin_compiler_repository(
         name = compiler_repository_name,
@@ -127,15 +125,6 @@ def kotlinc_version(release, sha256):
         version = release,
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
-        ],
-        sha256 = sha256,
-    )
-
-def ksp_version(release, sha256):
-    return version(
-        version = release,
-        url_templates = [
-            "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
         ],
         sha256 = sha256,
     )
