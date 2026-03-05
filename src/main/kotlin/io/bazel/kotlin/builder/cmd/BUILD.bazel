@@ -9,6 +9,12 @@ _KSP2_RUNTIME_STDLIBS = [
     "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
 ]
 
+_BUILD_RUNTIME_STDLIBS = [
+    dep
+    for dep in _KOTLIN_STDLIBS
+    if dep != "//kotlin/compiler:kotlin-compiler"
+]
+
 kt_bootstrap_library(
     name = "build_lib",
     srcs = ["Build.kt"],
@@ -28,7 +34,7 @@ kt_bootstrap_binary(
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin/io/bazel/kotlin/compiler",
     ],
-    final_runtime_deps = _KOTLIN_STDLIBS + [
+    final_runtime_deps = _BUILD_RUNTIME_STDLIBS + [
         "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
         "//src/main/kotlin:skip-code-gen",
         "//src/main/kotlin:jdeps-gen",

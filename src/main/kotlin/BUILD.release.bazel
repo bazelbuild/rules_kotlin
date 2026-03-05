@@ -15,6 +15,12 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 load("//kotlin/compiler:compiler_deps.bzl", "KOTLIN_STDLIBS")
 
+BUILD_RUNTIME_STDLIBS = [
+    dep
+    for dep in KOTLIN_STDLIBS
+    if dep != "//kotlin/compiler:kotlin-compiler"
+]
+
 java_import(
     name = "worker",
     jars = ["kotlin_worker.jar"],
@@ -67,7 +73,7 @@ java_binary(
         "@bazel_tools//tools/jdk:JacocoCoverage",
     ] + [
         ":worker",
-    ] + KOTLIN_STDLIBS,
+    ] + BUILD_RUNTIME_STDLIBS,
 )
 
 java_binary(

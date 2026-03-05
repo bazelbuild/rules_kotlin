@@ -180,11 +180,11 @@ maven_install(
         "org.jetbrains.kotlin:kotlin-reflect",
         "org.jetbrains.kotlin:kotlin-script-runtime",
     ],
+    maven_install_json = "//:maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
-    maven_install_json = "//:maven_install.json",
     use_starlark_android_rules = True,
 )
 
