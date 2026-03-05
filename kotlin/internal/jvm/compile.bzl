@@ -475,16 +475,13 @@ def _run_ksp_builder_actions(
     if compile_deps.compile_jars:
         args.add_all("--libraries", compile_deps.compile_jars)
 
-    # Collect KSP2 API JARs (needed by the worker to load KSP2 classes via reflection)
-    ksp2_api_jars = depset(
-        ctx.attr._ksp2_symbol_processing_api[JavaInfo].runtime_output_jars +
-        ctx.attr._ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars +
-        ctx.attr._ksp2_symbol_processing_common_deps[JavaInfo].runtime_output_jars +
-        ctx.attr._ksp2_kotlinx_coroutines[JavaInfo].runtime_output_jars,
-    )
+    ksp2_invoker_info = toolchains.kt.ksp2_invoker[JavaInfo]
 
-    # Get the KSP2 invoker JAR (contains Ksp2Invoker class loaded via reflection)
-    ksp2_invoker_jars = toolchains.kt.ksp2_invoker[JavaInfo].runtime_output_jars
+    # KSP2 runtime dependencies are resolved via the invoker target closure in the toolchain.
+    ksp2_invoker_jars = depset(
+        direct = ksp2_invoker_info.runtime_output_jars,
+        transitive = [ksp2_invoker_info.transitive_runtime_jars],
+    )
 
     # Add processor JARs - includes invoker/API jars, toolchain Kotlin runtime,
     # and user processor/runtime jars.
@@ -494,7 +491,6 @@ def _run_ksp_builder_actions(
     # target runtime deps (older stdlib versions). Always include toolchain
     # runtime stdlibs on the processor classpath.
     args.add_all("--processor_classpath", ksp2_invoker_jars)
-    args.add_all("--processor_classpath", ksp2_api_jars)
     args.add_all("--processor_classpath", toolchains.kt.jvm_stdlibs.compile_jars)
     if transitive_runtime_jars:
         args.add_all("--processor_classpath", transitive_runtime_jars)
@@ -504,12 +500,12 @@ def _run_ksp_builder_actions(
     ctx.actions.run(
         mnemonic = "KotlinKsp2",
         inputs = depset(
-            direct = all_source_files + srcs.src_jars + ksp2_invoker_jars,
+            direct = all_source_files + srcs.src_jars,
             transitive = [
                 compile_deps.compile_jars,
                 transitive_runtime_jars,
                 toolchains.java_runtime.files,
-                ksp2_api_jars,
+                ksp2_invoker_jars,
             ],
         ),
         tools = [

@@ -27,3 +27,19 @@ KOTLIN_STDLIBS = [
     "//kotlin/compiler:kotlinx-serialization-core-jvm",
     "//kotlin/compiler:kotlinx-serialization-json-jvm",
 ]
+
+# Build worker should not pull kotlin-compiler from final runtime deps to avoid classpath leakage.
+KOTLIN_BUILD_RUNTIME_STDLIBS = [
+    dep
+    for dep in KOTLIN_STDLIBS
+    if dep != "//kotlin/compiler:kotlin-compiler"
+]
+
+# KSP2 needs IntelliJ coroutines variant rather than the default kotlinx artifact.
+KSP2_RUNTIME_STDLIBS = [
+    dep
+    for dep in KOTLIN_STDLIBS
+    if dep != "//kotlin/compiler:kotlinx-coroutines-core-jvm"
+] + [
+    "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
+]
