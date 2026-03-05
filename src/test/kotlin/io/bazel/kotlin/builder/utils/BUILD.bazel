@@ -1,5 +1,4 @@
 load("//kotlin:jvm.bzl", "kt_jvm_test")
-load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 
 # Copyright 2020 The Bazel Authors. All rights reserved.
 #
@@ -15,14 +14,6 @@ load("//src/test/kotlin/io/bazel/kotlin:defs.bzl", "kt_rules_test")
 # See the License for the specific language governing permissions and
 # limitations under the License.
 package(default_visibility = ["//src:__subpackages__"])
-
-kt_rules_test(
-    name = "SourceJarCreatorTest",
-    srcs = ["jars/SourceJarCreatorTest.java"],
-    deps = [
-        "//src/main/kotlin/io/bazel/kotlin/builder/utils/jars",
-    ],
-)
 
 kt_jvm_test(
     name = "JarCreatorTest",
@@ -52,6 +43,5 @@ test_suite(
     tests = [
         ":ArgMapTest",
         ":JarCreatorTest",
-        ":SourceJarCreatorTest",
     ],
 )

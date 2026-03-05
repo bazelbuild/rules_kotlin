@@ -78,16 +78,6 @@ class CompilationArgs(
     return this
   }
 
-  fun given(
-    test: Boolean,
-    conditionalArgs: CompilationArgs.() -> Unit,
-  ): CompilationArgs {
-    if (test) {
-      this.conditionalArgs()
-    }
-    return this
-  }
-
   fun given(value: String): StringConditional = StringConditional(value, this)
 
   operator fun plus(other: CompilationArgs): CompilationArgs =

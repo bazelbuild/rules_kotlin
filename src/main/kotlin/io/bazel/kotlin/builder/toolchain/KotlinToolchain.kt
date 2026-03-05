@@ -79,13 +79,6 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
-    private val KOTLIN_REFLECT by lazy {
-      BazelRunFiles
-        .resolveVerifiedFromProperty(
-          "@rules_kotlin..kotlin.compiler.kotlin-reflect",
-        ).toPath()
-    }
-
     private val KOTLINX_SERIALIZATION_CORE_JVM by lazy {
       BazelRunFiles
         .resolveVerifiedFromProperty(
@@ -220,15 +213,6 @@ class KotlinToolchain private constructor(
       baseJars,
     )
   }
-
-  fun toolchainWithReflect(kotlinReflect: File? = null): KotlinToolchain =
-    KotlinToolchain(
-      baseJars + listOf(kotlinReflect ?: KOTLIN_REFLECT.toFile()),
-      kapt3Plugin,
-      jvmAbiGen,
-      skipCodeGen,
-      jdepsGen,
-    )
 
   data class CompilerPlugin(
     val jarPath: String,

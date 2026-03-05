@@ -46,10 +46,6 @@ class CompilationTaskContext(
     isTracing = debugging.contains("trace")
   }
 
-  fun reportUnhandledException(throwable: Throwable) {
-    throwable.printStackTrace(out)
-  }
-
   @Suppress("unused")
   fun print(msg: String) {
     out.println(msg)
