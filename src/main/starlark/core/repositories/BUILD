@@ -17,17 +17,13 @@ load("//src/main/starlark/release:packager.bzl", "release_archive")
 release_archive(
     name = "pkg",
     srcs = [
-        "BUILD.com_github_jetbrains_kotlin.bazel",
         "BUILD.kotlin_capabilities.bazel",
-        "bzlmod_impl.bzl",
         "compiler.bzl",
         "setup.bzl",
         "versions.bzl",
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
-        "bzlmod_setup.release.bzl": "bzlmod_setup.bzl",
-        "initialize.release.bzl": "initialize.bzl",
     },
     deps = [
         "//src/main/starlark/core/repositories/kotlin:pkg",

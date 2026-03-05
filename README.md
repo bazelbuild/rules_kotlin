@@ -113,32 +113,10 @@ and then in your `WORKSPACE` file, instead of `kt_register_toolchains()` do
 register_toolchains("//:kotlin_toolchain")
 ```
 
-## Custom `kotlinc` distribution (and version)
+## Kotlin compiler artifacts
 
-To choose a different `kotlinc` distribution (1.3 and 1.4 variants supported), do the following
-in your `WORKSPACE` file (or import from a `.bzl` file:
-
-### `MODULE.bazel`
-```python
-rules_kotlin_extensions = use_extension("@rules_kotlin//src/main/starlark/core/repositories:bzlmod_setup.bzl", "rules_kotlin_extensions")
-rules_kotlin_extensions.kotlinc_version(
-    version = "2.1.20",
-    sha256 = "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a"
-)
-use_repo(rules_kotlin_extensions, "com_github_google_ksp", "com_github_jetbrains_kotlin", "com_github_jetbrains_kotlin_git", "com_github_pinterest_ktlint", "kotlinx_serialization_core_jvm", "kotlinx_serialization_json", "kotlinx_serialization_json_jvm")
-```
-
-### `WORKSPACE`
-```python
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version")
-
-kotlin_repositories(
-    compiler_release = kotlinc_version(
-        release = "2.1.20",
-        sha256 = "a118197b0de55ffab2bc8d5cd03a5e39033cfb53383d6931bc761dec0784891a"
-    )
-)
-```
+Kotlin compiler/runtime/plugin jars are resolved from maven coordinates managed by
+`rules_kotlin`. Custom compiler distribution overrides via repository rules are not supported.
 
 ## Third party dependencies 
 _(e.g. Maven artifacts)_

@@ -602,7 +602,7 @@ This macro registers the kotlin toolchain.
 <pre>
 load("@rules_kotlin//kotlin:repositories.doc.bzl", "kotlin_repositories")
 
-kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>)
+kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>)
 </pre>
 
 Call this in the WORKSPACE file to setup the Kotlin rules.
@@ -613,8 +613,6 @@ Call this in the WORKSPACE file to setup the Kotlin rules.
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  `False` |
-| <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
-| <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "781b54a857ebcbbb6d5b6e5b4a54e2ad480d0b813ac65ed48c636ef4a81f8d90", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.3.20-RC2")` |
 
 
 <a id="versions.use_repository"></a>
@@ -638,4 +636,3 @@ versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a hre
 | <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
 | <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
-

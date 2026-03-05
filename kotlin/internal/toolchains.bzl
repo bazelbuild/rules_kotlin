@@ -15,7 +15,6 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     "//kotlin/internal:defs.bzl",
-    _KT_COMPILER_REPO = "KT_COMPILER_REPO",
     _TOOLCHAIN_TYPE = "TOOLCHAIN_TYPE",
 )
 load(
@@ -103,7 +102,6 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
-        kotlin_home = ctx.attr.kotlin_home,
         btapi_runtime_classpath = build_tools_runtime_classpath,
         internal_jvm_abi_gen = ctx.file.internal_jvm_abi_gen,
         internal_skip_code_gen = ctx.file.internal_skip_code_gen,
@@ -339,11 +337,6 @@ _kt_toolchain = rule(
                 "24",
                 "25",
             ],
-        ),
-        "kotlin_home": attr.label(
-            doc = "the filegroup defining the kotlin home",
-            default = Label("@" + _KT_COMPILER_REPO + "//:home"),
-            allow_files = True,
         ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",

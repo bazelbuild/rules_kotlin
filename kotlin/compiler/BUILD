@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_java//java:java_import.bzl", "java_import")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load(":kapt.bzl", "kapt_compiler_plugin")
 
@@ -52,12 +51,6 @@ alias(
 alias(
     name = "kotlinx-serialization-json-jvm",
     actual = "@rules_kotlin_dev_maven//:org_jetbrains_kotlinx_kotlinx_serialization_json_jvm",
-)
-
-java_import(
-    name = "kotlin-preloader",
-    jars = ["@com_github_jetbrains_kotlin//:kotlin-preloader"],
-    neverlink = True,
 )
 
 alias(
