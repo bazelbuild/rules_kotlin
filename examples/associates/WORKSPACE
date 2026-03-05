@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 http_archive(
     name = "rules_kotlin",
@@ -6,7 +6,8 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+load("@rules_kotlin//src/main/starlark/core/repositories:versions.bzl", "versions")
+load("@rules_kotlin//src/main/starlark/core/repositories:workspace_compat.bzl", "workspace_compat")
 
 http_archive(
     name = "rules_jvm_external",
@@ -72,7 +73,14 @@ http_archive(
     urls = [url.format(version = versions.RULES_JAVA.version) for url in versions.RULES_JAVA.url_templates],
 )
 
-kotlin_repositories()
+http_file(
+    name = "com_github_pinterest_ktlint",
+    downloaded_file_path = "ktlint.jar",
+    sha256 = versions.PINTEREST_KTLINT.sha256,
+    urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],
+)
+
+workspace_compat()
 
 ##### rules_java setup for rules_android #####
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")

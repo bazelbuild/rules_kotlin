@@ -74,6 +74,13 @@ versions = struct(
             "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
         ],
     ),
+    PINTEREST_KTLINT = version(
+        version = "1.6.0",
+        sha256 = "5ba1ac917a06b0f02daaa60d10abbedd2220d60216af670c67a45b91c74cf8bb",
+        url_templates = [
+            "https://github.com/pinterest/ktlint/releases/download/{version}/ktlint",
+        ],
+    ),
     # Used for bootstrapping only
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
         version = "2.3.20-RC2",

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(":capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 load("//src/main/starlark/core/options:convert.bzl", "convert")
 load("//src/main/starlark/core/options:derive.bzl", "derive")
+load(":capabilities.bzl", _KOTLIN_OPTS = "KOTLIN_OPTS")
 
 _ALLOWED_SUPPRESS_LEVELS = [
     "error",

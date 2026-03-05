@@ -21,6 +21,7 @@ release_archive(
         "compiler.bzl",
         "setup.bzl",
         "versions.bzl",
+        "workspace_compat.bzl",
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
