@@ -11,7 +11,7 @@ proto_version_parts = proto_version.split(".")
 
 proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
 
-kotlin_version = "2.3.20-RC"
+kotlin_version = "2.3.20-RC2"
 
 ksp_version = "2.3.6"
 
@@ -148,16 +148,6 @@ maven.override(
     name = "override_target_in_deps_kotlin_stdlib",
     coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib",
     target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib",
-)
-maven.override(
-    name = "override_target_in_deps_kotlin_stdlib_jdk7",
-    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk7",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk7",
-)
-maven.override(
-    name = "override_target_in_deps_kotlin_stdlib_jdk8",
-    coordinates = "org.jetbrains.kotlin.kotlin:kotlin-stdlib-jdk8",
-    target = "@rules_kotlin//kotlin/compiler:kotlin-stdlib-jdk8",
 )
 maven.override(
     name = "override_target_in_deps_protobuf_java",

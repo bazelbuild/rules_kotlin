@@ -512,8 +512,6 @@ def define_kt_toolchain(
         jvm_stdlibs = jvm_stdlibs if jvm_stdlibs != None else [
             Label("//kotlin/compiler:annotations"),
             Label("//kotlin/compiler:kotlin-stdlib"),
-            Label("//kotlin/compiler:kotlin-stdlib-jdk7"),
-            Label("//kotlin/compiler:kotlin-stdlib-jdk8"),
         ],
         jvm_runtime = jvm_runtime if jvm_runtime != None else [
             Label("//kotlin/compiler:kotlin-stdlib"),

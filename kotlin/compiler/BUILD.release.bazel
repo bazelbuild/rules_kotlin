@@ -27,17 +27,6 @@ alias(
     actual = "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl",
 )
 
-# Keep legacy stdlib labels for compatibility with existing toolchain defaults.
-alias(
-    name = "kotlin-stdlib-jdk7",
-    actual = ":kotlin-stdlib",
-)
-
-alias(
-    name = "kotlin-stdlib-jdk8",
-    actual = ":kotlin-stdlib",
-)
-
 alias(
     name = "kotlin-compiler-embeddable",
     actual = ":kotlin-compiler",
