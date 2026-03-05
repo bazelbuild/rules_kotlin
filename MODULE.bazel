@@ -5,11 +5,12 @@ module(
     repo_name = "rules_kotlin",
 )
 
-proto_version = "4.33.4"
+proto_version = "4.34.0"
 
-proto_version_parts = proto_version.split(".")
+proto_module_version = "34.0.bcr.1"
 
-proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
+# proto_version_parts = proto_version.split(".")
+# proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
 
 kotlin_version = "2.3.20-RC2"
 
