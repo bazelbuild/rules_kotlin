@@ -56,6 +56,8 @@ use_repo(
     "kotlinx_serialization_json_jvm",
 )
 
+register_toolchains("//src/test/starlark/compile:abi_stripping_test_toolchain")
+
 register_toolchains("//src/main/starlark/core/compile/cli")
 
 register_toolchains("//kotlin/internal:default_toolchain")

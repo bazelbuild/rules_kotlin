@@ -1,5 +1,32 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("//kotlin:core.bzl", "define_kt_toolchain")
+load(":associate_java_compile_tests.bzl", associate_test_suite = "test_suite")
 load(":rule_tests.bzl", "test_suite")
 
 test_suite(
     name = "rules_tests",
+)
+
+associate_test_suite(
+    name = "associate_java_compile_tests",
+)
+
+# Test-only toolchain with experimental_remove_private_classes_in_abi_jars enabled.
+# Activated via config_settings in analysis tests to verify that associate class jars
+# (not just ABI jars) are passed to java_common.compile().
+
+bool_flag(
+    name = "use_abi_stripping_toolchain",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "abi_stripping_enabled",
+    flag_values = {":use_abi_stripping_toolchain": "True"},
+)
+
+define_kt_toolchain(
+    name = "abi_stripping_test_toolchain",
+    experimental_remove_private_classes_in_abi_jars = True,
+    target_settings = [":abi_stripping_enabled"],
 )

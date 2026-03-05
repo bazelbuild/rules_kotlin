@@ -976,12 +976,24 @@ def _run_kt_java_builder_actions(
         # annotation processors in `deps` also.
         if len(srcs.kt) > 0:
             javac_opts.append("-proc:none")
+
+        # When experimental_remove_private_classes_in_abi_jars is enabled, associate targets'
+        # JavaInfo compile_jars point to ABI jars with internal classes stripped. The Kotlin
+        # compiler uses compile_deps.compile_jars (which swaps ABI jars for full class jars),
+        # but java_common.compile derives its classpath from JavaInfo.compile_jars in deps.
+        # We need to add the associate full jars explicitly so javac can see internal classes
+        # referenced by generated code (e.g., Dagger components).
+        associate_java_infos = [
+            JavaInfo(output_jar = jar, compile_jar = jar, neverlink = True)
+            for jar in compile_deps.associate_jars.to_list()
+        ]
+
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
             source_jars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars,
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
-            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
+            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p] + associate_java_infos,
             java_toolchain = toolchains.java,
             plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
             javac_opts = javac_opts,

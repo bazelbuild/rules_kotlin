@@ -288,6 +288,107 @@ def _transitive_from_exports_test(name):
 def _transitive_from_associates_test(name):
     _abi_test(name, _transitive_from_associates_test_impl)
 
+def _associate_jars_has_class_jars_with_abi_stripping_test_impl(env, target):
+    """associate_jars must contain class jars when ABI stripping is active.
+
+    These are the jars that compile.bzl wraps in synthetic JavaInfos and passes
+    to java_common.compile(), so javac can see internal symbols from associates
+    (e.g. Dagger components referencing internal classes).
+    """
+    arrangment = _setup(env, target)
+
+    strict_abi_configured_toolchains = struct(
+        kt = struct(
+            experimental_remove_private_classes_in_abi_jars = True,
+            experimental_prune_transitive_deps = True,
+            experimental_strict_associate_dependencies = True,
+            jvm_stdlibs = JavaInfo(
+                compile_jar = _file(env.ctx.attr.jvm_jar),
+                output_jar = _file(env.ctx.attr.jvm_jar),
+            ),
+        ),
+    )
+
+    result = _jvm_deps_utils.jvm_deps(
+        ctx = arrangment.fake_ctx,
+        toolchains = strict_abi_configured_toolchains,
+        associate_deps = arrangment.associate_deps,
+        deps = arrangment.direct_deps,
+    )
+
+    associate_jars = env.expect.that_depset_of_files(result.associate_jars)
+
+    # Class jars (output_jar) SHOULD be in associate_jars
+    associate_jars.contains(_file(env.ctx.attr.associate_jar).short_path)
+
+    # ABI jars (compile_jar) should NOT be in associate_jars
+    associate_jars.not_contains(_file(env.ctx.attr.associate_abi_jar).short_path)
+
+def _associate_jars_has_class_jars_with_abi_stripping_test(name):
+    _abi_test(name, _associate_jars_has_class_jars_with_abi_stripping_test_impl)
+
+def _associate_jars_has_compile_jars_without_abi_stripping_test_impl(env, target):
+    """Without ABI stripping, associate_jars should contain compile jars (ABI jars)."""
+    arrangment = _setup(env, target)
+
+    strict_no_abi_configured_toolchains = struct(
+        kt = struct(
+            experimental_remove_private_classes_in_abi_jars = False,
+            experimental_prune_transitive_deps = False,
+            experimental_strict_associate_dependencies = True,
+            jvm_stdlibs = JavaInfo(
+                compile_jar = _file(env.ctx.attr.jvm_jar),
+                output_jar = _file(env.ctx.attr.jvm_jar),
+            ),
+        ),
+    )
+
+    result = _jvm_deps_utils.jvm_deps(
+        ctx = arrangment.fake_ctx,
+        toolchains = strict_no_abi_configured_toolchains,
+        associate_deps = arrangment.associate_deps,
+        deps = arrangment.direct_deps,
+    )
+
+    associate_jars = env.expect.that_depset_of_files(result.associate_jars)
+
+    # Compile jars (ABI jars) should be in associate_jars
+    associate_jars.contains(_file(env.ctx.attr.associate_abi_jar).short_path)
+
+    # Full class jars should NOT be in associate_jars
+    associate_jars.not_contains(_file(env.ctx.attr.associate_jar).short_path)
+
+def _associate_jars_has_compile_jars_without_abi_stripping_test(name):
+    _abi_test(name, _associate_jars_has_compile_jars_without_abi_stripping_test_impl)
+
+def _associate_jars_empty_without_associates_test_impl(env, target):
+    """With no associates, associate_jars should be empty."""
+    arrangment = _setup(env, target)
+
+    strict_abi_configured_toolchains = struct(
+        kt = struct(
+            experimental_remove_private_classes_in_abi_jars = True,
+            experimental_prune_transitive_deps = False,
+            experimental_strict_associate_dependencies = False,
+            jvm_stdlibs = JavaInfo(
+                compile_jar = _file(env.ctx.attr.jvm_jar),
+                output_jar = _file(env.ctx.attr.jvm_jar),
+            ),
+        ),
+    )
+
+    result = _jvm_deps_utils.jvm_deps(
+        ctx = arrangment.fake_ctx,
+        toolchains = strict_abi_configured_toolchains,
+        associate_deps = [],
+        deps = arrangment.direct_deps,
+    )
+
+    env.expect.that_int(len(result.associate_jars.to_list())).equals(0)
+
+def _associate_jars_empty_without_associates_test(name):
+    _abi_test(name, _associate_jars_empty_without_associates_test_impl)
+
 def _dep_infos_ordering_test_impl(env, target):
     """Test that user deps take precedence over stdlib in dep_infos ordering.
 
@@ -443,6 +544,9 @@ def jvm_deps_test_suite(name):
             _fat_abi_test,
             _transitive_from_exports_test,
             _transitive_from_associates_test,
+            _associate_jars_has_class_jars_with_abi_stripping_test,
+            _associate_jars_has_compile_jars_without_abi_stripping_test,
+            _associate_jars_empty_without_associates_test,
             _dep_infos_ordering_test,
             _sourceless_dep_propagation_test,
         ],
