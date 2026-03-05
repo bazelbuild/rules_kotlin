@@ -29,6 +29,7 @@ import java.util.ServiceLoader
  * at runtime in a classloader that has the KSP2 jars. This follows the same
  * pattern as BuildToolsAPICompiler.
  */
+@Suppress("unused")
 class Ksp2Invoker(
   private val classLoader: ClassLoader,
 ) {
