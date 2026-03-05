@@ -543,6 +543,7 @@ def kt_configure_toolchains():
 
     kt_kotlinc_options(
         name = "default_kotlinc_options",
+        include_stdlibs = "none",
         visibility = ["//visibility:public"],
     )
 

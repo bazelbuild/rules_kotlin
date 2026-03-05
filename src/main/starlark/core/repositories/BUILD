@@ -18,10 +18,8 @@ release_archive(
     name = "pkg",
     srcs = [
         "BUILD.kotlin_capabilities.bazel",
-        "compiler.bzl",
         "setup.bzl",
         "versions.bzl",
-        "workspace_compat.bzl",
     ],
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
