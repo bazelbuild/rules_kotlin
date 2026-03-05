@@ -9,7 +9,6 @@ http_archive(
 )
 
 load("@rules_kotlin//src/main/starlark/core/repositories:versions.bzl", "versions")
-load("@rules_kotlin//src/main/starlark/core/repositories:workspace_compat.bzl", "workspace_compat")
 
 http_archive(
     name = "rules_jvm_external",
@@ -126,8 +125,6 @@ http_file(
     sha256 = versions.PINTEREST_KTLINT.sha256,
     urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],
 )
-
-workspace_compat()
 
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
