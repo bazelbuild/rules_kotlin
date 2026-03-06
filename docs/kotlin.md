@@ -499,7 +499,7 @@ load("@rules_kotlin//kotlin:core.bzl", "kt_plugin_cfg")
 kt_plugin_cfg(<a href="#kt_plugin_cfg-name">name</a>, <a href="#kt_plugin_cfg-deps">deps</a>, <a href="#kt_plugin_cfg-data">data</a>, <a href="#kt_plugin_cfg-options">options</a>, <a href="#kt_plugin_cfg-plugin">plugin</a>)
 </pre>
 
-Configurations for kt_compiler_plugin, ksp_plugin, and java_plugin.
+Configurations for kt_compiler_plugin.
 
 This allows setting options and dependencies independently from the initial plugin definition.
 
@@ -527,7 +527,11 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_remove_private_classes_in_abi_jars">experimental_remove_private_classes_in_abi_jars</a>,
                     <a href="#define_kt_toolchain-experimental_remove_debug_info_in_abi_jars">experimental_remove_debug_info_in_abi_jars</a>, <a href="#define_kt_toolchain-experimental_strict_kotlin_deps">experimental_strict_kotlin_deps</a>,
                     <a href="#define_kt_toolchain-experimental_report_unused_deps">experimental_report_unused_deps</a>, <a href="#define_kt_toolchain-experimental_reduce_classpath_mode">experimental_reduce_classpath_mode</a>,
-                    <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-experimental_build_tools_api">experimental_build_tools_api</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>,
+                    <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-experimental_build_tools_api">experimental_build_tools_api</a>, <a href="#define_kt_toolchain-build_tools_impl">build_tools_impl</a>,
+                    <a href="#define_kt_toolchain-internal_compiler">internal_compiler</a>, <a href="#define_kt_toolchain-internal_kotlinc">internal_kotlinc</a>, <a href="#define_kt_toolchain-internal_kotlin_reflect">internal_kotlin_reflect</a>,
+                    <a href="#define_kt_toolchain-internal_kotlin_stdlib">internal_kotlin_stdlib</a>, <a href="#define_kt_toolchain-internal_kotlinx_serialization_core_jvm">internal_kotlinx_serialization_core_jvm</a>,
+                    <a href="#define_kt_toolchain-internal_kotlinx_serialization_json_jvm">internal_kotlinx_serialization_json_jvm</a>, <a href="#define_kt_toolchain-internal_jvm_abi_gen">internal_jvm_abi_gen</a>,
+                    <a href="#define_kt_toolchain-internal_skip_code_gen">internal_skip_code_gen</a>, <a href="#define_kt_toolchain-internal_jdeps_gen">internal_jdeps_gen</a>, <a href="#define_kt_toolchain-internal_kapt">internal_kapt</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>,
                     <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jvm_stdlibs">jvm_stdlibs</a>, <a href="#define_kt_toolchain-jvm_runtime">jvm_runtime</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>,
                     <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
@@ -552,6 +556,17 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-experimental_reduce_classpath_mode"></a>experimental_reduce_classpath_mode |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-experimental_multiplex_workers"></a>experimental_multiplex_workers |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-experimental_build_tools_api"></a>experimental_build_tools_api |  <p align="center"> - </p>   |  `None` |
+| <a id="define_kt_toolchain-build_tools_impl"></a>build_tools_impl |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/compiler:kotlin-build-tools-impl")` |
+| <a id="define_kt_toolchain-internal_compiler"></a>internal_compiler |  <p align="center"> - </p>   |  `Label("@rules_kotlin//src/main/kotlin:compiler")` |
+| <a id="define_kt_toolchain-internal_kotlinc"></a>internal_kotlinc |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/compiler:kotlin-compiler")` |
+| <a id="define_kt_toolchain-internal_kotlin_reflect"></a>internal_kotlin_reflect |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/compiler:kotlin-reflect")` |
+| <a id="define_kt_toolchain-internal_kotlin_stdlib"></a>internal_kotlin_stdlib |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/compiler:kotlin-stdlib")` |
+| <a id="define_kt_toolchain-internal_kotlinx_serialization_core_jvm"></a>internal_kotlinx_serialization_core_jvm |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/compiler:kotlinx-serialization-core-jvm")` |
+| <a id="define_kt_toolchain-internal_kotlinx_serialization_json_jvm"></a>internal_kotlinx_serialization_json_jvm |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/compiler:kotlinx-serialization-json-jvm")` |
+| <a id="define_kt_toolchain-internal_jvm_abi_gen"></a>internal_jvm_abi_gen |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/compiler:jvm-abi-gen")` |
+| <a id="define_kt_toolchain-internal_skip_code_gen"></a>internal_skip_code_gen |  <p align="center"> - </p>   |  `Label("@rules_kotlin//src/main/kotlin:skip-code-gen")` |
+| <a id="define_kt_toolchain-internal_jdeps_gen"></a>internal_jdeps_gen |  <p align="center"> - </p>   |  `Label("@rules_kotlin//src/main/kotlin:jdeps-gen")` |
+| <a id="define_kt_toolchain-internal_kapt"></a>internal_kapt |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/compiler:kotlin-annotation-processing")` |
 | <a id="define_kt_toolchain-javac_options"></a>javac_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_javac_options")` |
 | <a id="define_kt_toolchain-kotlinc_options"></a>kotlinc_options |  <p align="center"> - </p>   |  `Label("@rules_kotlin//kotlin/internal:default_kotlinc_options")` |
 | <a id="define_kt_toolchain-jvm_stdlibs"></a>jvm_stdlibs |  <p align="center"> - </p>   |  `None` |
@@ -574,57 +589,5 @@ kt_register_toolchains()
 
 This macro registers the kotlin toolchain.
 
-
-
-<!-- Generated with Stardoc: http://skydoc.bazel.build -->
-
-
-
-<a id="kotlin_repositories"></a>
-
-## kotlin_repositories
-
-<pre>
-load("@rules_kotlin//kotlin:repositories.doc.bzl", "kotlin_repositories")
-
-kotlin_repositories(<a href="#kotlin_repositories-is_bzlmod">is_bzlmod</a>, <a href="#kotlin_repositories-compiler_repository_name">compiler_repository_name</a>, <a href="#kotlin_repositories-ksp_repository_name">ksp_repository_name</a>, <a href="#kotlin_repositories-compiler_release">compiler_release</a>,
-                    <a href="#kotlin_repositories-ksp_compiler_release">ksp_compiler_release</a>)
-</pre>
-
-Call this in the WORKSPACE file to setup the Kotlin rules.
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="kotlin_repositories-is_bzlmod"></a>is_bzlmod |  <p align="center"> - </p>   |  `False` |
-| <a id="kotlin_repositories-compiler_repository_name"></a>compiler_repository_name |  for the kotlinc compiler repository.   |  `"com_github_jetbrains_kotlin"` |
-| <a id="kotlin_repositories-ksp_repository_name"></a>ksp_repository_name |  <p align="center"> - </p>   |  `"com_github_google_ksp"` |
-| <a id="kotlin_repositories-compiler_release"></a>compiler_release |  version provider from versions.bzl.   |  `struct(sha256 = "c8d546f9ff433b529fb0ad43feceb39831040cae2ca8d17e7df46364368c9a9e", url_templates = ["https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip"], version = "2.3.10")` |
-| <a id="kotlin_repositories-ksp_compiler_release"></a>ksp_compiler_release |  (internal) version provider from versions.bzl.   |  `struct(sha256 = "685d895c746df2e2159174a9fac9dcc029c3e127612c677bbc5502dd71e98ffe", url_templates = ["https://github.com/google/ksp/releases/download/{version}/artifacts.zip"], version = "2.3.6")` |
-
-
-<a id="versions.use_repository"></a>
-
-## versions.use_repository
-
-<pre>
-load("@rules_kotlin//kotlin:repositories.doc.bzl", "versions")
-
-versions.use_repository(<a href="#versions.use_repository-rule">rule</a>, <a href="#versions.use_repository-name">name</a>, <a href="#versions.use_repository-version">version</a>, <a href="#versions.use_repository-kwargs">**kwargs</a>)
-</pre>
-
-
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="versions.use_repository-rule"></a>rule |  <p align="center"> - </p>   |  none |
-| <a id="versions.use_repository-name"></a>name |  <p align="center"> - </p>   |  none |
-| <a id="versions.use_repository-version"></a>version |  <p align="center"> - </p>   |  none |
-| <a id="versions.use_repository-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 

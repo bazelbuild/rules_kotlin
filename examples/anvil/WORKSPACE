@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 http_archive(
     name = "rules_kotlin",
@@ -6,7 +6,7 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_kotlin/releases/download/v1.9.5/rules_kotlin-v1.9.5.tar.gz",
 )
 
-load("@rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "versions")
+load("@rules_kotlin//src/main/starlark/core/repositories:versions.bzl", "versions")
 
 http_archive(
     name = "rules_jvm_external",
@@ -110,11 +110,24 @@ register_toolchains(
     "@rules_android//toolchains/android_sdk:android_sdk_tools",
 )
 
-kotlin_repositories()
+http_file(
+    name = "com_github_pinterest_ktlint",
+    downloaded_file_path = "ktlint.jar",
+    sha256 = versions.PINTEREST_KTLINT.sha256,
+    urls = [url.format(version = versions.PINTEREST_KTLINT.version) for url in versions.PINTEREST_KTLINT.url_templates],
+)
 
 load("@rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 
 kt_register_toolchains()
+
+load("@rules_kotlin//src/main/starlark/core/repositories:setup.bzl", "kt_configure")
+
+kt_configure()
+
+load("@rules_kotlin_maven//:defs.bzl", "pinned_maven_install")
+
+pinned_maven_install()
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
@@ -166,15 +179,18 @@ maven_install(
     ],
     excluded_artifacts = [
         "org.jetbrains.kotlin:kotlin-stdlib",
-        "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-        "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
         "org.jetbrains.kotlin:kotlin-compiler-embeddable",
         "org.jetbrains.kotlin:kotlin-reflect",
         "org.jetbrains.kotlin:kotlin-script-runtime",
     ],
+    maven_install_json = "//:maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
     use_starlark_android_rules = True,
 )
+
+load("@maven_rules_kotlin_example//:defs.bzl", pinned_maven_install_example = "pinned_maven_install")
+
+pinned_maven_install_example()

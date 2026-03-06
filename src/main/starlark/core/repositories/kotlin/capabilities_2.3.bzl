@@ -1,4 +1,4 @@
-# Copyright 2025 The Bazel Authors. All rights reserved.
+# Copyright 2026 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,12 +24,34 @@ KOTLIN_OPTS = {
         doc = "Enable extra checkers for K2.",
         default = False,
     ),
+    "-XXLanguage": struct(
+        flag = "-XXLanguage",
+        doc = """Enables/disables specified language feature.
+Warning: this flag is not intended for production use. If you want to configure the language behaviour use the
+-language-version or corresponding experimental feature flags.""",
+        default = [],
+    ),
+    "-XXdebug-level-compiler-checks": struct(
+        flag = "-XXdebug-level-compiler-checks",
+        doc = "Enable debug level compiler checks. ATTENTION: these checks can slow compiler down or even crash it.",
+        default = False,
+    ),
+    "-XXdump-model": struct(
+        flag = "-XXdump-model",
+        doc = "Dump compilation model to specified directory for use in modularized tests.",
+        default = None,
+    ),
     "-XXexplicit-return-types": struct(
         flag = "-XXexplicit-return-types",
         doc = """Force the compiler to report errors on all public API declarations without an explicit return type.
 Use the 'warning' level to issue warnings instead of errors.
 This flag partially enables functionality of `-Xexplicit-api` flag, so please don't use them altogether""",
         default = "disable",
+    ),
+    "-XXlenient-mode": struct(
+        flag = "-XXlenient-mode",
+        doc = "Lenient compiler mode. When actuals are missing, placeholder declarations are generated.",
+        default = False,
     ),
     "-Xabi-stability": struct(
         flag = "-Xabi-stability",
@@ -49,6 +71,21 @@ to force diagnostics to be reported.""",
         doc = "Allow compiling scripts along with regular Kotlin sources.",
         default = False,
     ),
+    "-Xallow-condition-implies-returns-contracts": struct(
+        flag = "-Xallow-condition-implies-returns-contracts",
+        doc = "Allow contracts that specify a limited conditional returns postcondition.",
+        default = False,
+    ),
+    "-Xallow-contracts-on-more-functions": struct(
+        flag = "-Xallow-contracts-on-more-functions",
+        doc = "Allow contracts on some operators and accessors, and allow checks for erased types.",
+        default = False,
+    ),
+    "-Xallow-holdsin-contract": struct(
+        flag = "-Xallow-holdsin-contract",
+        doc = "Allow contracts that specify a condition that holds true inside a lambda argument.",
+        default = False,
+    ),
     "-Xallow-kotlin-package": struct(
         flag = "-Xallow-kotlin-package",
         doc = "Allow compiling code in the 'kotlin' package, and allow not requiring 'kotlin.stdlib' in 'module-info'.",
@@ -59,9 +96,33 @@ to force diagnostics to be reported.""",
         doc = "Allow the set of source files to be empty.",
         default = False,
     ),
+    "-Xallow-reified-type-in-catch": struct(
+        flag = "-Xallow-reified-type-in-catch",
+        doc = "Allow 'catch' parameters to have reified types.",
+        default = False,
+    ),
     "-Xallow-unstable-dependencies": struct(
         flag = "-Xallow-unstable-dependencies",
         doc = "Do not report errors on classes in dependencies that were compiled by an unstable version of the Kotlin compiler.",
+        default = False,
+    ),
+    "-Xannotation-default-target": struct(
+        flag = "-Xannotation-default-target",
+        doc = """Change the default annotation targets for constructor properties:
+-Xannotation-default-target=first-only:      use the first of the following allowed targets: '@param:', '@property:', '@field:';
+-Xannotation-default-target=first-only-warn: same as first-only, and raise warnings when both '@param:' and either '@property:' or '@field:' are allowed;
+-Xannotation-default-target=param-property:  use '@param:' target if applicable, and also use the first of either '@property:' or '@field:';
+default: 'first-only-warn' in language version 2.2+, 'first-only' in version 2.1 and before.""",
+        default = None,
+    ),
+    "-Xannotation-target-all": struct(
+        flag = "-Xannotation-target-all",
+        doc = "Enable experimental language support for @all: annotation use-site target.",
+        default = False,
+    ),
+    "-Xannotations-in-metadata": struct(
+        flag = "-Xannotations-in-metadata",
+        doc = "Write annotations on declarations into the metadata (in addition to the JVM bytecode), and read annotations from the metadata if they are present.",
         default = False,
     ),
     "-Xassertions": struct(
@@ -86,21 +147,29 @@ The default value is 1.""",
         doc = "Check pre- and postconditions of IR lowering phases.",
         default = False,
     ),
-    "-Xcheck-sticky-phase-conditions": struct(
-        flag = "-Xcheck-sticky-phase-conditions",
-        doc = "Run sticky condition checks on subsequent phases. Implicitly enables '-Xcheck-phase-conditions'.",
-        default = False,
-    ),
     "-Xcommon-sources": struct(
         flag = "-Xcommon-sources",
         doc = """Sources of the common module that need to be compiled together with this module in multiplatform mode.
 They should be a subset of sources passed as free arguments.""",
         default = [],
     ),
+    "-Xcompile-builtins-as-part-of-stdlib": struct(
+        flag = "-Xcompile-builtins-as-part-of-stdlib",
+        doc = "Enable behaviour needed to compile builtins as part of JVM stdlib",
+        default = False,
+    ),
     "-Xcompile-java": struct(
         flag = "-Xcompile-java",
         doc = "Reuse 'javac' analysis and compile Java source files.",
         default = False,
+    ),
+    "-Xcompiler-plugin-order": struct(
+        flag = "-Xcompiler-plugin-order",
+        doc = """Specify an execution order constraint for compiler plugins.
+Order constraint can be specified using the 'pluginId' of compiler plugins.
+The first specified plugin will be executed before the second plugin.
+Multiple constraints can be specified by repeating this option. Cycles in constraints will cause an error.""",
+        default = [],
     ),
     "-Xconsistent-data-class-copy-visibility": struct(
         flag = "-Xconsistent-data-class-copy-visibility",
@@ -117,16 +186,34 @@ They should be a subset of sources passed as free arguments.""",
         doc = "Enable experimental context receivers.",
         default = False,
     ),
+    "-Xcontext-sensitive-resolution": struct(
+        flag = "-Xcontext-sensitive-resolution",
+        doc = "Enable experimental context-sensitive resolution.",
+        default = False,
+    ),
+    "-Xdata-flow-based-exhaustiveness": struct(
+        flag = "-Xdata-flow-based-exhaustiveness",
+        doc = "Enable `when` exhaustiveness improvements that rely on data-flow analysis.",
+        default = False,
+    ),
     "-Xdebug": struct(
         flag = "-Xdebug",
         doc = """Enable debug mode for compilation.
-Currently this includes spilling all variables in a suspending context regardless of whether they are alive.""",
+Currently this includes spilling all variables in a suspending context regardless of whether they are alive.
+If API Level >= 2.2 -- no-op.""",
         default = False,
     ),
     "-Xdefault-script-extension": struct(
         flag = "-Xdefault-script-extension",
         doc = "Compile expressions and unrecognized scripts passed with the -script argument as scripts with the given filename extension.",
         default = None,
+    ),
+    "-Xdetailed-perf": struct(
+        flag = "-Xdetailed-perf",
+        doc = """Enable more detailed performance statistics (Experimental).
+For Native, the performance report includes execution time and lines processed per second for every individual lowering.
+For WASM and JS, the performance report includes execution time and lines per second for each lowering of the first stage of compilation.""",
+        default = False,
     ),
     "-Xdirect-java-actualization": struct(
         flag = "-Xdirect-java-actualization",
@@ -158,12 +245,6 @@ Currently this includes spilling all variables in a suspending context regardles
         doc = "Emit JVM type annotations in bytecode.",
         default = False,
     ),
-    "-Xenable-builder-inference": struct(
-        flag = "-Xenable-builder-inference",
-        doc = """Use builder inference by default for all calls with lambdas that can't be resolved without it.
-The corresponding calls' declarations may not be marked with @BuilderInference.""",
-        default = False,
-    ),
     "-Xenable-incremental-compilation": struct(
         flag = "-Xenable-incremental-compilation",
         doc = "Enable incremental compilation.",
@@ -172,6 +253,12 @@ The corresponding calls' declarations may not be marked with @BuilderInference."
     "-Xenhance-type-parameter-types-to-def-not-null": struct(
         flag = "-Xenhance-type-parameter-types-to-def-not-null",
         doc = "Enhance not-null-annotated type parameter types to definitely-non-nullable types ('@NotNull T' => 'T & Any').",
+        default = False,
+    ),
+    "-Xenhanced-coroutines-debugging": struct(
+        flag = "-Xenhanced-coroutines-debugging",
+        doc = """Generate additional linenumber instruction for compiler-generated code
+inside suspend functions and lambdas to distinguish them from user code by debugger.""",
         default = False,
     ),
     "-Xexpect-actual-classes": struct(
@@ -186,11 +273,26 @@ Kotlin reports a warning every time you use one of them. You can use this flag t
 Use the 'warning' level to issue warnings instead of errors.""",
         default = "disable",
     ),
-    "-Xextended-compiler-checks": struct(
-        flag = "-Xextended-compiler-checks",
-        doc = """Enable additional compiler checks that might provide verbose diagnostic information for certain errors.
-Warning: This mode is not backward compatible and might cause compilation errors in previously compiled code.""",
+    "-Xexplicit-backing-fields": struct(
+        flag = "-Xexplicit-backing-fields",
+        doc = "Enable experimental language support for explicit backing fields.",
         default = False,
+    ),
+    "-Xfragment-dependency": struct(
+        flag = "-Xfragment-dependency",
+        doc = """Declare common klib dependencies for the specific fragment.
+This argument is required for any HMPP module except the platform leaf module: it takes dependencies from -cp/-libraries.
+The argument should be used only if the new compilation scheme is enabled with -Xseparate-kmp-compilation
+""",
+        default = [],
+    ),
+    "-Xfragment-friend-dependency": struct(
+        flag = "-Xfragment-friend-dependency",
+        doc = """Declare common klib friend dependencies for the specific fragment.
+This argument can be specified for any HMPP module except the platform leaf module: it takes dependencies from the platform specific friend module arguments.
+The argument should be used only if the new compilation scheme is enabled with -Xseparate-kmp-compilation
+""",
+        default = [],
     ),
     "-Xfragment-refines": struct(
         flag = "-Xfragment-refines",
@@ -222,9 +324,9 @@ Warning: This mode is not backward compatible and might cause compilation errors
         doc = "Ignore all compilation exceptions while optimizing some constant expressions.",
         default = False,
     ),
-    "-Xinference-compatibility": struct(
-        flag = "-Xinference-compatibility",
-        doc = "Enable compatibility changes for the generic type inference algorithm.",
+    "-Xindy-allow-annotated-lambdas": struct(
+        flag = "-Xindy-allow-annotated-lambdas",
+        doc = "Allow using 'invokedynamic' for lambda expressions with annotations",
         default = False,
     ),
     "-Xinline-classes": struct(
@@ -235,11 +337,6 @@ Warning: This mode is not backward compatible and might cause compilation errors
     "-Xir-do-not-clear-binding-context": struct(
         flag = "-Xir-do-not-clear-binding-context",
         doc = "When using the IR backend, do not clear BindingContext between 'psi2ir' and lowerings.",
-        default = False,
-    ),
-    "-Xir-inliner": struct(
-        flag = "-Xir-inliner",
-        doc = "Inline functions using the IR inliner instead of the bytecode inliner.",
         default = False,
     ),
     "-Xjava-package-prefix": struct(
@@ -260,14 +357,14 @@ Warning: This mode is not backward compatible and might cause compilation errors
     "-Xjdk-release": struct(
         flag = "-Xjdk-release",
         doc = """Compile against the specified JDK API version, similarly to javac's '-release'. This requires JDK 9 or newer.
-The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–23.
+The supported versions depend on the JDK used; for JDK 17+, the supported versions are 1.8 and 9–25.
 This also sets the value of '-jvm-target' to be equal to the selected JDK version.""",
         default = None,
     ),
     "-Xjspecify-annotations": struct(
         flag = "-Xjspecify-annotations",
         doc = """Specify the behavior of 'jspecify' annotations.
-The default value is 'warn'.""",
+The default value is 'strict'.""",
         default = None,
     ),
     "-Xjsr305": struct(
@@ -284,32 +381,21 @@ Modes:
     ),
     "-Xjvm-default": struct(
         flag = "-Xjvm-default",
-        doc = """Emit JVM default methods for interface declarations with bodies. The default is 'disable'.
--Xjvm-default=all                Generate JVM default methods for all interface declarations with bodies in the module.
-                                 Do not generate 'DefaultImpls' stubs for interface declarations with bodies. If an interface inherits a method with a
-                                 body from an interface compiled in 'disable' mode and doesn't override it, then a 'DefaultImpls' stub will be
-                                 generated for it.
-                                 This BREAKS BINARY COMPATIBILITY if some client code relies on the presence of 'DefaultImpls' classes.
-                                 Note that if interface delegation is used, all interface methods are delegated.
--Xjvm-default=all-compatibility  Like 'all', but additionally generate compatibility stubs in the 'DefaultImpls' classes.
-                                 Compatibility stubs can help library and runtime authors maintain backward binary compatibility
-                                 for existing clients compiled against previous library versions.
-                                 'all' and 'all-compatibility' modes change the library ABI surface that will be used by clients after
-                                 the recompilation of the library. Because of this, clients might be incompatible with previous library
-                                 versions. This usually means that proper library versioning is required, for example with major version increases in SemVer.
-                                 In subtypes of Kotlin interfaces compiled in 'all' or 'all-compatibility' mode, 'DefaultImpls'
-                                 compatibility stubs will invoke the default method of the interface with standard JVM runtime resolution semantics.
-                                 Perform additional compatibility checks for classes inheriting generic interfaces where in some cases an
-                                 additional implicit method with specialized signatures was generated in 'disable' mode.
-                                 Unlike in 'disable' mode, the compiler will report an error if such a method is not overridden explicitly
-                                 and the class is not annotated with '@JvmDefaultWithoutCompatibility' (see KT-39603 for more details).
--Xjvm-default=disable            Default behavior. Do not generate JVM default methods.""",
-        default = "disable",
+        doc = """This option is deprecated. Migrate to -jvm-default as follows:
+-Xjvm-default=disable            -> -jvm-default=disable
+-Xjvm-default=all-compatibility  -> -jvm-default=enable
+-Xjvm-default=all                -> -jvm-default=no-compatibility""",
+        default = None,
     ),
     "-Xjvm-enable-preview": struct(
         flag = "-Xjvm-enable-preview",
         doc = """Allow using Java features that are in the preview phase.
 This works like '--enable-preview' in Java. All class files are marked as compiled with preview features, meaning it won't be possible to use them in release environments.""",
+        default = False,
+    ),
+    "-Xjvm-expose-boxed": struct(
+        flag = "-Xjvm-expose-boxed",
+        doc = "Expose inline classes and functions, accepting and returning them, to Java.",
         default = False,
     ),
     "-Xklib": struct(
@@ -325,11 +411,6 @@ This works like '--enable-preview' in Java. All class files are marked as compil
 -Xlambdas=class                 Generate lambdas as explicit classes.
 The default value is 'indy' if language version is 2.0+, and 'class' otherwise.""",
         default = None,
-    ),
-    "-Xlegacy-smart-cast-after-try": struct(
-        flag = "-Xlegacy-smart-cast-after-try",
-        doc = "Allow 'var' smart casts even in the presence of assignments in 'try' blocks.",
-        default = False,
     ),
     "-Xlink-via-signatures": struct(
         flag = "-Xlink-via-signatures",
@@ -372,6 +453,19 @@ It has no effect when -language-version is 2.0 or higher.""",
     "-Xmultifile-parts-inherit": struct(
         flag = "-Xmultifile-parts-inherit",
         doc = "Compile multifile classes as a hierarchy of parts and a facade.",
+        default = False,
+    ),
+    "-Xname-based-destructuring": struct(
+        flag = "-Xname-based-destructuring",
+        doc = """Enables the following destructuring features:
+-Xname-based-destructuring=only-syntax:   Enables syntax for positional destructuring with square brackets and the full form of name-based destructuring with parentheses;
+-Xname-based-destructuring=name-mismatch: Reports warnings when short form positional destructuring of data classes uses names that don't match the property names;
+-Xname-based-destructuring=complete:      Enables short-form name-based destructuring with parentheses;""",
+        default = None,
+    ),
+    "-Xnested-type-aliases": struct(
+        flag = "-Xnested-type-aliases",
+        doc = "Enable experimental language support for nested type aliases.",
         default = False,
     ),
     "-Xnew-inference": struct(
@@ -443,6 +537,11 @@ Modes:
 * warn (report a warning)""",
         default = [],
     ),
+    "-Xoutput-builtins-metadata": struct(
+        flag = "-Xoutput-builtins-metadata",
+        doc = "Output builtins metadata as .kotlin_builtins files",
+        default = False,
+    ),
     "-Xphases-to-dump": struct(
         flag = "-Xphases-to-dump",
         doc = "Dump the backend's state both before and after these phases.",
@@ -491,6 +590,11 @@ Example: -Xprofile=<PATH_TO_ASYNC_PROFILER>/async-profiler/build/libasyncProfile
         doc = "Render the internal names of warnings and errors.",
         default = False,
     ),
+    "-Xrepl": struct(
+        flag = "-Xrepl",
+        doc = "Run Kotlin REPL (deprecated)",
+        default = False,
+    ),
     "-Xreport-all-warnings": struct(
         flag = "-Xreport-all-warnings",
         doc = "Report all warnings even if errors are found.",
@@ -505,6 +609,11 @@ Example: -Xprofile=<PATH_TO_ASYNC_PROFILER>/async-profiler/build/libasyncProfile
         flag = "-Xreport-perf",
         doc = "Report detailed performance statistics.",
         default = False,
+    ),
+    "-Xreturn-value-checker": struct(
+        flag = "-Xreturn-value-checker",
+        doc = "Set improved unused return value checker mode. Use 'check' to run checker only and use 'full' to also enable automatic annotation insertion.",
+        default = "disable",
     ),
     "-Xsam-conversions": struct(
         flag = "-Xsam-conversions",
@@ -526,9 +635,9 @@ problems with parentheses in identifiers on certain platforms.""",
         doc = "Set the script resolver environment in key-value pairs (the value can be quoted and escaped).",
         default = [],
     ),
-    "-Xself-upper-bound-inference": struct(
-        flag = "-Xself-upper-bound-inference",
-        doc = "Support inferring type arguments from the self-type upper bounds of the corresponding type parameters.",
+    "-Xseparate-kmp-compilation": struct(
+        flag = "-Xseparate-kmp-compilation",
+        doc = "Enables the separated compilation scheme, in which common source sets are analyzed against their own dependencies",
         default = False,
     ),
     "-Xserialize-ir": struct(
@@ -590,7 +699,7 @@ This option has no effect and will be deleted in a future version.""",
     ),
     "-Xsuppress-warning": struct(
         flag = "-Xsuppress-warning",
-        doc = "Suppress specified warning module-wide.",
+        doc = """Suppress specified warning module-wide. This option is deprecated in favor of "-Xwarning-level" flag""",
         default = [],
     ),
     "-Xtype-enhancement-improvements-strict-mode": struct(
@@ -646,26 +755,10 @@ Warning: This feature is not yet production-ready.""",
         doc = "Compile using the experimental K2 compiler pipeline. No compatibility guarantees are provided yet.",
         default = False,
     ),
-    "-Xuse-k2-kapt": struct(
-        flag = "-Xuse-k2-kapt",
-        doc = "Enable the experimental support for K2 KAPT.",
-        default = False,
-    ),
-    "-Xuse-old-backend": struct(
-        flag = "-Xuse-old-backend",
-        doc = "Use the old JVM backend.",
-        default = False,
-    ),
     "-Xuse-old-class-files-reading": struct(
         flag = "-Xuse-old-class-files-reading",
         doc = """Use the old implementation for reading class files. This may slow down the compilation and cause problems with Groovy interop.
 This can be used in the event of problems with the new implementation.""",
-        default = False,
-    ),
-    "-Xuse-old-innerclasses-logic": struct(
-        flag = "-Xuse-old-innerclasses-logic",
-        doc = """Use the old logic for the generation of 'InnerClasses' attributes.
-This option is deprecated and will be deleted in future versions.""",
         default = False,
     ),
     "-Xuse-type-table": struct(
@@ -698,13 +791,22 @@ This option is deprecated and will be deleted in future versions.""",
         doc = "Check for visibility violations in IR when validating it before running any lowerings. Only has effect if '-Xverify-ir' is not 'none'.",
         default = False,
     ),
-    "-Xverify-ir-visibility-after-inlining": struct(
-        flag = "-Xverify-ir-visibility-after-inlining",
-        doc = """Check for visibility violations in IR when validating it after the function inlining phase.
-Only has effect if '-Xverify-ir' is not 'none'.
-This flag is deprecated and will soon be removed in favor of '-Xverify-ir-visibility'.
-""",
-        default = False,
+    "-Xwarning-level": struct(
+        flag = "-Xwarning-level",
+        doc = """Set the severity of the given warning.
+- `error` level raises the severity of a warning to error level (similar to -Werror but more granular)
+- `disabled` level suppresses reporting of a warning (similar to -nowarn but more granular)
+- `warning` level overrides -nowarn and -Werror for this specific warning (the warning will be reported/won't be considered as an error)""",
+        default = [],
+    ),
+    "-Xwhen-expressions": struct(
+        flag = "-Xwhen-expressions",
+        doc = """Select the code generation scheme for type-checking 'when' expressions:
+-Xwhen-expressions=indy         Generate type-checking 'when' expressions using 'invokedynamic' with 'SwitchBootstraps.typeSwitch(..)' and 
+                                following 'tableswitch' or 'lookupswitch'. This requires '-jvm-target 21' or greater.
+-Xwhen-expressions=inline       Generate type-checking 'when' expressions as a chain of type checks.
+The default value is 'inline'.""",
+        default = None,
     ),
     "-Xwhen-guards": struct(
         flag = "-Xwhen-guards",
@@ -721,9 +823,19 @@ This flag is deprecated and will soon be removed in favor of '-Xverify-ir-visibi
         doc = "Generate metadata for Java 1.8 reflection on method parameters.",
         default = False,
     ),
+    "-jvm-default": struct(
+        flag = "-jvm-default",
+        doc = """Emit JVM default methods for interface declarations with bodies. The default is 'enable'.
+-jvm-default=enable              Generate default methods for non-abstract interface declarations, as well as 'DefaultImpls' classes with
+                                 static methods for compatibility with code compiled in the 'disable' mode.
+                                 This is the default behavior since language version 2.2.
+-jvm-default=no-compatibility    Generate default methods for non-abstract interface declarations. Do not generate 'DefaultImpls' classes.
+-jvm-default=disable             Do not generate JVM default methods. This is the default behavior up to language version 2.1.""",
+        default = None,
+    ),
     "-jvm-target": struct(
         flag = "-jvm-target",
-        doc = "The target version of the generated JVM bytecode (1.8 and 9–23), with 1.8 as the default.",
+        doc = "The target version of the generated JVM bytecode (1.8 and 9–25), with 1.8 as the default.",
         default = None,
     ),
     "-language-version": struct(

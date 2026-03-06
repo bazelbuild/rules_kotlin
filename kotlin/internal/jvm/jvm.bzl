@@ -40,8 +40,8 @@ test --strategy=KotlinCompile=worker
 
 ### Standard Libraries
 
-The Kotlin libraries that are bundled in a kotlin release should be used with the rules, the mandatory standard libraries are added implicetly. After enabling
-the repository the following Kotlin Libraries are also made available from the workspace `com_github_jetbrains_kotlin`:
+The Kotlin libraries that are bundled in a kotlin release should be used with the rules, the mandatory standard libraries are added implicetly. The following
+Kotlin Libraries are available from the `//kotlin/compiler` aliases:
 
 * `kotlin-test`,
 * `kotlin-reflect`.
@@ -138,26 +138,6 @@ _implicit_deps = {
     ),
     "_java_toolchain": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
-    ),
-    "_ksp2_kotlinx_coroutines": attr.label(
-        doc = "kotlinx-coroutines-core-jvm JAR required by KSP2",
-        default = Label("//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm"),
-        cfg = "exec",
-    ),
-    "_ksp2_symbol_processing_aa": attr.label(
-        doc = "KSP2 symbol-processing-aa JAR for processor classpath",
-        default = Label("//kotlin/compiler:symbol-processing-aa"),
-        cfg = "exec",
-    ),
-    "_ksp2_symbol_processing_api": attr.label(
-        doc = "KSP2 symbol-processing-api JAR for processor classpath",
-        default = Label("//kotlin/compiler:symbol-processing-api"),
-        cfg = "exec",
-    ),
-    "_ksp2_symbol_processing_common_deps": attr.label(
-        doc = "KSP2 symbol-processing-common-deps JAR for processor classpath",
-        default = Label("//kotlin/compiler:symbol-processing-common-deps"),
-        cfg = "exec",
     ),
     "_kt_toolchain": attr.label(
         doc = """The Kotlin toolchain. it's only purpose is to enable the Intellij
@@ -260,7 +240,6 @@ _common_attr = utils.add_dicts(
                 [JavaPluginInfo],
                 [KtPluginConfiguration],
                 [_KspPluginInfo],
-                [_KtCompilerPluginInfo],
                 [_KtCompilerPluginInfo],
             ],
         ),
@@ -699,7 +678,7 @@ kt_jvm_library(
 kt_plugin_cfg = rule(
     implementation = kt_plugin_cfg_impl,
     doc = """
-    Configurations for kt_compiler_plugin, ksp_plugin, and java_plugin.
+    Configurations for kt_compiler_plugin.
 
     This allows setting options and dependencies independently from the initial plugin definition.
     """,
