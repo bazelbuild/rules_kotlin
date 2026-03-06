@@ -1,8 +1,77 @@
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library", "kt_jvm_test")
 
 kt_jvm_binary(
     name = "main",
-    srcs = glob(["*.kt"]),
+    srcs = ["Main.kt"],
     main_class = "MainKt",
     deps = ["@nested//:printer"],
+)
+
+# --- Resource libraries for integration testing ---
+
+# Case 1: Source resource WITH resource_strip_prefix
+kt_jvm_library(
+    name = "source_with_prefix",
+    resource_strip_prefix = "strip_prefix_resources",
+    resources = ["strip_prefix_resources/source_data.txt"],
+)
+
+# Case 2: Source resource WITHOUT resource_strip_prefix (no conventional prefix)
+kt_jvm_library(
+    name = "source_without_prefix",
+    resources = ["static_resources/source_no_prefix.txt"],
+)
+
+# Case 3: Generated resource WITH resource_strip_prefix
+genrule(
+    name = "gen_with_prefix",
+    outs = ["gen_prefix_out/generated_data.txt"],
+    cmd = "echo -n 'generated_with_prefix' > $@",
+)
+
+kt_jvm_library(
+    name = "generated_with_prefix",
+    resource_strip_prefix = "gen_prefix_out",
+    resources = [":gen_with_prefix"],
+)
+
+# Case 4: Generated resource WITHOUT resource_strip_prefix (core bug from #1469)
+genrule(
+    name = "gen_no_prefix",
+    outs = ["generated_no_prefix.txt"],
+    cmd = "echo -n 'generated_without_prefix' > $@",
+)
+
+kt_jvm_library(
+    name = "generated_without_prefix",
+    resources = [":gen_no_prefix"],
+)
+
+# Case 5: Generated resource under conventional prefix (src/main/resources/)
+genrule(
+    name = "gen_conventional",
+    outs = ["src/main/resources/conventional.txt"],
+    cmd = "echo -n 'generated_conventional' > $@",
+)
+
+kt_jvm_library(
+    name = "generated_conventional_prefix",
+    resources = [":gen_conventional"],
+)
+
+# --- Integration test: verifies resources are at correct classpath paths ---
+
+kt_jvm_test(
+    name = "resource_test",
+    srcs = ["ResourceTest.kt"],
+    main_class = "ResourceTest",
+    test_class = "ResourceTest",
+    deps = [
+        ":generated_conventional_prefix",
+        ":generated_with_prefix",
+        ":generated_without_prefix",
+        ":source_with_prefix",
+        ":source_without_prefix",
+        "@nested//:printer",
+    ],
 )
