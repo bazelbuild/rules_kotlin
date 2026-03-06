@@ -547,7 +547,7 @@ def _run_kt_builder_action(
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
 
     args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
-    for flag, file in toolchains.kt.builder_toolchain_args:
+    for flag, file in toolchains.kt.builder_args:
         args.add(flag, file)
 
     for f, path in outputs.items():
@@ -643,7 +643,7 @@ def _run_kt_builder_action(
         deps_artifacts,
         plugins.stubs_phase.classpath,
         plugins.compile_phase.classpath,
-        toolchains.kt.builder_toolchain_files,
+        depset(direct = [file for _, file in toolchains.kt.builder_args]),
     ]
     if annotation_processors:
         transitive_inputs.append(transitive_runtime_jars)

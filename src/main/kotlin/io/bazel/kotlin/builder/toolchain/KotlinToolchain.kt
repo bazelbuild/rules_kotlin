@@ -23,6 +23,7 @@ import java.net.URLClassLoader
 
 class KotlinToolchain private constructor(
   private val baseJars: List<File>,
+  private val buildTools: File,
   val kapt3Plugin: CompilerPlugin,
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
@@ -49,7 +50,6 @@ class KotlinToolchain private constructor(
         mutableListOf<File>().apply {
           add(kotlinc)
           add(compiler)
-          add(buildTools)
           // plugins *must* be preloaded. Not doing so causes class conflicts
           // (and a NoClassDef err) in the compiler extension interfaces.
           // This may cause issues in accepting user defined compiler plugins.
@@ -61,6 +61,7 @@ class KotlinToolchain private constructor(
           add(kotlinxSerializationCoreJvm)
           add(kotlinxSerializationJsonJvm)
         },
+        buildTools = buildTools,
         jvmAbiGen =
           CompilerPlugin(
             jvmAbiGenFile.path,
@@ -89,7 +90,15 @@ class KotlinToolchain private constructor(
     classLoader: ClassLoader = ClassLoader.getPlatformClassLoader(),
   ): ClassLoader = URLClassLoader(baseJars.map { it.toURI().toURL() }.toTypedArray(), classLoader)
 
-  val classLoader by lazy { createClassLoader(baseJars) }
+  private val legacyClassLoader by lazy { createClassLoader(baseJars) }
+  private val btapiClassLoader by lazy { createClassLoader(baseJars + buildTools) }
+
+  private fun classLoader(useExperimentalBuildToolsAPI: Boolean): ClassLoader =
+    if (useExperimentalBuildToolsAPI) {
+      btapiClassLoader
+    } else {
+      legacyClassLoader
+    }
 
   data class CompilerPlugin(
     val jarPath: String,
@@ -97,7 +106,7 @@ class KotlinToolchain private constructor(
   )
 
   open class KotlincInvoker internal constructor(
-    toolchain: KotlinToolchain,
+    classLoader: ClassLoader,
     clazz: String,
   ) {
     private val compiler: Any
@@ -105,9 +114,9 @@ class KotlinToolchain private constructor(
     private val getCodeMethod: Method
 
     init {
-      val compilerClass = toolchain.classLoader.loadClass(clazz)
+      val compilerClass = classLoader.loadClass(clazz)
       val exitCodeClass =
-        toolchain.classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
+        classLoader.loadClass("org.jetbrains.kotlin.cli.common.ExitCode")
 
       compiler = compilerClass.getConstructor().newInstance()
       execMethod =
@@ -138,7 +147,10 @@ class KotlinToolchain private constructor(
         } else {
           "io.bazel.kotlin.compiler.BazelK2JVMCompiler"
         }
-      return KotlincInvoker(toolchain = toolchain, clazz = clazz)
+      return KotlincInvoker(
+        classLoader = toolchain.classLoader(useExperimentalBuildToolsAPI),
+        clazz = clazz,
+      )
     }
   }
 }
