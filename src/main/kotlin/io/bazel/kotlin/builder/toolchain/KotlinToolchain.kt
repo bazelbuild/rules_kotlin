@@ -17,17 +17,11 @@
 package io.bazel.kotlin.builder.toolchain
 
 import io.bazel.kotlin.builder.utils.BazelRunFiles
-import io.bazel.kotlin.builder.utils.resolveVerified
 import io.bazel.kotlin.builder.utils.verified
-import io.bazel.kotlin.builder.utils.verifiedPath
-import org.jetbrains.kotlin.preloading.ClassPreloadingUtils
-import org.jetbrains.kotlin.preloading.Preloader
 import java.io.File
 import java.io.PrintStream
 import java.lang.reflect.Method
-import java.nio.file.FileSystems
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.net.URLClassLoader
 
 class KotlinToolchain private constructor(
   private val baseJars: List<File>,
@@ -107,18 +101,7 @@ class KotlinToolchain private constructor(
         ).toPath()
     }
 
-    private val JAVA_HOME by lazy {
-      FileSystems
-        .getDefault()
-        .getPath(System.getProperty("java.home"))
-        .let { path ->
-          path.takeIf { !it.endsWith(Paths.get("jre")) } ?: path.parent
-        }.verifiedPath()
-    }
-
     internal val NO_ARGS = arrayOf<Any>()
-
-    private val isJdk9OrNewer = !System.getProperty("java.version").startsWith("1.")
 
     @JvmStatic
     fun createToolchain(): KotlinToolchain =
@@ -153,9 +136,6 @@ class KotlinToolchain private constructor(
           kotlinc,
           compiler,
           buildTools,
-          // plugins *must* be preloaded. Not doing so causes class conflicts
-          // (and a NoClassDef err) in the compiler extension interfaces.
-          // This may cause issues in accepting user defined compiler plugins.
           jvmAbiGenFile,
           skipCodeGenFile,
           jdepsGenFile,
@@ -186,31 +166,10 @@ class KotlinToolchain private constructor(
       )
   }
 
-  private fun createClassLoader(
-    javaHome: Path,
-    baseJars: List<File>,
-    classLoader: ClassLoader = ClassLoader.getSystemClassLoader(),
-  ): ClassLoader =
-    runCatching {
-      ClassPreloadingUtils.preloadClasses(
-        mutableListOf<File>().also {
-          it += baseJars
-          if (!isJdk9OrNewer) {
-            it += javaHome.resolveVerified("lib", "tools.jar")
-          }
-        },
-        Preloader.DEFAULT_CLASS_NUMBER_ESTIMATE,
-        classLoader,
-        null,
-      )
-    }.onFailure {
-      throw RuntimeException("$javaHome, $baseJars", it)
-    }.getOrThrow()
-
   val classLoader by lazy {
-    createClassLoader(
-      JAVA_HOME,
-      baseJars,
+    URLClassLoader(
+      baseJars.map { it.toURI().toURL() }.toTypedArray(),
+      ClassLoader.getPlatformClassLoader(),
     )
   }
 

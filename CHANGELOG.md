@@ -1,7 +1,8 @@
 # Announcements and Notable Changes
 
-|  Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News  | 
-| :----------- | -------- |
+| Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | News                    |
+|:-----------------------------------------------------------------------------------------------------------------|-------------------------|
+| Mar 6, 2026 | Drop support for Java 8 |
 | May 26, 2022  | Released version [v1.6.0-RC-2](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.6.0-RC-2). |
 | April 27, 2022  | Released version [1.6.0-RC1](https://github.com/bazelbuild/rules_kotlin/releases/tag/1.6.0-RC-1). |
 | Feb 2, 2022  | Released version [1.5.0](https://github.com/bazelbuild/rules_kotlin/releases/tag/v1.5.0). |
