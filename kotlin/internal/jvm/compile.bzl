@@ -641,6 +641,7 @@ def _run_kt_builder_action(
         deps_artifacts,
         plugins.stubs_phase.classpath,
         plugins.compile_phase.classpath,
+        toolchains.kt.builder_property_files,
     ]
     if annotation_processors:
         transitive_inputs.append(transitive_runtime_jars)

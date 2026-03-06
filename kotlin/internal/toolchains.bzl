@@ -74,9 +74,9 @@ _INTERNAL_TOOLCHAIN_DEFAULTS = {
     "internal_kapt": Label("//kotlin/compiler:kotlin-annotation-processing"),
     "internal_kotlin_reflect": Label("//kotlin/compiler:kotlin-reflect"),
     "internal_kotlin_stdlib": Label("//kotlin/compiler:kotlin-stdlib"),
+    "internal_kotlinc": Label("//kotlin/compiler:kotlin-compiler"),
     "internal_kotlinx_serialization_core_jvm": Label("//kotlin/compiler:kotlinx-serialization-core-jvm"),
     "internal_kotlinx_serialization_json_jvm": Label("//kotlin/compiler:kotlinx-serialization-json-jvm"),
-    "internal_kotlinc": Label("//kotlin/compiler:kotlin-compiler"),
     "internal_skip_code_gen": Label("//src/main/kotlin:skip-code-gen"),
 }
 
@@ -96,6 +96,14 @@ def _kotlin_toolchain_impl(ctx):
     if not build_tools_info.runtime_output_jars:
         fail("build_tools_impl must expose at least one runtime jar")
     build_tools_impl_jar = build_tools_info.runtime_output_jars[0]
+    builder_property_files = depset(
+        direct = [
+            getattr(ctx.file, attr_name)
+            for (attr_name, _) in _INTERNAL_TOOLCHAIN_PROPERTY_ARGS
+        ] + [
+            build_tools_impl_jar,
+        ],
+    )
     builder_args = [
         _as_toolchain_property_arg(property_key, getattr(ctx.file, attr_name))
         for (attr_name, property_key) in _INTERNAL_TOOLCHAIN_PROPERTY_ARGS
@@ -110,6 +118,7 @@ def _kotlin_toolchain_impl(ctx):
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
         builder_args = builder_args,
+        builder_property_files = builder_property_files,
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
