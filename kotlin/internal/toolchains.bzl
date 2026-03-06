@@ -48,23 +48,20 @@ register_toolchains("//:custom_toolchain")
 ```
 """
 
-def _as_toolchain_property_arg(key, file):
-    return "--jvm_flag=-D%s=%s" % (key, file.path)
-
-_INTERNAL_TOOLCHAIN_PROPERTY_ARGS = [
-    ("internal_jvm_abi_gen", "@rules_kotlin..kotlin.compiler.jvm-abi-gen"),
-    ("internal_kapt", "@rules_kotlin..kotlin.compiler.kotlin-annotation-processing"),
-    ("internal_compiler", "@rules_kotlin..src.main.kotlin.compiler"),
-    ("internal_skip_code_gen", "@rules_kotlin..src.main.kotlin.skip-code-gen"),
-    ("internal_jdeps_gen", "@rules_kotlin..src.main.kotlin.jdeps-gen"),
-    ("internal_kotlinc", "@rules_kotlin..kotlin.compiler.kotlin-compiler"),
-    ("internal_kotlin_reflect", "@rules_kotlin..kotlin.compiler.kotlin-reflect"),
-    ("internal_kotlin_stdlib", "@rules_kotlin..kotlin.compiler.kotlin-stdlib"),
-    ("internal_kotlinx_serialization_core_jvm", "@rules_kotlin..kotlin.compiler.kotlinx-serialization-core-jvm"),
-    ("internal_kotlinx_serialization_json_jvm", "@rules_kotlin..kotlin.compiler.kotlinx-serialization-json-jvm"),
+_INTERNAL_TOOLCHAIN_ARGS = [
+    ("--internal_jvm_abi_gen", "internal_jvm_abi_gen"),
+    ("--internal_kapt", "internal_kapt"),
+    ("--internal_compiler", "internal_compiler"),
+    ("--internal_skip_code_gen", "internal_skip_code_gen"),
+    ("--internal_jdeps_gen", "internal_jdeps_gen"),
+    ("--internal_kotlinc", "internal_kotlinc"),
+    ("--internal_kotlin_reflect", "internal_kotlin_reflect"),
+    ("--internal_kotlin_stdlib", "internal_kotlin_stdlib"),
+    ("--internal_kotlinx_serialization_core_jvm", "internal_kotlinx_serialization_core_jvm"),
+    ("--internal_kotlinx_serialization_json_jvm", "internal_kotlinx_serialization_json_jvm"),
 ]
 
-_BUILD_TOOLS_IMPL_PROPERTY_ARG = "@rules_kotlin..kotlin.compiler.kotlin-build-tools-impl"
+_BUILD_TOOLS_IMPL_ARG = "--build_tools_impl"
 
 _INTERNAL_TOOLCHAIN_DEFAULTS = {
     "build_tools_impl": Label("//kotlin/compiler:kotlin-build-tools-impl"),
@@ -96,20 +93,15 @@ def _kotlin_toolchain_impl(ctx):
     if not build_tools_info.runtime_output_jars:
         fail("build_tools_impl must expose at least one runtime jar")
     build_tools_impl_jar = build_tools_info.runtime_output_jars[0]
-    builder_property_files = depset(
-        direct = [
-            getattr(ctx.file, attr_name)
-            for (attr_name, _) in _INTERNAL_TOOLCHAIN_PROPERTY_ARGS
-        ] + [
-            build_tools_impl_jar,
-        ],
-    )
-    builder_args = [
-        _as_toolchain_property_arg(property_key, getattr(ctx.file, attr_name))
-        for (attr_name, property_key) in _INTERNAL_TOOLCHAIN_PROPERTY_ARGS
+    builder_toolchain_args = [
+        (flag, getattr(ctx.file, attr_name))
+        for (flag, attr_name) in _INTERNAL_TOOLCHAIN_ARGS
     ] + [
-        _as_toolchain_property_arg(_BUILD_TOOLS_IMPL_PROPERTY_ARG, build_tools_impl_jar),
+        (_BUILD_TOOLS_IMPL_ARG, build_tools_impl_jar),
     ]
+    builder_toolchain_files = depset(
+        direct = [file for _, file in builder_toolchain_args],
+    )
 
     toolchain = dict(
         language_version = ctx.attr.language_version,
@@ -117,8 +109,8 @@ def _kotlin_toolchain_impl(ctx):
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
-        builder_args = builder_args,
-        builder_property_files = builder_property_files,
+        builder_toolchain_args = builder_toolchain_args,
+        builder_toolchain_files = builder_toolchain_files,
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,

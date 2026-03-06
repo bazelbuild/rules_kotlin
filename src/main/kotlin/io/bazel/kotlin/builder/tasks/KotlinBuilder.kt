@@ -16,29 +16,33 @@
  */
 package io.bazel.kotlin.builder.tasks
 
+import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
 import io.bazel.kotlin.builder.utils.partitionJvmSources
 import io.bazel.kotlin.builder.utils.resolveNewDirectories
+import io.bazel.kotlin.builder.utils.verified
 import io.bazel.kotlin.model.CompilationTaskInfo
 import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.kotlin.model.Platform
 import io.bazel.kotlin.model.RuleKind
 import io.bazel.worker.WorkerContext
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 
 @Suppress("MemberVisibilityCanBePrivate")
-class KotlinBuilder(
-  private val jvmTaskExecutor: KotlinJvmTaskExecutor,
-) {
+class KotlinBuilder {
   companion object {
     @JvmStatic
     private val FLAGFILE_RE = Pattern.compile("""^--flagfile=((.*)-(\d+).params)$""").toRegex()
@@ -83,8 +87,35 @@ class KotlinBuilder(
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
       BUILD_TOOLS_API("--build_tools_api"),
+      BUILD_TOOLS_IMPL("--build_tools_impl"),
+      INTERNAL_COMPILER("--internal_compiler"),
+      INTERNAL_JDEPS_GEN("--internal_jdeps_gen"),
+      INTERNAL_JVM_ABI_GEN("--internal_jvm_abi_gen"),
+      INTERNAL_KAPT("--internal_kapt"),
+      INTERNAL_KOTLIN_REFLECT("--internal_kotlin_reflect"),
+      INTERNAL_KOTLIN_STDLIB("--internal_kotlin_stdlib"),
+      INTERNAL_KOTLINC("--internal_kotlinc"),
+      INTERNAL_KOTLINX_SERIALIZATION_CORE_JVM("--internal_kotlinx_serialization_core_jvm"),
+      INTERNAL_KOTLINX_SERIALIZATION_JSON_JVM("--internal_kotlinx_serialization_json_jvm"),
+      INTERNAL_SKIP_CODE_GEN("--internal_skip_code_gen"),
     }
   }
+
+  private data class ToolchainFiles(
+    val kotlinc: File,
+    val buildTools: File,
+    val compiler: File,
+    val jvmAbiGen: File,
+    val skipCodeGen: File,
+    val jdepsGen: File,
+    val kapt: File,
+    val kotlinStdlib: File,
+    val kotlinReflect: File,
+    val kotlinxSerializationCoreJvm: File,
+    val kotlinxSerializationJsonJvm: File,
+  )
+
+  private val jvmTaskExecutors = ConcurrentHashMap<ToolchainFiles, KotlinJvmTaskExecutor>()
 
   fun build(
     taskContext: WorkerContext.TaskContext,
@@ -178,11 +209,69 @@ class KotlinBuilder(
     argMap: ArgMap,
   ) {
     val task = buildJvmTask(context.info, workingDir, argMap)
+    val jvmTaskExecutor =
+      jvmTaskExecutors.computeIfAbsent(
+        toolchainFiles(argMap),
+        ::createJvmTaskExecutor,
+      )
     context.whenTracing {
       printProto("jvm task message:", task)
     }
     jvmTaskExecutor.execute(context, task)
   }
+
+  private fun toolchainFiles(argMap: ArgMap): ToolchainFiles =
+    ToolchainFiles(
+      kotlinc = toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_KOTLINC),
+      buildTools = toolchainFile(argMap, KotlinBuilderFlags.BUILD_TOOLS_IMPL),
+      compiler = toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_COMPILER),
+      jvmAbiGen = toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN),
+      skipCodeGen = toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN),
+      jdepsGen = toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_JDEPS_GEN),
+      kapt = toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_KAPT),
+      kotlinStdlib = toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_KOTLIN_STDLIB),
+      kotlinReflect = toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_KOTLIN_REFLECT),
+      kotlinxSerializationCoreJvm =
+        toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_KOTLINX_SERIALIZATION_CORE_JVM),
+      kotlinxSerializationJsonJvm =
+        toolchainFile(argMap, KotlinBuilderFlags.INTERNAL_KOTLINX_SERIALIZATION_JSON_JVM),
+    )
+
+  private fun createJvmTaskExecutor(toolchainFiles: ToolchainFiles): KotlinJvmTaskExecutor {
+    val toolchain =
+      KotlinToolchain.createToolchain(
+        kotlinc = toolchainFiles.kotlinc,
+        buildTools = toolchainFiles.buildTools,
+        compiler = toolchainFiles.compiler,
+        jvmAbiGenFile = toolchainFiles.jvmAbiGen,
+        skipCodeGenFile = toolchainFiles.skipCodeGen,
+        jdepsGenFile = toolchainFiles.jdepsGen,
+        kaptFile = toolchainFiles.kapt,
+        kotlinStdlib = toolchainFiles.kotlinStdlib,
+        kotlinReflect = toolchainFiles.kotlinReflect,
+        kotlinxSerializationCoreJvm = toolchainFiles.kotlinxSerializationCoreJvm,
+        kotlinxSerializationJsonJvm = toolchainFiles.kotlinxSerializationJsonJvm,
+      )
+    return KotlinJvmTaskExecutor(
+      KotlinToolchain.KotlincInvokerBuilder(toolchain),
+      InternalCompilerPlugins(
+        toolchain.jvmAbiGen,
+        toolchain.skipCodeGen,
+        toolchain.kapt3Plugin,
+        toolchain.jdepsGen,
+      ),
+    )
+  }
+
+  private fun toolchainFile(
+    argMap: ArgMap,
+    flag: KotlinBuilderFlags,
+  ): File =
+    Paths
+      .get(argMap.mandatorySingle(flag))
+      .toAbsolutePath()
+      .verified()
+      .absoluteFile
 
   private fun buildJvmTask(
     info: CompilationTaskInfo,

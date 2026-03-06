@@ -547,6 +547,8 @@ def _run_kt_builder_action(
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
 
     args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
+    for flag, file in toolchains.kt.builder_toolchain_args:
+        args.add(flag, file)
 
     for f, path in outputs.items():
         args.add("--" + f, path)
@@ -641,7 +643,7 @@ def _run_kt_builder_action(
         deps_artifacts,
         plugins.stubs_phase.classpath,
         plugins.compile_phase.classpath,
-        toolchains.kt.builder_property_files,
+        toolchains.kt.builder_toolchain_files,
     ]
     if annotation_processors:
         transitive_inputs.append(transitive_runtime_jars)
@@ -661,7 +663,7 @@ def _run_kt_builder_action(
             toolchains.kt.execution_requirements,
             {"worker-key-mnemonic": mnemonic},
         ),
-        arguments = [ctx.actions.args().add_all(toolchains.kt.builder_args), args],
+        arguments = [args],
         progress_message = progress_message,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
