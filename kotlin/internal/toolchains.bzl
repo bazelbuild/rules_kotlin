@@ -51,6 +51,35 @@ register_toolchains("//:custom_toolchain")
 def _as_toolchain_property_arg(key, file):
     return "--jvm_flag=-D%s=%s" % (key, file.path)
 
+_INTERNAL_TOOLCHAIN_PROPERTY_ARGS = [
+    ("internal_jvm_abi_gen", "@rules_kotlin..kotlin.compiler.jvm-abi-gen"),
+    ("internal_kapt", "@rules_kotlin..kotlin.compiler.kotlin-annotation-processing"),
+    ("internal_compiler", "@rules_kotlin..src.main.kotlin.compiler"),
+    ("internal_skip_code_gen", "@rules_kotlin..src.main.kotlin.skip-code-gen"),
+    ("internal_jdeps_gen", "@rules_kotlin..src.main.kotlin.jdeps-gen"),
+    ("internal_kotlinc", "@rules_kotlin..kotlin.compiler.kotlin-compiler"),
+    ("internal_kotlin_reflect", "@rules_kotlin..kotlin.compiler.kotlin-reflect"),
+    ("internal_kotlin_stdlib", "@rules_kotlin..kotlin.compiler.kotlin-stdlib"),
+    ("internal_kotlinx_serialization_core_jvm", "@rules_kotlin..kotlin.compiler.kotlinx-serialization-core-jvm"),
+    ("internal_kotlinx_serialization_json_jvm", "@rules_kotlin..kotlin.compiler.kotlinx-serialization-json-jvm"),
+]
+
+_BUILD_TOOLS_IMPL_PROPERTY_ARG = "@rules_kotlin..kotlin.compiler.kotlin-build-tools-impl"
+
+_INTERNAL_TOOLCHAIN_DEFAULTS = {
+    "build_tools_impl": Label("//kotlin/compiler:kotlin-build-tools-impl"),
+    "internal_compiler": Label("//src/main/kotlin:compiler"),
+    "internal_jdeps_gen": Label("//src/main/kotlin:jdeps-gen"),
+    "internal_jvm_abi_gen": Label("//kotlin/compiler:jvm-abi-gen"),
+    "internal_kapt": Label("//kotlin/compiler:kotlin-annotation-processing"),
+    "internal_kotlin_reflect": Label("//kotlin/compiler:kotlin-reflect"),
+    "internal_kotlin_stdlib": Label("//kotlin/compiler:kotlin-stdlib"),
+    "internal_kotlinx_serialization_core_jvm": Label("//kotlin/compiler:kotlinx-serialization-core-jvm"),
+    "internal_kotlinx_serialization_json_jvm": Label("//kotlin/compiler:kotlinx-serialization-json-jvm"),
+    "internal_kotlinc": Label("//kotlin/compiler:kotlin-compiler"),
+    "internal_skip_code_gen": Label("//src/main/kotlin:skip-code-gen"),
+}
+
 def _kotlin_toolchain_impl(ctx):
     compile_time_providers = []
     for target in ctx.attr.jvm_stdlibs:
@@ -67,18 +96,12 @@ def _kotlin_toolchain_impl(ctx):
     if not build_tools_info.runtime_output_jars:
         fail("build_tools_impl must expose at least one runtime jar")
     build_tools_impl_jar = build_tools_info.runtime_output_jars[0]
-    build_tools_full_compile_classpath = getattr(
-        build_tools_info,
-        "_transitive_full_compile_time_jars",
-        depset(),
-    )
-    build_tools_runtime_classpath = depset(
-        direct = build_tools_info.runtime_output_jars,
-        transitive = [
-            build_tools_info.transitive_runtime_jars,
-            build_tools_full_compile_classpath,
-        ],
-    )
+    builder_args = [
+        _as_toolchain_property_arg(property_key, getattr(ctx.file, attr_name))
+        for (attr_name, property_key) in _INTERNAL_TOOLCHAIN_PROPERTY_ARGS
+    ] + [
+        _as_toolchain_property_arg(_BUILD_TOOLS_IMPL_PROPERTY_ARG, build_tools_impl_jar),
+    ]
 
     toolchain = dict(
         language_version = ctx.attr.language_version,
@@ -86,27 +109,10 @@ def _kotlin_toolchain_impl(ctx):
         debug = ctx.attr.debug,
         jvm_target = ctx.attr.jvm_target,
         kotlinbuilder = ctx.attr.kotlinbuilder,
-        builder_args = [
-            _as_toolchain_property_arg("@rules_kotlin..kotlin.compiler.jvm-abi-gen", ctx.file.internal_jvm_abi_gen),
-            _as_toolchain_property_arg("@rules_kotlin..kotlin.compiler.kotlin-annotation-processing", ctx.file.internal_kapt),
-            _as_toolchain_property_arg("@rules_kotlin..src.main.kotlin.compiler", ctx.file.internal_compiler),
-            _as_toolchain_property_arg("@rules_kotlin..src.main.kotlin.skip-code-gen", ctx.file.internal_skip_code_gen),
-            _as_toolchain_property_arg("@rules_kotlin..src.main.kotlin.jdeps-gen", ctx.file.internal_jdeps_gen),
-            _as_toolchain_property_arg("@rules_kotlin..kotlin.compiler.kotlin-compiler", ctx.file.internal_kotlinc),
-            _as_toolchain_property_arg("@rules_kotlin..kotlin.compiler.kotlin-reflect", ctx.file.internal_kotlin_reflect),
-            _as_toolchain_property_arg("@rules_kotlin..kotlin.compiler.kotlin-stdlib", ctx.file.internal_kotlin_stdlib),
-            _as_toolchain_property_arg("@rules_kotlin..kotlin.compiler.kotlinx-serialization-core-jvm", ctx.file.internal_kotlinx_serialization_core_jvm),
-            _as_toolchain_property_arg("@rules_kotlin..kotlin.compiler.kotlinx-serialization-json-jvm", ctx.file.internal_kotlinx_serialization_json_jvm),
-            _as_toolchain_property_arg("@rules_kotlin..kotlin.compiler.kotlin-build-tools-impl", build_tools_impl_jar),
-        ],
+        builder_args = builder_args,
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
-        btapi_runtime_classpath = build_tools_runtime_classpath,
-        internal_jvm_abi_gen = ctx.file.internal_jvm_abi_gen,
-        internal_skip_code_gen = ctx.file.internal_skip_code_gen,
-        internal_kapt = ctx.file.internal_kapt,
-        internal_jdeps_gen = ctx.file.internal_jdeps_gen,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
@@ -161,7 +167,7 @@ _kt_toolchain = rule(
             doc = "Build tools runtime implementation artifact.",
             providers = [JavaInfo],
             cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-build-tools-impl"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["build_tools_impl"],
         ),
         "debug": attr.string_list(
             doc = """Debugging tags passed to the builder. Two tags are supported. `timings` will cause the builder to
@@ -234,61 +240,61 @@ _kt_toolchain = rule(
             doc = "Internal Kotlin builder compiler entrypoint.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//src/main/kotlin:compiler"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_compiler"],
         ),
         "internal_jdeps_gen": attr.label(
             doc = "Internal Kotlin builder plugin: jdeps-gen.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//src/main/kotlin:jdeps-gen"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_jdeps_gen"],
         ),
         "internal_jvm_abi_gen": attr.label(
             doc = "Internal Kotlin builder plugin: jvm-abi-gen.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//kotlin/compiler:jvm-abi-gen"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_jvm_abi_gen"],
         ),
         "internal_kapt": attr.label(
             doc = "Internal Kotlin builder plugin: kotlin-annotation-processing.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-annotation-processing"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kapt"],
         ),
         "internal_kotlin_reflect": attr.label(
             doc = "Internal Kotlin reflect jar.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-reflect"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlin_reflect"],
         ),
         "internal_kotlin_stdlib": attr.label(
             doc = "Internal Kotlin stdlib jar.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-stdlib"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlin_stdlib"],
         ),
         "internal_kotlinc": attr.label(
             doc = "Internal Kotlin compiler jar.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-compiler"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlinc"],
         ),
         "internal_kotlinx_serialization_core_jvm": attr.label(
             doc = "Internal Kotlin serialization core runtime jar.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//kotlin/compiler:kotlinx-serialization-core-jvm"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlinx_serialization_core_jvm"],
         ),
         "internal_kotlinx_serialization_json_jvm": attr.label(
             doc = "Internal Kotlin serialization json runtime jar.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//kotlin/compiler:kotlinx-serialization-json-jvm"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlinx_serialization_json_jvm"],
         ),
         "internal_skip_code_gen": attr.label(
             doc = "Internal Kotlin builder plugin: skip-code-gen.",
             allow_single_file = True,
             cfg = "exec",
-            default = Label("//src/main/kotlin:skip-code-gen"),
+            default = _INTERNAL_TOOLCHAIN_DEFAULTS["internal_skip_code_gen"],
         ),
         "jacocorunner": attr.label(
             default = Label("@remote_java_tools//:jacoco_coverage_runner"),
@@ -487,17 +493,17 @@ def define_kt_toolchain(
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
         experimental_build_tools_api = experimental_build_tools_api,
-        build_tools_impl = build_tools_impl if build_tools_impl != None else Label("//kotlin/compiler:kotlin-build-tools-impl"),
-        internal_compiler = internal_compiler if internal_compiler != None else Label("//src/main/kotlin:compiler"),
-        internal_kotlinc = internal_kotlinc if internal_kotlinc != None else Label("//kotlin/compiler:kotlin-compiler"),
-        internal_kotlin_reflect = internal_kotlin_reflect if internal_kotlin_reflect != None else Label("//kotlin/compiler:kotlin-reflect"),
-        internal_kotlin_stdlib = internal_kotlin_stdlib if internal_kotlin_stdlib != None else Label("//kotlin/compiler:kotlin-stdlib"),
-        internal_kotlinx_serialization_core_jvm = internal_kotlinx_serialization_core_jvm if internal_kotlinx_serialization_core_jvm != None else Label("//kotlin/compiler:kotlinx-serialization-core-jvm"),
-        internal_kotlinx_serialization_json_jvm = internal_kotlinx_serialization_json_jvm if internal_kotlinx_serialization_json_jvm != None else Label("//kotlin/compiler:kotlinx-serialization-json-jvm"),
-        internal_jvm_abi_gen = internal_jvm_abi_gen if internal_jvm_abi_gen != None else Label("//kotlin/compiler:jvm-abi-gen"),
-        internal_skip_code_gen = internal_skip_code_gen if internal_skip_code_gen != None else Label("//src/main/kotlin:skip-code-gen"),
-        internal_jdeps_gen = internal_jdeps_gen if internal_jdeps_gen != None else Label("//src/main/kotlin:jdeps-gen"),
-        internal_kapt = internal_kapt if internal_kapt != None else Label("//kotlin/compiler:kotlin-annotation-processing"),
+        build_tools_impl = build_tools_impl if build_tools_impl != None else _INTERNAL_TOOLCHAIN_DEFAULTS["build_tools_impl"],
+        internal_compiler = internal_compiler if internal_compiler != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_compiler"],
+        internal_kotlinc = internal_kotlinc if internal_kotlinc != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlinc"],
+        internal_kotlin_reflect = internal_kotlin_reflect if internal_kotlin_reflect != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlin_reflect"],
+        internal_kotlin_stdlib = internal_kotlin_stdlib if internal_kotlin_stdlib != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlin_stdlib"],
+        internal_kotlinx_serialization_core_jvm = internal_kotlinx_serialization_core_jvm if internal_kotlinx_serialization_core_jvm != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlinx_serialization_core_jvm"],
+        internal_kotlinx_serialization_json_jvm = internal_kotlinx_serialization_json_jvm if internal_kotlinx_serialization_json_jvm != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kotlinx_serialization_json_jvm"],
+        internal_jvm_abi_gen = internal_jvm_abi_gen if internal_jvm_abi_gen != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_jvm_abi_gen"],
+        internal_skip_code_gen = internal_skip_code_gen if internal_skip_code_gen != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_skip_code_gen"],
+        internal_jdeps_gen = internal_jdeps_gen if internal_jdeps_gen != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_jdeps_gen"],
+        internal_kapt = internal_kapt if internal_kapt != None else _INTERNAL_TOOLCHAIN_DEFAULTS["internal_kapt"],
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],

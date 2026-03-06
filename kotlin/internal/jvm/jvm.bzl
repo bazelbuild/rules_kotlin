@@ -241,7 +241,6 @@ _common_attr = utils.add_dicts(
                 [KtPluginConfiguration],
                 [_KspPluginInfo],
                 [_KtCompilerPluginInfo],
-                [_KtCompilerPluginInfo],
             ],
         ),
         "resource_jars": attr.label_list(
@@ -679,7 +678,7 @@ kt_jvm_library(
 kt_plugin_cfg = rule(
     implementation = kt_plugin_cfg_impl,
     doc = """
-    Configurations for kt_compiler_plugin, ksp_plugin, and java_plugin.
+    Configurations for kt_compiler_plugin.
 
     This allows setting options and dependencies independently from the initial plugin definition.
     """,
