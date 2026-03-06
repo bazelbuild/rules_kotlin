@@ -164,6 +164,16 @@ def _adjust_resources_path(path, resource_strip_prefix):
     else:
         return _adjust_resources_path_by_default_prefixes(path)
 
+def _resource_path_relative_to_root(resource):
+    if not resource.root.path:
+        return resource.path
+
+    root_prefix = resource.root.path + "/"
+    if resource.path.startswith(root_prefix):
+        return resource.path[len(root_prefix):]
+
+    return resource.path
+
 def _format_compile_plugin_options(o):
     """Format compiler option into id:value for cmd line."""
     return [
@@ -298,7 +308,8 @@ def _resourcejar_args_action(ctx, extra_resources = {}):
             strip_prefix = ctx.files.resources[0].root.path + "/" + strip_prefix
 
     for f in ctx.files.resources:
-        target_path = _adjust_resources_path(f.path, strip_prefix)
+        resource_path = f.path if strip_prefix else _resource_path_relative_to_root(f)
+        target_path = _adjust_resources_path(resource_path, strip_prefix)
         if target_path[0] == "/":
             target_path = target_path[1:]
         line = "{target_path}={f_path}\n".format(
