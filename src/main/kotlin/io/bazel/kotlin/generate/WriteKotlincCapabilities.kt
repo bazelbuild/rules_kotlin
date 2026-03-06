@@ -105,7 +105,7 @@ object WriteKotlincCapabilities {
 
   val capabilitiesName: String by lazy {
     LanguageVersion.LATEST_STABLE.run {
-      "capabilities_${major}.${minor}.bzl.com_github_jetbrains_kotlin.bazel"
+      "capabilities_${major}.${minor}.bzl"
     }
   }
 
