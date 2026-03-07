@@ -202,6 +202,67 @@ class JdepsMergerTest {
   }
 
   @Test
+  fun `unused deps report warning unless ignored`() {
+    val merger = DaggerJdepsMergerTestComponent.builder().build().jdepsMerger()
+
+    val unusedKotlinDep1 = ktJvmLibrary("kotlin_dep1")
+    val unusedKotlinDep2 = ktJvmLibrary("kotlin_dep2")
+    val kotlinJdeps = jdeps("kt.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = unusedKotlinDep1
+          build()
+        },
+      )
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.UNUSED
+          path = unusedKotlinDep2
+          build()
+        },
+      )
+    }
+
+    val javaJdeps = jdeps("java.jdeps") {
+      addDependency(
+        with(Dependency.newBuilder()) {
+          kind = Dependency.Kind.EXPLICIT
+          path = ktJvmLibrary("java_dep")
+          build()
+        },
+      )
+    }
+
+    val mergedJdeps = out("merged.jdeps")
+
+    val result = WorkerContext.run {
+      doTask("jdepsmerge") { taskCtx ->
+        MergeJdeps(merger = merger).invoke(
+          taskCtx,
+          args {
+            input(kotlinJdeps)
+            input(javaJdeps)
+            flag(JdepsMergerFlags.TARGET_LABEL, "//foo/bar:baz")
+            flag(JdepsMergerFlags.OUTPUT, mergedJdeps)
+            flag(JdepsMergerFlags.REPORT_UNUSED_DEPS, "warn")
+            flag(JdepsMergerFlags.UNUSED_DEPS_IGNORED_TARGETS, "kotlin_dep2")
+          },
+        )
+      }
+    }
+    assertThat(result.status).isEqualTo(SUCCESS)
+    assertThat(result.log.out.toString()).contains("'remove deps kotlin_dep1' //foo/bar:baz")
+
+    val depsProto = depsProto(mergedJdeps)
+    assertThat(
+      depsProto.dependencyList
+        .filter { it.kind == Dependency.Kind.UNUSED }
+        .map { it.path },
+    ).containsExactly(unusedKotlinDep1, unusedKotlinDep2)
+  }
+
+  @Test
   fun `unused deps report error`() {
 
     val unusedKotlinDep = ktJvmLibrary("kotlin_dep")
