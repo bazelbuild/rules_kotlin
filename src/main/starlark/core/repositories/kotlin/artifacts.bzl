@@ -45,7 +45,6 @@ KOTLINC_ARTIFACTS = struct(
     core = struct(
         plugin = {},
         runtime = {
-            "kotlin-preloader": "lib/kotlin-preloader.jar",
             "kotlin-reflect": "lib/kotlin-reflect.jar",
             "kotlin-reflect-sources": "lib/kotlin-reflect-sources.jar",
             "kotlin-script-runtime": "lib/kotlin-script-runtime.jar",
