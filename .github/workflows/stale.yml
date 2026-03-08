@@ -10,17 +10,14 @@ on:
 jobs:
   stale:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      issues: write
+      pull-requests: write
 
     steps:
       - uses: actions/stale@v10
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-          permissions:
-            actions: write
-            issues: write
-            pull-requests: write
-
           # The number of days old an issue can be before marking it stale.
           days-before-stale: 180
           # Number of days of inactivity before a stale issue is closed
