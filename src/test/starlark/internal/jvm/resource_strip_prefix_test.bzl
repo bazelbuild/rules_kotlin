@@ -2,7 +2,7 @@ load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
 
-def _strip_resource_prefix_test_impl(ctx):
+def _resource_path_test_impl(ctx):
     env = analysistest.begin(ctx)
 
     actions = analysistest.target_actions(env)
@@ -17,8 +17,6 @@ def _strip_resource_prefix_test_impl(ctx):
 
     arguments = file_write_actions[0].content
 
-    pkg = ctx.attr.pkg
-
     # The only line should be of the form:
     # data.txt=<some prefix>/<pkg>/resourcez/data.txt
     lines = arguments.splitlines()
@@ -26,7 +24,7 @@ def _strip_resource_prefix_test_impl(ctx):
     line_parts = lines[0].split("=", 1)
     asserts.equals(env, expected = 2, actual = len(line_parts))
     source_path = line_parts[1]
-    expected_suffix = pkg + "/" + ctx.attr.resource_strip_prefix + "/" + ctx.attr.resource_path
+    expected_suffix = ctx.attr.expected_source_suffix
     asserts.true(
         env,
         source_path.endswith(expected_suffix),
@@ -35,22 +33,27 @@ def _strip_resource_prefix_test_impl(ctx):
 
     destination_path = line_parts[0]
 
-    # The destination path should have the resource_strip_prefix removed
-    asserts.equals(env, expected = ctx.attr.resource_path, actual = destination_path, msg = "resource_strip_prefix was not applied correctly")
+    asserts.equals(
+        env,
+        expected = ctx.attr.expected_destination_path,
+        actual = destination_path,
+        msg = "resource path was not normalized correctly",
+    )
 
     return analysistest.end(env)
 
-strip_resource_prefix_test = analysistest.make(
-    _strip_resource_prefix_test_impl,
+resource_path_test = analysistest.make(
+    _resource_path_test_impl,
     attrs = {
-        "pkg": attr.string(),
-        "resource_path": attr.string(),
-        "resource_strip_prefix": attr.string(),
+        "expected_destination_path": attr.string(),
+        "expected_source_suffix": attr.string(),
     },
 )
 
 # Macro to setup the test.
 def _strip_resource_prefix_contents():
+    pkg = native.package_name()
+
     write_file(
         name = "file",
         out = "resourcez/resource.txt",
@@ -60,6 +63,18 @@ def _strip_resource_prefix_contents():
     write_file(
         name = "source",
         out = "Source.kt",
+        tags = ["manual"],
+    )
+
+    write_file(
+        name = "generated_default_file",
+        out = "generated/resource.txt",
+        tags = ["manual"],
+    )
+
+    write_file(
+        name = "generated_standard_resource",
+        out = "src/main/resources/generated_resource.txt",
         tags = ["manual"],
     )
 
@@ -86,6 +101,20 @@ def _strip_resource_prefix_contents():
         tags = ["manual"],
     )
 
+    kt_jvm_library(
+        name = "generated_default_package",
+        srcs = ["source"],
+        resources = ["generated_default_file"],
+        tags = ["manual"],
+    )
+
+    kt_jvm_library(
+        name = "generated_standard_package",
+        srcs = ["source"],
+        resources = ["generated_standard_resource"],
+        tags = ["manual"],
+    )
+
     package_name = native.package_name().split("/")[-1]
     native.filegroup(
         name = package_name,
@@ -100,40 +129,52 @@ def _strip_resource_prefix_contents():
         tags = ["manual"],
     )
 
-    strip_resource_prefix_test(
+    resource_path_test(
         name = "dynamically_created_file_test",
         target_under_test = ":dynamically_created_file",
         tags = ["manual"],
-        pkg = native.package_name(),
-        resource_strip_prefix = "resourcez",
-        resource_path = "resource.txt",
+        expected_destination_path = "resource.txt",
+        expected_source_suffix = pkg + "/resourcez/resource.txt",
     )
 
-    strip_resource_prefix_test(
+    resource_path_test(
         name = "static_file_test",
         target_under_test = ":static_file",
         tags = ["manual"],
-        pkg = native.package_name(),
-        resource_strip_prefix = "test_resources",
-        resource_path = "resource.txt",
+        expected_destination_path = "resource.txt",
+        expected_source_suffix = pkg + "/test_resources/resource.txt",
     )
 
-    strip_resource_prefix_test(
+    resource_path_test(
         name = "standard_package_test",
         target_under_test = ":standard_package",
         tags = ["manual"],
-        pkg = native.package_name(),
-        resource_strip_prefix = "src/main/resources",
-        resource_path = "resource.txt",
+        expected_destination_path = "resource.txt",
+        expected_source_suffix = pkg + "/src/main/resources/resource.txt",
     )
 
-    strip_resource_prefix_test(
+    resource_path_test(
+        name = "generated_default_package_test",
+        target_under_test = ":generated_default_package",
+        tags = ["manual"],
+        expected_destination_path = pkg + "/generated/resource.txt",
+        expected_source_suffix = pkg + "/generated/resource.txt",
+    )
+
+    resource_path_test(
+        name = "generated_standard_package_test",
+        target_under_test = ":generated_standard_package",
+        tags = ["manual"],
+        expected_destination_path = "generated_resource.txt",
+        expected_source_suffix = pkg + "/src/main/resources/generated_resource.txt",
+    )
+
+    resource_path_test(
         name = "same_as_package_name_test",
         target_under_test = ":same_as_package_name",
         tags = ["manual"],
-        pkg = native.package_name(),
-        resource_strip_prefix = "test_resources",
-        resource_path = "actual_file.txt",
+        expected_destination_path = "actual_file.txt",
+        expected_source_suffix = pkg + "/test_resources/actual_file.txt",
     )
 
 # Entry point from the BUILD file; macro for running each test case's macro and
@@ -146,6 +187,8 @@ def strip_resource_prefix_test_suite(name):
         name = name,
         tests = [
             ":dynamically_created_file_test",
+            ":generated_default_package_test",
+            ":generated_standard_package_test",
             ":static_file_test",
             ":standard_package_test",
             ":same_as_package_name_test",
