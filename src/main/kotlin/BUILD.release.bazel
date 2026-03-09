@@ -46,9 +46,15 @@ java_import(
     jars = ["jdeps-gen.jar"],
 )
 
+java_import(
+    name = "associates-abi-gen",
+    jars = ["associates-abi-gen.jar"],
+)
+
 java_binary(
     name = "build",
     data = [
+        ":associates-abi-gen",
         ":jdeps-gen",
         ":skip-code-gen",
         "//kotlin/compiler:jvm-abi-gen",
@@ -70,6 +76,7 @@ java_binary(
         "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
         "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
         "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
+        "-D@rules_kotlin...associates-abi-gen=$(rlocationpath //src/main/kotlin:associates-abi-gen)",
         "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
         "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
         "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler)",

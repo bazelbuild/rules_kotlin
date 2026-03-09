@@ -767,6 +767,7 @@ def _kt_jvm_produce_output_jar_actions(
     output_jars = outputs_struct.output_jars
     generated_src_jars = outputs_struct.generated_src_jars
     annotation_processing = outputs_struct.annotation_processing
+    associates_abi_jar = outputs_struct.associates_abi_jar
 
     # If this rule has any resources declared setup a zipper action to turn them into a jar.
     if len(ctx.files.resources) + len(extra_resources) > 0:
@@ -849,6 +850,7 @@ def _kt_jvm_produce_output_jar_actions(
             annotation_processing = annotation_processing,
             additional_generated_source_jars = generated_src_jars,
             all_output_jars = output_jars,
+            associates_abi_jar = associates_abi_jar,
         ),
     )
 
@@ -919,6 +921,7 @@ def _run_kt_java_builder_actions(
     java_infos = []
 
     # Build Kotlin
+    kt_associates_abi_jar = None
     if has_kt_sources:
         kt_runtime_jar = ctx.actions.declare_file(ctx.label.name + "-kt.jar")
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_use_abi_jars == True:
@@ -927,6 +930,11 @@ def _run_kt_java_builder_actions(
                 "abi_jar": kt_compile_jar,
                 "output": kt_runtime_jar,
             }
+
+            # Produce associates ABI jar (preserves internal visibility) alongside the regular ABI jar
+            if not "kt_associates_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_generate_associates_abi_jars == True:
+                kt_associates_abi_jar = ctx.actions.declare_file(ctx.label.name + "-kt.associates-abi.jar")
+                outputs["associates_abi_jar"] = kt_associates_abi_jar
         else:
             kt_compile_jar = kt_runtime_jar
             outputs = {
@@ -987,6 +995,7 @@ def _run_kt_java_builder_actions(
         # annotation processors in `deps` also.
         if len(srcs.kt) > 0:
             javac_opts.append("-proc:none")
+
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
@@ -1057,6 +1066,7 @@ def _run_kt_java_builder_actions(
         output_jars = output_jars,
         generated_src_jars = generated_kapt_src_jars + generated_ksp_src_jars,
         annotation_processing = annotation_processing,
+        associates_abi_jar = kt_associates_abi_jar,
     )
 
 def _create_annotation_processing(annotation_processors, ap_class_jar, ap_source_jar):
