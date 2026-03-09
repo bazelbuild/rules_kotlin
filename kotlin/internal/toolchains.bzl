@@ -139,6 +139,14 @@ _kt_toolchain = rule(
             doc = "Enables experimental support for Build Tools API integration",
             default = False,
         ),
+        "experimental_generate_associates_abi_jars": attr.bool(
+            doc = """Generate separate ABI jars for associates that preserve internal visibility.
+            When enabled, associate dependencies use these jars instead of full class jars,
+            improving build cache hit rates while maintaining access to internal symbols.
+            Can be disabled for an individual target using the tag.
+            `kt_associates_abi_plugin_incompatible`""",
+            default = False,
+        ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",
             default = False,
@@ -163,14 +171,6 @@ _kt_toolchain = rule(
               plugin:org.jetbrains.kotlin.jvm.abi:removePrivateClasses=true
             Can be disabled for an individual target using the tag.
             `kt_remove_private_classes_in_abi_plugin_incompatible`""",
-            default = False,
-        ),
-        "experimental_generate_associates_abi_jars": attr.bool(
-            doc = """Generate separate ABI jars for associates that preserve internal visibility.
-            When enabled, associate dependencies use these jars instead of full class jars,
-            improving build cache hit rates while maintaining access to internal symbols.
-            Can be disabled for an individual target using the tag.
-            `kt_associates_abi_plugin_incompatible`""",
             default = False,
         ),
         "experimental_report_unused_deps": attr.string(
