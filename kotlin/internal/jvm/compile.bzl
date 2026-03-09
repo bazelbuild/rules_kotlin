@@ -996,12 +996,18 @@ def _run_kt_java_builder_actions(
         if len(srcs.kt) > 0:
             javac_opts.append("-proc:none")
 
+        # Add associate ABI jars so javac (and annotation processors like Dagger)
+        # can resolve internal types from associated modules.
+        associates_java_infos = [
+            JavaInfo(compile_jar = jar, output_jar = jar, neverlink = True)
+            for jar in compile_deps.associate_jars.to_list()
+        ]
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
             source_jars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars,
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
-            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
+            deps = associates_java_infos + compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
             java_toolchain = toolchains.java,
             plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
             javac_opts = javac_opts,
