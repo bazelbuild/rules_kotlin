@@ -58,22 +58,6 @@ versions = struct(
             "https://github.com/bazelbuild/rules_jvm_external/releases/download/{version}/rules_jvm_external-{version}.tar.gz",
         ],
     ),
-    COM_GOOGLE_PROTOBUF = version(
-        version = "29.0",
-        sha256 = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
-        strip_prefix_template = "protobuf-{version}",
-        url_templates = [
-            "https://github.com/protocolbuffers/protobuf/releases/download/v{version}/protobuf-{version}.tar.gz",
-        ],
-    ),
-    RULES_PROTO = version(
-        version = "7.0.2",
-        sha256 = "0e5c64a2599a6e26c6a03d6162242d231ecc0de219534c38cb4402171def21e8",
-        strip_prefix_template = "rules_proto-{version}",
-        url_templates = [
-            "https://github.com/bazelbuild/rules_proto/releases/download/{version}/rules_proto-{version}.tar.gz",
-        ],
-    ),
     PINTEREST_KTLINT = version(
         version = "1.6.0",
         url_templates = [
@@ -124,14 +108,6 @@ versions = struct(
             "https://github.com/bazelbuild/rules_license/releases/download/{version}/rules_license-{version}.tar.gz",
         ],
         sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
-    ),
-    BAZEL_WORKER_API = version(
-        version = "0.0.8",
-        sha256 = "a58c8c1e53aec7d66498168b0525bfd87add4d3cfd18e3ed03d5bed929dd68fc",
-        strip_prefix_template = "bazel-worker-api-{version}",
-        url_templates = [
-            "https://github.com/bazelbuild/bazel-worker-api/releases/download/v{version}/bazel-worker-api-v{version}.tar.gz",
-        ],
     ),
     KOTLINX_SERIALIZATION_CORE_JVM = version(
         version = "1.8.1",

@@ -25,8 +25,6 @@ load(":versions.bzl", "version", _versions = "versions")
 
 versions = _versions
 
-RULES_KOTLIN = Label("//:all")
-
 # Keep these names in sync with //kotlin/internal:defs.bzl.
 _KT_COMPILER_REPO = "com_github_jetbrains_kotlin"
 _KSP_COMPILER_PLUGIN_REPO = "com_github_google_ksp"
@@ -109,12 +107,6 @@ def kotlin_repositories(
 
     versions.use_repository(
         http_archive,
-        name = "py_absl",
-        version = versions.PY_ABSL,
-    )
-
-    versions.use_repository(
-        http_archive,
         name = "rules_cc",
         version = versions.RULES_CC,
     )
@@ -152,17 +144,6 @@ def kotlin_repositories(
         http_archive,
         name = "bazel_lib",
         version = versions.BAZEL_LIB,
-    )
-
-    versions.use_repository(
-        http_archive,
-        name = "com_google_protobuf",
-        version = versions.COM_GOOGLE_PROTOBUF,
-    )
-    versions.use_repository(
-        http_archive,
-        name = "rules_proto",
-        version = versions.RULES_PROTO,
     )
 
 def kotlinc_version(release, sha256):
