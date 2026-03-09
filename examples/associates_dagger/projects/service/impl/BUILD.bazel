@@ -1,0 +1,11 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "impl",
+    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    associates = ["//projects/service/api"],
+    visibility = ["//projects/service:__subpackages__"],
+    deps = [
+        "@maven_rules_kotlin_example//:javax_inject_javax_inject",
+    ],
+)
