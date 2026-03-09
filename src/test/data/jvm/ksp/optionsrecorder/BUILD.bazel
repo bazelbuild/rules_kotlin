@@ -1,0 +1,49 @@
+load("//kotlin:core.bzl", "kt_ksp_plugin")
+load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+
+package(default_visibility = ["//visibility:private"])
+
+# The processor itself
+kt_jvm_library(
+    name = "options_recorder_processor",
+    srcs = [
+        "OptionsRecorderProcessor.kt",
+        "OptionsRecorderProcessorProvider.kt",
+    ],
+    resource_strip_prefix = "src/test/data/jvm/ksp/optionsrecorder/resources",
+    resources = glob(["resources/META-INF/services/*"]),
+    deps = [
+        "//kotlin/compiler:symbol-processing-api",
+    ],
+)
+
+# KSP plugin with the test options
+kt_ksp_plugin(
+    name = "options_recorder_plugin",
+    options = {
+        "option_a": "value_a",
+        "option_b": "value_b",
+    },
+    processor_class = "com.example.optionsrecorder.OptionsRecorderProcessorProvider",
+    deps = [":options_recorder_processor"],
+)
+
+# Library compiled with the plugin — KSP generates generated.RecordedOptions
+kt_jvm_library(
+    name = "options_recorder_lib",
+    srcs = ["Subject.kt"],
+    plugins = [":options_recorder_plugin"],
+)
+
+# Integration test: verifies the processor actually received the options
+kt_jvm_test(
+    name = "OptionsRecorderTest",
+    srcs = ["OptionsRecorderTest.kt"],
+    test_class = "com.example.optionsrecorder.OptionsRecorderTest",
+    visibility = ["//src/test:__subpackages__"],
+    deps = [
+        ":options_recorder_lib",
+        "@kotlin_rules_maven//:com_google_truth_truth",
+        "@kotlin_rules_maven//:junit_junit",
+    ],
+)
