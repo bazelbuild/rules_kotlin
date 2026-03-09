@@ -60,6 +60,13 @@ def _targets_to_ksp_annotation_processors(targets):
 def _targets_to_annotation_processors_java_plugin_info(targets):
     return [t[JavaPluginInfo] for t in targets if JavaPluginInfo in t]
 
+def _targets_to_ksp_options(targets):
+    options = {}
+    for t in targets:
+        if _KspPluginInfo in t:
+            options.update(t[_KspPluginInfo].options)
+    return options
+
 def _targets_to_transitive_runtime_jars(targets):
     transitive = []
     for t in targets:
@@ -74,6 +81,7 @@ def _targets_to_transitive_runtime_jars(targets):
 mappers = struct(
     targets_to_annotation_processors = _targets_to_annotation_processors,
     targets_to_ksp_annotation_processors = _targets_to_ksp_annotation_processors,
+    targets_to_ksp_options = _targets_to_ksp_options,
     targets_to_annotation_processors_java_plugin_info = _targets_to_annotation_processors_java_plugin_info,
     targets_to_transitive_runtime_jars = _targets_to_transitive_runtime_jars,
     kt_plugin_to_processor = _kt_plugin_to_processor,

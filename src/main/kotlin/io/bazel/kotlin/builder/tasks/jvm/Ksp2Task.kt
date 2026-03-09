@@ -65,7 +65,14 @@ class Ksp2Task : Work {
       API_VERSION("--api_version"),
       JVM_TARGET("--jvm_target"),
       JDK_HOME("--jdk_home"),
+      KSP_OPTIONS("--ksp_options"),
     }
+
+    fun parseKspOptions(entries: List<String>): Map<String, String> =
+      entries.associate { entry ->
+        val eqIdx = entry.indexOf('=')
+        if (eqIdx >= 0) entry.substring(0, eqIdx) to entry.substring(eqIdx + 1) else entry to ""
+      }
   }
 
   override fun invoke(
@@ -172,6 +179,8 @@ class Ksp2Task : Work {
       val processorUrls = processorClasspath.map { File(it).toURI().toURL() }.toTypedArray()
       val kspClassLoader = URLClassLoader(processorUrls, ClassLoader.getSystemClassLoader())
 
+      val processorOptions = parseKspOptions(argMap.optional(Ksp2Flags.KSP_OPTIONS) ?: emptyList())
+
       // Load Ksp2Invoker via reflection (it's compiled against KSP2 classes)
       val invokerClass = kspClassLoader.loadClass("io.bazel.kotlin.ksp2.Ksp2Invoker")
       val invoker =
@@ -196,6 +205,7 @@ class Ksp2Task : Work {
           String::class.java, // languageVersion
           String::class.java, // apiVersion
           File::class.java, // jdkHome
+          Map::class.java, // processorOptions
           Int::class.java, // logLevel
         )
 
@@ -218,6 +228,7 @@ class Ksp2Task : Work {
           argMap.optionalSingle(Ksp2Flags.LANGUAGE_VERSION),
           argMap.optionalSingle(Ksp2Flags.API_VERSION),
           argMap.optionalSingle(Ksp2Flags.JDK_HOME)?.let { File(it) },
+          processorOptions,
           1, // logLevel
         ) as Int
 

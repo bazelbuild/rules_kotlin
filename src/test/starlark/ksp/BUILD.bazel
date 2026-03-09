@@ -14,11 +14,26 @@
 
 load("//kotlin:core.bzl", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-load(":ksp_test.bzl", "ksp_action_test", "ksp_outputs_test", "ksp_single_action_test")
+load(":ksp_test.bzl", "ksp_action_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_single_action_test")
 
 # Simple KSP plugin for testing (uses moshi which generates Kotlin code)
 kt_ksp_plugin(
     name = "moshi_plugin",
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+# KSP plugin with processor options for testing the options attribute
+kt_ksp_plugin(
+    name = "moshi_plugin_with_options",
+    options = {
+        "another_key": "another_value",
+        "test_key": "test_value",
+    },
     processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
     deps = [
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
@@ -32,6 +47,17 @@ kt_jvm_library(
     name = "ksp_test_lib",
     srcs = ["TestModel.kt"],
     plugins = [":moshi_plugin"],
+    deps = [
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+    ],
+)
+
+# Target under test - kt_jvm_library with KSP plugin that has options
+kt_jvm_library(
+    name = "ksp_test_lib_with_options",
+    srcs = ["TestModel.kt"],
+    plugins = [":moshi_plugin_with_options"],
     deps = [
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
@@ -56,11 +82,32 @@ ksp_single_action_test(
     target_under_test = ":ksp_test_lib",
 )
 
+# Test that KspPluginInfo carries options correctly
+ksp_plugin_options_provider_test(
+    name = "ksp_plugin_options_provider_test",
+    target_under_test = ":moshi_plugin_with_options",
+)
+
+# Test that KspPluginInfo has empty options when none specified
+ksp_plugin_empty_options_provider_test(
+    name = "ksp_plugin_empty_options_provider_test",
+    target_under_test = ":moshi_plugin",
+)
+
+# Test that KSP2 action still works when plugin has options
+ksp_options_action_test(
+    name = "ksp_options_action_test",
+    target_under_test = ":ksp_test_lib_with_options",
+)
+
 test_suite(
     name = "ksp_tests",
     tests = [
         ":ksp_action_test",
+        ":ksp_options_action_test",
         ":ksp_outputs_test",
+        ":ksp_plugin_empty_options_provider_test",
+        ":ksp_plugin_options_provider_test",
         ":ksp_single_action_test",
     ],
 )
