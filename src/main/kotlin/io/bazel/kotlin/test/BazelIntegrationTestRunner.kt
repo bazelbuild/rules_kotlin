@@ -56,7 +56,6 @@ object BazelIntegrationTestRunner {
     val moduleFlags = FlagSets(
       listOf(
         listOf(
-          Flag("--enable_bzlmod=true"),
           Flag("--override_module=rules_kotlin=$unpack"),
         ),
       ),
