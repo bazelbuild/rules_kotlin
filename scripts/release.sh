@@ -29,11 +29,11 @@ function fail() {
   exit 1
 }
 
-# find workspace
-while [[ ! -f "WORKSPACE" ]]; do
+# find repository root
+while [[ ! -f "MODULE.bazel" ]]; do
   cd ..
   if test "$PWD" = "/"; then
-    fail "No workspace found."
+    fail "No repository root found."
   fi
 done
 
@@ -64,7 +64,7 @@ shasum -a 256 bazel-bin/rules_kotlin_release.tgz >bazel-bin/rules_kotlin_release
 
 # iterate through the examples and build them
 for ex in examples/*/; do
-  if [[ -f "$ex/WORKSPACE" ]] && ! [[ -f "$ex/ignore.me" ]]; then
+  if [[ -f "$ex/MODULE.bazel" ]] && ! [[ -f "$ex/ignore.me" ]]; then
     (
       cd "$ex"
       # shellcheck disable=SC1007
