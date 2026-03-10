@@ -20,6 +20,5 @@ buildifier --warnings=-confusing-name,-constant-glob,-duplicated-name,-function-
     -path ./.ijwb -prune \
     -type f \
     -iname "*.bzl" -or -name "*.bazel" \
-    -and -not \( -name "MODULE.*" -or \
-    -name "WORKSPACE" \)
+    -and -not \( -name "MODULE.*" \)
 )
