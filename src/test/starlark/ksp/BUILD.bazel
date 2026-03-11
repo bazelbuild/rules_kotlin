@@ -14,7 +14,7 @@
 
 load("//kotlin:core.bzl", "kt_ksp_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_library")
-load(":ksp_test.bzl", "ksp_action_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_single_action_test")
+load(":ksp_test.bzl", "ksp_action_test", "ksp_conflicting_options_test", "ksp_options_action_test", "ksp_outputs_test", "ksp_plugin_empty_options_provider_test", "ksp_plugin_options_provider_test", "ksp_single_action_test")
 
 # Simple KSP plugin for testing (uses moshi which generates Kotlin code)
 kt_ksp_plugin(
@@ -53,11 +53,48 @@ kt_jvm_library(
     ],
 )
 
+# Two KSP plugins that share the same option key — used to test conflict detection
+kt_ksp_plugin(
+    name = "moshi_plugin_with_option_a",
+    options = {"shared_key": "value_from_a"},
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
+kt_ksp_plugin(
+    name = "moshi_plugin_with_option_b",
+    options = {"shared_key": "value_from_b"},
+    processor_class = "com.squareup.moshi.kotlin.codegen.ksp.JsonClassSymbolProcessorProvider",
+    deps = [
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin_codegen",
+    ],
+)
+
 # Target under test - kt_jvm_library with KSP plugin that has options
 kt_jvm_library(
     name = "ksp_test_lib_with_options",
     srcs = ["TestModel.kt"],
     plugins = [":moshi_plugin_with_options"],
+    deps = [
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi",
+        "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
+    ],
+)
+
+# Target under test - library with two plugins that have the same option key
+kt_jvm_library(
+    name = "ksp_test_lib_with_conflicting_options",
+    srcs = ["TestModel.kt"],
+    plugins = [
+        ":moshi_plugin_with_option_a",
+        ":moshi_plugin_with_option_b",
+    ],
     deps = [
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
@@ -100,10 +137,17 @@ ksp_options_action_test(
     target_under_test = ":ksp_test_lib_with_options",
 )
 
+# Test that conflicting KSP option keys across plugins fail analysis
+ksp_conflicting_options_test(
+    name = "ksp_conflicting_options_test",
+    target_under_test = ":ksp_test_lib_with_conflicting_options",
+)
+
 test_suite(
     name = "ksp_tests",
     tests = [
         ":ksp_action_test",
+        ":ksp_conflicting_options_test",
         ":ksp_options_action_test",
         ":ksp_outputs_test",
         ":ksp_plugin_empty_options_provider_test",

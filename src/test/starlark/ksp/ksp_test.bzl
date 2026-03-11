@@ -155,35 +155,39 @@ def _ksp_options_action_test_impl(ctx):
     actions = analysistest.target_actions(env)
     ksp2_actions = [a for a in actions if a.mnemonic == "KotlinKsp2"]
 
-    asserts.true(
+    asserts.equals(env, 1, len(ksp2_actions), "Should have exactly one KotlinKsp2 action")
+
+    argv = ksp2_actions[0].argv
+
+    ksp_option_args = [arg for arg in argv if arg.startswith("test_key=") or arg.startswith("another_key=")]
+    asserts.equals(
         env,
-        len(ksp2_actions) > 0,
-        "Should have at least one KotlinKsp2 action when plugin has options",
+        2,
+        len(ksp_option_args),
+        "KotlinKsp2 action should have 2 --ksp_options values in argv, got: %s" % ksp_option_args,
     )
 
-    if ksp2_actions:
-        ksp2_action = ksp2_actions[0]
-        argv = ksp2_action.argv
-
-        ksp_option_args = [arg for arg in argv if arg.startswith("test_key=") or arg.startswith("another_key=")]
-        asserts.equals(
-            env,
-            2,
-            len(ksp_option_args),
-            "KotlinKsp2 action should have 2 --ksp_options values in argv, got: %s" % ksp_option_args,
-        )
-
-        ksp_flag_args = [arg for arg in argv if arg == "--ksp_options"]
-        asserts.equals(
-            env,
-            2,
-            len(ksp_flag_args),
-            "KotlinKsp2 action should have 2 --ksp_options flags in argv",
-        )
+    ksp_flag_args = [arg for arg in argv if arg == "--ksp_options"]
+    asserts.equals(
+        env,
+        2,
+        len(ksp_flag_args),
+        "KotlinKsp2 action should have 2 --ksp_options flags in argv",
+    )
 
     return analysistest.end(env)
 
 ksp_options_action_test = analysistest.make(_ksp_options_action_test_impl)
+
+def _ksp_conflicting_options_test_impl(ctx):
+    """Verify that conflicting KSP option keys across plugins fail analysis."""
+    env = analysistest.begin(ctx)
+    return analysistest.end(env)
+
+ksp_conflicting_options_test = analysistest.make(
+    _ksp_conflicting_options_test_impl,
+    expect_failure = True,
+)
 
 def ksp_test_suite(name):
     """Create test suite for KSP2 integration tests.

@@ -64,7 +64,10 @@ def _targets_to_ksp_options(targets):
     options = {}
     for t in targets:
         if _KspPluginInfo in t:
-            options.update(t[_KspPluginInfo].options)
+            for key, value in t[_KspPluginInfo].options.items():
+                if key in options:
+                    fail("Conflicting KSP option key '%s': defined in multiple plugins" % key)
+                options[key] = value
     return options
 
 def _targets_to_transitive_runtime_jars(targets):
