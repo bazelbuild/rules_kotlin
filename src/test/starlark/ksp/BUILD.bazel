@@ -87,7 +87,9 @@ kt_jvm_library(
     ],
 )
 
-# Target under test - library with two plugins that have the same option key
+# Target under test - library with two plugins that have the same option key.
+# Tagged manual so it is not analyzed by wildcard builds; the analysis test
+# below pulls it in via target_under_test.
 kt_jvm_library(
     name = "ksp_test_lib_with_conflicting_options",
     srcs = ["TestModel.kt"],
@@ -95,6 +97,7 @@ kt_jvm_library(
         ":moshi_plugin_with_option_a",
         ":moshi_plugin_with_option_b",
     ],
+    tags = ["manual"],
     deps = [
         "@kotlin_rules_maven//:com_squareup_moshi_moshi",
         "@kotlin_rules_maven//:com_squareup_moshi_moshi_kotlin",
