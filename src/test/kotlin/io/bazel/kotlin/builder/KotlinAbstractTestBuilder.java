@@ -237,7 +237,8 @@ abstract class KotlinAbstractTestBuilder<T> {
                 new File(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-annotation-processing").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_core_jvm//file").singleCompileJar()),
                 new File(Deps.Dep.fromLabel("@kotlinx_serialization_json//file").singleCompileJar()),
-                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar())
+                new File(Deps.Dep.fromLabel("@kotlinx_serialization_json_jvm//file").singleCompileJar()),
+                new File(Deps.Dep.fromLabel("//src/main/kotlin:associates-abi-gen").singleCompileJar())
         );
     }
 }

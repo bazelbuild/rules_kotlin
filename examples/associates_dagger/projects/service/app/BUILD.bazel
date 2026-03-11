@@ -1,0 +1,18 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "app",
+    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    deps = [
+        "//projects/service/api",
+        "//projects/service/di",
+    ],
+)
+
+java_binary(
+    name = "service",
+    main_class = "service.app.MainKt",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":app"],
+)

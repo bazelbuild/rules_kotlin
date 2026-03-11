@@ -24,4 +24,5 @@ class InternalCompilerPlugins constructor(
   val skipCodeGen: KotlinToolchain.CompilerPlugin,
   val kapt: KotlinToolchain.CompilerPlugin,
   val jdeps: KotlinToolchain.CompilerPlugin,
+  val associatesAbiGen: KotlinToolchain.CompilerPlugin,
 )

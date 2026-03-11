@@ -1,0 +1,13 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "di",
+    srcs = glob(["src/main/kotlin/**/*.kt"]),
+    associates = [
+        "//projects/service/impl",
+    ],
+    visibility = ["//projects/service:__subpackages__"],
+    deps = [
+        "//third_party:dagger",
+    ],
+)
