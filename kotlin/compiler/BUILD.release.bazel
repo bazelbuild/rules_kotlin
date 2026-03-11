@@ -13,12 +13,12 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load(":compiler_deps.bzl", "kt_define_compiler_targets")
+load(":compiler_deps.bzl", "kt_define_release_compiler_targets")
 load(":kapt.bzl", "kapt_compiler_plugin")
 
 package(default_visibility = ["//visibility:public"])
 
-kt_define_compiler_targets()
+kt_define_release_compiler_targets()
 
 kapt_compiler_plugin(
     name = "kapt",

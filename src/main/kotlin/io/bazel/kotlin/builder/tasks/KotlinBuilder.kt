@@ -16,7 +16,9 @@
  */
 package io.bazel.kotlin.builder.tasks
 
+import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.utils.ArgMap
@@ -54,10 +56,7 @@ class KotlinBuilder(
       SOURCE_JARS("--source_jars"),
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
-      STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
-      STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
-      COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
-      COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
+      PLUGINS_PAYLOAD("--plugins_payload"),
       OUTPUT("--output"),
       RULE_KIND("--rule_kind"),
       MODULE_NAME("--kotlin_module_name"),
@@ -82,7 +81,11 @@ class KotlinBuilder(
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
-      BUILD_TOOLS_API("--build_tools_api"),
+      BTAPI_RUNTIME_CLASSPATH("--btapi_runtime_classpath"),
+      INTERNAL_JVM_ABI_GEN("--internal_jvm_abi_gen"),
+      INTERNAL_SKIP_CODE_GEN("--internal_skip_code_gen"),
+      INTERNAL_KAPT("--internal_kapt"),
+      INTERNAL_JDEPS("--internal_jdeps"),
     }
   }
 
@@ -166,9 +169,6 @@ class KotlinBuilder(
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
         removeDebugInfo = it == "true"
       }
-      argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
-        buildToolsApi = it == "true"
-      }
       this
     }
 
@@ -178,11 +178,26 @@ class KotlinBuilder(
     argMap: ArgMap,
   ) {
     val task = buildJvmTask(context.info, workingDir, argMap)
+    val btapiRuntime = buildBtapiRuntimeSpec(argMap)
+    val internalPlugins = buildInternalCompilerPlugins(argMap)
     context.whenTracing {
       printProto("jvm task message:", task)
     }
-    jvmTaskExecutor.execute(context, task)
+    jvmTaskExecutor.execute(context, task, btapiRuntime, internalPlugins)
   }
+
+  private fun buildBtapiRuntimeSpec(argMap: ArgMap): BtapiRuntimeSpec =
+    BtapiRuntimeSpec.fromClasspathEntries(
+      classpath = argMap.mandatory(KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH),
+    )
+
+  private fun buildInternalCompilerPlugins(argMap: ArgMap) =
+    InternalCompilerPlugins.fromPaths(
+      jvmAbiGenJar = argMap.mandatorySingle(KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN),
+      skipCodeGenJar = argMap.mandatorySingle(KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN),
+      kaptJar = argMap.mandatorySingle(KotlinBuilderFlags.INTERNAL_KAPT),
+      jdepsJar = argMap.mandatorySingle(KotlinBuilderFlags.INTERNAL_JDEPS),
+    )
 
   private fun buildJvmTask(
     info: CompilationTaskInfo,
@@ -221,26 +236,17 @@ class KotlinBuilder(
         classes =
           workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
         javaClasses =
-          workingDir
-            .resolveNewDirectories(
-              getOutputDirPath(moduleName, "java_classes"),
-            ).toString()
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "java_classes")).toString()
         if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) {
           abiClasses =
-            workingDir
-              .resolveNewDirectories(
-                getOutputDirPath(moduleName, "abi_classes"),
-              ).toString()
+            workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "abi_classes")).toString()
         }
         generatedClasses =
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes"))
             .toString()
         temp =
-          workingDir
-            .resolveNewDirectories(
-              getOutputDirPath(moduleName, "temp"),
-            ).toString()
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp")).toString()
         generatedSources =
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources"))
@@ -266,20 +272,10 @@ class KotlinBuilder(
 
         addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
-
-        addAllStubsPluginOptions(
-          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
-        )
-        addAllStubsPluginClasspath(
-          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
-        )
-
-        addAllCompilerPluginOptions(
-          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
-        )
-        addAllCompilerPluginClasspath(
-          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
-        )
+        argMap
+          .optionalSingle(KotlinBuilderFlags.PLUGINS_PAYLOAD)
+          ?.let(PluginsPayloadParser::parse)
+          ?.also(::addAllPlugins)
 
         argMap
           .optional(KotlinBuilderFlags.SOURCES)

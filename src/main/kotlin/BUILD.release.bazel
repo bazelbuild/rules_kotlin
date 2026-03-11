@@ -13,12 +13,8 @@
 # limitations under the License.
 
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
-load(
-    "//kotlin/compiler:compiler_deps.bzl",
-    "KOTLIN_BUILD_RUNTIME_STDLIBS",
-    "KOTLIN_STDLIBS",
-    "KSP2_RUNTIME_STDLIBS",
-)
+load("//kotlin/compiler:compiler_deps.bzl", "KOTLIN_BUILD_RUNTIME_STDLIBS", "KOTLIN_STDLIBS")
+load("//third_party:jarjar.bzl", "jar_jar")
 
 java_import(
     name = "worker",
@@ -39,18 +35,6 @@ java_import(
     name = "ksp2_invoker",
     jars = ["ksp2_invoker.jar"],
     visibility = ["//visibility:public"],
-    deps = [
-        "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
-        "//kotlin/compiler:symbol-processing-aa",
-        "//kotlin/compiler:symbol-processing-api",
-        "//kotlin/compiler:symbol-processing-common-deps",
-    ],
-)
-
-alias(
-    name = "compiler",
-    actual = "//src/main/kotlin/io/bazel/kotlin/compiler:compiler",
-    visibility = ["//visibility:public"],
 )
 
 java_import(
@@ -66,34 +50,30 @@ java_import(
 )
 
 java_binary(
-    name = "build",
-    data = KOTLIN_STDLIBS + [
-        ":jdeps-gen",
-        ":skip-code-gen",
-        "//src/main/kotlin/io/bazel/kotlin/compiler",
+    name = "build_raw",
+    create_executable = False,
+    runtime_deps = [
+        # Added separately to make sure it comes first, otherwise buildifier sorts it
+        "@bazel_tools//tools/jdk:JacocoCoverage",
+        ":worker",
     ],
+)
+
+jar_jar(
+    name = "build_jarjar",
+    input_jar = ":build_raw_deploy.jar",
+    rules = "shade.jarjar",
+)
+
+java_binary(
+    name = "build",
+    data = KOTLIN_STDLIBS,
     jvm_flags = [
-        "-D@com_github_jetbrains_kotlinx...serialization-core-jvm=$(rlocationpath //kotlin/compiler:kotlinx-serialization-core-jvm)",
-        "-D@com_github_jetbrains_kotlinx...serialization-json-jvm=$(rlocationpath //kotlin/compiler:kotlinx-serialization-json-jvm)",
-        "-D@com_github_jetbrains_kotlin...build-tools-impl=$(rlocationpath //kotlin/compiler:kotlin-build-tools-impl)",
-        "-D@com_github_jetbrains_kotlin...jvm-abi-gen=$(rlocationpath //kotlin/compiler:jvm-abi-gen)",
-        "-D@com_github_jetbrains_kotlin...kotlin-compiler=$(rlocationpath //kotlin/compiler:kotlin-compiler)",
-        "-D@com_github_jetbrains_kotlin...kapt=$(rlocationpath //kotlin/compiler:kotlin-annotation-processing)",
-        "-D@rules_kotlin...jdeps-gen=$(rlocationpath //src/main/kotlin:jdeps-gen)",
-        "-D@rules_kotlin...skip-code-gen=$(rlocationpath //src/main/kotlin:skip-code-gen)",
-        "-D@rules_kotlin...compiler=$(rlocationpath //src/main/kotlin/io/bazel/kotlin/compiler:compiler)",
-        "-D@rules_kotlin...kotlin-reflect=$(rlocationpath //kotlin/compiler:kotlin-reflect)",
-        "-D@rules_kotlin...kotlin-stdlib=$(rlocationpath //kotlin/compiler:kotlin-stdlib)",
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # Added separately to make sure it comes first, otherwise buildifier sorts it
-        "@bazel_tools//tools/jdk:JacocoCoverage",
-    ] + [
-        ":worker",
-    ] + KOTLIN_BUILD_RUNTIME_STDLIBS,
+    runtime_deps = [":build_jarjar"] + KOTLIN_BUILD_RUNTIME_STDLIBS,
 )
 
 java_binary(
@@ -109,11 +89,11 @@ java_binary(
 
 java_binary(
     name = "ksp2",
-    data = KSP2_RUNTIME_STDLIBS,
+    data = KOTLIN_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     visibility = ["//visibility:public"],
-    runtime_deps = [":ksp2_worker"] + KSP2_RUNTIME_STDLIBS,
+    runtime_deps = [":ksp2_worker"],
 )

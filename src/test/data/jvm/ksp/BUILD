@@ -149,11 +149,11 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
         "@rules_kotlin_maven_dev//:com_google_auto_value_auto_value_annotations",
         "@rules_kotlin_maven_dev//:com_google_dagger_dagger",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi_kotlin",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
 )
 
@@ -192,13 +192,13 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
         "@rules_kotlin_maven_dev//:com_google_auto_value_auto_value_annotations",
         "@rules_kotlin_maven_dev//:com_google_dagger_dagger",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi_kotlin",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi_kotlin_codegen",
         "@rules_kotlin_maven_dev//:dev_zacsweers_autoservice_auto_service_ksp",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
 )
 
@@ -238,12 +238,12 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
         "@rules_kotlin_maven_dev//:com_google_auto_value_auto_value_annotations",
         "@rules_kotlin_maven_dev//:com_google_dagger_dagger",
         "@rules_kotlin_maven_dev//:com_google_dagger_dagger_compiler",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi_kotlin",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
 )
 
@@ -350,12 +350,12 @@ kt_jvm_library(
     ],
     deps = [
         ":generated_lib",
-        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
         "@rules_kotlin_maven_dev//:com_google_auto_service_auto_service_annotations",
         "@rules_kotlin_maven_dev//:com_google_auto_value_auto_value_annotations",
         "@rules_kotlin_maven_dev//:com_google_dagger_dagger",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi",
         "@rules_kotlin_maven_dev//:com_squareup_moshi_moshi_kotlin",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
 )
 

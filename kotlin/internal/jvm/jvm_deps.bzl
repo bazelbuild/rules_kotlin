@@ -35,9 +35,11 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
         [toolchains.kt.jvm_stdlibs]
     )
 
+    prune_transitive_deps = (toolchains.kt.experimental_prune_transitive_deps and
+                             not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags)
+
     # Reduced classpath, exclude transitive deps from compilation
-    if (toolchains.kt.experimental_prune_transitive_deps and
-        not "kt_experimental_prune_transitive_deps_incompatible" in ctx.attr.tags):
+    if prune_transitive_deps:
         transitive = [
             d.compile_jars
             for d in dep_infos
@@ -51,12 +53,25 @@ def _jvm_deps(ctx, toolchains, associate_deps, deps = [], deps_java_infos = [], 
             for d in dep_infos
         ]
 
-    compile_depset_list = depset(transitive = transitive + [associates.jars]).to_list()
+    # Put associate jars FIRST (as direct) so they appear first on the classpath.
+    # This ensures that when the same class exists in both an associate jar and a regular dep,
+    # the associate's version is found first. This is critical for internal visibility to work
+    # correctly when there are split packages across modules.
+    compile_depset_list = depset(direct = associates.jars.to_list(), transitive = transitive).to_list()
     compile_depset_list_filtered = [jar for jar in compile_depset_list if not _sets.contains(associates.abi_jar_set, jar)]
+
+    # Note: We intentionally do NOT prune deps for Java compilation.
+    # While Kotlin can compile with a pruned classpath, javac needs to resolve all types
+    # referenced in class file signatures and annotations from dependencies.
+    # When javac reads an ABI jar containing a method like `foo(SomeType param)`,
+    # it needs SomeType on the classpath even if the source code doesn't use it directly.
+    # This differs from rules_jvm which uses jvm-inc-builder for Java compilation.
+    pruned_deps_for_java = None
 
     return struct(
         module_name = associates.module_name,
         deps = dep_infos,
+        pruned_deps_for_java = pruned_deps_for_java,
         exports = [_java_info(d) for d in exports],
         associate_jars = associates.jars,
         compile_jars = depset(direct = compile_depset_list_filtered),
