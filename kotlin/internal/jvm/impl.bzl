@@ -596,5 +596,6 @@ def kt_ksp_plugin_impl(ctx):
                 ),
             ],
             generates_java = ctx.attr.generates_java,
+            options = ctx.attr.options,
         ),
     ]

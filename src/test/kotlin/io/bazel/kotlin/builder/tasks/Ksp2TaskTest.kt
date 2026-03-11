@@ -18,6 +18,7 @@ package io.bazel.kotlin.builder.tasks
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.Ksp2Flags
+import io.bazel.kotlin.builder.tasks.jvm.Ksp2Task.Companion.parseKspOptions
 import io.bazel.kotlin.builder.utils.ArgMap
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -123,7 +124,6 @@ class Ksp2TaskTest {
 
   @Test
   fun testKsp2FlagsHaveCorrectNames() {
-    // Verify flag names match expected format
     assertThat(Ksp2Flags.MODULE_NAME.flag).isEqualTo("--module_name")
     assertThat(Ksp2Flags.SOURCES.flag).isEqualTo("--sources")
     assertThat(Ksp2Flags.SOURCE_JARS.flag).isEqualTo("--source_jars")
@@ -138,6 +138,7 @@ class Ksp2TaskTest {
     assertThat(Ksp2Flags.API_VERSION.flag).isEqualTo("--api_version")
     assertThat(Ksp2Flags.JVM_TARGET.flag).isEqualTo("--jvm_target")
     assertThat(Ksp2Flags.JDK_HOME.flag).isEqualTo("--jdk_home")
+    assertThat(Ksp2Flags.KSP_OPTIONS.flag).isEqualTo("--ksp_options")
   }
 
   @Test
@@ -145,5 +146,44 @@ class Ksp2TaskTest {
     val args = ArgMap(mapOf())
     assertThat(args.optional(Ksp2Flags.SOURCES)).isNull()
     assertThat(args.optional(Ksp2Flags.SOURCE_JARS)).isNull()
+  }
+
+  @Test
+  fun testKspOptions() {
+    val options = listOf("key1=value1", "key2=value2")
+    val args =
+      ArgMap(
+        mapOf(
+          Ksp2Flags.KSP_OPTIONS.flag to options,
+        ),
+      )
+    assertThat(args.optional(Ksp2Flags.KSP_OPTIONS))
+      .containsExactlyElementsIn(options)
+  }
+
+  @Test
+  fun testKspOptionsEmpty() {
+    val args = ArgMap(mapOf())
+    assertThat(args.optional(Ksp2Flags.KSP_OPTIONS)).isNull()
+  }
+
+  @Test
+  fun testParseKspOptions() {
+    assertThat(parseKspOptions(listOf("key=value", "another=val"))).isEqualTo(mapOf("key" to "value", "another" to "val"))
+  }
+
+  @Test
+  fun testParseKspOptionsValueContainsEquals() {
+    assertThat(parseKspOptions(listOf("key=val=ue"))).isEqualTo(mapOf("key" to "val=ue"))
+  }
+
+  @Test
+  fun testParseKspOptionsNoEquals() {
+    assertThat(parseKspOptions(listOf("keyonly"))).isEqualTo(mapOf("keyonly" to ""))
+  }
+
+  @Test
+  fun testParseKspOptionsEmptyList() {
+    assertThat(parseKspOptions(emptyList())).isEmpty()
   }
 }
