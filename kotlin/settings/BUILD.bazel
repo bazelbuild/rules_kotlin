@@ -42,3 +42,10 @@ bool_flag(
     build_setting_default = False,
     visibility = ["//visibility:public"],
 )
+
+# Compatibility flag retained for existing configs; BTAPI is always used and this flag is a no-op.
+bool_flag(
+    name = "experimental_build_tools_api",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)

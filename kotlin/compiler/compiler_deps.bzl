@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_java//java:defs.bzl", "java_import")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@rules_java//java:defs.bzl", "java_import")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 
 _KOTLIN_VERSION = "2.3.20-RC2"
@@ -136,7 +136,10 @@ KOTLIN_BUILD_RUNTIME_STDLIBS = [
 KSP2_RUNTIME_STDLIBS = [
     dep
     for dep in KOTLIN_STDLIBS
-    if dep != "//kotlin/compiler:kotlinx-coroutines-core-jvm"
+    if dep not in [
+        "//kotlin/compiler:kotlin-compiler",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+    ]
 ] + [
     "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
 ]

@@ -281,7 +281,7 @@ class BtapiCompiler(
   private fun buildUserPlugins(task: JvmCompilationTask): List<CompilerPlugin> =
     task.inputs.pluginsList
       .filter { hasPhase(it, JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_COMPILE) }
-      .map(::toBtapiPlugin)
+      .map { toBtapiPlugin(task, it) }
 
   /**
    * Builds jdeps plugin using the typed CompilerPlugin API.
@@ -347,16 +347,41 @@ class BtapiCompiler(
     phase: JvmCompilationTask.Inputs.PluginPhase,
   ): Boolean = plugin.phasesList.contains(phase)
 
-  private fun toBtapiPlugin(plugin: JvmCompilationTask.Inputs.Plugin): CompilerPlugin =
+  private fun toBtapiPlugin(
+    task: JvmCompilationTask,
+    plugin: JvmCompilationTask.Inputs.Plugin,
+  ): CompilerPlugin =
     CompilerPlugin(
       pluginId = plugin.id,
       classpath = plugin.classpathList.map { Path.of(it) },
       rawArguments =
         plugin.optionsList.map { option ->
-          CompilerPluginOption(option.key, option.value)
+          CompilerPluginOption(
+            option.key,
+            expandPluginOptionValue(task, plugin, option.value),
+          )
         },
       orderingRequirements = emptySet(),
     )
+
+  private fun expandPluginOptionValue(
+    task: JvmCompilationTask,
+    plugin: JvmCompilationTask.Inputs.Plugin,
+    value: String,
+  ): String {
+    val optionTokens =
+      mapOf(
+        "{generatedClasses}" to task.directories.generatedClasses,
+        "{stubs}" to stubsDir(task.directories),
+        "{temp}" to task.directories.temp,
+        "{generatedSources}" to task.directories.generatedSources,
+        "{classpath}" to plugin.classpathList.joinToString(File.pathSeparator),
+      )
+
+    return optionTokens.entries.fold(value) { expandedValue, (token, replacement) ->
+      expandedValue.replace(token, replacement)
+    }
+  }
 
   /**
    * Parse JVM target string to BTAPI enum and fail fast for unsupported values.
@@ -442,7 +467,7 @@ class BtapiCompiler(
    * KAPT generates stubs and processes annotations, producing:
    * - Generated Java sources in directories.generatedJavaSources
    * - Generated classes in directories.generatedClasses
-   * - Stubs in directories.stubs
+   * - Stubs in temp/stubs
    *
    * @param task The compilation task protobuf containing all compilation info
    * @param plugins Internal compiler plugins (must include kapt)
@@ -484,7 +509,7 @@ class BtapiCompiler(
     val pluginId = plugins.kapt.id
 
     // Create temp subdirectories for stubs and incremental data
-    val stubsDir = Files.createDirectories(Paths.get(task.directories.temp).resolve("stubs"))
+    val stubsDir = stubsDir(task.directories)
     val incrementalDataDir =
       Files.createDirectories(
         Paths.get(task.directories.temp).resolve("incrementalData"),
@@ -495,7 +520,7 @@ class BtapiCompiler(
     // Core KAPT directories
     options.add(CompilerPluginOption("sources", task.directories.generatedJavaSources))
     options.add(CompilerPluginOption("classes", task.directories.generatedClasses))
-    options.add(CompilerPluginOption("stubs", stubsDir.toString()))
+    options.add(CompilerPluginOption("stubs", stubsDir))
     options.add(CompilerPluginOption("incrementalData", incrementalDataDir.toString()))
 
     // Javac arguments (encoded as Base64)
@@ -551,7 +576,10 @@ class BtapiCompiler(
     task.inputs.pluginsList
       .filter { hasPhase(it, JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS) }
       .filterNot { it.id == plugins.kapt.id }
-      .map(::toBtapiPlugin)
+      .map { toBtapiPlugin(task, it) }
+
+  private fun stubsDir(directories: JvmCompilationTask.Directories): String =
+    Files.createDirectories(Paths.get(directories.temp).resolve("stubs")).toString()
 
   /**
    * Encodes a map to Base64 in the format expected by KAPT.

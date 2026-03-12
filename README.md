@@ -227,13 +227,15 @@ The Build Tools API is a modern compilation interface provided by JetBrains for 
 
 **This feature is enabled by default.**
 
-To disable the Build Tools API and use the legacy compilation approach, add the following flag to your build:
+`experimental_build_tools_api` is currently a compatibility flag and does not change compilation behavior. BTAPI is always used.
+
+The flag is still accepted so existing `.bazelrc` files and command lines do not break immediately:
 
 ```bash
 bazel build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false //your:target
 ```
 
-Or add it to your `.bazelrc` file:
+Or in `.bazelrc`:
 
 ```
 build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false

@@ -85,7 +85,7 @@ def _test_kt_plugin_cfg(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": ["plugin.StubForTesting"],
+            "annotation": "plugin.StubForTesting",
         },
         deps = [
             test.have(
@@ -139,56 +139,6 @@ def _test_kt_plugin_cfg(test):
         },
     )
 
-def _test_kt_plugin_cfg_multi_value_options(test):
-    plugin = test.have(
-        kt_compiler_plugin,
-        name = "plugin",
-        id = "test.multi",
-        deps = [
-            test.have(
-                kt_jvm_library,
-                name = "plugin_dep",
-                srcs = [
-                    test.artifact(
-                        name = "plugin.kt",
-                    ),
-                ],
-            ),
-        ],
-    )
-
-    cfg = test.got(
-        kt_plugin_cfg,
-        name = "got",
-        plugin = plugin,
-        options = {
-            "annotation": [
-                "plugin.First",
-                "plugin.Second",
-            ],
-        },
-        deps = [],
-    )
-
-    analysis_test(
-        name = test.name,
-        impl = _provider_test_impl,
-        target = cfg,
-        attr_values = {
-            "want_deps": [],
-            "want_options": [
-                "annotation=plugin.First",
-                "annotation=plugin.Second",
-            ],
-            "want_plugin": plugin,
-        },
-        attrs = {
-            "want_deps": attr.label_list(providers = [JavaInfo]),
-            "want_options": attr.string_list(),
-            "want_plugin": attr.label(providers = [KtCompilerPluginInfo]),
-        },
-    )
-
 def _test_compile_configuration(test):
     plugin_jar = test.artifact(
         name = "plugin.jar",
@@ -199,7 +149,7 @@ def _test_compile_configuration(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": ["plugin.StubForTesting"],
+            "annotation": "plugin.StubForTesting",
         },
         deps = [
             test.have(
@@ -276,7 +226,7 @@ def _test_compile_configuration_inline_payload_json(test):
         name = "plugin",
         id = "test.inline.payload",
         options = {
-            "annotation": ["plugin.StubForTesting"],
+            "annotation": "plugin.StubForTesting",
         },
         deps = [
             test.have(
@@ -324,7 +274,7 @@ def _test_compile_multiple_configurations(test):
         name = "plugin",
         id = "test.stub",
         options = {
-            "annotation": ["plugin.StubForTesting"],
+            "annotation": "plugin.StubForTesting",
         },
         deps = [
             test.have(
@@ -506,7 +456,7 @@ def _test_library_multiple_plugins_with_same_id(test):
                 name = "one",
                 id = "test.stub",
                 options = {
-                    "annotation": ["plugin.StubForTesting"],
+                    "annotation": "plugin.StubForTesting",
                 },
                 deps = [
                     test.have(
@@ -525,7 +475,7 @@ def _test_library_multiple_plugins_with_same_id(test):
                 name = "two",
                 id = "test.stub",
                 options = {
-                    "annotation": ["plugin.StubForTesting"],
+                    "annotation": "plugin.StubForTesting",
                 },
                 deps = [
                     test.have(
@@ -597,7 +547,6 @@ def test_suite(name):
     suite(
         name,
         test_kt_plugin_cfg = _test_kt_plugin_cfg,
-        test_kt_plugin_cfg_multi_value_options = _test_kt_plugin_cfg_multi_value_options,
         test_compile_configuration = _test_compile_configuration,
         test_compile_configuration_inline_payload_json = _test_compile_configuration_inline_payload_json,
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,

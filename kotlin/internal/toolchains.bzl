@@ -87,7 +87,6 @@ def _kotlin_toolchain_impl(ctx):
         jdeps_merger = ctx.attr.jdeps_merger,
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
-        ksp2_symbol_processing_aa = ctx.attr.ksp2_symbol_processing_aa,
         btapi_runtime_classpath = build_tools_runtime_classpath,
         internal_jvm_abi_gen = ctx.file.internal_jvm_abi_gen,
         internal_skip_code_gen = ctx.file.internal_skip_code_gen,
@@ -311,12 +310,6 @@ _kt_toolchain = rule(
             allow_files = True,
             cfg = "exec",
         ),
-        "ksp2_symbol_processing_aa": attr.label(
-            doc = "KSP2 symbol-processing-aa JAR for processor classpath",
-            default = Label("//kotlin/compiler:symbol-processing-aa"),
-            providers = [JavaInfo],
-            cfg = "exec",
-        ),
         "language_version": attr.string(
             doc = "this is the -language_version flag [see](https://kotlinlang.org/docs/reference/compatibility.html)",
             default = "2.1",
@@ -406,7 +399,6 @@ def define_kt_toolchain(
         internal_kapt = None,
         ksp2 = None,
         ksp2_invoker = None,
-        ksp2_symbol_processing_aa = None,
         exec_compatible_with = None,
         target_compatible_with = None,
         target_settings = None):
@@ -444,7 +436,6 @@ def define_kt_toolchain(
         internal_kapt = internal_kapt if internal_kapt != None else Label("//kotlin/compiler:kotlin-annotation-processing-embeddable"),
         ksp2 = ksp2 if ksp2 != None else Label("//src/main/kotlin:ksp2"),
         ksp2_invoker = ksp2_invoker if ksp2_invoker != None else Label("//src/main/kotlin:ksp2_invoker"),
-        ksp2_symbol_processing_aa = ksp2_symbol_processing_aa if ksp2_symbol_processing_aa != None else Label("//kotlin/compiler:symbol-processing-aa"),
     )
     native.toolchain(
         name = name,

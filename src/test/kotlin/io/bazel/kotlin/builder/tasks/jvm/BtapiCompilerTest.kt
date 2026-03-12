@@ -4,12 +4,16 @@ import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.Deps
 import io.bazel.kotlin.builder.DirectoryType
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
+import io.bazel.kotlin.model.JvmCompilationTask
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.ObjectInputStream
+import java.nio.file.Files
 import java.util.Base64
 import java.util.function.Consumer
 import java.util.jar.JarFile
@@ -220,6 +224,82 @@ class BtapiCompilerTest {
       },
     )
     ctx.assertFilesExist(DirectoryType.JAVA_SOURCE_GEN, "autovalue/AutoValue_TestValue.java")
+  }
+
+  @Test
+  fun `expands legacy plugin option templates for btapi plugins`() {
+    val tempDir = Files.createTempDirectory("btapi-plugin-options")
+    val directories =
+      JvmCompilationTask.Directories.newBuilder()
+        .setGeneratedClasses(tempDir.resolve("generated-classes").toString())
+        .setGeneratedSources(tempDir.resolve("generated-sources").toString())
+        .setTemp(tempDir.toString())
+        .build()
+    val pluginOption =
+      JvmCompilationTask.Inputs.PluginOption.newBuilder()
+        .setKey("expanded")
+        .setValue(
+          listOf(
+            "classes={generatedClasses}",
+            "sources={generatedSources}",
+            "stubs={stubs}",
+            "temp={temp}",
+            "classpath={classpath}",
+          ).joinToString(";"),
+        ).build()
+    val task =
+      JvmCompilationTask.newBuilder()
+        .setDirectories(directories)
+        .build()
+    val plugin =
+      JvmCompilationTask.Inputs.Plugin.newBuilder()
+        .setId("example.plugin")
+        .addClasspath("/plugins/first.jar")
+        .addClasspath("/plugins/second.jar")
+        .addOptions(pluginOption)
+        .build()
+
+    val toolchainsCache = io.bazel.kotlin.builder.toolchain.BtapiToolchainsCache()
+    val runtimeSpec = io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec(
+      listOf(
+        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
+        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
+        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
+        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
+        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
+        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
+        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar()),
+      ),
+    )
+    val toolchains = toolchainsCache.get(runtimeSpec)
+    val btapiCompiler = BtapiCompiler(toolchains)
+
+    val method =
+      BtapiCompiler::class.java.getDeclaredMethod(
+        "toBtapiPlugin",
+        JvmCompilationTask::class.java,
+        JvmCompilationTask.Inputs.Plugin::class.java,
+      )
+    method.isAccessible = true
+
+    val btapiPlugin = method.invoke(btapiCompiler, task, plugin) as CompilerPlugin
+    val expectedValue =
+      listOf(
+        "classes=${tempDir.resolve("generated-classes")}",
+        "sources=${tempDir.resolve("generated-sources")}",
+        "stubs=${tempDir.resolve("stubs")}",
+        "temp=$tempDir",
+        "classpath=/plugins/first.jar${File.pathSeparator}/plugins/second.jar",
+      ).joinToString(";")
+
+    assertThat(BtapiPluginArguments.toArgumentStrings(listOf(btapiPlugin))).containsExactly(
+      "-Xplugin=/plugins/first.jar,/plugins/second.jar",
+      "-P",
+      "plugin:example.plugin:expanded=$expectedValue",
+    ).inOrder()
+    assertThat(Files.isDirectory(tempDir.resolve("stubs"))).isTrue()
+
+    btapiCompiler.close()
   }
 
   @Test

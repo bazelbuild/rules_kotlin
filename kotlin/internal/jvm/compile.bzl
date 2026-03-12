@@ -161,18 +161,11 @@ _CONVENTIONAL_RESOURCE_PATHS = [
 ]
 
 def _adjust_resources_path_by_strip_prefix(path, resource_strip_prefix):
-    strip_prefix = resource_strip_prefix.rstrip("/")
-    if path.startswith(strip_prefix):
-        clean_path = path[len(strip_prefix):]
-        return clean_path.lstrip("/")
+    if not path.startswith(resource_strip_prefix):
+        fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
 
-    prefix = strip_prefix if strip_prefix.startswith("/") else "/" + strip_prefix
-    idx = path.find(prefix)
-    if idx != -1:
-        clean_path = path[idx + len(prefix):]
-        return clean_path.lstrip("/")
-
-    fail("Resource file %s is not under the specified prefix to strip %s" % (path, resource_strip_prefix))
+    clean_path = path[len(resource_strip_prefix):]
+    return clean_path
 
 def _adjust_resources_path_by_default_prefixes(path):
     for cp in _CONVENTIONAL_RESOURCE_PATHS:
@@ -202,6 +195,7 @@ def _format_compile_plugin_options(o):
     return [
         "%s:%s" % (o.id, o.value),
     ]
+
 def _new_plugins_from(targets):
     """Returns a struct containing the plugin metadata for the given targets.
 
@@ -512,8 +506,10 @@ def _run_ksp_builder_actions(
 
     # Collect KSP2 API JARs (needed by the worker to load KSP2 classes via reflection)
     ksp2_api_jars = depset(
-        direct = toolchains.kt.ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars,
-        transitive = [toolchains.kt.ksp2_symbol_processing_aa[JavaInfo].transitive_runtime_jars],
+        ctx.attr._ksp2_symbol_processing_api[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_symbol_processing_aa[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_symbol_processing_common_deps[JavaInfo].runtime_output_jars +
+        ctx.attr._ksp2_kotlinx_coroutines[JavaInfo].runtime_output_jars,
     )
 
     # Get the KSP2 invoker JAR (contains Ksp2Invoker class loaded via reflection)
@@ -1000,18 +996,12 @@ def _run_kt_java_builder_actions(
         if len(srcs.kt) > 0:
             javac_opts.append("-proc:none")
 
-        # Use pruned deps for Java compilation when experimental_prune_transitive_deps is enabled
-        # This ensures java_common.compile() doesn't see transitive deps
-        java_compile_deps = compile_deps.deps
-        if compile_deps.pruned_deps_for_java != None:
-            java_compile_deps = compile_deps.pruned_deps_for_java
-
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
             source_jars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars,
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
-            deps = java_compile_deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
+            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
             java_toolchain = toolchains.java,
             plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
             javac_opts = javac_opts,

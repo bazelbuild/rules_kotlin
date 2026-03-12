@@ -198,6 +198,10 @@ abstract class KotlinAbstractTestBuilder<T> {
         return Stream.of(filePath).map(f -> directory.resolve(toPlatformPath(f)));
     }
 
+    public final String toPlatform(String path) {
+        return toPlatformPath(path).toString();
+    }
+
     static InternalCompilerPlugins internalPluginsForTest() {
         return InternalCompilerPlugins.fromPaths(
                 Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),

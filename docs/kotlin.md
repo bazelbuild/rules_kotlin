@@ -313,7 +313,7 @@ kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": ["plugin.OpenForTesting"],
+        "annotation": "plugin.OpenForTesting",
     },
     deps = [
         "//kotlin/compiler:allopen-compiler-plugin",
@@ -345,7 +345,7 @@ kt_jvm_library(
 | <a id="kt_compiler_plugin-data"></a>data |  The list of data files to be used by compiler's plugin   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="kt_compiler_plugin-compile_phase"></a>compile_phase |  Runs the compiler plugin during kotlin compilation. Known examples: `allopen`, `sam_with_reciever`   | Boolean | optional |  `True`  |
 | <a id="kt_compiler_plugin-id"></a>id |  The ID of the plugin   | String | required |  |
-| <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Each option key can have multiple values.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
+| <a id="kt_compiler_plugin-options"></a>options |  Dictionary of options to be passed to the plugin. Supports the following template values:<br><br>- `{generatedClasses}`: directory for generated class output - `{temp}`: temporary directory, discarded between invocations - `{generatedSources}`:  directory for generated source output - `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="kt_compiler_plugin-stubs_phase"></a>stubs_phase |  Runs the compiler plugin in kapt stub generation.   | Boolean | optional |  `True`  |
 | <a id="kt_compiler_plugin-target_embedded_compiler"></a>target_embedded_compiler |  Deprecated compatibility attribute; no-op in BTAPI-based plugin wiring.   | Boolean | optional |  `False`  |
 
@@ -531,8 +531,7 @@ define_kt_toolchain(<a href="#define_kt_toolchain-name">name</a>, <a href="#defi
                     <a href="#define_kt_toolchain-experimental_multiplex_workers">experimental_multiplex_workers</a>, <a href="#define_kt_toolchain-javac_options">javac_options</a>, <a href="#define_kt_toolchain-kotlinc_options">kotlinc_options</a>, <a href="#define_kt_toolchain-jacocorunner">jacocorunner</a>,
                     <a href="#define_kt_toolchain-build_tools_impl">build_tools_impl</a>, <a href="#define_kt_toolchain-kotlin_stdlib">kotlin_stdlib</a>, <a href="#define_kt_toolchain-annotations">annotations</a>, <a href="#define_kt_toolchain-internal_jvm_abi_gen">internal_jvm_abi_gen</a>,
                     <a href="#define_kt_toolchain-internal_skip_code_gen">internal_skip_code_gen</a>, <a href="#define_kt_toolchain-internal_jdeps_gen">internal_jdeps_gen</a>, <a href="#define_kt_toolchain-internal_kapt">internal_kapt</a>, <a href="#define_kt_toolchain-ksp2">ksp2</a>, <a href="#define_kt_toolchain-ksp2_invoker">ksp2_invoker</a>,
-                    <a href="#define_kt_toolchain-ksp2_symbol_processing_aa">ksp2_symbol_processing_aa</a>, <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>,
-                    <a href="#define_kt_toolchain-target_settings">target_settings</a>)
+                    <a href="#define_kt_toolchain-exec_compatible_with">exec_compatible_with</a>, <a href="#define_kt_toolchain-target_compatible_with">target_compatible_with</a>, <a href="#define_kt_toolchain-target_settings">target_settings</a>)
 </pre>
 
 Define the Kotlin toolchain.
@@ -566,7 +565,6 @@ Define the Kotlin toolchain.
 | <a id="define_kt_toolchain-internal_kapt"></a>internal_kapt |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2"></a>ksp2 |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-ksp2_invoker"></a>ksp2_invoker |  <p align="center"> - </p>   |  `None` |
-| <a id="define_kt_toolchain-ksp2_symbol_processing_aa"></a>ksp2_symbol_processing_aa |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-exec_compatible_with"></a>exec_compatible_with |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-target_compatible_with"></a>target_compatible_with |  <p align="center"> - </p>   |  `None` |
 | <a id="define_kt_toolchain-target_settings"></a>target_settings |  <p align="center"> - </p>   |  `None` |

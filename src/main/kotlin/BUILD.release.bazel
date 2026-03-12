@@ -13,7 +13,12 @@
 # limitations under the License.
 
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
-load("//kotlin/compiler:compiler_deps.bzl", "KOTLIN_BUILD_RUNTIME_STDLIBS", "KOTLIN_STDLIBS")
+load(
+    "//kotlin/compiler:compiler_deps.bzl",
+    "KOTLIN_BUILD_RUNTIME_STDLIBS",
+    "KOTLIN_STDLIBS",
+    "KSP2_RUNTIME_STDLIBS",
+)
 load("//third_party:jarjar.bzl", "jar_jar")
 
 java_import(
@@ -35,6 +40,12 @@ java_import(
     name = "ksp2_invoker",
     jars = ["ksp2_invoker.jar"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
+        "//kotlin/compiler:symbol-processing-aa",
+        "//kotlin/compiler:symbol-processing-api",
+        "//kotlin/compiler:symbol-processing-common-deps",
+    ],
 )
 
 java_import(
@@ -89,11 +100,11 @@ java_binary(
 
 java_binary(
     name = "ksp2",
-    data = KOTLIN_STDLIBS,
+    data = KSP2_RUNTIME_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
     visibility = ["//visibility:public"],
-    runtime_deps = [":ksp2_worker"],
+    runtime_deps = [":ksp2_worker"] + KSP2_RUNTIME_STDLIBS,
 )

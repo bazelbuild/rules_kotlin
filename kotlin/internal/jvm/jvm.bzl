@@ -130,6 +130,26 @@ _implicit_deps = {
     "_java_toolchain": attr.label(
         default = Label("@bazel_tools//tools/jdk:current_java_toolchain"),
     ),
+    "_ksp2_kotlinx_coroutines": attr.label(
+        doc = "kotlinx-coroutines-core-jvm JAR required by KSP2",
+        default = Label("//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm"),
+        cfg = "exec",
+    ),
+    "_ksp2_symbol_processing_aa": attr.label(
+        doc = "KSP2 symbol-processing-aa JAR for processor classpath",
+        default = Label("//kotlin/compiler:symbol-processing-aa"),
+        cfg = "exec",
+    ),
+    "_ksp2_symbol_processing_api": attr.label(
+        doc = "KSP2 symbol-processing-api JAR for processor classpath",
+        default = Label("//kotlin/compiler:symbol-processing-api"),
+        cfg = "exec",
+    ),
+    "_ksp2_symbol_processing_common_deps": attr.label(
+        doc = "KSP2 symbol-processing-common-deps JAR for processor classpath",
+        default = Label("//kotlin/compiler:symbol-processing-common-deps"),
+        cfg = "exec",
+    ),
     "_kt_toolchain": attr.label(
         doc = """The Kotlin toolchain. it's only purpose is to enable the Intellij
         to discover Kotlin language version""",
@@ -262,7 +282,7 @@ _common_attr = utils.add_dicts(
             doc = """The list of source files that are processed to create the target, this can contain both Java and Kotlin
         files. Java analysis occurs first so Kotlin classes may depend on Java classes in the same compilation unit.""",
             default = [],
-            allow_files = [".srcjar", ".kt", ".java", ".form"],
+            allow_files = [".srcjar", ".kt", ".java"],
         ),
         "_use_auto_exec_groups": attr.bool(default = False),
     },
@@ -525,7 +545,7 @@ kt_compiler_plugin(
     name = "open_for_testing_plugin",
     id = "org.jetbrains.kotlin.allopen",
     options = {
-        "annotation": ["plugin.OpenForTesting"],
+        "annotation": "plugin.OpenForTesting",
     },
     deps = [
         "//kotlin/compiler:allopen-compiler-plugin",
@@ -567,10 +587,15 @@ kt_jvm_library(
             doc = "The ID of the plugin",
             mandatory = True,
         ),
-        "options": attr.string_list_dict(
+        "options": attr.string_dict(
             doc = """\
 Dictionary of options to be passed to the plugin.
-Each option key can have multiple values.
+Supports the following template values:
+
+- `{generatedClasses}`: directory for generated class output
+- `{temp}`: temporary directory, discarded between invocations
+- `{generatedSources}`:  directory for generated source output
+- `{classpath}` : replaced with a list of jars separated by the filesystem appropriate separator.
 """,
             default = {},
         ),

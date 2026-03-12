@@ -263,6 +263,14 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder useK2() {
+            taskBuilder.getInfoBuilder()
+                    .getToolchainInfoBuilder()
+                    .getCommonBuilder()
+                    .setLanguageVersion("2.0");
+            return this;
+        }
+
         public TaskBuilder passthroughFlags(String... flags) {
             for (String flag : flags) {
                 taskBuilder.getInfoBuilder().addPassthroughFlags(flag);

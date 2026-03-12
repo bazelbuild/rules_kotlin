@@ -20,8 +20,9 @@ kt_bootstrap_library(
     srcs = glob(["*.kt"]),
     visibility = ["//visibility:public"],
     deps = [
-        "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_aa",
-        "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_api",
-        "@rules_kotlin_maven//:com_google_devtools_ksp_symbol_processing_common_deps",
+        "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
+        "//kotlin/compiler:symbol-processing-aa",
+        "//kotlin/compiler:symbol-processing-api",
+        "//kotlin/compiler:symbol-processing-common-deps",
     ],
 )

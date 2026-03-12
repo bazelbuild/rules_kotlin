@@ -47,9 +47,9 @@ alias(
 release_archive(
     name = "pkg",
     srcs = [
+        "shade.jarjar",
         ":jdeps-gen.jar",
         ":skip-code-gen.jar",
-        "shade.jarjar",
     ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
