@@ -1,4 +1,4 @@
-load("//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("//kotlin:jvm.bzl", "kt_jvm_test")
 
 kt_jvm_test(
     name = "WorkerContextTest",
