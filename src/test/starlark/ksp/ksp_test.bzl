@@ -16,6 +16,7 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("//src/main/starlark/core/plugin:providers.bzl", "KspPluginInfo")
 
 def _ksp_outputs_test_impl(ctx):
     """Verify KSP2 action produces expected outputs."""
@@ -103,6 +104,91 @@ def _ksp_single_action_test_impl(ctx):
 
 ksp_single_action_test = analysistest.make(_ksp_single_action_test_impl)
 
+def _ksp_plugin_options_provider_test_impl(ctx):
+    """Verify kt_ksp_plugin with options carries them in KspPluginInfo."""
+    env = analysistest.begin(ctx)
+
+    target = analysistest.target_under_test(env)
+
+    asserts.true(
+        env,
+        KspPluginInfo in target,
+        "kt_ksp_plugin should provide KspPluginInfo",
+    )
+
+    ksp_info = target[KspPluginInfo]
+    asserts.true(
+        env,
+        len(ksp_info.options) == 2,
+        "KspPluginInfo should have 2 options, got %d" % len(ksp_info.options),
+    )
+    asserts.equals(env, "test_value", ksp_info.options["test_key"])
+    asserts.equals(env, "another_value", ksp_info.options["another_key"])
+
+    return analysistest.end(env)
+
+ksp_plugin_options_provider_test = analysistest.make(_ksp_plugin_options_provider_test_impl)
+
+def _ksp_plugin_empty_options_provider_test_impl(ctx):
+    """Verify kt_ksp_plugin without options has empty options dict in KspPluginInfo."""
+    env = analysistest.begin(ctx)
+
+    target = analysistest.target_under_test(env)
+
+    asserts.true(
+        env,
+        KspPluginInfo in target,
+        "kt_ksp_plugin should provide KspPluginInfo",
+    )
+
+    ksp_info = target[KspPluginInfo]
+    asserts.equals(env, 0, len(ksp_info.options))
+
+    return analysistest.end(env)
+
+ksp_plugin_empty_options_provider_test = analysistest.make(_ksp_plugin_empty_options_provider_test_impl)
+
+def _ksp_options_action_test_impl(ctx):
+    """Verify KSP2 action receives --ksp_options in its arguments."""
+    env = analysistest.begin(ctx)
+
+    actions = analysistest.target_actions(env)
+    ksp2_actions = [a for a in actions if a.mnemonic == "KotlinKsp2"]
+
+    asserts.equals(env, 1, len(ksp2_actions), "Should have exactly one KotlinKsp2 action")
+
+    argv = ksp2_actions[0].argv
+
+    ksp_option_args = [arg for arg in argv if arg.startswith("test_key=") or arg.startswith("another_key=")]
+    asserts.equals(
+        env,
+        2,
+        len(ksp_option_args),
+        "KotlinKsp2 action should have 2 --ksp_options values in argv, got: %s" % ksp_option_args,
+    )
+
+    ksp_flag_args = [arg for arg in argv if arg == "--ksp_options"]
+    asserts.equals(
+        env,
+        2,
+        len(ksp_flag_args),
+        "KotlinKsp2 action should have 2 --ksp_options flags in argv",
+    )
+
+    return analysistest.end(env)
+
+ksp_options_action_test = analysistest.make(_ksp_options_action_test_impl)
+
+def _ksp_conflicting_options_test_impl(ctx):
+    """Verify that conflicting KSP option keys across plugins fail analysis."""
+    env = analysistest.begin(ctx)
+    return analysistest.end(env)
+
+ksp_conflicting_options_test = analysistest.make(
+    _ksp_conflicting_options_test_impl,
+    expect_failure = True,
+)
+
 def ksp_test_suite(name):
     """Create test suite for KSP2 integration tests.
 
@@ -118,5 +204,8 @@ def ksp_test_suite(name):
             ":ksp_outputs_test",
             ":ksp_action_test",
             ":ksp_single_action_test",
+            ":ksp_plugin_options_provider_test",
+            ":ksp_plugin_empty_options_provider_test",
+            ":ksp_options_action_test",
         ],
     )

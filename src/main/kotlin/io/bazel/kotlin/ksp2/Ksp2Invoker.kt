@@ -55,6 +55,7 @@ class Ksp2Invoker(
     languageVersion: String?,
     apiVersion: String?,
     jdkHome: File?,
+    processorOptions: Map<String, String> = emptyMap(),
     logLevel: Int = 1,
   ): Int {
     // Load processors via ServiceLoader from the provided classloader
@@ -81,6 +82,7 @@ class Ksp2Invoker(
           languageVersion?.let { this.languageVersion = it }
           apiVersion?.let { this.apiVersion = it }
           jdkHome?.let { this.jdkHome = it }
+          this.processorOptions = processorOptions
           this.mapAnnotationArgumentsInJava = true
         }.build()
 

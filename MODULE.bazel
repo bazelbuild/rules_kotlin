@@ -38,8 +38,7 @@ bazel_dep(name = "rules_shell", version = "0.4.1")
 bazel_dep(name = "bazel_worker_api", version = "0.0.10")
 bazel_dep(name = "bazel_worker_java", version = "0.0.10")
 
-# TODO[https://github.com/bazelbuild/rules_kotlin/issues/1395]: Update when fixed version is available.
-bazel_dep(name = "buildifier_prebuilt", version = "8.2.1", dev_dependency = True)
+bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True)
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")

@@ -445,7 +445,8 @@ def _run_ksp_builder_actions(
         toolchains,
         srcs,
         compile_deps,
-        transitive_runtime_jars):
+        transitive_runtime_jars,
+        ksp_options = {}):
     """Runs KSP2 via a dedicated KSP2 worker.
 
     The worker handles all staging, KSP2 execution, and output packaging internally.
@@ -505,6 +506,10 @@ def _run_ksp_builder_actions(
     args.add_all("--processor_classpath", ksp2_api_jars)
     if transitive_runtime_jars:
         args.add_all("--processor_classpath", transitive_runtime_jars)
+
+    # Pass KSP processor options as key=value pairs
+    for key, value in ksp_options.items():
+        args.add("--ksp_options", "%s=%s" % (key, value))
 
     # Run KSP2 via dedicated worker (separate from kotlinc worker)
     # Single action: staging + KSP2 + packaging all happen in the worker
@@ -734,6 +739,7 @@ def _kt_jvm_produce_output_jar_actions(
 
     annotation_processors = _plugin_mappers.targets_to_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
     ksp_annotation_processors = _plugin_mappers.targets_to_ksp_annotation_processors(ctx.attr.plugins + ctx.attr.deps)
+    ksp_options = _plugin_mappers.targets_to_ksp_options(ctx.attr.plugins + ctx.attr.deps)
     transitive_runtime_jars = _plugin_mappers.targets_to_transitive_runtime_jars(ctx.attr.plugins + ctx.attr.deps)
     plugins = _new_plugins_from(ctx.attr.plugins + _exported_plugins(deps = ctx.attr.deps))
 
@@ -757,6 +763,7 @@ def _kt_jvm_produce_output_jar_actions(
         deps_artifacts = deps_artifacts,
         annotation_processors = annotation_processors,
         ksp_annotation_processors = ksp_annotation_processors,
+        ksp_options = ksp_options,
         transitive_runtime_jars = transitive_runtime_jars,
         plugins = plugins,
         compile_jar = compile_jar,
@@ -861,6 +868,7 @@ def _run_kt_java_builder_actions(
         deps_artifacts,
         annotation_processors,
         ksp_annotation_processors,
+        ksp_options,
         transitive_runtime_jars,
         plugins,
         compile_jar,
@@ -908,6 +916,7 @@ def _run_kt_java_builder_actions(
             srcs = srcs,
             compile_deps = compile_deps,
             transitive_runtime_jars = transitive_runtime_jars,
+            ksp_options = ksp_options,
         )
         ksp_generated_class_jar = ksp_outputs.ksp_generated_class_jar
         output_jars.append(ksp_generated_class_jar)

@@ -668,6 +668,11 @@ kt_jvm_library(
             doc = """Runs Java compilation action for plugin generating Java output.""",
             default = False,
         ),
+        "options": attr.string_dict(
+            doc = """Processor options passed to the KSP processor via SymbolProcessorEnvironment.options.
+            Each entry is a key-value pair available to the processor at processing time.""",
+            default = {},
+        ),
         "processor_class": attr.string(
             doc = " The fully qualified class name that the Java compiler uses as an entry point to the annotation processor.",
             mandatory = True,
