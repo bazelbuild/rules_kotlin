@@ -106,30 +106,21 @@ def kt_define_release_compiler_targets():
         actual = ":kotlinx-serialization-compiler-plugin",
     )
 
-# List of Kotlin standard library targets for runtime dependencies.
+# Kotlin standard library targets for the CLI toolchain's compilation and runtime classpath.
 # Note: kotlin-stdlib-jdk7 and kotlin-stdlib-jdk8 are not needed as of Kotlin 1.8+,
 # since JDK 8 extensions are included in the main stdlib.
 KOTLIN_STDLIBS = [
     "//kotlin/compiler:annotations",
     "//kotlin/compiler:kotlin-reflect",
     "//kotlin/compiler:kotlin-stdlib",
-    "//kotlin/compiler:kotlin-compiler",
-    "//kotlin/compiler:kotlin-build-tools-impl",
-    "//kotlin/compiler:kotlin-annotation-processing",
-    "//kotlin/compiler:jvm-abi-gen",
     "//kotlin/compiler:kotlinx-coroutines-core-jvm",
-    "//kotlin/compiler:kotlinx-serialization-core-jvm",
-    "//kotlin/compiler:kotlinx-serialization-json-jvm",
 ]
 
-# KSP2 needs IntelliJ coroutines variant rather than the default kotlinx artifact.
+# KSP2 runtime classpath: basic Kotlin runtime with the IntelliJ coroutines variant
+# instead of the standard kotlinx artifact (required for KSP2 compatibility).
 KSP2_RUNTIME_STDLIBS = [
-    dep
-    for dep in KOTLIN_STDLIBS
-    if dep not in [
-        "//kotlin/compiler:kotlin-compiler",
-        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
-    ]
-] + [
+    "//kotlin/compiler:annotations",
+    "//kotlin/compiler:kotlin-reflect",
+    "//kotlin/compiler:kotlin-stdlib",
     "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
 ]

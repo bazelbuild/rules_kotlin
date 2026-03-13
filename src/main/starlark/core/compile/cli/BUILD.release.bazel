@@ -5,19 +5,11 @@ load("//src/main/starlark/core/compile:common.bzl", "TYPE")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load(":toolchain.bzl", "cli_toolchain")
 
-java_library(
-    name = "kotlinc_jar",
-    exports = [
-        "//kotlin/compiler:kotlin-compiler",
-    ],
-)
-
 java_binary(
     name = "kotlinc",
-    data = _KOTLIN_STDLIBS,
     main_class = "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
     runtime_deps = [
-        ":kotlinc_jar",
+        "//kotlin/compiler:kotlin-compiler",
         "//kotlin/compiler:annotations",
         "//kotlin/compiler:kotlin-reflect",
         "//kotlin/compiler:kotlin-stdlib",
