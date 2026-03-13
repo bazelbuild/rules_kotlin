@@ -52,6 +52,12 @@ internal fun JvmCompilationTask.runPlugins(
   plugins: InternalCompilerPlugins,
   btapiCompiler: BtapiCompiler,
 ): JvmCompilationTask {
+  // Run the KAPT phase when there are annotation processors OR when any plugin declares a
+  // stubs phase (some plugins participate in stub generation without being traditional
+  // annotation processors). The previous guard checked `outputs.generatedClassJar` instead,
+  // which was more conservative but missed plugins that only need the stubs phase. Any
+  // compiler plugin that declares PLUGIN_PHASE_STUBS is expected to be KAPT-compatible; if
+  // a plugin has a stubs phase but is not KAPT-compatible, it should not set that phase.
   if (
     (
       inputs.processorsList.isEmpty() &&
@@ -238,6 +244,16 @@ internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask
         .iterator(),
     )
   }
+
+internal val Directories.stubsDir
+  get() =
+    Files
+      .createDirectories(
+        when {
+          generatedStubClasses.isNotEmpty() -> Paths.get(generatedStubClasses)
+          else -> Paths.get(temp).resolve("stubs")
+        },
+      ).toString()
 
 private val Directories.incrementalData
   get() =

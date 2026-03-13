@@ -30,7 +30,7 @@ object Build {
       .from(args.toList()) {
         val jvmTaskExecutor = KotlinJvmTaskExecutor()
         val builder = KotlinBuilder(jvmTaskExecutor)
-        start(CompileKotlin(builder))
+        jvmTaskExecutor.use { start(CompileKotlin(builder)) }
       }.run(::exitProcess)
   }
 }

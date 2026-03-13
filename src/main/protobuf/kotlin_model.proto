@@ -177,10 +177,10 @@ message JvmCompilationTask {
       // Annotation processor classpath.
       repeated string processorpaths = 8;
       // Reserved: replaced by structured plugins.
-      reserved 9, 11, 12, 13, 14;
+      reserved 9, 10, 11, 12, 13, 14;
       reserved "stubs_plugin_options", "stubs_plugins", "stubs_plugin_classpath", "compiler_plugin_options", "compiler_plugins", "compiler_plugin_classpath";
       // Kotlin compiler plugins with explicit phase information.
-      repeated Plugin plugins = 10;
+      repeated Plugin plugins = 17;
       // Java opts to be passed to java compiler
       repeated string javac_flags = 15;
       // JDeps dependency artifacts

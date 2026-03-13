@@ -43,7 +43,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
-abstract class KotlinAbstractTestBuilder<T> {
+public abstract class KotlinAbstractTestBuilder<T> {
     private static final Path BAZEL_TEST_DIR =
             FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"));
 
@@ -202,7 +202,7 @@ abstract class KotlinAbstractTestBuilder<T> {
         return toPlatformPath(path).toString();
     }
 
-    static InternalCompilerPlugins internalPluginsForTest() {
+    public static InternalCompilerPlugins internalPluginsForTest() {
         return InternalCompilerPlugins.fromPaths(
                 Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),
                 Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar(),
@@ -211,7 +211,7 @@ abstract class KotlinAbstractTestBuilder<T> {
         );
     }
 
-    static BtapiRuntimeSpec btapiRuntimeForTest() {
+    public static BtapiRuntimeSpec btapiRuntimeForTest() {
         return new BtapiRuntimeSpec(
                 List.of(
                         Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),

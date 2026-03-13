@@ -54,11 +54,6 @@ load(
     _plugin_payload = "plugin_payload",
 )
 
-# Keep runtime artifact wiring in a single place for all worker actions.
-_RUNTIME_ARG_SPECS = (
-    ("--btapi_runtime_classpath", "btapi_runtime_classpath"),
-)
-
 # UTILITY ##############################################################################################################
 def find_java_toolchain(ctx, target):
     if _JAVA_TOOLCHAIN_TYPE in ctx.toolchains:
@@ -125,13 +120,6 @@ def _fail_if_invalid_associate_deps(associate_deps, deps):
 
 def _java_infos_to_compile_jars(java_infos):
     return depset(transitive = [j.compile_jars for j in java_infos])
-
-def _runtime_inputs(toolchains):
-    return [getattr(toolchains.kt, attr_name) for _, attr_name in _RUNTIME_ARG_SPECS]
-
-def _add_runtime_args(args, toolchains):
-    for flag, attr_name in _RUNTIME_ARG_SPECS:
-        args.add_all(flag, getattr(toolchains.kt, attr_name))
 
 def _exported_plugins(deps):
     """Encapsulates compiler dependency metadata."""
@@ -578,7 +566,7 @@ def _run_kt_builder_action(
 
     kotlinc_options = ctx.attr.kotlinc_opts[KotlincOptions] if ctx.attr.kotlinc_opts else toolchains.kt.kotlinc_options
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
-    runtime_inputs = _runtime_inputs(toolchains)
+    runtime_inputs = [toolchains.kt.btapi_runtime_classpath]
     internal_plugin_inputs = [
         toolchains.kt.internal_jvm_abi_gen,
         toolchains.kt.internal_skip_code_gen,
@@ -597,7 +585,7 @@ def _run_kt_builder_action(
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
-    _add_runtime_args(args, toolchains)
+    args.add_all("--btapi_runtime_classpath", toolchains.kt.btapi_runtime_classpath)
     args.add("--internal_jvm_abi_gen", toolchains.kt.internal_jvm_abi_gen)
     args.add("--internal_skip_code_gen", toolchains.kt.internal_skip_code_gen)
     args.add("--internal_kapt", toolchains.kt.internal_kapt)

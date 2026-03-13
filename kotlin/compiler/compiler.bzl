@@ -37,7 +37,7 @@ def _import_labels(labels, rule_kind, **rule_args):
                     "@%s//:%s" % (_KT_COMPILER_REPO, label),
                 ],
             )
-            return
+            continue
 
         if "-sources" in label:
             continue

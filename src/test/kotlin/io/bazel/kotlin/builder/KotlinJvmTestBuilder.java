@@ -51,12 +51,16 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     DirectoryType.ABI_CLASSES,
                     DirectoryType.SOURCE_GEN,
                     DirectoryType.JAVA_SOURCE_GEN,
+                    DirectoryType.GENERATED_STUBS,
                     DirectoryType.GENERATED_CLASSES,
                     DirectoryType.TEMP,
+                    DirectoryType.INCREMENTAL_DATA,
                     DirectoryType.COVERAGE_METADATA);
 
     private final TaskBuilder taskBuilderInstance = new TaskBuilder();
     private static KotlinJvmTaskExecutor jvmTaskExecutor;
+    private static io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec runtimeSpec;
+    private static InternalCompilerPlugins plugins;
 
     @Override
     void setupForNext(CompilationTaskInfo.Builder taskInfo) {
@@ -87,7 +91,8 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     @SafeVarargs
     public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
-        return executeTask(jvmTaskExecutor()::execute, setup);
+        jvmTaskExecutor();
+        return executeTask((ctx, task) -> jvmTaskExecutor.execute(ctx, task, runtimeSpec, plugins), setup);
     }
 
     /**
@@ -101,8 +106,9 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     private static KotlinJvmTaskExecutor jvmTaskExecutor() {
         if (jvmTaskExecutor == null) {
-            InternalCompilerPlugins plugins = internalPluginsForTest();
-            jvmTaskExecutor = new KotlinJvmTaskExecutor(btapiRuntimeForTest(), plugins);
+            runtimeSpec = btapiRuntimeForTest();
+            plugins = internalPluginsForTest();
+            jvmTaskExecutor = new KotlinJvmTaskExecutor();
         }
         return jvmTaskExecutor;
     }
@@ -141,6 +147,8 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     public void tearDown() {
         jvmTaskExecutor = null;
+        runtimeSpec = null;
+        plugins = null;
     }
 
     public class TaskBuilder {

@@ -233,6 +233,7 @@ class KotlinBuilder(
 
       with(root.directoriesBuilder) {
         val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
+        val tempDir = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp"))
         classes =
           workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
         javaClasses =
@@ -245,8 +246,7 @@ class KotlinBuilder(
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes"))
             .toString()
-        temp =
-          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp")).toString()
+        temp = tempDir.toString()
         generatedSources =
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources"))
@@ -256,7 +256,7 @@ class KotlinBuilder(
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_java_sources"))
             .toString()
         generatedStubClasses =
-          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
+          Files.createDirectories(tempDir.resolve("stubs")).toString()
         coverageMetadataClasses =
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "coverage-metadata"))

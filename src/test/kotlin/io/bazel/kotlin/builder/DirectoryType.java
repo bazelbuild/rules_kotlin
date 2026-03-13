@@ -16,7 +16,7 @@ public enum DirectoryType {
     TEMP("temp directory", Paths.get("temp")),
     SOURCE_GEN("generated sources directory", Paths.get("generated_sources")),
     JAVA_SOURCE_GEN("generated sources directory", Paths.get("generated_java_sources")),
-    GENERATED_STUBS("generated kotlin stubs directory", Paths.get("stubs")),
+    GENERATED_STUBS("generated kotlin stubs directory", Paths.get("temp", "stubs")),
     INCREMENTAL_DATA("generated kotlin stubs class directory", Paths.get("temp", "incrementalData")),
     COVERAGE_METADATA("generated kotlin stubs class directory", Paths.get("temp", "coverage-metadata"));
 

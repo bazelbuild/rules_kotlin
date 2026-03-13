@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgumen
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
-import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -79,9 +78,10 @@ class BtapiCompiler(
     task: JvmCompilationTask,
     plugins: InternalCompilerPlugins,
     out: PrintStream,
+    verbose: Boolean = false,
   ): CompilationResult {
     val compilerPlugins = buildCompilerPlugins(task, plugins)
-    val logger = createCompilerLogger(out, verbose = false)
+    val logger = createCompilerLogger(out, verbose = verbose)
 
     return executeCompilation(
       task = task,
@@ -99,10 +99,6 @@ class BtapiCompiler(
     outputDir: Path,
     compilerPlugins: List<CompilerPlugin>,
     logger: KotlinLogger,
-    additionalConfiguration: (
-      JvmCompilationOperation,
-      JvmCompilerArguments,
-    ) -> Unit = { _, _ -> },
   ): CompilationResult {
     // Collect sources from protobuf
     val sources =
@@ -110,39 +106,48 @@ class BtapiCompiler(
         .map { Path.of(it) }
 
     // Create BTAPI compilation operation
-    val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
-    val compilerArgs = operation.compilerArguments
+    val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, outputDir)
+    val compilerArgs = operationBuilder.compilerArguments
 
     // Configure compiler arguments directly from protobuf
     configureCompilerArguments(compilerArgs, task)
 
-    // Configure compiler plugins via raw argument strings for compatibility
-    // with pre-2.3.20 toolchains that do not expose typed compiler plugin setters.
+    // Configure compiler plugins.
+    // Prefer the typed COMPILER_PLUGINS setter (BTAPI >= 2.3.20) which avoids a
+    // serialize/deserialize round-trip of already-typed arguments. For older toolchains
+    // that do not expose this setter, fall back to the string-based round-trip:
+    // all currently-typed args are serialized back to strings, the plugin strings are
+    // appended, and the whole list is re-applied. The round-trip is necessary because
+    // applyArgumentStrings() applies *all* fields from the parsed arg object (including
+    // nulls), which would otherwise wipe out previously-typed settings.
+    //
+    // TODO: Remove the string fallback path when BTAPI < 2.3.20 compat is no longer needed.
     if (compilerPlugins.isNotEmpty()) {
-      try {
-        val pluginArgumentStrings = BtapiPluginArguments.toArgumentStrings(compilerPlugins)
-        compilerArgs.applyArgumentStrings(compilerArgs.toArgumentStrings() + pluginArgumentStrings)
-      } catch (e: CompilerArgumentsParseException) {
-        throw IllegalArgumentException(
-          "Invalid compiler plugin arguments: ${e.message}",
-          e,
-        )
+      if (CommonCompilerArguments.COMPILER_PLUGINS in compilerArgs) {
+        compilerArgs[CommonCompilerArguments.COMPILER_PLUGINS] = compilerPlugins
+      } else {
+        // Fallback: string round-trip for BTAPI < 2.3.20
+        try {
+          val pluginArgumentStrings = BtapiPluginArguments.toArgumentStrings(compilerPlugins)
+          compilerArgs.applyArgumentStrings(
+            compilerArgs.build().toArgumentStrings() + pluginArgumentStrings,
+          )
+        } catch (e: CompilerArgumentsParseException) {
+          throw IllegalArgumentException("Invalid compiler plugin arguments: ${e.message}", e)
+        }
       }
     }
 
-    // Allow caller to do additional configuration
-    additionalConfiguration(operation, compilerArgs)
-
     // Execute the compilation
-    return buildSession.executeOperation(operation, logger = logger)
+    return buildSession.executeOperation(operationBuilder.build(), logger = logger)
   }
 
   /**
-   * Configures compiler arguments from protobuf fields using typed BTAPI setters.
+   * Configures compiler arguments from protobuf fields via BTAPI builders.
    */
   @OptIn(ExperimentalCompilerArgument::class)
   private fun configureCompilerArguments(
-    args: JvmCompilerArguments,
+    args: JvmCompilerArguments.Builder,
     task: JvmCompilationTask,
   ) {
     // Apply passthrough flags FIRST, before other settings.
@@ -372,7 +377,7 @@ class BtapiCompiler(
     val optionTokens =
       mapOf(
         "{generatedClasses}" to task.directories.generatedClasses,
-        "{stubs}" to stubsDir(task.directories),
+        "{stubs}" to task.directories.stubsDir,
         "{temp}" to task.directories.temp,
         "{generatedSources}" to task.directories.generatedSources,
         "{classpath}" to plugin.classpathList.joinToString(File.pathSeparator),
@@ -467,7 +472,7 @@ class BtapiCompiler(
    * KAPT generates stubs and processes annotations, producing:
    * - Generated Java sources in directories.generatedJavaSources
    * - Generated classes in directories.generatedClasses
-   * - Stubs in temp/stubs
+   * - Stubs in directories.generatedStubClasses (canonicalized to temp/stubs by the builder)
    *
    * @param task The compilation task protobuf containing all compilation info
    * @param plugins Internal compiler plugins (must include kapt)
@@ -509,7 +514,7 @@ class BtapiCompiler(
     val pluginId = plugins.kapt.id
 
     // Create temp subdirectories for stubs and incremental data
-    val stubsDir = stubsDir(task.directories)
+    val stubsDir = task.directories.stubsDir
     val incrementalDataDir =
       Files.createDirectories(
         Paths.get(task.directories.temp).resolve("incrementalData"),
@@ -577,9 +582,6 @@ class BtapiCompiler(
       .filter { hasPhase(it, JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS) }
       .filterNot { it.id == plugins.kapt.id }
       .map { toBtapiPlugin(task, it) }
-
-  private fun stubsDir(directories: JvmCompilationTask.Directories): String =
-    Files.createDirectories(Paths.get(directories.temp).resolve("stubs")).toString()
 
   /**
    * Encodes a map to Base64 in the format expected by KAPT.

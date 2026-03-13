@@ -1,19 +1,28 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
+import com.google.devtools.build.lib.view.proto.Deps as BazelJdeps
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.Deps
 import io.bazel.kotlin.builder.DirectoryType
+import io.bazel.kotlin.builder.KotlinAbstractTestBuilder
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
+import io.bazel.kotlin.builder.toolchain.BtapiToolchainsCache
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.ObjectInputStream
+import java.lang.reflect.InvocationTargetException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.Base64
 import java.util.function.Consumer
 import java.util.jar.JarFile
@@ -224,15 +233,19 @@ class BtapiCompilerTest {
       },
     )
     ctx.assertFilesExist(DirectoryType.JAVA_SOURCE_GEN, "autovalue/AutoValue_TestValue.java")
+    ctx.assertFilesExist(DirectoryType.GENERATED_STUBS, "autovalue/TestValue.java")
+    ctx.assertFilesExist(DirectoryType.INCREMENTAL_DATA, "autovalue/TestValue.class")
   }
 
   @Test
   fun `expands legacy plugin option templates for btapi plugins`() {
     val tempDir = Files.createTempDirectory("btapi-plugin-options")
+    val stubsDir = tempDir.resolve("configured-stubs")
     val directories =
       JvmCompilationTask.Directories.newBuilder()
         .setGeneratedClasses(tempDir.resolve("generated-classes").toString())
         .setGeneratedSources(tempDir.resolve("generated-sources").toString())
+        .setGeneratedStubClasses(stubsDir.toString())
         .setTemp(tempDir.toString())
         .build()
     val pluginOption =
@@ -259,35 +272,15 @@ class BtapiCompilerTest {
         .addOptions(pluginOption)
         .build()
 
-    val toolchainsCache = io.bazel.kotlin.builder.toolchain.BtapiToolchainsCache()
-    val runtimeSpec = io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec(
-      listOf(
-        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar()),
-      ),
-    )
-    val toolchains = toolchainsCache.get(runtimeSpec)
-    val btapiCompiler = BtapiCompiler(toolchains)
-
-    val method =
-      BtapiCompiler::class.java.getDeclaredMethod(
-        "toBtapiPlugin",
-        JvmCompilationTask::class.java,
-        JvmCompilationTask.Inputs.Plugin::class.java,
-      )
-    method.isAccessible = true
-
-    val btapiPlugin = method.invoke(btapiCompiler, task, plugin) as CompilerPlugin
+    val btapiPlugin =
+      withBtapiCompiler { btapiCompiler, _ ->
+        invokeToBtapiPlugin(btapiCompiler, task, plugin)
+      }
     val expectedValue =
       listOf(
         "classes=${tempDir.resolve("generated-classes")}",
         "sources=${tempDir.resolve("generated-sources")}",
-        "stubs=${tempDir.resolve("stubs")}",
+        "stubs=$stubsDir",
         "temp=$tempDir",
         "classpath=/plugins/first.jar${File.pathSeparator}/plugins/second.jar",
       ).joinToString(";")
@@ -297,46 +290,191 @@ class BtapiCompilerTest {
       "-P",
       "plugin:example.plugin:expanded=$expectedValue",
     ).inOrder()
-    assertThat(Files.isDirectory(tempDir.resolve("stubs"))).isTrue()
+    assertThat(Files.isDirectory(stubsDir)).isTrue()
+  }
 
-    btapiCompiler.close()
+  @Test
+  fun `compileKapt and stubs phase plugins share the canonical stubs dir`() {
+    val tempDir = Files.createTempDirectory("btapi-kapt-stubs")
+    val stubsDir = tempDir.resolve("canonical-stubs")
+    val task =
+      minimalTaskBuilder(tempDir)
+        .apply {
+          inputsBuilder.addPlugins(
+            JvmCompilationTask.Inputs.Plugin.newBuilder()
+              .setId("example.stubs")
+              .addClasspath("/plugins/example-stubs.jar")
+              .addOptions(
+                JvmCompilationTask.Inputs.PluginOption.newBuilder()
+                  .setKey("dir")
+                  .setValue("{stubs}")
+                  .build(),
+              ).addPhases(JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS)
+              .build(),
+          )
+          directoriesBuilder.generatedStubClasses = stubsDir.toString()
+        }.build()
+
+    withBtapiCompiler { btapiCompiler, _ ->
+      val kaptPlugin =
+        invokeBuildKaptCompilerPlugin(btapiCompiler, task, internalCompilerPlugins())
+      val stubsPlugins =
+        invokeBuildStubsPlugins(btapiCompiler, task, internalCompilerPlugins())
+
+      assertThat(kaptPlugin.rawArguments.single { it.key == "stubs" }.value).isEqualTo(stubsDir.toString())
+      assertThat(stubsPlugins).hasSize(1)
+      assertThat(stubsPlugins.single().rawArguments.single().value).isEqualTo(stubsDir.toString())
+    }
+
+    assertThat(Files.isDirectory(stubsDir)).isTrue()
+  }
+
+  @Test
+  fun `reduced classpath prefers friend jars and explicit deps only`() {
+    val tempDir = Files.createTempDirectory("btapi-reduced-classpath")
+    val generatedClasses = tempDir.resolve("generated-classes").toString()
+    val jdepsFile = tempDir.resolve("deps.jdeps")
+    Files.newOutputStream(jdepsFile).use { out ->
+      BazelJdeps.Dependencies.newBuilder()
+        .addDependency(
+          BazelJdeps.Dependency.newBuilder()
+            .setPath("/deps/explicit.jar")
+            .setKind(BazelJdeps.Dependency.Kind.EXPLICIT)
+            .build(),
+        ).addDependency(
+          BazelJdeps.Dependency.newBuilder()
+            .setPath("/deps/implicit.jar")
+            .setKind(BazelJdeps.Dependency.Kind.IMPLICIT)
+            .build(),
+        ).build()
+        .writeTo(out)
+    }
+    val task =
+      minimalTaskBuilder(tempDir)
+        .apply {
+          infoBuilder.reducedClasspathMode = "KOTLINBUILDER_REDUCED"
+          infoBuilder.addFriendPaths("/deps/friend.jar")
+          inputsBuilder
+            .addClasspath("/deps/ignored.jar")
+            .addDirectDependencies("/deps/friend.jar")
+            .addDirectDependencies("/deps/direct.jar")
+            .addDepsArtifacts(jdepsFile.toString())
+        }.build()
+
+    val classpath =
+      withBtapiCompiler { btapiCompiler, _ ->
+        invokeComputeClasspath(btapiCompiler, task)
+      }
+
+    assertThat(classpath).containsExactly(
+      "/deps/friend.jar",
+      "/deps/direct.jar",
+      "/deps/explicit.jar",
+      generatedClasses,
+    ).inOrder()
+  }
+
+  @Test
+  fun `configureCompilerArguments gives typed settings precedence over valid passthrough flags`() {
+    val task =
+      minimalTaskBuilder()
+        .apply {
+          infoBuilder.addAllPassthroughFlags(
+            listOf(
+              "-module-name",
+              "from_passthrough",
+              "-jvm-target",
+              "1.8",
+              "-language-version",
+              "1.9",
+              "-api-version",
+              "1.9",
+            ),
+          )
+        }.build()
+
+    val arguments =
+      withBtapiCompiler { btapiCompiler, toolchains ->
+        invokeConfigureCompilerArguments(btapiCompiler, toolchains, task)
+      }
+
+    assertThat(argumentValue(arguments, "-module-name")).isEqualTo("test_module")
+    assertThat(argumentValue(arguments, "-jvm-target")).isEqualTo("11")
+    assertThat(argumentValue(arguments, "-language-version")).isEqualTo("2.0")
+    assertThat(argumentValue(arguments, "-api-version")).isEqualTo("2.0")
+  }
+
+  @Test
+  fun `configureCompilerArguments rejects invalid passthrough values`() {
+    val task =
+      minimalTaskBuilder()
+        .apply {
+          infoBuilder.addAllPassthroughFlags(
+            listOf(
+              "-jvm-target",
+              "8",
+            ),
+          )
+        }.build()
+
+    val thrown =
+      assertThrows(IllegalArgumentException::class.java) {
+        withBtapiCompiler { btapiCompiler, toolchains ->
+          invokeConfigureCompilerArguments(btapiCompiler, toolchains, task)
+        }
+      }
+
+    assertThat(thrown).hasMessageThat().contains("Invalid passthrough flag")
+  }
+
+  @Test
+  fun `configureCompilerArguments rejects unsupported jvm target`() {
+    val task =
+      minimalTaskBuilder()
+        .apply {
+          infoBuilder.toolchainInfoBuilder.jvmBuilder.jvmTarget = "999"
+        }.build()
+
+    val thrown =
+      assertThrows(IllegalArgumentException::class.java) {
+        withBtapiCompiler { btapiCompiler, toolchains ->
+          invokeConfigureCompilerArguments(btapiCompiler, toolchains, task)
+        }
+      }
+
+    assertThat(thrown).hasMessageThat().contains("Unsupported kotlin_jvm_target '999'")
+  }
+
+  @Test
+  fun `configureCompilerArguments rejects unsupported kotlin versions`() {
+    val task =
+      minimalTaskBuilder()
+        .apply {
+          infoBuilder.toolchainInfoBuilder.commonBuilder.apiVersion = "999"
+        }.build()
+
+    val thrown =
+      assertThrows(IllegalArgumentException::class.java) {
+        withBtapiCompiler { btapiCompiler, toolchains ->
+          invokeConfigureCompilerArguments(btapiCompiler, toolchains, task)
+        }
+      }
+
+    assertThat(thrown).hasMessageThat().contains("Unsupported kotlin_api_version '999'")
   }
 
   @Test
   fun `encodeMapForKapt produces decodable Base64`() {
-    // Use reflection to call the private encodeMapForKapt method
-    val compiler = BtapiCompiler::class.java
-    val method = compiler.getDeclaredMethod(
-      "encodeMapForKapt",
-      Map::class.java,
-    )
-    method.isAccessible = true
-
-    // Create a BtapiCompiler instance - we need toolchains for construction, but we only
-    // need to call the static-like encode method.
-    // Since BtapiCompiler requires toolchains, use a helper to get one.
-    val toolchainsCache = io.bazel.kotlin.builder.toolchain.BtapiToolchainsCache()
-    val runtimeSpec = io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec(
-      listOf(
-        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
-        java.nio.file.Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar()),
-      ),
-    )
-    val toolchains = toolchainsCache.get(runtimeSpec)
-    val btapiCompiler = BtapiCompiler(toolchains)
-
     val inputMap = mapOf(
       "-target" to "11",
       "-source" to "11",
       "custom.key" to "custom.value",
     )
 
-    val encoded = method.invoke(btapiCompiler, inputMap) as String
+    val encoded =
+      withBtapiCompiler { btapiCompiler, _ ->
+        invokeEncodeMapForKapt(btapiCompiler, inputMap)
+      }
 
     // Decode and verify round-trip fidelity
     val decoded = Base64.getDecoder().decode(encoded)
@@ -352,7 +490,154 @@ class BtapiCompilerTest {
     }
 
     assertThat(resultMap).isEqualTo(inputMap)
+  }
 
-    btapiCompiler.close()
+  private fun minimalTaskBuilder(tempDir: Path = Files.createTempDirectory("btapi-task")) =
+    JvmCompilationTask.newBuilder().apply {
+      val tempPath = tempDir.resolve("temp")
+      infoBuilder.apply {
+        moduleName = "test_module"
+        toolchainInfoBuilder.jvmBuilder.jvmTarget = "11"
+        toolchainInfoBuilder.commonBuilder.apiVersion = "2.0"
+        toolchainInfoBuilder.commonBuilder.languageVersion = "2.0"
+      }
+      directoriesBuilder.apply {
+        classes = tempDir.resolve("classes").toString()
+        generatedClasses = tempDir.resolve("generated-classes").toString()
+        generatedSources = tempDir.resolve("generated-sources").toString()
+        generatedJavaSources = tempDir.resolve("generated-java-sources").toString()
+        generatedStubClasses = tempPath.resolve("stubs").toString()
+        temp = tempPath.toString()
+      }
+    }
+
+  private inline fun <T> withBtapiCompiler(block: (BtapiCompiler, KotlinToolchains) -> T): T {
+    val toolchains = BtapiToolchainsCache().get(KotlinAbstractTestBuilder.btapiRuntimeForTest())
+    return BtapiCompiler(toolchains).use { block(it, toolchains) }
+  }
+
+  private fun internalCompilerPlugins() = KotlinAbstractTestBuilder.internalPluginsForTest()
+
+  private fun invokeToBtapiPlugin(
+    btapiCompiler: BtapiCompiler,
+    task: JvmCompilationTask,
+    plugin: JvmCompilationTask.Inputs.Plugin,
+  ): CompilerPlugin {
+    val method =
+      BtapiCompiler::class.java.getDeclaredMethod(
+        "toBtapiPlugin",
+        JvmCompilationTask::class.java,
+        JvmCompilationTask.Inputs.Plugin::class.java,
+      )
+    method.isAccessible = true
+    return method.invoke(btapiCompiler, task, plugin) as CompilerPlugin
+  }
+
+  private fun invokeBuildKaptCompilerPlugin(
+    btapiCompiler: BtapiCompiler,
+    task: JvmCompilationTask,
+    plugins: InternalCompilerPlugins,
+    aptMode: String = "stubsAndApt",
+    verbose: Boolean = false,
+  ): CompilerPlugin {
+    val method =
+      BtapiCompiler::class.java.getDeclaredMethod(
+        "buildKaptCompilerPlugin",
+        JvmCompilationTask::class.java,
+        InternalCompilerPlugins::class.java,
+        String::class.java,
+        Boolean::class.javaPrimitiveType,
+      )
+    method.isAccessible = true
+    return method.invoke(btapiCompiler, task, plugins, aptMode, verbose) as CompilerPlugin
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  private fun invokeBuildStubsPlugins(
+    btapiCompiler: BtapiCompiler,
+    task: JvmCompilationTask,
+    plugins: InternalCompilerPlugins,
+  ): List<CompilerPlugin> {
+    val method =
+      BtapiCompiler::class.java.getDeclaredMethod(
+        "buildStubsPlugins",
+        JvmCompilationTask::class.java,
+        InternalCompilerPlugins::class.java,
+      )
+    method.isAccessible = true
+    return method.invoke(btapiCompiler, task, plugins) as List<CompilerPlugin>
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  private fun invokeComputeClasspath(
+    btapiCompiler: BtapiCompiler,
+    task: JvmCompilationTask,
+  ): List<String> {
+    val method =
+      BtapiCompiler::class.java.getDeclaredMethod(
+        "computeClasspath",
+        JvmCompilationTask::class.java,
+      )
+    method.isAccessible = true
+    return method.invoke(btapiCompiler, task) as List<String>
+  }
+
+  private fun invokeConfigureCompilerArguments(
+    btapiCompiler: BtapiCompiler,
+    toolchains: KotlinToolchains,
+    task: JvmCompilationTask,
+  ): List<String> {
+    val method =
+      BtapiCompiler::class.java.getDeclaredMethod(
+        "configureCompilerArguments",
+        JvmCompilerArguments.Builder::class.java,
+        JvmCompilationTask::class.java,
+      )
+    method.isAccessible = true
+    val outputDir = Files.createTempDirectory("btapi-configure-output")
+    val argsBuilder =
+      toolchains.jvm
+        .jvmCompilationOperationBuilder(emptyList<Path>(), outputDir)
+        .compilerArguments
+    try {
+      method.invoke(btapiCompiler, argsBuilder, task)
+      return argsBuilder.build().toArgumentStrings()
+    } catch (e: InvocationTargetException) {
+      unwrapInvocationTarget(e)
+    }
+  }
+
+  private fun argumentValue(arguments: List<String>, flag: String): String? {
+    arguments.forEachIndexed { index, argument ->
+      if (argument == flag) {
+        return arguments.getOrNull(index + 1)
+      }
+      if (argument.startsWith("$flag=")) {
+        return argument.substringAfter('=')
+      }
+    }
+    return null
+  }
+
+  private fun invokeEncodeMapForKapt(
+    btapiCompiler: BtapiCompiler,
+    inputMap: Map<String, String>,
+  ): String {
+    val method =
+      BtapiCompiler::class.java.getDeclaredMethod(
+        "encodeMapForKapt",
+        Map::class.java,
+      )
+    method.isAccessible = true
+    return method.invoke(btapiCompiler, inputMap) as String
+  }
+
+  private fun unwrapInvocationTarget(exception: InvocationTargetException): Nothing {
+    val cause = exception.cause ?: throw exception
+    when (cause) {
+      is RuntimeException -> throw cause
+      is Error -> throw cause
+      else -> throw exception
+    }
   }
 }
