@@ -128,7 +128,6 @@ maven.install(
         "com.google.dagger:dagger-compiler:2.57.2",
         "javax.inject:javax.inject:1",
         "org.apache.commons:commons-compress:1.26.2",
-        "com.eed3si9n.jarjarabrams:jarjar-abrams-assembly_2.13:1.14.1",
         "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
         "com.squareup.moshi:moshi:1.15.2",
         "com.squareup.moshi:moshi-kotlin:1.15.2",

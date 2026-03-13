@@ -1,22 +1,14 @@
 load("//src/main/starlark/release:packager.bzl", "release_archive")
-load("//third_party:jarjar.bzl", "jar_jar")
 
-exports_files(
-    ["shade.jarjar"],
-    visibility = ["//src:__subpackages__"],
-)
-
-jar_jar(
+alias(
     name = "skip-code-gen",
-    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
-    rules = "shade.jarjar",
+    actual = "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar",
     visibility = ["//visibility:public"],
 )
 
-jar_jar(
+alias(
     name = "jdeps-gen",
-    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
-    rules = "shade.jarjar",
+    actual = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
     visibility = ["//visibility:public"],
 )
 
@@ -46,17 +38,14 @@ alias(
 
 release_archive(
     name = "pkg",
-    srcs = [
-        "shade.jarjar",
-        ":jdeps-gen.jar",
-        ":skip-code-gen.jar",
-    ],
     package_dir = "src/main/kotlin",  # explicitly set the package directory, as there are no parent release_archives.
     src_map = {
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_deploy.jar": "kotlin_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:ksp2_deploy.jar": "ksp2_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/builder/cmd:merge_jdeps_deploy.jar": "jdeps_merger_worker.jar",
         "//src/main/kotlin/io/bazel/kotlin/ksp2:ksp2.jar": "ksp2_invoker.jar",
+        "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar": "jdeps-gen.jar",
+        "//src/main/kotlin/io/bazel/kotlin/plugin:skip-code-gen_deploy.jar": "skip-code-gen.jar",
         "BUILD.release.bazel": "BUILD.bazel",
     },
 )

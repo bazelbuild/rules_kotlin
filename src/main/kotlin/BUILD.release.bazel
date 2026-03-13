@@ -15,11 +15,8 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 load(
     "//kotlin/compiler:compiler_deps.bzl",
-    "KOTLIN_BUILD_RUNTIME_STDLIBS",
-    "KOTLIN_STDLIBS",
     "KSP2_RUNTIME_STDLIBS",
 )
-load("//third_party:jarjar.bzl", "jar_jar")
 
 java_import(
     name = "worker",
@@ -61,35 +58,17 @@ java_import(
 )
 
 java_binary(
-    name = "build_raw",
-    create_executable = False,
-    runtime_deps = [
-        # Added separately to make sure it comes first, otherwise buildifier sorts it
-        "@bazel_tools//tools/jdk:JacocoCoverage",
-        ":worker",
-    ],
-)
-
-jar_jar(
-    name = "build_jarjar",
-    input_jar = ":build_raw_deploy.jar",
-    rules = "shade.jarjar",
-)
-
-java_binary(
     name = "build",
-    data = KOTLIN_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
     visibility = ["//visibility:public"],
-    runtime_deps = [":build_jarjar"] + KOTLIN_BUILD_RUNTIME_STDLIBS,
+    runtime_deps = [":worker"],
 )
 
 java_binary(
     name = "jdeps_merger",
-    data = KOTLIN_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],
@@ -100,7 +79,6 @@ java_binary(
 
 java_binary(
     name = "ksp2",
-    data = KSP2_RUNTIME_STDLIBS,
     jvm_flags = [
         "-XX:-MaxFDLimit",
     ],

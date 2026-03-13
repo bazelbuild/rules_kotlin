@@ -1,9 +1,3 @@
-load(
-    "//kotlin/compiler:compiler_deps.bzl",
-    _KOTLIN_BUILD_RUNTIME_STDLIBS = "KOTLIN_BUILD_RUNTIME_STDLIBS",
-    _KOTLIN_STDLIBS = "KOTLIN_STDLIBS",
-    _KSP2_RUNTIME_STDLIBS = "KSP2_RUNTIME_STDLIBS",
-)
 load("//src/main/kotlin:bootstrap.bzl", "kt_bootstrap_binary", "kt_bootstrap_library")
 
 kt_bootstrap_library(
@@ -19,13 +13,8 @@ kt_bootstrap_library(
 
 kt_bootstrap_binary(
     name = "build",
-    data = _KOTLIN_STDLIBS,
-    final_runtime_deps = _KOTLIN_BUILD_RUNTIME_STDLIBS,
-    jvm_flags = [
-        "-XX:-MaxFDLimit",
-    ],
+    jvm_flags = ["-XX:-MaxFDLimit"],
     main_class = "io.bazel.kotlin.builder.cmd.Build",
-    shade_rules = "//src/main/kotlin:shade.jarjar",
     visibility = ["//src:__subpackages__"],
     runtime_deps = [
         ":build_lib",
@@ -45,10 +34,7 @@ kt_bootstrap_library(
 
 kt_bootstrap_binary(
     name = "merge_jdeps",
-    data = _KOTLIN_STDLIBS,
-    final_runtime_deps = _KOTLIN_STDLIBS,
     main_class = "io.bazel.kotlin.builder.cmd.MergeJdepsMain",
-    shade_rules = "//src/main/kotlin:shade.jarjar",
     visibility = ["//src:__subpackages__"],
     runtime_deps = [":merge_jdeps_lib"],
 )
@@ -65,10 +51,7 @@ kt_bootstrap_library(
 
 kt_bootstrap_binary(
     name = "ksp2",
-    data = _KSP2_RUNTIME_STDLIBS,
-    final_runtime_deps = _KSP2_RUNTIME_STDLIBS,
     main_class = "io.bazel.kotlin.builder.cmd.Ksp2",
-    shade_rules = "//src/main/kotlin:shade.jarjar",
     visibility = ["//src:__subpackages__"],
     runtime_deps = [":ksp2_lib"],
 )

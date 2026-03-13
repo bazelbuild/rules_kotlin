@@ -122,16 +122,6 @@ KOTLIN_STDLIBS = [
     "//kotlin/compiler:kotlinx-serialization-json-jvm",
 ]
 
-# Build worker should only carry the shared BTAPI API and basic Kotlin runtime jars.
-# Compiler/plugin implementation jars are passed separately via toolchain/runtime args and
-# must stay off the worker app loader to avoid KAPT classloader leakage.
-KOTLIN_BUILD_RUNTIME_STDLIBS = [
-    "//kotlin/compiler:annotations",
-    "//kotlin/compiler:kotlin-build-tools-api",
-    "//kotlin/compiler:kotlin-reflect",
-    "//kotlin/compiler:kotlin-stdlib",
-]
-
 # KSP2 needs IntelliJ coroutines variant rather than the default kotlinx artifact.
 KSP2_RUNTIME_STDLIBS = [
     dep
