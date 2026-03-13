@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@rules_java//java:defs.bzl", "java_import")
+load("//kotlin:jvm.bzl", "kt_jvm_import")
+
+_KOTLIN_VERSION = "2.3.20-RC2"
+
 _COMPILER_TARGETS = [
     ("kotlin-stdlib", "org_jetbrains_kotlin_kotlin_stdlib"),
     ("kotlin-reflect", "org_jetbrains_kotlin_kotlin_reflect"),
@@ -30,6 +36,7 @@ _COMPILER_TARGETS = [
     ("parcelize-compiler-plugin", "org_jetbrains_kotlin_kotlin_parcelize_compiler"),
     ("parcelize-runtime", "org_jetbrains_kotlin_kotlin_parcelize_runtime"),
     ("kotlin-daemon-client", "org_jetbrains_kotlin_kotlin_daemon_client"),
+    ("kotlin-build-tools-api", "org_jetbrains_kotlin_kotlin_build_tools_api"),
     ("kotlin-build-tools-impl", "org_jetbrains_kotlin_kotlin_build_tools_impl"),
     ("kotlin-compiler", "org_jetbrains_kotlin_kotlin_compiler"),
     ("kotlin-compiler-embeddable", "org_jetbrains_kotlin_kotlin_compiler_embeddable"),
@@ -40,12 +47,59 @@ _COMPILER_TARGETS = [
     ("ksp-intellij-kotlinx-coroutines-core-jvm", "org_jetbrains_intellij_deps_kotlinx_kotlinx_coroutines_core_jvm"),
 ]
 
-def kt_define_compiler_targets():
+def _compiler_target_actual(actual):
+    return "@rules_kotlin_maven//:%s" % actual
+
+def kt_define_compiler_targets(use_jvm_import = False):
     for name, actual in _COMPILER_TARGETS:
-        native.alias(
-            name = name,
-            actual = "@rules_kotlin_maven//:%s" % actual,
-        )
+        if use_jvm_import:
+            kt_jvm_import(
+                name = name,
+                jar = _compiler_target_actual(actual),
+                visibility = ["//visibility:public"],
+            )
+        else:
+            native.alias(
+                name = name,
+                actual = _compiler_target_actual(actual),
+            )
+
+    native.alias(
+        name = "kotlin-serialization-compiler-plugin",
+        actual = ":kotlinx-serialization-compiler-plugin",
+    )
+
+def kt_define_release_compiler_targets():
+    for name, actual in _COMPILER_TARGETS:
+        if name == "kotlin-stdlib":
+            copy_file(
+                name = name + "_jar",
+                src = "@rules_kotlin_maven//:org/jetbrains/kotlin/kotlin-stdlib/{version}/kotlin-stdlib-{version}.jar".format(
+                    version = _KOTLIN_VERSION,
+                ),
+                out = name + ".jar",
+            )
+            copy_file(
+                name = name + "_srcjar",
+                src = "@rules_kotlin_maven//:org/jetbrains/kotlin/kotlin-stdlib/{version}/kotlin-stdlib-{version}-sources.jar".format(
+                    version = _KOTLIN_VERSION,
+                ),
+                out = name + "-sources.jar",
+            )
+            java_import(
+                name = name,
+                jars = [":" + name + "_jar"],
+                srcjar = ":" + name + "_srcjar",
+                deps = [
+                    "@rules_kotlin_maven//:org_jetbrains_annotations",
+                ],
+                visibility = ["//visibility:public"],
+            )
+        else:
+            native.alias(
+                name = name,
+                actual = _compiler_target_actual(actual),
+            )
 
     native.alias(
         name = "kotlin-serialization-compiler-plugin",
@@ -68,18 +122,14 @@ KOTLIN_STDLIBS = [
     "//kotlin/compiler:kotlinx-serialization-json-jvm",
 ]
 
-# Build worker should not pull kotlin-compiler from final runtime deps to avoid classpath leakage.
-KOTLIN_BUILD_RUNTIME_STDLIBS = [
-    dep
-    for dep in KOTLIN_STDLIBS
-    if dep != "//kotlin/compiler:kotlin-compiler"
-]
-
 # KSP2 needs IntelliJ coroutines variant rather than the default kotlinx artifact.
 KSP2_RUNTIME_STDLIBS = [
     dep
     for dep in KOTLIN_STDLIBS
-    if dep != "//kotlin/compiler:kotlinx-coroutines-core-jvm"
+    if dep not in [
+        "//kotlin/compiler:kotlin-compiler",
+        "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+    ]
 ] + [
     "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
 ]

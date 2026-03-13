@@ -1,3 +1,0 @@
-rule org.jetbrains.kotlin.com.intellij.** com.intellij.@1
-rule org.jetbrains.kotlin.kotlinx.** kotlinx.@1
-rule com.google.common.** org.jetbrains.kotlin.google.common.@1
