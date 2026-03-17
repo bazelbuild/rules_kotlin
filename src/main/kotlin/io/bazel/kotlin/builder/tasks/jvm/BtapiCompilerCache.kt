@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package io.bazel.kotlin.builder.toolchain
+package io.bazel.kotlin.builder.tasks.jvm
 
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
@@ -24,31 +25,32 @@ import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Caches BTAPI toolchains keyed by runtime specification.
+ * Caches BtapiCompiler instances keyed by toolchain specification.
  *
- * A worker process may serve requests from multiple Kotlin toolchains, so toolchains
+ * A worker process may serve requests from multiple Kotlin toolchains, so compilers
  * must be selected and cached per request rather than fixed at worker startup.
  */
 @OptIn(ExperimentalBuildToolsApi::class)
-class BtapiToolchainsCache {
-  private val toolchainsByRuntime = ConcurrentHashMap<BtapiRuntimeSpec, KotlinToolchains>()
+class BtapiCompilerCache : AutoCloseable {
+  private val compilers = ConcurrentHashMap<ToolchainSpec, BtapiCompiler>()
 
-  fun get(runtime: BtapiRuntimeSpec): KotlinToolchains =
-    toolchainsByRuntime.computeIfAbsent(runtime, ::loadToolchains)
+  fun get(spec: ToolchainSpec): BtapiCompiler =
+    compilers.computeIfAbsent(spec, ::createCompiler)
 
-  private fun loadToolchains(runtime: BtapiRuntimeSpec): KotlinToolchains {
-    validateFilesExist(runtime)
-
-    val urls = runtime.classpath.map { it.toUri().toURL() }.toTypedArray()
-    val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
-    return KotlinToolchains.loadImplementation(classLoader)
+  override fun close() {
+    compilers.values.forEach { it.close() }
+    compilers.clear()
   }
 
-  private fun validateFilesExist(runtime: BtapiRuntimeSpec) {
-    runtime.classpath.forEach { file ->
+  private fun createCompiler(spec: ToolchainSpec): BtapiCompiler {
+    spec.btapiClasspath.forEach { file ->
       require(Files.isRegularFile(file)) {
         "BTAPI runtime artifact does not exist or is not a file: $file"
       }
     }
+
+    val urls = spec.btapiClasspath.map { it.toUri().toURL() }.toTypedArray()
+    val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
+    return BtapiCompiler(KotlinToolchains.loadImplementation(classLoader))
   }
 }

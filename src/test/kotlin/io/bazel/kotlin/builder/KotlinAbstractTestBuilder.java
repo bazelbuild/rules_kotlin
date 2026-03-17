@@ -16,10 +16,10 @@
  */
 package io.bazel.kotlin.builder;
 
-import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
-import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec;
+import io.bazel.kotlin.builder.toolchain.InternalCompilerPlugin;
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
 import io.bazel.kotlin.model.Platform;
@@ -202,26 +202,30 @@ public abstract class KotlinAbstractTestBuilder<T> {
         return toPlatformPath(path).toString();
     }
 
-    public static InternalCompilerPlugins internalPluginsForTest() {
-        return InternalCompilerPlugins.fromPaths(
-                Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),
-                Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar(),
-                Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar(),
-                Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()
+    public static ToolchainSpec toolchainSpecForTest() {
+        var btapiClasspath = List.of(
+                Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
         );
-    }
-
-    public static BtapiRuntimeSpec btapiRuntimeForTest() {
-        return new BtapiRuntimeSpec(
-                List.of(
-                        Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl").singleCompileJar()),
-                        Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable").singleCompileJar()),
-                        Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client").singleCompileJar()),
-                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-stdlib").singleCompileJar()),
-                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlin-reflect").singleCompileJar()),
-                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
-                        Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
-                )
+        var plugins = java.util.Map.of(
+                ToolchainSpec.JVM_ABI_GEN, new InternalCompilerPlugin(
+                        Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),
+                        "org.jetbrains.kotlin.jvm.abi"),
+                ToolchainSpec.SKIP_CODE_GEN, new InternalCompilerPlugin(
+                        Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar(),
+                        "io.bazel.kotlin.plugin.SkipCodeGen"),
+                ToolchainSpec.KAPT, new InternalCompilerPlugin(
+                        Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar(),
+                        "org.jetbrains.kotlin.kapt3"),
+                ToolchainSpec.JDEPS, new InternalCompilerPlugin(
+                        Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar(),
+                        "io.bazel.kotlin.plugin.jdeps.JDepsGen")
         );
+        return new ToolchainSpec(btapiClasspath, plugins);
     }
 }

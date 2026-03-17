@@ -146,10 +146,10 @@ class KotlinBuilderProtoArgsTest {
       *btapiRuntimeClasspath.toTypedArray(),
     )
 
-    args.addFlag(KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN, jvmAbiGen)
-    args.addFlag(KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN, skipCodeGen)
-    args.addFlag(KotlinBuilderFlags.INTERNAL_KAPT, kaptEmbeddable)
-    args.addFlag(KotlinBuilderFlags.INTERNAL_JDEPS, jdepsGen)
+    args.addFlag(KotlinBuilderFlags.INTERNAL_PLUGIN, "jvm_abi_gen=$jvmAbiGen")
+    args.addFlag(KotlinBuilderFlags.INTERNAL_PLUGIN, "skip_code_gen=$skipCodeGen")
+    args.addFlag(KotlinBuilderFlags.INTERNAL_PLUGIN, "kapt=$kaptEmbeddable")
+    args.addFlag(KotlinBuilderFlags.INTERNAL_PLUGIN, "jdeps=$jdepsGen")
     return args
   }
 

@@ -16,6 +16,8 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
+import io.bazel.kotlin.builder.toolchain.InternalCompilerPlugin
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.CompilerArgumentsParseException
@@ -47,7 +49,7 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as Btap
  */
 @OptIn(ExperimentalBuildToolsApi::class)
 class BtapiCompiler(
-  private val toolchains: KotlinToolchains,
+  val toolchains: KotlinToolchains,
 ) : AutoCloseable {
   companion object {
     private const val ZIP_CRC_PROPERTY = "zip.handler.uses.crc.instead.of.timestamp"
@@ -76,11 +78,11 @@ class BtapiCompiler(
    */
   fun compile(
     task: JvmCompilationTask,
-    plugins: InternalCompilerPlugins,
+    toolchainSpec: ToolchainSpec,
     out: PrintStream,
     verbose: Boolean = false,
   ): CompilationResult {
-    val compilerPlugins = buildCompilerPlugins(task, plugins)
+    val compilerPlugins = buildCompilerPlugins(task, toolchainSpec)
     val logger = createCompilerLogger(out, verbose = verbose)
 
     return executeCompilation(
@@ -146,7 +148,7 @@ class BtapiCompiler(
    * Configures compiler arguments from protobuf fields via BTAPI builders.
    */
   @OptIn(ExperimentalCompilerArgument::class)
-  private fun configureCompilerArguments(
+  fun configureCompilerArguments(
     args: JvmCompilerArguments.Builder,
     task: JvmCompilationTask,
   ) {
@@ -210,7 +212,7 @@ class BtapiCompiler(
    * internal visibility to work correctly - the compiler must find the class from the
    * friend module to allow access to internal members.
    */
-  private fun computeClasspath(task: JvmCompilationTask): List<String> {
+  fun computeClasspath(task: JvmCompilationTask): List<String> {
     val baseClasspath =
       when (task.info.reducedClasspathMode) {
         "KOTLINBUILDER_REDUCED" -> {
@@ -244,22 +246,22 @@ class BtapiCompiler(
    */
   private fun buildCompilerPlugins(
     task: JvmCompilationTask,
-    plugins: InternalCompilerPlugins,
+    toolchainSpec: ToolchainSpec,
   ): List<CompilerPlugin> {
     val result = mutableListOf<CompilerPlugin>()
 
     // JDeps plugin
     if (task.outputs.jdeps.isNotEmpty()) {
-      result.add(buildJdepsPlugin(task, plugins.jdeps))
+      result.add(buildJdepsPlugin(task, toolchainSpec.requirePlugin(ToolchainSpec.JDEPS)))
     }
 
     // JVM ABI Gen plugin
     if (task.outputs.abijar.isNotEmpty()) {
-      result.add(buildAbiGenPlugin(task, plugins.jvmAbiGen))
+      result.add(buildAbiGenPlugin(task, toolchainSpec.requirePlugin(ToolchainSpec.JVM_ABI_GEN)))
 
       // Skip code gen if only generating ABI jar (no main output jar)
       if (task.outputs.jar.isEmpty()) {
-        result.add(buildSkipCodeGenPlugin(plugins.skipCodeGen))
+        result.add(buildSkipCodeGenPlugin(toolchainSpec.requirePlugin(ToolchainSpec.SKIP_CODE_GEN)))
       }
     }
 
@@ -352,7 +354,7 @@ class BtapiCompiler(
     phase: JvmCompilationTask.Inputs.PluginPhase,
   ): Boolean = plugin.phasesList.contains(phase)
 
-  private fun toBtapiPlugin(
+  fun toBtapiPlugin(
     task: JvmCompilationTask,
     plugin: JvmCompilationTask.Inputs.Plugin,
   ): CompilerPlugin =
@@ -482,14 +484,14 @@ class BtapiCompiler(
    */
   fun compileKapt(
     task: JvmCompilationTask,
-    plugins: InternalCompilerPlugins,
+    toolchainSpec: ToolchainSpec,
     aptMode: String = "stubsAndApt",
     verbose: Boolean = false,
     out: PrintStream,
   ): CompilationResult {
     // Build KAPT plugin and stubs plugins
-    val kaptPlugin = buildKaptCompilerPlugin(task, plugins, aptMode, verbose)
-    val stubsPlugins = buildStubsPlugins(task, plugins)
+    val kaptPlugin = buildKaptCompilerPlugin(task, toolchainSpec, aptMode, verbose)
+    val stubsPlugins = buildStubsPlugins(task, toolchainSpec)
     val compilerPlugins = listOf(kaptPlugin) + stubsPlugins
 
     val logger = createCompilerLogger(out, verbose = verbose)
@@ -505,13 +507,14 @@ class BtapiCompiler(
   /**
    * Builds the KAPT compiler plugin using the typed CompilerPlugin API.
    */
-  private fun buildKaptCompilerPlugin(
+  fun buildKaptCompilerPlugin(
     task: JvmCompilationTask,
-    plugins: InternalCompilerPlugins,
+    toolchainSpec: ToolchainSpec,
     aptMode: String,
     verbose: Boolean,
   ): CompilerPlugin {
-    val pluginId = plugins.kapt.id
+    val kapt = toolchainSpec.requirePlugin(ToolchainSpec.KAPT)
+    val pluginId = kapt.id
 
     // Create temp subdirectories for stubs and incremental data
     val stubsDir = task.directories.stubsDir
@@ -565,7 +568,7 @@ class BtapiCompiler(
 
     return CompilerPlugin(
       pluginId = pluginId,
-      classpath = listOf(Path.of(plugins.kapt.jarPath)),
+      classpath = listOf(Path.of(kapt.jarPath)),
       rawArguments = options,
       orderingRequirements = emptySet(),
     )
@@ -574,20 +577,22 @@ class BtapiCompiler(
   /**
    * Builds CompilerPlugin objects for non-KAPT stubs plugins that should run during KAPT phase.
    */
-  private fun buildStubsPlugins(
+  fun buildStubsPlugins(
     task: JvmCompilationTask,
-    plugins: InternalCompilerPlugins,
-  ): List<CompilerPlugin> =
-    task.inputs.pluginsList
+    toolchainSpec: ToolchainSpec,
+  ): List<CompilerPlugin> {
+    val kaptId = toolchainSpec.requirePlugin(ToolchainSpec.KAPT).id
+    return task.inputs.pluginsList
       .filter { hasPhase(it, JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS) }
-      .filterNot { it.id == plugins.kapt.id }
+      .filterNot { it.id == kaptId }
       .map { toBtapiPlugin(task, it) }
+  }
 
   /**
    * Encodes a map to Base64 in the format expected by KAPT.
    * Uses Java serialization (ObjectOutputStream) compatible with KAPT's decodeMap.
    */
-  private fun encodeMapForKapt(options: Map<String, String>): String {
+  fun encodeMapForKapt(options: Map<String, String>): String {
     val os = ByteArrayOutputStream()
     ObjectOutputStream(os).use { oos ->
       oos.writeInt(options.size)

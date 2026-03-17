@@ -16,11 +16,11 @@
  */
 package io.bazel.kotlin.builder.tasks
 
-import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
-import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.toolchain.InternalCompilerPlugin
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
@@ -82,10 +82,7 @@ class KotlinBuilder(
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
       BTAPI_RUNTIME_CLASSPATH("--btapi_runtime_classpath"),
-      INTERNAL_JVM_ABI_GEN("--internal_jvm_abi_gen"),
-      INTERNAL_SKIP_CODE_GEN("--internal_skip_code_gen"),
-      INTERNAL_KAPT("--internal_kapt"),
-      INTERNAL_JDEPS("--internal_jdeps"),
+      INTERNAL_PLUGIN("--internal_plugin"),
     }
   }
 
@@ -178,26 +175,30 @@ class KotlinBuilder(
     argMap: ArgMap,
   ) {
     val task = buildJvmTask(context.info, workingDir, argMap)
-    val btapiRuntime = buildBtapiRuntimeSpec(argMap)
-    val internalPlugins = buildInternalCompilerPlugins(argMap)
+    val toolchainSpec = buildToolchainSpec(argMap)
     context.whenTracing {
       printProto("jvm task message:", task)
     }
-    jvmTaskExecutor.execute(context, task, btapiRuntime, internalPlugins)
+    jvmTaskExecutor.execute(context, task, toolchainSpec)
   }
 
-  private fun buildBtapiRuntimeSpec(argMap: ArgMap): BtapiRuntimeSpec =
-    BtapiRuntimeSpec.fromClasspathEntries(
-      classpath = argMap.mandatory(KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH),
-    )
+  private fun buildToolchainSpec(argMap: ArgMap): ToolchainSpec {
+    val btapiClasspath = argMap.mandatory(KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH).map(Path::of)
+    val plugins = argMap.mandatory(KotlinBuilderFlags.INTERNAL_PLUGIN).associate { entry ->
+      val (name, path) = entry.split("=", limit = 2)
+      name to InternalCompilerPlugin(jarPath = path, id = pluginIdForName(name))
+    }
+    return ToolchainSpec(btapiClasspath, plugins)
+  }
 
-  private fun buildInternalCompilerPlugins(argMap: ArgMap) =
-    InternalCompilerPlugins.fromPaths(
-      jvmAbiGenJar = argMap.mandatorySingle(KotlinBuilderFlags.INTERNAL_JVM_ABI_GEN),
-      skipCodeGenJar = argMap.mandatorySingle(KotlinBuilderFlags.INTERNAL_SKIP_CODE_GEN),
-      kaptJar = argMap.mandatorySingle(KotlinBuilderFlags.INTERNAL_KAPT),
-      jdepsJar = argMap.mandatorySingle(KotlinBuilderFlags.INTERNAL_JDEPS),
-    )
+  private fun pluginIdForName(name: String): String =
+    when (name) {
+      ToolchainSpec.JVM_ABI_GEN -> "org.jetbrains.kotlin.jvm.abi"
+      ToolchainSpec.SKIP_CODE_GEN -> "io.bazel.kotlin.plugin.SkipCodeGen"
+      ToolchainSpec.KAPT -> "org.jetbrains.kotlin.kapt3"
+      ToolchainSpec.JDEPS -> "io.bazel.kotlin.plugin.jdeps.JDepsGen"
+      else -> throw IllegalArgumentException("Unknown internal plugin name: $name")
+    }
 
   private fun buildJvmTask(
     info: CompilationTaskInfo,

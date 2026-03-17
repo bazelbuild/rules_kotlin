@@ -20,9 +20,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
-import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
@@ -59,8 +59,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     private final TaskBuilder taskBuilderInstance = new TaskBuilder();
     private static KotlinJvmTaskExecutor jvmTaskExecutor;
-    private static io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec runtimeSpec;
-    private static InternalCompilerPlugins plugins;
+    private static ToolchainSpec toolchainSpec;
 
     @Override
     void setupForNext(CompilationTaskInfo.Builder taskInfo) {
@@ -92,7 +91,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
     @SafeVarargs
     public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
         jvmTaskExecutor();
-        return executeTask((ctx, task) -> jvmTaskExecutor.execute(ctx, task, runtimeSpec, plugins), setup);
+        return executeTask((ctx, task) -> jvmTaskExecutor.execute(ctx, task, toolchainSpec), setup);
     }
 
     /**
@@ -106,8 +105,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     private static KotlinJvmTaskExecutor jvmTaskExecutor() {
         if (jvmTaskExecutor == null) {
-            runtimeSpec = btapiRuntimeForTest();
-            plugins = internalPluginsForTest();
+            toolchainSpec = toolchainSpecForTest();
             jvmTaskExecutor = new KotlinJvmTaskExecutor();
         }
         return jvmTaskExecutor;
@@ -147,8 +145,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     public void tearDown() {
         jvmTaskExecutor = null;
-        runtimeSpec = null;
-        plugins = null;
+        toolchainSpec = null;
     }
 
     public class TaskBuilder {

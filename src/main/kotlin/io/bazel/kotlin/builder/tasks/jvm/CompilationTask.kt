@@ -22,6 +22,7 @@ import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.emptyJdeps
 import io.bazel.kotlin.builder.tasks.jvm.JDepsGenerator.writeJdeps
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import io.bazel.kotlin.builder.utils.IS_JVM_SOURCE_FILE
 import io.bazel.kotlin.builder.utils.bazelRuleKind
 import io.bazel.kotlin.builder.utils.jars.JarCreator
@@ -49,7 +50,7 @@ internal fun JvmCompilationTask.preProcessingSteps(
 @ExperimentalBuildToolsApi
 internal fun JvmCompilationTask.runPlugins(
   context: CompilationTaskContext,
-  plugins: InternalCompilerPlugins,
+  toolchainSpec: ToolchainSpec,
   btapiCompiler: BtapiCompiler,
 ): JvmCompilationTask {
   // Run the KAPT phase when there are annotation processors OR when any plugin declares a
@@ -69,7 +70,7 @@ internal fun JvmCompilationTask.runPlugins(
   ) {
     return this
   } else {
-    return runKaptPluginBtapi(context, plugins, btapiCompiler)
+    return runKaptPluginBtapi(context, toolchainSpec, btapiCompiler)
   }
 }
 
@@ -81,14 +82,14 @@ internal fun JvmCompilationTask.runPlugins(
 @ExperimentalBuildToolsApi
 private fun JvmCompilationTask.runKaptPluginBtapi(
   context: CompilationTaskContext,
-  plugins: InternalCompilerPlugins,
+  toolchainSpec: ToolchainSpec,
   btapiCompiler: BtapiCompiler,
 ): JvmCompilationTask =
   context.execute("kapt (${inputs.processorsList.joinToString(", ")})") {
     val result =
       btapiCompiler.compileKapt(
         task = this,
-        plugins = plugins,
+        toolchainSpec = toolchainSpec,
         aptMode = "stubsAndApt",
         verbose = context.whenTracing { true } == true,
         out = context.out,

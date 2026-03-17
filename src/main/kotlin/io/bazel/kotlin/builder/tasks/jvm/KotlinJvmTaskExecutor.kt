@@ -16,41 +16,32 @@
  */
 package io.bazel.kotlin.builder.tasks.jvm
 
-import io.bazel.kotlin.builder.toolchain.BtapiRuntimeSpec
-import io.bazel.kotlin.builder.toolchain.BtapiToolchainsCache
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import java.util.concurrent.ConcurrentHashMap
 
 @OptIn(ExperimentalBuildToolsApi::class)
 class KotlinJvmTaskExecutor(
-  private val btapiToolchainsCache: BtapiToolchainsCache = BtapiToolchainsCache(),
+  private val compilerCache: BtapiCompilerCache = BtapiCompilerCache(),
 ) : AutoCloseable {
-  private val compilers = ConcurrentHashMap<BtapiRuntimeSpec, BtapiCompiler>()
-
   override fun close() {
-    compilers.values.forEach { it.close() }
-    compilers.clear()
+    compilerCache.close()
   }
 
   fun execute(
     context: CompilationTaskContext,
     task: JvmCompilationTask,
-    runtimeSpec: BtapiRuntimeSpec,
-    plugins: InternalCompilerPlugins,
+    toolchainSpec: ToolchainSpec,
   ) {
-    val btapiCompiler =
-      compilers.computeIfAbsent(runtimeSpec) {
-        BtapiCompiler(btapiToolchainsCache.get(it))
-      }
+    val btapiCompiler = compilerCache.get(toolchainSpec)
 
     val preprocessedTask =
       task
         .preProcessingSteps(context)
-        .runPlugins(context, plugins, btapiCompiler)
+        .runPlugins(context, toolchainSpec, btapiCompiler)
 
     context.execute("compile classes") {
       preprocessedTask.apply {
@@ -59,7 +50,7 @@ class KotlinJvmTaskExecutor(
             val result =
               btapiCompiler.compile(
                 this,
-                plugins,
+                toolchainSpec,
                 context.out,
                 verbose =
                   context.whenTracing { true } == true,
