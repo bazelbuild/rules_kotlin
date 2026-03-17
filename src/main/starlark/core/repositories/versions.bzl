@@ -67,10 +67,25 @@ versions = struct(
     ),
     # Used for bootstrapping only
     KOTLIN_CURRENT_COMPILER_RELEASE = version(
-        version = "2.3.20-RC2",
+        version = "2.3.20",
         url_templates = [
             "https://github.com/JetBrains/kotlin/releases/download/v{version}/kotlin-compiler-{version}.zip",
         ],
+        sha256 = "222ba516cdc4052ce0be9d2ec6adf3c5c64fc53156d7dd91d1f5317809431b98",
+    ),
+    KSP_CURRENT_COMPILER_PLUGIN_RELEASE = version(
+        version = "2.3.6",
+        url_templates = [
+            "https://github.com/google/ksp/releases/download/{version}/artifacts.zip",
+        ],
+        sha256 = "685d895c746df2e2159174a9fac9dcc029c3e127612c677bbc5502dd71e98ffe",
+    ),
+    KOTLIN_BUILD_TOOLS_IMPL = version(
+        version = "2.3.20",
+        url_templates = [
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-impl/{version}/kotlin-build-tools-impl-{version}.jar",
+        ],
+        sha256 = "9681bc2164a8bd9f6ddf4c085cf4a836b92d27506667d73bab9f6d855336c910",
         sha256 = "781b54a857ebcbbb6d5b6e5b4a54e2ad480d0b813ac65ed48c636ef4a81f8d90",
     ),
     RULES_ANDROID = version(
