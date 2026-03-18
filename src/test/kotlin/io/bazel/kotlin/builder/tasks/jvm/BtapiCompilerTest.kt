@@ -240,7 +240,7 @@ class BtapiCompilerTest {
   @Test
   fun `expands legacy plugin option templates for btapi plugins`() {
     val tempDir = Files.createTempDirectory("btapi-plugin-options")
-    val stubsDir = tempDir.resolve("configured-stubs")
+    val stubsDir = tempDir.resolve("stubs")
     val directories =
       JvmCompilationTask.Directories.newBuilder()
         .setGeneratedClasses(tempDir.resolve("generated-classes").toString())
@@ -288,11 +288,10 @@ class BtapiCompilerTest {
   @Test
   fun `compileKapt and stubs phase plugins share the canonical stubs dir`() {
     val tempDir = Files.createTempDirectory("btapi-kapt-stubs")
-    val stubsDir = tempDir.resolve("canonical-stubs")
+    val stubsDir = tempDir.resolve("stubs")
     val task =
       minimalTaskBuilder(tempDir)
         .apply {
-          inputsBuilder.addStubsPlugins("example.stubs")
           inputsBuilder.addStubsPluginClasspath("/plugins/example-stubs.jar")
           inputsBuilder.addStubsPluginOptions("example.stubs:dir={stubs}")
           directoriesBuilder.generatedStubClasses = stubsDir.toString()

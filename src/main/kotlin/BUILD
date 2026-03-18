@@ -1,4 +1,5 @@
 load("//src/main/starlark/release:packager.bzl", "release_archive")
+
 alias(
     name = "build",
     actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build",
