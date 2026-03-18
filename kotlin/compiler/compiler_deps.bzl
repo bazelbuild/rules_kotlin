@@ -12,12 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("@rules_java//java:defs.bzl", "java_import")
-load("//kotlin:jvm.bzl", "kt_jvm_import")
-
-_KOTLIN_VERSION = "2.3.20-RC2"
-
 _COMPILER_TARGETS = [
     ("kotlin-stdlib", "org_jetbrains_kotlin_kotlin_stdlib"),
     ("kotlin-reflect", "org_jetbrains_kotlin_kotlin_reflect"),
@@ -50,61 +44,12 @@ _COMPILER_TARGETS = [
 def _compiler_target_actual(actual):
     return "@rules_kotlin_maven//:%s" % actual
 
-def kt_define_compiler_targets(use_jvm_import = False):
+def kt_define_compiler_targets():
     for name, actual in _COMPILER_TARGETS:
-        if use_jvm_import:
-            kt_jvm_import(
-                name = name,
-                jar = _compiler_target_actual(actual),
-                visibility = ["//visibility:public"],
-            )
-        else:
-            native.alias(
-                name = name,
-                actual = _compiler_target_actual(actual),
-            )
-
-    native.alias(
-        name = "kotlin-serialization-compiler-plugin",
-        actual = ":kotlinx-serialization-compiler-plugin",
-    )
-
-def kt_define_release_compiler_targets():
-    for name, actual in _COMPILER_TARGETS:
-        if name == "kotlin-stdlib":
-            copy_file(
-                name = name + "_jar",
-                src = "@rules_kotlin_maven//:org/jetbrains/kotlin/kotlin-stdlib/{version}/kotlin-stdlib-{version}.jar".format(
-                    version = _KOTLIN_VERSION,
-                ),
-                out = name + ".jar",
-            )
-            copy_file(
-                name = name + "_srcjar",
-                src = "@rules_kotlin_maven//:org/jetbrains/kotlin/kotlin-stdlib/{version}/kotlin-stdlib-{version}-sources.jar".format(
-                    version = _KOTLIN_VERSION,
-                ),
-                out = name + "-sources.jar",
-            )
-            java_import(
-                name = name,
-                jars = [":" + name + "_jar"],
-                srcjar = ":" + name + "_srcjar",
-                deps = [
-                    "@rules_kotlin_maven//:org_jetbrains_annotations",
-                ],
-                visibility = ["//visibility:public"],
-            )
-        else:
-            native.alias(
-                name = name,
-                actual = _compiler_target_actual(actual),
-            )
-
-    native.alias(
-        name = "kotlin-serialization-compiler-plugin",
-        actual = ":kotlinx-serialization-compiler-plugin",
-    )
+        native.alias(
+            name = name,
+            actual = _compiler_target_actual(actual),
+        )
 
 # Kotlin standard library targets for the CLI toolchain's compilation and runtime classpath.
 # Note: kotlin-stdlib-jdk7 and kotlin-stdlib-jdk8 are not needed as of Kotlin 1.8+,

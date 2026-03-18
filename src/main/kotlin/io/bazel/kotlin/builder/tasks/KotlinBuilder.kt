@@ -184,10 +184,11 @@ class KotlinBuilder(
 
   private fun buildToolchainSpec(argMap: ArgMap): ToolchainSpec {
     val btapiClasspath = argMap.mandatory(KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH).map(Path::of)
-    val plugins = argMap.mandatory(KotlinBuilderFlags.INTERNAL_PLUGIN).associate { entry ->
-      val (name, path) = entry.split("=", limit = 2)
-      name to InternalCompilerPlugin(jarPath = path, id = pluginIdForName(name))
-    }
+    val plugins =
+      argMap.mandatory(KotlinBuilderFlags.INTERNAL_PLUGIN).associate { entry ->
+        val (name, path) = entry.split("=", limit = 2)
+        name to InternalCompilerPlugin(jarPath = path, id = pluginIdForName(name))
+      }
     return ToolchainSpec(btapiClasspath, plugins)
   }
 
@@ -276,7 +277,10 @@ class KotlinBuilder(
         argMap
           .optionalSingle(KotlinBuilderFlags.PLUGINS_PAYLOAD)
           ?.let(PluginsPayloadParser::parse)
-          ?.also(::addAllPlugins)
+          ?.also {
+            addAllStubsPhasePlugins(it.stubsPluginsList)
+            addAllCompilerPhasePlugins(it.compilerPluginsList)
+          }
 
         argMap
           .optional(KotlinBuilderFlags.SOURCES)

@@ -43,6 +43,12 @@ import kotlin.io.path.exists
 
 private const val SOURCE_JARS_DIR = "_srcjars"
 
+internal val JvmCompilationTask.Inputs.stubsPlugins: List<JvmCompilationTask.Inputs.Plugin>
+  get() = stubsPhasePluginsList
+
+internal val JvmCompilationTask.Inputs.compilerPlugins: List<JvmCompilationTask.Inputs.Plugin>
+  get() = compilerPhasePluginsList
+
 internal fun JvmCompilationTask.preProcessingSteps(
   context: CompilationTaskContext,
 ): JvmCompilationTask = context.execute("expand sources") { expandWithSourceJarSources() }
@@ -53,19 +59,9 @@ internal fun JvmCompilationTask.runPlugins(
   toolchainSpec: ToolchainSpec,
   btapiCompiler: BtapiCompiler,
 ): JvmCompilationTask {
-  // Run the KAPT phase when there are annotation processors OR when any plugin declares a
-  // stubs phase (some plugins participate in stub generation without being traditional
-  // annotation processors). The previous guard checked `outputs.generatedClassJar` instead,
-  // which was more conservative but missed plugins that only need the stubs phase. Any
-  // compiler plugin that declares PLUGIN_PHASE_STUBS is expected to be KAPT-compatible; if
-  // a plugin has a stubs phase but is not KAPT-compatible, it should not set that phase.
+  // Run the KAPT phase when there are annotation processors or any explicit stubs-phase plugins.
   if (
-    (
-      inputs.processorsList.isEmpty() &&
-        inputs.pluginsList.none {
-          it.phasesList.contains(JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS)
-        }
-    ) ||
+    (inputs.processorsList.isEmpty() && inputs.stubsPlugins.isEmpty()) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this

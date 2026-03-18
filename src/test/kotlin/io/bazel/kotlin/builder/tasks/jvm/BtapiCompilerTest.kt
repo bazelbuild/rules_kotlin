@@ -300,7 +300,7 @@ class BtapiCompilerTest {
     val task =
       minimalTaskBuilder(tempDir)
         .apply {
-          inputsBuilder.addPlugins(
+          inputsBuilder.addStubsPhasePlugins(
             JvmCompilationTask.Inputs.Plugin.newBuilder()
               .setId("example.stubs")
               .addClasspath("/plugins/example-stubs.jar")
@@ -309,7 +309,7 @@ class BtapiCompilerTest {
                   .setKey("dir")
                   .setValue("{stubs}")
                   .build(),
-              ).addPhases(JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS)
+              )
               .build(),
           )
           directoriesBuilder.generatedStubClasses = stubsDir.toString()

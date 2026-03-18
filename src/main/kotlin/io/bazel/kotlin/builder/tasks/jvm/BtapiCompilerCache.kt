@@ -34,8 +34,7 @@ import java.util.concurrent.ConcurrentHashMap
 class BtapiCompilerCache : AutoCloseable {
   private val compilers = ConcurrentHashMap<ToolchainSpec, BtapiCompiler>()
 
-  fun get(spec: ToolchainSpec): BtapiCompiler =
-    compilers.computeIfAbsent(spec, ::createCompiler)
+  fun get(spec: ToolchainSpec): BtapiCompiler = compilers.computeIfAbsent(spec, ::createCompiler)
 
   override fun close() {
     compilers.values.forEach { it.close() }

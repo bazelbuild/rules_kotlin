@@ -286,8 +286,7 @@ class BtapiCompiler(
    * Builds user-specified compiler plugins from protobuf options.
    */
   private fun buildUserPlugins(task: JvmCompilationTask): List<CompilerPlugin> =
-    task.inputs.pluginsList
-      .filter { hasPhase(it, JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_COMPILE) }
+    task.inputs.compilerPlugins
       .map { toBtapiPlugin(task, it) }
 
   /**
@@ -348,11 +347,6 @@ class BtapiCompiler(
       orderingRequirements = emptySet(),
     )
   }
-
-  private fun hasPhase(
-    plugin: JvmCompilationTask.Inputs.Plugin,
-    phase: JvmCompilationTask.Inputs.PluginPhase,
-  ): Boolean = plugin.phasesList.contains(phase)
 
   fun toBtapiPlugin(
     task: JvmCompilationTask,
@@ -556,7 +550,7 @@ class BtapiCompiler(
 
     // Read kapt apoptions from structured plugin options.
     val apOptions =
-      task.inputs.pluginsList
+      task.inputs.stubsPlugins
         .asSequence()
         .filter { it.id == pluginId }
         .flatMap { it.optionsList.asSequence() }
@@ -582,8 +576,7 @@ class BtapiCompiler(
     toolchainSpec: ToolchainSpec,
   ): List<CompilerPlugin> {
     val kaptId = toolchainSpec.requirePlugin(ToolchainSpec.KAPT).id
-    return task.inputs.pluginsList
-      .filter { hasPhase(it, JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS) }
+    return task.inputs.stubsPlugins
       .filterNot { it.id == kaptId }
       .map { toBtapiPlugin(task, it) }
   }

@@ -27,53 +27,62 @@ import org.junit.runners.JUnit4
 class PluginsPayloadParserTest {
   @Test
   fun `parses plugins payload json`() {
-    val plugins =
+    val payload =
       PluginsPayloadParser.parse(
         """
         {
-          "plugins": [
+          "stubs_plugins": [
             {
-              "id": "plugin.test",
+              "id": "plugin.stubs",
+              "classpath": ["stub.jar"],
+              "options": [
+                {"key": "stubKey", "value": "stubValue"}
+              ]
+            }
+          ],
+          "compiler_plugins": [
+            {
+              "id": "plugin.compile",
               "classpath": ["a.jar", "b.jar"],
               "options": [
                 {"key": "k1", "value": "v1"},
                 {"key": "k2", "value": "v2"}
-              ],
-              "phases": ["PLUGIN_PHASE_COMPILE", "PLUGIN_PHASE_STUBS"]
+              ]
             }
           ]
         }
         """.trimIndent(),
       )
 
-    assertThat(plugins).hasSize(1)
-    val plugin = plugins.single()
-    assertThat(plugin.id).isEqualTo("plugin.test")
-    assertThat(plugin.classpathList).containsExactly("a.jar", "b.jar").inOrder()
-    assertThat(plugin.optionsList.map { "${it.key}=${it.value}" })
+    assertThat(payload.stubsPluginsList).hasSize(1)
+    assertThat(payload.compilerPluginsList).hasSize(1)
+
+    val stubsPlugin = payload.stubsPluginsList.single()
+    assertThat(stubsPlugin.id).isEqualTo("plugin.stubs")
+    assertThat(stubsPlugin.classpathList).containsExactly("stub.jar")
+    assertThat(stubsPlugin.optionsList.map { "${it.key}=${it.value}" })
+      .containsExactly("stubKey=stubValue")
+
+    val compilerPlugin = payload.compilerPluginsList.single()
+    assertThat(compilerPlugin.id).isEqualTo("plugin.compile")
+    assertThat(compilerPlugin.classpathList).containsExactly("a.jar", "b.jar").inOrder()
+    assertThat(compilerPlugin.optionsList.map { "${it.key}=${it.value}" })
       .containsExactly("k1=v1", "k2=v2")
-      .inOrder()
-    assertThat(plugin.phasesList)
-      .containsExactly(
-        JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_COMPILE,
-        JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_STUBS,
-      )
       .inOrder()
   }
 
   @Test
   fun `ignores unknown json fields`() {
-    val plugins =
+    val payload =
       PluginsPayloadParser.parse(
         """
         {
           "unknown_top_level": "ignored",
-          "plugins": [
+          "compiler_plugins": [
             {
               "id": "plugin.unknown",
               "classpath": [],
               "options": [],
-              "phases": ["PLUGIN_PHASE_COMPILE"],
               "unknown_nested": "ignored"
             }
           ]
@@ -81,8 +90,8 @@ class PluginsPayloadParserTest {
         """.trimIndent(),
       )
 
-    assertThat(plugins).hasSize(1)
-    assertThat(plugins.single().id).isEqualTo("plugin.unknown")
+    assertThat(payload.compilerPluginsList).hasSize(1)
+    assertThat(payload.compilerPluginsList.single().id).isEqualTo("plugin.unknown")
   }
 
   @Test

@@ -204,11 +204,10 @@ kt_rules_test(
 test_suite(
     name = "tasks_tests",
     tests = [
+        ":BtapiCompilerCacheTest",
         ":BtapiCompilerTest",
         ":BtapiPluginArgumentsTest",
-        ":BtapiCompilerCacheTest",
         ":InternalCompilerPluginTest",
-        ":ToolchainSpecTest",
         ":JdepsMergerTest",
         ":JdepsParserTest",
         ":KotlinBuilderJvmAbiTest",
@@ -221,5 +220,6 @@ test_suite(
         ":KotlinJvmTaskExecutorTest",
         ":Ksp2TaskTest",
         ":PluginsPayloadParserTest",
+        ":ToolchainSpecTest",
     ],
 )

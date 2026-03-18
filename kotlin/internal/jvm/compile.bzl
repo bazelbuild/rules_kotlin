@@ -190,7 +190,7 @@ def _new_plugins_from(targets):
     Args:
         targets: A list of targets.
     Returns:
-        A struct containing merged plugins and aggregate classpath/data.
+        A struct containing structured plugin lists for the stubs and compile phases.
     """
 
     all_plugins = {}
@@ -222,37 +222,36 @@ def _new_plugins_from(targets):
     if cfgs_without_plugin:
         fail("has plugin configurations without corresponding plugins: %s" % cfgs_without_plugin)
 
-    classpath = []
-    data = []
-    plugins = []
-    for p in all_plugins.values():
-        plugin_classpath = [p.classpath]
-        plugin_options = list(p.options)
-        if p.id in all_plugin_cfgs:
-            cfg = p.merge_cfgs(p, all_plugin_cfgs[p.id])
-            plugin_classpath.append(cfg.classpath)
-            data.append(cfg.data)
-            plugin_options.extend(cfg.options)
+    return struct(
+        stubs_plugins = _new_structured_plugins(all_plugin_cfgs, [p for p in all_plugins.values() if p.stubs]),
+        compiler_plugins = _new_structured_plugins(all_plugin_cfgs, [p for p in all_plugins.values() if p.compile]),
+    )
 
-        phases = []
-        if p.compile:
-            phases.append("compile")
-        if p.stubs:
-            phases.append("stubs")
-
-        plugins.append(struct(
-            id = p.id,
-            phases = phases,
-            classpath = depset(transitive = plugin_classpath),
-            options = plugin_options,
-        ))
-        classpath.extend(plugin_classpath)
-
+def _merged_plugin_fields(plugin, all_cfgs):
+    classpath = [plugin.classpath]
+    options = list(plugin.options)
+    if plugin.id in all_cfgs:
+        cfg = plugin.merge_cfgs(plugin, all_cfgs[plugin.id])
+        classpath.append(cfg.classpath)
+        options.extend(cfg.options)
     return struct(
         classpath = depset(transitive = classpath),
-        data = depset(transitive = data),
-        plugins = plugins,
+        options = options,
     )
+
+def _new_structured_plugins(all_cfgs, plugins_for_phase):
+    structured_plugins = []
+    for plugin in plugins_for_phase:
+        merged = _merged_plugin_fields(plugin, all_cfgs)
+        structured_plugins.append(struct(
+            id = plugin.id,
+            classpath = merged.classpath,
+            options = merged.options,
+        ))
+    return structured_plugins
+
+def _plugins_classpath(plugins):
+    return depset(transitive = [plugin.classpath for plugin in plugins])
 
 # INTERNAL ACTIONS #####################################################################################################
 def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action_type = ""):
@@ -613,7 +612,13 @@ def _run_kt_builder_action(
         uniquify = True,
     )
 
-    args.add("--plugins_payload", _plugin_payload.plugins_payload_json(plugins.plugins))
+    args.add(
+        "--plugins_payload",
+        _plugin_payload.plugins_payload_json(
+            stubs_plugins = plugins.stubs_plugins,
+            compiler_plugins = plugins.compiler_plugins,
+        ),
+    )
 
     if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
         args.add("--remove_private_classes_in_abi_jar", "true")
@@ -652,7 +657,8 @@ def _run_kt_builder_action(
                 compile_deps.compile_jars,
                 transitive_runtime_jars,
                 deps_artifacts,
-                plugins.classpath,
+                _plugins_classpath(plugins.stubs_plugins),
+                _plugins_classpath(plugins.compiler_plugins),
             ],
         ),
         tools = [

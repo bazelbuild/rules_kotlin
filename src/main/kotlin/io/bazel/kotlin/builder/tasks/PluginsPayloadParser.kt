@@ -22,13 +22,13 @@ import io.bazel.kotlin.model.JvmCompilationTask
 
 object PluginsPayloadParser {
   @JvmStatic
-  fun parse(json: String): List<JvmCompilationTask.Inputs.Plugin> {
-    val inputs = JvmCompilationTask.Inputs.newBuilder()
+  fun parse(json: String): JvmCompilationTask.Inputs.PluginsPayload {
+    val payload = JvmCompilationTask.Inputs.PluginsPayload.newBuilder()
     try {
-      JsonFormat.parser().ignoringUnknownFields().merge(json, inputs)
+      JsonFormat.parser().ignoringUnknownFields().merge(json, payload)
     } catch (e: InvalidProtocolBufferException) {
       throw IllegalArgumentException("invalid plugins payload JSON: ${e.message}", e)
     }
-    return inputs.pluginsList
+    return payload.build()
   }
 }

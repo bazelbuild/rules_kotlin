@@ -110,11 +110,11 @@ class KotlinBuilderProtoArgsTest {
             .setKey("annotation")
             .setValue("sample.NoArg")
             .build(),
-        ).addPhases(JvmCompilationTask.Inputs.PluginPhase.PLUGIN_PHASE_COMPILE)
+        )
         .build()
 
     return JsonFormat.printer().print(
-      JvmCompilationTask.Inputs.newBuilder().addPlugins(plugin).build(),
+      JvmCompilationTask.Inputs.PluginsPayload.newBuilder().addCompilerPlugins(plugin).build(),
     )
   }
 

@@ -136,12 +136,6 @@ message JvmCompilationTask {
   }
 
   message Inputs {
-      enum PluginPhase {
-        PLUGIN_PHASE_UNSPECIFIED = 0;
-        PLUGIN_PHASE_COMPILE = 1;
-        PLUGIN_PHASE_STUBS = 2;
-      }
-
       message PluginOption {
         // Compiler plugin option key
         string key = 1;
@@ -156,8 +150,15 @@ message JvmCompilationTask {
         repeated string classpath = 2;
         // Kotlin compiler plugin options
         repeated PluginOption options = 3;
-        // Compilation phases where this plugin should be applied
-        repeated PluginPhase phases = 4;
+        reserved 4;
+        reserved "phases";
+      }
+
+      message PluginsPayload {
+        // Structured plugins that should run during the stubs/KAPT phase.
+        repeated Plugin stubs_plugins = 1;
+        // Structured plugins that should run during the main compile phase.
+        repeated Plugin compiler_plugins = 2;
       }
 
       // The full classpath
@@ -179,8 +180,12 @@ message JvmCompilationTask {
       // Reserved: replaced by structured plugins.
       reserved 9, 10, 11, 12, 13, 14;
       reserved "stubs_plugin_options", "stubs_plugins", "stubs_plugin_classpath", "compiler_plugin_options", "compiler_plugins", "compiler_plugin_classpath";
-      // Kotlin compiler plugins with explicit phase information.
-      repeated Plugin plugins = 17;
+      reserved 17;
+      reserved "plugins";
+      // Structured plugins that should run during the stubs/KAPT phase.
+      repeated Plugin stubs_phase_plugins = 18;
+      // Structured plugins that should run during the main compile phase.
+      repeated Plugin compiler_phase_plugins = 19;
       // Java opts to be passed to java compiler
       repeated string javac_flags = 15;
       // JDeps dependency artifacts

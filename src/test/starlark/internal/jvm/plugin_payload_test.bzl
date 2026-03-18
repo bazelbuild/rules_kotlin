@@ -8,7 +8,7 @@ load("//src/main/starlark/core/plugin:payload.bzl", "plugin_payload")
 def _plugins_payload_json_encodes_empty_plugins_test_impl(ctx):
     env = unittest.begin(ctx)
 
-    payload_json = plugin_payload.plugins_payload_json([])
+    payload_json = plugin_payload.plugins_payload_json([], [])
     asserts.true(
         env,
         payload_json.startswith("{") and payload_json.endswith("}"),
@@ -16,8 +16,8 @@ def _plugins_payload_json_encodes_empty_plugins_test_impl(ctx):
     )
     asserts.true(
         env,
-        "\"plugins\"" in payload_json,
-        msg = "plugins payload should contain the plugins key",
+        "\"stubs_plugins\"" in payload_json and "\"compiler_plugins\"" in payload_json,
+        msg = "plugins payload should contain both split plugin keys",
     )
 
     return unittest.end(env)

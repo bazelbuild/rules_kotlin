@@ -38,7 +38,8 @@ def _inline_payload_test_impl(env, target):
             item[0] == "--plugins_payload" and
             len(item[1]) == 1 and
             item[1][0].startswith("{") and
-            "\"plugins\"" in item[1][0] and
+            "\"stubs_plugins\"" in item[1][0] and
+            "\"compiler_plugins\"" in item[1][0] and
             env.ctx.attr.want_plugin_id in item[1][0] and
             not item[1][0].endswith("_plugins_payload")
         ),
