@@ -276,9 +276,11 @@ class BtapiCompilerTest {
         "temp=$tempDir",
         "classpath=/plugins/first.jar${File.pathSeparator}/plugins/second.jar",
       ).joinToString(";")
+    val expectedPluginClasspath =
+      classpath.joinToString(",") { Path.of(it).toAbsolutePath().toString() }
 
     assertThat(BtapiPluginArguments.toArgumentStrings(listOf(btapiPlugin))).containsExactly(
-      "-Xplugin=/plugins/first.jar,/plugins/second.jar",
+      "-Xplugin=$expectedPluginClasspath",
       "-P",
       "plugin:example.plugin:expanded=$expectedValue",
     ).inOrder()

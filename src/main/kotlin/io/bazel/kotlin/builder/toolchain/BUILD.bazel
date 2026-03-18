@@ -31,6 +31,7 @@ kt_bootstrap_library(
         "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen-lib",
         "//src/main/protobuf:kotlin_model_java_proto",
         "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_api",
+        "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_compat",
         "@rules_kotlin_maven_dev//:com_google_protobuf_protobuf_java",
         "@rules_kotlin_maven_dev//:com_google_protobuf_protobuf_java_util",
     ],
