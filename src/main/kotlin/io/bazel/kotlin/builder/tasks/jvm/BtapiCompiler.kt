@@ -107,8 +107,8 @@ class BtapiCompiler(
       (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
         .map { Path.of(it) }
 
-    @Suppress("DEPRECATION")
     // TODO: Figure out if builder can be used with pre-2.3.20 btapi impl
+    @Suppress("DEPRECATION")
     val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
     val compilerArgs = LegacyJvmCompilerArgumentsAdapter(operation.compilerArguments)
 
@@ -214,9 +214,15 @@ class BtapiCompiler(
 
     fun toArgumentStrings(): List<String>
 
-    operator fun <V> set(key: JvmCompilerArguments.JvmCompilerArgument<V>, value: V)
+    operator fun <V> set(
+      key: JvmCompilerArguments.JvmCompilerArgument<V>,
+      value: V,
+    )
 
-    operator fun <V> set(key: CommonCompilerArguments.CommonCompilerArgument<V>, value: V)
+    operator fun <V> set(
+      key: CommonCompilerArguments.CommonCompilerArgument<V>,
+      value: V,
+    )
 
     operator fun contains(key: CommonCompilerArguments.CommonCompilerArgument<*>): Boolean
   }
@@ -230,11 +236,17 @@ class BtapiCompiler(
 
     override fun toArgumentStrings(): List<String> = delegate.build().toArgumentStrings()
 
-    override fun <V> set(key: JvmCompilerArguments.JvmCompilerArgument<V>, value: V) {
+    override fun <V> set(
+      key: JvmCompilerArguments.JvmCompilerArgument<V>,
+      value: V,
+    ) {
       delegate[key] = value
     }
 
-    override fun <V> set(key: CommonCompilerArguments.CommonCompilerArgument<V>, value: V) {
+    override fun <V> set(
+      key: CommonCompilerArguments.CommonCompilerArgument<V>,
+      value: V,
+    ) {
       delegate[key] = value
     }
 
@@ -252,11 +264,17 @@ class BtapiCompiler(
 
     override fun toArgumentStrings(): List<String> = delegate.toArgumentStrings()
 
-    override fun <V> set(key: JvmCompilerArguments.JvmCompilerArgument<V>, value: V) {
+    override fun <V> set(
+      key: JvmCompilerArguments.JvmCompilerArgument<V>,
+      value: V,
+    ) {
       delegate[key] = value
     }
 
-    override fun <V> set(key: CommonCompilerArguments.CommonCompilerArgument<V>, value: V) {
+    override fun <V> set(
+      key: CommonCompilerArguments.CommonCompilerArgument<V>,
+      value: V,
+    ) {
       delegate[key] = value
     }
 
