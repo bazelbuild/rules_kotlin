@@ -55,7 +55,10 @@ internal fun JvmCompilationTask.runPlugins(
 ): JvmCompilationTask {
   // Run the KAPT phase when there are annotation processors or any explicit stubs-phase plugins.
   if (
-    (inputs.processorsList.isEmpty() && inputs.stubsPluginClasspathList.isEmpty()) ||
+    (
+      inputs.processorsList.isEmpty() &&
+        inputs.stubsPluginClasspathList.isEmpty()
+    ) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this

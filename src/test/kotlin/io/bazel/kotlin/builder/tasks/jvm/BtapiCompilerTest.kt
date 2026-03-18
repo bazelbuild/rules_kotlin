@@ -292,6 +292,7 @@ class BtapiCompilerTest {
     val task =
       minimalTaskBuilder(tempDir)
         .apply {
+          inputsBuilder.addStubsPlugins("example.stubs")
           inputsBuilder.addStubsPluginClasspath("/plugins/example-stubs.jar")
           inputsBuilder.addStubsPluginOptions("example.stubs:dir={stubs}")
           directoriesBuilder.generatedStubClasses = stubsDir.toString()
@@ -309,6 +310,25 @@ class BtapiCompilerTest {
     }
 
     assertThat(Files.isDirectory(stubsDir)).isTrue()
+  }
+
+  @Test
+  fun `stubs plugins preserve no-option plugin ids without requiring marker options`() {
+    val tempDir = Files.createTempDirectory("btapi-stubs-no-options")
+    val task =
+      minimalTaskBuilder(tempDir)
+        .apply {
+          inputsBuilder.addStubsPlugins("example.noop")
+          inputsBuilder.addStubsPluginClasspath("/plugins/example-noop.jar")
+        }.build()
+
+    withBtapiCompiler { btapiCompiler ->
+      val stubsPlugins = btapiCompiler.buildStubsPlugins(task, toolchainSpec())
+
+      assertThat(stubsPlugins).hasSize(1)
+      assertThat(stubsPlugins.single().pluginId).isEqualTo("example.noop")
+      assertThat(stubsPlugins.single().rawArguments).isEmpty()
+    }
   }
 
   @Test

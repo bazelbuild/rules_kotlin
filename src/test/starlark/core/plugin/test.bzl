@@ -174,7 +174,9 @@ def _test_compile_configuration(test):
             "on_action_mnemonic": "KotlinCompile",
             "want_flags": {
                 "--compiler_plugin_options": ["test.stub:annotation=plugin.StubForTesting", "test.stub:-Dop=koo"],
+                "--compiler_plugins": ["test.stub"],
                 "--stubs_plugin_options": ["test.stub:annotation=plugin.StubForTesting", "test.stub:-Dop=koo"],
+                "--stubs_plugins": ["test.stub"],
             },
             "want_inputs": [
                 plugin_jar,
@@ -281,11 +283,13 @@ def _test_compile_multiple_configurations(test):
                     "test.stub:-Dop=koo",
                     "test.stub:-Dop=zubzub",
                 ],
+                "--compiler_plugins": ["test.stub"],
                 "--stubs_plugin_options": [
                     "test.stub:annotation=plugin.StubForTesting",
                     "test.stub:-Dop=koo",
                     "test.stub:-Dop=zubzub",
                 ],
+                "--stubs_plugins": ["test.stub"],
             },
             "want_inputs": [
                 plugin_jar,
@@ -359,11 +363,54 @@ def _test_compile_configuration_single_phase(test):
             "on_action_mnemonic": "KotlinCompile",
             "want_flags": {
                 "--compiler_plugin_options": ["plugin.compile:-Dop=compile_only"],
+                "--compiler_plugins": ["plugin.compile"],
                 "--stubs_plugin_options": ["plugin.stub:-Dop=stub_only"],
+                "--stubs_plugins": ["plugin.stub"],
             },
             "want_inputs": [
                 stub_jar,
                 compile_jar,
+            ],
+        },
+        attrs = {
+            "on_action_mnemonic": attr.string(),
+            "want_flags": attr.string_list_dict(),
+            "want_inputs": attr.label_list(providers = [DefaultInfo], allow_files = True),
+        },
+    )
+
+def _test_compile_no_option_plugin(test):
+    noop, noop_jar = plugin_for(
+        test,
+        name = "noop",
+        id = "plugin.noop",
+    )
+
+    got = test.got(
+        kt_jvm_library,
+        name = "got_library",
+        srcs = [
+            test.artifact(
+                name = "got_library.kt",
+            ),
+        ],
+        plugins = [
+            noop,
+        ],
+    )
+
+    analysis_test(
+        name = test.name,
+        impl = _action_test_impl,
+        target = got,
+        attr_values = {
+            "on_action_mnemonic": "KotlinCompile",
+            "want_flags": {
+                "--compiler_plugins": ["plugin.noop"],
+                "--stubs_plugins": ["plugin.noop"],
+            },
+            "want_inputs": [
+                noop_jar,
             ],
         },
         attrs = {
@@ -444,6 +491,7 @@ def test_suite(name):
         name,
         test_kt_plugin_cfg = _test_kt_plugin_cfg,
         test_compile_configuration = _test_compile_configuration,
+        test_compile_no_option_plugin = _test_compile_no_option_plugin,
         test_library_multiple_plugins_with_same_id = _test_library_multiple_plugins_with_same_id,
         test_compile_configuration_single_phase = _test_compile_configuration_single_phase,
         test_compile_multiple_configurations = _test_compile_multiple_configurations,

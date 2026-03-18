@@ -41,14 +41,11 @@ _COMPILER_TARGETS = [
     ("ksp-intellij-kotlinx-coroutines-core-jvm", "org_jetbrains_intellij_deps_kotlinx_kotlinx_coroutines_core_jvm"),
 ]
 
-def _compiler_target_actual(actual):
-    return "@rules_kotlin_maven//:%s" % actual
-
 def kt_define_compiler_targets():
     for name, actual in _COMPILER_TARGETS:
         native.alias(
             name = name,
-            actual = _compiler_target_actual(actual),
+            actual = "@rules_kotlin_maven//:%s" % actual,
         )
 
 # Kotlin standard library targets for the CLI toolchain's compilation and runtime classpath.

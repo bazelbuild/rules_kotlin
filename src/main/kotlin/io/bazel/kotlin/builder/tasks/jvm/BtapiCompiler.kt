@@ -413,26 +413,38 @@ class BtapiCompiler(
     includeRawOption: (String) -> Boolean = { true },
   ): List<CompilerPlugin> {
     val optionsByPluginId = linkedMapOf<String, MutableList<String>>()
-    rawOptions
-      .filter(includeRawOption)
-      .forEach { rawOption ->
-        val separatorIndex = rawOption.indexOf(":")
-        require(separatorIndex > 0) {
-          "Invalid compiler plugin option '$rawOption'. Expected format <plugin-id>:<option>."
-        }
-        val pluginId = rawOption.substring(0, separatorIndex)
-        val option = rawOption.substring(separatorIndex + 1)
-        optionsByPluginId.getOrPut(pluginId) { mutableListOf() }.add(option)
+    val filteredOptions = rawOptions.filter(includeRawOption)
+    if (pluginIds.isEmpty()) {
+      require(filteredOptions.isEmpty() && classpath.isEmpty()) {
+        "Invalid compiler plugin configuration: plugin ids are required for BTAPI plugins."
       }
+      return emptyList()
+    }
 
     val orderedPluginIds =
       linkedSetOf<String>().apply {
-        addAll(pluginIds)
-        addAll(optionsByPluginId.keys)
+        pluginIds.forEach { pluginId ->
+          require(pluginId.isNotBlank()) {
+            "Invalid compiler plugin configuration: plugin id is empty."
+          }
+          add(pluginId)
+        }
       }
 
-    if (orderedPluginIds.isEmpty()) {
-      return emptyList()
+    filteredOptions.forEach { rawOption ->
+      val separatorIndex = rawOption.indexOf(":")
+      require(separatorIndex > 0) {
+        "Invalid compiler plugin option '$rawOption'. Expected format <plugin-id>:<option>."
+      }
+      val pluginId = rawOption.substring(0, separatorIndex)
+      val option = rawOption.substring(separatorIndex + 1)
+      require(option.isNotEmpty()) {
+        "Invalid compiler plugin option '$rawOption'. Empty plugin options are not supported."
+      }
+      require(pluginId in orderedPluginIds) {
+        "Invalid compiler plugin option '$rawOption'. Plugin id '$pluginId' was not declared."
+      }
+      optionsByPluginId.getOrPut(pluginId) { mutableListOf() }.add(option)
     }
 
     require(classpath.isNotEmpty()) {

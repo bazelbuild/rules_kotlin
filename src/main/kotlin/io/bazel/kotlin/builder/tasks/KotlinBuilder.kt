@@ -57,8 +57,10 @@ class KotlinBuilder(
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
       STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
+      STUBS_PLUGINS("--stubs_plugins"),
       STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
       COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
+      COMPILER_PLUGINS("--compiler_plugins"),
       COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
       OUTPUT("--output"),
       RULE_KIND("--rule_kind"),
@@ -290,12 +292,18 @@ class KotlinBuilder(
         addAllStubsPluginOptions(
           argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
         )
+        addAllStubsPlugins(
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGINS) ?: emptyList(),
+        )
         addAllStubsPluginClasspath(
           argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
         )
 
         addAllCompilerPluginOptions(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
+        )
+        addAllCompilerPlugins(
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGINS) ?: emptyList(),
         )
         addAllCompilerPluginClasspath(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),

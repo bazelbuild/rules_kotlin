@@ -54,7 +54,7 @@ class KotlinBuilderProtoArgsTest {
   private val jdepsGen = dep("//src/main/kotlin:jdeps-gen")
 
   @Test
-  fun `worker-style request maps legacy plugin ids to compiler args`() {
+  fun `worker-style request maps explicit plugin ids to compiler args`() {
     val result =
       WorkerContext.run {
         doTask("kotlin-builder-proto-request") { taskContext ->
@@ -120,7 +120,7 @@ class KotlinBuilderProtoArgsTest {
     args.addFlag(KotlinBuilderFlags.API_VERSION, "2.0")
     args.addFlag(KotlinBuilderFlags.LANGUAGE_VERSION, "2.0")
     args.addFlag(KotlinBuilderFlags.JVM_TARGET, "11")
-    args.addFlag(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS, "$compilerPluginId:")
+    args.addFlag(KotlinBuilderFlags.COMPILER_PLUGINS, compilerPluginId)
     args.addFlag(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH, compilerPluginJar)
 
     args.addFlag(
