@@ -100,6 +100,14 @@ class KotlinJvmTaskExecutor(
                         given(outputs.jar).empty {
                           plugin(plugins.skipCodeGen)
                         }
+                      }.given(outputs.associatesAbiJar)
+                      .notEmpty {
+                        plugin(plugins.associatesAbiGen) {
+                          flag("outputDir", directories.associatesAbiClasses)
+                          if (info.removeDebugInfo) {
+                            flag("removeDebugInfo", "true")
+                          }
+                        }
                       },
                   printOnFail = false,
                 )
@@ -135,6 +143,9 @@ class KotlinJvmTaskExecutor(
         }
         if (outputs.abijar.isNotEmpty()) {
           context.execute("create abi jar", ::createAbiJar)
+        }
+        if (outputs.associatesAbiJar.isNotEmpty()) {
+          context.execute("create associates abi jar", ::createAssociatesAbiJar)
         }
         if (outputs.generatedJavaSrcJar.isNotEmpty()) {
           context.execute("creating KAPT generated Java source jar", ::createGeneratedJavaSrcJar)

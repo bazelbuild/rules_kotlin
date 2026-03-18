@@ -29,6 +29,7 @@ class KotlinToolchain private constructor(
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin,
+  val associatesAbiGen: CompilerPlugin,
 ) {
   companion object {
     private val JVM_ABI_PLUGIN by lazy {
@@ -63,6 +64,13 @@ class KotlinToolchain private constructor(
       BazelRunFiles
         .resolveVerifiedFromProperty(
           "@rules_kotlin...jdeps-gen",
+        ).toPath()
+    }
+
+    private val ASSOCIATES_ABI_GEN_PLUGIN by lazy {
+      BazelRunFiles
+        .resolveVerifiedFromProperty(
+          "@rules_kotlin...associates-abi-gen",
         ).toPath()
     }
 
@@ -116,6 +124,7 @@ class KotlinToolchain private constructor(
         KOTLINX_SERIALIZATION_CORE_JVM.toFile(),
         KOTLINX_SERIALIZATION_JSON.toFile(),
         KOTLINX_SERIALIZATION_JSON_JVM.toFile(),
+        ASSOCIATES_ABI_GEN_PLUGIN.verified().absoluteFile,
       )
 
     @JvmStatic
@@ -130,6 +139,7 @@ class KotlinToolchain private constructor(
       kotlinxSerializationCoreJvm: File,
       kotlinxSerializationJson: File,
       kotlinxSerializationJsonJvm: File,
+      associatesAbiGenFile: File,
     ): KotlinToolchain =
       KotlinToolchain(
         listOf(
@@ -139,6 +149,7 @@ class KotlinToolchain private constructor(
           jvmAbiGenFile,
           skipCodeGenFile,
           jdepsGenFile,
+          associatesAbiGenFile,
           kotlinxSerializationCoreJvm,
           kotlinxSerializationJson,
           kotlinxSerializationJsonJvm,
@@ -162,6 +173,11 @@ class KotlinToolchain private constructor(
           CompilerPlugin(
             kaptFile.path,
             "org.jetbrains.kotlin.kapt3",
+          ),
+        associatesAbiGen =
+          CompilerPlugin(
+            associatesAbiGenFile.path,
+            "io.bazel.kotlin.plugin.ExperimentalAssociatesAbiGen",
           ),
       )
   }

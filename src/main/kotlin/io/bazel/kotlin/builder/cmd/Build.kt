@@ -37,6 +37,7 @@ object Build {
             toolchain.skipCodeGen,
             toolchain.kapt3Plugin,
             toolchain.jdepsGen,
+            toolchain.associatesAbiGen,
           )
         val compilerBuilder = KotlinToolchain.KotlincInvokerBuilder(toolchain)
         val jvmTaskExecutor = KotlinJvmTaskExecutor(compilerBuilder, plugins)
