@@ -394,7 +394,7 @@ class BtapiCompiler(
     val optionTokens =
       mapOf(
         "{generatedClasses}" to task.directories.generatedClasses,
-        "{stubs}" to task.directories.stubsDir,
+        "{stubs}" to task.directories.stubs,
         "{temp}" to task.directories.temp,
         "{generatedSources}" to task.directories.generatedSources,
         "{classpath}" to classpath.joinToString(File.pathSeparator),
@@ -579,11 +579,8 @@ class BtapiCompiler(
     val pluginId = kapt.id
 
     // Create temp subdirectories for stubs and incremental data
-    val stubsDir = task.directories.stubsDir
-    val incrementalDataDir =
-      Files.createDirectories(
-        Paths.get(task.directories.temp).resolve("incrementalData"),
-      )
+    val stubsDir = task.directories.stubs
+    val incrementalDataDir = task.directories.incrementalData
 
     val options = mutableListOf<CompilerPluginOption>()
 
@@ -591,7 +588,7 @@ class BtapiCompiler(
     options.add(CompilerPluginOption("sources", task.directories.generatedJavaSources))
     options.add(CompilerPluginOption("classes", task.directories.generatedClasses))
     options.add(CompilerPluginOption("stubs", stubsDir))
-    options.add(CompilerPluginOption("incrementalData", incrementalDataDir.toString()))
+    options.add(CompilerPluginOption("incrementalData", incrementalDataDir))
 
     // Javac arguments (encoded as Base64)
     val javacArgs =

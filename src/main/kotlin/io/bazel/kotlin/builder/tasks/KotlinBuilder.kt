@@ -57,10 +57,8 @@ class KotlinBuilder(
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
       STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
-      STUBS_PLUGINS("--stubs_plugins"),
       STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
       COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
-      COMPILER_PLUGINS("--compiler_plugins"),
       COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
       OUTPUT("--output"),
       RULE_KIND("--rule_kind"),
@@ -240,20 +238,29 @@ class KotlinBuilder(
 
       with(root.directoriesBuilder) {
         val moduleName = argMap.mandatorySingle(KotlinBuilderFlags.MODULE_NAME)
-        val tempDir = workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "temp"))
         classes =
           workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "classes")).toString()
         javaClasses =
-          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "java_classes")).toString()
+          workingDir
+            .resolveNewDirectories(
+              getOutputDirPath(moduleName, "java_classes"),
+            ).toString()
         if (argMap.hasAll(KotlinBuilderFlags.ABI_JAR)) {
           abiClasses =
-            workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "abi_classes")).toString()
+            workingDir
+              .resolveNewDirectories(
+                getOutputDirPath(moduleName, "abi_classes"),
+              ).toString()
         }
         generatedClasses =
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_classes"))
             .toString()
-        temp = tempDir.toString()
+        temp =
+          workingDir
+            .resolveNewDirectories(
+              getOutputDirPath(moduleName, "temp"),
+            ).toString()
         generatedSources =
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_sources"))
@@ -263,7 +270,7 @@ class KotlinBuilder(
             .resolveNewDirectories(getOutputDirPath(moduleName, "generated_java_sources"))
             .toString()
         generatedStubClasses =
-          Files.createDirectories(tempDir.resolve("stubs")).toString()
+          workingDir.resolveNewDirectories(getOutputDirPath(moduleName, "stubs")).toString()
         coverageMetadataClasses =
           workingDir
             .resolveNewDirectories(getOutputDirPath(moduleName, "coverage-metadata"))
@@ -279,11 +286,9 @@ class KotlinBuilder(
 
         addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
+
         addAllStubsPluginOptions(
           argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
-        )
-        addAllStubsPlugins(
-          argMap.optional(KotlinBuilderFlags.STUBS_PLUGINS) ?: emptyList(),
         )
         addAllStubsPluginClasspath(
           argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
@@ -291,9 +296,6 @@ class KotlinBuilder(
 
         addAllCompilerPluginOptions(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
-        )
-        addAllCompilerPlugins(
-          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGINS) ?: emptyList(),
         )
         addAllCompilerPluginClasspath(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),

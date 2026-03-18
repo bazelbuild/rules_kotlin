@@ -236,17 +236,15 @@ internal fun JvmCompilationTask.expandWithSourceJarSources(): JvmCompilationTask
     )
   }
 
-internal val Directories.stubsDir
+val Directories.stubs
   get() =
     Files
       .createDirectories(
-        when {
-          generatedStubClasses.isNotEmpty() -> Paths.get(generatedStubClasses)
-          else -> Paths.get(temp).resolve("stubs")
-        },
+        Paths
+          .get(temp)
+          .resolve("stubs"),
       ).toString()
-
-private val Directories.incrementalData
+val Directories.incrementalData
   get() =
     Files
       .createDirectories(
@@ -273,11 +271,13 @@ fun JvmCompilationTask.expandWithGeneratedSources(): JvmCompilationTask =
 
 private fun JvmCompilationTask.expandWithSources(sources: Iterator<String>): JvmCompilationTask =
   updateBuilder { builder ->
-    val inputs = builder.inputsBuilder
     sources
       .copyManifestFilesToGeneratedClasses(directories)
       .filterOutNonCompilableSources()
-      .partitionJvmSources({ inputs.addKotlinSources(it) }, { inputs.addJavaSources(it) })
+      .partitionJvmSources(
+        { builder.inputsBuilder.addKotlinSources(it) },
+        { builder.inputsBuilder.addJavaSources(it) },
+      )
   }
 
 private fun JvmCompilationTask.updateBuilder(

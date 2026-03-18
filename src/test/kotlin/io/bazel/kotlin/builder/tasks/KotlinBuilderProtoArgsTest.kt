@@ -120,7 +120,6 @@ class KotlinBuilderProtoArgsTest {
     args.addFlag(KotlinBuilderFlags.API_VERSION, "2.0")
     args.addFlag(KotlinBuilderFlags.LANGUAGE_VERSION, "2.0")
     args.addFlag(KotlinBuilderFlags.JVM_TARGET, "11")
-    args.addFlag(KotlinBuilderFlags.COMPILER_PLUGINS, compilerPluginId)
     args.addFlag(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH, compilerPluginJar)
 
     args.addFlag(
