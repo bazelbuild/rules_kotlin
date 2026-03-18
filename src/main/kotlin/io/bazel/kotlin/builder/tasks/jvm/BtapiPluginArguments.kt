@@ -40,7 +40,11 @@ object BtapiPluginArguments {
     val pluginOptions =
       filteredPlugins.flatMap { plugin ->
         plugin.rawArguments.map { option ->
-          "plugin:${plugin.pluginId}:${option.key}=${option.value}"
+          if (option.value.isEmpty()) {
+            "plugin:${plugin.pluginId}:${option.key}"
+          } else {
+            "plugin:${plugin.pluginId}:${option.key}=${option.value}"
+          }
         }
       }
     val pluginOrderConstraints =

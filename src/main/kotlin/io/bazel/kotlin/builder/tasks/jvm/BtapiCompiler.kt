@@ -286,8 +286,12 @@ class BtapiCompiler(
    * Builds user-specified compiler plugins from protobuf options.
    */
   private fun buildUserPlugins(task: JvmCompilationTask): List<CompilerPlugin> =
-    task.inputs.compilerPlugins
-      .map { toBtapiPlugin(task, it) }
+    buildLegacyPlugins(
+      task = task,
+      pluginIds = task.inputs.compilerPluginsList,
+      rawOptions = task.inputs.compilerPluginOptionsList,
+      classpath = task.inputs.compilerPluginClasspathList,
+    )
 
   /**
    * Builds jdeps plugin using the typed CompilerPlugin API.
@@ -350,24 +354,41 @@ class BtapiCompiler(
 
   fun toBtapiPlugin(
     task: JvmCompilationTask,
-    plugin: JvmCompilationTask.Inputs.Plugin,
+    pluginId: String,
+    classpath: List<String>,
+    rawOptions: List<String>,
   ): CompilerPlugin =
     CompilerPlugin(
-      pluginId = plugin.id,
-      classpath = plugin.classpathList.map { Path.of(it) },
+      pluginId = pluginId,
+      classpath = classpath.map { Path.of(it) },
       rawArguments =
-        plugin.optionsList.map { option ->
-          CompilerPluginOption(
-            option.key,
-            expandPluginOptionValue(task, plugin, option.value),
+        rawOptions.map { rawOption ->
+          parseLegacyPluginOption(
+            task = task,
+            classpath = classpath,
+            rawOption = rawOption,
           )
         },
       orderingRequirements = emptySet(),
     )
 
+  private fun parseLegacyPluginOption(
+    task: JvmCompilationTask,
+    classpath: List<String>,
+    rawOption: String,
+  ): CompilerPluginOption {
+    val separatorIndex = rawOption.indexOf("=")
+    val key = if (separatorIndex >= 0) rawOption.substring(0, separatorIndex) else rawOption
+    val value = if (separatorIndex >= 0) rawOption.substring(separatorIndex + 1) else ""
+    return CompilerPluginOption(
+      key,
+      expandPluginOptionValue(task, classpath, value),
+    )
+  }
+
   private fun expandPluginOptionValue(
     task: JvmCompilationTask,
-    plugin: JvmCompilationTask.Inputs.Plugin,
+    classpath: List<String>,
     value: String,
   ): String {
     val optionTokens =
@@ -376,11 +397,58 @@ class BtapiCompiler(
         "{stubs}" to task.directories.stubsDir,
         "{temp}" to task.directories.temp,
         "{generatedSources}" to task.directories.generatedSources,
-        "{classpath}" to plugin.classpathList.joinToString(File.pathSeparator),
+        "{classpath}" to classpath.joinToString(File.pathSeparator),
       )
 
     return optionTokens.entries.fold(value) { expandedValue, (token, replacement) ->
       expandedValue.replace(token, replacement)
+    }
+  }
+
+  private fun buildLegacyPlugins(
+    task: JvmCompilationTask,
+    pluginIds: List<String>,
+    rawOptions: List<String>,
+    classpath: List<String>,
+    includeRawOption: (String) -> Boolean = { true },
+  ): List<CompilerPlugin> {
+    val optionsByPluginId = linkedMapOf<String, MutableList<String>>()
+    rawOptions
+      .filter(includeRawOption)
+      .forEach { rawOption ->
+        val separatorIndex = rawOption.indexOf(":")
+        require(separatorIndex > 0) {
+          "Invalid compiler plugin option '$rawOption'. Expected format <plugin-id>:<option>."
+        }
+        val pluginId = rawOption.substring(0, separatorIndex)
+        val option = rawOption.substring(separatorIndex + 1)
+        optionsByPluginId.getOrPut(pluginId) { mutableListOf() }.add(option)
+      }
+
+    val orderedPluginIds =
+      linkedSetOf<String>().apply {
+        addAll(pluginIds)
+        addAll(optionsByPluginId.keys)
+      }
+
+    if (orderedPluginIds.isEmpty()) {
+      return emptyList()
+    }
+
+    require(classpath.isNotEmpty()) {
+      "Invalid compiler plugin configuration: plugin classpath is empty."
+    }
+
+    return orderedPluginIds.map { pluginId ->
+      require(pluginId.isNotBlank()) {
+        "Invalid compiler plugin configuration: plugin id is empty."
+      }
+      toBtapiPlugin(
+        task = task,
+        pluginId = pluginId,
+        classpath = classpath,
+        rawOptions = optionsByPluginId[pluginId] ?: emptyList(),
+      )
     }
   }
 
@@ -548,13 +616,18 @@ class BtapiCompiler(
       options.add(CompilerPluginOption("processors", processor))
     }
 
-    // Read kapt apoptions from structured plugin options.
+    // Read kapt apoptions from legacy plugin options.
     val apOptions =
-      task.inputs.stubsPlugins
+      (task.inputs.compilerPluginOptionsList + task.inputs.stubsPluginOptionsList)
         .asSequence()
-        .filter { it.id == pluginId }
-        .flatMap { it.optionsList.asSequence() }
-        .associate { option -> option.key to option.value }
+        .filter { option -> option.startsWith("$pluginId:apoption=") }
+        .map { option ->
+          option
+            .substring("$pluginId:apoption=".length)
+            .split(":", limit = 2)
+        }.associate { option ->
+          option[0] to option[1]
+        }
 
     if (apOptions.isNotEmpty()) {
       options.add(CompilerPluginOption("apoptions", encodeMapForKapt(apOptions)))
@@ -576,9 +649,13 @@ class BtapiCompiler(
     toolchainSpec: ToolchainSpec,
   ): List<CompilerPlugin> {
     val kaptId = toolchainSpec.requirePlugin(ToolchainSpec.KAPT).id
-    return task.inputs.stubsPlugins
-      .filterNot { it.id == kaptId }
-      .map { toBtapiPlugin(task, it) }
+    return buildLegacyPlugins(
+      task = task,
+      pluginIds = task.inputs.stubsPluginsList,
+      rawOptions = task.inputs.stubsPluginOptionsList,
+      classpath = task.inputs.stubsPluginClasspathList,
+      includeRawOption = { rawOption -> !rawOption.startsWith("$kaptId:") },
+    )
   }
 
   /**

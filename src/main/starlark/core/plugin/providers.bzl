@@ -1,7 +1,7 @@
 KtCompilerPluginOption = provider(
     fields = {
-        "key": "The option key.",
-        "value": "The option value.",
+        "id": "The id of the option.",
+        "value": "The value of the option.",
     },
 )
 

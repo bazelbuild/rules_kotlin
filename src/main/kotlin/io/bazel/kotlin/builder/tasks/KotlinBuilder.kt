@@ -56,7 +56,12 @@ class KotlinBuilder(
       SOURCE_JARS("--source_jars"),
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
-      PLUGINS_PAYLOAD("--plugins_payload"),
+      STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
+      STUBS_PLUGINS("--stubs_plugins"),
+      STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
+      COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
+      COMPILER_PLUGINS("--compiler_plugins"),
+      COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
       OUTPUT("--output"),
       RULE_KIND("--rule_kind"),
       MODULE_NAME("--kotlin_module_name"),
@@ -274,13 +279,25 @@ class KotlinBuilder(
 
         addAllProcessors(argMap.optional(KotlinBuilderFlags.PROCESSORS) ?: emptyList())
         addAllProcessorpaths(argMap.optional(KotlinBuilderFlags.PROCESSOR_PATH) ?: emptyList())
-        argMap
-          .optionalSingle(KotlinBuilderFlags.PLUGINS_PAYLOAD)
-          ?.let(PluginsPayloadParser::parse)
-          ?.also {
-            addAllStubsPhasePlugins(it.stubsPluginsList)
-            addAllCompilerPhasePlugins(it.compilerPluginsList)
-          }
+        addAllStubsPluginOptions(
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
+        )
+        addAllStubsPlugins(
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGINS) ?: emptyList(),
+        )
+        addAllStubsPluginClasspath(
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
+        )
+
+        addAllCompilerPluginOptions(
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
+        )
+        addAllCompilerPlugins(
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGINS) ?: emptyList(),
+        )
+        addAllCompilerPluginClasspath(
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),
+        )
 
         argMap
           .optional(KotlinBuilderFlags.SOURCES)

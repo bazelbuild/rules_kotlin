@@ -29,10 +29,10 @@ import io.bazel.kotlin.builder.utils.jars.JarCreator
 import io.bazel.kotlin.builder.utils.jars.JarHelper.Companion.MANIFEST_DIR
 import io.bazel.kotlin.builder.utils.jars.SourceJarExtractor
 import io.bazel.kotlin.builder.utils.partitionJvmSources
-import io.bazel.kotlin.model.JvmCompilationTask
-import io.bazel.kotlin.model.JvmCompilationTask.Directories
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import io.bazel.kotlin.model.JvmCompilationTask
+import io.bazel.kotlin.model.JvmCompilationTask.Directories
 import java.nio.file.Files
 import java.nio.file.Files.isDirectory
 import java.nio.file.Files.walk
@@ -42,12 +42,6 @@ import java.util.stream.Stream
 import kotlin.io.path.exists
 
 private const val SOURCE_JARS_DIR = "_srcjars"
-
-internal val JvmCompilationTask.Inputs.stubsPlugins: List<JvmCompilationTask.Inputs.Plugin>
-  get() = stubsPhasePluginsList
-
-internal val JvmCompilationTask.Inputs.compilerPlugins: List<JvmCompilationTask.Inputs.Plugin>
-  get() = compilerPhasePluginsList
 
 internal fun JvmCompilationTask.preProcessingSteps(
   context: CompilationTaskContext,
@@ -61,7 +55,7 @@ internal fun JvmCompilationTask.runPlugins(
 ): JvmCompilationTask {
   // Run the KAPT phase when there are annotation processors or any explicit stubs-phase plugins.
   if (
-    (inputs.processorsList.isEmpty() && inputs.stubsPlugins.isEmpty()) ||
+    (inputs.processorsList.isEmpty() && inputs.stubsPluginClasspathList.isEmpty()) ||
     inputs.kotlinSourcesList.isEmpty()
   ) {
     return this

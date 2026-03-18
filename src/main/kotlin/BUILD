@@ -1,4 +1,9 @@
 load("//src/main/starlark/release:packager.bzl", "release_archive")
+alias(
+    name = "build",
+    actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build",
+    visibility = ["//visibility:public"],
+)
 
 alias(
     name = "skip-code-gen",
@@ -9,12 +14,6 @@ alias(
 alias(
     name = "jdeps-gen",
     actual = "//src/main/kotlin/io/bazel/kotlin/plugin/jdeps:jdeps-gen_deploy.jar",
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "build",
-    actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build",
     visibility = ["//visibility:public"],
 )
 

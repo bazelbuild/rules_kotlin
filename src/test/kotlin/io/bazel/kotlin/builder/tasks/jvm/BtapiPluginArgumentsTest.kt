@@ -64,6 +64,29 @@ class BtapiPluginArgumentsTest {
   }
 
   @Test
+  fun `preserves option flags without values`() {
+    val pluginJar = Path.of("plugin.jar").toAbsolutePath()
+
+    val args =
+      BtapiPluginArguments.toArgumentStrings(
+        listOf(
+          CompilerPlugin(
+            pluginId = "plugin.flag",
+            classpath = listOf(pluginJar),
+            rawArguments = listOf(CompilerPluginOption("enabled", "")),
+            orderingRequirements = emptySet(),
+          ),
+        ),
+      )
+
+    assertThat(args).containsExactly(
+      "-Xplugin=${pluginJar.absolutePathString()}",
+      "-P",
+      "plugin:plugin.flag:enabled",
+    ).inOrder()
+  }
+
+  @Test
   fun `converts plugin order constraints`() {
     val firstJar = Path.of("plugin-one.jar").toAbsolutePath()
     val secondJar = Path.of("plugin-two.jar").toAbsolutePath()

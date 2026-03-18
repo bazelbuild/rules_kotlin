@@ -17,11 +17,9 @@
 package io.bazel.kotlin.builder.tasks
 
 import com.google.common.truth.Truth.assertThat
-import com.google.protobuf.util.JsonFormat
 import io.bazel.kotlin.builder.Deps.Dep
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.KotlinBuilderFlags
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
-import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.worker.Status
 import io.bazel.worker.WorkerContext
 import org.junit.Test
@@ -56,7 +54,7 @@ class KotlinBuilderProtoArgsTest {
   private val jdepsGen = dep("//src/main/kotlin:jdeps-gen")
 
   @Test
-  fun `worker-style request maps plugins payload to compiler args`() {
+  fun `worker-style request maps legacy plugin ids to compiler args`() {
     val result =
       WorkerContext.run {
         doTask("kotlin-builder-proto-request") { taskContext ->
@@ -84,7 +82,8 @@ class KotlinBuilderProtoArgsTest {
             requestArgs(
               source = sourcePath.toString(),
               output = outputJar.toString(),
-              pluginsPayload = noArgPluginsPayload(missingPluginJar),
+              compilerPluginId = "example.no.options",
+              compilerPluginJar = missingPluginJar,
             )
 
           if (builder.build(taskContext, args) == 0) {
@@ -99,29 +98,11 @@ class KotlinBuilderProtoArgsTest {
     assertThat(result.log.toString()).contains("missing-noarg-plugin.jar")
   }
 
-  private fun noArgPluginsPayload(missingPluginJar: String): String {
-    val plugin =
-      JvmCompilationTask.Inputs.Plugin.newBuilder()
-        .setId("org.jetbrains.kotlin.noarg")
-        .addClasspath(missingPluginJar)
-        .addOptions(
-          JvmCompilationTask.Inputs.PluginOption
-            .newBuilder()
-            .setKey("annotation")
-            .setValue("sample.NoArg")
-            .build(),
-        )
-        .build()
-
-    return JsonFormat.printer().print(
-      JvmCompilationTask.Inputs.PluginsPayload.newBuilder().addCompilerPlugins(plugin).build(),
-    )
-  }
-
   private fun requestArgs(
     source: String,
     output: String,
-    pluginsPayload: String,
+    compilerPluginId: String,
+    compilerPluginJar: String,
   ): List<String> {
     val args = mutableListOf<String>()
     args.addFlag(KotlinBuilderFlags.DEBUG, "trace")
@@ -139,7 +120,8 @@ class KotlinBuilderProtoArgsTest {
     args.addFlag(KotlinBuilderFlags.API_VERSION, "2.0")
     args.addFlag(KotlinBuilderFlags.LANGUAGE_VERSION, "2.0")
     args.addFlag(KotlinBuilderFlags.JVM_TARGET, "11")
-    args.addFlag(KotlinBuilderFlags.PLUGINS_PAYLOAD, pluginsPayload)
+    args.addFlag(KotlinBuilderFlags.COMPILER_PLUGINS, compilerPluginId)
+    args.addFlag(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH, compilerPluginJar)
 
     args.addFlag(
       KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH,

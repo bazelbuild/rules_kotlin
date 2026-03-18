@@ -136,31 +136,6 @@ message JvmCompilationTask {
   }
 
   message Inputs {
-      message PluginOption {
-        // Compiler plugin option key
-        string key = 1;
-        // Compiler plugin option value
-        string value = 2;
-      }
-
-      message Plugin {
-        // Kotlin compiler plugin id
-        string id = 1;
-        // Kotlin compiler plugin classpath
-        repeated string classpath = 2;
-        // Kotlin compiler plugin options
-        repeated PluginOption options = 3;
-        reserved 4;
-        reserved "phases";
-      }
-
-      message PluginsPayload {
-        // Structured plugins that should run during the stubs/KAPT phase.
-        repeated Plugin stubs_plugins = 1;
-        // Structured plugins that should run during the main compile phase.
-        repeated Plugin compiler_plugins = 2;
-      }
-
       // The full classpath
       repeated string classpath = 1;
       // Direct dependencies of the target.
@@ -177,15 +152,18 @@ message JvmCompilationTask {
       repeated string processors = 7;
       // Annotation processor classpath.
       repeated string processorpaths = 8;
-      // Reserved: replaced by structured plugins.
-      reserved 9, 10, 11, 12, 13, 14;
-      reserved "stubs_plugin_options", "stubs_plugins", "stubs_plugin_classpath", "compiler_plugin_options", "compiler_plugins", "compiler_plugin_classpath";
-      reserved 17;
-      reserved "plugins";
-      // Structured plugins that should run during the stubs/KAPT phase.
-      repeated Plugin stubs_phase_plugins = 18;
-      // Structured plugins that should run during the main compile phase.
-      repeated Plugin compiler_phase_plugins = 19;
+      // Kotlin stubs phase compiler plugin options
+      repeated string stubs_plugin_options = 9;
+      // Kotlin stubs phase compiler plugin ids
+      repeated string stubs_plugins = 10;
+      // Kotlin stubs phase compiler plugin classpath
+      repeated string stubs_plugin_classpath = 11;
+      // Kotlin compiler phase compiler plugin options
+      repeated string compiler_plugin_options = 12;
+      // Kotlin compiler phase compiler plugin ids
+      repeated string compiler_plugins = 13;
+      // Kotlin compiler phase compiler plugin classpath
+      repeated string compiler_plugin_classpath = 14;
       // Java opts to be passed to java compiler
       repeated string javac_flags = 15;
       // JDeps dependency artifacts

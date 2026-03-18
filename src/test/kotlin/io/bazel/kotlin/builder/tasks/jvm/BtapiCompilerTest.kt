@@ -248,33 +248,25 @@ class BtapiCompilerTest {
         .setGeneratedStubClasses(stubsDir.toString())
         .setTemp(tempDir.toString())
         .build()
-    val pluginOption =
-      JvmCompilationTask.Inputs.PluginOption.newBuilder()
-        .setKey("expanded")
-        .setValue(
-          listOf(
-            "classes={generatedClasses}",
-            "sources={generatedSources}",
-            "stubs={stubs}",
-            "temp={temp}",
-            "classpath={classpath}",
-          ).joinToString(";"),
-        ).build()
     val task =
       JvmCompilationTask.newBuilder()
         .setDirectories(directories)
         .build()
-    val plugin =
-      JvmCompilationTask.Inputs.Plugin.newBuilder()
-        .setId("example.plugin")
-        .addClasspath("/plugins/first.jar")
-        .addClasspath("/plugins/second.jar")
-        .addOptions(pluginOption)
-        .build()
+    val classpath = listOf("/plugins/first.jar", "/plugins/second.jar")
+    val rawOptions =
+      listOf(
+        "expanded=" + listOf(
+          "classes={generatedClasses}",
+          "sources={generatedSources}",
+          "stubs={stubs}",
+          "temp={temp}",
+          "classpath={classpath}",
+        ).joinToString(";"),
+      )
 
     val btapiPlugin =
       withBtapiCompiler { btapiCompiler ->
-        btapiCompiler.toBtapiPlugin(task, plugin)
+        btapiCompiler.toBtapiPlugin(task, "example.plugin", classpath, rawOptions)
       }
     val expectedValue =
       listOf(
@@ -300,18 +292,9 @@ class BtapiCompilerTest {
     val task =
       minimalTaskBuilder(tempDir)
         .apply {
-          inputsBuilder.addStubsPhasePlugins(
-            JvmCompilationTask.Inputs.Plugin.newBuilder()
-              .setId("example.stubs")
-              .addClasspath("/plugins/example-stubs.jar")
-              .addOptions(
-                JvmCompilationTask.Inputs.PluginOption.newBuilder()
-                  .setKey("dir")
-                  .setValue("{stubs}")
-                  .build(),
-              )
-              .build(),
-          )
+          inputsBuilder.addStubsPlugins("example.stubs")
+          inputsBuilder.addStubsPluginClasspath("/plugins/example-stubs.jar")
+          inputsBuilder.addStubsPluginOptions("example.stubs:dir={stubs}")
           directoriesBuilder.generatedStubClasses = stubsDir.toString()
         }.build()
 

@@ -49,10 +49,6 @@ load(
     "//kotlin/internal/utils:utils.bzl",
     _utils = "utils",
 )
-load(
-    "//src/main/starlark/core/plugin:payload.bzl",
-    _plugin_payload = "plugin_payload",
-)
 
 # UTILITY ##############################################################################################################
 def find_java_toolchain(ctx, target):
@@ -190,7 +186,17 @@ def _new_plugins_from(targets):
     Args:
         targets: A list of targets.
     Returns:
-        A struct containing structured plugin lists for the stubs and compile phases.
+        A struct containing the plugins for the given targets in the format:
+        {
+            stubs_phase = {
+                classpath = depset,
+                options= List[KtCompilerPluginOption],
+            ),
+            compile = {
+                classpath = depset,
+                options = List[KtCompilerPluginOption],
+            },
+        }
     """
 
     all_plugins = {}
@@ -223,35 +229,29 @@ def _new_plugins_from(targets):
         fail("has plugin configurations without corresponding plugins: %s" % cfgs_without_plugin)
 
     return struct(
-        stubs_plugins = _new_structured_plugins(all_plugin_cfgs, [p for p in all_plugins.values() if p.stubs]),
-        compiler_plugins = _new_structured_plugins(all_plugin_cfgs, [p for p in all_plugins.values() if p.compile]),
+        stubs_phase = _new_plugin_from(all_plugin_cfgs, [p for p in all_plugins.values() if p.stubs]),
+        compile_phase = _new_plugin_from(all_plugin_cfgs, [p for p in all_plugins.values() if p.compile]),
     )
 
-def _merged_plugin_fields(plugin, all_cfgs):
-    classpath = [plugin.classpath]
-    options = list(plugin.options)
-    if plugin.id in all_cfgs:
-        cfg = plugin.merge_cfgs(plugin, all_cfgs[plugin.id])
-        classpath.append(cfg.classpath)
-        options.extend(cfg.options)
+def _new_plugin_from(all_cfgs, plugins_for_phase):
+    classpath = []
+    data = []
+    options = []
+    for p in plugins_for_phase:
+        classpath.append(p.classpath)
+        options.extend(p.options)
+        if p.id in all_cfgs:
+            cfg = p.merge_cfgs(p, all_cfgs[p.id])
+            classpath.append(cfg.classpath)
+            data.append(cfg.data)
+            options.extend(cfg.options)
+
     return struct(
         classpath = depset(transitive = classpath),
+        data = depset(transitive = data),
+        ids = [p.id for p in plugins_for_phase],
         options = options,
     )
-
-def _new_structured_plugins(all_cfgs, plugins_for_phase):
-    structured_plugins = []
-    for plugin in plugins_for_phase:
-        merged = _merged_plugin_fields(plugin, all_cfgs)
-        structured_plugins.append(struct(
-            id = plugin.id,
-            classpath = merged.classpath,
-            options = merged.options,
-        ))
-    return structured_plugins
-
-def _plugins_classpath(plugins):
-    return depset(transitive = [plugin.classpath for plugin in plugins])
 
 # INTERNAL ACTIONS #####################################################################################################
 def _fold_jars_action(ctx, rule_kind, toolchains, output_jar, input_jars, action_type = ""):
@@ -612,12 +612,42 @@ def _run_kt_builder_action(
         uniquify = True,
     )
 
-    args.add(
-        "--plugins_payload",
-        _plugin_payload.plugins_payload_json(
-            stubs_plugins = plugins.stubs_plugins,
-            compiler_plugins = plugins.compiler_plugins,
-        ),
+    args.add_all(
+        "--stubs_plugin_classpath",
+        plugins.stubs_phase.classpath,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--stubs_plugins",
+        plugins.stubs_phase.ids,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--stubs_plugin_options",
+        plugins.stubs_phase.options,
+        map_each = _format_compile_plugin_options,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin_classpath",
+        plugins.compile_phase.classpath,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugins",
+        plugins.compile_phase.ids,
+        omit_if_empty = True,
+    )
+
+    args.add_all(
+        "--compiler_plugin_options",
+        plugins.compile_phase.options,
+        map_each = _format_compile_plugin_options,
+        omit_if_empty = True,
     )
 
     if not "kt_remove_private_classes_in_abi_plugin_incompatible" in ctx.attr.tags and toolchains.kt.experimental_remove_private_classes_in_abi_jars == True:
@@ -657,8 +687,8 @@ def _run_kt_builder_action(
                 compile_deps.compile_jars,
                 transitive_runtime_jars,
                 deps_artifacts,
-                _plugins_classpath(plugins.stubs_plugins),
-                _plugins_classpath(plugins.compiler_plugins),
+                plugins.stubs_phase.classpath,
+                plugins.compile_phase.classpath,
             ],
         ),
         tools = [
