@@ -83,6 +83,8 @@ class KotlinBuilder(
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
       BUILD_TOOLS_API("--build_tools_api"),
+      TRACK_CLASS_USAGE("--track_class_usage"),
+      TRACK_RESOURCE_USAGE("--track_resource_usage"),
     }
   }
 
@@ -157,6 +159,8 @@ class KotlinBuilder(
         argMap.mandatorySingle(KotlinBuilderFlags.LANGUAGE_VERSION)
       strictKotlinDeps = argMap.mandatorySingle(KotlinBuilderFlags.STRICT_KOTLIN_DEPS)
       reducedClasspathMode = argMap.mandatorySingle(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE)
+      trackClassUsage = argMap.mandatorySingle(KotlinBuilderFlags.TRACK_CLASS_USAGE)
+      trackResourceUsage = argMap.mandatorySingle(KotlinBuilderFlags.TRACK_RESOURCE_USAGE)
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_INTERNAL_AS_PRIVATE)?.let {
         treatInternalAsPrivateInAbiJar = it == "true"
       }

@@ -90,6 +90,8 @@ def _kotlin_toolchain_impl(ctx):
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
+        experimental_track_class_usage = ctx.attr.experimental_track_class_usage,
+        experimental_track_resource_usage = ctx.attr.experimental_track_resource_usage,
         experimental_build_tools_api = ctx.attr.experimental_build_tools_api,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
@@ -180,6 +182,27 @@ _kt_toolchain = rule(
                 "off",
                 "warn",
                 "error",
+            ],
+        ),
+        "experimental_track_class_usage": attr.string(
+            doc = """Enable per-class compilation avoidance. Records which specific classes
+            from each dependency are used during compilation, along with SHA-256 hashes
+            of their bytecode. Build systems can use this data to skip recompilation when
+            a dependency changes but the used classes remain unchanged.""",
+            default = "off",
+            values = [
+                "off",
+                "on",
+            ],
+        ),
+        "experimental_track_resource_usage": attr.string(
+            doc = """Enable Android R class resource tracking. Records which R class fields
+            (e.g., R.string.app_name) are referenced during compilation. Used for
+            compilation avoidance with Android resources.""",
+            default = "off",
+            values = [
+                "off",
+                "on",
             ],
         ),
         "experimental_treat_internal_as_private_in_abi_jars": attr.bool(
@@ -353,6 +376,8 @@ def define_kt_toolchain(
         experimental_strict_kotlin_deps = None,
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
+        experimental_track_class_usage = None,
+        experimental_track_resource_usage = None,
         experimental_multiplex_workers = None,
         experimental_build_tools_api = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
@@ -384,6 +409,8 @@ def define_kt_toolchain(
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
+        experimental_track_class_usage = experimental_track_class_usage,
+        experimental_track_resource_usage = experimental_track_resource_usage,
         experimental_build_tools_api = experimental_build_tools_api,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,

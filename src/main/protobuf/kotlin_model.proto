@@ -90,6 +90,10 @@ message CompilationTaskInfo {
     bool build_tools_api = 14;
     // Debug info is stripped in abi.jar generation
     bool remove_debug_info = 15;
+    // Whether to track used classes in .jdeps (for per-class compilation avoidance)
+    string track_class_usage = 16;
+    // Whether to track used android resources in .jdeps
+    string track_resource_usage = 17;
 }
 
 // Nested messages not marked with stable could be refactored.

@@ -232,6 +232,16 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder trackClassUsage(String level) {
+            taskBuilder.getInfoBuilder().setTrackClassUsage(level);
+            return this;
+        }
+
+        public TaskBuilder trackResourceUsage(String level) {
+            taskBuilder.getInfoBuilder().setTrackResourceUsage(level);
+            return this;
+        }
+
         public TaskBuilder outputAbiJar() {
             taskBuilder.getOutputsBuilder()
                     .setAbijar(instanceRoot().resolve("abi.jar").toAbsolutePath().toString());

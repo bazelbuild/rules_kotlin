@@ -1,11 +1,14 @@
 package io.bazel.kotlin.plugin.jdeps
 
 import com.google.devtools.build.lib.view.proto.Deps
+import com.google.protobuf.ByteString
 import io.bazel.kotlin.builder.utils.jars.JarOwner
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import java.io.BufferedOutputStream
 import java.io.File
 import java.nio.file.Paths
+import java.security.MessageDigest
+import java.util.jar.JarFile
 
 abstract class BaseJdepsGenExtension(
   protected val configuration: CompilerConfiguration,
@@ -13,6 +16,7 @@ abstract class BaseJdepsGenExtension(
   protected fun onAnalysisCompleted(
     explicitClassesCanonicalPaths: Set<String>,
     implicitClassesCanonicalPaths: Set<String>,
+    usedResources: Set<String> = emptySet(),
   ) {
     val directDeps = configuration.getList(JdepsGenConfigurationKeys.DIRECT_DEPENDENCIES)
     val targetLabel = configuration.getNotNull(JdepsGenConfigurationKeys.TARGET_LABEL)
@@ -29,9 +33,24 @@ abstract class BaseJdepsGenExtension(
       explicitDeps,
       implicitClassesCanonicalPaths,
       canonicalToClasspath,
+      usedResources,
     )
 
     doStrictDeps(configuration, targetLabel, directDeps, explicitDeps)
+  }
+
+  /**
+   * Compute SHA-256 hash of a class file entry within a JAR.
+   */
+  protected fun getHashFromJarEntry(
+    jarPath: String,
+    internalPath: String,
+  ): ByteArray {
+    JarFile(jarPath).use { jarFile ->
+      val entry = jarFile.getEntry(internalPath)
+      val bytes = jarFile.getInputStream(entry).readAllBytes()
+      return MessageDigest.getInstance("SHA-256").digest(bytes)
+    }
   }
 
   /**
@@ -104,7 +123,11 @@ abstract class BaseJdepsGenExtension(
     explicitDeps: Map<String, List<String>>,
     implicitClassesCanonicalPaths: Set<String>,
     canonicalToClasspath: Map<String, String>,
+    usedResources: Set<String>,
   ) {
+    val trackClassUsage = configuration.get(JdepsGenConfigurationKeys.TRACK_CLASS_USAGE) == "on"
+    val trackResourceUsage =
+      configuration.get(JdepsGenConfigurationKeys.TRACK_RESOURCE_USAGE) == "on"
     val implicitDeps = createDepsMap(implicitClassesCanonicalPaths, canonicalToClasspath)
 
     // Build and write out deps.proto
@@ -122,10 +145,29 @@ abstract class BaseJdepsGenExtension(
       rootBuilder.addDependency(dependency)
     }
 
-    explicitDeps.forEach { (jarPath, _) ->
+    explicitDeps.toSortedMap().forEach { (jarPath, usedClasses) ->
       val dependency = Deps.Dependency.newBuilder()
       dependency.kind = Deps.Dependency.Kind.EXPLICIT
       dependency.path = jarPath
+
+      if (trackClassUsage) {
+        // Add tracked classes and their (compile time) hash into final output,
+        // as needed for per-class compilation avoidance.
+        usedClasses.sorted().forEach { classInternalPath ->
+          val name = classInternalPath.replace(".class", "").replace("/", ".")
+          val hash =
+            ByteString.copyFrom(getHashFromJarEntry(jarPath, classInternalPath))
+          val usedClass =
+            Deps.UsedClass
+              .newBuilder()
+              .setFullyQualifiedName(name)
+              .setInternalPath(classInternalPath)
+              .setHash(hash)
+              .build()
+          dependency.addUsedClasses(usedClass)
+        }
+      }
+
       rootBuilder.addDependency(dependency)
     }
 
@@ -134,6 +176,12 @@ abstract class BaseJdepsGenExtension(
       dependency.kind = Deps.Dependency.Kind.IMPLICIT
       dependency.path = it
       rootBuilder.addDependency(dependency)
+    }
+
+    if (trackResourceUsage) {
+      usedResources.sorted().forEach { resource ->
+        rootBuilder.addUsedResources(resource)
+      }
     }
 
     BufferedOutputStream(File(jdepsOutput).outputStream()).use {
