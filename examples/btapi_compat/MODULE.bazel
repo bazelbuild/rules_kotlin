@@ -9,6 +9,7 @@ maven.install(
     artifacts = [
         "junit:junit:4.13.2",
         "org.jetbrains.kotlin:kotlin-build-tools-impl:2.3.10",
+        "org.jetbrains.kotlin:kotlin-compiler:2.3.10",
         "org.jetbrains.kotlin:kotlin-stdlib:2.3.10",
     ],
     lock_file = "//:maven_install.json",

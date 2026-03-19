@@ -20,12 +20,17 @@ import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.Deps.Dep
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.KotlinBuilderFlags
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.utils.ArgMap
+import io.bazel.kotlin.builder.utils.ArgMaps
+import io.bazel.kotlin.model.CompilationTaskInfo
+import io.bazel.kotlin.model.JvmCompilationTask
 import io.bazel.worker.Status
 import io.bazel.worker.WorkerContext
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.nio.file.Files
+import java.nio.file.Path
 
 @RunWith(JUnit4::class)
 class KotlinBuilderProtoArgsTest {
@@ -55,37 +60,41 @@ class KotlinBuilderProtoArgsTest {
 
   @Test
   fun `worker-style request maps explicit plugin ids to compiler args`() {
+    val taskRoot = Files.createTempDirectory("kotlin-builder-proto-request")
+    val sourcePath =
+      taskRoot.resolve("src/sample/WithNoArg.kt").also {
+        Files.createDirectories(it.parent)
+        Files.writeString(
+          it,
+          """
+          package sample
+
+          @Target(AnnotationTarget.CLASS)
+          annotation class NoArg
+
+          @NoArg
+          class WithNoArg(val value: String)
+          """.trimIndent(),
+        )
+      }
+    val outputJar = taskRoot.resolve("out.jar")
+    val missingPluginJar = taskRoot.resolve("missing-noarg-plugin.jar").toString()
+    val args =
+      requestArgs(
+        source = sourcePath.toString(),
+        output = outputJar.toString(),
+        compilerPluginId = "example.no.options",
+        compilerPluginJar = missingPluginJar,
+      )
+
+    val task = buildJvmTask(args, taskRoot)
+    assertThat(task.inputs.compilerPluginsList).containsExactly("example.no.options")
+    assertThat(task.inputs.compilerPluginClasspathList).containsExactly(missingPluginJar)
+    assertThat(task.inputs.compilerPluginOptionsList).isEmpty()
+
     val result =
       WorkerContext.run {
         doTask("kotlin-builder-proto-request") { taskContext ->
-          val sourcePath =
-            taskContext.directory.resolve("src/sample/WithNoArg.kt").also {
-              Files.createDirectories(it.parent)
-              Files.writeString(
-                it,
-                """
-                package sample
-
-                @Target(AnnotationTarget.CLASS)
-                annotation class NoArg
-
-                @NoArg
-                class WithNoArg(val value: String)
-                """.trimIndent(),
-              )
-            }
-          val outputJar = taskContext.directory.resolve("out.jar")
-          val missingPluginJar =
-            taskContext.directory.resolve("missing-noarg-plugin.jar").toString()
-
-          val args =
-            requestArgs(
-              source = sourcePath.toString(),
-              output = outputJar.toString(),
-              compilerPluginId = "example.no.options",
-              compilerPluginJar = missingPluginJar,
-            )
-
           if (builder.build(taskContext, args) == 0) {
             Status.SUCCESS
           } else {
@@ -96,6 +105,28 @@ class KotlinBuilderProtoArgsTest {
 
     assertThat(result.status).isEqualTo(Status.ERROR)
     assertThat(result.log.toString()).contains("missing-noarg-plugin.jar")
+  }
+
+  private fun buildJvmTask(
+    args: List<String>,
+    workingDir: Path,
+  ): JvmCompilationTask {
+    val argMap = ArgMaps.from(args)
+    val buildTaskInfoMethod =
+      KotlinBuilder::class.java.getDeclaredMethod("buildTaskInfo", ArgMap::class.java).apply {
+        isAccessible = true
+      }
+    val info = (buildTaskInfoMethod.invoke(builder, argMap) as CompilationTaskInfo.Builder).build()
+    val buildJvmTaskMethod =
+      KotlinBuilder::class.java.getDeclaredMethod(
+        "buildJvmTask",
+        CompilationTaskInfo::class.java,
+        Path::class.java,
+        ArgMap::class.java,
+      ).apply {
+        isAccessible = true
+      }
+    return buildJvmTaskMethod.invoke(builder, info, workingDir, argMap) as JvmCompilationTask
   }
 
   private fun requestArgs(

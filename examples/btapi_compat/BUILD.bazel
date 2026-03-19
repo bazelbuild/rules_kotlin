@@ -1,17 +1,45 @@
-load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_compiler_plugin")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
+load("@rules_kotlin//kotlin/internal/utils:generate_jvm_service.bzl", "generate_jvm_service")
 
 define_kt_toolchain(
     name = "kotlin_2310_toolchain",
-    api_version = "2.0",
+    api_version = "2.3",
     build_tools_impl = "@maven_rules_kotlin_btapi_compat//:org_jetbrains_kotlin_kotlin_build_tools_impl",
     kotlin_stdlib = "@maven_rules_kotlin_btapi_compat//:org_jetbrains_kotlin_kotlin_stdlib",
-    language_version = "2.0",
+    language_version = "2.3",
+)
+
+kt_jvm_library(
+    name = "compiler_version_plugin_lib",
+    srcs = ["src/main/kotlin/plugin/Plugin.kt"],
+    deps = [
+        "@maven_rules_kotlin_btapi_compat//:org_jetbrains_kotlin_kotlin_compiler",
+    ],
+)
+
+generate_jvm_service(
+    name = "compiler_version_plugin_services",
+    services = {
+        "plugin.CompilerVersionPluginRegistrar": "org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar",
+    },
+)
+
+kt_compiler_plugin(
+    name = "compiler_version_plugin",
+    compile_phase = True,
+    id = "example.compiler-version",
+    stubs_phase = True,
+    deps = [
+        ":compiler_version_plugin_lib",
+        ":compiler_version_plugin_services",
+    ],
 )
 
 kt_jvm_test(
     name = "compat_test",
     srcs = ["src/main/kotlin/example/Compat.kt"],
+    plugins = [":compiler_version_plugin"],
     test_class = "example.CompatTest",
     deps = [
         "@maven_rules_kotlin_btapi_compat//:junit_junit",

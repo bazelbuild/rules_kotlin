@@ -4,10 +4,28 @@ load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:test_suite.bzl", "test_suite")
 load("@rules_testing//lib:util.bzl", "util")
-load("//kotlin:core.bzl", "kt_compiler_plugin")
+load("//kotlin:core.bzl", "define_kt_toolchain", "kt_compiler_plugin")
 load("//kotlin:jvm.bzl", "kt_jvm_import")
 load("//kotlin/internal:defs.bzl", _KtJvmInfo = "KtJvmInfo")
 load("//kotlin/internal/jvm:jvm_deps.bzl", _jvm_deps_utils = "jvm_deps_utils")
+
+_fake_java_info = rule(
+    implementation = lambda ctx: [
+        DefaultInfo(files = depset([ctx.file.jar])),
+        JavaInfo(
+            output_jar = ctx.file.jar,
+            compile_jar = ctx.file.jar,
+            deps = [dep[JavaInfo] for dep in ctx.attr.deps],
+            neverlink = ctx.attr.neverlink,
+        ),
+    ],
+    attrs = {
+        "deps": attr.label_list(providers = [JavaInfo]),
+        "jar": attr.label(allow_single_file = True, mandatory = True),
+        "neverlink": attr.bool(default = False),
+    },
+    provides = [JavaInfo],
+)
 
 def _file(target):
     return target.files.to_list()[0]
@@ -435,10 +453,103 @@ def _sourceless_dep_propagation_test(name):
         target = name + "_subject",
     )
 
+def _btapi_runtime_classpath_excludes_compile_only_deps_test_impl(env, target):
+    env.expect.that_target(target).has_provider(platform_common.ToolchainInfo)
+
+    classpath = env.expect.that_depset_of_files(target[platform_common.ToolchainInfo].btapi_runtime_classpath)
+    classpath.contains(_file(env.ctx.attr.build_tools_impl_jar).short_path)
+    classpath.contains(_file(env.ctx.attr.runtime_dep_jar).short_path)
+    classpath.not_contains(_file(env.ctx.attr.compile_only_dep_jar).short_path)
+
+def _btapi_runtime_classpath_excludes_compile_only_deps_test(name):
+    build_tools_impl_jar = util.empty_file(name + "_build_tools_impl.jar")
+    runtime_dep_jar = util.empty_file(name + "_runtime_dep.jar")
+    compile_only_dep_jar = util.empty_file(name + "_compile_only_dep.jar")
+    kotlin_stdlib_jar = util.empty_file(name + "_kotlin_stdlib.jar")
+    annotations_jar = util.empty_file(name + "_annotations.jar")
+
+    util.helper_target(
+        _fake_java_info,
+        name = name + "_runtime_dep",
+        jar = runtime_dep_jar,
+    )
+    util.helper_target(
+        _fake_java_info,
+        name = name + "_compile_only_dep",
+        jar = compile_only_dep_jar,
+        neverlink = True,
+    )
+    util.helper_target(
+        _fake_java_info,
+        name = name + "_build_tools_impl",
+        jar = build_tools_impl_jar,
+        deps = [
+            ":" + name + "_runtime_dep",
+            ":" + name + "_compile_only_dep",
+        ],
+    )
+    util.helper_target(
+        _fake_java_info,
+        name = name + "_kotlin_stdlib",
+        jar = kotlin_stdlib_jar,
+    )
+    util.helper_target(
+        _fake_java_info,
+        name = name + "_annotations",
+        jar = annotations_jar,
+    )
+
+    define_kt_toolchain(
+        name = name + "_subject",
+        annotations = ":" + name + "_annotations",
+        build_tools_impl = ":" + name + "_build_tools_impl",
+        kotlin_stdlib = ":" + name + "_kotlin_stdlib",
+    )
+
+    analysis_test(
+        name = name,
+        impl = _btapi_runtime_classpath_excludes_compile_only_deps_test_impl,
+        target = name + "_subject_impl",
+        attr_values = {
+            "build_tools_impl_jar": build_tools_impl_jar,
+            "compile_only_dep_jar": compile_only_dep_jar,
+            "runtime_dep_jar": runtime_dep_jar,
+        },
+        attrs = {
+            "build_tools_impl_jar": attr.label(allow_files = True),
+            "compile_only_dep_jar": attr.label(allow_files = True),
+            "runtime_dep_jar": attr.label(allow_files = True),
+        },
+    )
+
+def _btapi_worker_runtime_keeps_api_and_compat_together_test_impl(env, target):
+    env.expect.that_target(target).has_provider(JavaInfo)
+
+    classpath = env.expect.that_depset_of_files(target[JavaInfo].transitive_runtime_jars)
+    classpath.contains(env.ctx.attr.build_tools_api[JavaInfo].runtime_output_jars[0].short_path)
+    classpath.contains(env.ctx.attr.build_tools_compat[JavaInfo].runtime_output_jars[0].short_path)
+
+def _btapi_worker_runtime_keeps_api_and_compat_together_test(name):
+    analysis_test(
+        name = name,
+        impl = _btapi_worker_runtime_keeps_api_and_compat_together_test_impl,
+        target = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build_lib",
+        attr_values = {
+            "build_tools_api": "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_api",
+            "build_tools_compat": "@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_compat",
+        },
+        attrs = {
+            "build_tools_api": attr.label(providers = [JavaInfo]),
+            "build_tools_compat": attr.label(providers = [JavaInfo]),
+        },
+    )
+
 def jvm_deps_test_suite(name):
     test_suite(
         name,
         tests = [
+            _btapi_runtime_classpath_excludes_compile_only_deps_test,
+            _btapi_worker_runtime_keeps_api_and_compat_together_test,
             _strict_abi_test,
             _fat_abi_test,
             _transitive_from_exports_test,

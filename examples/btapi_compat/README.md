@@ -1,6 +1,6 @@
 # BTAPI Compatibility Example
 
-This example shows how to configure a custom Kotlin toolchain that uses an older Kotlin compiler/BTAPI runtime (`2.3.10`) while building with `rules_kotlin`.
+This example shows how to configure a custom Kotlin toolchain that uses Kotlin `2.3.10` while building with `rules_kotlin`.
 
 The key idea is to override BTAPI runtime wiring with coordinates resolved by `rules_jvm_external`:
 
@@ -16,8 +16,13 @@ The custom toolchain is declared in `BUILD.bazel` with `define_kt_toolchain` and
 
 `register_toolchains("//:kotlin_2310_toolchain")`
 
-`Compat.kt` contains a runtime test asserting:
+`Compat.kt` verifies two different things:
 
-`KotlinVersion.CURRENT.toString() == "2.3.10"`
+- `KotlinVersion.CURRENT.toString() == "2.3.10"`
+- a compiler-plugin-generated value is also `"2.3.10"`
 
-This validates that compilation/testing runs against the older Kotlin runtime configured through BTAPI-compatible toolchain wiring.
+The first assertion proves that the stdlib on the runtime/test classpath is `2.3.10`.
+
+The second assertion proves that the compiler that compiled the target was also `2.3.10`: a custom compiler plugin injects the compiler version during compilation, and the test reads that generated value at runtime.
+
+Together, those checks validate that the example is running with Kotlin `2.3.10` stdlib and actually being compiled with Kotlin `2.3.10`.
