@@ -19,6 +19,7 @@ package io.bazel.kotlin.builder.tasks
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.builder.utils.Flag
@@ -55,8 +56,10 @@ class KotlinBuilder(
       PROCESSOR_PATH("--processorpath"),
       PROCESSORS("--processors"),
       STUBS_PLUGIN_OPTIONS("--stubs_plugin_options"),
+      STUBS_PLUGINS("--stubs_plugins"),
       STUBS_PLUGIN_CLASS_PATH("--stubs_plugin_classpath"),
       COMPILER_PLUGIN_OPTIONS("--compiler_plugin_options"),
+      COMPILER_PLUGINS("--compiler_plugins"),
       COMPILER_PLUGIN_CLASS_PATH("--compiler_plugin_classpath"),
       OUTPUT("--output"),
       RULE_KIND("--rule_kind"),
@@ -82,7 +85,11 @@ class KotlinBuilder(
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
-      BUILD_TOOLS_API("--build_tools_api"),
+      BTAPI_RUNTIME_CLASSPATH("--btapi_runtime_classpath"),
+      JDEPS_JAR("--jdeps_jar"),
+      ABI_GEN_JAR("--abi_gen_jar"),
+      SKIP_CODE_GEN_JAR("--skip_code_gen_jar"),
+      KAPT_JAR("--kapt_jar"),
     }
   }
 
@@ -166,9 +173,6 @@ class KotlinBuilder(
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
         removeDebugInfo = it == "true"
       }
-      argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
-        buildToolsApi = it == "true"
-      }
       this
     }
 
@@ -178,11 +182,21 @@ class KotlinBuilder(
     argMap: ArgMap,
   ) {
     val task = buildJvmTask(context.info, workingDir, argMap)
+    val toolchainSpec = buildToolchainSpec(argMap)
     context.whenTracing {
       printProto("jvm task message:", task)
     }
-    jvmTaskExecutor.execute(context, task)
+    jvmTaskExecutor.execute(context, task, toolchainSpec)
   }
+
+  private fun buildToolchainSpec(argMap: ArgMap): ToolchainSpec =
+    ToolchainSpec(
+      btapiClasspath = argMap.mandatory(KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH).map(Path::of),
+      jdepsJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.JDEPS_JAR)),
+      abiGenJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.ABI_GEN_JAR)),
+      skipCodeGenJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.SKIP_CODE_GEN_JAR)),
+      kaptJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.KAPT_JAR)),
+    )
 
   private fun buildJvmTask(
     info: CompilationTaskInfo,
@@ -270,12 +284,18 @@ class KotlinBuilder(
         addAllStubsPluginOptions(
           argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_OPTIONS) ?: emptyList(),
         )
+        addAllStubsPlugins(
+          argMap.optional(KotlinBuilderFlags.STUBS_PLUGINS) ?: emptyList(),
+        )
         addAllStubsPluginClasspath(
           argMap.optional(KotlinBuilderFlags.STUBS_PLUGIN_CLASS_PATH) ?: emptyList(),
         )
 
         addAllCompilerPluginOptions(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_OPTIONS) ?: emptyList(),
+        )
+        addAllCompilerPlugins(
+          argMap.optional(KotlinBuilderFlags.COMPILER_PLUGINS) ?: emptyList(),
         )
         addAllCompilerPluginClasspath(
           argMap.optional(KotlinBuilderFlags.COMPILER_PLUGIN_CLASS_PATH) ?: emptyList(),

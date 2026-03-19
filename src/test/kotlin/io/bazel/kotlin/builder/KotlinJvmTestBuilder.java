@@ -20,10 +20,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.bazel.kotlin.builder.Deps.AnnotationProcessor;
 import io.bazel.kotlin.builder.Deps.Dep;
-import io.bazel.kotlin.builder.tasks.jvm.InternalCompilerPlugins;
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
-import io.bazel.kotlin.builder.toolchain.KotlinToolchain;
+import io.bazel.kotlin.builder.toolchain.ToolchainSpec;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.JvmCompilationTask;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
@@ -52,12 +51,15 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     DirectoryType.ABI_CLASSES,
                     DirectoryType.SOURCE_GEN,
                     DirectoryType.JAVA_SOURCE_GEN,
+                    DirectoryType.GENERATED_STUBS,
                     DirectoryType.GENERATED_CLASSES,
                     DirectoryType.TEMP,
+                    DirectoryType.INCREMENTAL_DATA,
                     DirectoryType.COVERAGE_METADATA);
 
     private final TaskBuilder taskBuilderInstance = new TaskBuilder();
     private static KotlinJvmTaskExecutor jvmTaskExecutor;
+    private static ToolchainSpec toolchainSpec;
 
     @Override
     void setupForNext(CompilationTaskInfo.Builder taskInfo) {
@@ -88,21 +90,23 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     @SafeVarargs
     public final Dep runCompileTask(Consumer<TaskBuilder>... setup) {
-        return executeTask(jvmTaskExecutor()::execute, setup);
+        jvmTaskExecutor();
+        return executeTask((ctx, task) -> jvmTaskExecutor.execute(ctx, task, toolchainSpec), setup);
+    }
+
+    /**
+     * Sets up a task without actually executing it. Useful for testing task configuration
+     * without running compilation.
+     */
+    @SafeVarargs
+    public final void setupTask(Consumer<TaskBuilder>... setup) {
+        Stream.of(setup).forEach(it -> it.accept(taskBuilderInstance));
     }
 
     private static KotlinJvmTaskExecutor jvmTaskExecutor() {
         if (jvmTaskExecutor == null) {
-            KotlinToolchain toolchain = toolchainForTest();
-            InternalCompilerPlugins plugins = new InternalCompilerPlugins(
-                    toolchain.getJvmAbiGen(),
-                    toolchain.getSkipCodeGen(),
-                    toolchain.getKapt3Plugin(),
-                    toolchain.getJdepsGen()
-            );
-            KotlinToolchain.KotlincInvokerBuilder compilerBuilder =
-                    new KotlinToolchain.KotlincInvokerBuilder(toolchain);
-            jvmTaskExecutor = new KotlinJvmTaskExecutor(compilerBuilder, plugins);
+            toolchainSpec = toolchainSpecForTest();
+            jvmTaskExecutor = new KotlinJvmTaskExecutor();
         }
         return jvmTaskExecutor;
     }
@@ -141,6 +145,7 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
 
     public void tearDown() {
         jvmTaskExecutor = null;
+        toolchainSpec = null;
     }
 
     public class TaskBuilder {
@@ -217,6 +222,12 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
             return this;
         }
 
+        public TaskBuilder outputJar(String relativePath) {
+            taskBuilder.getOutputsBuilder()
+                    .setJar(instanceRoot().resolve(relativePath).toAbsolutePath().toString());
+            return this;
+        }
+
         public TaskBuilder outputJdeps() {
             taskBuilder.getOutputsBuilder()
                     .setJdeps(instanceRoot().resolve("jdeps_file.jdeps").toAbsolutePath().toString());
@@ -262,6 +273,20 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     .getToolchainInfoBuilder()
                     .getCommonBuilder()
                     .setLanguageVersion("2.0");
+            return this;
+        }
+
+        public TaskBuilder passthroughFlags(String... flags) {
+            for (String flag : flags) {
+                taskBuilder.getInfoBuilder().addPassthroughFlags(flag);
+            }
+            return this;
+        }
+
+        public TaskBuilder addFriendPaths(String... paths) {
+            for (String path : paths) {
+                taskBuilder.getInfoBuilder().addFriendPaths(path);
+            }
             return this;
         }
     }

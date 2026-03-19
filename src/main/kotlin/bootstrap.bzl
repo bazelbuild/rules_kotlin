@@ -14,7 +14,6 @@
 load("@rules_java//java:defs.bzl", "java_binary")
 load("//kotlin:lint.bzl", _ktlint_fix = "ktlint_fix", _ktlint_test = "ktlint_test")
 load("//src/main/starlark/core/compile:rules.bzl", "core_kt_jvm_library")
-load("//third_party:jarjar.bzl", "jar_jar")
 
 def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibility = [], kotlinc_opts = [], **kwargs):
     """
@@ -60,28 +59,9 @@ def kt_bootstrap_binary(
         name,
         main_class,
         runtime_deps,
-        shade_rules,
         jvm_flags = [],
         data = [],
-        final_runtime_deps = [],
         visibility = ["//visibility:public"]):
-    raw = name + "_raw"
-    jar_jared = name + "_jarjar"
-
-    java_binary(
-        name = raw,
-        create_executable = False,
-        runtime_deps = runtime_deps,
-    )
-
-    # Shaded to ensure that libraries it uses are not leaked to
-    # the code it's running against (e.g. dagger)
-    jar_jar(
-        name = jar_jared,
-        input_jar = ":" + raw + "_deploy.jar",
-        rules = shade_rules,
-    )
-
     java_binary(
         name = name,
         data = data,
@@ -94,5 +74,5 @@ def kt_bootstrap_binary(
         ],
         main_class = main_class,
         visibility = visibility,
-        runtime_deps = [":" + jar_jared] + final_runtime_deps,
+        runtime_deps = runtime_deps,
     )
