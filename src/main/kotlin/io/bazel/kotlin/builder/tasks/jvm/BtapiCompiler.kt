@@ -107,10 +107,9 @@ class BtapiCompiler(
       (task.inputs.kotlinSourcesList + task.inputs.javaSourcesList)
         .map { Path.of(it) }
 
-    // TODO: Figure out if builder can be used with pre-2.3.20 btapi impl
-    @Suppress("DEPRECATION")
-    val operation = toolchains.jvm.createJvmCompilationOperation(sources, outputDir)
-    val compilerArgs = LegacyJvmCompilerArgumentsAdapter(operation.compilerArguments)
+    // Create BTAPI compilation operation
+    val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, outputDir)
+    val compilerArgs = operationBuilder.compilerArguments
 
     // Configure compiler arguments directly from protobuf
     configureCompilerArguments(compilerArgs, task)
@@ -133,7 +132,7 @@ class BtapiCompiler(
         try {
           val pluginArgumentStrings = BtapiPluginArguments.toArgumentStrings(compilerPlugins)
           compilerArgs.applyArgumentStrings(
-            compilerArgs.toArgumentStrings() + pluginArgumentStrings,
+            compilerArgs.build().toArgumentStrings() + pluginArgumentStrings,
           )
         } catch (e: CompilerArgumentsParseException) {
           throw IllegalArgumentException("Invalid compiler plugin arguments: ${e.message}", e)
@@ -142,7 +141,7 @@ class BtapiCompiler(
     }
 
     // Execute the compilation
-    return buildSession.executeOperation(operation, logger = logger)
+    return buildSession.executeOperation(operationBuilder.build(), logger = logger)
   }
 
   /**
@@ -151,12 +150,6 @@ class BtapiCompiler(
   @OptIn(ExperimentalCompilerArgument::class)
   fun configureCompilerArguments(
     args: JvmCompilerArguments.Builder,
-    task: JvmCompilationTask,
-  ) = configureCompilerArguments(BuilderJvmCompilerArgumentsAdapter(args), task)
-
-  @OptIn(ExperimentalCompilerArgument::class)
-  private fun configureCompilerArguments(
-    args: MutableJvmCompilerArguments,
     task: JvmCompilationTask,
   ) {
     // Apply passthrough flags FIRST, before other settings.
@@ -207,79 +200,6 @@ class BtapiCompiler(
           .map { File(it).absolutePath }
           .toTypedArray()
     }
-  }
-
-  private interface MutableJvmCompilerArguments {
-    fun applyArgumentStrings(arguments: List<String>)
-
-    fun toArgumentStrings(): List<String>
-
-    operator fun <V> set(
-      key: JvmCompilerArguments.JvmCompilerArgument<V>,
-      value: V,
-    )
-
-    operator fun <V> set(
-      key: CommonCompilerArguments.CommonCompilerArgument<V>,
-      value: V,
-    )
-
-    operator fun contains(key: CommonCompilerArguments.CommonCompilerArgument<*>): Boolean
-  }
-
-  private class BuilderJvmCompilerArgumentsAdapter(
-    private val delegate: JvmCompilerArguments.Builder,
-  ) : MutableJvmCompilerArguments {
-    override fun applyArgumentStrings(arguments: List<String>) {
-      delegate.applyArgumentStrings(arguments)
-    }
-
-    override fun toArgumentStrings(): List<String> = delegate.build().toArgumentStrings()
-
-    override fun <V> set(
-      key: JvmCompilerArguments.JvmCompilerArgument<V>,
-      value: V,
-    ) {
-      delegate[key] = value
-    }
-
-    override fun <V> set(
-      key: CommonCompilerArguments.CommonCompilerArgument<V>,
-      value: V,
-    ) {
-      delegate[key] = value
-    }
-
-    override fun contains(key: CommonCompilerArguments.CommonCompilerArgument<*>): Boolean =
-      key in delegate
-  }
-
-  @Suppress("DEPRECATION")
-  private class LegacyJvmCompilerArgumentsAdapter(
-    private val delegate: JvmCompilerArguments,
-  ) : MutableJvmCompilerArguments {
-    override fun applyArgumentStrings(arguments: List<String>) {
-      delegate.applyArgumentStrings(arguments)
-    }
-
-    override fun toArgumentStrings(): List<String> = delegate.toArgumentStrings()
-
-    override fun <V> set(
-      key: JvmCompilerArguments.JvmCompilerArgument<V>,
-      value: V,
-    ) {
-      delegate[key] = value
-    }
-
-    override fun <V> set(
-      key: CommonCompilerArguments.CommonCompilerArgument<V>,
-      value: V,
-    ) {
-      delegate[key] = value
-    }
-
-    override fun contains(key: CommonCompilerArguments.CommonCompilerArgument<*>): Boolean =
-      key in delegate
   }
 
   /**
