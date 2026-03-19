@@ -16,8 +16,6 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.devtools.build.lib.view.proto.Deps
-import io.bazel.kotlin.builder.toolchain.InternalCompilerPlugin
-import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.CompilerArgumentsParseException
@@ -50,10 +48,20 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion as Btap
 @OptIn(ExperimentalBuildToolsApi::class)
 class BtapiCompiler(
   val toolchains: KotlinToolchains,
+  private val jdepsJar: Path,
+  private val abiGenJar: Path,
+  private val skipCodeGenJar: Path,
+  private val kaptJar: Path,
+  private val classLoader: AutoCloseable? = null,
 ) : AutoCloseable {
   companion object {
     private const val ZIP_CRC_PROPERTY = "zip.handler.uses.crc.instead.of.timestamp"
     private const val ZIP_CRC_VALUE = "true"
+
+    private const val JDEPS_PLUGIN_ID = "io.bazel.kotlin.plugin.jdeps.JDepsGen"
+    private const val ABI_GEN_PLUGIN_ID = "org.jetbrains.kotlin.jvm.abi"
+    private const val SKIP_CODE_GEN_PLUGIN_ID = "io.bazel.kotlin.plugin.SkipCodeGen"
+    private const val KAPT_PLUGIN_ID = "org.jetbrains.kotlin.kapt3"
 
     init {
       System.setProperty(ZIP_CRC_PROPERTY, ZIP_CRC_VALUE)
@@ -67,6 +75,7 @@ class BtapiCompiler(
     if (lazyBuildSession.isInitialized()) {
       buildSession.close()
     }
+    classLoader?.close()
   }
 
   /**
@@ -78,11 +87,10 @@ class BtapiCompiler(
    */
   fun compile(
     task: JvmCompilationTask,
-    toolchainSpec: ToolchainSpec,
     out: PrintStream,
     verbose: Boolean = false,
   ): CompilationResult {
-    val compilerPlugins = buildCompilerPlugins(task, toolchainSpec)
+    val compilerPlugins = buildCompilerPlugins(task)
     val logger = createCompilerLogger(out, verbose = verbose)
 
     return executeCompilation(
@@ -244,43 +252,31 @@ class BtapiCompiler(
   /**
    * Builds compiler plugins for BTAPI using the typed CompilerPlugin API.
    */
-  private fun buildCompilerPlugins(
-    task: JvmCompilationTask,
-    toolchainSpec: ToolchainSpec,
-  ): List<CompilerPlugin> {
+  private fun buildCompilerPlugins(task: JvmCompilationTask): List<CompilerPlugin> {
     val result = mutableListOf<CompilerPlugin>()
 
-    // JDeps plugin
     if (task.outputs.jdeps.isNotEmpty()) {
-      result.add(buildJdepsPlugin(task, toolchainSpec.requirePlugin(ToolchainSpec.JDEPS)))
+      result.add(buildJdepsPlugin(task))
     }
 
-    // JVM ABI Gen plugin
     if (task.outputs.abijar.isNotEmpty()) {
-      result.add(buildAbiGenPlugin(task, toolchainSpec.requirePlugin(ToolchainSpec.JVM_ABI_GEN)))
+      result.add(buildAbiGenPlugin(task))
 
-      // Skip code gen if only generating ABI jar (no main output jar)
       if (task.outputs.jar.isEmpty()) {
-        result.add(buildSkipCodeGenPlugin(toolchainSpec.requirePlugin(ToolchainSpec.SKIP_CODE_GEN)))
+        result.add(
+          CompilerPlugin(
+            pluginId = SKIP_CODE_GEN_PLUGIN_ID,
+            classpath = listOf(skipCodeGenJar),
+            rawArguments = emptyList(),
+            orderingRequirements = emptySet(),
+          ),
+        )
       }
     }
 
-    // User plugins from protobuf
     result.addAll(buildUserPlugins(task))
-
     return result
   }
-
-  /**
-   * Builds the skip-code-gen plugin (has no options, just classpath).
-   */
-  private fun buildSkipCodeGenPlugin(skipCodeGen: InternalCompilerPlugin): CompilerPlugin =
-    CompilerPlugin(
-      pluginId = skipCodeGen.id,
-      classpath = listOf(Path.of(skipCodeGen.jarPath)),
-      rawArguments = emptyList(),
-      orderingRequirements = emptySet(),
-    )
 
   /**
    * Builds user-specified compiler plugins from protobuf options.
@@ -296,44 +292,28 @@ class BtapiCompiler(
   /**
    * Builds jdeps plugin using the typed CompilerPlugin API.
    */
-  private fun buildJdepsPlugin(
-    task: JvmCompilationTask,
-    jdeps: InternalCompilerPlugin,
-  ): CompilerPlugin {
+  private fun buildJdepsPlugin(task: JvmCompilationTask): CompilerPlugin {
     val options = mutableListOf<CompilerPluginOption>()
-
     options.add(CompilerPluginOption("output", task.outputs.jdeps))
     options.add(CompilerPluginOption("target_label", task.info.label))
-
     task.inputs.directDependenciesList.forEach {
       options.add(CompilerPluginOption("direct_dependencies", it))
     }
-
     task.inputs.classpathList.forEach {
       options.add(CompilerPluginOption("full_classpath", it))
     }
-
     options.add(CompilerPluginOption("strict_kotlin_deps", task.info.strictKotlinDeps))
-
     return CompilerPlugin(
-      pluginId = jdeps.id,
-      classpath = listOf(Path.of(jdeps.jarPath)),
+      pluginId = JDEPS_PLUGIN_ID,
+      classpath = listOf(jdepsJar),
       rawArguments = options,
       orderingRequirements = emptySet(),
     )
   }
 
-  /**
-   * Builds jvm-abi-gen plugin using the typed CompilerPlugin API.
-   */
-  private fun buildAbiGenPlugin(
-    task: JvmCompilationTask,
-    abiGen: InternalCompilerPlugin,
-  ): CompilerPlugin {
+  private fun buildAbiGenPlugin(task: JvmCompilationTask): CompilerPlugin {
     val options = mutableListOf<CompilerPluginOption>()
-
     options.add(CompilerPluginOption("outputDir", task.directories.abiClasses))
-
     if (task.info.treatInternalAsPrivateInAbiJar) {
       options.add(CompilerPluginOption("treatInternalAsPrivate", "true"))
     }
@@ -343,10 +323,9 @@ class BtapiCompiler(
     if (task.info.removeDebugInfo) {
       options.add(CompilerPluginOption("removeDebugInfo", "true"))
     }
-
     return CompilerPlugin(
-      pluginId = abiGen.id,
-      classpath = listOf(Path.of(abiGen.jarPath)),
+      pluginId = ABI_GEN_PLUGIN_ID,
+      classpath = listOf(abiGenJar),
       rawArguments = options,
       orderingRequirements = emptySet(),
     )
@@ -405,6 +384,9 @@ class BtapiCompiler(
     }
   }
 
+  // Note: All user plugins share a single merged classpath. This is by design from the Starlark
+  // layer, where `plugins.compile_phase.classpath` is a depset merging all plugin classpaths.
+  // BTAPI's CompilerPlugin model supports per-plugin classpath, but splitting requires Starlark changes.
   private fun buildLegacyPlugins(
     task: JvmCompilationTask,
     pluginIds: List<String>,
@@ -558,14 +540,12 @@ class BtapiCompiler(
    */
   fun compileKapt(
     task: JvmCompilationTask,
-    toolchainSpec: ToolchainSpec,
     aptMode: String = "stubsAndApt",
     verbose: Boolean = false,
     out: PrintStream,
   ): CompilationResult {
-    // Build KAPT plugin and stubs plugins
-    val kaptPlugin = buildKaptCompilerPlugin(task, toolchainSpec, aptMode, verbose)
-    val stubsPlugins = buildStubsPlugins(task, toolchainSpec)
+    val kaptPlugin = buildKaptCompilerPlugin(task, aptMode, verbose)
+    val stubsPlugins = buildStubsPlugins(task)
     val compilerPlugins = listOf(kaptPlugin) + stubsPlugins
 
     val logger = createCompilerLogger(out, verbose = verbose)
@@ -583,13 +563,9 @@ class BtapiCompiler(
    */
   fun buildKaptCompilerPlugin(
     task: JvmCompilationTask,
-    toolchainSpec: ToolchainSpec,
     aptMode: String,
     verbose: Boolean,
   ): CompilerPlugin {
-    val kapt = toolchainSpec.requirePlugin(ToolchainSpec.KAPT)
-    val pluginId = kapt.id
-
     // Create temp subdirectories for stubs and incremental data
     val stubsDir = task.directories.stubs
     val incrementalDataDir = task.directories.incrementalData
@@ -626,25 +602,21 @@ class BtapiCompiler(
     }
 
     // Read kapt apoptions from legacy plugin options.
+    val kaptPrefix = "${KAPT_PLUGIN_ID}:apoption="
     val apOptions =
       (task.inputs.compilerPluginOptionsList + task.inputs.stubsPluginOptionsList)
         .asSequence()
-        .filter { option -> option.startsWith("$pluginId:apoption=") }
-        .map { option ->
-          option
-            .substring("$pluginId:apoption=".length)
-            .split(":", limit = 2)
-        }.associate { option ->
-          option[0] to option[1]
-        }
+        .filter { it.startsWith(kaptPrefix) }
+        .map { it.substring(kaptPrefix.length).split(":", limit = 2) }
+        .associate { it[0] to it[1] }
 
     if (apOptions.isNotEmpty()) {
       options.add(CompilerPluginOption("apoptions", encodeMapForKapt(apOptions)))
     }
 
     return CompilerPlugin(
-      pluginId = pluginId,
-      classpath = listOf(Path.of(kapt.jarPath)),
+      pluginId = KAPT_PLUGIN_ID,
+      classpath = listOf(kaptJar),
       rawArguments = options,
       orderingRequirements = emptySet(),
     )
@@ -655,17 +627,14 @@ class BtapiCompiler(
    */
   fun buildStubsPlugins(
     task: JvmCompilationTask,
-    toolchainSpec: ToolchainSpec,
-  ): List<CompilerPlugin> {
-    val kaptId = toolchainSpec.requirePlugin(ToolchainSpec.KAPT).id
-    return buildLegacyPlugins(
+  ): List<CompilerPlugin> =
+    buildLegacyPlugins(
       task = task,
       pluginIds = task.inputs.stubsPluginsList,
       rawOptions = task.inputs.stubsPluginOptionsList,
       classpath = task.inputs.stubsPluginClasspathList,
-      includeRawOption = { rawOption -> !rawOption.startsWith("$kaptId:") },
+      includeRawOption = { !it.startsWith("${KAPT_PLUGIN_ID}:") },
     )
-  }
 
   /**
    * Encodes a map to Base64 in the format expected by KAPT.

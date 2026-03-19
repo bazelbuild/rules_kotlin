@@ -41,7 +41,7 @@ class KotlinJvmTaskExecutor(
     val preprocessedTask =
       task
         .preProcessingSteps(context)
-        .runPlugins(context, toolchainSpec, btapiCompiler)
+        .runPlugins(context, btapiCompiler)
 
     context.execute("compile classes") {
       preprocessedTask.apply {
@@ -50,7 +50,6 @@ class KotlinJvmTaskExecutor(
             val result =
               btapiCompiler.compile(
                 this,
-                toolchainSpec,
                 context.out,
                 verbose =
                   context.whenTracing { true } == true,

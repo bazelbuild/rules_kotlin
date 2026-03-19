@@ -18,7 +18,6 @@ package io.bazel.kotlin.builder;
 
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException;
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext;
-import io.bazel.kotlin.builder.toolchain.InternalCompilerPlugin;
 import io.bazel.kotlin.builder.toolchain.ToolchainSpec;
 import io.bazel.kotlin.model.CompilationTaskInfo;
 import io.bazel.kotlin.model.KotlinToolchainInfo;
@@ -212,20 +211,12 @@ public abstract class KotlinAbstractTestBuilder<T> {
                 Path.of(Deps.Dep.fromLabel("//kotlin/compiler:kotlinx-coroutines-core-jvm").singleCompileJar()),
                 Path.of(Deps.Dep.fromLabel("//kotlin/compiler:annotations").singleCompileJar())
         );
-        var plugins = java.util.Map.of(
-                ToolchainSpec.JVM_ABI_GEN, new InternalCompilerPlugin(
-                        Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar(),
-                        "org.jetbrains.kotlin.jvm.abi"),
-                ToolchainSpec.SKIP_CODE_GEN, new InternalCompilerPlugin(
-                        Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar(),
-                        "io.bazel.kotlin.plugin.SkipCodeGen"),
-                ToolchainSpec.KAPT, new InternalCompilerPlugin(
-                        Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar(),
-                        "org.jetbrains.kotlin.kapt3"),
-                ToolchainSpec.JDEPS, new InternalCompilerPlugin(
-                        Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar(),
-                        "io.bazel.kotlin.plugin.jdeps.JDepsGen")
+        return new ToolchainSpec(
+                btapiClasspath,
+                Path.of(Deps.Dep.fromLabel("//src/main/kotlin:jdeps-gen").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//kotlin/compiler:jvm-abi-gen").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("//src/main/kotlin:skip-code-gen").singleCompileJar()),
+                Path.of(Deps.Dep.fromLabel("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_annotation_processing_embeddable").singleCompileJar())
         );
-        return new ToolchainSpec(btapiClasspath, plugins);
     }
 }

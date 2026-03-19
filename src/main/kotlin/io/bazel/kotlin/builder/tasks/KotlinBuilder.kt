@@ -19,7 +19,6 @@ package io.bazel.kotlin.builder.tasks
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
-import io.bazel.kotlin.builder.toolchain.InternalCompilerPlugin
 import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
@@ -87,7 +86,10 @@ class KotlinBuilder(
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
       BTAPI_RUNTIME_CLASSPATH("--btapi_runtime_classpath"),
-      INTERNAL_PLUGIN("--internal_plugin"),
+      JDEPS_JAR("--jdeps_jar"),
+      ABI_GEN_JAR("--abi_gen_jar"),
+      SKIP_CODE_GEN_JAR("--skip_code_gen_jar"),
+      KAPT_JAR("--kapt_jar"),
     }
   }
 
@@ -187,24 +189,14 @@ class KotlinBuilder(
     jvmTaskExecutor.execute(context, task, toolchainSpec)
   }
 
-  private fun buildToolchainSpec(argMap: ArgMap): ToolchainSpec {
-    val btapiClasspath = argMap.mandatory(KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH).map(Path::of)
-    val plugins =
-      argMap.mandatory(KotlinBuilderFlags.INTERNAL_PLUGIN).associate { entry ->
-        val (name, path) = entry.split("=", limit = 2)
-        name to InternalCompilerPlugin(jarPath = path, id = pluginIdForName(name))
-      }
-    return ToolchainSpec(btapiClasspath, plugins)
-  }
-
-  private fun pluginIdForName(name: String): String =
-    when (name) {
-      ToolchainSpec.JVM_ABI_GEN -> "org.jetbrains.kotlin.jvm.abi"
-      ToolchainSpec.SKIP_CODE_GEN -> "io.bazel.kotlin.plugin.SkipCodeGen"
-      ToolchainSpec.KAPT -> "org.jetbrains.kotlin.kapt3"
-      ToolchainSpec.JDEPS -> "io.bazel.kotlin.plugin.jdeps.JDepsGen"
-      else -> throw IllegalArgumentException("Unknown internal plugin name: $name")
-    }
+  private fun buildToolchainSpec(argMap: ArgMap): ToolchainSpec =
+    ToolchainSpec(
+      btapiClasspath = argMap.mandatory(KotlinBuilderFlags.BTAPI_RUNTIME_CLASSPATH).map(Path::of),
+      jdepsJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.JDEPS_JAR)),
+      abiGenJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.ABI_GEN_JAR)),
+      skipCodeGenJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.SKIP_CODE_GEN_JAR)),
+      kaptJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.KAPT_JAR)),
+    )
 
   private fun buildJvmTask(
     info: CompilationTaskInfo,

@@ -50,6 +50,13 @@ class BtapiCompilerCache : AutoCloseable {
 
     val urls = spec.btapiClasspath.map { it.toUri().toURL() }.toTypedArray()
     val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
-    return BtapiCompiler(KotlinToolchains.loadImplementation(classLoader))
+    return BtapiCompiler(
+      KotlinToolchains.loadImplementation(classLoader),
+      jdepsJar = spec.jdepsJar,
+      abiGenJar = spec.abiGenJar,
+      skipCodeGenJar = spec.skipCodeGenJar,
+      kaptJar = spec.kaptJar,
+      classLoader = classLoader,
+    )
   }
 }

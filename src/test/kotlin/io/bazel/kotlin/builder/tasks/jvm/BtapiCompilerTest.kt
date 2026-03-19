@@ -6,7 +6,6 @@ import io.bazel.kotlin.builder.Deps
 import io.bazel.kotlin.builder.DirectoryType
 import io.bazel.kotlin.builder.KotlinAbstractTestBuilder
 import io.bazel.kotlin.builder.KotlinJvmTestBuilder
-import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import io.bazel.kotlin.model.JvmCompilationTask
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
@@ -136,6 +135,46 @@ class BtapiCompilerTest {
       assertThat(classEntries).isNotEmpty()
       assertThat(classEntries.any { it.name.contains("AClass") }).isTrue()
     }
+  }
+
+  @Test
+  fun `compile with mixed Kotlin and Java sources produces all class files`() {
+    ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "KotlinClass.kt",
+        "package mixed",
+        "class KotlinClass { fun greet() = \"hello from kotlin\" }",
+      )
+      c.addSource(
+        "JavaClass.java",
+        "package mixed;",
+        "public class JavaClass { public String greet() { return \"hello from java\"; } }",
+      )
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+    ctx.assertFilesExist(DirectoryType.CLASSES, "mixed/KotlinClass.class")
+  }
+
+  @Test
+  fun `compile with Kotlin referencing Java source succeeds`() {
+    ctx.runCompileTask(Consumer { c: KotlinJvmTestBuilder.TaskBuilder ->
+      c.addSource(
+        "JavaHelper.java",
+        "package crossref;",
+        "public class JavaHelper { public static int getValue() { return 42; } }",
+      )
+      c.addSource(
+        "KotlinUser.kt",
+        "package crossref",
+        "class KotlinUser { fun use() = JavaHelper.getValue() }",
+      )
+      c.outputJar()
+      c.outputJdeps()
+      c.compileKotlin()
+    })
+    ctx.assertFilesExist(DirectoryType.CLASSES, "crossref/KotlinUser.class")
   }
 
   @Test
@@ -302,9 +341,9 @@ class BtapiCompilerTest {
 
     withBtapiCompiler { btapiCompiler ->
       val kaptPlugin =
-        btapiCompiler.buildKaptCompilerPlugin(task, toolchainSpec(), "stubsAndApt", false)
+        btapiCompiler.buildKaptCompilerPlugin(task, "stubsAndApt", false)
       val stubsPlugins =
-        btapiCompiler.buildStubsPlugins(task, toolchainSpec())
+        btapiCompiler.buildStubsPlugins(task)
 
       assertThat(kaptPlugin.rawArguments.single { it.key == "stubs" }.value).isEqualTo(stubsDir.toString())
       assertThat(stubsPlugins).hasSize(1)
@@ -325,7 +364,7 @@ class BtapiCompilerTest {
         }.build()
 
     withBtapiCompiler { btapiCompiler ->
-      val stubsPlugins = btapiCompiler.buildStubsPlugins(task, toolchainSpec())
+      val stubsPlugins = btapiCompiler.buildStubsPlugins(task)
 
       assertThat(stubsPlugins).hasSize(1)
       assertThat(stubsPlugins.single().pluginId).isEqualTo("example.noop")
@@ -520,10 +559,14 @@ class BtapiCompilerTest {
     val urls = spec.btapiClasspath.map { it.toUri().toURL() }.toTypedArray()
     val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
     val toolchains = KotlinToolchains.loadImplementation(classLoader)
-    return BtapiCompiler(toolchains).use { block(it) }
+    return BtapiCompiler(
+      toolchains,
+      jdepsJar = spec.jdepsJar,
+      abiGenJar = spec.abiGenJar,
+      skipCodeGenJar = spec.skipCodeGenJar,
+      kaptJar = spec.kaptJar,
+    ).use { block(it) }
   }
-
-  private fun toolchainSpec() = KotlinAbstractTestBuilder.toolchainSpecForTest()
 
   private fun configureAndBuildArguments(
     btapiCompiler: BtapiCompiler,

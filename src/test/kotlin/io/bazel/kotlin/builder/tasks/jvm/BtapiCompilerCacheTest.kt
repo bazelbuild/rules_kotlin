@@ -36,7 +36,8 @@ class BtapiCompilerCacheTest {
 
   @Test
   fun `get throws when classpath file does not exist`() {
-    val spec = ToolchainSpec(listOf(Path.of("/nonexistent/path/does-not-exist.jar")), emptyMap())
+    val dummyJar = Path.of("/dummy.jar")
+    val spec = ToolchainSpec(listOf(Path.of("/nonexistent/path/does-not-exist.jar")), dummyJar, dummyJar, dummyJar, dummyJar)
     val exception = assertThrows(IllegalArgumentException::class.java) {
       cache.get(spec)
     }
@@ -45,10 +46,25 @@ class BtapiCompilerCacheTest {
   }
 
   @Test
+  fun `close closes all cached compilers`() {
+    val spec = KotlinAbstractTestBuilder.toolchainSpecForTest()
+    val compiler = cache.get(spec)
+    // Verify the compiler is functional before close
+    assertThat(compiler.toolchains).isNotNull()
+    cache.close()
+    // After close, the cache should be empty - getting the same spec should create a new instance
+    val newCache = BtapiCompilerCache()
+    val compiler2 = newCache.get(spec)
+    assertThat(compiler2).isNotSameInstanceAs(compiler)
+    newCache.close()
+  }
+
+  @Test
   fun `get throws when classpath entry is a directory not a file`() {
     val tempDir = Files.createTempDirectory("btapi-cache-test")
     try {
-      val spec = ToolchainSpec(listOf(tempDir), emptyMap())
+      val dummyJar = Path.of("/dummy.jar")
+      val spec = ToolchainSpec(listOf(tempDir), dummyJar, dummyJar, dummyJar, dummyJar)
       val exception = assertThrows(IllegalArgumentException::class.java) {
         cache.get(spec)
       }

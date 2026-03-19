@@ -1,7 +1,6 @@
 package io.bazel.kotlin.builder.tasks.jvm
 
 import com.google.common.truth.Truth.assertThat
-import io.bazel.kotlin.builder.toolchain.InternalCompilerPlugin
 import io.bazel.kotlin.builder.toolchain.ToolchainSpec
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -11,19 +10,10 @@ import java.nio.file.Path
 @RunWith(JUnit4::class)
 class ToolchainSpecTest {
   @Test
-  fun `equality is based on btapiClasspath and plugins`() {
-    val spec1 = ToolchainSpec(
-      listOf(Path.of("/a.jar"), Path.of("/b.jar")),
-      mapOf("jdeps" to InternalCompilerPlugin("/jdeps.jar", "jdeps.id")),
-    )
-    val spec2 = ToolchainSpec(
-      listOf(Path.of("/a.jar"), Path.of("/b.jar")),
-      mapOf("jdeps" to InternalCompilerPlugin("/jdeps.jar", "jdeps.id")),
-    )
-    val spec3 = ToolchainSpec(
-      listOf(Path.of("/a.jar"), Path.of("/c.jar")),
-      mapOf("jdeps" to InternalCompilerPlugin("/jdeps.jar", "jdeps.id")),
-    )
+  fun `equality is based on all fields`() {
+    val spec1 = spec(btapiClasspath = listOf(Path.of("/a.jar"), Path.of("/b.jar")))
+    val spec2 = spec(btapiClasspath = listOf(Path.of("/a.jar"), Path.of("/b.jar")))
+    val spec3 = spec(btapiClasspath = listOf(Path.of("/a.jar"), Path.of("/c.jar")))
 
     assertThat(spec1).isEqualTo(spec2)
     assertThat(spec1.hashCode()).isEqualTo(spec2.hashCode())
@@ -32,24 +22,25 @@ class ToolchainSpecTest {
 
   @Test
   fun `classpath order matters for equality`() {
-    val plugins = mapOf("jdeps" to InternalCompilerPlugin("/jdeps.jar", "jdeps.id"))
-    val spec1 = ToolchainSpec(listOf(Path.of("/a.jar"), Path.of("/b.jar")), plugins)
-    val spec2 = ToolchainSpec(listOf(Path.of("/b.jar"), Path.of("/a.jar")), plugins)
+    val spec1 = spec(btapiClasspath = listOf(Path.of("/a.jar"), Path.of("/b.jar")))
+    val spec2 = spec(btapiClasspath = listOf(Path.of("/b.jar"), Path.of("/a.jar")))
 
     assertThat(spec1).isNotEqualTo(spec2)
   }
 
   @Test
-  fun `requirePlugin returns plugin when present`() {
-    val plugin = InternalCompilerPlugin("/jdeps.jar", "jdeps.id")
-    val spec = ToolchainSpec(emptyList(), mapOf(ToolchainSpec.JDEPS to plugin))
+  fun `different plugin jars produce different specs`() {
+    val spec1 = spec(jdepsJar = Path.of("/jdeps-v1.jar"))
+    val spec2 = spec(jdepsJar = Path.of("/jdeps-v2.jar"))
 
-    assertThat(spec.requirePlugin(ToolchainSpec.JDEPS)).isEqualTo(plugin)
+    assertThat(spec1).isNotEqualTo(spec2)
   }
 
-  @Test(expected = IllegalArgumentException::class)
-  fun `requirePlugin throws when plugin is missing`() {
-    val spec = ToolchainSpec(emptyList(), emptyMap())
-    spec.requirePlugin(ToolchainSpec.JDEPS)
-  }
+  private fun spec(
+    btapiClasspath: List<Path> = emptyList(),
+    jdepsJar: Path = Path.of("/jdeps.jar"),
+    abiGenJar: Path = Path.of("/abi-gen.jar"),
+    skipCodeGenJar: Path = Path.of("/skip-code-gen.jar"),
+    kaptJar: Path = Path.of("/kapt.jar"),
+  ) = ToolchainSpec(btapiClasspath, jdepsJar, abiGenJar, skipCodeGenJar, kaptJar)
 }
