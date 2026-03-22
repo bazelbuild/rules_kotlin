@@ -14,6 +14,7 @@ internal class JdepsGenExtension2(
     onAnalysisCompleted(
       classUsageRecorder.explicitClassesCanonicalPaths,
       classUsageRecorder.implicitClassesCanonicalPaths,
+      classUsageRecorder.usedResources,
     )
   }
 }

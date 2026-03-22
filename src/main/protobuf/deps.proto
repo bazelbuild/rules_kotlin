@@ -48,6 +48,22 @@ message Dependency {
 
   // Source file locations: compilers can pinpoint the uses of a dependency.
   repeated SourceLocation location = 3;
+
+  // List of used classes from this dependency (for per-class compilation avoidance).
+  repeated UsedClass usedClasses = 4;
+}
+
+// Represents a class used from a dependency, with its bytecode hash for
+// per-class compilation avoidance.
+message UsedClass {
+  // Class fully qualified name (e.g., "com.example.MyClass")
+  required string fullyQualifiedName = 1;
+
+  // Path within jar to .class file (e.g., "com/example/MyClass.class")
+  required string internalPath = 2;
+
+  // SHA-256 hash of the corresponding .class bytecode.
+  required bytes hash = 3;
 }
 
 // Top-level message found in .deps artifacts
@@ -68,4 +84,7 @@ message Dependencies {
   // occurred suggesting that it should be rerun with the full classpath, this
   // will be true.
   optional bool requires_reduced_classpath_fallback = 5;
+
+  // List of used android resources (e.g., R.string.app_name).
+  repeated string usedResources = 6;
 }
