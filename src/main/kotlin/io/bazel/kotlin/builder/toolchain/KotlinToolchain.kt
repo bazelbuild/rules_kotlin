@@ -226,11 +226,10 @@ class KotlinToolchain private constructor(
   class KotlincInvokerBuilder(
     private val toolchain: KotlinToolchain,
   ) {
-    fun build(): KotlincInvoker {
-      return KotlincInvoker(
+    fun build(): KotlincInvoker =
+      KotlincInvoker(
         classLoader = toolchain.classLoader,
         clazz = "io.bazel.kotlin.compiler.BazelK2JVMCompiler",
       )
-    }
   }
 }
