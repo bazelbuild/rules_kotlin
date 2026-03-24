@@ -226,16 +226,10 @@ class KotlinToolchain private constructor(
   class KotlincInvokerBuilder(
     private val toolchain: KotlinToolchain,
   ) {
-    fun build(useExperimentalBuildToolsAPI: Boolean): KotlincInvoker {
-      val clazz =
-        if (useExperimentalBuildToolsAPI) {
-          "io.bazel.kotlin.compiler.BuildToolsAPICompiler"
-        } else {
-          "io.bazel.kotlin.compiler.BazelK2JVMCompiler"
-        }
+    fun build(): KotlincInvoker {
       return KotlincInvoker(
         classLoader = toolchain.classLoader,
-        clazz = clazz,
+        clazz = "io.bazel.kotlin.compiler.BazelK2JVMCompiler",
       )
     }
   }
