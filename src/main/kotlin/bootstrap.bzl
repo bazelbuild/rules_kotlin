@@ -50,7 +50,7 @@ def kt_bootstrap_library(name, deps = [], neverlink_deps = [], srcs = [], visibi
     _ktlint_fix(
         name = "%s_ktlint_fix" % name,
         srcs = srcs,
-        visibility = ["//visibility:private"],
+        visibility = ["//visibility:public"],
         config = "//:ktlint_editorconfig",
         tags = ["no-ide", "ktlint"],
         **kwargs
