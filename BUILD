@@ -16,10 +16,6 @@ load("//kotlin:lint.bzl", "ktlint_config")
 # limitations under the License.
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 
-exports_files([
-    "scripts/noop.sh",
-])
-
 filegroup(
     name = "editorconfig",
     srcs = [".editorconfig"],
