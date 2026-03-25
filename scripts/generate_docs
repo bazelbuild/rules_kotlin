@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-bazel run //docs:write_docs || fail "docs did not generate"
