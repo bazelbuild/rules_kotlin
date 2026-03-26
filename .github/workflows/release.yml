@@ -28,7 +28,7 @@ jobs:
       - name: Prepare release notes and artifacts
         run: .github/workflows/release_prep.sh ${{ env.GITHUB_REF_NAME }}
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           prerelease: true
           # Use GH feature to populate the changelog automatically
