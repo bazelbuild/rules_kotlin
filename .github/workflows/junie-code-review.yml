@@ -12,11 +12,11 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 1
 
-      - uses: JetBrains/junie-github-action@v1
+      - uses: JetBrains/junie-github-action@2815c780bf88716528f975ecae5abfe06648b9b2 # v1
         with:
           junie_api_key: ${{ secrets.JUNIE_API_KEY }}
           # Update the same comment on subsequent Junie runs instead of adding new comments
