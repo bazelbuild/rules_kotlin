@@ -8,6 +8,8 @@
     "org.jetbrains.kotlin:kotlin-allopen-compiler-plugin": -935951927,
     "org.jetbrains.kotlin:kotlin-annotation-processing": -1211069509,
     "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable": 1866845197,
+    "org.jetbrains.kotlin:kotlin-build-tools-api": 233215763,
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": 1465024159,
     "org.jetbrains.kotlin:kotlin-build-tools-impl": 368217661,
     "org.jetbrains.kotlin:kotlin-compiler": -1140536117,
     "org.jetbrains.kotlin:kotlin-daemon-client": 333923006,
@@ -45,6 +47,8 @@
     "org.jetbrains.kotlin:kotlin-annotation-processing:jar:sources": -1609044949,
     "org.jetbrains.kotlin:kotlin-build-tools-api": -1848415644,
     "org.jetbrains.kotlin:kotlin-build-tools-api:jar:sources": 610056615,
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": 938612618,
+    "org.jetbrains.kotlin:kotlin-build-tools-compat:jar:sources": 2108547241,
     "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": 757496386,
     "org.jetbrains.kotlin:kotlin-build-tools-cri-impl:jar:sources": -1910270712,
     "org.jetbrains.kotlin:kotlin-build-tools-impl": 1432209759,
@@ -81,6 +85,8 @@
     "org.jetbrains.kotlin:kotlin-stdlib:jar:sources": -107163053,
     "org.jetbrains.kotlin:kotlin-test": 1679587631,
     "org.jetbrains.kotlin:kotlin-test:jar:sources": 542413593,
+    "org.jetbrains.kotlin:kotlin-tooling-core": -13727018,
+    "org.jetbrains.kotlin:kotlin-tooling-core:jar:sources": 1243292659,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": 998661838,
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:sources": 1967060403,
     "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm": 370806968,
@@ -151,6 +157,13 @@
       "shasums": {
         "jar": "22f1ab223854b949099f6b259cef541d5b58a3643df9a49c4577c63c416e843b",
         "sources": "7e13326bfd85d1612a542c9923446248976389b389c955ec3d52e572076a14dc"
+      },
+      "version": "2.3.20"
+    },
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": {
+      "shasums": {
+        "jar": "44c307b4edd4cac51f960a8134112d664c93076700cda5e866e94d9a4296340e",
+        "sources": "964bc6f00a2e6793a2b2009cdfc0aeec237b71a23c12be610c80ccc127ae58de"
       },
       "version": "2.3.20"
     },
@@ -280,6 +293,13 @@
       },
       "version": "2.3.20"
     },
+    "org.jetbrains.kotlin:kotlin-tooling-core": {
+      "shasums": {
+        "jar": "367142781299bc0f9120c1deec0e62934a1af9ea7f01aaa9c5a5354dc5d8d7d9",
+        "sources": "a19867e8faa77b57dea45b2c7d458cea3e3875641d47c2816854cff7e1f680b9"
+      },
+      "version": "2.3.20"
+    },
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": {
       "shasums": {
         "jar": "5ca175b38df331fd64155b35cd8cae1251fa9ee369709b36d42e0a288ccce3fd",
@@ -325,6 +345,9 @@
     "org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm": [
       "org.jetbrains.kotlin:kotlin-stdlib",
       "org.jetbrains:annotations"
+    ],
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": [
+      "org.jetbrains.kotlin:kotlin-tooling-core"
     ],
     "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": [
       "org.jetbrains.kotlin:kotlin-build-tools-api",
@@ -1704,6 +1727,10 @@
       "org.jetbrains.kotlin.buildtools.api.jvm.operations",
       "org.jetbrains.kotlin.buildtools.api.trackers",
       "org.jetbrains.kotlin.buildtools.internal"
+    ],
+    "org.jetbrains.kotlin:kotlin-build-tools-compat": [
+      "org.jetbrains.kotlin.buildtools.internal.compat",
+      "org.jetbrains.kotlin.buildtools.internal.compat.arguments"
     ],
     "org.jetbrains.kotlin:kotlin-build-tools-cri-impl": [
       "org.jetbrains.kotlin.buildtools.internal.cri",
@@ -3750,6 +3777,9 @@
     "org.jetbrains.kotlin:kotlin-test": [
       "kotlin.test"
     ],
+    "org.jetbrains.kotlin:kotlin-tooling-core": [
+      "org.jetbrains.kotlin.tooling.core"
+    ],
     "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm": [
       "_COROUTINE",
       "kotlinx.coroutines",
@@ -3808,6 +3838,8 @@
       "org.jetbrains.kotlin:kotlin-annotation-processing:jar:sources",
       "org.jetbrains.kotlin:kotlin-build-tools-api",
       "org.jetbrains.kotlin:kotlin-build-tools-api:jar:sources",
+      "org.jetbrains.kotlin:kotlin-build-tools-compat",
+      "org.jetbrains.kotlin:kotlin-build-tools-compat:jar:sources",
       "org.jetbrains.kotlin:kotlin-build-tools-cri-impl",
       "org.jetbrains.kotlin:kotlin-build-tools-cri-impl:jar:sources",
       "org.jetbrains.kotlin:kotlin-build-tools-impl",
@@ -3844,6 +3876,8 @@
       "org.jetbrains.kotlin:kotlin-stdlib:jar:sources",
       "org.jetbrains.kotlin:kotlin-test",
       "org.jetbrains.kotlin:kotlin-test:jar:sources",
+      "org.jetbrains.kotlin:kotlin-tooling-core",
+      "org.jetbrains.kotlin:kotlin-tooling-core:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
       "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:sources",
       "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",

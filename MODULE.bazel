@@ -77,6 +77,8 @@ maven.install(
     name = "rules_kotlin_maven",
     artifacts = [
         "org.jetbrains:annotations:13.0",
+        "org.jetbrains.kotlin:kotlin-build-tools-api:{}".format(kotlin_version),
+        "org.jetbrains.kotlin:kotlin-build-tools-compat:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-build-tools-impl:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-daemon-client:{}".format(kotlin_version),
         "org.jetbrains.kotlin:kotlin-stdlib:{}".format(kotlin_version),

@@ -43,7 +43,7 @@ class KotlinBtapiJvmTaskExecutor(
     task: JvmCompilationTask,
     toolchainSpec: ToolchainSpec,
   ) {
-    val btapiCompiler = compilerCache.get(toolchainSpec)
+    val btapiCompiler = compilerCache[toolchainSpec]
     val preprocessedTask =
       task
         .preProcessingSteps(context)
