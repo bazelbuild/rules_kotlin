@@ -1,0 +1,22 @@
+load("@rules_java//java:java_library.bzl", "java_library")
+load("@rules_java//java:java_plugin.bzl", "java_plugin")
+
+java_plugin(
+    name = "dagger_component_plugin",
+    generates_api = True,
+    processor_class = "dagger.internal.codegen.ComponentProcessor",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@maven_rules_kotlin_example//:com_google_dagger_dagger_compiler",
+    ],
+)
+
+java_library(
+    name = "dagger",
+    exported_plugins = [":dagger_component_plugin"],
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven_rules_kotlin_example//:com_google_dagger_dagger",
+        "@maven_rules_kotlin_example//:javax_inject_javax_inject",
+    ],
+)

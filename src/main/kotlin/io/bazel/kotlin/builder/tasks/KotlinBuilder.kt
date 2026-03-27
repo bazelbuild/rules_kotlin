@@ -83,6 +83,7 @@ class KotlinBuilder(
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
       BUILD_TOOLS_API("--build_tools_api"),
+      ASSOCIATES_ABI_JAR("--associates_abi_jar"),
     }
   }
 
@@ -211,6 +212,7 @@ class KotlinBuilder(
           generatedJavaStubJar = this
         }
         argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR)?.let { abijar = it }
+        argMap.optionalSingle(KotlinBuilderFlags.ASSOCIATES_ABI_JAR)?.let { associatesAbiJar = it }
         argMap.optionalSingle(KotlinBuilderFlags.GENERATED_CLASS_JAR)?.let {
           generatedClassJar = it
         }
@@ -230,6 +232,13 @@ class KotlinBuilder(
             workingDir
               .resolveNewDirectories(
                 getOutputDirPath(moduleName, "abi_classes"),
+              ).toString()
+        }
+        if (argMap.hasAll(KotlinBuilderFlags.ASSOCIATES_ABI_JAR)) {
+          associatesAbiClasses =
+            workingDir
+              .resolveNewDirectories(
+                getOutputDirPath(moduleName, "associates_abi_classes"),
               ).toString()
         }
         generatedClasses =

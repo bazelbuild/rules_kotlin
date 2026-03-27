@@ -102,7 +102,8 @@ public final class KotlinJvmTestBuilder extends KotlinAbstractTestBuilder<JvmCom
                     toolchain.getJvmAbiGen(),
                     toolchain.getSkipCodeGen(),
                     toolchain.getKapt3Plugin(),
-                    toolchain.getJdepsGen()
+                    toolchain.getJdepsGen(),
+                    toolchain.getAssociatesAbiGen()
             );
             KotlinToolchain.KotlincInvokerBuilder compilerBuilder =
                     new KotlinToolchain.KotlincInvokerBuilder(toolchain);
