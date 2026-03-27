@@ -38,6 +38,7 @@ class JdepsMerger {
       OUTPUT("--output"),
       TARGET_LABEL("--target_label"),
       REPORT_UNUSED_DEPS("--report_unused_deps"),
+      UNUSED_DEPS_IGNORED_TARGETS("--unused_deps_ignored_targets"),
     }
 
     private fun readJarOwnerFromManifest(jarPath: Path): JarOwner {
@@ -63,6 +64,7 @@ class JdepsMerger {
       inputs: List<String>,
       output: String,
       reportUnusedDeps: String,
+      unusedDepsIgnoredTargets: List<String>,
     ): Int {
       val rootBuilder = Deps.Dependencies.newBuilder()
       rootBuilder.success = false
@@ -114,6 +116,7 @@ class JdepsMerger {
             .filter { it.value == Deps.Dependency.Kind.UNUSED }
             .map { it.key }
             .filter { it != label }
+            .filter { it !in unusedDepsIgnoredTargets }
 
         if (unusedLabels.isNotEmpty()) {
           ctx.info {
@@ -160,7 +163,9 @@ class JdepsMerger {
     val output = argMap.mandatorySingle(JdepsMergerFlags.OUTPUT)
     val label = argMap.mandatorySingle(JdepsMergerFlags.TARGET_LABEL)
     val reportUnusedDeps = argMap.mandatorySingle(JdepsMergerFlags.REPORT_UNUSED_DEPS)
+    val unusedDepsIgnoredTargets =
+      argMap.optional(JdepsMergerFlags.UNUSED_DEPS_IGNORED_TARGETS).orEmpty()
 
-    return merge(ctx, label, inputs, output, reportUnusedDeps)
+    return merge(ctx, label, inputs, output, reportUnusedDeps, unusedDepsIgnoredTargets)
   }
 }
