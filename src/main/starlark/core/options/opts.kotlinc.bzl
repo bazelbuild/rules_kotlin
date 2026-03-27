@@ -22,6 +22,12 @@ _ALLOWED_SUPPRESS_LEVELS = [
     "disabled",
 ]
 
+_ALLOWED_NULLABILITY_MODES = [
+    "ignore",
+    "warn",
+    "strict",
+]
+
 def _map_warning_level(values):
     if not values:
         return None
@@ -31,6 +37,21 @@ def _map_warning_level(values):
         if v not in _ALLOWED_SUPPRESS_LEVELS:
             fail("Error: Suppress key '{}' has an invalid value of '{}'".format(k, v))
         args.append("-Xwarning-level={}:{}".format(k, v))
+    return args
+
+def _map_nullability_annotations(values):
+    if not values:
+        return None
+
+    args = []
+    for annotation, mode in values.items():
+        if mode not in _ALLOWED_NULLABILITY_MODES:
+            fail("Error: Nullability annotation '{}' has an invalid mode '{}'. Must be one of: {}".format(
+                annotation,
+                mode,
+                _ALLOWED_NULLABILITY_MODES,
+            ))
+        args.append("-Xnullability-annotations={}:{}".format(annotation, mode))
     return args
 
 def _map_optin_class_to_flag(values):
@@ -402,6 +423,19 @@ Migration to jvm_default:
         value_to_flag = {
             True: ["-Xno-source-debug-extension"],
         },
+    ),
+    "x_nullability_annotations": struct(
+        args = dict(
+            default = {},
+            doc = "Configure how Kotlin treats nullability annotations on Java types, per annotation class. " +
+                  "Map the fully-qualified annotation class name (prefixed with '@') to a mode: " +
+                  "'ignore', 'warn', or 'strict'. " +
+                  "Ex: {'@jakarta.annotation.Nullable': 'strict', '@jakarta.annotation.Nonnull': 'strict'}. " +
+                  "Use x_jsr305 for javax.annotation (JSR-305) and x_jspecify_annotations for org.jspecify.",
+        ),
+        type = attr.string_dict,
+        value_to_flag = None,
+        map_value_to_flag = _map_nullability_annotations,
     ),
     "x_optin": struct(
         args = dict(
