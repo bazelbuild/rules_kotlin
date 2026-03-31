@@ -530,7 +530,7 @@ class BtapiCompiler(
    * KAPT generates stubs and processes annotations, producing:
    * - Generated Java sources in directories.generatedJavaSources
    * - Generated classes in directories.generatedClasses
-   * - Stubs in directories.generatedStubClasses (canonicalized to temp/stubs by the builder)
+   * - Stubs in directories.temp/stubs, matching legacy {stubs} expansion
    *
    * @param task The compilation task protobuf containing all compilation info
    * @param plugins Internal compiler plugins (must include kapt)
@@ -656,7 +656,7 @@ private val JvmCompilationTask.Directories.stubs: String
   get() =
     Files
       .createDirectories(
-        Paths.get(generatedStubClasses),
+        Paths.get(temp).resolve("stubs"),
       ).toString()
 
 private val JvmCompilationTask.Directories.incrementalData: String

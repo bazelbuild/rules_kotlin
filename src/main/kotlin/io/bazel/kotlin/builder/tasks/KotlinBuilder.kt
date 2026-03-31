@@ -143,7 +143,7 @@ class KotlinBuilder(
     return Pair(argMap, context)
   }
 
-  private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
+  fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
     with(CompilationTaskInfo.newBuilder()) {
       addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
 
@@ -208,7 +208,7 @@ class KotlinBuilder(
       kaptJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.KAPT_JAR)),
     )
 
-  private fun buildJvmTask(
+  fun buildJvmTask(
     info: CompilationTaskInfo,
     workingDir: Path,
     argMap: ArgMap,

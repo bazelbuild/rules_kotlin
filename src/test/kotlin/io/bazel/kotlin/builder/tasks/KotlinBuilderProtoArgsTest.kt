@@ -122,21 +122,8 @@ class KotlinBuilderProtoArgsTest {
     workingDir: Path,
   ): JvmCompilationTask {
     val argMap = ArgMaps.from(args)
-    val buildTaskInfoMethod =
-      KotlinBuilder::class.java.getDeclaredMethod("buildTaskInfo", ArgMap::class.java).apply {
-        isAccessible = true
-      }
-    val info = (buildTaskInfoMethod.invoke(builder, argMap) as CompilationTaskInfo.Builder).build()
-    val buildJvmTaskMethod =
-      KotlinBuilder::class.java.getDeclaredMethod(
-        "buildJvmTask",
-        CompilationTaskInfo::class.java,
-        Path::class.java,
-        ArgMap::class.java,
-      ).apply {
-        isAccessible = true
-      }
-    return buildJvmTaskMethod.invoke(builder, info, workingDir, argMap) as JvmCompilationTask
+    val info = builder.buildTaskInfo(argMap).build()
+    return builder.buildJvmTask(info, workingDir, argMap)
   }
 
   private fun requestArgs(

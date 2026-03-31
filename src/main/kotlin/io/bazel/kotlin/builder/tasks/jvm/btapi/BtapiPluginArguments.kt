@@ -59,6 +59,7 @@ object BtapiPluginArguments {
             }
           }
         }.toSet()
+        .sorted()
 
     return buildList {
       if (pluginClasspaths.isNotEmpty()) {
