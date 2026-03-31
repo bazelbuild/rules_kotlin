@@ -567,10 +567,10 @@ def _run_kt_builder_action(
     javac_options = ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options
     runtime_inputs = [toolchains.kt.btapi_runtime_classpath] if toolchains.kt.experimental_build_tools_api else []
     internal_plugin_inputs = [
-        toolchains.kt.internal_jvm_abi_gen,
-        toolchains.kt.internal_skip_code_gen,
-        toolchains.kt.internal_kapt,
-        toolchains.kt.internal_jdeps_gen,
+        toolchains.kt.jvm_abi_gen,
+        toolchains.kt.skip_code_gen,
+        toolchains.kt.kapt,
+        toolchains.kt.jdeps_gen,
     ] if toolchains.kt.experimental_build_tools_api else []
 
     args = _utils.init_args(ctx, rule_kind, compile_deps.module_name, kotlinc_options)
@@ -587,10 +587,10 @@ def _run_kt_builder_action(
     args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
     if toolchains.kt.experimental_build_tools_api:
         args.add_all("--btapi_runtime_classpath", toolchains.kt.btapi_runtime_classpath)
-        args.add("--jdeps_jar", toolchains.kt.internal_jdeps_gen)
-        args.add("--abi_gen_jar", toolchains.kt.internal_jvm_abi_gen)
-        args.add("--skip_code_gen_jar", toolchains.kt.internal_skip_code_gen)
-        args.add("--kapt_jar", toolchains.kt.internal_kapt)
+        args.add("--jdeps_jar", toolchains.kt.jdeps_gen)
+        args.add("--abi_gen_jar", toolchains.kt.jvm_abi_gen)
+        args.add("--skip_code_gen_jar", toolchains.kt.skip_code_gen)
+        args.add("--kapt_jar", toolchains.kt.kapt)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
     args.add_all("--deps_artifacts", deps_artifacts, omit_if_empty = True)

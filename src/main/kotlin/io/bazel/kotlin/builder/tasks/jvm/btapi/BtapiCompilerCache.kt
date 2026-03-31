@@ -32,17 +32,25 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @OptIn(ExperimentalBuildToolsApi::class)
 class BtapiCompilerCache : AutoCloseable {
-  private val compilers = ConcurrentHashMap<ToolchainSpec, BtapiCompiler>()
+  private val compilers = ConcurrentHashMap<ToolchainSpec, CachedBtapiCompiler>()
+  private val compilerCreationLock = Any()
 
-  operator fun get(spec: ToolchainSpec): BtapiCompiler =
-    compilers.computeIfAbsent(spec, ::createCompiler)
+  operator fun get(spec: ToolchainSpec): BtapiCompiler {
+    compilers[spec]?.let { return it.compiler }
+    synchronized(compilerCreationLock) {
+      compilers[spec]?.let { return it.compiler }
+      val compiler = createCompiler(spec)
+      compilers[spec] = compiler
+      return compiler.compiler
+    }
+  }
 
   override fun close() {
     compilers.values.forEach { it.close() }
     compilers.clear()
   }
 
-  private fun createCompiler(spec: ToolchainSpec): BtapiCompiler {
+  private fun createCompiler(spec: ToolchainSpec): CachedBtapiCompiler {
     spec.btapiClasspath.forEach { file ->
       require(Files.isRegularFile(file)) {
         "BTAPI runtime artifact does not exist or is not a file: $file"
@@ -51,13 +59,26 @@ class BtapiCompilerCache : AutoCloseable {
 
     val urls = spec.btapiClasspath.map { it.toUri().toURL() }.toTypedArray()
     val classLoader = URLClassLoader(urls, SharedApiClassesClassLoader())
-    return BtapiCompiler(
-      KotlinToolchains.loadImplementation(classLoader),
-      jdepsJar = spec.jdepsJar,
-      abiGenJar = spec.abiGenJar,
-      skipCodeGenJar = spec.skipCodeGenJar,
-      kaptJar = spec.kaptJar,
+    return CachedBtapiCompiler(
+      compiler =
+        BtapiCompiler(
+          KotlinToolchains.loadImplementation(classLoader),
+          jdepsJar = spec.jdepsJar,
+          abiGenJar = spec.abiGenJar,
+          skipCodeGenJar = spec.skipCodeGenJar,
+          kaptJar = spec.kaptJar,
+        ),
       classLoader = classLoader,
     )
+  }
+}
+
+private class CachedBtapiCompiler(
+  val compiler: BtapiCompiler,
+  private val classLoader: AutoCloseable,
+) : AutoCloseable {
+  override fun close() {
+    compiler.close()
+    classLoader.close()
   }
 }
