@@ -60,11 +60,15 @@ def _kotlin_toolchain_impl(ctx):
                 ))
 
     runtime_providers = [target[JavaInfo] for target in ctx.attr.jvm_runtime if JavaInfo in target]
-    build_tools_info = ctx.attr.build_tools_impl[JavaInfo]
-    build_tools_runtime_classpath = depset(
-        direct = build_tools_info.runtime_output_jars,
-        transitive = [build_tools_info.transitive_runtime_jars],
-    )
+
+    if ctx.attr.experimental_build_tools_api:
+        build_tools_info = ctx.attr.build_tools_impl[JavaInfo]
+        build_tools_runtime_classpath = depset(
+            direct = build_tools_info.runtime_output_jars,
+            transitive = [build_tools_info.transitive_runtime_jars],
+        )
+    else:
+        build_tools_runtime_classpath = depset()
 
     toolchain = dict(
         language_version = ctx.attr.language_version,
@@ -77,10 +81,10 @@ def _kotlin_toolchain_impl(ctx):
         ksp2 = ctx.attr.ksp2,
         ksp2_invoker = ctx.attr.ksp2_invoker,
         btapi_runtime_classpath = build_tools_runtime_classpath,
-        jvm_abi_gen = ctx.file.jvm_abi_gen,
-        skip_code_gen = ctx.file.skip_code_gen,
-        jdeps_gen = ctx.file.jdeps_gen,
-        kapt = ctx.file.kapt,
+        jvm_abi_gen = ctx.file.jvm_abi_gen if ctx.attr.experimental_build_tools_api else None,
+        skip_code_gen = ctx.file.skip_code_gen if ctx.attr.experimental_build_tools_api else None,
+        jdeps_gen = ctx.file.jdeps_gen if ctx.attr.experimental_build_tools_api else None,
+        kapt = ctx.file.kapt if ctx.attr.experimental_build_tools_api else None,
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {

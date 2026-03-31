@@ -70,6 +70,8 @@ internal fun JvmCompilationTask.runPluginsBtapi(
   }
 }
 
+// TODO: Consider a streaming approach for very large projects. Currently buffers
+//  all compiler output in memory, matching the legacy path (CompilationTaskContext.executeCompilerTask).
 internal fun captureBtapiOutput(
   action: (PrintStream) -> CompilationResult,
 ): Pair<CompilationResult, List<String>> {
