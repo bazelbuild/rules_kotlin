@@ -208,30 +208,6 @@ _kt_toolchain = rule(
             `kt_abi_plugin_incompatible`""",
             default = False,
         ),
-        "jdeps_gen": attr.label(
-            doc = "Kotlin builder plugin: jdeps-gen.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//src/main/kotlin:jdeps-gen"),
-        ),
-        "jvm_abi_gen": attr.label(
-            doc = "Kotlin builder plugin: jvm-abi-gen.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//kotlin/compiler:jvm-abi-gen"),
-        ),
-        "kapt": attr.label(
-            doc = "Kotlin builder plugin: kotlin-annotation-processing-embeddable.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//kotlin/compiler:kotlin-annotation-processing-embeddable"),
-        ),
-        "skip_code_gen": attr.label(
-            doc = "Kotlin builder plugin: skip-code-gen.",
-            allow_single_file = True,
-            cfg = "exec",
-            default = Label("//src/main/kotlin:skip-code-gen"),
-        ),
         "jacocorunner": attr.label(
             default = Label("@remote_java_tools//:jacoco_coverage_runner"),
         ),
@@ -239,12 +215,24 @@ _kt_toolchain = rule(
             doc = "Compiler options for javac",
             providers = [JavacOptions],
         ),
+        "jdeps_gen": attr.label(
+            doc = "Kotlin builder plugin: jdeps-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:jdeps-gen"),
+        ),
         "jdeps_merger": attr.label(
             doc = "the jdeps merger executable",
             default = Label("//src/main/kotlin:jdeps_merger"),
             executable = True,
             allow_files = True,
             cfg = "exec",
+        ),
+        "jvm_abi_gen": attr.label(
+            doc = "Kotlin builder plugin: jvm-abi-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:jvm-abi-gen"),
         ),
         "jvm_runtime": attr.label_list(
             doc = "The implicit jvm runtime libraries. This is internal.",
@@ -279,6 +267,12 @@ _kt_toolchain = rule(
                 "24",
                 "25",
             ],
+        ),
+        "kapt": attr.label(
+            doc = "Kotlin builder plugin: kotlin-annotation-processing-embeddable.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//kotlin/compiler:kotlin-annotation-processing-embeddable"),
         ),
         "kotlinbuilder": attr.label(
             doc = "the kotlin builder executable",
@@ -322,6 +316,12 @@ _kt_toolchain = rule(
                 "2.2",
                 "2.3",
             ],
+        ),
+        "skip_code_gen": attr.label(
+            doc = "Kotlin builder plugin: skip-code-gen.",
+            allow_single_file = True,
+            cfg = "exec",
+            default = Label("//src/main/kotlin:skip-code-gen"),
         ),
         "_empty_jar": attr.label(
             doc = """Empty jar for exporting JavaInfos.""",
