@@ -143,15 +143,20 @@ class WorkerContext private constructor(
   /** doTask work in a TaskContext. */
   fun doTask(
     name: String,
+    sandboxDir: Path? = null,
     task: (sub: TaskContext) -> Status,
   ): TaskResult {
     info { "start task $name" }
-    return WorkingDirectoryContext
-      .use {
-        TaskContext(dir, logging = narrowTo(name)).resultOf(task)
-      }.also {
-        info { "end task $name: ${it.status}" }
-      }
+    return if (sandboxDir != null) {
+      TaskContext(sandboxDir, logging = narrowTo(name)).resultOf(task)
+    } else {
+      WorkingDirectoryContext
+        .use {
+          TaskContext(dir, logging = narrowTo(name)).resultOf(task)
+        }
+    }.also {
+      info { "end task $name: ${it.status}" }
+    }
   }
 
   override fun close() {

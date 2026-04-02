@@ -81,6 +81,7 @@ def _kotlin_toolchain_impl(ctx):
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
             "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
+            "supports-multiplex-sandboxing": "1" if ctx.attr.experimental_multiplex_sandboxing else "0",
             "supports-workers": "1",
         },
         experimental_use_abi_jars = ctx.attr.experimental_use_abi_jars,
@@ -140,6 +141,10 @@ _kt_toolchain = rule(
         ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",
+            default = False,
+        ),
+        "experimental_multiplex_sandboxing": attr.bool(
+            doc = """Run workers with multiplex sandboxing.""",
             default = False,
         ),
         "experimental_reduce_classpath_mode": attr.string(
@@ -354,6 +359,7 @@ def define_kt_toolchain(
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
         experimental_multiplex_workers = None,
+        experimental_multiplex_sandboxing = None,
         experimental_build_tools_api = None,
         javac_options = Label("//kotlin/internal:default_javac_options"),
         kotlinc_options = Label("//kotlin/internal:default_kotlinc_options"),
@@ -381,6 +387,7 @@ def define_kt_toolchain(
         experimental_remove_private_classes_in_abi_jars = experimental_remove_private_classes_in_abi_jars,
         experimental_remove_debug_info_in_abi_jars = experimental_remove_debug_info_in_abi_jars,
         experimental_multiplex_workers = experimental_multiplex_workers,
+        experimental_multiplex_sandboxing = experimental_multiplex_sandboxing,
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
