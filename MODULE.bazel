@@ -80,7 +80,7 @@ maven.install(
     artifacts = [
         "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.code.gson:gson:2.10.1",
-        "com.google.errorprone:error_prone_annotations:2.23.0",
+        "com.google.errorprone:error_prone_annotations:2.49.0",
         "junit:junit:4.13-beta-3",
         "com.google.protobuf:protobuf-java:{}".format(proto_version),
         "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
