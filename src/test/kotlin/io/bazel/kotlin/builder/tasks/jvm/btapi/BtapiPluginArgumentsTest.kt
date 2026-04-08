@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package io.bazel.kotlin.builder.tasks.jvm
+package io.bazel.kotlin.builder.tasks.jvm.btapi
 
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin

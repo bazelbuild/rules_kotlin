@@ -17,6 +17,7 @@
 package io.bazel.kotlin.builder.tasks
 
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.tasks.jvm.btapi.KotlinBtapiJvmTaskExecutor
 import io.bazel.kotlin.builder.toolchain.CompilationStatusException
 import io.bazel.kotlin.builder.toolchain.CompilationTaskContext
 import io.bazel.kotlin.builder.toolchain.ToolchainSpec
@@ -39,6 +40,7 @@ import java.util.regex.Pattern
 @Suppress("MemberVisibilityCanBePrivate")
 class KotlinBuilder(
   private val jvmTaskExecutor: KotlinJvmTaskExecutor,
+  private val btapiTaskExecutor: KotlinBtapiJvmTaskExecutor,
 ) {
   companion object {
     @JvmStatic
@@ -85,6 +87,7 @@ class KotlinBuilder(
       STRICT_KOTLIN_DEPS("--strict_kotlin_deps"),
       REDUCED_CLASSPATH_MODE("--reduced_classpath_mode"),
       INSTRUMENT_COVERAGE("--instrument_coverage"),
+      BUILD_TOOLS_API("--build_tools_api"),
       BTAPI_RUNTIME_CLASSPATH("--btapi_runtime_classpath"),
       JDEPS_JAR("--jdeps_jar"),
       ABI_GEN_JAR("--abi_gen_jar"),
@@ -140,7 +143,7 @@ class KotlinBuilder(
     return Pair(argMap, context)
   }
 
-  private fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
+  fun buildTaskInfo(argMap: ArgMap): CompilationTaskInfo.Builder =
     with(CompilationTaskInfo.newBuilder()) {
       addAllDebug(argMap.mandatory(KotlinBuilderFlags.DEBUG))
 
@@ -173,6 +176,9 @@ class KotlinBuilder(
       argMap.optionalSingle(KotlinBuilderFlags.ABI_JAR_REMOVE_DEBUG_INFO)?.let {
         removeDebugInfo = it == "true"
       }
+      argMap.optionalSingle(KotlinBuilderFlags.BUILD_TOOLS_API)?.let {
+        buildToolsApi = it == "true"
+      }
       this
     }
 
@@ -182,11 +188,15 @@ class KotlinBuilder(
     argMap: ArgMap,
   ) {
     val task = buildJvmTask(context.info, workingDir, argMap)
-    val toolchainSpec = buildToolchainSpec(argMap)
     context.whenTracing {
       printProto("jvm task message:", task)
     }
-    jvmTaskExecutor.execute(context, task, toolchainSpec)
+
+    if (task.info.buildToolsApi) {
+      btapiTaskExecutor.execute(context, task, buildToolchainSpec(argMap))
+    } else {
+      jvmTaskExecutor.execute(context, task)
+    }
   }
 
   private fun buildToolchainSpec(argMap: ArgMap): ToolchainSpec =
@@ -198,7 +208,7 @@ class KotlinBuilder(
       kaptJar = Path.of(argMap.mandatorySingle(KotlinBuilderFlags.KAPT_JAR)),
     )
 
-  private fun buildJvmTask(
+  fun buildJvmTask(
     info: CompilationTaskInfo,
     workingDir: Path,
     argMap: ArgMap,

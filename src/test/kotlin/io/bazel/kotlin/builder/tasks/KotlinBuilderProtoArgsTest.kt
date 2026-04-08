@@ -17,9 +17,12 @@
 package io.bazel.kotlin.builder.tasks
 
 import com.google.common.truth.Truth.assertThat
+import io.bazel.kotlin.builder.KotlinAbstractTestBuilder
 import io.bazel.kotlin.builder.Deps.Dep
 import io.bazel.kotlin.builder.tasks.KotlinBuilder.Companion.KotlinBuilderFlags
 import io.bazel.kotlin.builder.tasks.jvm.KotlinJvmTaskExecutor
+import io.bazel.kotlin.builder.tasks.jvm.btapi.KotlinBtapiJvmTaskExecutor
+import io.bazel.kotlin.builder.toolchain.KotlinToolchain
 import io.bazel.kotlin.builder.utils.ArgMap
 import io.bazel.kotlin.builder.utils.ArgMaps
 import io.bazel.kotlin.model.CompilationTaskInfo
@@ -34,7 +37,14 @@ import java.nio.file.Path
 
 @RunWith(JUnit4::class)
 class KotlinBuilderProtoArgsTest {
-  private val builder = KotlinBuilder(KotlinJvmTaskExecutor())
+  private val builder =
+    KotlinBuilder(
+      KotlinJvmTaskExecutor(
+        KotlinToolchain.KotlincInvokerBuilder(KotlinAbstractTestBuilder.toolchainForTest()),
+        KotlinAbstractTestBuilder.internalPluginsForTest(),
+      ),
+      KotlinBtapiJvmTaskExecutor(),
+    )
 
   private val kotlinStdlib = dep("//kotlin/compiler:kotlin-stdlib")
   private val kotlinReflect = dep("//kotlin/compiler:kotlin-reflect")
@@ -43,7 +53,7 @@ class KotlinBuilderProtoArgsTest {
 
   private val btapiRuntimeClasspath =
     listOf(
-      dep("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_build_tools_impl"),
+      dep("//kotlin/compiler:kotlin-build-tools-impl"),
       dep("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_compiler_embeddable"),
       dep("@rules_kotlin_maven//:org_jetbrains_kotlin_kotlin_daemon_client"),
       kotlinStdlib,
@@ -112,21 +122,8 @@ class KotlinBuilderProtoArgsTest {
     workingDir: Path,
   ): JvmCompilationTask {
     val argMap = ArgMaps.from(args)
-    val buildTaskInfoMethod =
-      KotlinBuilder::class.java.getDeclaredMethod("buildTaskInfo", ArgMap::class.java).apply {
-        isAccessible = true
-      }
-    val info = (buildTaskInfoMethod.invoke(builder, argMap) as CompilationTaskInfo.Builder).build()
-    val buildJvmTaskMethod =
-      KotlinBuilder::class.java.getDeclaredMethod(
-        "buildJvmTask",
-        CompilationTaskInfo::class.java,
-        Path::class.java,
-        ArgMap::class.java,
-      ).apply {
-        isAccessible = true
-      }
-    return buildJvmTaskMethod.invoke(builder, info, workingDir, argMap) as JvmCompilationTask
+    val info = builder.buildTaskInfo(argMap).build()
+    return builder.buildJvmTask(info, workingDir, argMap)
   }
 
   private fun requestArgs(
@@ -146,6 +143,7 @@ class KotlinBuilderProtoArgsTest {
     args.addFlag(KotlinBuilderFlags.OUTPUT, output)
     args.addFlag(KotlinBuilderFlags.BUILD_KOTLIN, "true")
     args.addFlag(KotlinBuilderFlags.INSTRUMENT_COVERAGE, "false")
+    args.addFlag(KotlinBuilderFlags.BUILD_TOOLS_API, "true")
     args.addFlag(KotlinBuilderFlags.STRICT_KOTLIN_DEPS, "off")
     args.addFlag(KotlinBuilderFlags.REDUCED_CLASSPATH_MODE, "NONE")
     args.addFlag(KotlinBuilderFlags.API_VERSION, "2.0")

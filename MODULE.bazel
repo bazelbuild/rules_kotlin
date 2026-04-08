@@ -38,7 +38,8 @@ bazel_dep(name = "rules_shell", version = "0.4.1")
 bazel_dep(name = "bazel_worker_api", version = "0.0.10")
 bazel_dep(name = "bazel_worker_java", version = "0.0.10")
 
-bazel_dep(name = "buildifier_prebuilt", version = "8.5.1", dev_dependency = True)
+bazel_dep(name = "buildifier_prebuilt", version = "8.5.1.2", dev_dependency = True)
+bazel_dep(name = "rules_multirun", version = "0.13.0", dev_dependency = True)
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
@@ -128,8 +129,12 @@ maven.install(
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.dagger:dagger:2.57.2",
         "com.google.dagger:dagger-compiler:2.57.2",
+        "com.google.dagger:dagger-producers:2.57.2",
+        "org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20",
+        "javax.annotation:javax.annotation-api:1.3.2",
         "javax.inject:javax.inject:1",
         "org.apache.commons:commons-compress:1.26.2",
+        "com.eed3si9n.jarjarabrams:jarjar-abrams-assembly_2.13:1.14.1",
         "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
         "com.squareup.moshi:moshi:1.15.2",
         "com.squareup.moshi:moshi-kotlin:1.15.2",

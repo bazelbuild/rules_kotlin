@@ -1,4 +1,4 @@
-package io.bazel.kotlin.builder.tasks.jvm
+package io.bazel.kotlin.builder.tasks.jvm.btapi
 
 import com.google.common.truth.Truth.assertThat
 import io.bazel.kotlin.builder.KotlinAbstractTestBuilder
@@ -19,8 +19,8 @@ class BtapiCompilerCacheTest {
   @Test
   fun `get returns same instance for same toolchain spec`() {
     val spec = KotlinAbstractTestBuilder.toolchainSpecForTest()
-    val compiler1 = cache.get(spec)
-    val compiler2 = cache.get(spec)
+    val compiler1 = cache[spec]
+    val compiler2 = cache[spec]
     assertThat(compiler1).isSameInstanceAs(compiler2)
   }
 
@@ -29,8 +29,8 @@ class BtapiCompilerCacheTest {
     val spec1 = KotlinAbstractTestBuilder.toolchainSpecForTest()
     val spec2 = KotlinAbstractTestBuilder.toolchainSpecForTest()
     assertThat(spec1).isEqualTo(spec2)
-    val compiler1 = cache.get(spec1)
-    val compiler2 = cache.get(spec2)
+    val compiler1 = cache[spec1]
+    val compiler2 = cache[spec2]
     assertThat(compiler1).isSameInstanceAs(compiler2)
   }
 
@@ -39,7 +39,7 @@ class BtapiCompilerCacheTest {
     val dummyJar = Path.of("/dummy.jar")
     val spec = ToolchainSpec(listOf(Path.of("/nonexistent/path/does-not-exist.jar")), dummyJar, dummyJar, dummyJar, dummyJar)
     val exception = assertThrows(IllegalArgumentException::class.java) {
-      cache.get(spec)
+      cache[spec]
     }
     assertThat(exception).hasMessageThat().contains("does not exist or is not a file")
     assertThat(exception).hasMessageThat().contains("does-not-exist.jar")
@@ -48,13 +48,13 @@ class BtapiCompilerCacheTest {
   @Test
   fun `close closes all cached compilers`() {
     val spec = KotlinAbstractTestBuilder.toolchainSpecForTest()
-    val compiler = cache.get(spec)
+    val compiler = cache[spec]
     // Verify the compiler is functional before close
     assertThat(compiler.toolchains).isNotNull()
     cache.close()
     // After close, the cache should be empty - getting the same spec should create a new instance
     val newCache = BtapiCompilerCache()
-    val compiler2 = newCache.get(spec)
+    val compiler2 = newCache[spec]
     assertThat(compiler2).isNotSameInstanceAs(compiler)
     newCache.close()
   }
@@ -66,7 +66,7 @@ class BtapiCompilerCacheTest {
       val dummyJar = Path.of("/dummy.jar")
       val spec = ToolchainSpec(listOf(tempDir), dummyJar, dummyJar, dummyJar, dummyJar)
       val exception = assertThrows(IllegalArgumentException::class.java) {
-        cache.get(spec)
+        cache[spec]
       }
       assertThat(exception).hasMessageThat().contains("does not exist or is not a file")
     } finally {

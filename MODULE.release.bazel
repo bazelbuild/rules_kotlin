@@ -5,6 +5,7 @@ module(
     repo_name = "rules_kotlin",
 )
 kotlin_version = "2.3.20-RC2"
+kotlin_version = "2.3.20"
 
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")

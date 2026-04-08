@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package io.bazel.kotlin.builder.tasks.jvm
+package io.bazel.kotlin.builder.tasks.jvm.btapi
 
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginPartialOrderRelation
@@ -59,6 +59,7 @@ object BtapiPluginArguments {
             }
           }
         }.toSet()
+        .sorted()
 
     return buildList {
       if (pluginClasspaths.isNotEmpty()) {

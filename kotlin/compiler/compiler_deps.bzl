@@ -30,7 +30,6 @@ _COMPILER_TARGETS = [
     ("parcelize-compiler-plugin", "org_jetbrains_kotlin_kotlin_parcelize_compiler"),
     ("parcelize-runtime", "org_jetbrains_kotlin_kotlin_parcelize_runtime"),
     ("kotlin-daemon-client", "org_jetbrains_kotlin_kotlin_daemon_client"),
-    ("kotlin-build-tools-api", "org_jetbrains_kotlin_kotlin_build_tools_api"),
     ("kotlin-build-tools-impl", "org_jetbrains_kotlin_kotlin_build_tools_impl"),
     ("kotlin-compiler", "org_jetbrains_kotlin_kotlin_compiler"),
     ("kotlin-compiler-embeddable", "org_jetbrains_kotlin_kotlin_compiler_embeddable"),
@@ -48,21 +47,39 @@ def kt_define_compiler_targets():
             actual = "@rules_kotlin_maven//:%s" % actual,
         )
 
-# Kotlin standard library targets for the CLI toolchain's compilation and runtime classpath.
+    native.alias(
+        name = "kotlin-serialization-compiler-plugin",
+        actual = ":kotlinx-serialization-compiler-plugin",
+    )
+
+# List of Kotlin standard library targets for runtime dependencies.
 # Note: kotlin-stdlib-jdk7 and kotlin-stdlib-jdk8 are not needed as of Kotlin 1.8+,
 # since JDK 8 extensions are included in the main stdlib.
 KOTLIN_STDLIBS = [
     "//kotlin/compiler:annotations",
     "//kotlin/compiler:kotlin-reflect",
     "//kotlin/compiler:kotlin-stdlib",
+    "//kotlin/compiler:kotlin-compiler",
+    "//kotlin/compiler:kotlin-build-tools-impl",
+    "//kotlin/compiler:kotlin-annotation-processing",
+    "//kotlin/compiler:jvm-abi-gen",
     "//kotlin/compiler:kotlinx-coroutines-core-jvm",
+    "//kotlin/compiler:kotlinx-serialization-core-jvm",
+    "//kotlin/compiler:kotlinx-serialization-json-jvm",
 ]
 
-# KSP2 runtime classpath: basic Kotlin runtime with the IntelliJ coroutines variant
-# instead of the standard kotlinx artifact (required for KSP2 compatibility).
+# Build worker should not pull kotlin-compiler from final runtime deps to avoid classpath leakage.
+KOTLIN_BUILD_RUNTIME_STDLIBS = [
+    dep
+    for dep in KOTLIN_STDLIBS
+    if dep != "//kotlin/compiler:kotlin-compiler"
+]
+
+# KSP2 needs IntelliJ coroutines variant rather than the default kotlinx artifact.
 KSP2_RUNTIME_STDLIBS = [
-    "//kotlin/compiler:annotations",
-    "//kotlin/compiler:kotlin-reflect",
-    "//kotlin/compiler:kotlin-stdlib",
+    dep
+    for dep in KOTLIN_STDLIBS
+    if dep != "//kotlin/compiler:kotlinx-coroutines-core-jvm"
+] + [
     "//kotlin/compiler:ksp-intellij-kotlinx-coroutines-core-jvm",
 ]

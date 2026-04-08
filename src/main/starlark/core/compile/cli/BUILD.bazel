@@ -4,7 +4,6 @@ load("//src/main/starlark/core/compile:common.bzl", "TYPE")
 load("//src/main/starlark/core/repositories:versions.bzl", "versions")
 load("//src/main/starlark/release:packager.bzl", "release_archive")
 load(":toolchain.bzl", "cli_toolchain")
-
 java_binary(
     name = "kotlinc",
     main_class = "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
@@ -16,7 +15,6 @@ java_binary(
         "//kotlin/compiler:kotlinx-coroutines-core-jvm",
     ],
 )
-
 cli_toolchain(
     name = "cli_toolchain",
     api_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
@@ -26,13 +24,11 @@ cli_toolchain(
     language_version = versions.KOTLIN_CURRENT_COMPILER_RELEASE.version,
     zip = "@bazel_tools//tools/zip:zipper",
 )
-
 toolchain(
     name = "cli",
     toolchain = ":cli_toolchain",
     toolchain_type = TYPE,
 )
-
 release_archive(
     name = "pkg",
     srcs = [
@@ -42,4 +38,11 @@ release_archive(
     src_map = {
         "BUILD.release.bazel": "BUILD.bazel",
     },
+)
+load("@rules_java//java:java_library.bzl", "java_library")
+java_library(
+    name = "kotlinc_jar",
+    exports = [
+        "//kotlin/compiler:kotlin-compiler",
+    ],
 )

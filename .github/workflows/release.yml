@@ -12,23 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Mount bazel caches
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/bazel-disk-cache
           key: bazel-cache-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/MODULE.bazel') }}
           restore-keys: bazel-cache-
       - name: Install JDK 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: "zulu"
           java-version: "11"
       - name: Prepare release notes and artifacts
         run: .github/workflows/release_prep.sh ${{ env.GITHUB_REF_NAME }}
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           prerelease: true
           # Use GH feature to populate the changelog automatically
