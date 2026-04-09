@@ -1,0 +1,12 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+
+kt_jvm_library(
+    name = "lib",
+    srcs = ["Greeter.kt"],
+)
+
+kt_jvm_library(
+    name = "lib2",
+    srcs = ["Calculator.kt"],
+    deps = [":lib"],
+)
