@@ -140,7 +140,7 @@ _kt_toolchain = rule(
         ),
         "experimental_multiplex_workers": attr.bool(
             doc = """Run workers in multiplex mode.""",
-            default = False,
+            default = True,
         ),
         "experimental_reduce_classpath_mode": attr.string(
             doc = "Removes unneeded dependencies from the classpath",
