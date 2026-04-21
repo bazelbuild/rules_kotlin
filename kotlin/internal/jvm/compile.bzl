@@ -20,6 +20,7 @@ load(
     "JavaInfo",
     "java_common",
 )
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(
     "//kotlin/internal:defs.bzl",
     _JAVA_RUNTIME_TOOLCHAIN_TYPE = "JAVA_RUNTIME_TOOLCHAIN_TYPE",
@@ -39,6 +40,11 @@ load(
 load(
     "//kotlin/internal/jvm:jvm_deps.bzl",
     _jvm_deps_utils = "jvm_deps_utils",
+)
+load(
+    "//kotlin/internal/jvm:kaptish.bzl",
+    "create_kaptish_placeholder",
+    "is_kaptish_enabled",
 )
 load(
     "//kotlin/internal/jvm:plugins.bzl",
@@ -885,8 +891,11 @@ def _run_kt_java_builder_actions(
     kt_stubs_for_java = []
     has_kt_sources = srcs.kt or srcs.src_jars
 
-    # Run KAPT
-    if has_kt_sources and annotation_processors:
+    # Determine if kaptish should be used (skips KAPT, uses javac AP instead)
+    use_kaptish = is_kaptish_enabled(ctx, toolchains, has_kt_sources, bool(annotation_processors))
+
+    # Run KAPT (skip if kaptish is enabled - it will use javac AP instead)
+    if has_kt_sources and annotation_processors and not use_kaptish:
         kapt_outputs = _run_kapt_builder_actions(
             ctx,
             rule_kind = rule_kind,
@@ -982,8 +991,10 @@ def _run_kt_java_builder_actions(
     # Build Java
     # If there is Java source or KAPT/KSP generated Java source compile that Java and fold it into
     # the final ABI jar. Otherwise just use the KT ABI jar as final ABI jar.
+    # In kaptish mode, we also need to run javac to trigger annotation processing.
     ksp_generated_java_src_jars = generated_ksp_src_jars and is_ksp_processor_generating_java(ctx.attr.plugins)
-    if srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars:
+    needs_java_compile = srcs.java or generated_kapt_src_jars or srcs.src_jars or ksp_generated_java_src_jars or use_kaptish
+    if needs_java_compile:
         javac_opts = javac_options_to_flags(ctx.attr.javac_opts[JavacOptions] if ctx.attr.javac_opts else toolchains.kt.javac_options)
         javac_opts.extend([
             flag
@@ -992,18 +1003,43 @@ def _run_kt_java_builder_actions(
             for flag in javac_options_to_flags(plugin[JavacOptions])
         ])
 
-        # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
-        # annotation processors in `deps` also.
-        if len(srcs.kt) > 0:
-            javac_opts.append("-proc:none")
+        java_sources = list(srcs.java)
+        java_srcjars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars
+        kaptish_deps = []
+        kaptish_plugins = []
+
+        if use_kaptish:
+            # Kaptish mode: inject placeholder Java file if needed to trigger AP
+            if not srcs.java:
+                placeholder = create_kaptish_placeholder(ctx)
+                java_sources.append(placeholder)
+
+            # Add the Kotlin output JAR to the classpath so the kaptish processor
+            # can find and inject Kotlin class names into javac's AP phase.
+            kaptish_deps = [
+                JavaInfo(
+                    compile_jar = kt_compile_jar,
+                    output_jar = kt_runtime_jar,
+                    neverlink = True,
+                ),
+            ]
+
+            # Add the kaptish annotation processor plugin
+            kaptish_plugins = [toolchains.kt.kaptish_plugin[JavaPluginInfo]]
+        else:
+            # Non-kaptish mode: Kotlin/KAPT takes care of annotation processing
+            # Note that JavaBuilder "discovers" annotation processors in `deps` also.
+            if len(srcs.kt) > 0:
+                javac_opts.append("-proc:none")
+
         java_info = java_common.compile(
             ctx,
-            source_files = srcs.java,
-            source_jars = generated_kapt_src_jars + srcs.src_jars + generated_ksp_src_jars,
+            source_files = java_sources,
+            source_jars = java_srcjars,
             output = ctx.actions.declare_file(ctx.label.name + "-java.jar"),
-            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p],
+            deps = compile_deps.deps + kt_stubs_for_java + [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p] + kaptish_deps,
             java_toolchain = toolchains.java,
-            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins),
+            plugins = _plugin_mappers.targets_to_annotation_processors_java_plugin_info(ctx.attr.plugins) + kaptish_plugins,
             javac_opts = javac_opts,
             neverlink = getattr(ctx.attr, "neverlink", False),
             strict_deps = toolchains.kt.experimental_strict_kotlin_deps,
