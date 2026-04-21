@@ -34,7 +34,7 @@ Additionally, `kt_jvm_binary` and `kt_jvm_test` support environment variable con
 Android rules also support custom_package for `R.java` generation, `manifest=`, `resource_files`, etc.
 
 Other features:
-  * Persistent worker support.
+  * Persistent worker and multiplex worker support.
   * Mixed-Mode compilation (compile Java and Kotlin in one pass).
   * Configurable Kotlinc distribution and version
   * Configurable Toolchain
@@ -278,6 +278,98 @@ Or add it to your `.bazelrc` file:
 
 ```
 build --@rules_kotlin//kotlin/settings:experimental_build_tools_api=false
+```
+
+# Workers
+
+Persistent workers and multiplex workers are enabled by default for Kotlin compilation actions. This significantly improves build performance by reusing compiler processes across builds.
+
+The following action mnemonics support workers:
+
+| Mnemonic | Description |
+| :--- | :--- |
+| `KotlinCompile` | Main Kotlin compilation |
+| `KotlinKsp2` | KSP 2 symbol processing |
+| `JdepsMerge` | Jdeps file merging |
+
+## Disabling workers
+
+To disable persistent workers for a specific mnemonic and fall back to non-worker execution:
+
+```
+build --strategy=KotlinCompile=local
+build --strategy=KotlinKsp2=local
+build --strategy=JdepsMerge=local
+```
+
+## Disabling multiplex workers
+
+To disable multiplex workers while still using regular persistent workers, set the max multiplex instances to 0 for the desired mnemonic:
+
+```
+build --experimental_worker_max_multiplex_instances=KotlinCompile=0
+build --experimental_worker_max_multiplex_instances=KotlinKsp2=0
+build --experimental_worker_max_multiplex_instances=JdepsMerge=0
+```
+
+## Tuning multiplex workers
+
+You can control the number of concurrent multiplex work units per worker process:
+
+```
+build --experimental_worker_max_multiplex_instances=KotlinCompile=5
+```
+
+## Multiplex sandboxing
+
+Multiplex sandboxing provides sandbox isolation for each work request within a multiplex worker. It can be enabled via the Kotlin toolchain:
+
+```python
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
+
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    experimental_multiplex_sandboxing = True,
+)
+```
+
+Then register the toolchain in your `WORKSPACE`:
+
+```python
+register_toolchains("//:kotlin_toolchain")
+```
+
+And pass the Bazel flag to activate sandbox support:
+
+```
+build --experimental_worker_multiplex_sandboxing
+```
+
+## Path mapping
+
+Path mapping rewrites action input/output paths to shorter, config-independent forms. This reduces unnecessary cache misses when switching between configurations (e.g., different platforms or optimization levels). It requires multiplex sandboxing to be enabled.
+
+```python
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain")
+
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    experimental_multiplex_sandboxing = True,
+    supports_path_mapping = True,
+)
+```
+
+Then register the toolchain in your `WORKSPACE`:
+
+```python
+register_toolchains("//:kotlin_toolchain")
+```
+
+And pass the Bazel flags to activate both features:
+
+```
+build --experimental_worker_multiplex_sandboxing
+build --experimental_output_paths=strip
 ```
 
 # KSP (Kotlin Symbol Processing)

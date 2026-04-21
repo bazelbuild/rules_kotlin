@@ -20,9 +20,40 @@ package io.bazel.worker
 import com.google.common.truth.Truth.assertThat
 import io.bazel.worker.ContextLog.Granularity.DEBUG
 import io.bazel.worker.Status.SUCCESS
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 class WorkerContextTest {
+  @get:Rule
+  val tmp = TemporaryFolder()
+
+  @Test
+  fun sandboxDirIsUsedWhenProvided() {
+    val sandboxDir = tmp.newFolder("sandbox").toPath()
+    var observedDir: java.nio.file.Path? = null
+    WorkerContext.run {
+      doTask("sandboxed", sandboxDir = sandboxDir) { ctx ->
+        observedDir = ctx.directory
+        SUCCESS
+      }
+    }
+    assertThat(observedDir).isEqualTo(sandboxDir)
+  }
+
+  @Test
+  fun tempDirIsUsedWhenSandboxDirAbsent() {
+    var observedDir: java.nio.file.Path? = null
+    WorkerContext.run {
+      doTask("unsandboxed") { ctx ->
+        observedDir = ctx.directory
+        SUCCESS
+      }
+    }
+    assertThat(observedDir).isNotNull()
+    assertThat(observedDir?.fileName?.toString()).startsWith("pwd")
+  }
+
   @Test
   fun logging() {
     var outerLog: List<String> = emptyList()
