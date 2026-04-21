@@ -80,8 +80,8 @@ def _kotlin_toolchain_impl(ctx):
         jvm_stdlibs = java_common.merge(compile_time_providers + runtime_providers),
         jvm_emit_jdeps = ctx.attr._jvm_emit_jdeps[BuildSettingInfo].value,
         execution_requirements = {
-            "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
             "supports-multiplex-sandboxing": "1" if ctx.attr.experimental_multiplex_sandboxing else "0",
+            "supports-multiplex-workers": "1" if ctx.attr.experimental_multiplex_workers else "0",
             "supports-path-mapping": "1" if ctx.attr.supports_path_mapping else "0",
             "supports-workers": "1",
         },
@@ -140,17 +140,13 @@ _kt_toolchain = rule(
             doc = "Enables experimental support for Build Tools API integration",
             default = False,
         ),
-        "experimental_multiplex_workers": attr.bool(
-            doc = """Run workers in multiplex mode.""",
-            default = True,
-        ),
         "experimental_multiplex_sandboxing": attr.bool(
             doc = """Run workers with multiplex sandboxing.""",
             default = False,
         ),
-        "supports_path_mapping": attr.bool(
-            doc = """Enable path mapping for Kotlin actions. Requires experimental_multiplex_sandboxing.""",
-            default = False,
+        "experimental_multiplex_workers": attr.bool(
+            doc = """Run workers in multiplex mode.""",
+            default = True,
         ),
         "experimental_reduce_classpath_mode": attr.string(
             doc = "Removes unneeded dependencies from the classpath",
@@ -299,6 +295,10 @@ _kt_toolchain = rule(
                 "2.2",
                 "2.3",
             ],
+        ),
+        "supports_path_mapping": attr.bool(
+            doc = """Enable path mapping for Kotlin actions. Requires experimental_multiplex_sandboxing.""",
+            default = False,
         ),
         "_empty_jar": attr.label(
             doc = """Empty jar for exporting JavaInfos.""",
