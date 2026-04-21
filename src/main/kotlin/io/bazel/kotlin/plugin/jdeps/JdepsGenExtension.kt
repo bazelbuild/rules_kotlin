@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassConstructorDescriptor
+import org.jetbrains.kotlin.load.java.lazy.descriptors.LazyJavaClassDescriptor
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
 import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaClass
 import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaField
@@ -128,10 +129,26 @@ class JdepsGenExtension(
           it,
         )
       }
+
+    /**
+     * Extracts Android R class resource name from a descriptor if it references an R class field.
+     * Returns the fully qualified resource name (e.g., "com.example.R.string.app_name").
+     */
+    fun getResourceName(descriptor: DeclarationDescriptorWithSource): String? {
+      val containingDeclaration = descriptor.containingDeclaration
+      if (containingDeclaration is LazyJavaClassDescriptor) {
+        val fqName = containingDeclaration.jClass.fqName?.asString()
+        if (fqName != null && (fqName.contains(".R.") || fqName.startsWith("R."))) {
+          return "$fqName.${descriptor.name.asString()}"
+        }
+      }
+      return null
+    }
   }
 
   private val explicitClassesCanonicalPaths = mutableSetOf<String>()
   private val implicitClassesCanonicalPaths = mutableSetOf<String>()
+  private val usedResources = mutableSetOf<String>()
 
   override fun registerModuleComponents(
     container: StorageComponentContainer,
@@ -139,13 +156,18 @@ class JdepsGenExtension(
     moduleDescriptor: ModuleDescriptor,
   ) {
     container.useInstance(
-      ClasspathCollectingChecker(explicitClassesCanonicalPaths, implicitClassesCanonicalPaths),
+      ClasspathCollectingChecker(
+        explicitClassesCanonicalPaths,
+        implicitClassesCanonicalPaths,
+        usedResources,
+      ),
     )
   }
 
   class ClasspathCollectingChecker(
     private val explicitClassesCanonicalPaths: MutableSet<String>,
     private val implicitClassesCanonicalPaths: MutableSet<String>,
+    private val usedResources: MutableSet<String>,
   ) : CallChecker,
     DeclarationChecker {
     override fun check(
@@ -200,6 +222,11 @@ class JdepsGenExtension(
 
       if (resultingDescriptor is ValueDescriptor) {
         collectTypeReferences(resultingDescriptor.type, isExplicit = false)
+        // Track Android R class resource references
+        // ValueDescriptor extends DeclarationDescriptorWithSource, so we can cast directly
+        getResourceName(resultingDescriptor as DeclarationDescriptorWithSource)?.let {
+          usedResources.add(it)
+        }
       }
     }
 
@@ -346,7 +373,7 @@ class JdepsGenExtension(
     bindingTrace: BindingTrace,
     files: Collection<KtFile>,
   ): AnalysisResult? {
-    onAnalysisCompleted(explicitClassesCanonicalPaths, implicitClassesCanonicalPaths)
+    onAnalysisCompleted(explicitClassesCanonicalPaths, implicitClassesCanonicalPaths, usedResources)
 
     return super.analysisCompleted(project, module, bindingTrace, files)
   }

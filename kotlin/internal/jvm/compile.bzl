@@ -577,6 +577,8 @@ def _run_kt_builder_action(
     args.add("--strict_kotlin_deps", toolchains.kt.experimental_strict_kotlin_deps)
     args.add_all("--classpath", compile_deps.compile_jars)
     args.add("--reduced_classpath_mode", toolchains.kt.experimental_reduce_classpath_mode)
+    args.add("--track_class_usage", toolchains.kt.experimental_track_class_usage)
+    args.add("--track_resource_usage", toolchains.kt.experimental_track_resource_usage)
     args.add("--build_tools_api", toolchains.kt.experimental_build_tools_api)
     args.add_all("--sources", srcs.all_srcs, omit_if_empty = True)
     args.add_all("--source_jars", srcs.src_jars + generated_src_jars, omit_if_empty = True)
