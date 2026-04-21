@@ -20,6 +20,13 @@ jar_jar(
     visibility = ["//visibility:public"],
 )
 
+jar_jar(
+    name = "associates-abi-gen",
+    input_jar = "//src/main/kotlin/io/bazel/kotlin/plugin/associates:associates-abi-gen_deploy.jar",
+    rules = "shade.jarjar",
+    visibility = ["//visibility:public"],
+)
+
 alias(
     name = "build",
     actual = "//src/main/kotlin/io/bazel/kotlin/builder/cmd:build",
@@ -47,6 +54,7 @@ alias(
 release_archive(
     name = "pkg",
     srcs = [
+        ":associates-abi-gen.jar",
         ":jdeps-gen.jar",
         ":skip-code-gen.jar",
     ],

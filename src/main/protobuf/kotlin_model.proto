@@ -112,6 +112,8 @@ message JvmCompilationTask {
     string java_classes = 8;
     // The destination directory for code coverage metadata.
     string coverage_metadata_classes = 9;
+    // The destination directory for associates ABI classes.
+    string associates_abi_classes = 10;
   }
 
   // Outputs produced by the builder.
@@ -133,6 +135,8 @@ message JvmCompilationTask {
     string generated_ksp_src_jar = 8;
     // The path to the jar containing the generated KSP classes
     string generated_ksp_classes_jar = 9;
+    // The path to the associates ABI jar.
+    string associates_abi_jar = 10;
   }
 
   message Inputs {
