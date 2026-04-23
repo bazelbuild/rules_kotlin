@@ -64,7 +64,7 @@ register_toolchains("//kotlin/internal:default_toolchain")
 # TODO(bencodes) A bunch of these dependencies need to be marked as dev_dependencies but before we can do that
 # we need to sort out a few cases around how these rules are consumed in various ways.
 
-bazel_dep(name = "rules_jvm_external", version = "6.10")
+bazel_dep(name = "rules_jvm_external", version = "7.0")
 bazel_dep(name = "bazel_ci_rules", version = "1.0.0")
 
 rbe_preconfig = use_repo_rule("@bazel_ci_rules//:rbe_repo.bzl", "rbe_preconfig")
