@@ -69,9 +69,9 @@ java_library(
 
 java_binary(
     name = "jarjar_runner",
-    main_class = "org.pantsbuild.jarjar.Main",
+    main_class = "com.eed3si9n.jarjar.Main",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@kotlin_rules_maven//:org_pantsbuild_jarjar"],
+    runtime_deps = ["@kotlin_rules_maven//:com_eed3si9n_jarjar_jarjar"],
 )
 
 bzl_library(
