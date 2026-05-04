@@ -97,7 +97,7 @@ maven.install(
         "javax.inject:javax.inject:1",
         "org.apache.commons:commons-compress:1.26.2",
         "org.pantsbuild:jarjar:1.7.2",
-        "dev.zacsweers.autoservice:auto-service-ksp:jar:1.2.0",
+        "dev.zacsweers.autoservice:auto-service-ksp:1.2.0:1.2.0",
         "com.squareup.moshi:moshi:1.15.2",
         "com.squareup.moshi:moshi-kotlin:1.15.2",
         "com.squareup.moshi:moshi-kotlin-codegen:1.15.2",
